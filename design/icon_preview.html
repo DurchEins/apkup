@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>ApkUp App Icon Preview</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; padding: 40px; }
+  h1 { font-size: 24px; font-weight: 600; margin-bottom: 24px; }
+  .grid { display: flex; gap: 32px; flex-wrap: wrap; }
+  .card { background: #1e293b; border-radius: 16px; padding: 24px; text-align: center; width: 220px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+  .card h3 { font-size: 15px; margin-top: 16px; color: #cbd5e1; }
+  .card p { font-size: 12px; color: #94a3b8; }
+  .preview-box { width: 140px; height: 140px; margin: 0 auto; display: flex; align-items: center; justify-content: center; }
+  .preview-box img { max-width: 100%; max-height: 100%; }
+  .circle-mask { border-radius: 50%; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
+  .squircle-mask { border-radius: 28px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
+</style>
+</head>
+<body>
+  <h1>ApkUp Modern App Icon Preview</h1>
+  <div class="grid">
+    <div class="card">
+      <div class="preview-box">
+        <img src="apkup_icon_transparent_768.png" />
+      </div>
+      <h3>Legacy Icon (Master)</h3>
+      <p>Original Squircle with Frosted Halo & Shadow</p>
+    </div>
+
+    <div class="card">
+      <div class="preview-box circle-mask">
+        <img src="vector_icon_preview.svg" />
+      </div>
+      <h3>Pixel Launcher (Circle)</h3>
+      <p>Adaptive Icon cut into Circle</p>
+    </div>
+
+    <div class="card">
+      <div class="preview-box squircle-mask">
+        <img src="vector_icon_preview.svg" />
+      </div>
+      <h3>Samsung / One UI</h3>
+      <p>Adaptive Icon in Squircle</p>
+    </div>
+
+    <div class="card">
+      <div class="preview-box">
+        <img src="ic_launcher_512.png" />
+      </div>
+      <h3>Google Play Store</h3>
+      <p>512x512 High-Res Asset</p>
+    </div>
+  </div>
+</body>
+</html>

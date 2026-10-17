@@ -1,4 +1,6 @@
 -keepattributes Signature
+-renamesourcefileattribute SourceFile
+-keepattributes SourceFile,LineNumberTable
 
 # Gson
 -keep class com.google.gson.reflect.TypeToken { *; }
@@ -18,4 +20,4 @@
 -keep,allowoptimization,allowshrinking,allowobfuscation class <3>
 
 # Models
--keep class com.apkupdater.data.** { *; }
+-keep class com.apkup.data.** { *; }

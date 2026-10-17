@@ -1,8 +1,10 @@
 <resources>
 
-    <string name="app_name" translatable="false">APKUpdater</string>
+    <string name="app_name" translatable="false">ApkUp</string>
+    <string name="app_disabled">Disabled</string>
+    <string name="installed_short">Installed:</string>
+    <string name="available_short">Update:</string>
     <string name="tab_apps">Apps</string>
-    <string name="tab_search">Search</string>
     <string name="tab_updates">Updates</string>
     <string name="tab_settings">Settings</string>
     <string name="something_went_wrong">"Something went wrong\n\uD83E\uDD26"</string>
@@ -10,60 +12,170 @@
     <string name="ignore_cd">Ignore App</string>
     <string name="unignore_cd">Unignore App</string>
     <string name="refresh_updates">Look for Updates</string>
-    <string name="exclude_system_apps">Exclude System Apps</string>
-    <string name="include_system_apps">Include System Apps</string>
-    <string name="exclude_app_store">Exclude App Store</string>
-    <string name="include_app_store">Include App Store</string>
-    <string name="exclude_disabled_apps">Exclude Disabled Apps</string>
-    <string name="include_disabled_apps">Include Disabled Apps</string>
+    <string name="updates_checking">Checking for updates…</string>
+    <string name="updates_checking_apps">%1$d of %2$d apps checked by all enabled sources</string>
+    <string name="updates_checking_source">Checking %1$s…</string>
+    <string name="updates_last_checked_just_now">Last checked: just now</string>
+    <string name="updates_last_checked_minutes">Last checked: %1$d min ago</string>
+    <string name="updates_last_checked_hours">Last checked: %1$d h ago</string>
+    <string name="updates_last_checked_days">Last checked: %1$d d ago</string>
     <string name="install_cd">Install App</string>
     <string name="install_all">Install All</string>
+    <string name="installed_version">Installed version</string>
+    <string name="available_version">Available version</string>
+    <string name="update_action">Get update</string>
+    <string name="installing_update">Installing update…</string>
+    <string name="queued_update">In queue…</string>
+    <string name="install_all_browser_only_hint">APKMirror updates open in the browser.</string>
+    <string name="install_all_skipped_browser_hint">%1$d APKMirror web link(s) skipped in batch install.</string>
+    <string name="updates_empty_title">You’re up to date</string>
+    <string name="updates_empty_message">There are no pending updates right now.</string>
+    <string name="updates_error_title">Updates couldn’t be loaded</string>
+    <string name="updates_error_message">Check your connection, then refresh to try again.</string>
+    <string name="updates_source_error">%1$s check failed (%2$s). Showing %3$s results.</string>
+    <string name="updates_partial_empty_title">Update check was incomplete</string>
+    <string name="updates_partial_empty_message">%1$s check failed (%2$s). %3$s reported no updates.</string>
+    <string name="apps_error_message">Pull down to refresh the installed app list.</string>
     <string name="app_cd">App Icon</string>
     <string name="install_success">%1$s installed.</string>
     <string name="install_failure">%1$s failed to install.</string>
-    <string name="root_install_not_supported">Root install of this app is not supported.</string>
 
-    // Settings
-    <string name="settings_experimental_installer">Use Experimental New Installer</string>
-    <string name="settings_portrait_columns">Portrait Columns</string>
-    <string name="settings_landscape_columns">Landscape Columns</string>
-    <string name="play_text_animations">Play Text Animations</string>
+    <!-- Update Details Sheet and Origin -->
+    <string name="whats_new_title">What’s new</string>
+    <string name="whats_new_empty">No release notes provided by this source.</string>
+    <string name="update_source_select">Update source</string>
+    <string name="skip_this_version">Skip this version only</string>
+    <string name="ignore_app_permanently">Ignore app permanently</string>
+    <string name="origin_label">Installed from: %1$s</string>
+    <string name="origin_play">Google Play Store</string>
+    <string name="origin_fdroid">F-Droid</string>
+    <string name="origin_apkmirror">APKMirror</string>
+    <string name="origin_revanced">ReVanced / Patched</string>
+    <string name="origin_sideload">Manual / Sideload</string>
+    <string name="origin_system">System</string>
+    <string name="signature_conflict_warning">Potential signature mismatch: Installed via %1$s. Updating from %2$s may fail if signing keys differ.</string>
+
+    <!-- Apps Search, Filters and Actions -->
+    <string name="apps_search_placeholder">Search apps or package ID…</string>
+    <string name="apps_filter_all">All apps</string>
+    <string name="apps_filter_user">User apps</string>
+    <string name="apps_filter_ignored">Ignored apps</string>
+    <string name="apps_filter_recent">Recently updated</string>
+    <string name="apps_search_empty_title">No matching apps</string>
+    <string name="apps_search_empty_message">Try a different search term or filter.</string>
+    <string name="app_action_system_details">App info (System)</string>
+    <string name="app_action_open_play_store">Open in Google Play Store</string>
+    <string name="app_action_open_play_store_unavailable">Not installed from Google Play Store</string>
+    <string name="app_action_uninstall">Uninstall</string>
+    <string name="app_action_toggle_ignore">Toggle ignore status</string>
+    <string name="apps_scroll_to_bottom">Scroll to bottom</string>
+    <string name="apps_scroll_to_top">Scroll to top</string>
+
+    <!-- Settings -->
+    <string name="settings_shizuku_installer">Use Shizuku for background installs</string>
+    <string name="settings_shizuku_installer_subtitle">Enables automatic updates without system dialogs. Requires running Shizuku service.</string>
+    <string name="shizuku_fallback_not_running">Shizuku service unreachable – using standard installer.</string>
+    <string name="shizuku_fallback_no_permission">Shizuku permission denied – using standard installer.</string>
+    <string name="shizuku_setup_title">Set up Shizuku</string>
+    <string name="shizuku_setup_explanation">Shizuku enables automatic background installations without root via Wireless Debugging.</string>
+    <string name="shizuku_setup_reboot_notice">Important for non-root devices: Due to Android security restrictions, the Shizuku service must be briefly restarted via Wireless Debugging after each full device reboot.</string>
+    <string name="shizuku_step1_title">Step 1: Install Shizuku app</string>
+    <string name="shizuku_step1_desc_missing">The official Shizuku app is not yet installed on this device.</string>
+    <string name="shizuku_step1_desc_ok">Shizuku app is installed.</string>
+    <string name="shizuku_step1_action">Open in Play Store</string>
+    <string name="shizuku_status_installed">Installed</string>
+    <string name="shizuku_status_not_installed">Not installed</string>
+    <string name="shizuku_step2_title">Step 2: Start Shizuku service</string>
+    <string name="shizuku_step2_desc_missing">Developer options → Enable Wireless debugging → Pair &amp; start in Shizuku</string>
+    <string name="shizuku_step2_desc_ok">Shizuku service is running.</string>
+    <string name="shizuku_step2_action">Open Shizuku</string>
+    <string name="shizuku_status_running">Service running</string>
+    <string name="shizuku_status_not_running">Service not started</string>
+    <string name="shizuku_step3_title">Step 3: Grant permission</string>
+    <string name="shizuku_step3_desc_missing">Allow ApkUp to access Shizuku for automatic updates.</string>
+    <string name="shizuku_step3_desc_ok">Permission granted.</string>
+    <string name="shizuku_step3_action">Request permission</string>
+    <string name="shizuku_status_granted">Authorized</string>
+    <string name="shizuku_status_missing_permission">Permission missing</string>
+    <string name="shizuku_setup_recheck">Check status again</string>
+    <string name="shizuku_setup_rechecked_feedback">Live status checked and updated</string>
+    <string name="shizuku_setup_close">Close</string>
     <string name="settings_sources">Sources</string>
     <string name="settings_ui">UI</string>
-    <string name="settings_alarm">Alarm</string>
+    <string name="updates_display_mode">Update display</string>
+    <string name="updates_detail_view">Detail</string>
+    <string name="updates_compact_view">Compact</string>
+    <string name="settings_background_checks">Automatic background update checks</string>
+    <string name="settings_background_interval_title">Check interval</string>
+    <string name="settings_interval_6h">Every 6 hours</string>
+    <string name="settings_interval_12h">Every 12 hours</string>
+    <string name="settings_interval_24h">Every 24 hours (once daily)</string>
+    <string name="settings_interval_48h">Every 48 hours (every 2 days)</string>
+    <string name="settings_interval_7d">Once a week (every 7 days)</string>
     <string name="settings_options">Options</string>
-    <string name="settings_utils">Utils</string>
-    <string name="settings_hour">Alarm Hour</string>
-    <string name="settings_alarm_daily">Daily</string>
-    <string name="settings_alarm_3day">3-Day</string>
-    <string name="settings_alarm_weekly">Weekly</string>
-    <string name="settings_android_tv_ui" translatable="false">Android TV UI</string>
-    <string name="ignore_alpha">Ignore Alpha</string>
-    <string name="ignore_beta">Ignore Beta</string>
-    <string name="ignore_preRelease">Ignore Pre-release</string>
-    <string name="use_safe_stores">Use Safe Stores (Aptoide)</string>
-    <string name="root_install">Root Install</string>
+    <string name="settings_show_system_apps">Show system apps</string>
+    <string name="settings_ignored_versions_title">Skipped single updates</string>
+    <string name="settings_ignored_versions_description">Manage individual update versions you previously chose to skip.</string>
+    <string name="settings_ignored_versions_empty">No individual versions are currently skipped.</string>
+    <string name="settings_ignored_versions_count">%1$d version(s) skipped</string>
+    <string name="settings_ignored_versions_manage">Manage skipped versions</string>
+    <string name="settings_ignored_versions_clear_all">Restore all</string>
+    <string name="settings_ignored_version_restore">Restore</string>
+    <string name="action_unignore_version">Restore</string>
+    <string name="action_clear_ignored_versions">Restore all skipped versions</string>
+    <string name="settings_backup_section">Backup &amp; Restore</string>
+    <string name="settings_backup_description">Export or restore your settings and ignore lists as a JSON file.</string>
+    <string name="settings_backup_export">Export configuration</string>
+    <string name="settings_backup_import">Import configuration</string>
+    <string name="action_export_backup">Export JSON</string>
+    <string name="action_import_backup">Import JSON</string>
+    <string name="backup_export_success">Configuration exported successfully.</string>
+    <string name="backup_import_success">Configuration restored successfully.</string>
+    <string name="backup_import_error">Could not process backup file.</string>
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
-    <string name="source_fdroid" translatable="false">F-Droid Main</string>
-    <string name="source_izzy" translatable="false">F-Droid Izzy</string>
-    <string name="source_aptoide" translatable="false">Aptoide</string>
-    <string name="source_github" translatable="false">GitHub</string>
-    <string name="source_gitlab" translatable="false">GitLab</string>
-    <string name="source_apkpure" translatable="false">APKPure</string>
-    <string name="source_play" translatable="false">Play</string>
+    <string name="source_play">Google Play Store</string>
     <string name="about">About</string>
-    <string name="frequency">Frequency</string>
     <string name="theme">Theme</string>
     <string name="theme_system">System</string>
     <string name="theme_dark">Dark</string>
     <string name="theme_light">Light</string>
-    <string name="about_github">Get the source code, report bugs, request new features and add translations.</string>
-    <string name="about_donate">If you like the app, consider donating to a worthy cause.</string>
+    <string name="about_github_title">GitHub – ApkUp</string>
+    <string name="about_github">Get the source code, report bugs, and suggest new features.</string>
+    <string name="about_copyright">Copyright &#169; 2026 DurchEins</string>
+    <string name="about_tribute">Redesigned from the ground up with love &amp; AI power by DurchEins.</string>
+    <string name="about_original_project">Based on the original project by rumboalla</string>
     <string name="copy_to_clipboard">Copy to clipboard</string>
-    <string name="copy_app_list">Copy App List</string>
-    <string name="copy_app_logs">Copy App Logs</string>
 
-    // Notifications
+    <!-- Settings Sections -->
+    <string name="settings_section_appearance">Appearance &amp; Layout</string>
+    <string name="settings_section_sources">Sources &amp; Scan Behavior</string>
+    <string name="settings_section_install_permissions">Installation &amp; Permissions</string>
+    <string name="settings_section_app_management">App Management</string>
+    <string name="settings_preview_title">Live preview</string>
+    <string name="settings_preview_sample_app">Sample App</string>
+    <string name="settings_preview_update_action">Update</string>
+
+    <string name="permission_unknown_apps_title">Install unknown apps</string>
+    <string name="permission_unknown_apps_subtitle_granted">Permission active – direct APK installation enabled</string>
+    <string name="permission_unknown_apps_subtitle_missing">Required for direct APK installation without Shizuku</string>
+    <string name="permission_status_granted">Granted</string>
+    <string name="permission_status_missing">Not granted</string>
+
+    <string name="hidden_apps_title">Permanently hidden apps</string>
+    <string name="hidden_apps_explanation">These apps are completely ignored. They will neither appear in your app list nor in future update checks.</string>
+    <string name="hidden_apps_badge_count">%1$d apps</string>
+    <string name="hidden_apps_manage">Manage hidden apps</string>
+    <string name="hidden_apps_empty">No apps are currently hidden.</string>
+    <string name="hidden_apps_count">%1$d app(s) hidden</string>
+    <string name="hidden_apps_select_all">Select all</string>
+    <string name="hidden_apps_unselect_all">Deselect all</string>
+    <string name="hidden_apps_restore_selected">Restore selected apps</string>
+    <string name="hidden_apps_hide_more">Hide more apps</string>
+    <string name="hidden_apps_hide_selected">Hide selected</string>
+    <string name="hidden_apps_search">Search apps…</string>
+    <string name="settings_ignored_versions_explanation">Only a specific faulty or unwanted version is skipped here. As soon as the developer releases a newer update, you will be notified again.</string>
+
+    <!-- Notifications -->
     <string name="notification_channel_name">Updates</string>
     <string name="notification_channel_description">Channel for update notifications.</string>
     <string name="notification_channel_id" translatable="false">updateChannel</string>
@@ -73,5 +185,11 @@
         <item quantity="one">Found %1$d update.</item>
         <item quantity="other">Found %1$d updates.</item>
     </plurals>
+
+    <!-- Permission Dialog -->
+    <string name="permission_install_unknown_apps_title">Permission Required</string>
+    <string name="permission_install_unknown_apps_message">To install updates directly, ApkUp requires the system permission \"Install unknown apps\".</string>
+    <string name="permission_install_unknown_apps_button">Enable in settings</string>
+    <string name="permission_install_unknown_apps_later">Later</string>
 
 </resources>
