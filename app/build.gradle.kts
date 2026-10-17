@@ -30,20 +30,31 @@ android {
 
     signingConfigs {
         create("release") {
+            var configured = false
             try {
-                val props = Properties()
-                props.load(FileInputStream(file("../local.properties")))
-                storeFile = file(props.getProperty("keystore.file"))
-                storePassword = props.getProperty("keystore.password")
-                keyAlias = props.getProperty("keystore.keyalias")
-                keyPassword = props.getProperty("keystore.keypassword")
+                val propFile = file("../local.properties")
+                if (propFile.exists()) {
+                    val props = Properties()
+                    props.load(FileInputStream(propFile))
+                    val ksPath = props.getProperty("keystore.file")
+                    if (!ksPath.isNullOrBlank()) {
+                        storeFile = file(ksPath)
+                        storePassword = props.getProperty("keystore.password")
+                        keyAlias = props.getProperty("keystore.keyalias")
+                        keyPassword = props.getProperty("keystore.keypassword")
+                        configured = true
+                    }
+                }
             } catch (_: Exception) {
+                configured = false
+            }
+            if (!configured) {
                 val config = signingConfigs.getByName("debug")
                 storeFile = config.storeFile
                 storePassword = config.storePassword
                 keyAlias = config.keyAlias
                 keyPassword = config.keyPassword
-                println("Signing config not found. Using debug settings.")
+                println("Release keystore not specified in local.properties. Falling back to debug signing config.")
             }
             enableV3Signing = true
         }
@@ -53,6 +64,7 @@ android {
         getByName("release") {
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
