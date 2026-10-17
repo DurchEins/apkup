@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Antennae -->
+    <path
+        android:pathData="M47,38.5 L43.5,31.5"
+        android:strokeWidth="2.6"
+        android:strokeColor="#FF000000"
+        android:strokeLineCap="round" />
+
+    <path
+        android:pathData="M61,38.5 L64.5,31.5"
+        android:strokeWidth="2.6"
+        android:strokeColor="#FF000000"
+        android:strokeLineCap="round" />
+
+    <!-- Head with cut-out eyes using evenOdd -->
+    <path
+        android:fillType="evenOdd"
+        android:fillColor="#FF000000"
+        android:pathData="M41,45.5 C41,38.5 46.8,35 54,35 C61.2,35 67,38.5 67,45.5 C67,46.2 66.2,46.5 65.2,46.5 L42.8,46.5 C41.8,46.5 41,46.2 41,45.5 Z M47.5,40.6 A1.4,1.4 0 1,0 47.5,43.4 A1.4,1.4 0 1,0 47.5,40.6 Z M60.5,40.6 A1.4,1.4 0 1,0 60.5,43.4 A1.4,1.4 0 1,0 60.5,40.6 Z" />
+
+    <!-- Swept Wings / Body -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M42.8,48.5 L65.2,48.5 C66.2,48.5 66.9,49.2 67.2,50.2 C69.5,57.5 73.8,61.5 78.5,62.8 C79.2,63 79.2,63.9 78.6,64.2 L71.5,65.8 C70.8,66 70.2,65.6 69.8,65 L66.5,58.5 C66.2,57.8 65.5,57.5 64.8,57.8 L54,62.5 L43.2,57.8 C42.5,57.5 41.8,57.8 41.5,58.5 L38.2,65 C37.8,65.6 37.2,66 36.5,65.8 L29.4,64.2 C28.8,63.9 28.8,63 29.5,62.8 C34.2,61.5 38.5,57.5 40.8,50.2 C41.1,49.2 41.8,48.5 42.8,48.5 Z" />
+
+    <!-- Ascending Inner Chevron Arrow -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M54,56.5 C54.5,56.5 55,56.8 55.4,57.2 L66.5,68.8 C67.1,69.5 66.8,70.5 66,70.9 L63.5,72.2 C62.7,72.6 61.8,72.3 61.3,71.7 L54,64 L46.7,71.7 C46.2,72.3 45.3,72.6 44.5,72.2 L42,70.9 C41.2,70.5 40.9,69.5 41.5,68.8 L52.6,57.2 C53,56.8 53.5,56.5 54,56.5 Z" />
+</vector>

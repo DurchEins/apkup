@@ -15,18 +15,17 @@ kotlin {
 }
 
 android {
-    namespace = "com.apkupdater"
-    compileSdk = 36
+    namespace = "com.apkup"
+    compileSdk = 37
 
     val buildNumber = System.getenv("BUILD_NUMBER").orEmpty()
     defaultConfig {
-        applicationId = "com.apkupdater" + System.getenv("BUILD_TAG").orEmpty()
-        minSdk = 23
-        targetSdk = 36
-        versionCode = if (buildNumber.isEmpty()) 52 else buildNumber.toInt()
-        versionName = if (buildNumber.isEmpty()) "3.0.3" else "0.0.$buildNumber"
+        applicationId = "com.apkup" + System.getenv("BUILD_TAG").orEmpty()
+        minSdk = 29
+        targetSdk = 37
+        versionCode = if (buildNumber.isEmpty()) 126 else buildNumber.toInt()
+        versionName = if (buildNumber.isEmpty()) "1.26 Beta" else "1.26.$buildNumber"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables.useSupportLibrary = true
     }
 
     signingConfigs {
@@ -82,7 +81,7 @@ android {
 
 dependencies {
 
-    val composeBom = platform("androidx.compose:compose-bom:2026.02.01")
+    val composeBom = platform("androidx.compose:compose-bom:2026.09.00")
     implementation(composeBom)
     implementation("androidx.activity:activity-compose:1.12.4")
     implementation("androidx.compose.material3:material3")
@@ -93,23 +92,21 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.10.0")
     implementation("androidx.navigation:navigation-compose:2.9.7")
     implementation("androidx.navigation:navigation-runtime-ktx:2.9.7")
-    implementation("androidx.tv:tv-foundation:1.0.0-alpha12")
     implementation("androidx.work:work-runtime-ktx:2.11.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     implementation("com.github.rumboalla.KryptoPrefs:kryptoprefs-gson:0.4.3")
     implementation("com.github.rumboalla.KryptoPrefs:kryptoprefs:0.4.3")
-    implementation("com.github.topjohnwu.libsu:core:6.0.0")
     implementation("com.auroraoss:gplayapi:3.5.8")
     implementation("com.google.code.gson:gson:2.13.2")
-    implementation("com.squareup.okhttp3:logging-interceptor:5.3.2")
+    implementation("com.squareup.okhttp3:okhttp:5.3.2")
     implementation("com.squareup.retrofit2:converter-gson:3.0.0")
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
     implementation("io.coil-kt.coil3:coil-compose:3.4.0")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.4.0")
-    implementation("io.github.g00fy2:versioncompare:1.5.0")
     implementation("io.insert-koin:koin-android:4.1.1")
     implementation("io.insert-koin:koin-androidx-compose:4.1.1")
-    implementation("org.jsoup:jsoup:1.22.1")
-
+    implementation("dev.rikka.shizuku:api:13.1.5")
+    implementation("dev.rikka.shizuku:provider:13.1.5")
     testImplementation("junit:junit:4.13.2")
 
     androidTestImplementation(composeBom)
