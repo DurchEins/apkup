@@ -141,7 +141,7 @@
 This project is licensed under the **[MIT License](LICENSE)**.
 
 ```
-Copyright (c) 2026 DuehEins
+Copyright (c) 2026 DurchEins
 Portions Copyright (c) 2017-2024 rumboalla (based on the original project APKUpdater)
 ```
 
