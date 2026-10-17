@@ -51,6 +51,7 @@ captures/
 .Trashes
 ehthumbs.db
 Thumbs.db
+desktop.ini
 
 # Memory dumps
 *.hprof
