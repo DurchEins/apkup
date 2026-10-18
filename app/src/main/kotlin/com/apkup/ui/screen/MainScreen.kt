@@ -103,16 +103,11 @@ fun MainScreen(
 		navController.currentBackStackEntryAsState().value?.destination?.route
 	)
 	val currentVersionCode = BuildConfig.VERSION_CODE.toLong()
-	var showChangelogSheet by remember { mutableStateOf(false) }
+	val showChangelogSheet by mainViewModel.showChangelogSheet.collectAsStateWithLifecycle()
 
 	LaunchedEffect(Unit) {
+		mainViewModel.checkChangelogPrompt(context, currentVersionCode)
 		mainViewModel.initializeOnStart(appsViewModel, updatesViewModel, isColdStart)
-		val lastSeen = prefs.lastSeenVersionCode.get()
-		if (lastSeen == 0L) {
-			prefs.lastSeenVersionCode.put(currentVersionCode)
-		} else if (currentVersionCode > lastSeen) {
-			showChangelogSheet = true
-		}
 	}
 
 	LaunchedEffect(isColdStart) {
@@ -190,8 +185,7 @@ fun MainScreen(
 	if (showChangelogSheet) {
 		ChangelogBottomSheet(
 			onDismiss = {
-				showChangelogSheet = false
-				prefs.lastSeenVersionCode.put(currentVersionCode)
+				mainViewModel.dismissChangelogSheet(currentVersionCode)
 			}
 		)
 	}

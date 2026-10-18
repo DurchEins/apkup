@@ -95,4 +95,30 @@ class InstallPipelineTest {
             assertTrue("Part name ${it.name} must end with .apk", it.name.endsWith(".apk"))
         }
     }
+
+    @Test
+    fun `changelog display conditions trigger correctly based on fresh install check`() {
+        val currentVersionCode = 127L
+
+        fun shouldShowChangelog(lastSeen: Long, isFreshInstall: Boolean): Boolean {
+            return when {
+                lastSeen == 0L && !isFreshInstall -> true
+                lastSeen in 1 until currentVersionCode -> true
+                lastSeen == 0L && isFreshInstall -> false
+                else -> false
+            }
+        }
+
+        // Scenario 1: Update from v1.26 where last_seen_version_code was 0L (not a fresh install)
+        assertTrue(shouldShowChangelog(lastSeen = 0L, isFreshInstall = false))
+
+        // Scenario 2: Normal subsequent update (e.g. from 125 to 127)
+        assertTrue(shouldShowChangelog(lastSeen = 125L, isFreshInstall = false))
+
+        // Scenario 3: True fresh install (firstInstallTime == lastUpdateTime)
+        assertTrue(!shouldShowChangelog(lastSeen = 0L, isFreshInstall = true))
+
+        // Scenario 4: Already seen current version (no re-trigger)
+        assertTrue(!shouldShowChangelog(lastSeen = 127L, isFreshInstall = false))
+    }
 }

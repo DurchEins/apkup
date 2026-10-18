@@ -3,6 +3,7 @@ package com.apkup.util
 import android.util.Log
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.io.File
 import java.io.InputStream
 import java.io.PushbackInputStream
 import java.util.zip.GZIPInputStream
@@ -41,6 +42,33 @@ class Downloader(
     }.getOrElse {
         Log.e("Downloader", "Download failed (${it.javaClass.simpleName})", it)
         null
+    }
+
+    fun downloadToFile(
+        url: String,
+        targetFile: File,
+        onBytesRead: ((bytesReadInChunk: Int) -> Unit)? = null
+    ): Boolean = runCatching {
+        val stream = downloadStream(url) ?: return false
+        targetFile.parentFile?.mkdirs()
+        stream.use { input ->
+            targetFile.outputStream().use { output ->
+                val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                var read = input.read(buffer)
+                while (read >= 0) {
+                    if (read > 0) {
+                        output.write(buffer, 0, read)
+                        onBytesRead?.invoke(read)
+                    }
+                    read = input.read(buffer)
+                }
+                output.flush()
+            }
+        }
+        targetFile.length() > 0L
+    }.getOrElse {
+        Log.e("Downloader", "Failed to download to file ${targetFile.name}", it)
+        false
     }
 
     private fun downloadRequest(url: String) = Request.Builder().url(url).build()

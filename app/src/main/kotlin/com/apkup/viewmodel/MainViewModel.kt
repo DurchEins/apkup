@@ -21,8 +21,11 @@ import com.apkup.util.getAppId
 import com.apkup.util.getIntentExtra
 import com.apkup.util.orFalse
 import com.apkup.worker.UpdatesWorker
+import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 
@@ -42,6 +45,33 @@ class MainViewModel(
 
 	val isRefreshing = MutableStateFlow(false)
 	private var hasInitializedColdStart = false
+	private val _showChangelogSheet = MutableStateFlow(false)
+	val showChangelogSheet: StateFlow<Boolean> = _showChangelogSheet.asStateFlow()
+
+	fun checkChangelogPrompt(context: Context, currentVersionCode: Long) {
+		val lastSeen = prefs.lastSeenVersionCode.get()
+		val isFreshInstall = runCatching {
+			val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+			packageInfo.firstInstallTime == packageInfo.lastUpdateTime
+		}.getOrDefault(false)
+
+		when {
+			lastSeen == 0L && !isFreshInstall -> {
+				_showChangelogSheet.value = true
+			}
+			lastSeen in 1 until currentVersionCode -> {
+				_showChangelogSheet.value = true
+			}
+			lastSeen == 0L && isFreshInstall -> {
+				prefs.lastSeenVersionCode.put(currentVersionCode)
+			}
+		}
+	}
+
+	fun dismissChangelogSheet(currentVersionCode: Long) {
+		_showChangelogSheet.value = false
+		prefs.lastSeenVersionCode.put(currentVersionCode)
+	}
 
 	fun initializeOnStart(
 		appsViewModel: AppsViewModel,

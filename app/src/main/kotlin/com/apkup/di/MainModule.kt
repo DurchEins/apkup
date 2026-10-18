@@ -99,7 +99,7 @@ val mainModule = module {
 
 	viewModel { AppsViewModel(get(), get(), get()) }
 
-	viewModel { UpdatesViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
+	viewModel { UpdatesViewModel(get(), get(), get(), get(), get(), get(), get(), get(), androidContext()) }
 
 	viewModel { SettingsViewModel(get(), get(), WorkManager.getInstance(get()), get(), get(), get(), get(), get()) }
 
