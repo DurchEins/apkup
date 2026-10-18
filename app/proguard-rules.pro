@@ -21,6 +21,8 @@
 
 # Models
 -keep class com.apkup.data.** { *; }
+-keep class com.apkup.data.izzy.** { *; }
+-keep class com.apkup.data.selfupdate.** { *; }
 
 # Shizuku
 -keep class rikka.shizuku.** { *; }

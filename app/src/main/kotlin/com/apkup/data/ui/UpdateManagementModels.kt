@@ -50,6 +50,7 @@ data class ApkUpBackupConfig(
 	val updatesDisplayMode: Int = 0,
 	val useApkMirror: Boolean = true,
 	val usePlay: Boolean = true,
+	val useIzzyOnDroid: Boolean = true,
 	val enableBackgroundChecks: Boolean = true,
 	val backgroundCheckIntervalHours: Int = 24,
 	val theme: Int = 0,
@@ -143,6 +144,7 @@ internal fun CachedAppUpdateDto.toAppUpdate(
 ): AppUpdate {
 	val resolvedSource = when (sourceName) {
 		PlaySource.name -> PlaySource
+		IzzyOnDroidSource.name -> IzzyOnDroidSource
 		else -> ApkMirrorSource
 	}
 	val resolvedLink = when {

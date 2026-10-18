@@ -205,18 +205,28 @@ fun ChangelogCard(entry: ChangelogEntry) {
 
 internal fun loadChangelogContent(context: Context): String {
     val language = Locale.getDefault().language
-    val targetAsset = if (language.equals("de", ignoreCase = true)) {
-        "changelog/1.27_de.md"
+    val versionPrefix = BuildConfig.VERSION_NAME
+        .substringBefore("-")
+        .trim()
+        .ifEmpty { "1.30" }
+
+    val localizedAsset = if (language.equals("de", ignoreCase = true)) {
+        "changelog/${versionPrefix}_de.md"
     } else {
-        "changelog/1.27_en.md"
+        "changelog/${versionPrefix}_en.md"
     }
+    val fallbackEnglishAsset = "changelog/${versionPrefix}_en.md"
 
     return runCatching {
-        context.assets.open(targetAsset).use { input ->
+        context.assets.open(localizedAsset).use { input ->
             BufferedReader(InputStreamReader(input, Charsets.UTF_8)).readText()
         }
     }.recoverCatching {
-        context.assets.open("changelog/1.27_en.md").use { input ->
+        context.assets.open(fallbackEnglishAsset).use { input ->
+            BufferedReader(InputStreamReader(input, Charsets.UTF_8)).readText()
+        }
+    }.recoverCatching {
+        context.assets.open("changelog/1.30_en.md").use { input ->
             BufferedReader(InputStreamReader(input, Charsets.UTF_8)).readText()
         }
     }.getOrDefault("")

@@ -22,17 +22,33 @@ import com.apkup.util.getIntentExtra
 import com.apkup.util.orFalse
 import com.apkup.worker.UpdatesWorker
 import android.content.Context
+import com.apkup.BuildConfig
+import com.apkup.R
+import com.apkup.data.selfupdate.SelfUpdateInfo
+import com.apkup.data.selfupdate.SelfUpdateState
+import com.apkup.data.snack.TextSnack
+import com.apkup.repository.SelfUpdateRepository
+import com.apkup.util.Downloader
+import com.apkup.util.InstallPart
+import com.apkup.util.SnackBar
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.IOException
 
 
 class MainViewModel(
 	private val prefs: Prefs,
 	private val installLog: InstallLog,
-	workManager: WorkManager
+	workManager: WorkManager,
+	private val selfUpdateRepository: SelfUpdateRepository? = null,
+	private val downloader: Downloader? = null,
+	private val sessionInstaller: SessionInstaller? = null,
+	private val snackBar: SnackBar? = null
 ) : ViewModel() {
 	val screens = listOf(Screen.Apps, Screen.Updates, Screen.Settings)
 
@@ -47,6 +63,81 @@ class MainViewModel(
 	private var hasInitializedColdStart = false
 	private val _showChangelogSheet = MutableStateFlow(false)
 	val showChangelogSheet: StateFlow<Boolean> = _showChangelogSheet.asStateFlow()
+
+	private val _selfUpdateState = MutableStateFlow<SelfUpdateState>(SelfUpdateState.Idle)
+	val selfUpdateState: StateFlow<SelfUpdateState> = _selfUpdateState.asStateFlow()
+
+	fun dismissSelfUpdate() {
+		_selfUpdateState.value = SelfUpdateState.Idle
+	}
+
+	fun checkForSelfUpdate(manual: Boolean = false, context: Context? = null) = viewModelScope.launch(Dispatchers.IO) {
+		val repo = selfUpdateRepository ?: return@launch
+		if (manual) {
+			_selfUpdateState.value = SelfUpdateState.Checking
+			context?.let { ctx ->
+				snackBar?.snackBar(viewModelScope, TextSnack(ctx.getString(R.string.self_update_checking)))
+			}
+		}
+		val result = repo.checkForUpdate()
+		if (result.isSuccess) {
+			val info = result.getOrNull()
+			if (info != null) {
+				_selfUpdateState.value = SelfUpdateState.Available(info)
+			} else {
+				_selfUpdateState.value = SelfUpdateState.Idle
+				if (manual && context != null) {
+					val msg = context.getString(R.string.self_update_latest, BuildConfig.VERSION_NAME)
+					snackBar?.snackBar(viewModelScope, TextSnack(msg))
+				}
+			}
+		} else {
+			val error = result.exceptionOrNull()
+			Log.e("MainViewModel", "Self update check failed", error)
+			_selfUpdateState.value = SelfUpdateState.Idle
+			if (manual && context != null) {
+				snackBar?.snackBar(viewModelScope, TextSnack(context.getString(R.string.self_update_error)))
+			}
+		}
+	}
+
+	fun startSelfUpdate(info: SelfUpdateInfo, context: Context) = viewModelScope.launch(Dispatchers.IO) {
+		val dl = downloader ?: return@launch
+		val inst = sessionInstaller ?: return@launch
+		val cacheDir = context.cacheDir ?: File(System.getProperty("java.io.tmpdir") ?: ".", "apkup_cache")
+		val stagingDir = File(cacheDir, "self_update_staging").apply {
+			deleteRecursively()
+			mkdirs()
+		}
+		val targetFile = File(stagingDir, "ApkUp-${info.versionName}.apk")
+
+		_selfUpdateState.value = SelfUpdateState.Downloading(info, 0)
+		var downloadedBytes = 0L
+		val totalBytes = info.apkSize
+
+		try {
+			val success = dl.downloadToFile(info.downloadUrl, targetFile) { chunk ->
+				downloadedBytes += chunk
+				val percent = if (totalBytes > 0) ((downloadedBytes * 100) / totalBytes).toInt().coerceIn(0, 100) else 0
+				_selfUpdateState.value = SelfUpdateState.Downloading(info, percent)
+			}
+
+			if (!success || targetFile.length() <= 0L) {
+				throw IOException("Self-update APK download failed or resulted in empty file.")
+			}
+
+			_selfUpdateState.value = SelfUpdateState.Installing(info)
+			val selfUpdateInstallId = "com.apkup.selfupdate".hashCode()
+			val parts = listOf(InstallPart("base.apk") { targetFile.inputStream() })
+			inst.installParts(selfUpdateInstallId, "com.apkup", parts)
+			_selfUpdateState.value = SelfUpdateState.Idle
+		} catch (e: Exception) {
+			if (e is CancellationException) throw e
+			Log.e("MainViewModel", "Failed to download/install self update", e)
+			_selfUpdateState.value = SelfUpdateState.Idle
+			snackBar?.snackBar(viewModelScope, TextSnack(context.getString(R.string.self_update_error)))
+		}
+	}
 
 	fun checkChangelogPrompt(context: Context, currentVersionCode: Long) {
 		val lastSeen = prefs.lastSeenVersionCode.get()
@@ -86,6 +177,7 @@ class MainViewModel(
 		if (isColdStart || !hadCache) {
 			updatesViewModel.refresh(load = true, installedAppsSnapshot = installedApps).join()
 		}
+		checkForSelfUpdate(manual = false)
 	}
 
 	fun refresh(

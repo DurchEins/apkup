@@ -6,6 +6,7 @@ import com.apkup.BuildConfig
 import com.apkup.data.ui.AppInstalled
 import com.apkup.data.ui.AppUpdate
 import com.apkup.data.ui.CachedUpdateSnapshot
+import com.apkup.data.ui.IzzyOnDroidSource
 import com.apkup.data.ui.PlaySource
 import com.apkup.data.ui.SourceUpdateResult
 import com.apkup.data.ui.UpdateCheckResult
@@ -27,6 +28,7 @@ class UpdatesRepository(
     private val appsRepository: AppsRepository,
     private val apkMirrorRepository: ApkMirrorRepository,
     private val playRepository: PlayRepository,
+    private val izzyOnDroidRepository: IzzyOnDroidRepository,
     private val prefs: Prefs
 ) {
 
@@ -49,6 +51,7 @@ class UpdatesRepository(
         val sourceChecks = mutableListOf<Pair<String, suspend (suspend (List<String>) -> Unit) -> SourceUpdateResult<AppUpdate>>>()
         if (prefs.useApkMirror.get()) sourceChecks.add("APKMirror" to { onBatchSuccess -> apkMirrorRepository.updates(appsToCheck, onBatchSuccess).first() })
         if (prefs.usePlay.get()) sourceChecks.add("Google Play" to { onBatchSuccess -> playRepository.updates(appsToCheck, onBatchSuccess).first() })
+        if (prefs.useIzzyOnDroid.get()) sourceChecks.add("IzzyOnDroid" to { onBatchSuccess -> izzyOnDroidRepository.updates(appsToCheck, onBatchSuccess).first() })
 
         val sourceResults = mutableListOf<SourceUpdateResult<AppUpdate>>()
         if (sourceChecks.isEmpty()) {
@@ -56,7 +59,7 @@ class UpdatesRepository(
             saveSnapshotToCache(emptyResult)
             send(emptyResult)
         } else coroutineScope {
-            // Count only nonblank, unique package IDs; these are exactly the IDs both sources query.
+            // Count only nonblank, unique package IDs; these are exactly the IDs all sources query.
             val packageNames = appsToCheck.getPackageNames()
             val progressTracker = UpdateCheckProgressTracker(packageNames, sourceChecks.map { it.first })
             val sourceResultsLock = Any()
@@ -70,7 +73,7 @@ class UpdatesRepository(
                     filteredResults,
                     packageName = AppUpdate::packageName,
                     versionCode = AppUpdate::versionCode,
-                    sourcePriority = { if (it.source == PlaySource) 1 else 0 }
+                    sourcePriority = { when (it.source) { PlaySource -> 2; IzzyOnDroidSource -> 1; else -> 0 } }
                 )
                 val enrichedUpdates = enrichWithSourceAlternatives(
                     primaryUpdates = combined.updates,
@@ -234,7 +237,7 @@ internal fun enrichWithSourceAlternatives(
                 sameSourceCandidates.maxByOrNull { it.versionCode }!!
             }
             .sortedWith(
-                compareByDescending<AppUpdate> { if (it.source == PlaySource) 1 else 0 }
+                compareByDescending<AppUpdate> { when (it.source) { PlaySource -> 2; IzzyOnDroidSource -> 1; else -> 0 } }
                     .thenByDescending { it.versionCode }
             )
         if (distinctSources.size > 1) {

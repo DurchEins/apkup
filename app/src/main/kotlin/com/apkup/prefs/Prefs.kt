@@ -31,6 +31,7 @@ class Prefs(
 	val updatesDisplayMode = int("updatesDisplayMode", defValue = 0, backed = true)
 	val useApkMirror = boolean("useApkMirror", defValue = true, backed = true)
 	val usePlay = boolean("usePlay", defValue = true, backed = true)
+	val useIzzyOnDroid = boolean("useIzzyOnDroid", defValue = true, backed = true)
 	val enableBackgroundChecks = boolean("enableAlarm", defValue = true, backed = true)
 	val backgroundCheckIntervalHours = int("backgroundCheckIntervalHours", defValue = 24, backed = true)
 	val theme = int("theme", defValue = 0, backed = true)

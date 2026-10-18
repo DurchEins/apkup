@@ -143,10 +143,23 @@
     <string name="about_tribute">Mit viel Liebe &amp; KI-Power von DurchEins von Grund auf neu gestaltet.</string>
     <string name="about_original_project">Basierend auf dem Originalprojekt von rumboalla</string>
     <string name="copy_to_clipboard">Kopiere in Zwischenablage</string>
-    <string name="changelog_title">Was ist neu in v1.27</string>
+    <string name="changelog_title">Was ist neu</string>
     <string name="changelog_menu_item">Was ist neu / Changelog</string>
     <string name="changelog_menu_subtitle">Highlights und Neuerungen dieser Version ansehen</string>
     <string name="changelog_button_dismiss">Alles klar</string>
+
+    <!-- Self-Updater -->
+    <string name="self_update_card_title">Auf ApkUp-Update prüfen</string>
+    <string name="self_update_card_subtitle">Neueste ApkUp-Releases direkt finden und installieren</string>
+    <string name="self_update_checking">Suche nach ApkUp-Update…</string>
+    <string name="self_update_latest">ApkUp ist bereits auf dem neuesten Stand (%1$s).</string>
+    <string name="self_update_dialog_title">Update für ApkUp verfügbar</string>
+    <string name="self_update_dialog_version">Neue Version %1$s</string>
+    <string name="self_update_dialog_button_update">Jetzt aktualisieren</string>
+    <string name="self_update_dialog_button_later">Später</string>
+    <string name="self_update_downloading">Update wird heruntergeladen… %1$d%%</string>
+    <string name="self_update_installing">Installation wird vorbereitet…</string>
+    <string name="self_update_error">Update-Prüfung oder Download fehlgeschlagen.</string>
 
     <!-- Settings Sections -->
     <string name="settings_section_appearance">Erscheinungsbild &amp; Layout</string>

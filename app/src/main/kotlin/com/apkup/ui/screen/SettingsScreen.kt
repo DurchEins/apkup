@@ -142,6 +142,7 @@ import com.apkup.ui.component.SettingsSection
 import com.apkup.ui.component.SwitchSetting
 import com.apkup.util.SessionInstaller
 import com.apkup.viewmodel.AppsViewModel
+import com.apkup.viewmodel.MainViewModel
 import com.apkup.viewmodel.SettingsViewModel
 import com.apkup.viewmodel.UpdatesViewModel
 import com.apkup.prefs.Prefs
@@ -155,7 +156,8 @@ import org.koin.compose.viewmodel.koinViewModel
 fun SettingsScreen(
 	viewModel: SettingsViewModel = koinViewModel(),
 	appsViewModel: AppsViewModel = koinViewModel(),
-	updatesViewModel: UpdatesViewModel = koinViewModel()
+	updatesViewModel: UpdatesViewModel = koinViewModel(),
+	mainViewModel: MainViewModel = koinViewModel()
 ) = Column {
 	val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -178,7 +180,7 @@ fun SettingsScreen(
 	}
 
 	SettingsTopBar()
-	Settings(viewModel, appsViewModel, updatesViewModel)
+	Settings(viewModel, appsViewModel, updatesViewModel, mainViewModel)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -187,6 +189,7 @@ fun Settings(
 	viewModel: SettingsViewModel,
 	appsViewModel: AppsViewModel,
 	updatesViewModel: UpdatesViewModel,
+	mainViewModel: MainViewModel,
 	handler: UriHandler = LocalUriHandler.current
 ) {
 	val context = LocalContext.current
@@ -399,6 +402,12 @@ fun Settings(
 					{ viewModel.setUsePlay(it) },
 					stringResource(R.string.source_play),
 					R.drawable.ic_play
+				)
+				SwitchSetting(
+					{ viewModel.getUseIzzyOnDroid() },
+					{ viewModel.setUseIzzyOnDroid(it) },
+					stringResource(R.string.source_izzyondroid),
+					R.drawable.ic_izzy
 				)
 				SwitchSetting(
 					getValue = { viewModel.getShowSystemApps() },
@@ -817,6 +826,49 @@ fun Settings(
 							color = MaterialTheme.colorScheme.onSurfaceVariant,
 							textAlign = TextAlign.Center,
 							modifier = Modifier.padding(horizontal = 4.dp)
+						)
+					}
+				}
+
+				Surface(
+					onClick = { mainViewModel.checkForSelfUpdate(manual = true, context = context) },
+					modifier = Modifier
+						.fillMaxWidth()
+						.heightIn(min = 44.dp),
+					shape = RoundedCornerShape(14.dp),
+					color = MaterialTheme.colorScheme.surfaceContainerHigh
+				) {
+					Row(
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(horizontal = 14.dp, vertical = 10.dp),
+						verticalAlignment = CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(10.dp)
+					) {
+						Icon(
+							painter = painterResource(R.drawable.ic_refresh),
+							contentDescription = null,
+							tint = MaterialTheme.colorScheme.primary,
+							modifier = Modifier.size(18.dp)
+						)
+						Column(modifier = Modifier.weight(1f)) {
+							Text(
+								text = stringResource(R.string.self_update_card_title),
+								style = MaterialTheme.typography.bodySmall,
+								fontWeight = FontWeight.SemiBold,
+								color = MaterialTheme.colorScheme.onSurface
+							)
+							Text(
+								text = stringResource(R.string.self_update_card_subtitle),
+								style = MaterialTheme.typography.labelSmall,
+								color = MaterialTheme.colorScheme.onSurfaceVariant
+							)
+						}
+						Icon(
+							painter = painterResource(R.drawable.ic_info),
+							contentDescription = null,
+							tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
+							modifier = Modifier.size(16.dp)
 						)
 					}
 				}
