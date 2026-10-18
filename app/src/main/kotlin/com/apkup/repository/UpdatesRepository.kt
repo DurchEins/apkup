@@ -6,6 +6,8 @@ import com.apkup.BuildConfig
 import com.apkup.data.ui.AppInstalled
 import com.apkup.data.ui.AppUpdate
 import com.apkup.data.ui.CachedUpdateSnapshot
+import com.apkup.data.ui.GitHubSource
+import com.apkup.data.ui.GitLabSource
 import com.apkup.data.ui.IzzyOnDroidSource
 import com.apkup.data.ui.PlaySource
 import com.apkup.data.ui.SourceUpdateResult
@@ -29,6 +31,8 @@ class UpdatesRepository(
     private val apkMirrorRepository: ApkMirrorRepository,
     private val playRepository: PlayRepository,
     private val izzyOnDroidRepository: IzzyOnDroidRepository,
+    private val gitHubRepository: GitHubRepository,
+    private val gitLabRepository: GitLabRepository,
     private val prefs: Prefs
 ) {
 
@@ -52,6 +56,8 @@ class UpdatesRepository(
         if (prefs.useApkMirror.get()) sourceChecks.add("APKMirror" to { onBatchSuccess -> apkMirrorRepository.updates(appsToCheck, onBatchSuccess).first() })
         if (prefs.usePlay.get()) sourceChecks.add("Google Play" to { onBatchSuccess -> playRepository.updates(appsToCheck, onBatchSuccess).first() })
         if (prefs.useIzzyOnDroid.get()) sourceChecks.add("IzzyOnDroid" to { onBatchSuccess -> izzyOnDroidRepository.updates(appsToCheck, onBatchSuccess).first() })
+        if (prefs.useGitHub.get()) sourceChecks.add("GitHub" to { onBatchSuccess -> gitHubRepository.updates(appsToCheck, onBatchSuccess).first() })
+        if (prefs.useGitLab.get()) sourceChecks.add("GitLab" to { onBatchSuccess -> gitLabRepository.updates(appsToCheck, onBatchSuccess).first() })
 
         val sourceResults = mutableListOf<SourceUpdateResult<AppUpdate>>()
         Log.i("UpdatesRepository", "Starting update check across active sources (${sourceChecks.map { it.first }.joinToString(", ")}) for ${appsToCheck.size} apps")
@@ -74,7 +80,7 @@ class UpdatesRepository(
                     filteredResults,
                     packageName = AppUpdate::packageName,
                     versionCode = AppUpdate::versionCode,
-                    sourcePriority = { when (it.source) { PlaySource -> 2; IzzyOnDroidSource -> 1; else -> 0 } }
+                    sourcePriority = { when (it.source) { PlaySource -> 4; GitHubSource -> 3; GitLabSource -> 2; IzzyOnDroidSource -> 1; else -> 0 } }
                 )
                 val enrichedUpdates = enrichWithSourceAlternatives(
                     primaryUpdates = combined.updates,
@@ -234,7 +240,7 @@ internal fun enrichWithSourceAlternatives(
                 sameSourceCandidates.maxByOrNull { it.versionCode }!!
             }
             .sortedWith(
-                compareByDescending<AppUpdate> { when (it.source) { PlaySource -> 2; IzzyOnDroidSource -> 1; else -> 0 } }
+                compareByDescending<AppUpdate> { when (it.source) { PlaySource -> 4; GitHubSource -> 3; GitLabSource -> 2; IzzyOnDroidSource -> 1; else -> 0 } }
                     .thenByDescending { it.versionCode }
             )
         if (distinctSources.size > 1) {

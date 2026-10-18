@@ -89,6 +89,7 @@ fun InstalledItem(
 	val context = LocalContext.current
 	val haptics = LocalHapticFeedback.current
 	var showContextMenu by remember { mutableStateOf(false) }
+	var showLinkRepoDialog by remember { mutableStateOf(false) }
 	val isPlayStoreApp = remember(app.packageName, app.installerPackageName, app.isSystemApp) {
 		app.installOrigin == InstallOrigin.PLAY_STORE ||
 			resolveInstallOrigin(
@@ -249,6 +250,21 @@ fun InstalledItem(
 				}
 			)
 			DropdownMenuItem(
+				text = { Text(stringResource(R.string.action_link_repo)) },
+				leadingIcon = {
+					Icon(
+						painter = painterResource(R.drawable.ic_github),
+						contentDescription = null,
+						tint = MaterialTheme.colorScheme.primary,
+						modifier = Modifier.size(20.dp)
+					)
+				},
+				onClick = {
+					showContextMenu = false
+					showLinkRepoDialog = true
+				}
+			)
+			DropdownMenuItem(
 				text = { Text(stringResource(R.string.app_action_toggle_ignore)) },
 				leadingIcon = {
 					Icon(
@@ -286,6 +302,14 @@ fun InstalledItem(
 				)
 			}
 		}
+	}
+
+	if (showLinkRepoDialog) {
+		LinkRepoDialog(
+			packageName = app.packageName,
+			appName = app.name.ifBlank { app.packageName },
+			onDismiss = { showLinkRepoDialog = false }
+		)
 	}
 }
 

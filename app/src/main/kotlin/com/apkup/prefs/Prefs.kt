@@ -1,5 +1,6 @@
 package com.apkup.prefs
 
+import com.apkup.data.repomapping.RepoBinding
 import com.apkup.data.ui.CachedUpdateSnapshot
 import com.apkup.data.ui.IgnoredVersionEntry
 import com.apkup.data.ui.Screen
@@ -32,6 +33,10 @@ class Prefs(
 	val useApkMirror = boolean("useApkMirror", defValue = true, backed = true)
 	val usePlay = boolean("usePlay", defValue = true, backed = true)
 	val useIzzyOnDroid = boolean("useIzzyOnDroid", defValue = true, backed = true)
+	val useGitHub = boolean("useGitHub", defValue = true, backed = true)
+	val useGitLab = boolean("useGitLab", defValue = true, backed = true)
+	val githubToken = string("githubToken", defValue = "", backed = true)
+	val customRepoBindings = json("customRepoBindings", emptyMap<String, RepoBinding>(), true)
 	val enableBackgroundChecks = boolean("enableAlarm", defValue = true, backed = true)
 	val backgroundCheckIntervalHours = int("backgroundCheckIntervalHours", defValue = 24, backed = true)
 	val theme = int("theme", defValue = 0, backed = true)
@@ -55,5 +60,17 @@ class Prefs(
 	}.getOrElse {
 		runCatching { ignoredVersionEntries.put(emptyList()) }
 		emptyList()
+	}
+
+	fun readCustomRepoBindingsSafe(): Map<String, RepoBinding> = runCatching {
+		customRepoBindings.get()
+	}.getOrElse {
+		val empty = emptyMap<String, RepoBinding>()
+		runCatching { customRepoBindings.put(empty) }
+		empty
+	}
+
+	fun writeCustomRepoBindings(bindings: Map<String, RepoBinding>) {
+		runCatching { customRepoBindings.put(bindings) }
 	}
 }

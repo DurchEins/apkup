@@ -28,7 +28,8 @@ data class IzzyAppInfo(
     val description: String = "",
     val icon: String = "",
     val authorName: String = "",
-    val categories: List<String> = emptyList()
+    val categories: List<String> = emptyList(),
+    val source: String? = null
 )
 
 data class IzzyPackageInfo(

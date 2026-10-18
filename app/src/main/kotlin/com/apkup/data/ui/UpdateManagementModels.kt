@@ -51,6 +51,9 @@ data class ApkUpBackupConfig(
 	val useApkMirror: Boolean = true,
 	val usePlay: Boolean = true,
 	val useIzzyOnDroid: Boolean = true,
+	val useGitHub: Boolean = true,
+	val useGitLab: Boolean = true,
+	val customRepoBindings: Map<String, com.apkup.data.repomapping.RepoBinding> = emptyMap(),
 	val enableBackgroundChecks: Boolean = true,
 	val backgroundCheckIntervalHours: Int = 24,
 	val theme: Int = 0,
@@ -145,6 +148,8 @@ internal fun CachedAppUpdateDto.toAppUpdate(
 	val resolvedSource = when (sourceName) {
 		PlaySource.name -> PlaySource
 		IzzyOnDroidSource.name -> IzzyOnDroidSource
+		GitHubSource.name -> GitHubSource
+		GitLabSource.name -> GitLabSource
 		else -> ApkMirrorSource
 	}
 	val resolvedLink = when {

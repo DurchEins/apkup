@@ -132,6 +132,36 @@
     <string name="backup_import_success">Konfiguration erfolgreich wiederhergestellt.</string>
     <string name="backup_import_error">Sicherungsdatei konnte nicht verarbeitet werden.</string>
     <string name="source_play">Google Play Store</string>
+    <string name="source_github" translatable="false">GitHub</string>
+    <string name="source_gitlab" translatable="false">GitLab</string>
+    <string name="settings_source_github_desc">GitHub-Releases für zugeordnete und Open-Source-Apps prüfen</string>
+    <string name="settings_source_gitlab_desc">GitLab-Releases für zugeordnete Repositories prüfen</string>
+    <string name="github_token_title">GitHub API-Token</string>
+    <string name="github_token_desc">Optionales Personal Access Token zur Erhöhung des Limits von 60 auf 5.000 Anfragen/Stunde</string>
+    <string name="github_token_dialog_title">GitHub Personal Access Token</string>
+    <string name="github_token_dialog_desc">Gib ein Personal Access Token (nur Lesezugriff auf öffentliche Repos erforderlich) ein, um GitHub-Rate-Limits (HTTP 403) zu vermeiden.</string>
+    <string name="github_token_dialog_hint">ghp_xxxxxxxxxxxx</string>
+    <string name="github_token_dialog_clear">Token entfernen</string>
+    <string name="github_token_dialog_save">Speichern</string>
+    <string name="github_token_status_set">Token konfiguriert</string>
+    <string name="github_token_status_not_set">Kein Token hinterlegt (Limit: 60 Anfragen/h)</string>
+    <string name="action_link_repo">Repository verknüpfen</string>
+    <string name="link_repo_dialog_title">Repository verknüpfen</string>
+    <string name="link_repo_dialog_desc">Verknüpfe diese App mit einem GitHub- oder GitLab-Repository, um Updates direkt aus Releases zu beziehen.</string>
+    <string name="link_repo_platform">Plattform</string>
+    <string name="link_repo_input_label">Repository</string>
+    <string name="link_repo_input_hint">owner/repo oder vollständige URL</string>
+    <string name="link_repo_host_label">Eigener GitLab-Host</string>
+    <string name="link_repo_host_hint">gitlab.com (oder eigene Domain)</string>
+    <string name="link_repo_btn_test">Testen</string>
+    <string name="link_repo_btn_save">Speichern</string>
+    <string name="link_repo_btn_unlink">Trennen</string>
+    <string name="link_repo_testing">Verbindung wird geprüft…</string>
+    <string name="link_repo_test_success">Release %1$s gefunden: %2$s</string>
+    <string name="link_repo_test_no_apk">Release %1$s gefunden, aber kein passendes APK-Asset!</string>
+    <string name="link_repo_test_failed">Release nicht gefunden: %1$s</string>
+    <string name="link_repo_saved_snack">Repository für %1$s verknüpft</string>
+    <string name="link_repo_unlinked_snack">Repository-Verknüpfung für %1$s aufgehoben</string>
     <string name="about">Über</string>
     <string name="theme">Thema</string>
     <string name="theme_system">System</string>

@@ -80,6 +80,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.apkup.R
 import com.apkup.data.ui.ApkMirrorSource
 import com.apkup.data.ui.AppUpdate
+import com.apkup.data.ui.GitHubSource
+import com.apkup.data.ui.GitLabSource
 import com.apkup.data.ui.InstallOrigin
 import com.apkup.data.ui.IzzyOnDroidSource
 import com.apkup.data.ui.PlaySource
@@ -1321,6 +1323,8 @@ private fun sourceName(source: Source): String = when (source) {
 	ApkMirrorSource -> stringResource(R.string.source_apkmirror)
 	PlaySource -> stringResource(R.string.source_play)
 	IzzyOnDroidSource -> stringResource(R.string.source_izzyondroid)
+	GitHubSource -> stringResource(R.string.source_github)
+	GitLabSource -> stringResource(R.string.source_gitlab)
 	else -> source.name
 }
 
