@@ -86,8 +86,32 @@ class IzzyOnDroidRepository(
         apps.chunked(BATCH_NOTIFY_SIZE).forEach { batch ->
             for (app in batch) {
                 val packageList = index.packages[app.packageName].orEmpty()
+                if (packageList.isNotEmpty()) {
+                    val latestRepoPkg = packageList.maxByOrNull { it.versionCode } ?: packageList.first()
+                    if (app.versionCode >= latestRepoPkg.versionCode) {
+                        Log.d(
+                            "IzzyOnDroidRepository",
+                            "Package ${app.packageName} found in Izzy, but current version ${app.versionCode} >= repo version ${latestRepoPkg.versionCode}"
+                        )
+                    } else {
+                        val installedSigner = normalizeSha256(app.signatureSha256)
+                        val repoSigner = normalizeSha256(latestRepoPkg.signer)
+                        val signatureMatches = isSignatureMatching(app.signatureSha256, latestRepoPkg.signer)
+                        if (!signatureMatches) {
+                            Log.w(
+                                "IzzyOnDroidRepository",
+                                "Package ${app.packageName} update available in Izzy, but signature mismatch! Local: $installedSigner vs Repo: $repoSigner"
+                            )
+                        }
+                    }
+                }
+
                 val candidate = findBestPackage(app, packageList)
                 if (candidate != null) {
+                    Log.i(
+                        "IzzyOnDroidRepository",
+                        "Valid Izzy update found for ${app.packageName}: v${candidate.versionName} (${candidate.versionCode})"
+                    )
                     val appInfo = appsMap[app.packageName]
                     val displayName = appInfo?.name?.takeIf { it.isNotBlank() } ?: app.name
                     val whatsNew = appInfo?.summary.orEmpty()
@@ -333,13 +357,14 @@ class IzzyOnDroidRepository(
         return compatible.maxByOrNull { it.versionCode }
     }
 
+    fun normalizeSha256(hash: String?): String =
+        hash.orEmpty().replace(":", "").replace(" ", "").trim().lowercase()
+
     internal fun isSignatureMatching(installedSha256: String?, izzySigner: String?): Boolean {
-        if (installedSha256.isNullOrBlank() || izzySigner.isNullOrBlank()) return false
-        val cleanInstalled = installedSha256.replace(":", "").trim()
-        val cleanIzzy = izzySigner.replace(":", "").trim()
-        if (cleanInstalled.isEmpty() || cleanIzzy.isEmpty()) return false
-        if (cleanInstalled.equals(EMPTY_SHA256, ignoreCase = true)) return false
-        return cleanInstalled.equals(cleanIzzy, ignoreCase = true)
+        val installedSigner = normalizeSha256(installedSha256)
+        val repoSigner = normalizeSha256(izzySigner)
+        if (installedSigner == EMPTY_SHA256 || repoSigner == EMPTY_SHA256) return false
+        return installedSigner.isNotEmpty() && installedSigner == repoSigner
     }
 
     internal fun isAbiCompatible(
