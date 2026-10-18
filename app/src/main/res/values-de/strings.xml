@@ -114,6 +114,7 @@
     <string name="settings_interval_7d">1x pro Woche (alle 7 Tage)</string>
     <string name="settings_options">Optionen</string>
     <string name="settings_show_system_apps">System-Apps anzeigen</string>
+    <string name="settings_show_system_apps_desc">Zeigt System-Apps in der Übersicht an und bezieht sie in die Updatesuche ein.</string>
     <string name="settings_ignored_versions_title">Übersprungene Einzel-Updates</string>
     <string name="settings_ignored_versions_description">Verwalte einzelne Update-Versionen, die du zuvor übersprungen hast.</string>
     <string name="settings_ignored_versions_empty">Aktuell sind keine einzelnen Versionen übersprungen.</string>

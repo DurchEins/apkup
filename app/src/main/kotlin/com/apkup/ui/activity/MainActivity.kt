@@ -22,6 +22,11 @@ class MainActivity : ComponentActivity() {
 		setContent { MainScreen(isColdStart = isColdStart) }
 	}
 
+	override fun onWindowFocusChanged(hasFocus: Boolean) {
+		super.onWindowFocusChanged(hasFocus)
+		isSnapshotMode = !hasFocus
+	}
+
 	override fun onUserLeaveHint() {
 		super.onUserLeaveHint()
 		isSnapshotMode = true
