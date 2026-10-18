@@ -146,6 +146,10 @@
     <string name="github_token_status_set">Token konfiguriert</string>
     <string name="github_token_status_not_set">Kein Token hinterlegt (Limit: 60 Anfragen/h)</string>
     <string name="action_link_repo">Repository verknüpfen</string>
+    <string name="repo_menu_linked">Repository verknüpft</string>
+    <string name="repo_menu_link">Repository verknüpfen</string>
+    <string name="repo_view_on_github">Auf GitHub ansehen</string>
+    <string name="repo_view_on_gitlab">Auf GitLab ansehen</string>
     <string name="link_repo_dialog_title">Repository verknüpfen</string>
     <string name="link_repo_dialog_desc">Verknüpfe diese App mit einem GitHub- oder GitLab-Repository, um Updates direkt aus Releases zu beziehen.</string>
     <string name="link_repo_platform">Plattform</string>

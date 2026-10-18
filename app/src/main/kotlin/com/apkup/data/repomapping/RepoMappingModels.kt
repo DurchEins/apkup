@@ -15,6 +15,9 @@ data class RepoBinding(
 
     val resolvedHost: String
         get() = host?.takeIf { it.isNotBlank() } ?: if (isGitLab) "gitlab.com" else "github.com"
+
+    val webUrl: String
+        get() = "https://$resolvedHost/${repo.trim()}"
 }
 
 data class GitHubReleaseDto(

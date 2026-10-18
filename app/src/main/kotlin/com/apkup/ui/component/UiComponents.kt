@@ -52,10 +52,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import com.apkup.R
+import com.apkup.data.repomapping.RepoBinding
 import com.apkup.data.ui.AppInstalled
 import com.apkup.data.ui.InstallOrigin
 import com.apkup.data.ui.resolveInstallOrigin
+import com.apkup.repository.RepoMappingManager
 import com.apkup.transform.resolveInstallerPackageName
+import org.koin.compose.koinInject
 
 
 @Composable
@@ -84,12 +87,16 @@ fun AppImage(app: AppInstalled, onIgnore: (String) -> Unit = {}) = Row(
 @Composable
 fun InstalledItem(
 	app: AppInstalled,
+	repoMappingManager: RepoMappingManager = koinInject(),
 	onIgnore: (String) -> Unit = {}
 ) {
 	val context = LocalContext.current
 	val haptics = LocalHapticFeedback.current
 	var showContextMenu by remember { mutableStateOf(false) }
 	var showLinkRepoDialog by remember { mutableStateOf(false) }
+	val repoBinding = remember(app.packageName, showLinkRepoDialog) {
+		repoMappingManager.getBinding(app.packageName)
+	}
 	val isPlayStoreApp = remember(app.packageName, app.installerPackageName, app.isSystemApp) {
 		app.installOrigin == InstallOrigin.PLAY_STORE ||
 			resolveInstallOrigin(
@@ -217,45 +224,101 @@ fun InstalledItem(
 					context.openAppSystemSettings(app.packageName)
 				}
 			)
+			if (repoBinding != null) {
+				DropdownMenuItem(
+					text = {
+						Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+							Text(
+								stringResource(
+									if (repoBinding.isGitLab) R.string.repo_view_on_gitlab
+									else R.string.repo_view_on_github
+								)
+							)
+							Text(
+								text = repoBinding.webUrl,
+								style = MaterialTheme.typography.labelSmall,
+								color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+								maxLines = 1,
+								overflow = TextOverflow.Ellipsis
+							)
+						}
+					},
+					leadingIcon = {
+						Icon(
+							painter = painterResource(
+								if (repoBinding.isGitLab) R.drawable.ic_gitlab else R.drawable.ic_github
+							),
+							contentDescription = null,
+							tint = MaterialTheme.colorScheme.primary,
+							modifier = Modifier.size(20.dp)
+						)
+					},
+					onClick = {
+						showContextMenu = false
+						context.openUrl(repoBinding.webUrl)
+					}
+				)
+			} else {
+				DropdownMenuItem(
+					enabled = isPlayStoreApp,
+					text = {
+						Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+							Text(stringResource(R.string.app_action_open_play_store))
+							if (!isPlayStoreApp) {
+								Text(
+									text = stringResource(R.string.app_action_open_play_store_unavailable),
+									style = MaterialTheme.typography.labelSmall,
+									color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f)
+								)
+							}
+						}
+					},
+					leadingIcon = {
+						Icon(
+							imageVector = Icons.Outlined.PlayArrow,
+							contentDescription = null,
+							tint = if (isPlayStoreApp) {
+								MaterialTheme.colorScheme.primary
+							} else {
+								MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
+							}
+						)
+					},
+					onClick = {
+						showContextMenu = false
+						if (isPlayStoreApp) {
+							context.openAppInPlayStore(app.packageName)
+						}
+					}
+				)
+			}
 			DropdownMenuItem(
-				enabled = isPlayStoreApp,
 				text = {
 					Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-						Text(stringResource(R.string.app_action_open_play_store))
-						if (!isPlayStoreApp) {
+						Text(
+							stringResource(
+								if (repoBinding != null) R.string.repo_menu_linked
+								else R.string.repo_menu_link
+							)
+						)
+						if (repoBinding != null) {
 							Text(
-								text = stringResource(R.string.app_action_open_play_store_unavailable),
+								text = "${if (repoBinding.isGitLab) "GitLab" else "GitHub"}: ${repoBinding.repo}",
 								style = MaterialTheme.typography.labelSmall,
-								color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f)
+								color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+								maxLines = 1,
+								overflow = TextOverflow.Ellipsis
 							)
 						}
 					}
 				},
 				leadingIcon = {
 					Icon(
-						imageVector = Icons.Outlined.PlayArrow,
+						painter = painterResource(
+							if (repoBinding?.isGitLab == true) R.drawable.ic_gitlab else R.drawable.ic_github
+						),
 						contentDescription = null,
-						tint = if (isPlayStoreApp) {
-							MaterialTheme.colorScheme.primary
-						} else {
-							MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
-						}
-					)
-				},
-				onClick = {
-					showContextMenu = false
-					if (isPlayStoreApp) {
-						context.openAppInPlayStore(app.packageName)
-					}
-				}
-			)
-			DropdownMenuItem(
-				text = { Text(stringResource(R.string.action_link_repo)) },
-				leadingIcon = {
-					Icon(
-						painter = painterResource(R.drawable.ic_github),
-						contentDescription = null,
-						tint = MaterialTheme.colorScheme.primary,
+						tint = if (repoBinding != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
 						modifier = Modifier.size(20.dp)
 					)
 				},
@@ -361,3 +424,13 @@ private fun Context.requestAppUninstall(packageName: String) {
 		startActivity(intent)
 	}
 }
+
+private fun Context.openUrl(url: String) {
+	runCatching {
+		val intent = Intent(Intent.ACTION_VIEW, url.toUri()).apply {
+			addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+		}
+		startActivity(intent)
+	}
+}
+
