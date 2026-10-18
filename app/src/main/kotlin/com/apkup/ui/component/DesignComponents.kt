@@ -3,6 +3,8 @@ package com.apkup.ui.component
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
@@ -76,7 +79,7 @@ fun AppEmptyState(
 			)
 			if (actionLabel != null && onAction != null) {
 				Spacer(Modifier.height(20.dp))
-				Button(onClick = onAction, modifier = Modifier.height(52.dp)) {
+				Button(onClick = onAction, shape = CircleShape, modifier = Modifier.height(52.dp)) {
 					Text(actionLabel)
 				}
 			}
@@ -89,16 +92,19 @@ fun SettingsSection(
 	title: String,
 	modifier: Modifier = Modifier,
 	content: @Composable ColumnScope.() -> Unit
-) = ElevatedCard(
-	modifier = modifier
-		.fillMaxWidth()
-		.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
-	shape = RoundedCornerShape(26.dp),
-	colors = CardDefaults.elevatedCardColors(
-		containerColor = MaterialTheme.colorScheme.surfaceContainer
-	),
-	elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp)
 ) {
+	val shape = RoundedCornerShape(24.dp)
+	ElevatedCard(
+		modifier = modifier
+			.fillMaxWidth()
+			.border(BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)), shape)
+			.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
+		shape = shape,
+		colors = CardDefaults.elevatedCardColors(
+			containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+		),
+		elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
+	) {
 	Column(
 		modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 18.dp),
 		verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -111,4 +117,5 @@ fun SettingsSection(
 		)
 		content()
 	}
+}
 }

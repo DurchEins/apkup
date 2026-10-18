@@ -1,5 +1,7 @@
 package com.apkup.ui.component
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -48,9 +50,13 @@ fun LoadingGrid() = InstalledLoadingGrid()
 @Composable
 fun InstalledLoadingGrid() = InstalledGrid(false) {
     items(16) {
+        val cardShape = RoundedCornerShape(24.dp)
         ElevatedCard(
-            modifier = Modifier.fillMaxWidth().height(134.dp),
-            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(134.dp)
+                .border(BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)), cardShape),
+            shape = cardShape,
             colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
         ) {
             Column(Modifier.fillMaxSize().padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -75,8 +81,10 @@ fun InstalledGrid(
         columns = GridCells.Fixed(columns),
         state = state,
         contentPadding = PaddingValues(
-            horizontal = INSTALLED_APPS_GRID_HORIZONTAL_PADDING_DP.dp,
-            vertical = 8.dp
+            start = INSTALLED_APPS_GRID_HORIZONTAL_PADDING_DP.dp,
+            top = 12.dp,
+            end = INSTALLED_APPS_GRID_HORIZONTAL_PADDING_DP.dp,
+            bottom = 100.dp
         ),
         verticalArrangement = Arrangement.spacedBy(INSTALLED_APPS_GRID_SPACING_DP.dp),
         horizontalArrangement = Arrangement.spacedBy(INSTALLED_APPS_GRID_SPACING_DP.dp),

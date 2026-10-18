@@ -6,8 +6,10 @@ import android.provider.Settings
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -106,10 +109,12 @@ fun InstalledItem(
 	}
 
 	Box(modifier = Modifier.fillMaxWidth()) {
+		val cardShape = RoundedCornerShape(24.dp)
 		ElevatedCard(
 			modifier = Modifier
 				.fillMaxWidth()
-				.clip(RoundedCornerShape(16.dp))
+				.clip(cardShape)
+				.border(BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)), cardShape)
 				.combinedClickable(
 					onClick = { showContextMenu = true },
 					onLongClick = {
@@ -118,7 +123,7 @@ fun InstalledItem(
 					}
 				)
 				.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
-			shape = RoundedCornerShape(16.dp),
+			shape = cardShape,
 			colors = CardDefaults.elevatedCardColors(
 				containerColor = if (app.ignored) {
 					MaterialTheme.colorScheme.surfaceContainer
@@ -166,12 +171,12 @@ fun InstalledItem(
 				) {
 					Surface(
 						modifier = Modifier.weight(1f, fill = false),
-						shape = RoundedCornerShape(6.dp),
+						shape = CircleShape,
 						color = MaterialTheme.colorScheme.primaryContainer
 					) {
 						Text(
 							text = app.version.ifBlank { "—" },
-							modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+							modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
 							style = MaterialTheme.typography.labelSmall.copy(
 								fontSize = 10.sp,
 								lineHeight = 12.sp
@@ -184,12 +189,12 @@ fun InstalledItem(
 					}
 					if (!app.enabled) {
 						Surface(
-							shape = RoundedCornerShape(6.dp),
+							shape = CircleShape,
 							color = MaterialTheme.colorScheme.errorContainer
 						) {
 							Text(
 								text = stringResource(R.string.app_disabled),
-								modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+								modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
 								style = MaterialTheme.typography.labelSmall.copy(
 									fontSize = 10.sp,
 									lineHeight = 12.sp
@@ -207,7 +212,7 @@ fun InstalledItem(
 		DropdownMenu(
 			expanded = showContextMenu,
 			onDismissRequest = { showContextMenu = false },
-			shape = RoundedCornerShape(18.dp),
+			shape = RoundedCornerShape(24.dp),
 			containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
 		) {
 			DropdownMenuItem(

@@ -13,9 +13,9 @@ internal object NormalUpdateCardLayout {
 	const val gridHorizontalPaddingDp = 8f
 	const val gridVerticalPaddingDp = 6f
 	const val gridTopPaddingDp = 10f
-	const val gridBottomPaddingDp = 16f
+	const val gridBottomPaddingDp = 100f
 	const val gridSpacingDp = 10f
-	const val cardCornerRadiusDp = 16f
+	const val cardCornerRadiusDp = 24f
 	const val cardPaddingDp = 12f
 	const val cardPaddingHorizontalDp = 12f
 	const val cardPaddingVerticalDp = 12f
@@ -34,9 +34,9 @@ internal object CompactUpdateCardLayout {
 	const val gridHorizontalPaddingDp = 10f
 	const val gridVerticalPaddingDp = 8f
 	const val gridTopPaddingDp = 10f
-	const val gridBottomPaddingDp = 16f
+	const val gridBottomPaddingDp = 100f
 	const val gridSpacingDp = 6f
-	const val cardCornerRadiusDp = 16f
+	const val cardCornerRadiusDp = 24f
 	const val iconSizeDp = 36f
 	const val iconRequestSizeDp = 52f
 	const val horizontalPaddingDp = 8f

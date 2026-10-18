@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
@@ -229,7 +230,8 @@ fun LinkRepoDialog(
                                 isTesting = false
                             }
                         },
-                        enabled = !isTesting && repoInput.isNotBlank()
+                        enabled = !isTesting && repoInput.isNotBlank(),
+                        shape = CircleShape
                     ) {
                         if (isTesting) {
                             CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
@@ -298,7 +300,8 @@ fun LinkRepoDialog(
                     }
                     onDismiss()
                 },
-                enabled = repoInput.isNotBlank()
+                enabled = repoInput.isNotBlank(),
+                shape = CircleShape
             ) {
                 Text(stringResource(R.string.link_repo_btn_save))
             }

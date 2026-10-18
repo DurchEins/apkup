@@ -3,7 +3,9 @@ package com.apkup.ui.screen
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -25,6 +27,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -145,7 +148,7 @@ fun UpdatesTopBar(
 			)
 			if (updatesCount != null && updatesCount > 0) {
 				Surface(
-					shape = RoundedCornerShape(12.dp),
+					shape = CircleShape,
 					color = MaterialTheme.colorScheme.primaryContainer
 				) {
 					Text(
@@ -336,12 +339,12 @@ private fun LastCheckedStatusBanner(lastCheckedAtMillis: Long) {
 		verticalAlignment = Alignment.CenterVertically
 	) {
 		Surface(
-			shape = RoundedCornerShape(12.dp),
-			color = MaterialTheme.colorScheme.surfaceContainer
+			shape = CircleShape,
+			color = MaterialTheme.colorScheme.surfaceContainerHigh
 		) {
 			Text(
 				text = statusText,
-				modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+				modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
 				style = MaterialTheme.typography.labelSmall,
 				color = MaterialTheme.colorScheme.onSurfaceVariant
 			)
@@ -364,7 +367,8 @@ private fun UpdateCheckProgressBar(
 	}
 	Surface(
 		color = MaterialTheme.colorScheme.surfaceContainer,
-		shape = RoundedCornerShape(16.dp),
+		shape = RoundedCornerShape(24.dp),
+		border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
 		modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
 	) {
 		Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp)) {
@@ -515,12 +519,14 @@ private fun UpdateCard(
 	val card = update.toUpdateCardContent(appName)
 	val sourceName = sourceName(card.source)
 
+	val cardShape = RoundedCornerShape(NormalUpdateCardLayout.cardCornerRadiusDp.dp)
 	ElevatedCard(
 		onClick = onSelect,
 		modifier = Modifier
 			.fillMaxWidth()
+			.border(BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)), cardShape)
 			.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
-		shape = RoundedCornerShape(NormalUpdateCardLayout.cardCornerRadiusDp.dp),
+		shape = cardShape,
 		colors = CardDefaults.elevatedCardColors(
 			containerColor = MaterialTheme.colorScheme.surfaceContainerLow
 		),
@@ -582,12 +588,12 @@ private fun UpdateCard(
 
 			Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
 				Surface(
-					shape = RoundedCornerShape(6.dp),
+					shape = CircleShape,
 					color = MaterialTheme.colorScheme.surfaceContainerHigh
 				) {
 					Text(
 						text = "${stringResource(R.string.installed_short)} ${card.installedVersion.ifBlank { "—" }}",
-						modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+						modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
 						style = MaterialTheme.typography.labelSmall,
 						color = MaterialTheme.colorScheme.onSurfaceVariant,
 						maxLines = 1,
@@ -595,12 +601,12 @@ private fun UpdateCard(
 					)
 				}
 				Surface(
-					shape = RoundedCornerShape(6.dp),
+					shape = CircleShape,
 					color = MaterialTheme.colorScheme.primaryContainer
 				) {
 					Text(
 						text = "${stringResource(R.string.available_short)} ${card.availableVersion.ifBlank { "—" }}",
-						modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+						modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
 						style = MaterialTheme.typography.labelSmall,
 						fontWeight = FontWeight.SemiBold,
 						color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -677,8 +683,8 @@ private fun UpdateCard(
 						FilledTonalButton(
 							onClick = onInstall,
 							modifier = Modifier.height(NormalUpdateCardLayout.actionButtonHeightDp.dp),
-							shape = RoundedCornerShape(10.dp),
-							contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
+							shape = CircleShape,
+							contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)
 						) {
 							Icon(
 								painter = painterResource(R.drawable.ic_install),
@@ -732,13 +738,15 @@ private fun CompactUpdatesGrid(
 					context.getAppName(update.packageName).ifBlank { update.packageName }
 				}
 				val card = update.toUpdateCardContent(appName)
+				val cardShape = RoundedCornerShape(CompactUpdateCardLayout.cardCornerRadiusDp.dp)
 				ElevatedCard(
 					onClick = { selectedPackageName = update.packageName },
 					modifier = Modifier
 						.fillMaxWidth()
 						.heightIn(min = CompactUpdateCardLayout.minCardHeightDp.dp)
+						.border(BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)), cardShape)
 						.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
-					shape = RoundedCornerShape(CompactUpdateCardLayout.cardCornerRadiusDp.dp),
+					shape = cardShape,
 					colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
 					elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
 				) {
@@ -951,12 +959,12 @@ private fun UpdateDetailsSheet(
 						color = MaterialTheme.colorScheme.onSurfaceVariant
 					)
 					Surface(
-						shape = RoundedCornerShape(8.dp),
+						shape = CircleShape,
 						color = MaterialTheme.colorScheme.primaryContainer
 					) {
 						Text(
 							text = "${card.installedVersion.ifBlank { "—" }} → ${card.availableVersion.ifBlank { "—" }}",
-							modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+							modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
 							style = MaterialTheme.typography.labelMedium,
 							fontWeight = FontWeight.SemiBold,
 							color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -985,7 +993,7 @@ private fun UpdateDetailsSheet(
 								modifier = Modifier
 									.weight(1f)
 									.heightIn(min = 44.dp),
-								shape = RoundedCornerShape(14.dp),
+								shape = CircleShape,
 								color = if (isSelected) {
 									MaterialTheme.colorScheme.secondaryContainer
 								} else {
@@ -1043,11 +1051,11 @@ private fun UpdateDetailsSheet(
 				verticalAlignment = Alignment.CenterVertically
 			) {
 				Surface(
-					shape = RoundedCornerShape(10.dp),
+					shape = CircleShape,
 					color = MaterialTheme.colorScheme.surfaceContainerHigh
 				) {
 					Row(
-						modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+						modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
 						verticalAlignment = Alignment.CenterVertically,
 						horizontalArrangement = Arrangement.spacedBy(6.dp)
 					) {
@@ -1066,12 +1074,12 @@ private fun UpdateDetailsSheet(
 				}
 				if (activeVariant.totalSize > 0L) {
 					Surface(
-						shape = RoundedCornerShape(10.dp),
+						shape = CircleShape,
 						color = MaterialTheme.colorScheme.surfaceContainerHigh
 					) {
 						Text(
 							text = formatSizeMegabytes(activeVariant.totalSize),
-							modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+							modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
 							style = MaterialTheme.typography.labelMedium,
 							color = MaterialTheme.colorScheme.onSurfaceVariant
 						)
@@ -1079,12 +1087,12 @@ private fun UpdateDetailsSheet(
 				}
 				if (activeVariant.updatedOn.isNotBlank()) {
 					Surface(
-						shape = RoundedCornerShape(10.dp),
+						shape = CircleShape,
 						color = MaterialTheme.colorScheme.surfaceContainerHigh
 					) {
 						Text(
 							text = activeVariant.updatedOn,
-							modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+							modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
 							style = MaterialTheme.typography.labelMedium,
 							color = MaterialTheme.colorScheme.onSurfaceVariant,
 							maxLines = 1,
@@ -1136,7 +1144,8 @@ private fun UpdateDetailsSheet(
 			}
 
 			Surface(
-				shape = RoundedCornerShape(18.dp),
+				shape = RoundedCornerShape(24.dp),
+				border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
 				color = MaterialTheme.colorScheme.surfaceContainer,
 				modifier = Modifier.fillMaxWidth()
 			) {
@@ -1164,7 +1173,8 @@ private fun UpdateDetailsSheet(
 
 			if (isUpdateBusy) {
 				Surface(
-					shape = RoundedCornerShape(16.dp),
+					shape = RoundedCornerShape(24.dp),
+					border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
 					color = MaterialTheme.colorScheme.surfaceContainerHigh,
 					modifier = Modifier.fillMaxWidth()
 				) {
@@ -1216,7 +1226,7 @@ private fun UpdateDetailsSheet(
 			Button(
 				onClick = { onInstallVariant(activeVariant) },
 				enabled = !isUpdateBusy,
-				shape = RoundedCornerShape(16.dp),
+				shape = CircleShape,
 				modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)
 			) {
 				Icon(painterResource(R.drawable.ic_install), contentDescription = null)
@@ -1233,7 +1243,7 @@ private fun UpdateDetailsSheet(
 			OutlinedButton(
 				onClick = { onIgnoreVersion(activeVariant.id) },
 				enabled = !isUpdateBusy,
-				shape = RoundedCornerShape(16.dp),
+				shape = CircleShape,
 				modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
 			) {
 				Text(stringResource(R.string.skip_this_version))
@@ -1242,6 +1252,7 @@ private fun UpdateDetailsSheet(
 			TextButton(
 				onClick = { onIgnoreAppPermanently(activeVariant.packageName) },
 				enabled = !isUpdateBusy,
+				shape = CircleShape,
 				modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp)
 			) {
 				Text(
