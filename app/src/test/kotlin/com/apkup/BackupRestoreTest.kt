@@ -39,20 +39,32 @@ class BackupRestoreTest {
         val prefs = Prefs(storage)
         val viewModel = SettingsViewModel(prefs = prefs)
 
-        // Set useIzzyOnDroid to false and verify export
+        // Set useIzzyOnDroid, useGitHub, useGitLab to false and verify export
         viewModel.setUseIzzyOnDroid(false)
+        viewModel.setUseGitHub(false)
+        viewModel.setUseGitLab(false)
         assertFalse(viewModel.getUseIzzyOnDroid())
+        assertFalse(viewModel.getUseGitHub())
+        assertFalse(viewModel.getUseGitLab())
 
         val exportedJson = viewModel.exportBackupJson()
         assertTrue(exportedJson.contains("\"useIzzyOnDroid\": false"))
+        assertTrue(exportedJson.contains("\"useGitHub\": false"))
+        assertTrue(exportedJson.contains("\"useGitLab\": false"))
 
         // Reset to true
         viewModel.setUseIzzyOnDroid(true)
+        viewModel.setUseGitHub(true)
+        viewModel.setUseGitLab(true)
         assertTrue(viewModel.getUseIzzyOnDroid())
+        assertTrue(viewModel.getUseGitHub())
+        assertTrue(viewModel.getUseGitLab())
 
         // Re-import and verify restored to false
         val success = viewModel.importBackupJson(exportedJson)
         assertTrue(success)
         assertFalse(viewModel.getUseIzzyOnDroid())
+        assertFalse(viewModel.getUseGitHub())
+        assertFalse(viewModel.getUseGitLab())
     }
 }

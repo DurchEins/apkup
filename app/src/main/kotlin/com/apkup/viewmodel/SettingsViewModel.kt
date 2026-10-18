@@ -233,6 +233,12 @@ class SettingsViewModel(
 	fun setUsePlay(b: Boolean) = prefs.usePlay.put(b)
 	fun getUseIzzyOnDroid() = prefs.useIzzyOnDroid.get()
 	fun setUseIzzyOnDroid(b: Boolean) = prefs.useIzzyOnDroid.put(b)
+	fun getUseGitHub() = prefs.useGitHub.get()
+	fun setUseGitHub(b: Boolean) = prefs.useGitHub.put(b)
+	fun getUseGitLab() = prefs.useGitLab.get()
+	fun setUseGitLab(b: Boolean) = prefs.useGitLab.put(b)
+	fun getGitHubToken(): String = prefs.githubToken.get()
+	fun setGitHubToken(token: String) = prefs.githubToken.put(token.trim())
 	fun getBackgroundChecksEnabled() = prefs.enableBackgroundChecks.get()
 	fun getBackgroundCheckIntervalHours(): Int =
 		BackgroundCheckInterval.fromHours(prefs.backgroundCheckIntervalHours.get()).hours
@@ -274,6 +280,9 @@ class SettingsViewModel(
 			useApkMirror = prefs.useApkMirror.get(),
 			usePlay = prefs.usePlay.get(),
 			useIzzyOnDroid = prefs.useIzzyOnDroid.get(),
+			useGitHub = prefs.useGitHub.get(),
+			useGitLab = prefs.useGitLab.get(),
+			customRepoBindings = prefs.readCustomRepoBindingsSafe(),
 			enableBackgroundChecks = prefs.enableBackgroundChecks.get(),
 			backgroundCheckIntervalHours = getBackgroundCheckIntervalHours(),
 			theme = prefs.theme.get(),
@@ -293,6 +302,11 @@ class SettingsViewModel(
 		prefs.useApkMirror.put(config.useApkMirror)
 		prefs.usePlay.put(config.usePlay)
 		prefs.useIzzyOnDroid.put(config.useIzzyOnDroid)
+		prefs.useGitHub.put(config.useGitHub)
+		prefs.useGitLab.put(config.useGitLab)
+		if (config.customRepoBindings.isNotEmpty()) {
+			prefs.writeCustomRepoBindings(config.customRepoBindings)
+		}
 		prefs.enableBackgroundChecks.put(config.enableBackgroundChecks)
 		prefs.backgroundCheckIntervalHours.put(
 			BackgroundCheckInterval.fromHours(config.backgroundCheckIntervalHours).hours

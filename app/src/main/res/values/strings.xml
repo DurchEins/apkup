@@ -135,6 +135,36 @@
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
     <string name="source_play">Google Play Store</string>
     <string name="source_izzyondroid" translatable="false">IzzyOnDroid</string>
+    <string name="source_github" translatable="false">GitHub</string>
+    <string name="source_gitlab" translatable="false">GitLab</string>
+    <string name="settings_source_github_desc">Check GitHub releases for open-source and mapped apps</string>
+    <string name="settings_source_gitlab_desc">Check GitLab releases for mapped repositories</string>
+    <string name="github_token_title">GitHub API Token</string>
+    <string name="github_token_desc">Optional Personal Access Token to raise rate limit from 60 to 5,000 requests/hour</string>
+    <string name="github_token_dialog_title">GitHub Personal Access Token</string>
+    <string name="github_token_dialog_desc">Enter a personal access token (public repo read only) to avoid GitHub API rate limits (HTTP 403).</string>
+    <string name="github_token_dialog_hint">ghp_xxxxxxxxxxxx</string>
+    <string name="github_token_dialog_clear">Clear Token</string>
+    <string name="github_token_dialog_save">Save</string>
+    <string name="github_token_status_set">Token configured</string>
+    <string name="github_token_status_not_set">No token set (60 req/h limit)</string>
+    <string name="action_link_repo">Link repository</string>
+    <string name="link_repo_dialog_title">Link Repository</string>
+    <string name="link_repo_dialog_desc">Connect this app to a GitHub or GitLab repository to check for updates directly from releases.</string>
+    <string name="link_repo_platform">Platform</string>
+    <string name="link_repo_input_label">Repository</string>
+    <string name="link_repo_input_hint">owner/repo or full URL</string>
+    <string name="link_repo_host_label">Custom GitLab Host</string>
+    <string name="link_repo_host_hint">gitlab.com (or self-hosted domain)</string>
+    <string name="link_repo_btn_test">Test</string>
+    <string name="link_repo_btn_save">Save</string>
+    <string name="link_repo_btn_unlink">Unlink</string>
+    <string name="link_repo_testing">Testing connection…</string>
+    <string name="link_repo_test_success">Found release %1$s: %2$s</string>
+    <string name="link_repo_test_no_apk">Release %1$s found, but no compatible APK asset was found!</string>
+    <string name="link_repo_test_failed">Failed to find release: %1$s</string>
+    <string name="link_repo_saved_snack">Repository linked for %1$s</string>
+    <string name="link_repo_unlinked_snack">Repository unlinked for %1$s</string>
     <string name="about">About</string>
     <string name="theme">Theme</string>
     <string name="theme_system">System</string>

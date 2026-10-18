@@ -6,8 +6,11 @@ import com.apkup.R
 import com.apkup.prefs.Prefs
 import com.apkup.repository.ApkMirrorRepository
 import com.apkup.repository.AppsRepository
+import com.apkup.repository.GitHubRepository
+import com.apkup.repository.GitLabRepository
 import com.apkup.repository.IzzyOnDroidRepository
 import com.apkup.repository.PlayRepository
+import com.apkup.repository.RepoMappingManager
 import com.apkup.repository.SelfUpdateRepository
 import com.apkup.repository.UpdatesRepository
 import com.apkup.service.ApkMirrorService
@@ -75,15 +78,21 @@ val mainModule = module {
 
 	single { PlayRepository(get(), get(), get(), get()) }
 
-	single { IzzyOnDroidRepository(androidContext(), get(), get(), get()) }
-
-	single { SelfUpdateRepository(get(), get()) }
-
-	single { UpdatesRepository(get(), get(), get(), get(), get()) }
-
 	single { KryptoBuilder.nocrypt(get(), androidContext().getString(R.string.app_name)) }
 
 	single { Prefs(get()) }
+
+	single { RepoMappingManager(androidContext(), get(), get()) }
+
+	single { IzzyOnDroidRepository(androidContext(), get(), get(), get(), get()) }
+
+	single { GitHubRepository(androidContext(), get(), get(), get(), get()) }
+
+	single { GitLabRepository(androidContext(), get(), get(), get(), get()) }
+
+	single { SelfUpdateRepository(get(), get()) }
+
+	single { UpdatesRepository(get(), get(), get(), get(), get(), get(), get()) }
 
 	single { UpdatesNotification(get()) }
 

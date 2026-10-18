@@ -38,6 +38,7 @@ class IzzyOnDroidRepository(
     private val okHttpClient: OkHttpClient,
     private val gson: Gson,
     private val prefs: Prefs? = null,
+    private val repoMappingManager: RepoMappingManager? = null,
     private val cacheDirectory: File? = null
 ) {
     companion object {
@@ -79,6 +80,15 @@ class IzzyOnDroidRepository(
     ): Flow<SourceUpdateResult<AppUpdate>> = flow {
         val startedAt = SystemClock.elapsedRealtime()
         val index = getOrFetchIndex()
+
+        repoMappingManager?.let { manager ->
+            index.apps.forEach { appInfo ->
+                val sourceUrl = appInfo.source
+                if (!sourceUrl.isNullOrBlank()) {
+                    manager.registerHarvestedRepo(appInfo.packageName, sourceUrl)
+                }
+            }
+        }
 
         val appsMap = index.apps.associateBy { it.packageName }
         val updates = mutableListOf<AppUpdate>()

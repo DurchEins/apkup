@@ -63,6 +63,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -202,6 +203,7 @@ fun Settings(
 	val showShizukuSheet = viewModel.showShizukuSetupSheet().collectAsStateWithLifecycle().value
 	var showHiddenAppsSheet by remember { mutableStateOf(false) }
 	var showChangelogSheet by remember { mutableStateOf(false) }
+	var showGitHubTokenDialog by remember { mutableStateOf(false) }
 	var configRefreshKey by remember { mutableIntStateOf(0) }
 
 	var easterEggActiveUntil by remember { mutableLongStateOf(0L) }
@@ -408,6 +410,72 @@ fun Settings(
 					{ viewModel.setUseIzzyOnDroid(it) },
 					stringResource(R.string.source_izzyondroid),
 					R.drawable.ic_izzy
+				)
+				SwitchSetting(
+					getValue = { viewModel.getUseGitHub() },
+					setValue = {
+						viewModel.setUseGitHub(it)
+						configRefreshKey++
+					},
+					text = stringResource(R.string.source_github),
+					icon = R.drawable.ic_github,
+					subtitle = stringResource(R.string.settings_source_github_desc)
+				)
+				val currentGitHubToken = remember(configRefreshKey) { viewModel.getGitHubToken() }
+				Surface(
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(start = 12.dp, end = 4.dp, top = 2.dp, bottom = 4.dp),
+					shape = RoundedCornerShape(14.dp),
+					color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
+					onClick = { showGitHubTokenDialog = true }
+				) {
+					Row(
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(horizontal = 14.dp, vertical = 10.dp),
+						verticalAlignment = CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(10.dp)
+					) {
+						Icon(
+							painter = painterResource(R.drawable.ic_github),
+							contentDescription = null,
+							tint = if (currentGitHubToken.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+							modifier = Modifier.size(20.dp)
+						)
+						Column(modifier = Modifier.weight(1f)) {
+							Text(
+								text = stringResource(R.string.github_token_title),
+								style = MaterialTheme.typography.bodyMedium,
+								fontWeight = FontWeight.Medium
+							)
+							Text(
+								text = if (currentGitHubToken.isNotEmpty()) {
+									stringResource(R.string.github_token_status_set)
+								} else {
+									stringResource(R.string.github_token_status_not_set)
+								},
+								style = MaterialTheme.typography.bodySmall,
+								color = MaterialTheme.colorScheme.onSurfaceVariant
+							)
+						}
+						Icon(
+							imageVector = Icons.Default.Settings,
+							contentDescription = null,
+							tint = MaterialTheme.colorScheme.onSurfaceVariant,
+							modifier = Modifier.size(18.dp)
+						)
+					}
+				}
+				SwitchSetting(
+					getValue = { viewModel.getUseGitLab() },
+					setValue = {
+						viewModel.setUseGitLab(it)
+						configRefreshKey++
+					},
+					text = stringResource(R.string.source_gitlab),
+					icon = R.drawable.ic_gitlab,
+					subtitle = stringResource(R.string.settings_source_gitlab_desc)
 				)
 				SwitchSetting(
 					getValue = { viewModel.getShowSystemApps() },
@@ -1091,6 +1159,75 @@ fun Settings(
 			}
 		)
 	}
+
+	if (showGitHubTokenDialog) {
+		GitHubTokenDialog(
+			initialToken = viewModel.getGitHubToken(),
+			onDismiss = { showGitHubTokenDialog = false },
+			onSaveToken = { token ->
+				viewModel.setGitHubToken(token)
+				configRefreshKey++
+			}
+		)
+	}
+}
+
+@Composable
+private fun GitHubTokenDialog(
+	initialToken: String,
+	onDismiss: () -> Unit,
+	onSaveToken: (String) -> Unit
+) {
+	var tokenText by remember { mutableStateOf(initialToken) }
+	AlertDialog(
+		onDismissRequest = onDismiss,
+		shape = RoundedCornerShape(28.dp),
+		containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+		title = { Text(stringResource(R.string.github_token_dialog_title)) },
+		text = {
+			Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+				Text(
+					text = stringResource(R.string.github_token_dialog_desc),
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onSurfaceVariant
+				)
+				OutlinedTextField(
+					value = tokenText,
+					onValueChange = { tokenText = it },
+					label = { Text("Token") },
+					placeholder = { Text(stringResource(R.string.github_token_dialog_hint)) },
+					singleLine = true,
+					modifier = Modifier.fillMaxWidth()
+				)
+			}
+		},
+		confirmButton = {
+			Button(onClick = {
+				onSaveToken(tokenText)
+				onDismiss()
+			}) {
+				Text(stringResource(R.string.github_token_dialog_save))
+			}
+		},
+		dismissButton = {
+			Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+				if (initialToken.isNotEmpty()) {
+					TextButton(onClick = {
+						onSaveToken("")
+						onDismiss()
+					}) {
+						Text(
+							stringResource(R.string.github_token_dialog_clear),
+							color = MaterialTheme.colorScheme.error
+						)
+					}
+				}
+				TextButton(onClick = onDismiss) {
+					Text(stringResource(android.R.string.cancel))
+				}
+			}
+		}
+	)
 }
 
 @Composable

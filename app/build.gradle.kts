@@ -88,6 +88,9 @@ android {
 
     testOptions {
         unitTests.isReturnDefaultValues = true
+        unitTests.all {
+            it.maxHeapSize = "1024m"
+        }
     }
 
     lint {
