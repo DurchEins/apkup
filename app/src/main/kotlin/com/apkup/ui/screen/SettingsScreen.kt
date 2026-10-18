@@ -209,6 +209,9 @@ fun Settings(
 	val haptic = LocalHapticFeedback.current
 	val lifecycleOwner = LocalLifecycleOwner.current
 	var localSnapshotMode by remember { mutableStateOf(false) }
+	var hasInstallPermission by remember {
+		mutableStateOf(context.packageManager.canRequestPackageInstalls())
+	}
 
 	DisposableEffect(lifecycleOwner) {
 		val observer = LifecycleEventObserver { _, event ->
@@ -216,6 +219,7 @@ fun Settings(
 				Lifecycle.Event.ON_PAUSE -> localSnapshotMode = true
 				Lifecycle.Event.ON_RESUME -> {
 					localSnapshotMode = false
+					hasInstallPermission = context.packageManager.canRequestPackageInstalls()
 					viewModel.refreshIgnoredVersions()
 					viewModel.refreshIgnoredApps()
 					viewModel.refreshShizukuStatus()
@@ -531,10 +535,7 @@ fun Settings(
 		}
 
 		// Sektion 3: Installation & Berechtigungen
-		item(key = "section_install_permissions_${configRefreshKey}_$shizukuEnabled") {
-			val hasInstallPermission = remember(configRefreshKey) {
-				context.packageManager.canRequestPackageInstalls()
-			}
+		item(key = "section_install_permissions_${configRefreshKey}_${shizukuEnabled}_$hasInstallPermission") {
 			SettingsSection(stringResource(R.string.settings_section_install_permissions)) {
 				SwitchSetting(
 					getValue = { viewModel.getUseShizukuInstaller() },
@@ -645,7 +646,8 @@ fun Settings(
 						)
 					},
 					text = stringResource(R.string.settings_show_system_apps),
-					icon = R.drawable.ic_system
+					icon = R.drawable.ic_system,
+					subtitle = stringResource(R.string.settings_show_system_apps_desc)
 				)
 
 				// Unterkarte A: Dauerhaft ausgeblendete Apps
@@ -810,7 +812,7 @@ fun Settings(
 		}
 
 		// Sektion 6: Über ApkUp
-		item(key = "section_about") {
+		item(key = "section_about_$showSnapshotAttribution") {
 			Column(modifier = Modifier.fillMaxWidth()) {
 				SettingsSection(stringResource(R.string.about)) {
 					Surface(

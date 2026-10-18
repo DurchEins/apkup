@@ -114,6 +114,7 @@
     <string name="settings_interval_7d">Una vez por semana (cada 7 días)</string>
     <string name="settings_options">Opciones</string>
     <string name="settings_show_system_apps">Mostrar apps del sistema</string>
+    <string name="settings_show_system_apps_desc">Muestra las aplicaciones del sistema y las incluye en la búsqueda de actualizaciones.</string>
     <string name="settings_ignored_versions_title">Versiones omitidas</string>
     <string name="settings_ignored_versions_description">Gestiona las versiones individuales que decidiste omitir anteriormente.</string>
     <string name="settings_ignored_versions_empty">No hay versiones individuales omitidas.</string>

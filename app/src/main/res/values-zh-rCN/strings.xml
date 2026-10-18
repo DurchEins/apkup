@@ -114,6 +114,7 @@
     <string name="settings_interval_7d">每周一次（每 7 天）</string>
     <string name="settings_options">选项</string>
     <string name="settings_show_system_apps">显示系统应用</string>
+    <string name="settings_show_system_apps_desc">显示系统应用并将其纳入更新检查。</string>
     <string name="settings_ignored_versions_title">已跳过的版本</string>
     <string name="settings_ignored_versions_description">管理先前已选择跳过的特定版本更新。</string>
     <string name="settings_ignored_versions_empty">当前没有已跳过的版本。</string>
