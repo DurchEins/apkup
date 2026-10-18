@@ -11,9 +11,11 @@ import com.apkup.data.ui.AppUpdate
 import com.apkup.data.ui.Link
 import com.apkup.util.Downloader
 import com.apkup.util.InstallLog
+import com.apkup.util.InstallPart
 import com.apkup.util.SessionInstaller
 import com.apkup.util.SnackBar
 import com.apkup.util.Stringer
+import com.aurora.gplayapi.data.models.PlayFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
@@ -75,25 +77,37 @@ abstract class InstallViewModel(
                 if (files.isEmpty()) {
                     throw IOException("Play Store returned no installable APK files for $packageName")
                 }
-                installLog.emitProgress(AppInstallProgress(id, 0L, files.sumOf { it.size }))
-                val streamProviders = files.map { file ->
-                    {
+                val sortedFiles = files.sortedWith(
+                    compareByDescending<PlayFile> { it.type == PlayFile.Type.BASE }
+                        .thenBy { it.name }
+                )
+                installLog.emitProgress(AppInstallProgress(id, 0L, sortedFiles.sumOf { it.size }))
+                val parts = sortedFiles.mapIndexed { index, file ->
+                    val partName = when {
+                        file.type == PlayFile.Type.BASE -> "base.apk"
+                        file.name.endsWith(".apk") -> file.name
+                        file.name.isNotBlank() -> "${file.name}.apk"
+                        else -> "split_$index.apk"
+                    }
+                    InstallPart(partName) {
                         downloader.downloadStream(file.url)
                             ?: throw IOException("Connection dropped while opening Play stream for ${file.name}")
                     }
                 }
-                installer.installStreamProviders(id, packageName, streamProviders)
+                installer.installParts(id, packageName, parts)
             }
             is Link.Url -> {
                 if (link.link.isBlank()) {
                     throw IOException("Blank download URL for $packageName")
                 }
                 installLog.emitProgress(AppInstallProgress(id, 0L, link.size))
-                val streamProviders = listOf {
-                    downloader.downloadStream(link.link)
-                        ?: throw IOException("Connection dropped while opening URL stream for $packageName")
-                }
-                installer.installStreamProviders(id, packageName, streamProviders)
+                val parts = listOf(
+                    InstallPart("base.apk") {
+                        downloader.downloadStream(link.link)
+                            ?: throw IOException("Connection dropped while opening URL stream for $packageName")
+                    }
+                )
+                installer.installParts(id, packageName, parts)
             }
         }
     } catch (cancellation: CancellationException) {

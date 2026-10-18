@@ -74,7 +74,7 @@ fun millisUntilHour(hour: Int): Long {
 }
 
 fun Intent.getIntentExtra(): Intent? = when {
-	Build.VERSION.SDK_INT > 33 -> getParcelableExtra(Intent.EXTRA_INTENT, Intent::class.java)
+	Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> getParcelableExtra(Intent.EXTRA_INTENT, Intent::class.java)
 	else -> @Suppress("DEPRECATION") getParcelableExtra(Intent.EXTRA_INTENT)
 }
 

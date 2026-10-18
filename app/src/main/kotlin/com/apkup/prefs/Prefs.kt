@@ -38,6 +38,7 @@ class Prefs(
 	val playAuthData = json("playAuthData", AuthData("", ""), true)
 	val lastPlayCheck = long("lastPlayCheck", 0L, true)
 	val useShizukuInstaller = boolean("useShizukuInstaller", defValue = false, backed = true)
+	val lastSeenVersionCode = long("last_seen_version_code", 0L, true)
 	val cachedUpdateSnapshot = json("cachedUpdateSnapshot", CachedUpdateSnapshot(), true)
 
 	fun readCachedSnapshotSafe(): CachedUpdateSnapshot = runCatching {

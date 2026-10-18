@@ -55,7 +55,11 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import com.apkup.BuildConfig
 import com.apkup.prefs.Prefs
+import com.apkup.ui.component.ChangelogBottomSheet
 import com.apkup.ui.component.InstallPermissionDialog
 import com.apkup.util.SessionInstaller
 import com.apkup.viewmodel.AppsViewModel
@@ -98,8 +102,17 @@ fun MainScreen(
 	val isUpdatesScreen = !shouldShowDefaultPullToRefreshIndicator(
 		navController.currentBackStackEntryAsState().value?.destination?.route
 	)
+	val currentVersionCode = BuildConfig.VERSION_CODE.toLong()
+	var showChangelogSheet by remember { mutableStateOf(false) }
+
 	LaunchedEffect(Unit) {
 		mainViewModel.initializeOnStart(appsViewModel, updatesViewModel, isColdStart)
+		val lastSeen = prefs.lastSeenVersionCode.get()
+		if (lastSeen == 0L) {
+			prefs.lastSeenVersionCode.put(currentVersionCode)
+		} else if (currentVersionCode > lastSeen) {
+			showChangelogSheet = true
+		}
 	}
 
 	LaunchedEffect(isColdStart) {
@@ -170,6 +183,15 @@ fun MainScreen(
 					}
 					context.startActivity(intent)
 				}
+			}
+		)
+	}
+
+	if (showChangelogSheet) {
+		ChangelogBottomSheet(
+			onDismiss = {
+				showChangelogSheet = false
+				prefs.lastSeenVersionCode.put(currentVersionCode)
 			}
 		)
 	}

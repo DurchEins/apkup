@@ -1,6 +1,7 @@
 package com.apkup.util
 
 import android.annotation.SuppressLint
+import android.app.ActivityOptions
 import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_MUTABLE
 import android.app.PendingIntent.FLAG_UPDATE_CURRENT
@@ -42,6 +43,10 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resume
 import kotlin.io.DEFAULT_BUFFER_SIZE
 
+data class InstallPart(
+    val name: String,
+    val openStream: () -> InputStream?
+)
 
 interface ShizukuBridge {
     fun isPackageInstalled(): Boolean
@@ -56,7 +61,7 @@ interface ShizukuBridge {
     fun executeShizukuInstall(
         id: Int,
         packageName: String,
-        streamProviders: List<() -> InputStream?>
+        parts: List<InstallPart>
     ): Boolean
 }
 
@@ -67,7 +72,7 @@ class SessionInstaller internal constructor(
     private val snackBar: SnackBar? = null,
     private val stringer: Stringer? = null,
     private val shizukuBridgeOverride: ShizukuBridge? = null,
-    private val packageInstallerFallbackOverride: (suspend (Int, String, List<() -> InputStream?>) -> Boolean)? = null,
+    private val packageInstallerFallbackOverride: (suspend (Int, String, List<InstallPart>) -> Boolean)? = null,
     private val onFallbackNotice: ((Int) -> Unit)? = null
 ) {
     constructor(
@@ -108,11 +113,15 @@ class SessionInstaller internal constructor(
     }
 
     suspend fun install(id: Int, packageName: String, stream: InputStream) {
-        installStreamProviders(id, packageName, listOf { stream })
+        installParts(id, packageName, listOf(InstallPart("base.apk") { stream }))
     }
 
     suspend fun install(id: Int, packageName: String, streams: List<InputStream>) {
-        installStreamProviders(id, packageName, streams.map { stream -> { stream } })
+        val parts = streams.mapIndexed { index, stream ->
+            val name = if (index == 0) "base.apk" else "split_$index.apk"
+            InstallPart(name) { stream }
+        }
+        installParts(id, packageName, parts)
     }
 
     suspend fun installStreamProviders(
@@ -120,8 +129,20 @@ class SessionInstaller internal constructor(
         packageName: String,
         streamProviders: List<() -> InputStream?>
     ): Boolean {
-        if (streamProviders.isEmpty()) {
-            throw IOException("No installation streams provided for $packageName")
+        val parts = streamProviders.mapIndexed { index, provider ->
+            val name = if (index == 0) "base.apk" else "split_$index.apk"
+            InstallPart(name, provider)
+        }
+        return installParts(id, packageName, parts)
+    }
+
+    suspend fun installParts(
+        id: Int,
+        packageName: String,
+        parts: List<InstallPart>
+    ): Boolean {
+        if (parts.isEmpty()) {
+            throw IOException("No installation parts provided for $packageName")
         }
 
         // Strict opt-in check: only attempt Shizuku when explicitly enabled by the user in Settings.
@@ -129,7 +150,7 @@ class SessionInstaller internal constructor(
             val shizukuStatus = ensureShizukuReadyAndAuthorized()
             if (shizukuStatus == ShizukuAvailability.READY) {
                 val shizukuResult = runCatching {
-                    shizukuBridge.executeShizukuInstall(id, packageName, streamProviders)
+                    shizukuBridge.executeShizukuInstall(id, packageName, parts)
                 }
                 if (shizukuResult.isSuccess) {
                     val succeeded = shizukuResult.getOrDefault(false)
@@ -155,11 +176,11 @@ class SessionInstaller internal constructor(
 
         val fallbackOverride = packageInstallerFallbackOverride
         if (fallbackOverride != null) {
-            val result = fallbackOverride(id, packageName, streamProviders)
+            val result = fallbackOverride(id, packageName, parts)
             installLog.emitStatus(AppInstallStatus(result, id, snack = true))
             return result
         }
-        return installWithPackageInstaller(id, packageName, streamProviders)
+        return installWithPackageInstaller(id, packageName, parts)
     }
 
     private fun notifyShizukuFallback(messageRes: Int) {
@@ -292,14 +313,14 @@ class SessionInstaller internal constructor(
         override fun executeShizukuInstall(
             id: Int,
             packageName: String,
-            streamProviders: List<() -> InputStream?>
-        ): Boolean = installWithShizuku(id, packageName, streamProviders)
+            parts: List<InstallPart>
+        ): Boolean = installWithShizuku(id, packageName, parts)
     }
 
     private fun installWithShizuku(
         id: Int,
         packageName: String,
-        streamProviders: List<() -> InputStream?>
+        parts: List<InstallPart>
     ): Boolean {
         val ctx = requireNotNull(context) { "Android Context required for native Shizuku install" }
         val binder = Shizuku.getBinder() ?: throw IOException("Shizuku binder unavailable")
@@ -310,11 +331,13 @@ class SessionInstaller internal constructor(
         var sessionId: String? = null
         try {
             var totalBytes = 0L
-            val stagedFiles = streamProviders.mapIndexed { index, provider ->
-                val inputStream = provider()
-                    ?: throw IOException("Download stream returned null for $packageName (part $index)")
-                val partFile = File(tempDir, "split_$index.apk")
-                inputStream.use { input ->
+            val stagedFiles = parts.mapIndexed { index, part ->
+                val rawStream = part.openStream()
+                    ?: throw IOException("Download stream returned null for $packageName (part ${part.name})")
+                val stream = wrapStreamIfGzip(rawStream)
+                val fileName = if (part.name.endsWith(".apk")) part.name else "${part.name}.apk"
+                val partFile = File(tempDir, fileName)
+                stream.use { input ->
                     partFile.outputStream().use { output ->
                         val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
                         var read = input.read(buffer)
@@ -328,7 +351,7 @@ class SessionInstaller internal constructor(
                     }
                 }
                 if (partFile.length() <= 0L) {
-                    throw IOException("Downloaded empty APK split for $packageName (part $index)")
+                    throw IOException("Downloaded empty APK split for $packageName (${part.name})")
                 }
                 partFile
             }
@@ -340,9 +363,9 @@ class SessionInstaller internal constructor(
             sessionId = Regex("\\[(\\d+)]").find(createOutput)?.groupValues?.getOrNull(1)
                 ?: throw IOException("Could not parse Shizuku install session ID from: $createOutput")
 
-            stagedFiles.forEachIndexed { index, file ->
+            stagedFiles.forEach { file ->
                 val writeProc = shizukuService.newProcess(
-                    arrayOf("pm", "install-write", "-S", file.length().toString(), sessionId, "split_$index.apk", "-"),
+                    arrayOf("pm", "install-write", "-S", file.length().toString(), sessionId, file.name, "-"),
                     null,
                     null
                 )
@@ -409,9 +432,14 @@ class SessionInstaller internal constructor(
     private suspend fun installWithPackageInstaller(
         id: Int,
         packageName: String,
-        streamProviders: List<() -> InputStream?>
+        parts: List<InstallPart>
     ): Boolean {
         val ctx = requireNotNull(context) { "Android Context required for PackageInstaller" }
+        if (!canRequestPackageInstalls()) {
+            Log.w("SessionInstaller", "Cannot request package installs for $packageName; prompting permission.")
+            checkPermission()
+            return false
+        }
         val packageInstaller: PackageInstaller = ctx.packageManager.packageInstaller
         val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL).apply {
             setAppPackageName(packageName)
@@ -461,19 +489,35 @@ class SessionInstaller internal constructor(
 
             receiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context, @SuppressLint("UnsafeIntentLaunch") intent: Intent?) {
-                    when (val status = intent?.extras?.getInt(PackageInstaller.EXTRA_STATUS)) {
+                    val status = intent?.extras?.getInt(PackageInstaller.EXTRA_STATUS)
+                    val message = intent?.extras?.getString(PackageInstaller.EXTRA_STATUS_MESSAGE)
+                    Log.i("InstallerReceiver", "PackageInstaller callback for $packageName ($id): status=$status, message=$message")
+                    when (status) {
                         PackageInstaller.STATUS_PENDING_USER_ACTION -> {
                             installLog.currentInstallId = id
-                            intent.getIntentExtra()?.let { confirmIntent ->
+                            val confirmIntent = intent.getIntentExtra()
+                            if (confirmIntent != null) {
                                 confirmIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                scope.launch {
-                                    mutex.lock()
-                                    runCatching { context.startActivity(confirmIntent) }
-                                        .onFailure {
-                                            if (mutex.isLocked) runCatching { mutex.unlock() }
-                                            completeOnce(false)
-                                        }
+                                val options = ActivityOptions.makeBasic()
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                                    @Suppress("DEPRECATION")
+                                    options.setPendingIntentBackgroundActivityStartMode(
+                                        ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
+                                    )
                                 }
+                                scope.launch(Dispatchers.Main) {
+                                    mutex.lock()
+                                    runCatching {
+                                        (context.applicationContext ?: context).startActivity(confirmIntent, options.toBundle())
+                                    }.onFailure { error ->
+                                        Log.e("InstallerReceiver", "Failed to launch confirmation activity for $packageName ($id)", error)
+                                        if (mutex.isLocked) runCatching { mutex.unlock() }
+                                        completeOnce(false)
+                                    }
+                                }
+                            } else {
+                                Log.e("InstallerReceiver", "STATUS_PENDING_USER_ACTION received but confirmIntent is null for $packageName ($id)")
+                                completeOnce(false)
                             }
                         }
                         PackageInstaller.STATUS_SUCCESS -> {
@@ -481,8 +525,7 @@ class SessionInstaller internal constructor(
                             completeOnce(true)
                         }
                         else -> {
-                            val message = intent?.extras?.getString(PackageInstaller.EXTRA_STATUS_MESSAGE)
-                            Log.i("InstallerReceiver", "FAILURE ($status: $message) for $packageName ($id)")
+                            Log.e("InstallerReceiver", "FAILURE ($status: $message) for $packageName ($id)")
                             completeOnce(false)
                         }
                     }
@@ -525,11 +568,13 @@ class SessionInstaller internal constructor(
                 createdSessionId = sessionId
                 var totalBytes = 0L
                 packageInstaller.openSession(sessionId).use { session ->
-                    streamProviders.forEachIndexed { index, provider ->
-                        val stream = provider()
-                            ?: throw IOException("Download stream returned null for $packageName (part $index)")
+                    parts.forEachIndexed { index, part ->
+                        val rawStream = part.openStream()
+                            ?: throw IOException("Download stream returned null for $packageName (part ${part.name})")
+                        val stream = wrapStreamIfGzip(rawStream)
                         stream.use { input ->
-                            session.openWrite("$packageName.${randomUUID()}", 0, -1).use { output ->
+                            val partName = if (part.name.endsWith(".apk")) part.name else "${part.name}.apk"
+                            session.openWrite(partName, 0, -1).use { output ->
                                 totalBytes += input.copyToAndNotify(output, id, installLog, totalBytes)
                                 session.fsync(output)
                             }
@@ -538,7 +583,7 @@ class SessionInstaller internal constructor(
 
                     val broadcastIntent = Intent("$INSTALL_ACTION.$id").apply {
                         setPackage(ctx.packageName)
-                        putExtra( EXTRA_APP_ID, id)
+                        putExtra(EXTRA_APP_ID, id)
                     }
                     val pending = PendingIntent.getBroadcast(
                         ctx,

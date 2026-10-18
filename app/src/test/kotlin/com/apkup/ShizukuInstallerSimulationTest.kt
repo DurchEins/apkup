@@ -7,6 +7,7 @@ import com.apkup.prefs.Prefs
 import com.apkup.repository.UpdateCheckProgressTracker
 import com.apkup.ui.component.UpdateCardContent
 import com.apkup.util.InstallLog
+import com.apkup.util.InstallPart
 import com.apkup.util.SessionInstaller
 import com.apkup.util.ShizukuBridge
 import com.apkup.worker.resolvePeriodicIntervalHours
@@ -274,7 +275,7 @@ class ShizukuInstallerSimulationTest {
     private fun createSimulatedInstaller(
         bridge: FakeShizukuBridge,
         prefs: Prefs = Prefs(InMemoryKryptoPrefs()),
-        fallbackRunner: suspend (Int, String, List<() -> InputStream?>) -> Boolean = { _, _, _ -> true },
+        fallbackRunner: suspend (Int, String, List<InstallPart>) -> Boolean = { _, _, _ -> true },
         onFallbackNotice: (Int) -> Unit = {}
     ): SessionInstaller = SessionInstaller(
         context = null,
@@ -328,7 +329,7 @@ class ShizukuInstallerSimulationTest {
         override fun executeShizukuInstall(
             id: Int,
             packageName: String,
-            streamProviders: List<() -> InputStream?>
+            parts: List<InstallPart>
         ): Boolean {
             shizukuInstallCalls++
             return shizukuInstallOutcome()

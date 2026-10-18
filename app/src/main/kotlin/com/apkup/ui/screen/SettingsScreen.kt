@@ -144,7 +144,10 @@ import com.apkup.util.SessionInstaller
 import com.apkup.viewmodel.AppsViewModel
 import com.apkup.viewmodel.SettingsViewModel
 import com.apkup.viewmodel.UpdatesViewModel
+import com.apkup.prefs.Prefs
+import com.apkup.ui.component.ChangelogBottomSheet
 import kotlinx.coroutines.delay
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 
@@ -178,6 +181,7 @@ fun SettingsScreen(
 	Settings(viewModel, appsViewModel, updatesViewModel)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Settings(
 	viewModel: SettingsViewModel,
@@ -187,12 +191,14 @@ fun Settings(
 ) {
 	val context = LocalContext.current
 	val haptic = LocalHapticFeedback.current
+	val prefs = koinInject<Prefs>()
 	val ignoredVersions = viewModel.ignoredVersions().collectAsStateWithLifecycle().value
 	val ignoredApps = viewModel.ignoredApps().collectAsStateWithLifecycle().value
 	val shizukuEnabled = viewModel.shizukuEnabled().collectAsStateWithLifecycle().value
 	val shizukuStatus = viewModel.shizukuSetupStatus().collectAsStateWithLifecycle().value
 	val showShizukuSheet = viewModel.showShizukuSetupSheet().collectAsStateWithLifecycle().value
 	var showHiddenAppsSheet by remember { mutableStateOf(false) }
+	var showChangelogSheet by remember { mutableStateOf(false) }
 	var configRefreshKey by remember { mutableIntStateOf(0) }
 
 	var easterEggActiveUntil by remember { mutableLongStateOf(0L) }
@@ -816,6 +822,49 @@ fun Settings(
 				}
 
 				Surface(
+					onClick = { showChangelogSheet = true },
+					modifier = Modifier
+						.fillMaxWidth()
+						.heightIn(min = 44.dp),
+					shape = RoundedCornerShape(14.dp),
+					color = MaterialTheme.colorScheme.surfaceContainerHigh
+				) {
+					Row(
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(horizontal = 14.dp, vertical = 10.dp),
+						verticalAlignment = CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(10.dp)
+					) {
+						Icon(
+							painter = painterResource(R.drawable.ic_changelog),
+							contentDescription = null,
+							tint = MaterialTheme.colorScheme.primary,
+							modifier = Modifier.size(18.dp)
+						)
+						Column(modifier = Modifier.weight(1f)) {
+							Text(
+								text = stringResource(R.string.changelog_menu_item),
+								style = MaterialTheme.typography.bodySmall,
+								fontWeight = FontWeight.SemiBold,
+								color = MaterialTheme.colorScheme.onSurface
+							)
+							Text(
+								text = stringResource(R.string.changelog_menu_subtitle),
+								style = MaterialTheme.typography.labelSmall,
+								color = MaterialTheme.colorScheme.onSurfaceVariant
+							)
+						}
+						Icon(
+							painter = painterResource(R.drawable.ic_info),
+							contentDescription = null,
+							tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
+							modifier = Modifier.size(16.dp)
+						)
+					}
+				}
+
+				Surface(
 					onClick = { handler.openUri("https://github.com/DurchEins/apkup") },
 					modifier = Modifier
 						.fillMaxWidth()
@@ -978,6 +1027,15 @@ fun Settings(
 			},
 			onRecheck = {
 				viewModel.refreshShizukuStatus()
+			}
+		)
+	}
+
+	if (showChangelogSheet) {
+		ChangelogBottomSheet(
+			onDismiss = {
+				showChangelogSheet = false
+				prefs.lastSeenVersionCode.put(BuildConfig.VERSION_CODE.toLong())
 			}
 		)
 	}
