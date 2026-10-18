@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -122,7 +123,7 @@ fun SelfUpdateDialog(
                 confirmButton = {
                     Button(
                         onClick = { onConfirmUpdate(info) },
-                        shape = RoundedCornerShape(14.dp)
+                        shape = CircleShape
                     ) {
                         Text(
                             text = stringResource(R.string.self_update_dialog_button_update),
@@ -133,7 +134,7 @@ fun SelfUpdateDialog(
                 dismissButton = {
                     TextButton(
                         onClick = onDismiss,
-                        shape = RoundedCornerShape(14.dp)
+                        shape = CircleShape
                     ) {
                         Text(stringResource(R.string.self_update_dialog_button_later))
                     }

@@ -25,6 +25,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -349,7 +350,7 @@ fun Settings(
 			modifier = Modifier
 				.fillMaxSize()
 				.offset { IntOffset(0, overscrollPull.value.roundToInt()) },
-			contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+			contentPadding = PaddingValues(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 100.dp),
 			verticalArrangement = Arrangement.spacedBy(14.dp)
 		) {
 			// Sektion 1: Erscheinungsbild & Layout
@@ -534,8 +535,9 @@ fun Settings(
 						}
 					},
 					modifier = Modifier.fillMaxWidth(),
-					shape = RoundedCornerShape(18.dp),
-					color = MaterialTheme.colorScheme.surfaceContainerHigh
+					shape = RoundedCornerShape(20.dp),
+					color = MaterialTheme.colorScheme.surfaceContainerHigh,
+					border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
 				) {
 					Row(
 						modifier = Modifier
@@ -575,7 +577,7 @@ fun Settings(
 							)
 						}
 						Surface(
-							shape = RoundedCornerShape(999.dp),
+							shape = CircleShape,
 							color = if (hasInstallPermission) {
 								Color(0xFFE8F5E9)
 							} else {
@@ -616,7 +618,8 @@ fun Settings(
 				Surface(
 					modifier = Modifier.fillMaxWidth(),
 					shape = RoundedCornerShape(20.dp),
-					color = MaterialTheme.colorScheme.surfaceContainerHigh
+					color = MaterialTheme.colorScheme.surfaceContainerHigh,
+					border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
 				) {
 					Column(
 						modifier = Modifier
@@ -653,7 +656,7 @@ fun Settings(
 								modifier = Modifier.weight(1f)
 							)
 							Surface(
-								shape = RoundedCornerShape(999.dp),
+								shape = CircleShape,
 								color = if (ignoredApps.isNotEmpty()) {
 									MaterialTheme.colorScheme.primaryContainer
 								} else {
@@ -686,7 +689,7 @@ fun Settings(
 							modifier = Modifier
 								.fillMaxWidth()
 								.heightIn(min = 42.dp),
-							shape = RoundedCornerShape(14.dp)
+							shape = CircleShape
 						) {
 							Icon(
 								painter = painterResource(R.drawable.ic_visible_off),
@@ -735,7 +738,7 @@ fun Settings(
 					FilledTonalButton(
 						onClick = { exportBackupLauncher.launch("apkup-backup.json") },
 						modifier = Modifier.weight(1f),
-						shape = RoundedCornerShape(16.dp)
+						shape = CircleShape
 					) {
 						Icon(
 							imageVector = Icons.Default.Share,
@@ -752,7 +755,7 @@ fun Settings(
 					OutlinedButton(
 						onClick = { importBackupLauncher.launch(arrayOf("application/json", "text/plain", "*/*")) },
 						modifier = Modifier.weight(1f),
-						shape = RoundedCornerShape(16.dp)
+						shape = CircleShape
 					) {
 						Icon(
 							painter = painterResource(R.drawable.ic_download),
@@ -776,7 +779,8 @@ fun Settings(
 				Surface(
 					modifier = Modifier.fillMaxWidth(),
 					shape = RoundedCornerShape(20.dp),
-					color = MaterialTheme.colorScheme.surfaceContainerHigh
+					color = MaterialTheme.colorScheme.surfaceContainerHigh,
+					border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
 				) {
 					Column(
 						modifier = Modifier
@@ -903,8 +907,9 @@ fun Settings(
 					modifier = Modifier
 						.fillMaxWidth()
 						.heightIn(min = 44.dp),
-					shape = RoundedCornerShape(14.dp),
-					color = MaterialTheme.colorScheme.surfaceContainerHigh
+					shape = RoundedCornerShape(20.dp),
+					color = MaterialTheme.colorScheme.surfaceContainerHigh,
+					border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
 				) {
 					Row(
 						modifier = Modifier
@@ -946,8 +951,9 @@ fun Settings(
 					modifier = Modifier
 						.fillMaxWidth()
 						.heightIn(min = 44.dp),
-					shape = RoundedCornerShape(14.dp),
-					color = MaterialTheme.colorScheme.surfaceContainerHigh
+					shape = RoundedCornerShape(20.dp),
+					color = MaterialTheme.colorScheme.surfaceContainerHigh,
+					border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
 				) {
 					Row(
 						modifier = Modifier
@@ -989,8 +995,9 @@ fun Settings(
 					modifier = Modifier
 						.fillMaxWidth()
 						.heightIn(min = 44.dp),
-					shape = RoundedCornerShape(14.dp),
-					color = MaterialTheme.colorScheme.surfaceContainerHigh
+					shape = RoundedCornerShape(20.dp),
+					color = MaterialTheme.colorScheme.surfaceContainerHigh,
+					border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
 				) {
 					Row(
 						modifier = Modifier
@@ -1026,8 +1033,9 @@ fun Settings(
 					modifier = Modifier
 						.fillMaxWidth()
 						.heightIn(min = 44.dp),
-					shape = RoundedCornerShape(14.dp),
-					color = MaterialTheme.colorScheme.surfaceContainerHigh
+					shape = RoundedCornerShape(20.dp),
+					color = MaterialTheme.colorScheme.surfaceContainerHigh,
+					border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
 				) {
 					Row(
 						modifier = Modifier
@@ -1202,10 +1210,13 @@ private fun GitHubTokenDialog(
 			}
 		},
 		confirmButton = {
-			Button(onClick = {
-				onSaveToken(tokenText)
-				onDismiss()
-			}) {
+			Button(
+				onClick = {
+					onSaveToken(tokenText)
+					onDismiss()
+				},
+				shape = CircleShape
+			) {
 				Text(stringResource(R.string.github_token_dialog_save))
 			}
 		},
@@ -1463,7 +1474,7 @@ private fun ShizukuSetupBottomSheet(
 						recheckPulseCount++
 					},
 					modifier = Modifier.weight(1f).heightIn(min = 48.dp),
-					shape = RoundedCornerShape(16.dp)
+					shape = CircleShape
 				) {
 					Icon(
 						imageVector = if (showRecheckedFeedback) Icons.Default.Check else Icons.Default.Refresh,
@@ -1602,7 +1613,7 @@ private fun ShizukuStepCard(
 				Button(
 					onClick = onActionClick,
 					modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp),
-					shape = RoundedCornerShape(14.dp)
+					shape = CircleShape
 				) {
 					Text(text = actionLabel)
 				}
@@ -2028,7 +2039,7 @@ private fun HiddenAppsBottomSheet(
 						},
 						enabled = selectedCount > 0,
 						modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-						shape = RoundedCornerShape(16.dp)
+						shape = CircleShape
 					) {
 						Text(
 							text = if (selectedCount > 0) {
@@ -2046,7 +2057,7 @@ private fun HiddenAppsBottomSheet(
 							isAddingMore = true
 						},
 						modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp),
-						shape = RoundedCornerShape(16.dp)
+						shape = CircleShape
 					) {
 						Icon(
 							painter = painterResource(R.drawable.ic_visible_off),
@@ -2182,7 +2193,7 @@ private fun HiddenAppsBottomSheet(
 					},
 					enabled = selectedCountToHide > 0,
 					modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-					shape = RoundedCornerShape(16.dp)
+					shape = CircleShape
 				) {
 					Text(
 						text = if (selectedCountToHide > 0) {
@@ -2205,7 +2216,8 @@ private fun IgnoredVersionsSection(
 ) = Surface(
 	modifier = Modifier.fillMaxWidth(),
 	shape = RoundedCornerShape(20.dp),
-	color = MaterialTheme.colorScheme.surfaceContainerHigh
+	color = MaterialTheme.colorScheme.surfaceContainerHigh,
+	border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
 ) {
 	Column(
 		modifier = Modifier
@@ -2242,7 +2254,7 @@ private fun IgnoredVersionsSection(
 				modifier = Modifier.weight(1f)
 			)
 			Surface(
-				shape = RoundedCornerShape(50),
+				shape = CircleShape,
 				color = MaterialTheme.colorScheme.secondaryContainer
 			) {
 				Text(
@@ -2344,7 +2356,7 @@ private fun IgnoredVersionsSection(
 				OutlinedButton(
 					onClick = onClearAll,
 					modifier = Modifier.fillMaxWidth(),
-					shape = RoundedCornerShape(14.dp)
+					shape = CircleShape
 				) {
 					Icon(
 						imageVector = Icons.Default.Delete,

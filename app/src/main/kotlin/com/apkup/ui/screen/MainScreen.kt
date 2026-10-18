@@ -7,10 +7,23 @@ import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
@@ -22,6 +35,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -32,6 +46,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.activity.compose.LocalActivity
 import androidx.compose.ui.res.stringResource
@@ -144,24 +161,39 @@ fun MainScreen(
 	AppTheme(theme) {
 		Scaffold(
 			containerColor = MaterialTheme.colorScheme.background,
-			snackbarHost = { SnackbarHost(snackBarHostState) },
-			bottomBar = { BottomBar(mainViewModel, updatesViewModel, navController) }
+			snackbarHost = { SnackbarHost(snackBarHostState) }
 		) { padding ->
-			PullToRefreshBox(
-				isRefreshing = isRefreshing.value,
-				onRefresh = { mainViewModel.refresh(appsViewModel, updatesViewModel) },
-				state = pullToRefreshState,
-				indicator = {
-					if (!isUpdatesScreen) {
-						PullToRefreshDefaults.Indicator(
-							modifier = Modifier.align(Alignment.TopCenter),
-							isRefreshing = isRefreshing.value,
-							state = pullToRefreshState
-						)
-					}
-				}
+			Box(
+				modifier = Modifier
+					.fillMaxSize()
+					.padding(top = padding.calculateTopPadding())
 			) {
-				NavHost(navController, padding, mainViewModel, appsViewModel, updatesViewModel, settingsViewModel)
+				PullToRefreshBox(
+					isRefreshing = isRefreshing.value,
+					onRefresh = { mainViewModel.refresh(appsViewModel, updatesViewModel) },
+					state = pullToRefreshState,
+					indicator = {
+						if (!isUpdatesScreen) {
+							PullToRefreshDefaults.Indicator(
+								modifier = Modifier.align(Alignment.TopCenter),
+								isRefreshing = isRefreshing.value,
+								state = pullToRefreshState
+							)
+						}
+					}
+				) {
+					NavHost(navController, PaddingValues(0.dp), mainViewModel, appsViewModel, updatesViewModel, settingsViewModel)
+				}
+
+				FloatingCapsuleDock(
+					mainViewModel = mainViewModel,
+					updatesViewModel = updatesViewModel,
+					navController = navController,
+					modifier = Modifier
+						.align(Alignment.BottomCenter)
+						.navigationBarsPadding()
+						.padding(bottom = 16.dp, start = 16.dp, end = 16.dp)
+				)
 			}
 		}
 	}
@@ -249,33 +281,97 @@ fun CheckNotificationIntent(
 }
 
 @Composable
-fun BottomBar(mainViewModel: MainViewModel, updatesViewModel: UpdatesViewModel, navController: NavController) = NavigationBar(
-	containerColor = MaterialTheme.colorScheme.surfaceContainer,
-	tonalElevation = 0.dp
+fun FloatingCapsuleDock(
+	mainViewModel: MainViewModel,
+	updatesViewModel: UpdatesViewModel,
+	navController: NavController,
+	modifier: Modifier = Modifier
 ) {
 	val badges = koinInject<Badger>().flow().collectAsStateWithLifecycle().value
 	val updatesState = updatesViewModel.state().collectAsStateWithLifecycle().value
 	val isChecking = updatesState.isChecking
-	mainViewModel.screens.forEach { screen ->
-		val state = navController.currentBackStackEntryAsState().value
-		val selected = state?.destination?.route == screen.route
-		val isLiveChecking = screen == Screen.Updates && isChecking
-		BottomBarItem(mainViewModel, navController, screen, selected, badges[screen.route].orEmpty(), isLiveChecking)
+	val navBackStackEntry by navController.currentBackStackEntryAsState()
+	val currentRoute = navBackStackEntry?.destination?.route
+
+	Surface(
+		modifier = modifier,
+		shape = CircleShape,
+		color = MaterialTheme.colorScheme.surfaceContainerHigh,
+		shadowElevation = 8.dp,
+		border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+	) {
+		Row(
+			modifier = Modifier
+				.padding(horizontal = 8.dp, vertical = 6.dp),
+			horizontalArrangement = Arrangement.spacedBy(4.dp),
+			verticalAlignment = Alignment.CenterVertically
+		) {
+			mainViewModel.screens.forEach { screen ->
+				val selected = currentRoute == screen.route
+				val isLiveChecking = screen == Screen.Updates && isChecking
+				CapsuleDockItem(
+					screen = screen,
+					selected = selected,
+					badge = badges[screen.route].orEmpty(),
+					isLiveChecking = isLiveChecking,
+					onClick = { mainViewModel.navigateTo(navController, screen.route) }
+				)
+			}
+		}
 	}
 }
 
 @Composable
-fun RowScope.BottomBarItem(
-	mainViewModel: MainViewModel,
-    navController: NavController,
-    screen: Screen,
-    selected: Boolean,
-    badge: String,
-    isLiveChecking: Boolean = false
-) = NavigationBarItem(
-	icon = {
-		BadgedBox(
-			badge = {
+fun CapsuleDockItem(
+	screen: Screen,
+	selected: Boolean,
+	badge: String,
+	isLiveChecking: Boolean = false,
+	onClick: () -> Unit
+) {
+	val containerColor by animateColorAsState(
+		targetValue = if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
+		animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+		label = "CapsuleContainerColor"
+	)
+	val contentColor by animateColorAsState(
+		targetValue = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+		animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+		label = "CapsuleContentColor"
+	)
+
+	Surface(
+		shape = CircleShape,
+		color = containerColor,
+		contentColor = contentColor,
+		modifier = Modifier
+			.clip(CircleShape)
+			.clickable(
+				interactionSource = remember { MutableInteractionSource() },
+				indication = null,
+				onClick = onClick
+			)
+			.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+	) {
+		Row(
+			modifier = Modifier
+				.padding(horizontal = if (selected) 14.dp else 10.dp, vertical = 8.dp),
+			verticalAlignment = Alignment.CenterVertically,
+			horizontalArrangement = Arrangement.spacedBy(6.dp)
+		) {
+			if (selected) {
+				Icon(
+					imageVector = screen.iconSelected,
+					contentDescription = stringResource(screen.resourceId),
+					modifier = Modifier.size(20.dp)
+				)
+				Text(
+					text = stringResource(screen.resourceId),
+					style = MaterialTheme.typography.labelMedium,
+					fontWeight = FontWeight.Bold,
+					maxLines = 1,
+					overflow = TextOverflow.Ellipsis
+				)
 				if (isLiveChecking) {
 					Badge(
 						containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -289,31 +385,45 @@ fun RowScope.BottomBarItem(
 							color = MaterialTheme.colorScheme.primary
 						)
 					}
-				} else {
-					BadgeText(badge)
+				} else if (badge.isNotEmpty()) {
+					Badge(
+						containerColor = MaterialTheme.colorScheme.secondary,
+						contentColor = MaterialTheme.colorScheme.onSecondary
+					) {
+						Text(badge, style = MaterialTheme.typography.labelSmall)
+					}
+				}
+			} else {
+				BadgedBox(
+					badge = {
+						if (isLiveChecking) {
+							Badge(
+								containerColor = MaterialTheme.colorScheme.primaryContainer,
+								contentColor = MaterialTheme.colorScheme.primary
+							) {
+								CircularProgressIndicator(
+									modifier = Modifier
+										.size(10.dp)
+										.padding(1.dp),
+									strokeWidth = 1.6.dp,
+									color = MaterialTheme.colorScheme.primary
+								)
+							}
+						} else {
+							BadgeText(badge)
+						}
+					}
+				) {
+					Icon(
+						imageVector = screen.icon,
+						contentDescription = stringResource(screen.resourceId),
+						modifier = Modifier.size(22.dp)
+					)
 				}
 			}
-		) {
-			Icon(if (selected) screen.iconSelected else screen.icon, contentDescription = null)
 		}
-   	},
-	label = {
-		Text(
-			stringResource(screen.resourceId),
-			maxLines = 1,
-			overflow = TextOverflow.Ellipsis
-		)
-	},
-	selected = selected,
-	colors = androidx.compose.material3.NavigationBarItemDefaults.colors(
-		selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
-		selectedTextColor = MaterialTheme.colorScheme.onSurface,
-		indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
-		unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-		unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-	),
-	onClick = { mainViewModel.navigateTo(navController, screen.route) }
-)
+	}
+}
 
 @Composable
 fun NavHost(

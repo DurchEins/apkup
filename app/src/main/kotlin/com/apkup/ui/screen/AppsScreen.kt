@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +25,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -219,7 +221,7 @@ fun AppsScreenSuccess(viewModel: AppsViewModel, state: AppsUiState.Success) = Co
 							}
 						}
 					},
-					shape = RoundedCornerShape(18.dp),
+					shape = CircleShape,
 					containerColor = MaterialTheme.colorScheme.primaryContainer,
 					contentColor = MaterialTheme.colorScheme.onPrimaryContainer
 				) {
@@ -252,8 +254,8 @@ private fun DockedAppsSearchBar(
 		modifier = Modifier
 			.fillMaxWidth()
 			.padding(horizontal = 12.dp, vertical = 4.dp)
-			.height(52.dp)
-			.clip(RoundedCornerShape(26.dp)),
+			.height(54.dp)
+			.clip(CircleShape),
 		placeholder = {
 			Text(
 				text = stringResource(R.string.apps_search_placeholder),
@@ -283,10 +285,10 @@ private fun DockedAppsSearchBar(
 		textStyle = MaterialTheme.typography.bodyMedium,
 		keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
 		keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
-		shape = RoundedCornerShape(26.dp),
+		shape = CircleShape,
 		colors = TextFieldDefaults.colors(
 			focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-			unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+			unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
 			focusedIndicatorColor = Color.Transparent,
 			unfocusedIndicatorColor = Color.Transparent,
 			disabledIndicatorColor = Color.Transparent
@@ -334,7 +336,12 @@ private fun AppsQuickFilterRow(
 						)
 					}
 				} else null,
-				shape = RoundedCornerShape(14.dp),
+				shape = CircleShape,
+				border = FilterChipDefaults.filterChipBorder(
+					enabled = true,
+					selected = selected,
+					borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+				),
 				colors = FilterChipDefaults.filterChipColors(
 					selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
 					selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -370,7 +377,7 @@ fun AppsTopBar(
 			)
 			if (totalCount != null) {
 				Surface(
-					shape = RoundedCornerShape(12.dp),
+					shape = CircleShape,
 					color = MaterialTheme.colorScheme.secondaryContainer
 				) {
 					Text(
