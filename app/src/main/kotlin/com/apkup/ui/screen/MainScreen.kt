@@ -16,10 +16,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -295,7 +297,7 @@ fun FloatingCapsuleDock(
 	val currentRoute = navBackStackEntry?.destination?.route
 
 	Surface(
-		modifier = modifier,
+		modifier = modifier.heightIn(min = 64.dp),
 		shape = CircleShape,
 		color = MaterialTheme.colorScheme.surfaceContainerHigh,
 		tonalElevation = 6.dp,
@@ -304,7 +306,8 @@ fun FloatingCapsuleDock(
 	) {
 		Row(
 			modifier = Modifier
-				.padding(horizontal = 10.dp, vertical = 6.dp),
+				.heightIn(min = 64.dp)
+				.padding(horizontal = 12.dp, vertical = 6.dp),
 			horizontalArrangement = Arrangement.spacedBy(8.dp),
 			verticalAlignment = Alignment.CenterVertically
 		) {
@@ -346,7 +349,6 @@ fun CapsuleDockItem(
 		animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
 		label = "CapsuleContentColor"
 	)
-	val displayBadge = formatCapsuleBadge(badge)
 
 	Surface(
 		shape = CircleShape,
@@ -360,16 +362,13 @@ fun CapsuleDockItem(
 			)
 			.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
 	) {
-		Row(
-			modifier = Modifier
-				.padding(
-					horizontal = if (selected) 16.dp else 14.dp,
-					vertical = 10.dp
-				),
-			verticalAlignment = Alignment.CenterVertically,
-			horizontalArrangement = Arrangement.spacedBy(6.dp)
-		) {
-			if (selected) {
+		if (selected) {
+			Row(
+				modifier = Modifier
+					.padding(horizontal = 16.dp, vertical = 12.dp),
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(6.dp)
+			) {
 				Icon(
 					imageVector = screen.iconSelected,
 					contentDescription = stringResource(screen.resourceId),
@@ -383,69 +382,83 @@ fun CapsuleDockItem(
 					overflow = TextOverflow.Ellipsis
 				)
 				if (isLiveChecking) {
-					Badge(
-						containerColor = MaterialTheme.colorScheme.primaryContainer,
+					Surface(
+						shape = CircleShape,
+						color = MaterialTheme.colorScheme.primaryContainer,
 						contentColor = MaterialTheme.colorScheme.primary
 					) {
-						CircularProgressIndicator(
-							modifier = Modifier
-								.size(10.dp)
-								.padding(1.dp),
-							strokeWidth = 1.6.dp,
-							color = MaterialTheme.colorScheme.primary
-						)
+						Box(
+							modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+							contentAlignment = Alignment.Center
+						) {
+							CircularProgressIndicator(
+								modifier = Modifier.size(10.dp),
+								strokeWidth = 1.6.dp,
+								color = MaterialTheme.colorScheme.primary
+							)
+						}
 					}
-				} else if (displayBadge.isNotEmpty()) {
-					Badge(
-						containerColor = MaterialTheme.colorScheme.primary,
-						contentColor = MaterialTheme.colorScheme.onPrimary,
-						modifier = Modifier.padding(horizontal = 2.dp)
+				} else if (badge.isNotEmpty()) {
+					Surface(
+						shape = CircleShape,
+						color = MaterialTheme.colorScheme.primary,
+						contentColor = MaterialTheme.colorScheme.onPrimary
 					) {
 						Text(
-							text = displayBadge,
+							text = badge,
 							style = MaterialTheme.typography.labelSmall,
 							fontWeight = FontWeight.Bold,
-							modifier = Modifier.padding(horizontal = 4.dp)
+							maxLines = 1,
+							modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
 						)
 					}
 				}
-			} else {
-				BadgedBox(
-					badge = {
-						if (isLiveChecking) {
-							Badge(
-								containerColor = MaterialTheme.colorScheme.primaryContainer,
-								contentColor = MaterialTheme.colorScheme.primary
-							) {
-								CircularProgressIndicator(
-									modifier = Modifier
-										.size(10.dp)
-										.padding(1.dp),
-									strokeWidth = 1.6.dp,
-									color = MaterialTheme.colorScheme.primary
-								)
-							}
-						} else if (displayBadge.isNotEmpty()) {
-							Badge(
-								containerColor = MaterialTheme.colorScheme.errorContainer,
-								contentColor = MaterialTheme.colorScheme.onErrorContainer,
-								modifier = Modifier.offset(x = 6.dp, y = (-2).dp)
-							) {
-								Text(
-									text = displayBadge,
-									style = MaterialTheme.typography.labelSmall,
-									fontWeight = FontWeight.Bold,
-									modifier = Modifier.padding(horizontal = 4.dp)
-								)
-							}
+			}
+		} else {
+			Column(
+				modifier = Modifier
+					.padding(horizontal = 16.dp, vertical = 4.dp),
+				horizontalAlignment = Alignment.CenterHorizontally,
+				verticalArrangement = Arrangement.Center
+			) {
+				Icon(
+					imageVector = screen.icon,
+					contentDescription = stringResource(screen.resourceId),
+					modifier = Modifier.size(24.dp)
+				)
+				if (isLiveChecking) {
+					Surface(
+						shape = CircleShape,
+						color = MaterialTheme.colorScheme.primaryContainer,
+						contentColor = MaterialTheme.colorScheme.primary,
+						modifier = Modifier.offset(y = (-3).dp)
+					) {
+						Box(
+							modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+							contentAlignment = Alignment.Center
+						) {
+							CircularProgressIndicator(
+								modifier = Modifier.size(10.dp),
+								strokeWidth = 1.6.dp,
+								color = MaterialTheme.colorScheme.primary
+							)
 						}
 					}
-				) {
-					Icon(
-						imageVector = screen.icon,
-						contentDescription = stringResource(screen.resourceId),
-						modifier = Modifier.size(22.dp)
-					)
+				} else if (badge.isNotEmpty()) {
+					Surface(
+						shape = CircleShape,
+						color = MaterialTheme.colorScheme.errorContainer,
+						contentColor = MaterialTheme.colorScheme.onErrorContainer,
+						modifier = Modifier.offset(y = (-3).dp)
+					) {
+						Text(
+							text = badge,
+							style = MaterialTheme.typography.labelSmall,
+							fontWeight = FontWeight.Bold,
+							maxLines = 1,
+							modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+						)
+					}
 				}
 			}
 		}

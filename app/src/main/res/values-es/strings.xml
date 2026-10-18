@@ -1,41 +1,244 @@
 <resources>
-    
-    <string name="app_name" translatable="false">APKUpdater</string>
-    <string name="tab_apps">Aplicaciones</string>
-    <string name="tab_updates">Actualizaciones</string>
-    <string name="tab_settings">Configuración</string>
-    <string name="something_went_wrong">Algo ha fallado\\n\\uD83E\\uDD26</string>
-    <string name="ignore_version">Ignorar versión</string>
-    <string name="ignore_cd">Ignorar Apliación</string>
-    <string name="unignore_cd">No Ignorar Aplicación</string>
-    <string name="refresh_updates">Buscar Actualizaciones</string>
-    <string name="install_cd">Instalar Aplicación</string>
-    <string name="app_cd">Icono de la Applicación</string>
-    <string name="install_success">%1$s instalado.</string>
-    <string name="install_failure">%1$s fallo en la instalación.</string>
 
-    // Settings
+    <string name="app_disabled">Desactivada</string>
+    <string name="installed_short">Instalada:</string>
+    <string name="available_short">Nueva:</string>
+    <string name="tab_apps">Apps</string>
+    <string name="tab_updates">Updates</string>
+    <string name="tab_settings">Ajustes</string>
+    <string name="something_went_wrong">"Algo salió mal\n\uD83E\uDD26"</string>
+    <string name="ignore_version">Omitir versión</string>
+    <string name="ignore_cd">Ignorar app</string>
+    <string name="unignore_cd">Dejar de ignorar</string>
+    <string name="refresh_updates">Buscar actualizaciones</string>
+    <string name="updates_checking">Buscando actualizaciones…</string>
+    <string name="updates_checking_apps">%1$d de %2$d apps comprobadas en todas las fuentes</string>
+    <string name="updates_checking_source">Comprobando %1$s…</string>
+    <string name="updates_last_checked_just_now">Última comprobación: ahora mismo</string>
+    <string name="updates_last_checked_minutes">Última comprobación: hace %1$d min</string>
+    <string name="updates_last_checked_hours">Última comprobación: hace %1$d h</string>
+    <string name="updates_last_checked_days">Última comprobación: hace %1$d d</string>
+    <string name="install_cd">Instalar app</string>
+    <string name="install_all">Actualizar todo</string>
+    <string name="installed_version">Versión instalada</string>
+    <string name="available_version">Versión disponible</string>
+    <string name="update_action">Actualizar</string>
+    <string name="installing_update">Instalando actualización…</string>
+    <string name="queued_update">En cola…</string>
+    <string name="install_all_browser_only_hint">Las actualizaciones de APKMirror se abren en el navegador.</string>
+    <string name="install_all_skipped_browser_hint">Se omitieron %1$d enlace(s) web de APKMirror en la instalación por lotes.</string>
+    <string name="updates_empty_title">Todo está al día</string>
+    <string name="updates_empty_message">No hay actualizaciones pendientes en este momento.</string>
+    <string name="updates_error_title">No se pudieron cargar las actualizaciones</string>
+    <string name="updates_error_message">Comprueba tu conexión y vuelve a intentarlo.</string>
+    <string name="updates_source_error">Falló la comprobación de %1$s (%2$s). Mostrando resultados de %3$s.</string>
+    <string name="updates_partial_empty_title">Comprobación incompleta</string>
+    <string name="updates_partial_empty_message">Falló la comprobación de %1$s (%2$s). %3$s no informó actualizaciones.</string>
+    <string name="apps_error_message">Desliza hacia abajo para recargar la lista de apps instaladas.</string>
+    <string name="app_cd">Icono de app</string>
+    <string name="install_success">%1$s instalada.</string>
+    <string name="install_failure">Error al instalar %1$s.</string>
+
+    <!-- Update Details Sheet and Origin -->
+    <string name="whats_new_title">Novedades</string>
+    <string name="whats_new_empty">Esta fuente no proporcionó notas de la versión.</string>
+    <string name="update_source_select">Fuente de actualización</string>
+    <string name="skip_this_version">Omitir solo esta versión</string>
+    <string name="ignore_app_permanently">Ignorar app permanentemente</string>
+    <string name="origin_label">Instalada desde: %1$s</string>
+    <string name="origin_play">Google Play Store</string>
+    <string name="origin_fdroid">F-Droid</string>
+    <string name="origin_apkmirror">APKMirror</string>
+    <string name="origin_revanced">ReVanced / Parcheada</string>
+    <string name="origin_sideload">Manual / Sideload</string>
+    <string name="origin_system">Sistema</string>
+    <string name="signature_conflict_warning">Posible conflicto de firma: instalada desde %1$s. Actualizar desde %2$s puede fallar si las claves difieren.</string>
+
+    <!-- Apps Search, Filters and Actions -->
+    <string name="apps_search_placeholder">Buscar app o ID de paquete…</string>
+    <string name="apps_filter_all">Todas</string>
+    <string name="apps_filter_user">Usuario</string>
+    <string name="apps_filter_system">Sistema</string>
+    <string name="apps_filter_ignored">Ignoradas</string>
+    <string name="apps_filter_recent">Recientes</string>
+    <string name="apps_search_empty_title">Sin resultados</string>
+    <string name="apps_search_empty_message">Prueba con otro término de búsqueda o filtro.</string>
+    <string name="app_action_system_details">Información de la app (Sistema)</string>
+    <string name="app_action_open_play_store">Abrir en Google Play Store</string>
+    <string name="app_action_open_play_store_unavailable">No instalada desde Google Play Store</string>
+    <string name="app_action_uninstall">Desinstalar</string>
+    <string name="app_action_toggle_ignore">Cambiar estado de ignorar</string>
+    <string name="apps_scroll_to_bottom">Ir al final</string>
+    <string name="apps_scroll_to_top">Ir al principio</string>
+
+    <!-- Settings -->
+    <string name="settings_shizuku_installer">Usar Shizuku en segundo plano</string>
+    <string name="settings_shizuku_installer_subtitle">Permite actualizaciones automáticas sin diálogos del sistema. Requiere Shizuku activo.</string>
+    <string name="shizuku_fallback_not_running">Servicio Shizuku no disponible – usando instalador estándar.</string>
+    <string name="shizuku_fallback_no_permission">Permiso de Shizuku denegado – usando instalador estándar.</string>
+    <string name="shizuku_setup_title">Configurar Shizuku</string>
+    <string name="shizuku_setup_explanation">Shizuku permite instalaciones automáticas en segundo plano sin root mediante Depuración inalámbrica.</string>
+    <string name="shizuku_setup_reboot_notice">Importante sin root: Por restricciones de seguridad de Android, el servicio Shizuku debe reiniciarse brevemente mediante Depuración inalámbrica tras cada reinicio del dispositivo.</string>
+    <string name="shizuku_step1_title">Paso 1: Instalar la app Shizuku</string>
+    <string name="shizuku_step1_desc_missing">La app oficial de Shizuku aún no está instalada en este dispositivo.</string>
+    <string name="shizuku_step1_desc_ok">La app Shizuku está instalada.</string>
+    <string name="shizuku_step1_action">Abrir en Play Store</string>
+    <string name="shizuku_status_installed">Instalada</string>
+    <string name="shizuku_status_not_installed">No instalada</string>
+    <string name="shizuku_step2_title">Paso 2: Iniciar servicio Shizuku</string>
+    <string name="shizuku_step2_desc_missing">Opciones de desarrollador → Depuración inalámbrica → Vincular e iniciar en Shizuku</string>
+    <string name="shizuku_step2_desc_ok">El servicio Shizuku está activo.</string>
+    <string name="shizuku_step2_action">Abrir Shizuku</string>
+    <string name="shizuku_status_running">Activo</string>
+    <string name="shizuku_status_not_running">Inactivo</string>
+    <string name="shizuku_step3_title">Paso 3: Conceder permiso</string>
+    <string name="shizuku_step3_desc_missing">Permite que ApkUp acceda a Shizuku para actualizar automáticamente.</string>
+    <string name="shizuku_step3_desc_ok">Permiso concedido.</string>
+    <string name="shizuku_step3_action">Solicitar permiso</string>
+    <string name="shizuku_status_granted">Autorizado</string>
+    <string name="shizuku_status_missing_permission">Sin permiso</string>
+    <string name="shizuku_setup_recheck">Comprobar estado de nuevo</string>
+    <string name="shizuku_setup_rechecked_feedback">Estado comprobado y actualizado</string>
+    <string name="shizuku_setup_close">Cerrar</string>
     <string name="settings_sources">Fuentes</string>
-    <string name="settings_ui">Interfaz de Usuario</string>
+    <string name="settings_ui">Interfaz</string>
+    <string name="updates_display_mode">Vista de actualizaciones</string>
+    <string name="updates_detail_view">Detalle</string>
+    <string name="updates_compact_view">Compacta</string>
+    <string name="settings_background_checks">Búsqueda automática en segundo plano</string>
+    <string name="settings_background_interval_title">Intervalo de comprobación</string>
+    <string name="settings_interval_6h">Cada 6 horas</string>
+    <string name="settings_interval_12h">Cada 12 horas</string>
+    <string name="settings_interval_24h">Cada 24 horas (diario)</string>
+    <string name="settings_interval_48h">Cada 48 horas (cada 2 días)</string>
+    <string name="settings_interval_7d">Una vez por semana (cada 7 días)</string>
     <string name="settings_options">Opciones</string>
-    <string name="source_apkmirror" translatable="false">ApkMirror</string>
-    <string name="about">Sobre</string>
+    <string name="settings_show_system_apps">Mostrar apps del sistema</string>
+    <string name="settings_ignored_versions_title">Versiones omitidas</string>
+    <string name="settings_ignored_versions_description">Gestiona las versiones individuales que decidiste omitir anteriormente.</string>
+    <string name="settings_ignored_versions_empty">No hay versiones individuales omitidas.</string>
+    <string name="settings_ignored_versions_count">%1$d versión(es) omitida(s)</string>
+    <string name="settings_ignored_versions_manage">Gestionar versiones omitidas</string>
+    <string name="settings_ignored_versions_clear_all">Restaurar todas</string>
+    <string name="settings_ignored_version_restore">Restaurar</string>
+    <string name="action_unignore_version">Restaurar</string>
+    <string name="action_clear_ignored_versions">Restaurar todas las versiones omitidas</string>
+    <string name="settings_backup_section">Copia de seguridad y restauración</string>
+    <string name="settings_backup_description">Guardar ajustes y repositorios vinculados</string>
+    <string name="settings_backup_export">Exportar configuración</string>
+    <string name="settings_backup_import">Importar configuración</string>
+    <string name="action_export_backup">Exportar</string>
+    <string name="action_import_backup">Importar</string>
+    <string name="updates_empty_source_filter_message">No se encontraron actualizaciones para esta fuente.</string>
+    <string name="backup_export_success">Configuración exportada correctamente.</string>
+    <string name="backup_import_success">Configuración restaurada correctamente.</string>
+    <string name="backup_import_error">No se pudo procesar el archivo de respaldo.</string>
+    <string name="source_play">Google Play Store</string>
+    <string name="settings_source_github_desc">Buscar lanzamientos en GitHub para apps de código abierto y vinculadas</string>
+    <string name="settings_source_gitlab_desc">Buscar lanzamientos en GitLab para repositorios vinculados</string>
+    <string name="github_token_title">Token de API de GitHub</string>
+    <string name="github_token_desc">Token de acceso personal (PAT) opcional para ampliar el límite de 60 a 5.000 peticiones/hora</string>
+    <string name="github_token_dialog_title">GitHub Personal Access Token</string>
+    <string name="github_token_dialog_desc">Introduce un token de acceso personal (solo lectura de repos públicos) para evitar límites de tasa de GitHub (HTTP 403).</string>
+    <string name="github_token_dialog_hint">ghp_xxxxxxxxxxxx</string>
+    <string name="github_token_dialog_clear">Borrar token</string>
+    <string name="github_token_dialog_save">Guardar</string>
+    <string name="github_token_status_set">Token configurado</string>
+    <string name="github_token_status_not_set">Sin token (límite de 60 pet./h)</string>
+    <string name="action_link_repo">Vincular repositorio</string>
+    <string name="repo_menu_linked">Repositorio vinculado</string>
+    <string name="repo_menu_link">Vincular repositorio</string>
+    <string name="repo_view_on_github">Ver en GitHub</string>
+    <string name="repo_view_on_gitlab">Ver en GitLab</string>
+    <string name="link_repo_dialog_title">Vincular repositorio</string>
+    <string name="link_repo_dialog_desc">Conecta esta app con un repositorio de GitHub o GitLab para buscar actualizaciones directamente en sus lanzamientos.</string>
+    <string name="link_repo_platform">Plataforma</string>
+    <string name="link_repo_input_label">Repositorio</string>
+    <string name="link_repo_input_hint">owner/repo o URL completa</string>
+    <string name="link_repo_host_label">Host de GitLab personalizado</string>
+    <string name="link_repo_host_hint">gitlab.com (o dominio propio)</string>
+    <string name="link_repo_btn_test">Probar</string>
+    <string name="link_repo_btn_save">Guardar</string>
+    <string name="link_repo_btn_unlink">Desvincular</string>
+    <string name="link_repo_testing">Probando conexión…</string>
+    <string name="link_repo_test_success">Versión %1$s encontrada: %2$s</string>
+    <string name="link_repo_test_no_apk">¡Se encontró la versión %1$s, pero ningún archivo APK compatible!</string>
+    <string name="link_repo_test_failed">No se encontró versión: %1$s</string>
+    <string name="link_repo_saved_snack">Repositorio vinculado para %1$s</string>
+    <string name="link_repo_unlinked_snack">Repositorio desvinculado para %1$s</string>
+    <string name="about">Acerca de</string>
     <string name="theme">Tema</string>
     <string name="theme_system">Sistema</string>
-    <string name="theme_dark">Oscura</string>
+    <string name="theme_dark">Oscuro</string>
     <string name="theme_light">Claro</string>
-    <string name="about_github">Obtenga el código fuente, informe errores, solicite nuevas funciones y agregue traducciones.</string>
-    <string name="copy_to_clipboard">Copiar a la portapapeles</string>
+    <string name="about_github_title">GitHub – ApkUp</string>
+    <string name="about_github">Obtén el código fuente, informa de errores y sugiere funciones.</string>
+    <string name="about_copyright">Copyright &#169; 2026 DurchEins</string>
+    <string name="about_tribute">Rediseñado desde cero con amor e IA por DurchEins.</string>
+    <string name="about_original_project">Basado en el proyecto original de rumboalla</string>
+    <string name="copy_to_clipboard">Copiar al portapapeles</string>
+    <string name="changelog_title">Novedades</string>
+    <string name="changelog_menu_item">Novedades / Registro de cambios</string>
+    <string name="changelog_menu_subtitle">Ver mejoras y cambios destacados de esta versión</string>
+    <string name="changelog_button_dismiss">Entendido</string>
 
-    // Notifications
+    <!-- Self-Updater -->
+    <string name="self_update_card_title">Buscar actualizaciones de ApkUp</string>
+    <string name="self_update_card_subtitle">Encuentra e instala directamente nuevas versiones de ApkUp</string>
+    <string name="self_update_checking">Buscando actualización de ApkUp…</string>
+    <string name="self_update_latest">ApkUp ya está actualizado (%1$s).</string>
+    <string name="self_update_dialog_title">Actualización de ApkUp disponible</string>
+    <string name="self_update_dialog_version">Nueva versión %1$s</string>
+    <string name="self_update_dialog_button_update">Actualizar ahora</string>
+    <string name="self_update_dialog_button_later">Más tarde</string>
+    <string name="self_update_downloading">Descargando actualización… %1$d%%</string>
+    <string name="self_update_installing">Preparando instalación…</string>
+    <string name="self_update_error">No se pudo buscar o descargar la actualización de ApkUp.</string>
+
+    <!-- Settings Sections -->
+    <string name="settings_section_appearance">Apariencia y diseño</string>
+    <string name="settings_section_sources">Fuentes y escaneo</string>
+    <string name="settings_section_install_permissions">Instalación y permisos</string>
+    <string name="settings_section_app_management">Gestión de apps</string>
+    <string name="settings_preview_title">Vista previa en vivo</string>
+    <string name="settings_preview_sample_app">App de ejemplo</string>
+    <string name="settings_preview_update_action">Actualizar</string>
+
+    <string name="permission_unknown_apps_title">Instalar apps desconocidas</string>
+    <string name="permission_unknown_apps_subtitle_granted">Permiso activo – instalación directa de APK habilitada</string>
+    <string name="permission_unknown_apps_subtitle_missing">Necesario para instalar APK directamente sin Shizuku</string>
+    <string name="permission_status_granted">Concedido</string>
+    <string name="permission_status_missing">Falta</string>
+
+    <string name="hidden_apps_title">Apps ocultas permanentemente</string>
+    <string name="hidden_apps_explanation">Estas apps se ignoran por completo. No aparecerán en tu lista de apps ni en futuras búsquedas de actualizaciones.</string>
+    <string name="hidden_apps_badge_count">%1$d apps</string>
+    <string name="hidden_apps_manage">Gestionar apps ocultas</string>
+    <string name="hidden_apps_empty">Actualmente no hay apps ocultas.</string>
+    <string name="hidden_apps_count">%1$d app(s) oculta(s)</string>
+    <string name="hidden_apps_select_all">Seleccionar todo</string>
+    <string name="hidden_apps_unselect_all">Deseleccionar todo</string>
+    <string name="hidden_apps_restore_selected">Restaurar seleccionadas</string>
+    <string name="hidden_apps_hide_more">Ocultar más apps</string>
+    <string name="hidden_apps_hide_selected">Ocultar seleccionadas</string>
+    <string name="hidden_apps_search">Buscar apps…</string>
+    <string name="settings_ignored_versions_explanation">Aquí solo se omite una versión específica defectuosa o no deseada. Cuando el desarrollador publique una versión más reciente, volverás a recibir aviso.</string>
+
+    <!-- Notifications -->
     <string name="notification_channel_name">Actualizaciones</string>
-    <string name="notification_channel_description">Canal para las notificaciones de las actualizaciones.</string>
-    <string name="notification_channel_id" translatable="false">updateChannel</string>
+    <string name="notification_channel_description">Canal para notificaciones de actualizaciones.</string>
     <string name="notification_update_title">Actualizaciones</string>
     <plurals name="notification_update_description">
         <item quantity="zero">No se encontraron actualizaciones.</item>
         <item quantity="one">Se encontró %1$d actualización.</item>
-        <item quantity="other">Se encontraron %1$d actualizaciones.</item>        
+        <item quantity="many">Se encontraron %1$d actualizaciones.</item>
+        <item quantity="other">Se encontraron %1$d actualizaciones.</item>
     </plurals>
-    
+
+    <!-- Permission Dialog -->
+    <string name="permission_install_unknown_apps_title">Permiso necesario</string>
+    <string name="permission_install_unknown_apps_message">Para instalar actualizaciones directamente, ApkUp necesita el permiso del sistema \"Instalar apps desconocidas\".</string>
+    <string name="permission_install_unknown_apps_button">Activar en ajustes</string>
+    <string name="permission_install_unknown_apps_later">Más tarde</string>
+
 </resources>

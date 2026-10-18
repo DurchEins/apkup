@@ -1,38 +1,232 @@
 <resources>
 
-    <string name="app_name" translatable="false">APKUpdater</string>
-    <string name="tab_apps">Приложения</string>
-    <string name="tab_updates">Обновления</string>
+    <string name="app_disabled">Отключено</string>
+    <string name="installed_short">Установлено:</string>
+    <string name="available_short">Доступно:</string>
+    <string name="tab_apps">Apps</string>
+    <string name="tab_updates">Updates</string>
     <string name="tab_settings">Настройки</string>
     <string name="something_went_wrong">"Что-то пошло не так\n\uD83E\uDD26"</string>
     <string name="ignore_version">Пропустить версию</string>
     <string name="ignore_cd">Игнорировать приложение</string>
-    <string name="unignore_cd">Перестать игнорировать приложение</string>
+    <string name="unignore_cd">Перестать игнорировать</string>
     <string name="refresh_updates">Проверить обновления</string>
-    <string name="install_cd">Установить приложение</string>
-    <string name="install_all">Установить все</string>
-    <string name="app_cd">Значок приложения</string>
+    <string name="updates_checking">Поиск обновлений…</string>
+    <string name="updates_checking_apps">Проверено %1$d из %2$d приложений по всем источникам</string>
+    <string name="updates_checking_source">Проверка %1$s…</string>
+    <string name="updates_last_checked_just_now">Проверено: только что</string>
+    <string name="updates_last_checked_minutes">Проверено: %1$d мин назад</string>
+    <string name="updates_last_checked_hours">Проверено: %1$d ч назад</string>
+    <string name="updates_last_checked_days">Проверено: %1$d дн назад</string>
+    <string name="install_cd">Установить</string>
+    <string name="install_all">Обновить все</string>
+    <string name="installed_version">Установленная версия</string>
+    <string name="available_version">Доступная версия</string>
+    <string name="update_action">Обновить</string>
+    <string name="installing_update">Установка обновления…</string>
+    <string name="queued_update">В очереди…</string>
+    <string name="install_all_browser_only_hint">Обновления APKMirror открываются в браузере.</string>
+    <string name="install_all_skipped_browser_hint">Пропущено %1$d веб-ссылок APKMirror при пакетной установке.</string>
+    <string name="updates_empty_title">Все приложения обновлены</string>
+    <string name="updates_empty_message">На данный момент нет доступных обновлений.</string>
+    <string name="updates_error_title">Не удалось загрузить обновления</string>
+    <string name="updates_error_message">Проверьте соединение и попробуйте снова.</string>
+    <string name="updates_source_error">Ошибка проверки %1$s (%2$s). Показаны результаты %3$s.</string>
+    <string name="updates_partial_empty_title">Проверка выполнена не полностью</string>
+    <string name="updates_partial_empty_message">Ошибка %1$s (%2$s). %3$s не сообщил об обновлениях.</string>
+    <string name="apps_error_message">Потяните вниз, чтобы обновить список приложений.</string>
+    <string name="app_cd">Иконка приложения</string>
     <string name="install_success">%1$s установлено.</string>
-    <string name="install_failure">%1$s не удалось установить.</string>
+    <string name="install_failure">Не удалось установить %1$s.</string>
 
-    // Settings
+    <!-- Update Details Sheet and Origin -->
+    <string name="whats_new_title">Что нового</string>
+    <string name="whats_new_empty">В этом источнике нет описания изменений.</string>
+    <string name="update_source_select">Источник обновления</string>
+    <string name="skip_this_version">Пропустить только эту версию</string>
+    <string name="ignore_app_permanently">Игнорировать навсегда</string>
+    <string name="origin_label">Установлено из: %1$s</string>
+    <string name="origin_play">Google Play Store</string>
+    <string name="origin_fdroid">F-Droid</string>
+    <string name="origin_apkmirror">APKMirror</string>
+    <string name="origin_revanced">ReVanced / Модификация</string>
+    <string name="origin_sideload">Вручную / Sideload</string>
+    <string name="origin_system">Система</string>
+    <string name="signature_conflict_warning">Возможен конфликт подписи: установлено из %1$s. Обновление из %2$s может завершиться ошибкой, если ключи не совпадают.</string>
+
+    <!-- Apps Search, Filters and Actions -->
+    <string name="apps_search_placeholder">Поиск приложения или ID…</string>
+    <string name="apps_filter_all">Все</string>
+    <string name="apps_filter_user">Пользовательские</string>
+    <string name="apps_filter_system">Системные</string>
+    <string name="apps_filter_ignored">Скрытые</string>
+    <string name="apps_filter_recent">Недавние</string>
+    <string name="apps_search_empty_title">Приложения не найдены</string>
+    <string name="apps_search_empty_message">Попробуйте изменить поисковый запрос или фильтр.</string>
+    <string name="app_action_system_details">О приложении (Система)</string>
+    <string name="app_action_open_play_store">Открыть в Google Play Store</string>
+    <string name="app_action_open_play_store_unavailable">Установлено не из Google Play Store</string>
+    <string name="app_action_uninstall">Удалить</string>
+    <string name="app_action_toggle_ignore">Переключить статус игнорирования</string>
+    <string name="apps_scroll_to_bottom">Прокрутить вниз</string>
+    <string name="apps_scroll_to_top">Прокрутить вверх</string>
+
+    <!-- Settings -->
+    <string name="settings_shizuku_installer">Фоновая установка через Shizuku</string>
+    <string name="settings_shizuku_installer_subtitle">Автоматическое обновление без диалоговых окон. Требуется запущенная служба Shizuku.</string>
+    <string name="shizuku_fallback_not_running">Служба Shizuku недоступна – используется стандартный установщик.</string>
+    <string name="shizuku_fallback_no_permission">Разрешение Shizuku отклонено – используется стандартный установщик.</string>
+    <string name="shizuku_setup_title">Настройка Shizuku</string>
+    <string name="shizuku_setup_explanation">Shizuku позволяет выполнять автоматическую установку в фоне без root-прав через беспроводную отладку.</string>
+    <string name="shizuku_setup_reboot_notice">Важно без root: Из-за ограничений безопасности Android службу Shizuku необходимо запускать заново через беспроводную отладку после каждой перезагрузки устройства.</string>
+    <string name="shizuku_step1_title">Шаг 1: Установить Shizuku</string>
+    <string name="shizuku_step1_desc_missing">Официальное приложение Shizuku еще не установлено на этом устройстве.</string>
+    <string name="shizuku_step1_desc_ok">Приложение Shizuku установлено.</string>
+    <string name="shizuku_step1_action">Открыть в Play Store</string>
+    <string name="shizuku_status_installed">Установлено</string>
+    <string name="shizuku_status_not_installed">Не установлено</string>
+    <string name="shizuku_step2_title">Шаг 2: Запустить службу Shizuku</string>
+    <string name="shizuku_step2_desc_missing">Для разработчиков → Беспроводная отладка → Подключить и запустить в Shizuku</string>
+    <string name="shizuku_step2_desc_ok">Служба Shizuku работает.</string>
+    <string name="shizuku_step2_action">Открыть Shizuku</string>
+    <string name="shizuku_status_running">Работает</string>
+    <string name="shizuku_status_not_running">Остановлено</string>
+    <string name="shizuku_step3_title">Шаг 3: Предоставить доступ</string>
+    <string name="shizuku_step3_desc_missing">Разрешите ApkUp доступ к Shizuku для автоматических обновлений.</string>
+    <string name="shizuku_step3_desc_ok">Разрешение предоставлено.</string>
+    <string name="shizuku_step3_action">Запросить разрешение</string>
+    <string name="shizuku_status_granted">Разрешено</string>
+    <string name="shizuku_status_missing_permission">Нет разрешения</string>
+    <string name="shizuku_setup_recheck">Проверить статус снова</string>
+    <string name="shizuku_setup_rechecked_feedback">Статус проверен и обновлен</string>
+    <string name="shizuku_setup_close">Закрыть</string>
     <string name="settings_sources">Источники</string>
     <string name="settings_ui">Интерфейс</string>
+    <string name="updates_display_mode">Отображение обновлений</string>
+    <string name="updates_detail_view">Подробно</string>
+    <string name="updates_compact_view">Компактно</string>
+    <string name="settings_background_checks">Автоматическая фоновая проверка</string>
+    <string name="settings_background_interval_title">Интервал проверки</string>
+    <string name="settings_interval_6h">Каждые 6 часов</string>
+    <string name="settings_interval_12h">Каждые 12 часов</string>
+    <string name="settings_interval_24h">Каждые 24 часа (раз в сутки)</string>
+    <string name="settings_interval_48h">Каждые 48 часов (раз в 2 дня)</string>
+    <string name="settings_interval_7d">Раз в неделю (каждые 7 дней)</string>
     <string name="settings_options">Параметры</string>
-    <string name="source_apkmirror" translatable="false">ApkMirror</string>
-    <string name="source_play">Play Маркет</string>
-    <string name="about">О приложении</string>
+    <string name="settings_show_system_apps">Показывать системные приложения</string>
+    <string name="settings_ignored_versions_title">Пропущенные версии</string>
+    <string name="settings_ignored_versions_description">Управление версиями обновлений, которые вы решили пропустить.</string>
+    <string name="settings_ignored_versions_empty">Нет пропущенных версий.</string>
+    <string name="settings_ignored_versions_count">Пропущено версий: %1$d</string>
+    <string name="settings_ignored_versions_manage">Управление пропущенными версиями</string>
+    <string name="settings_ignored_versions_clear_all">Восстановить все</string>
+    <string name="settings_ignored_version_restore">Восстановить</string>
+    <string name="action_unignore_version">Восстановить</string>
+    <string name="action_clear_ignored_versions">Восстановить все пропущенные версии</string>
+    <string name="settings_backup_section">Резервное копирование и восстановление</string>
+    <string name="settings_backup_description">Сохранение настроек и привязок репозиториев</string>
+    <string name="settings_backup_export">Экспорт конфигурации</string>
+    <string name="settings_backup_import">Импорт конфигурации</string>
+    <string name="action_export_backup">Экспорт</string>
+    <string name="action_import_backup">Импорт</string>
+    <string name="updates_empty_source_filter_message">Для этого источника обновлений не найдено.</string>
+    <string name="backup_export_success">Конфигурация успешно экспортирована.</string>
+    <string name="backup_import_success">Конфигурация успешно восстановлена.</string>
+    <string name="backup_import_error">Не удалось обработать файл резервной копии.</string>
+    <string name="source_play">Google Play Store</string>
+    <string name="settings_source_github_desc">Проверять релизы GitHub для открытых и привязанных приложений</string>
+    <string name="settings_source_gitlab_desc">Проверять релизы GitLab для привязанных репозиториев</string>
+    <string name="github_token_title">Токен API GitHub</string>
+    <string name="github_token_desc">Необязательный личный токен (PAT) для увеличения лимита с 60 до 5 000 запросов в час</string>
+    <string name="github_token_dialog_title">GitHub Personal Access Token</string>
+    <string name="github_token_dialog_desc">Введите токен (только чтение публичных репозиториев), чтобы избежать ограничений GitHub API (HTTP 403).</string>
+    <string name="github_token_dialog_hint">ghp_xxxxxxxxxxxx</string>
+    <string name="github_token_dialog_clear">Очистить токен</string>
+    <string name="github_token_dialog_save">Сохранить</string>
+    <string name="github_token_status_set">Токен настроен</string>
+    <string name="github_token_status_not_set">Токен не задан (лимит: 60 запр./ч)</string>
+    <string name="action_link_repo">Привязать репозиторий</string>
+    <string name="repo_menu_linked">Репозиторий привязан</string>
+    <string name="repo_menu_link">Привязать репозиторий</string>
+    <string name="repo_view_on_github">Открыть на GitHub</string>
+    <string name="repo_view_on_gitlab">Открыть на GitLab</string>
+    <string name="link_repo_dialog_title">Привязать репозиторий</string>
+    <string name="link_repo_dialog_desc">Свяжите приложение с репозиторием GitHub или GitLab для поиска обновлений напрямую из релизов.</string>
+    <string name="link_repo_platform">Платформа</string>
+    <string name="link_repo_input_label">Репозиторий</string>
+    <string name="link_repo_input_hint">owner/repo или полный URL</string>
+    <string name="link_repo_host_label">Пользовательский хост GitLab</string>
+    <string name="link_repo_host_hint">gitlab.com (или собственный домен)</string>
+    <string name="link_repo_btn_test">Проверить</string>
+    <string name="link_repo_btn_save">Сохранить</string>
+    <string name="link_repo_btn_unlink">Отвязать</string>
+    <string name="link_repo_testing">Проверка соединения…</string>
+    <string name="link_repo_test_success">Найден релиз %1$s: %2$s</string>
+    <string name="link_repo_test_no_apk">Релиз %1$s найден, но подходящий APK не обнаружен!</string>
+    <string name="link_repo_test_failed">Не удалось найти релиз: %1$s</string>
+    <string name="link_repo_saved_snack">Репозиторий привязан для %1$s</string>
+    <string name="link_repo_unlinked_snack">Привязка репозитория снята для %1$s</string>
+    <string name="about">О программе</string>
     <string name="theme">Тема</string>
     <string name="theme_system">Системная</string>
-    <string name="theme_dark">Тёмная</string>
+    <string name="theme_dark">Темная</string>
     <string name="theme_light">Светлая</string>
-    <string name="about_github">Исходный код, ошибки, предложения и переводы.</string>
-    <string name="copy_to_clipboard">Копировать в буфер обмена</string>
+    <string name="about_github_title">GitHub – ApkUp</string>
+    <string name="about_github">Исходный код, отчеты об ошибках и предложения новых функций.</string>
+    <string name="about_copyright">Copyright &#169; 2026 DurchEins</string>
+    <string name="about_tribute">Полностью переработано с душой и поддержкой ИИ автором DurchEins.</string>
+    <string name="about_original_project">На основе оригинального проекта rumboalla</string>
+    <string name="copy_to_clipboard">Скопировать в буфер</string>
+    <string name="changelog_title">Что нового</string>
+    <string name="changelog_menu_item">Что нового / История версий</string>
+    <string name="changelog_menu_subtitle">Главные изменения и улучшения этой версии</string>
+    <string name="changelog_button_dismiss">Понятно</string>
 
-    // Notifications
+    <!-- Self-Updater -->
+    <string name="self_update_card_title">Проверить обновления ApkUp</string>
+    <string name="self_update_card_subtitle">Поиск и прямая установка свежих релизов ApkUp</string>
+    <string name="self_update_checking">Поиск обновления ApkUp…</string>
+    <string name="self_update_latest">Установлена актуальная версия ApkUp (%1$s).</string>
+    <string name="self_update_dialog_title">Доступно обновление ApkUp</string>
+    <string name="self_update_dialog_version">Новая версия %1$s</string>
+    <string name="self_update_dialog_button_update">Обновить сейчас</string>
+    <string name="self_update_dialog_button_later">Позже</string>
+    <string name="self_update_downloading">Загрузка обновления… %1$d%%</string>
+    <string name="self_update_installing">Подготовка к установке…</string>
+    <string name="self_update_error">Не удалось проверить или скачать обновление ApkUp.</string>
+
+    <!-- Settings Sections -->
+    <string name="settings_section_appearance">Внешний вид и макет</string>
+    <string name="settings_section_sources">Источники и сканирование</string>
+    <string name="settings_section_install_permissions">Установка и разрешения</string>
+    <string name="settings_section_app_management">Управление приложениями</string>
+    <string name="settings_preview_title">Интерактивный предпросмотр</string>
+    <string name="settings_preview_sample_app">Пример приложения</string>
+    <string name="settings_preview_update_action">Обновить</string>
+
+    <string name="permission_unknown_apps_title">Установка неизвестных приложений</string>
+    <string name="permission_unknown_apps_subtitle_granted">Разрешение активно – прямая установка APK включена</string>
+    <string name="permission_unknown_apps_subtitle_missing">Требуется для прямой установки APK без Shizuku</string>
+    <string name="permission_status_granted">Предоставлено</string>
+    <string name="permission_status_missing">Не предоставлено</string>
+
+    <string name="hidden_apps_title">Навсегда скрытые приложения</string>
+    <string name="hidden_apps_explanation">Эти приложения полностью игнорируются. Они не появятся в списке и не будут проверяться на обновления.</string>
+    <string name="hidden_apps_badge_count">Приложений: %1$d</string>
+    <string name="hidden_apps_manage">Управление скрытыми приложениями</string>
+    <string name="hidden_apps_empty">Нет скрытых приложений.</string>
+    <string name="hidden_apps_count">Скрыто приложений: %1$d</string>
+    <string name="hidden_apps_select_all">Выбрать все</string>
+    <string name="hidden_apps_unselect_all">Снять выбор</string>
+    <string name="hidden_apps_restore_selected">Восстановить выбранные</string>
+    <string name="hidden_apps_hide_more">Скрыть другие приложения</string>
+    <string name="hidden_apps_hide_selected">Скрыть выбранные</string>
+    <string name="hidden_apps_search">Поиск приложения…</string>
+    <string name="settings_ignored_versions_explanation">Здесь пропускается только конкретная проблемная версия. Когда разработчик выпустит более новую версию, вы снова получите уведомление.</string>
+
+    <!-- Notifications -->
     <string name="notification_channel_name">Обновления</string>
-    <string name="notification_channel_description">Канал для уведомлений об обновлениях.</string>
-    <string name="notification_channel_id" translatable="false">updateChannel</string>
+    <string name="notification_channel_description">Канал уведомлений об обновлениях.</string>
     <string name="notification_update_title">Обновления</string>
     <plurals name="notification_update_description">
         <item quantity="zero">Обновлений не найдено.</item>
@@ -41,5 +235,11 @@
         <item quantity="many">Найдено %1$d обновлений.</item>
         <item quantity="other">Найдено %1$d обновлений.</item>
     </plurals>
+
+    <!-- Permission Dialog -->
+    <string name="permission_install_unknown_apps_title">Требуется разрешение</string>
+    <string name="permission_install_unknown_apps_message">Для прямой установки обновлений приложению ApkUp требуется системное разрешение «Установка неизвестных приложений».</string>
+    <string name="permission_install_unknown_apps_button">Открыть настройки</string>
+    <string name="permission_install_unknown_apps_later">Позже</string>
 
 </resources>
