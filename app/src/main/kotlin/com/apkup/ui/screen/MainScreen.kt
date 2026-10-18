@@ -304,8 +304,8 @@ fun FloatingCapsuleDock(
 	) {
 		Row(
 			modifier = Modifier
-				.padding(horizontal = 8.dp, vertical = 6.dp),
-			horizontalArrangement = Arrangement.spacedBy(4.dp),
+				.padding(horizontal = 10.dp, vertical = 6.dp),
+			horizontalArrangement = Arrangement.spacedBy(8.dp),
 			verticalAlignment = Alignment.CenterVertically
 		) {
 			mainViewModel.screens.forEach { screen ->
@@ -321,6 +321,11 @@ fun FloatingCapsuleDock(
 			}
 		}
 	}
+}
+
+internal fun formatCapsuleBadge(badge: String): String {
+	val count = badge.toIntOrNull()
+	return if (count != null && count > 99) "99+" else badge
 }
 
 @Composable
@@ -341,13 +346,13 @@ fun CapsuleDockItem(
 		animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
 		label = "CapsuleContentColor"
 	)
+	val displayBadge = formatCapsuleBadge(badge)
 
 	Surface(
 		shape = CircleShape,
 		color = containerColor,
 		contentColor = contentColor,
 		modifier = Modifier
-			.clip(CircleShape)
 			.clickable(
 				interactionSource = remember { MutableInteractionSource() },
 				indication = null,
@@ -390,15 +395,17 @@ fun CapsuleDockItem(
 							color = MaterialTheme.colorScheme.primary
 						)
 					}
-				} else if (badge.isNotEmpty()) {
+				} else if (displayBadge.isNotEmpty()) {
 					Badge(
 						containerColor = MaterialTheme.colorScheme.primary,
-						contentColor = MaterialTheme.colorScheme.onPrimary
+						contentColor = MaterialTheme.colorScheme.onPrimary,
+						modifier = Modifier.padding(horizontal = 2.dp)
 					) {
 						Text(
-							text = badge,
+							text = displayBadge,
 							style = MaterialTheme.typography.labelSmall,
-							fontWeight = FontWeight.Bold
+							fontWeight = FontWeight.Bold,
+							modifier = Modifier.padding(horizontal = 4.dp)
 						)
 					}
 				}
@@ -418,16 +425,17 @@ fun CapsuleDockItem(
 									color = MaterialTheme.colorScheme.primary
 								)
 							}
-						} else if (badge.isNotEmpty()) {
+						} else if (displayBadge.isNotEmpty()) {
 							Badge(
 								containerColor = MaterialTheme.colorScheme.errorContainer,
 								contentColor = MaterialTheme.colorScheme.onErrorContainer,
-								modifier = Modifier.offset(x = 4.dp, y = (-2).dp)
+								modifier = Modifier.offset(x = 6.dp, y = (-2).dp)
 							) {
 								Text(
-									text = badge,
+									text = displayBadge,
 									style = MaterialTheme.typography.labelSmall,
-									fontWeight = FontWeight.Bold
+									fontWeight = FontWeight.Bold,
+									modifier = Modifier.padding(horizontal = 4.dp)
 								)
 							}
 						}

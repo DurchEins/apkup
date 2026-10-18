@@ -10,6 +10,7 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -41,6 +42,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
@@ -273,84 +275,12 @@ fun Settings(
 		}
 	}
 
-	val coroutineScope = rememberCoroutineScope()
-	val overscrollPull = remember { Animatable(0f) }
-	var hasTriggeredOverscrollHaptic by remember { mutableStateOf(false) }
-
-	val nestedScrollConnection = remember(coroutineScope, context, haptic) {
-		object : NestedScrollConnection {
-			override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-				if (overscrollPull.value < 0f && available.y > 0f) {
-					val newOffset = (overscrollPull.value + available.y).coerceAtMost(0f)
-					val consumed = newOffset - overscrollPull.value
-					coroutineScope.launch {
-						overscrollPull.snapTo(newOffset)
-					}
-					return Offset(0f, consumed)
-				}
-				return Offset.Zero
-			}
-
-			override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
-				if (available.y < 0f && source == NestedScrollSource.UserInput) {
-					val dampened = available.y * 0.38f
-					val newOffset = (overscrollPull.value + dampened).coerceIn(-220f, 0f)
-					val delta = newOffset - overscrollPull.value
-					coroutineScope.launch {
-						overscrollPull.snapTo(newOffset)
-						if (newOffset <= -130f && !hasTriggeredOverscrollHaptic) {
-							hasTriggeredOverscrollHaptic = true
-							performHeartbeatHaptic(context, haptic)
-						}
-					}
-					return Offset(0f, delta)
-				}
-				return Offset.Zero
-			}
-
-			override suspend fun onPreFling(available: Velocity): Velocity {
-				if (overscrollPull.value < 0f) {
-					hasTriggeredOverscrollHaptic = false
-					overscrollPull.animateTo(
-						targetValue = 0f,
-						animationSpec = spring(
-							dampingRatio = Spring.DampingRatioMediumBouncy,
-							stiffness = Spring.StiffnessLow
-						)
-					)
-				}
-				return Velocity.Zero
-			}
-
-			override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
-				if (overscrollPull.value < 0f) {
-					hasTriggeredOverscrollHaptic = false
-					overscrollPull.animateTo(
-						targetValue = 0f,
-						animationSpec = spring(
-							dampingRatio = Spring.DampingRatioMediumBouncy,
-							stiffness = Spring.StiffnessLow
-						)
-					)
-				}
-				return Velocity.Zero
-			}
-		}
-	}
-
-	val pullDistance = -overscrollPull.value
-	val pullProgress = (pullDistance / 140f).coerceIn(0f, 1f)
-
 	Box(
-		modifier = Modifier
-			.fillMaxSize()
-			.nestedScroll(nestedScrollConnection)
+		modifier = Modifier.fillMaxSize()
 	) {
 		LazyColumn(
-			modifier = Modifier
-				.fillMaxSize()
-				.offset { IntOffset(0, overscrollPull.value.roundToInt()) },
-			contentPadding = PaddingValues(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 140.dp),
+			modifier = Modifier.fillMaxSize(),
+			contentPadding = PaddingValues(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 16.dp),
 			verticalArrangement = Arrangement.spacedBy(14.dp)
 		) {
 			// Sektion 1: Erscheinungsbild & Layout
@@ -1067,26 +997,13 @@ fun Settings(
 				}
 			}
 		}
-	}
 
-	// Overscroll Signatur: im normalen Zustand vollständig unsichtbar und nimmt keinen Platz im Layout ein
-	if (pullProgress > 0.005f) {
-		Box(
-			modifier = Modifier
-				.align(Alignment.BottomCenter)
-				.padding(bottom = 14.dp)
-				.offset {
-					val translateY = (35f * (1f - pullProgress)).roundToInt()
-					IntOffset(0, translateY)
-				}
-				.graphicsLayer {
-					alpha = (pullProgress * 0.95f).coerceIn(0f, 0.95f)
-					scaleX = 0.85f + 0.15f * pullProgress
-					scaleY = 0.85f + 0.15f * pullProgress
-				},
-			contentAlignment = Alignment.Center
-		) {
+		// Easter Egg: Direkt im scrollbaren Inhalt unter der "Über"-Karte
+		item(key = "section_easter_egg") {
 			Column(
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(top = 16.dp),
 				horizontalAlignment = CenterHorizontally,
 				verticalArrangement = Arrangement.spacedBy(4.dp)
 			) {
@@ -1108,6 +1025,7 @@ fun Settings(
 					)
 				}
 			}
+			Spacer(modifier = Modifier.height(160.dp))
 		}
 	}
 }
@@ -1659,9 +1577,12 @@ private fun UpdateDisplayModePreview(displayMode: Int) {
 			AnimatedContent(
 				targetState = displayMode,
 				transitionSpec = {
-					fadeIn(animationSpec = tween(220)) togetherWith fadeOut(animationSpec = tween(180))
+					(fadeIn(animationSpec = tween(220, delayMillis = 50)) +
+					 scaleIn(initialScale = 0.94f, animationSpec = tween(220, delayMillis = 50)))
+						.togetherWith(fadeOut(animationSpec = tween(150)))
+						.using(SizeTransform(clip = false))
 				},
-				label = "display_mode_preview"
+				label = "PreviewModeAnimation"
 			) { mode ->
 				if (mode == 0) {
 					// Detail / Normal View Preview: 2 miniature cards side-by-side
@@ -1823,22 +1744,29 @@ private fun UpdateDisplayModePreview(displayMode: Int) {
 								Column(
 									modifier = Modifier
 										.fillMaxWidth()
-										.padding(horizontal = 5.dp, vertical = 7.dp),
+										.padding(start = 5.dp, end = 5.dp, top = 12.dp, bottom = 7.dp),
 									verticalArrangement = Arrangement.spacedBy(4.dp)
 								) {
 									Box(
 										modifier = Modifier
-											.size(24.dp)
-											.clip(RoundedCornerShape(7.dp))
-											.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+											.fillMaxWidth()
+											.padding(bottom = 8.dp),
 										contentAlignment = Alignment.Center
 									) {
-										Icon(
-											painter = painterResource(R.drawable.ic_system),
-											contentDescription = null,
-											tint = MaterialTheme.colorScheme.primary,
-											modifier = Modifier.size(14.dp)
-										)
+										Box(
+											modifier = Modifier
+												.size(24.dp)
+												.clip(RoundedCornerShape(7.dp))
+												.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+											contentAlignment = Alignment.Center
+										) {
+											Icon(
+												painter = painterResource(R.drawable.ic_system),
+												contentDescription = null,
+												tint = MaterialTheme.colorScheme.primary,
+												modifier = Modifier.size(14.dp)
+											)
+										}
 									}
 									Text(
 										text = name,
