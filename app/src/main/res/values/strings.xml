@@ -145,6 +145,10 @@
     <string name="about_tribute">Redesigned from the ground up with love &amp; AI power by DurchEins.</string>
     <string name="about_original_project">Based on the original project by rumboalla</string>
     <string name="copy_to_clipboard">Copy to clipboard</string>
+    <string name="changelog_title">What\'s new in v1.27</string>
+    <string name="changelog_menu_item">What\'s new / Changelog</string>
+    <string name="changelog_menu_subtitle">View release highlights and improvements</string>
+    <string name="changelog_button_dismiss">Got it</string>
 
     <!-- Settings Sections -->
     <string name="settings_section_appearance">Appearance &amp; Layout</string>
