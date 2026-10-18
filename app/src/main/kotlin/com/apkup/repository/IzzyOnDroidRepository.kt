@@ -38,7 +38,7 @@ class IzzyOnDroidRepository(
     private val okHttpClient: OkHttpClient,
     private val gson: Gson,
     private val prefs: Prefs? = null,
-    cacheDirectory: File? = null
+    private val cacheDirectory: File? = null
 ) {
     companion object {
         const val INDEX_JAR_URL = "https://apt.izzysoft.de/fdroid/repo/index-v1.jar"
@@ -51,17 +51,27 @@ class IzzyOnDroidRepository(
     private var inMemoryIndex: IzzyIndexResponse? = null
     private var inMemoryIndexTimestamp: Long = 0L
 
-    private val cacheDir: File by lazy {
+    private fun getCacheDir(): File {
         val dir = cacheDirectory
             ?: context?.cacheDir?.let { File(it, "izzy_cache") }
             ?: File(System.getProperty("java.io.tmpdir") ?: ".", "izzy_cache")
         if (!dir.exists()) {
             dir.mkdirs()
         }
-        dir
+        return dir
     }
-    private val indexJsonCacheFile: File by lazy { File(cacheDir, "index-v1.json") }
-    private val metaCacheFile: File by lazy { File(cacheDir, "index.meta") }
+
+    private fun getIndexJsonCacheFile(): File {
+        val file = File(getCacheDir(), "index-v1.json")
+        file.parentFile?.mkdirs()
+        return file
+    }
+
+    private fun getMetaCacheFile(): File {
+        val file = File(getCacheDir(), "index.meta")
+        file.parentFile?.mkdirs()
+        return file
+    }
 
     fun updates(
         apps: List<AppInstalled>,
@@ -104,13 +114,7 @@ class IzzyOnDroidRepository(
             onBatchSuccess(batch.map { it.packageName })
         }
 
-        if (BuildConfig.DEBUG) {
-            Log.d(
-                "IzzyOnDroidRepository",
-                "Checked ${apps.size} app(s) against IzzyOnDroid, found ${updates.size} update(s) in " +
-                    "${SystemClock.elapsedRealtime() - startedAt} ms"
-            )
-        }
+        Log.i("IzzyOnDroidRepository", "Found ${updates.size} eligible updates matching package & certificate SHA-256")
 
         emit(
             SourceUpdateResult(
@@ -143,9 +147,15 @@ class IzzyOnDroidRepository(
         withContext(Dispatchers.IO) {
             inMemoryIndex?.let { return@withContext it }
 
-            val cachedOnDisk = loadFromDiskCache()
-            val meta = loadMetadata()
+            val targetFile = getIndexJsonCacheFile()
+            val hasValidLocalFile = targetFile.exists() && targetFile.length() > 0L
+            val cachedOnDisk = if (hasValidLocalFile) loadFromDiskCache() else null
+
+            // Sende ETag / If-Modified-Since NUR DANN an den Server, wenn die lokale targetFile tatsächlich existiert und nicht leer ist
+            val meta = if (hasValidLocalFile && cachedOnDisk != null) loadMetadata() else Pair(null, null)
             val (etag, lastModified) = meta
+
+            Log.i("IzzyOnDroidRepository", "Checking IzzyOnDroid repository (ETag: ${etag ?: "none"})")
 
             val requestBuilder = Request.Builder().url(INDEX_JAR_URL)
             if (!etag.isNullOrBlank()) {
@@ -157,27 +167,40 @@ class IzzyOnDroidRepository(
 
             try {
                 okHttpClient.newCall(requestBuilder.build()).execute().use { response ->
-                    if (response.code == 304 && cachedOnDisk != null) {
-                        Log.i("IzzyOnDroidRepository", "HTTP 304 Not Modified: Using cached IzzyOnDroid index.")
-                        inMemoryIndex = cachedOnDisk
-                        inMemoryIndexTimestamp = System.currentTimeMillis()
-                        return@withContext cachedOnDisk
+                    if (response.code == 304) {
+                        val validFileAfter304 = targetFile.exists() && targetFile.length() > 0L
+                        if (cachedOnDisk != null && validFileAfter304) {
+                            Log.i("IzzyOnDroidRepository", "Index unchanged: HTTP 304")
+                            Log.i("IzzyOnDroidRepository", "Parsed ${cachedOnDisk.apps.size} apps from IzzyOnDroid index")
+                            inMemoryIndex = cachedOnDisk
+                            inMemoryIndexTimestamp = System.currentTimeMillis()
+                            return@withContext cachedOnDisk
+                        } else {
+                            Log.w("IzzyOnDroidRepository", "Server returned HTTP 304 but local index-v1.json is missing or corrupt. Forcing fresh download.")
+                            val fresh = fetchFreshIndex()
+                            inMemoryIndex = fresh
+                            inMemoryIndexTimestamp = System.currentTimeMillis()
+                            return@withContext fresh
+                        }
                     }
 
                     if (response.isSuccessful) {
+                        Log.i("IzzyOnDroidRepository", "Downloaded index-v1.jar: HTTP 200")
                         val body = response.body
                         val newEtag = response.header("ETag")
                         val newLastModified = response.header("Last-Modified")
 
                         val parsed = parseZipStreamAndSave(body.byteStream())
                         saveMetadata(newEtag, newLastModified)
+                        Log.i("IzzyOnDroidRepository", "Parsed ${parsed.apps.size} apps from IzzyOnDroid index")
                         inMemoryIndex = parsed
                         inMemoryIndexTimestamp = System.currentTimeMillis()
                         return@withContext parsed
                     }
 
-                    if (cachedOnDisk != null) {
+                    if (cachedOnDisk != null && targetFile.exists() && targetFile.length() > 0L) {
                         Log.w("IzzyOnDroidRepository", "HTTP ${response.code}: Falling back to cached disk index.")
+                        Log.i("IzzyOnDroidRepository", "Parsed ${cachedOnDisk.apps.size} apps from IzzyOnDroid index")
                         inMemoryIndex = cachedOnDisk
                         inMemoryIndexTimestamp = System.currentTimeMillis()
                         return@withContext cachedOnDisk
@@ -186,8 +209,9 @@ class IzzyOnDroidRepository(
                     throw IOException("HTTP ${response.code} when fetching IzzyOnDroid index")
                 }
             } catch (networkError: Throwable) {
-                if (cachedOnDisk != null) {
+                if (cachedOnDisk != null && targetFile.exists() && targetFile.length() > 0L) {
                     Log.w("IzzyOnDroidRepository", "Network error (${networkError.message}): Falling back to cached disk index.")
+                    Log.i("IzzyOnDroidRepository", "Parsed ${cachedOnDisk.apps.size} apps from IzzyOnDroid index")
                     inMemoryIndex = cachedOnDisk
                     inMemoryIndexTimestamp = System.currentTimeMillis()
                     return@withContext cachedOnDisk
@@ -197,37 +221,79 @@ class IzzyOnDroidRepository(
         }
     }
 
+    private fun fetchFreshIndex(): IzzyIndexResponse {
+        val request = Request.Builder().url(INDEX_JAR_URL).build()
+        okHttpClient.newCall(request).execute().use { response ->
+            if (response.isSuccessful) {
+                Log.i("IzzyOnDroidRepository", "Downloaded index-v1.jar: HTTP 200")
+                val newEtag = response.header("ETag")
+                val newLastModified = response.header("Last-Modified")
+
+                val parsed = parseZipStreamAndSave(response.body.byteStream())
+                saveMetadata(newEtag, newLastModified)
+                Log.i("IzzyOnDroidRepository", "Parsed ${parsed.apps.size} apps from IzzyOnDroid index")
+                return parsed
+            }
+            throw IOException("HTTP ${response.code} when fetching fresh IzzyOnDroid index")
+        }
+    }
+
     internal fun parseZipStreamAndSave(inputStream: java.io.InputStream): IzzyIndexResponse {
-        ZipInputStream(inputStream).use { zipIn ->
-            var entry = zipIn.nextEntry
-            while (entry != null) {
-                if (entry.name == "index-v1.json") {
-                    // Cache json to disk file
-                    indexJsonCacheFile.parentFile?.mkdirs()
-                    FileOutputStream(indexJsonCacheFile).use { out ->
-                        val buffer = ByteArray(16384)
-                        var bytesRead: Int
-                        while (zipIn.read(buffer).also { bytesRead = it } != -1) {
-                            out.write(buffer, 0, bytesRead)
+        val targetFile = getIndexJsonCacheFile()
+        val cacheDir = getCacheDir()
+        val tempFile = File(cacheDir, "index-v1.json.tmp")
+        tempFile.parentFile?.mkdirs()
+        if (tempFile.exists()) {
+            tempFile.delete()
+        }
+
+        try {
+            ZipInputStream(inputStream).use { zipIn ->
+                var entry = zipIn.nextEntry
+                while (entry != null) {
+                    if (entry.name == "index-v1.json") {
+                        FileOutputStream(tempFile).use { out ->
+                            val buffer = ByteArray(16384)
+                            var bytesRead: Int
+                            while (zipIn.read(buffer).also { bytesRead = it } != -1) {
+                                out.write(buffer, 0, bytesRead)
+                            }
+                        }
+
+                        targetFile.parentFile?.mkdirs()
+                        if (targetFile.exists()) {
+                            targetFile.delete()
+                        }
+                        if (!tempFile.renameTo(targetFile)) {
+                            tempFile.copyTo(targetFile, overwrite = true)
+                            tempFile.delete()
+                        }
+
+                        val sizeKb = targetFile.length() / 1024
+                        Log.i("IzzyOnDroidRepository", "Successfully extracted index-v1.json ($sizeKb KB)")
+
+                        return FileInputStream(targetFile).use { fileIn ->
+                            InputStreamReader(fileIn, Charsets.UTF_8).use { reader ->
+                                gson.fromJson(reader, IzzyIndexResponse::class.java)
+                            }
                         }
                     }
-                    // Parse from saved file
-                    return FileInputStream(indexJsonCacheFile).use { fileIn ->
-                        InputStreamReader(fileIn, Charsets.UTF_8).use { reader ->
-                            gson.fromJson(reader, IzzyIndexResponse::class.java)
-                        }
-                    }
+                    zipIn.closeEntry()
+                    entry = zipIn.nextEntry
                 }
-                zipIn.closeEntry()
-                entry = zipIn.nextEntry
+            }
+            throw IOException("index-v1.json not found inside index-v1.jar")
+        } finally {
+            if (tempFile.exists()) {
+                tempFile.delete()
             }
         }
-        throw IOException("index-v1.json not found inside index-v1.jar")
     }
 
     private fun loadFromDiskCache(): IzzyIndexResponse? = runCatching {
-        if (!indexJsonCacheFile.exists() || indexJsonCacheFile.length() <= 0L) return null
-        FileInputStream(indexJsonCacheFile).use { input ->
+        val file = getIndexJsonCacheFile()
+        if (!file.exists() || file.length() <= 0L) return null
+        FileInputStream(file).use { input ->
             InputStreamReader(input, Charsets.UTF_8).use { reader ->
                 gson.fromJson(reader, IzzyIndexResponse::class.java)
             }
@@ -235,8 +301,9 @@ class IzzyOnDroidRepository(
     }.getOrNull()
 
     private fun loadMetadata(): Pair<String?, String?> = runCatching {
-        if (!metaCacheFile.exists()) return Pair(null, null)
-        val lines = metaCacheFile.readLines()
+        val file = getMetaCacheFile()
+        if (!file.exists()) return Pair(null, null)
+        val lines = file.readLines()
         val etag = lines.getOrNull(0)?.takeIf { it.isNotBlank() }
         val lastModified = lines.getOrNull(1)?.takeIf { it.isNotBlank() }
         Pair(etag, lastModified)
@@ -244,8 +311,9 @@ class IzzyOnDroidRepository(
 
     private fun saveMetadata(etag: String?, lastModified: String?) {
         runCatching {
-            metaCacheFile.parentFile?.mkdirs()
-            metaCacheFile.writeText("${etag.orEmpty()}\n${lastModified.orEmpty()}")
+            val file = getMetaCacheFile()
+            file.parentFile?.mkdirs()
+            file.writeText("${etag.orEmpty()}\n${lastModified.orEmpty()}")
         }
     }
 
