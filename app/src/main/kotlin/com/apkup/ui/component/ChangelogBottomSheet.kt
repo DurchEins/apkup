@@ -53,14 +53,16 @@ fun ChangelogBottomSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val context = LocalContext.current
-    val changelogItems = remember(context) {
+    val fallbackTitle = stringResource(R.string.changelog_title)
+    val fallbackSubtitle = stringResource(R.string.changelog_menu_subtitle)
+    val changelogItems = remember(context, fallbackTitle, fallbackSubtitle) {
         val rawContent = loadChangelogContent(context)
         parseChangelogMarkdown(rawContent).ifEmpty {
             listOf(
                 ChangelogEntry(
                     icon = "✨",
-                    title = context.getString(R.string.changelog_title),
-                    description = context.getString(R.string.changelog_menu_subtitle)
+                    title = fallbackTitle,
+                    description = fallbackSubtitle
                 )
             )
         }
