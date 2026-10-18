@@ -149,6 +149,10 @@
     <string name="github_token_status_set">Token configured</string>
     <string name="github_token_status_not_set">No token set (60 req/h limit)</string>
     <string name="action_link_repo">Link repository</string>
+    <string name="repo_menu_linked">Repository linked</string>
+    <string name="repo_menu_link">Link repository</string>
+    <string name="repo_view_on_github">View on GitHub</string>
+    <string name="repo_view_on_gitlab">View on GitLab</string>
     <string name="link_repo_dialog_title">Link Repository</string>
     <string name="link_repo_dialog_desc">Connect this app to a GitHub or GitLab repository to check for updates directly from releases.</string>
     <string name="link_repo_platform">Platform</string>
