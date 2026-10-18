@@ -1,12 +1,16 @@
 package com.apkup.viewmodel
 
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.apkup.R
 import com.apkup.data.snack.TextSnack
+import com.apkup.data.ui.AppInstallProgress
 import com.apkup.data.ui.AppInstallStatus
 import com.apkup.data.ui.AppInstalled
 import com.apkup.data.ui.AppUpdate
 import com.apkup.data.ui.IgnoredVersionEntry
+import com.apkup.data.ui.Link
 import com.apkup.data.ui.UpdateCheckResult
 import com.apkup.data.ui.UpdatesUiState
 import com.apkup.data.ui.mergeRetainedUpdatesDuringCheck
@@ -22,45 +26,66 @@ import com.apkup.repository.UpdatesRepository
 import com.apkup.util.Badger
 import com.apkup.util.Downloader
 import com.apkup.util.InstallLog
+import com.apkup.util.InstallPart
 import com.apkup.util.SessionInstaller
 import com.apkup.util.SnackBar
 import com.apkup.util.Stringer
 import com.apkup.util.launchWithMutex
+import com.aurora.gplayapi.data.models.PlayFile
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import androidx.compose.ui.platform.UriHandler
 import com.apkup.data.ui.ApkMirrorSource
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
-import java.util.concurrent.ConcurrentLinkedQueue
+import kotlinx.coroutines.sync.withPermit
+import java.io.File
+import java.io.IOException
+import java.util.concurrent.ConcurrentHashMap
 
+data class DownloadedPackage(
+	val id: Int,
+	val packageName: String,
+	val appName: String,
+	val stagingDir: File,
+	val files: List<File>
+)
 
 class UpdatesViewModel(
 	private val updatesRepository: UpdatesRepository,
 	private val installer: SessionInstaller,
 	private val prefs: Prefs,
 	private val badger: Badger,
-	downloader: Downloader,
+	private val downloader: Downloader,
 	private val snackBar: SnackBar,
 	private val stringer: Stringer,
-	installLog: InstallLog
+	private val installLog: InstallLog,
+	private val context: Context? = null
 ) : InstallViewModel(downloader, installer, snackBar, stringer, installLog) {
 
 	private val mutex = Mutex()
 	private val installQueueMutex = Mutex()
-	private val pendingInstallQueue = ConcurrentLinkedQueue<AppUpdate>()
-	private var installQueueProcessorJob: Job? = null
+	private val downloadSemaphore = Semaphore(3)
+	private val activeDownloadJobs = ConcurrentHashMap<Int, Job>()
+	private val installChannel = Channel<DownloadedPackage>(Channel.UNLIMITED)
+	private var installProcessorJob: Job? = null
 	private var updateCheckJob: Job? = null
 	private var rawLatestUpdates: List<AppUpdate> = emptyList()
 	private var retainedUpdatesDuringCheck: List<AppUpdate> = emptyList()
 	private val state = MutableStateFlow<UpdatesUiState>(UpdatesUiState.Loading)
 	private val _showInstallPermissionDialog = MutableStateFlow(false)
 	val showInstallPermissionDialog: StateFlow<Boolean> = _showInstallPermissionDialog.asStateFlow()
+
+	private fun getCacheDir(): File =
+		context?.cacheDir ?: File(System.getProperty("java.io.tmpdir") ?: ".", "apkup_cache")
 
 	init {
 		subscribeToInstallStatus()
@@ -227,56 +252,187 @@ class UpdatesViewModel(
 		enqueueInstallations(directInstallable)
 	}
 
-	private suspend fun enqueueInstallations(candidates: List<AppUpdate>) {
+	private fun enqueueInstallations(candidates: List<AppUpdate>) {
 		val newlyQueued = mutableListOf<AppUpdate>()
-		mutex.withLock {
-			val current = state.value.mutableUpdates()
-			val alreadyQueuedIds = pendingInstallQueue.map { it.id }.toSet()
-			candidates.forEach { candidate ->
-				val inState = current.find { it.id == candidate.id }
-				if (inState != null && !inState.isInstalling && !inState.isQueued && candidate.id !in alreadyQueuedIds) {
-					current.setIsQueued(candidate.id, true)
-					pendingInstallQueue.add(candidate)
-					newlyQueued.add(candidate)
-				}
-			}
-			if (newlyQueued.isNotEmpty()) {
-				state.value = successState(current)
+		val current = state.value.mutableUpdates()
+		val alreadyActive = activeDownloadJobs.keys
+		candidates.forEach { candidate ->
+			val inState = current.find { it.id == candidate.id }
+			if (inState != null && !inState.isInstalling && !inState.isQueued && candidate.id !in alreadyActive) {
+				current.setIsQueued(candidate.id, true)
+				newlyQueued.add(candidate)
 			}
 		}
 		if (newlyQueued.isNotEmpty()) {
-			processInstallQueue()
+			state.value = successState(current)
+			ensureInstallProcessorStarted()
+			newlyQueued.forEach { update ->
+				startDownload(update)
+			}
 		}
 	}
 
-	private fun processInstallQueue() {
-		if (installQueueProcessorJob?.isActive == true) return
-		installQueueProcessorJob = viewModelScope.launch(Dispatchers.IO) {
-			installQueueMutex.withLock {
-				while (true) {
-					val next = pendingInstallQueue.poll() ?: break
-					val stillPresent = mutex.withLock {
+	private fun startDownload(update: AppUpdate) {
+		val job = viewModelScope.launch(Dispatchers.IO) {
+			val stagingDir = File(getCacheDir(), "download_staging_${update.id}").apply { mkdirs() }
+			try {
+				downloadSemaphore.withPermit {
+					val shouldProceed = mutex.withLock {
 						val current = state.value.mutableUpdates()
-						val exists = current.any { it.id == next.id }
+						val exists = current.any { it.id == update.id }
 						if (exists) {
 							state.value = successState(
-								current
-									.setIsQueued(next.id, false)
-									.setIsInstalling(next.id, true)
+								current.setIsQueued(update.id, false).setIsInstalling(update.id, true)
 							)
 						}
 						exists
 					}
-					if (stillPresent) {
-						downloadAndInstall(
-							id = next.id,
-							packageName = next.packageName,
-							link = next.link,
-							appName = next.name
+					if (!shouldProceed) {
+						stagingDir.deleteRecursively()
+						return@withPermit
+					}
+
+					installLog.beginInstall(update.id)
+					installLog.emitProgress(AppInstallProgress(update.id, 0L))
+
+					val files = downloadUpdateFiles(update, stagingDir) { currentBytes, totalBytes ->
+						installLog.emitProgress(AppInstallProgress(update.id, currentBytes, totalBytes))
+					}
+
+					if (files.isEmpty()) {
+						throw IOException("No files downloaded for ${update.packageName}")
+					}
+
+					ensureInstallProcessorStarted()
+					installChannel.send(
+						DownloadedPackage(
+							id = update.id,
+							packageName = update.packageName,
+							appName = update.name,
+							stagingDir = stagingDir,
+							files = files
 						)
+					)
+				}
+			} catch (cancellation: CancellationException) {
+				runCatching { stagingDir.deleteRecursively() }
+				installLog.emitProgress(AppInstallProgress(update.id, 0L))
+				cancelInstall(update.id)
+				throw cancellation
+			} catch (error: Throwable) {
+				Log.e("UpdatesViewModel", "Download failed for ${update.packageName}", error)
+				runCatching { stagingDir.deleteRecursively() }
+				installLog.emitProgress(AppInstallProgress(update.id, 0L))
+				if (!installLog.emitStatus(AppInstallStatus(false, update.id, snack = true))) {
+					cancelInstall(update.id).join()
+				}
+			} finally {
+				activeDownloadJobs.remove(update.id)
+			}
+		}
+		activeDownloadJobs[update.id] = job
+	}
+
+	private fun ensureInstallProcessorStarted() {
+		if (installProcessorJob?.isActive == true) return
+		installProcessorJob = viewModelScope.launch(Dispatchers.IO) {
+			for (pkg in installChannel) {
+				installQueueMutex.withLock {
+					val stillPresent = mutex.withLock {
+						state.value.updates().any { it.id == pkg.id }
+					}
+					if (!stillPresent) {
+						runCatching { pkg.stagingDir.deleteRecursively() }
+					} else {
+						mutex.withLock {
+							val current = state.value.mutableUpdates()
+							if (current.any { it.id == pkg.id }) {
+								state.value = successState(
+									current.setIsQueued(pkg.id, false).setIsInstalling(pkg.id, true)
+								)
+							}
+						}
+
+						try {
+							val parts = pkg.files.map { file ->
+								InstallPart(file.name) { file.inputStream() }
+							}
+							installer.installParts(pkg.id, pkg.packageName, parts)
+						} catch (cancellation: CancellationException) {
+							installLog.emitProgress(AppInstallProgress(pkg.id, 0L))
+							cancelInstall(pkg.id)
+							throw cancellation
+						} catch (error: Throwable) {
+							Log.e("UpdatesViewModel", "Installation failed for ${pkg.packageName}", error)
+							installLog.emitProgress(AppInstallProgress(pkg.id, 0L))
+							if (!installLog.emitStatus(AppInstallStatus(false, pkg.id, snack = true))) {
+								cancelInstall(pkg.id).join()
+							}
+						} finally {
+							runCatching { pkg.stagingDir.deleteRecursively() }
+						}
 					}
 				}
 			}
+		}
+	}
+
+	private suspend fun downloadUpdateFiles(
+		update: AppUpdate,
+		stagingDir: File,
+		onProgress: (currentBytes: Long, totalBytes: Long) -> Unit
+	): List<File> = when (val link = update.link) {
+		Link.Empty -> {
+			Log.e("UpdatesViewModel", "downloadUpdateFiles: Empty link for ${update.packageName}")
+			throw IOException("Unsupported empty download link for ${update.packageName}")
+		}
+		is Link.Play -> {
+			val playFiles = link.getInstallFiles()
+			if (playFiles.isEmpty()) {
+				throw IOException("Play Store returned no installable APK files for ${update.packageName}")
+			}
+			val sortedFiles = playFiles.sortedWith(
+				compareByDescending<PlayFile> { it.type == PlayFile.Type.BASE }
+					.thenBy { it.name }
+			)
+			val totalBytes = sortedFiles.sumOf { it.size }
+			var downloadedBytes = 0L
+			onProgress(0L, totalBytes)
+
+			sortedFiles.mapIndexed { index, playFile ->
+				val partName = when {
+					playFile.type == PlayFile.Type.BASE -> "base.apk"
+					playFile.name.endsWith(".apk") -> playFile.name
+					playFile.name.isNotBlank() -> "${playFile.name}.apk"
+					else -> "split_$index.apk"
+				}
+				val targetFile = File(stagingDir, partName)
+				val success = downloader.downloadToFile(playFile.url, targetFile) { chunk ->
+					downloadedBytes += chunk
+					onProgress(downloadedBytes, totalBytes)
+				}
+				if (!success || targetFile.length() <= 0L) {
+					throw IOException("Failed to download Play split ${playFile.name} for ${update.packageName}")
+				}
+				targetFile
+			}
+		}
+		is Link.Url -> {
+			if (link.link.isBlank()) {
+				throw IOException("Blank download URL for ${update.packageName}")
+			}
+			val totalBytes = link.size
+			var downloadedBytes = 0L
+			onProgress(0L, totalBytes)
+			val targetFile = File(stagingDir, "base.apk")
+			val success = downloader.downloadToFile(link.link, targetFile) { chunk ->
+				downloadedBytes += chunk
+				onProgress(downloadedBytes, totalBytes)
+			}
+			if (!success || targetFile.length() <= 0L) {
+				throw IOException("Failed to download URL APK for ${update.packageName}")
+			}
+			listOf(targetFile)
 		}
 	}
 
@@ -357,7 +513,10 @@ class UpdatesViewModel(
 	}
 
 	override fun cancelInstall(id: Int) = viewModelScope.launchWithMutex(mutex, Dispatchers.IO) {
-		pendingInstallQueue.removeAll { it.id == id }
+		activeDownloadJobs.remove(id)?.cancel()
+		runCatching {
+			File(getCacheDir(), "download_staging_$id").deleteRecursively()
+		}
 		state.value = successState(
 			state.value.mutableUpdates()
 				.setIsQueued(id, false)
@@ -367,7 +526,10 @@ class UpdatesViewModel(
 	}
 
 	override fun finishInstall(id: Int) = viewModelScope.launchWithMutex(mutex, Dispatchers.IO) {
-		pendingInstallQueue.removeAll { it.id == id }
+		activeDownloadJobs.remove(id)
+		runCatching {
+			File(getCacheDir(), "download_staging_$id").deleteRecursively()
+		}
 		rawLatestUpdates = rawLatestUpdates.filterNot { it.id == id }
 		val remaining = state.value.mutableUpdates().removeId(id)
 		setSuccess(
