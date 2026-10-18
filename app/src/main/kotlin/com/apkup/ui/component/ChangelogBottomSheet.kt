@@ -211,7 +211,7 @@ internal fun loadChangelogContent(context: Context): String {
     val versionPrefix = BuildConfig.VERSION_NAME
         .substringBefore("-")
         .trim()
-        .ifEmpty { "1.30" }
+        .ifEmpty { "1.31" }
 
     val localizedAsset = if (language.equals("de", ignoreCase = true)) {
         "changelog/${versionPrefix}_de.md"
@@ -229,7 +229,7 @@ internal fun loadChangelogContent(context: Context): String {
             BufferedReader(InputStreamReader(input, Charsets.UTF_8)).readText()
         }
     }.recoverCatching {
-        context.assets.open("changelog/1.30_en.md").use { input ->
+        context.assets.open("changelog/1.31_en.md").use { input ->
             BufferedReader(InputStreamReader(input, Charsets.UTF_8)).readText()
         }
     }.getOrDefault("")

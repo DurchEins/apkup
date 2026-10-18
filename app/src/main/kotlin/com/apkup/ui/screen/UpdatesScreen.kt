@@ -34,8 +34,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.rounded.Update
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -194,10 +194,10 @@ fun UpdatesTopBar(
 			contentAlignment = Alignment.Center
 		) {
 			Icon(
-				imageVector = Icons.Filled.ThumbUp,
+				imageVector = Icons.Rounded.Update,
 				contentDescription = stringResource(R.string.tab_updates),
 				tint = MaterialTheme.colorScheme.primary,
-				modifier = Modifier.size(18.dp)
+				modifier = Modifier.size(20.dp)
 			)
 		}
 	}
@@ -366,6 +366,7 @@ fun UpdatesScreenSuccess(
 	}
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun UpdatesSourceFilterRow(
 	totalCount: Int,
@@ -373,91 +374,95 @@ private fun UpdatesSourceFilterRow(
 	selectedSource: String?,
 	onSelectSource: (String?) -> Unit
 ) {
-	Row(
-		modifier = Modifier
-			.fillMaxWidth()
-			.horizontalScroll(rememberScrollState())
-			.padding(horizontal = 12.dp, vertical = 4.dp),
-		horizontalArrangement = Arrangement.spacedBy(8.dp),
-		verticalAlignment = Alignment.CenterVertically
-	) {
-		val allSelected = selectedSource == null
-		FilterChip(
-			selected = allSelected,
-			onClick = { onSelectSource(null) },
-			label = {
-				Text(
-					text = "${stringResource(R.string.apps_filter_all)} ($totalCount)",
-					style = MaterialTheme.typography.labelMedium,
-					fontWeight = if (allSelected) FontWeight.SemiBold else FontWeight.Medium
+	CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+		Row(
+			modifier = Modifier
+				.fillMaxWidth()
+				.horizontalScroll(rememberScrollState())
+				.padding(horizontal = 12.dp, vertical = 3.dp),
+			horizontalArrangement = Arrangement.spacedBy(6.dp),
+			verticalAlignment = Alignment.CenterVertically
+		) {
+			val allSelected = selectedSource == null
+			FilterChip(
+				selected = allSelected,
+				onClick = { onSelectSource(null) },
+				modifier = Modifier.height(32.dp),
+				label = {
+					Text(
+						text = "${stringResource(R.string.apps_filter_all)} ($totalCount)",
+						style = MaterialTheme.typography.labelMedium,
+						fontWeight = if (allSelected) FontWeight.SemiBold else FontWeight.Medium
+					)
+				},
+				leadingIcon = if (allSelected) {
+					{
+						Icon(
+							imageVector = Icons.Filled.Check,
+							contentDescription = null,
+							modifier = Modifier.size(16.dp)
+						)
+					}
+				} else null,
+				shape = CircleShape,
+				border = FilterChipDefaults.filterChipBorder(
+					enabled = true,
+					selected = allSelected,
+					borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+				),
+				colors = FilterChipDefaults.filterChipColors(
+					selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+					selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+					selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer
 				)
-			},
-			leadingIcon = if (allSelected) {
-				{
-					Icon(
-						imageVector = Icons.Filled.Check,
-						contentDescription = null,
-						modifier = Modifier.size(FilterChipDefaults.IconSize)
+			)
+
+			sourceCounts.forEach { (source, count) ->
+				if (count > 0) {
+					val isSelected = selectedSource == source.name
+					val labelText = "${sourceName(source)} ($count)"
+					FilterChip(
+						selected = isSelected,
+						onClick = { onSelectSource(if (isSelected) null else source.name) },
+						modifier = Modifier.height(32.dp),
+						label = {
+							Text(
+								text = labelText,
+								style = MaterialTheme.typography.labelMedium,
+								fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium
+							)
+						},
+						leadingIcon = if (isSelected) {
+							{
+								Icon(
+									imageVector = Icons.Filled.Check,
+									contentDescription = null,
+									modifier = Modifier.size(16.dp)
+								)
+							}
+						} else {
+							{
+								Icon(
+									painter = painterResource(source.resourceId),
+									contentDescription = null,
+									modifier = Modifier.size(16.dp),
+									tint = MaterialTheme.colorScheme.onSurfaceVariant
+								)
+							}
+						},
+						shape = CircleShape,
+						border = FilterChipDefaults.filterChipBorder(
+							enabled = true,
+							selected = isSelected,
+							borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+						),
+						colors = FilterChipDefaults.filterChipColors(
+							selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+							selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+							selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer
+						)
 					)
 				}
-			} else null,
-			shape = CircleShape,
-			border = FilterChipDefaults.filterChipBorder(
-				enabled = true,
-				selected = allSelected,
-				borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
-			),
-			colors = FilterChipDefaults.filterChipColors(
-				selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-				selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-				selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer
-			)
-		)
-
-		sourceCounts.forEach { (source, count) ->
-			if (count > 0) {
-				val isSelected = selectedSource == source.name
-				val labelText = "${sourceName(source)} ($count)"
-				FilterChip(
-					selected = isSelected,
-					onClick = { onSelectSource(if (isSelected) null else source.name) },
-					label = {
-						Text(
-							text = labelText,
-							style = MaterialTheme.typography.labelMedium,
-							fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium
-						)
-					},
-					leadingIcon = if (isSelected) {
-						{
-							Icon(
-								imageVector = Icons.Filled.Check,
-								contentDescription = null,
-								modifier = Modifier.size(FilterChipDefaults.IconSize)
-							)
-						}
-					} else {
-						{
-							Icon(
-								painter = painterResource(source.resourceId),
-								contentDescription = null,
-								modifier = Modifier.size(FilterChipDefaults.IconSize),
-								tint = MaterialTheme.colorScheme.onSurfaceVariant
-							)
-						}
-					},
-					shape = CircleShape,
-					border = FilterChipDefaults.filterChipBorder(
-						enabled = true,
-						selected = isSelected,
-						borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
-					),
-					colors = FilterChipDefaults.filterChipColors(
-						selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-						selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-						selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer
-					)
-				)
 			}
 		}
 	}
@@ -1437,7 +1442,7 @@ private fun UpdatesMessage(
 	title: String,
 	message: String,
 	modifier: Modifier = Modifier,
-	icon: androidx.compose.ui.graphics.vector.ImageVector = Icons.Filled.ThumbUp
+	icon: androidx.compose.ui.graphics.vector.ImageVector = Icons.Rounded.Update
 ) = AppEmptyState(title, message, icon, modifier)
 
 @Composable
