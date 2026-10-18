@@ -206,18 +206,23 @@ fun ChangelogCard(entry: ChangelogEntry) {
     }
 }
 
+internal fun resolveChangelogLanguageSuffix(locale: Locale = Locale.getDefault()): String {
+    val lang = locale.language.lowercase(Locale.ROOT)
+    return when {
+        lang == "zh" -> "zh-rCN"
+        lang in setOf("de", "en", "es", "fr", "pt", "it", "ru", "ja") -> lang
+        else -> "en"
+    }
+}
+
 internal fun loadChangelogContent(context: Context): String {
-    val language = Locale.getDefault().language
+    val langSuffix = resolveChangelogLanguageSuffix(Locale.getDefault())
     val versionPrefix = BuildConfig.VERSION_NAME
         .substringBefore("-")
         .trim()
         .ifEmpty { "1.31" }
 
-    val localizedAsset = if (language.equals("de", ignoreCase = true)) {
-        "changelog/${versionPrefix}_de.md"
-    } else {
-        "changelog/${versionPrefix}_en.md"
-    }
+    val localizedAsset = "changelog/${versionPrefix}_${langSuffix}.md"
     val fallbackEnglishAsset = "changelog/${versionPrefix}_en.md"
 
     return runCatching {

@@ -26,6 +26,7 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
         android:banner="@drawable/banner"
+        android:localeConfig="@xml/locales_config"
         tools:targetApi="37"
     >
         <activity

@@ -275,12 +275,84 @@ fun Settings(
 		}
 	}
 
+	val coroutineScope = rememberCoroutineScope()
+	val overscrollPull = remember { Animatable(0f) }
+	var hasTriggeredOverscrollHaptic by remember { mutableStateOf(false) }
+
+	val nestedScrollConnection = remember(coroutineScope, context, haptic) {
+		object : NestedScrollConnection {
+			override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+				if (overscrollPull.value < 0f && available.y > 0f) {
+					val newOffset = (overscrollPull.value + available.y).coerceAtMost(0f)
+					val consumed = newOffset - overscrollPull.value
+					coroutineScope.launch {
+						overscrollPull.snapTo(newOffset)
+					}
+					return Offset(0f, consumed)
+				}
+				return Offset.Zero
+			}
+
+			override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+				if (available.y < 0f && source == NestedScrollSource.UserInput) {
+					val dampened = available.y * 0.42f
+					val newOffset = (overscrollPull.value + dampened).coerceIn(-220f, 0f)
+					val delta = newOffset - overscrollPull.value
+					coroutineScope.launch {
+						overscrollPull.snapTo(newOffset)
+						if (newOffset <= -120f && !hasTriggeredOverscrollHaptic) {
+							hasTriggeredOverscrollHaptic = true
+							performHeartbeatHaptic(context, haptic)
+						}
+					}
+					return Offset(0f, delta)
+				}
+				return Offset.Zero
+			}
+
+			override suspend fun onPreFling(available: Velocity): Velocity {
+				if (overscrollPull.value < 0f) {
+					hasTriggeredOverscrollHaptic = false
+					overscrollPull.animateTo(
+						targetValue = 0f,
+						animationSpec = spring(
+							dampingRatio = Spring.DampingRatioMediumBouncy,
+							stiffness = Spring.StiffnessLow
+						)
+					)
+				}
+				return Velocity.Zero
+			}
+
+			override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+				if (overscrollPull.value < 0f) {
+					hasTriggeredOverscrollHaptic = false
+					overscrollPull.animateTo(
+						targetValue = 0f,
+						animationSpec = spring(
+							dampingRatio = Spring.DampingRatioMediumBouncy,
+							stiffness = Spring.StiffnessLow
+						)
+					)
+				}
+				return Velocity.Zero
+			}
+		}
+	}
+
+	val pullDistance = -overscrollPull.value
+	val pullProgress = (pullDistance / 130f).coerceIn(0f, 1f)
+
 	Box(
-		modifier = Modifier.fillMaxSize()
+		modifier = Modifier
+			.fillMaxSize()
+			.nestedScroll(nestedScrollConnection)
 	) {
 		LazyColumn(
-			modifier = Modifier.fillMaxSize(),
-			contentPadding = PaddingValues(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 16.dp),
+			modifier = Modifier
+				.fillMaxSize()
+				.offset { IntOffset(0, overscrollPull.value.roundToInt()) },
+			contentPadding = PaddingValues(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 120.dp),
 			verticalArrangement = Arrangement.spacedBy(14.dp)
 		) {
 			// Sektion 1: Erscheinungsbild & Layout
@@ -706,8 +778,9 @@ fun Settings(
 
 		// Sektion 6: Über ApkUp
 		item(key = "section_about") {
-			SettingsSection(stringResource(R.string.about)) {
-				Surface(
+			Column(modifier = Modifier.fillMaxWidth()) {
+				SettingsSection(stringResource(R.string.about)) {
+					Surface(
 					modifier = Modifier.fillMaxWidth(),
 					shape = RoundedCornerShape(20.dp),
 					color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -996,36 +1069,49 @@ fun Settings(
 					}
 				}
 			}
-		}
 
-		// Easter Egg: Direkt im scrollbaren Inhalt unter der "Über"-Karte
-		item(key = "section_easter_egg") {
-			Column(
-				modifier = Modifier
-					.fillMaxWidth()
-					.padding(top = 16.dp),
-				horizontalAlignment = CenterHorizontally,
-				verticalArrangement = Arrangement.spacedBy(4.dp)
-			) {
-				Text(
-					text = "n² \u2764\uFE0F\u200D\uD83D\uDD25",
-					style = MaterialTheme.typography.labelMedium,
-					fontWeight = FontWeight.SemiBold,
-					color = MaterialTheme.colorScheme.onSurface
-				)
-				Surface(
-					shape = RoundedCornerShape(50),
-					color = MaterialTheme.colorScheme.surfaceContainerHighest
+				// Easter-Egg: Im Ruhezustand unsichtbar (0.dp, alpha = 0f), fährt erst per Overscroll-Pull direkt unter der "Über"-Karte aus
+				val revealHeight = (72.dp * pullProgress)
+				Box(
+					modifier = Modifier
+						.fillMaxWidth()
+						.height(revealHeight)
+						.graphicsLayer {
+							alpha = (pullProgress * 1.15f).coerceIn(0f, 1f)
+							scaleX = 0.85f + 0.15f * pullProgress
+							scaleY = 0.85f + 0.15f * pullProgress
+						},
+					contentAlignment = Alignment.Center
 				) {
-					Text(
-						text = "Version: Für immer • Since 2021",
-						style = MaterialTheme.typography.labelSmall,
-						color = MaterialTheme.colorScheme.onSurfaceVariant,
-						modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-					)
+					if (pullProgress > 0.005f) {
+						Column(
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(top = 12.dp),
+							horizontalAlignment = CenterHorizontally,
+							verticalArrangement = Arrangement.spacedBy(4.dp)
+						) {
+							Text(
+								text = "n² \u2764\uFE0F\u200D\uD83D\uDD25",
+								style = MaterialTheme.typography.labelMedium,
+								fontWeight = FontWeight.SemiBold,
+								color = MaterialTheme.colorScheme.onSurface
+							)
+							Surface(
+								shape = RoundedCornerShape(50),
+								color = MaterialTheme.colorScheme.surfaceContainerHighest
+							) {
+								Text(
+									text = "Version: Für immer • Since 2021",
+									style = MaterialTheme.typography.labelSmall,
+									color = MaterialTheme.colorScheme.onSurfaceVariant,
+									modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+								)
+							}
+						}
+					}
 				}
 			}
-			Spacer(modifier = Modifier.height(160.dp))
 		}
 	}
 }
