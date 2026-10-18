@@ -59,6 +59,7 @@
     <string name="apps_search_placeholder">Search apps or package ID…</string>
     <string name="apps_filter_all">All apps</string>
     <string name="apps_filter_user">User apps</string>
+    <string name="apps_filter_system">System apps</string>
     <string name="apps_filter_ignored">Ignored apps</string>
     <string name="apps_filter_recent">Recently updated</string>
     <string name="apps_search_empty_title">No matching apps</string>
@@ -124,11 +125,12 @@
     <string name="action_unignore_version">Restore</string>
     <string name="action_clear_ignored_versions">Restore all skipped versions</string>
     <string name="settings_backup_section">Backup &amp; Restore</string>
-    <string name="settings_backup_description">Export or restore your settings and ignore lists as a JSON file.</string>
+    <string name="settings_backup_description">Backup settings &amp; repo mappings</string>
     <string name="settings_backup_export">Export configuration</string>
     <string name="settings_backup_import">Import configuration</string>
-    <string name="action_export_backup">Export JSON</string>
-    <string name="action_import_backup">Import JSON</string>
+    <string name="action_export_backup">Export</string>
+    <string name="action_import_backup">Import</string>
+    <string name="updates_empty_source_filter_message">No updates found for this source.</string>
     <string name="backup_export_success">Configuration exported successfully.</string>
     <string name="backup_import_success">Configuration restored successfully.</string>
     <string name="backup_import_error">Could not process backup file.</string>

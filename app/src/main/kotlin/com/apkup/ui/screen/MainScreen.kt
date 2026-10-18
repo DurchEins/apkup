@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -297,6 +298,7 @@ fun FloatingCapsuleDock(
 		modifier = modifier,
 		shape = CircleShape,
 		color = MaterialTheme.colorScheme.surfaceContainerHigh,
+		tonalElevation = 6.dp,
 		shadowElevation = 8.dp,
 		border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
 	) {
@@ -355,7 +357,10 @@ fun CapsuleDockItem(
 	) {
 		Row(
 			modifier = Modifier
-				.padding(horizontal = if (selected) 14.dp else 10.dp, vertical = 8.dp),
+				.padding(
+					horizontal = if (selected) 16.dp else 14.dp,
+					vertical = 10.dp
+				),
 			verticalAlignment = Alignment.CenterVertically,
 			horizontalArrangement = Arrangement.spacedBy(6.dp)
 		) {
@@ -387,10 +392,14 @@ fun CapsuleDockItem(
 					}
 				} else if (badge.isNotEmpty()) {
 					Badge(
-						containerColor = MaterialTheme.colorScheme.secondary,
-						contentColor = MaterialTheme.colorScheme.onSecondary
+						containerColor = MaterialTheme.colorScheme.primary,
+						contentColor = MaterialTheme.colorScheme.onPrimary
 					) {
-						Text(badge, style = MaterialTheme.typography.labelSmall)
+						Text(
+							text = badge,
+							style = MaterialTheme.typography.labelSmall,
+							fontWeight = FontWeight.Bold
+						)
 					}
 				}
 			} else {
@@ -409,8 +418,18 @@ fun CapsuleDockItem(
 									color = MaterialTheme.colorScheme.primary
 								)
 							}
-						} else {
-							BadgeText(badge)
+						} else if (badge.isNotEmpty()) {
+							Badge(
+								containerColor = MaterialTheme.colorScheme.errorContainer,
+								contentColor = MaterialTheme.colorScheme.onErrorContainer,
+								modifier = Modifier.offset(x = 4.dp, y = (-2).dp)
+							) {
+								Text(
+									text = badge,
+									style = MaterialTheme.typography.labelSmall,
+									fontWeight = FontWeight.Bold
+								)
+							}
 						}
 					}
 				) {

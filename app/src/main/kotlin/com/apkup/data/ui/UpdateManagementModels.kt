@@ -85,6 +85,7 @@ data class ShizukuSetupStatus(
 enum class AppsQuickFilter {
 	ALL,
 	USER_ONLY,
+	SYSTEM_ONLY,
 	IGNORED_ONLY,
 	RECENTLY_UPDATED
 }
@@ -101,6 +102,7 @@ internal fun filterInstalledApps(
 	val filteredByChip = when (quickFilter) {
 		AppsQuickFilter.ALL -> apps
 		AppsQuickFilter.USER_ONLY -> apps.filter { !it.isSystemApp }
+		AppsQuickFilter.SYSTEM_ONLY -> apps.filter { it.isSystemApp }
 		AppsQuickFilter.IGNORED_ONLY -> apps.filter { it.ignored }
 		AppsQuickFilter.RECENTLY_UPDATED -> {
 			val cutoff = nowMillis - RECENTLY_UPDATED_WINDOW_MILLIS

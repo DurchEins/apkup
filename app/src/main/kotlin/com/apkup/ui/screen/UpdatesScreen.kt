@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -31,6 +32,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.filled.Warning
@@ -39,6 +41,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -59,10 +63,12 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -247,21 +253,54 @@ fun UpdatesScreenSuccess(
 		onDispose { view.keepScreenOn = false }
 	}
 
+	var selectedSourceFilter by rememberSaveable { mutableStateOf<String?>(null) }
+
+	val sourceCounts = remember(updates) {
+		val map = linkedMapOf<Source, Int>()
+		for (update in updates) {
+			map[update.source] = (map[update.source] ?: 0) + 1
+		}
+		map
+	}
+
+	LaunchedEffect(updates) {
+		if (selectedSourceFilter != null && sourceCounts.none { it.key.name == selectedSourceFilter }) {
+			selectedSourceFilter = null
+		}
+	}
+
+	val displayedUpdates = remember(updates, selectedSourceFilter) {
+		if (selectedSourceFilter == null) {
+			updates
+		} else {
+			updates.filter { it.source.name == selectedSourceFilter }
+		}
+	}
+
 	val activeSources = buildList {
 		if (prefs.useApkMirror.get()) add("APKMirror")
 		if (prefs.usePlay.get()) add("Google Play")
 	}
 	val localeLanguage = LocalConfiguration.current.locales[0]?.language.orEmpty()
 	val isGerman = localeLanguage.startsWith("de", ignoreCase = true)
-	val hasInstallable = updates.any {
+	val hasInstallable = displayedUpdates.any {
 		it.isDirectInstallable || it.alternativeUpdates.any(AppUpdate::isDirectInstallable)
 	}
 
 	UpdatesTopBar(
 		viewModel = viewModel,
-		updatesCount = updates.size,
+		updatesCount = displayedUpdates.size,
 		hasInstallableUpdates = hasInstallable
 	)
+
+	if (updates.isNotEmpty() && sourceCounts.isNotEmpty()) {
+		UpdatesSourceFilterRow(
+			totalCount = updates.size,
+			sourceCounts = sourceCounts,
+			selectedSource = selectedSourceFilter,
+			onSelectSource = { selectedSourceFilter = it }
+		)
+	}
 
 	if (isChecking) {
 		UpdateCheckProgressBar(checkedApps, totalApps, activeSourceName)
@@ -317,8 +356,110 @@ fun UpdatesScreenSuccess(
 			message = stringResource(R.string.updates_empty_message),
 			modifier = Modifier.weight(1f)
 		)
-		displayMode == 1 -> CompactUpdatesGrid(viewModel, updates, handler, Modifier.weight(1f))
-		else -> UpdatesList(viewModel, updates, handler, Modifier.weight(1f))
+		displayedUpdates.isEmpty() -> UpdatesMessage(
+			title = stringResource(R.string.updates_empty_title),
+			message = stringResource(R.string.updates_empty_source_filter_message),
+			modifier = Modifier.weight(1f)
+		)
+		displayMode == 1 -> CompactUpdatesGrid(viewModel, displayedUpdates, handler, Modifier.weight(1f))
+		else -> UpdatesList(viewModel, displayedUpdates, handler, Modifier.weight(1f))
+	}
+}
+
+@Composable
+private fun UpdatesSourceFilterRow(
+	totalCount: Int,
+	sourceCounts: Map<Source, Int>,
+	selectedSource: String?,
+	onSelectSource: (String?) -> Unit
+) {
+	Row(
+		modifier = Modifier
+			.fillMaxWidth()
+			.horizontalScroll(rememberScrollState())
+			.padding(horizontal = 12.dp, vertical = 4.dp),
+		horizontalArrangement = Arrangement.spacedBy(8.dp),
+		verticalAlignment = Alignment.CenterVertically
+	) {
+		val allSelected = selectedSource == null
+		FilterChip(
+			selected = allSelected,
+			onClick = { onSelectSource(null) },
+			label = {
+				Text(
+					text = "${stringResource(R.string.apps_filter_all)} ($totalCount)",
+					style = MaterialTheme.typography.labelMedium,
+					fontWeight = if (allSelected) FontWeight.SemiBold else FontWeight.Medium
+				)
+			},
+			leadingIcon = if (allSelected) {
+				{
+					Icon(
+						imageVector = Icons.Filled.Check,
+						contentDescription = null,
+						modifier = Modifier.size(FilterChipDefaults.IconSize)
+					)
+				}
+			} else null,
+			shape = CircleShape,
+			border = FilterChipDefaults.filterChipBorder(
+				enabled = true,
+				selected = allSelected,
+				borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+			),
+			colors = FilterChipDefaults.filterChipColors(
+				selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+				selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+				selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer
+			)
+		)
+
+		sourceCounts.forEach { (source, count) ->
+			if (count > 0) {
+				val isSelected = selectedSource == source.name
+				val labelText = "${sourceName(source)} ($count)"
+				FilterChip(
+					selected = isSelected,
+					onClick = { onSelectSource(if (isSelected) null else source.name) },
+					label = {
+						Text(
+							text = labelText,
+							style = MaterialTheme.typography.labelMedium,
+							fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium
+						)
+					},
+					leadingIcon = if (isSelected) {
+						{
+							Icon(
+								imageVector = Icons.Filled.Check,
+								contentDescription = null,
+								modifier = Modifier.size(FilterChipDefaults.IconSize)
+							)
+						}
+					} else {
+						{
+							Icon(
+								painter = painterResource(source.resourceId),
+								contentDescription = null,
+								modifier = Modifier.size(FilterChipDefaults.IconSize),
+								tint = MaterialTheme.colorScheme.onSurfaceVariant
+							)
+						}
+					},
+					shape = CircleShape,
+					border = FilterChipDefaults.filterChipBorder(
+						enabled = true,
+						selected = isSelected,
+						borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+					),
+					colors = FilterChipDefaults.filterChipColors(
+						selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+						selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+						selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer
+					)
+				)
+			}
+		}
 	}
 }
 
@@ -751,23 +892,34 @@ private fun CompactUpdatesGrid(
 					elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
 				) {
 					Column(
-						modifier = Modifier.fillMaxWidth().padding(
-							horizontal = CompactUpdateCardLayout.horizontalPaddingDp.dp,
-							vertical = CompactUpdateCardLayout.verticalPaddingDp.dp
-						),
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(
+								start = CompactUpdateCardLayout.horizontalPaddingDp.dp,
+								end = CompactUpdateCardLayout.horizontalPaddingDp.dp,
+								top = 12.dp,
+								bottom = CompactUpdateCardLayout.verticalPaddingDp.dp
+							),
 						verticalArrangement = Arrangement.spacedBy(CompactUpdateCardLayout.itemSpacingDp.dp)
 					) {
 						Box(
 							modifier = Modifier
-								.size(CompactUpdateCardLayout.iconSizeDp.dp)
-								.clip(RoundedCornerShape(10.dp))
-								.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+								.fillMaxWidth()
+								.padding(bottom = 8.dp),
 							contentAlignment = Alignment.Center
 						) {
-							LoadingImageApp(
-								card.packageName,
-								Modifier.requiredSize(CompactUpdateCardLayout.iconRequestSizeDp.dp)
-							)
+							Box(
+								modifier = Modifier
+									.size(CompactUpdateCardLayout.iconSizeDp.dp)
+									.clip(RoundedCornerShape(10.dp))
+									.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+								contentAlignment = Alignment.Center
+							) {
+								LoadingImageApp(
+									card.packageName,
+									Modifier.requiredSize(CompactUpdateCardLayout.iconRequestSizeDp.dp)
+								)
+							}
 						}
 						Text(
 							text = card.appName,

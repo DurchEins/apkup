@@ -304,6 +304,7 @@ private fun AppsQuickFilterRow(
 	val filters = listOf(
 		AppsQuickFilter.ALL to stringResource(R.string.apps_filter_all),
 		AppsQuickFilter.USER_ONLY to stringResource(R.string.apps_filter_user),
+		AppsQuickFilter.SYSTEM_ONLY to stringResource(R.string.apps_filter_system),
 		AppsQuickFilter.IGNORED_ONLY to stringResource(R.string.apps_filter_ignored),
 		AppsQuickFilter.RECENTLY_UPDATED to stringResource(R.string.apps_filter_recent)
 	)

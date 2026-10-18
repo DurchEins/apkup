@@ -84,7 +84,7 @@ fun InstalledGrid(
             start = INSTALLED_APPS_GRID_HORIZONTAL_PADDING_DP.dp,
             top = 12.dp,
             end = INSTALLED_APPS_GRID_HORIZONTAL_PADDING_DP.dp,
-            bottom = 100.dp
+            bottom = 140.dp
         ),
         verticalArrangement = Arrangement.spacedBy(INSTALLED_APPS_GRID_SPACING_DP.dp),
         horizontalArrangement = Arrangement.spacedBy(INSTALLED_APPS_GRID_SPACING_DP.dp),

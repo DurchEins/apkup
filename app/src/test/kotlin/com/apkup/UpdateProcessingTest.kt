@@ -597,6 +597,9 @@ class UpdateProcessingTest {
 
         assertEquals(1, filterInstalledApps(apps, "securesms", AppsQuickFilter.ALL, now).size)
         assertEquals(1, filterInstalledApps(apps, "", AppsQuickFilter.USER_ONLY, now).size)
+        assertEquals("Signal", filterInstalledApps(apps, "", AppsQuickFilter.USER_ONLY, now).first().name)
+        assertEquals(1, filterInstalledApps(apps, "", AppsQuickFilter.SYSTEM_ONLY, now).size)
+        assertEquals("System UI", filterInstalledApps(apps, "", AppsQuickFilter.SYSTEM_ONLY, now).first().name)
         assertEquals(1, filterInstalledApps(apps, "", AppsQuickFilter.IGNORED_ONLY, now).size)
         assertEquals(1, filterInstalledApps(apps, "", AppsQuickFilter.RECENTLY_UPDATED, now).size)
     }
