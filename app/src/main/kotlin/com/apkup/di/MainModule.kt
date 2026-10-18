@@ -6,7 +6,9 @@ import com.apkup.R
 import com.apkup.prefs.Prefs
 import com.apkup.repository.ApkMirrorRepository
 import com.apkup.repository.AppsRepository
+import com.apkup.repository.IzzyOnDroidRepository
 import com.apkup.repository.PlayRepository
+import com.apkup.repository.SelfUpdateRepository
 import com.apkup.repository.UpdatesRepository
 import com.apkup.service.ApkMirrorService
 import com.apkup.util.Badger
@@ -73,7 +75,11 @@ val mainModule = module {
 
 	single { PlayRepository(get(), get(), get(), get()) }
 
-	single { UpdatesRepository(get(), get(), get(), get()) }
+	single { IzzyOnDroidRepository(androidContext(), get(), get(), get()) }
+
+	single { SelfUpdateRepository(get(), get()) }
+
+	single { UpdatesRepository(get(), get(), get(), get(), get()) }
 
 	single { KryptoBuilder.nocrypt(get(), androidContext().getString(R.string.app_name)) }
 
@@ -95,7 +101,7 @@ val mainModule = module {
 
 	single { PlayHttpClient(get()) }
 
-	viewModel { MainViewModel(get(), get(), WorkManager.getInstance(get())) }
+	viewModel { MainViewModel(get(), get(), WorkManager.getInstance(get()), get(), get(), get(), get()) }
 
 	viewModel { AppsViewModel(get(), get(), get()) }
 

@@ -58,7 +58,23 @@ fun ByteArray.toSha256(): String = MessageDigest
 	.joinToString(separator = "", transform = { "%02x".format(it) })
 
 fun PackageInfo.getSignature(): ByteArray = runCatching {
-	signingInfo?.apkContentsSigners?.firstOrNull()?.toByteArray() ?: ByteArray(0)
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+		val info = signingInfo
+		if (info != null) {
+			if (info.hasMultipleSigners()) {
+				info.apkContentsSigners?.firstOrNull()?.toByteArray()
+			} else {
+				info.signingCertificateHistory?.lastOrNull()?.toByteArray()
+					?: info.apkContentsSigners?.firstOrNull()?.toByteArray()
+			}
+		} else {
+			@Suppress("DEPRECATION")
+			signatures?.firstOrNull()?.toByteArray()
+		}
+	} else {
+		@Suppress("DEPRECATION")
+		signatures?.firstOrNull()?.toByteArray()
+	} ?: ByteArray(0)
 }.getOrDefault(ByteArray(0))
 
 fun PackageInfo.getSignatureSha1(): String = getSignature().toSha1()

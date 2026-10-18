@@ -28,9 +28,9 @@ import kotlinx.coroutines.launch
 
 class SettingsViewModel(
 	private val prefs: Prefs,
-	private val notification: UpdatesNotification,
-	private val workManager: WorkManager,
-	private val themer: Themer,
+	private val notification: UpdatesNotification? = null,
+	private val workManager: WorkManager? = null,
+	private val themer: Themer? = null,
 	private val sessionInstaller: SessionInstaller? = null,
 	private val snackBar: SnackBar? = null,
 	private val stringer: Stringer? = null,
@@ -231,6 +231,8 @@ class SettingsViewModel(
 	fun setUseApkMirror(b: Boolean) = prefs.useApkMirror.put(b)
 	fun getUsePlay() = prefs.usePlay.get()
 	fun setUsePlay(b: Boolean) = prefs.usePlay.put(b)
+	fun getUseIzzyOnDroid() = prefs.useIzzyOnDroid.get()
+	fun setUseIzzyOnDroid(b: Boolean) = prefs.useIzzyOnDroid.put(b)
 	fun getBackgroundChecksEnabled() = prefs.enableBackgroundChecks.get()
 	fun getBackgroundCheckIntervalHours(): Int =
 		BackgroundCheckInterval.fromHours(prefs.backgroundCheckIntervalHours.get()).hours
@@ -239,7 +241,7 @@ class SettingsViewModel(
 		val normalized = BackgroundCheckInterval.fromHours(hours).hours
 		prefs.backgroundCheckIntervalHours.put(normalized)
 		if (prefs.enableBackgroundChecks.get()) {
-			UpdatesWorker.launch(workManager)
+			workManager?.let { UpdatesWorker.launch(it) }
 		}
 	}
 
@@ -247,16 +249,16 @@ class SettingsViewModel(
 
 	fun setTheme(theme: Int) {
 		prefs.theme.put(theme)
-		themer.setTheme(isDarkTheme(theme))
+		themer?.setTheme(isDarkTheme(theme))
 	}
 
 	fun setBackgroundChecksEnabled(b: Boolean, launcher: ManagedActivityResultLauncher<String, Boolean>) {
 		prefs.enableBackgroundChecks.put(b)
 		if (b) {
-			notification.checkNotificationPermission(launcher)
-			UpdatesWorker.launch(workManager)
+			notification?.checkNotificationPermission(launcher)
+			workManager?.let { UpdatesWorker.launch(it) }
 		} else {
-			UpdatesWorker.cancel(workManager)
+			workManager?.let { UpdatesWorker.cancel(it) }
 		}
 	}
 
@@ -271,6 +273,7 @@ class SettingsViewModel(
 			updatesDisplayMode = prefs.updatesDisplayMode.get(),
 			useApkMirror = prefs.useApkMirror.get(),
 			usePlay = prefs.usePlay.get(),
+			useIzzyOnDroid = prefs.useIzzyOnDroid.get(),
 			enableBackgroundChecks = prefs.enableBackgroundChecks.get(),
 			backgroundCheckIntervalHours = getBackgroundCheckIntervalHours(),
 			theme = prefs.theme.get(),
@@ -289,6 +292,7 @@ class SettingsViewModel(
 		prefs.updatesDisplayMode.put(config.updatesDisplayMode.coerceIn(0, 1))
 		prefs.useApkMirror.put(config.useApkMirror)
 		prefs.usePlay.put(config.usePlay)
+		prefs.useIzzyOnDroid.put(config.useIzzyOnDroid)
 		prefs.enableBackgroundChecks.put(config.enableBackgroundChecks)
 		prefs.backgroundCheckIntervalHours.put(
 			BackgroundCheckInterval.fromHours(config.backgroundCheckIntervalHours).hours
@@ -299,9 +303,9 @@ class SettingsViewModel(
 		prefs.useShizukuInstaller.put(canEnableShizuku)
 		shizukuEnabledFlow.value = canEnableShizuku
 		if (config.enableBackgroundChecks) {
-			UpdatesWorker.launch(workManager)
+			workManager?.let { UpdatesWorker.launch(it) }
 		} else {
-			UpdatesWorker.cancel(workManager)
+			workManager?.let { UpdatesWorker.cancel(it) }
 		}
 		refreshIgnoredVersions()
 		refreshIgnoredApps()

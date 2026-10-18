@@ -134,6 +134,7 @@
     <string name="backup_import_error">Could not process backup file.</string>
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
     <string name="source_play">Google Play Store</string>
+    <string name="source_izzyondroid" translatable="false">IzzyOnDroid</string>
     <string name="about">About</string>
     <string name="theme">Theme</string>
     <string name="theme_system">System</string>
@@ -145,10 +146,23 @@
     <string name="about_tribute">Redesigned from the ground up with love &amp; AI power by DurchEins.</string>
     <string name="about_original_project">Based on the original project by rumboalla</string>
     <string name="copy_to_clipboard">Copy to clipboard</string>
-    <string name="changelog_title">What\'s new in v1.27</string>
+    <string name="changelog_title">What\'s new</string>
     <string name="changelog_menu_item">What\'s new / Changelog</string>
     <string name="changelog_menu_subtitle">View release highlights and improvements</string>
     <string name="changelog_button_dismiss">Got it</string>
+
+    <!-- Self-Updater -->
+    <string name="self_update_card_title">Check for ApkUp updates</string>
+    <string name="self_update_card_subtitle">Find and install latest ApkUp releases directly</string>
+    <string name="self_update_checking">Checking for ApkUp updates…</string>
+    <string name="self_update_latest">ApkUp is already up to date (%1$s).</string>
+    <string name="self_update_dialog_title">ApkUp Update Available</string>
+    <string name="self_update_dialog_version">New Version %1$s</string>
+    <string name="self_update_dialog_button_update">Update Now</string>
+    <string name="self_update_dialog_button_later">Later</string>
+    <string name="self_update_downloading">Downloading update… %1$d%%</string>
+    <string name="self_update_installing">Preparing installation…</string>
+    <string name="self_update_error">Could not check or download ApkUp update.</string>
 
     <!-- Settings Sections -->
     <string name="settings_section_appearance">Appearance &amp; Layout</string>

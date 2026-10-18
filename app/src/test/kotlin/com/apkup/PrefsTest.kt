@@ -16,6 +16,7 @@ class PrefsTest {
 
         assertTrue(prefs.useApkMirror.get())
         assertTrue(prefs.usePlay.get())
+        assertTrue(prefs.useIzzyOnDroid.get())
         assertTrue(prefs.enableBackgroundChecks.get())
     }
 
@@ -25,12 +26,14 @@ class PrefsTest {
         val firstRunPrefs = Prefs(storage)
         firstRunPrefs.useApkMirror.put(false)
         firstRunPrefs.usePlay.put(false)
+        firstRunPrefs.useIzzyOnDroid.put(false)
         firstRunPrefs.enableBackgroundChecks.put(false)
 
         val reopenedPrefs = Prefs(storage)
 
         assertFalse(reopenedPrefs.useApkMirror.get())
         assertFalse(reopenedPrefs.usePlay.get())
+        assertFalse(reopenedPrefs.useIzzyOnDroid.get())
         assertFalse(reopenedPrefs.enableBackgroundChecks.get())
     }
 

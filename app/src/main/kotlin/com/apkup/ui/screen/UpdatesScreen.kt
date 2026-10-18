@@ -81,6 +81,7 @@ import com.apkup.R
 import com.apkup.data.ui.ApkMirrorSource
 import com.apkup.data.ui.AppUpdate
 import com.apkup.data.ui.InstallOrigin
+import com.apkup.data.ui.IzzyOnDroidSource
 import com.apkup.data.ui.PlaySource
 import com.apkup.data.ui.Source
 import com.apkup.data.ui.hasPotentialSignatureConflict
@@ -1319,6 +1320,7 @@ private fun SkeletonBlock(modifier: Modifier, shape: Shape) = Box(
 private fun sourceName(source: Source): String = when (source) {
 	ApkMirrorSource -> stringResource(R.string.source_apkmirror)
 	PlaySource -> stringResource(R.string.source_play)
+	IzzyOnDroidSource -> stringResource(R.string.source_izzyondroid)
 	else -> source.name
 }
 

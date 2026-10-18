@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.27--Beta-6750A4?style=flat-square" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-1.30--Beta-6750A4?style=flat-square" alt="Version" />
   <img src="https://img.shields.io/badge/Android-10.0%2B%20(API%2029%2B)-3DDC84?style=flat-square&logo=android" alt="Android" />
   <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License" />
   <img src="https://img.shields.io/badge/Shizuku-Supported-00897B?style=flat-square" alt="Shizuku" />
@@ -27,9 +27,11 @@
 ## 🇬🇧 English
 
 ### ✨ Features
-* **🚀 Robust Update Sources:**
+* **🚀 Robust Update Sources & Self-Updater:**
   * **Google Play Store:** Direct store query with accurate delta version recognition.
   * **APKMirror Turbo:** Parallel, optimized scraper engine for instant detection of the latest app releases.
+  * **IzzyOnDroid:** Curated open-source repository with mandatory SHA-256 certificate validation and ABI filtering.
+  * **ApkUp Self-Updater:** Automatic release checks and direct in-app updating without relying on external app stores.
 * **🎨 Material 3 Expressive Design:**
   * Pixel-inspired UI optimized for Android 15/16/17 styling.
   * Comprehensive **Dynamic Color (Material You)** support with dark, light, and system themes.
@@ -97,9 +99,11 @@
 ## 🇩🇪 Deutsch
 
 ### ✨ Funktionen
-* **🚀 Leistungsstarke Update-Quellen:**
+* **🚀 Leistungsstarke Update-Quellen & Self-Updater:**
   * **Google Play Store:** Direkte Store-Abfrage mit präziser Erkennung von Versionssprüngen.
   * **APKMirror Turbo:** Paralleler, optimierter Web-Scraper zur schnellen Erkennung neuester Releases.
+  * **IzzyOnDroid:** Kuratiertes Open-Source-Repository mit verpflichtendem SHA-256-Signaturabgleich und ABI-Filterung.
+  * **ApkUp Self-Updater:** Automatische Release-Prüfung und komfortable In-App-Aktualisierung ohne externe App-Stores.
 * **🎨 Material 3 Expressive Design:**
   * Authentische Ästhetik im Stil moderner Google-Pixel-Flaggschiffe (Android 15/16/17).
   * Vollständige Unterstützung von **Dynamic Color (Material You)** sowie Dark-, Light- und System-Theming.

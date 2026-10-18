@@ -61,6 +61,7 @@ import com.apkup.BuildConfig
 import com.apkup.prefs.Prefs
 import com.apkup.ui.component.ChangelogBottomSheet
 import com.apkup.ui.component.InstallPermissionDialog
+import com.apkup.ui.component.SelfUpdateDialog
 import com.apkup.util.SessionInstaller
 import com.apkup.viewmodel.AppsViewModel
 import com.apkup.viewmodel.MainViewModel
@@ -104,6 +105,7 @@ fun MainScreen(
 	)
 	val currentVersionCode = BuildConfig.VERSION_CODE.toLong()
 	val showChangelogSheet by mainViewModel.showChangelogSheet.collectAsStateWithLifecycle()
+	val selfUpdateState by mainViewModel.selfUpdateState.collectAsStateWithLifecycle()
 
 	LaunchedEffect(Unit) {
 		mainViewModel.checkChangelogPrompt(context, currentVersionCode)
@@ -189,6 +191,12 @@ fun MainScreen(
 			}
 		)
 	}
+
+	SelfUpdateDialog(
+		state = selfUpdateState,
+		onDismiss = { mainViewModel.dismissSelfUpdate() },
+		onConfirmUpdate = { info -> mainViewModel.startSelfUpdate(info, context) }
+	)
 }
 
 internal fun shouldShowDefaultPullToRefreshIndicator(route: String?): Boolean = route != Screen.Updates.route
@@ -322,5 +330,5 @@ fun NavHost(
 ) {
 	composable(Screen.Apps.route) { AppsScreen(appsViewModel) }
 	composable(Screen.Updates.route) { UpdatesScreen(updatesViewModel) }
-	composable(Screen.Settings.route) { SettingsScreen(settingsViewModel, appsViewModel, updatesViewModel) }
+	composable(Screen.Settings.route) { SettingsScreen(settingsViewModel, appsViewModel, updatesViewModel, mainViewModel) }
 }
