@@ -49,21 +49,21 @@ fun SegmentedButtonSetting(
 ) = Row(
     Modifier
         .fillMaxWidth()
-        .heightIn(min = 72.dp)
-        .padding(horizontal = 4.dp, vertical = 6.dp),
+        .heightIn(min = 54.dp)
+        .padding(horizontal = 2.dp, vertical = 4.dp),
     verticalAlignment = CenterVertically
 ) {
     val currentExternal = getValue()
     var position by remember(currentExternal) { mutableIntStateOf(currentExternal) }
     SettingIconBadge(icon = icon, contentDescription = text)
-    Column(Modifier.padding(start = 14.dp).weight(1f)) {
+    Column(Modifier.padding(start = 10.dp).weight(1f)) {
         Text(
             text = text,
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.align(Start)
         )
-        SingleChoiceSegmentedButtonRow(Modifier.padding(top = 8.dp).fillMaxWidth()) {
+        SingleChoiceSegmentedButtonRow(Modifier.padding(top = 4.dp).fillMaxWidth()) {
             options.forEachIndexed { index, label ->
                 SegmentedButton(
                     shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
@@ -73,7 +73,7 @@ fun SegmentedButtonSetting(
                     },
                     selected = index == position
                 ) {
-                    Text(label)
+                    Text(label, style = MaterialTheme.typography.labelMedium)
                 }
             }
         }
@@ -97,29 +97,29 @@ fun SwitchSetting(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 60.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .heightIn(min = 46.dp)
+            .clip(RoundedCornerShape(14.dp))
             .toggleable(value = value, role = Role.Switch, onValueChange = onToggle)
-            .padding(horizontal = 4.dp, vertical = 8.dp),
+            .padding(horizontal = 2.dp, vertical = 4.dp),
         verticalAlignment = CenterVertically
     ) {
         SettingIconBadge(icon = icon, contentDescription = text)
         Column(
             modifier = Modifier
                 .weight(1f)
-                .padding(horizontal = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
+                .padding(horizontal = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(1.dp)
         ) {
             Text(
                 text = text,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface
             )
             if (!subtitle.isNullOrBlank()) {
                 Text(
                     text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -137,8 +137,8 @@ private fun SettingIconBadge(
     contentDescription: String
 ) = Box(
     modifier = Modifier
-        .size(38.dp)
-        .clip(RoundedCornerShape(12.dp))
+        .size(32.dp)
+        .clip(RoundedCornerShape(10.dp))
         .background(MaterialTheme.colorScheme.surfaceContainerHigh),
     contentAlignment = Alignment.Center
 ) {
@@ -146,6 +146,7 @@ private fun SettingIconBadge(
         painter = painterResource(id = icon),
         contentDescription = contentDescription,
         tint = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.size(20.dp)
+        modifier = Modifier.size(18.dp)
     )
 }
+

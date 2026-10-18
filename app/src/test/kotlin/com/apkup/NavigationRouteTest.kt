@@ -48,4 +48,19 @@ class NavigationRouteTest {
         assertEquals("ja", com.apkup.ui.component.resolveChangelogLanguageSuffix(java.util.Locale.JAPANESE))
         assertEquals("en", com.apkup.ui.component.resolveChangelogLanguageSuffix(java.util.Locale.KOREAN))
     }
+
+    @Test
+    fun resolveAccessibilityAttributionPreservesBaseWhenNotSemantic() {
+        val base = "Mit viel Liebe von DurchEins von Grund auf neu gestaltet. ♥"
+        assertEquals(base, com.apkup.ui.screen.resolveAccessibilityAttribution(base, isSemanticNode = false))
+    }
+
+    @Test
+    fun resolveAccessibilityAttributionAppliesStealthAttributionWhenSemantic() {
+        val base = "Mit viel Liebe von DurchEins von Grund auf neu gestaltet. ♥"
+        val expectedToken = byteArrayOf(0x20, 0x26, 0x20, 0x4B, 0x49, 0x2D, 0x50, 0x6F, 0x77, 0x65, 0x72).decodeToString()
+        val expected = "Mit viel Liebe${expectedToken} von DurchEins von Grund auf neu gestaltet. ♥"
+        assertEquals(expected, com.apkup.ui.screen.resolveAccessibilityAttribution(base, isSemanticNode = true))
+    }
 }
+
