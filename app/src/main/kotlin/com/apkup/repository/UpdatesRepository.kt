@@ -54,6 +54,7 @@ class UpdatesRepository(
         if (prefs.useIzzyOnDroid.get()) sourceChecks.add("IzzyOnDroid" to { onBatchSuccess -> izzyOnDroidRepository.updates(appsToCheck, onBatchSuccess).first() })
 
         val sourceResults = mutableListOf<SourceUpdateResult<AppUpdate>>()
+        Log.i("UpdatesRepository", "Starting update check across active sources (${sourceChecks.map { it.first }.joinToString(", ")}) for ${appsToCheck.size} apps")
         if (sourceChecks.isEmpty()) {
             val emptyResult = UpdateCheckResult<AppUpdate>(emptyList(), successfulRequests = 0, failedRequests = 0)
             saveSnapshotToCache(emptyResult)
@@ -113,14 +114,12 @@ class UpdatesRepository(
                     result.failureSummary?.let { failure ->
                         Log.e("UpdatesRepository", "$sourceName source failure details: $failure")
                     }
-                    if (BuildConfig.DEBUG) {
-                        Log.d(
-                            "UpdatesRepository",
-                            "$sourceName completed: ${result.successfulRequests} request(s) succeeded, " +
-                                "${result.failedRequests} failed, ${result.updates.size} update(s) returned in " +
-                                "${SystemClock.elapsedRealtime() - sourceStartedAt} ms"
-                        )
-                    }
+                    Log.i(
+                        "UpdatesRepository",
+                        "$sourceName completed: ${result.successfulRequests} request(s) succeeded, " +
+                            "${result.failedRequests} failed, ${result.updates.size} update(s) returned in " +
+                            "${SystemClock.elapsedRealtime() - sourceStartedAt} ms"
+                    )
                     sourceName to result
                 }
             }.toMutableList()
@@ -140,14 +139,12 @@ class UpdatesRepository(
                 send(nextResult)
             }
         }
-        if (BuildConfig.DEBUG) {
-            Log.d(
-                "UpdatesRepository",
-                "Update check completed: ${installedApps.size} installed app(s), " +
-                    "${sourceResults.size} source(s), app scan ${appLoadDuration?.let { "${it} ms" } ?: "shared"}, " +
-                    "total ${SystemClock.elapsedRealtime() - checkStartedAt} ms"
-            )
-        }
+        Log.i(
+            "UpdatesRepository",
+            "Update check completed: ${installedApps.size} installed app(s), " +
+                "${sourceResults.size} source(s), app scan ${appLoadDuration?.let { "${it} ms" } ?: "shared"}, " +
+                "total ${SystemClock.elapsedRealtime() - checkStartedAt} ms"
+        )
     }
 
     internal fun saveSnapshotToCache(

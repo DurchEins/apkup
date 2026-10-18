@@ -184,4 +184,44 @@ class IzzyOnDroidTest {
         assertEquals(200L, pkgList[0].versionCode)
         assertEquals("foobar_200.apk", pkgList[0].apkName)
     }
+
+    @Test
+    fun parseZipStreamAndSaveCreatesTargetFileAndCleansTempFile() {
+        val tempTestDir = java.nio.file.Files.createTempDirectory("izzy_test").toFile()
+        try {
+            val testRepo = IzzyOnDroidRepository(
+                okHttpClient = OkHttpClient(),
+                gson = gson,
+                cacheDirectory = tempTestDir
+            )
+
+            val sampleJson = """
+                {
+                  "repo": { "name": "IzzyOnDroid" },
+                  "apps": [ { "packageName": "com.test.atomic", "name": "Atomic Test" } ],
+                  "packages": {}
+                }
+            """.trimIndent()
+
+            val byteOut = java.io.ByteArrayOutputStream()
+            java.util.zip.ZipOutputStream(byteOut).use { zipOut ->
+                zipOut.putNextEntry(java.util.zip.ZipEntry("index-v1.json"))
+                zipOut.write(sampleJson.toByteArray(Charsets.UTF_8))
+                zipOut.closeEntry()
+            }
+
+            val parsed = testRepo.parseZipStreamAndSave(java.io.ByteArrayInputStream(byteOut.toByteArray()))
+            assertEquals("IzzyOnDroid", parsed.repo?.name)
+            assertEquals("com.test.atomic", parsed.apps[0].packageName)
+
+            val targetFile = java.io.File(tempTestDir, "index-v1.json")
+            val tempFile = java.io.File(tempTestDir, "index-v1.json.tmp")
+            assertTrue("Target cache file must exist", targetFile.exists())
+            assertTrue("Target cache file must not be empty", targetFile.length() > 0)
+            assertFalse("Temp file must be cleaned up", tempFile.exists())
+        } finally {
+            tempTestDir.deleteRecursively()
+        }
+    }
 }
+
