@@ -31,6 +31,15 @@ class IzzyOnDroidTest {
     private val differentSha256 = "1111111122222222333333334444444455555555666666667777777788888888"
 
     @Test
+    fun normalizeSha256RemovesColonsSpacesAndConvertsToLowercase() {
+        assertEquals("abcdef123456", repo.normalizeSha256("AB:CD:EF:12:34:56"))
+        assertEquals("abcdef123456", repo.normalizeSha256("  ab:cd:ef:12:34:56  "))
+        assertEquals("abcdef123456", repo.normalizeSha256("ab cd ef 12 34 56"))
+        assertEquals("", repo.normalizeSha256(null))
+        assertEquals("", repo.normalizeSha256(""))
+    }
+
+    @Test
     fun signatureMatchingAcceptsIdenticalHashesRegardlessOfCaseAndColons() {
         val withColons = "24:DF:C0:B4:90:F0:55:9E:8F:49:5C:A9:B5:0B:55:2F:A8:2A:20:DC:3E:3A:4E:98:F0:1F:8E:12:34:56:78:9A"
         assertTrue(repo.isSignatureMatching(withColons, validSha256))

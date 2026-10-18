@@ -30,11 +30,10 @@
 -keep class moe.shizuku.** { *; }
 -keep interface moe.shizuku.** { *; }
 
-# Strip debug and verbose logging in release builds
+# Strip verbose logging in release builds
 -assumenosideeffects class android.util.Log {
     public static boolean isLoggable(java.lang.String, int);
     public static int v(...);
-    public static int d(...);
 }
 
 # Google Play API (Aurora gplayapi) & Protobuf
