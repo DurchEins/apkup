@@ -58,6 +58,7 @@
     <string name="apps_search_placeholder">App-Name oder Paket-ID suchen…</string>
     <string name="apps_filter_all">Alle Apps</string>
     <string name="apps_filter_user">Benutzer-Apps</string>
+    <string name="apps_filter_system">System-Apps</string>
     <string name="apps_filter_ignored">Ignorierte Apps</string>
     <string name="apps_filter_recent">Kürzlich aktualisiert</string>
     <string name="apps_search_empty_title">Keine passenden Apps</string>
@@ -123,11 +124,12 @@
     <string name="action_unignore_version">Freigeben</string>
     <string name="action_clear_ignored_versions">Alle übersprungenen Versionen freigeben</string>
     <string name="settings_backup_section">Sicherung &amp; Wiederherstellung</string>
-    <string name="settings_backup_description">Exportiere oder importiere Einstellungen und Ignorierlisten als JSON-Datei.</string>
+    <string name="settings_backup_description">Einstellungen &amp; Repo-Mappings sichern</string>
     <string name="settings_backup_export">Konfiguration exportieren</string>
     <string name="settings_backup_import">Konfiguration importieren</string>
-    <string name="action_export_backup">JSON exportieren</string>
-    <string name="action_import_backup">JSON importieren</string>
+    <string name="action_export_backup">Exportieren</string>
+    <string name="action_import_backup">Importieren</string>
+    <string name="updates_empty_source_filter_message">Keine Updates für diese Quelle gefunden.</string>
     <string name="backup_export_success">Konfiguration erfolgreich exportiert.</string>
     <string name="backup_import_success">Konfiguration erfolgreich wiederhergestellt.</string>
     <string name="backup_import_error">Sicherungsdatei konnte nicht verarbeitet werden.</string>

@@ -350,7 +350,7 @@ fun Settings(
 			modifier = Modifier
 				.fillMaxSize()
 				.offset { IntOffset(0, overscrollPull.value.roundToInt()) },
-			contentPadding = PaddingValues(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 100.dp),
+			contentPadding = PaddingValues(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 140.dp),
 			verticalArrangement = Arrangement.spacedBy(14.dp)
 		) {
 			// Sektion 1: Erscheinungsbild & Layout
@@ -732,10 +732,11 @@ fun Settings(
 				Row(
 					modifier = Modifier
 						.fillMaxWidth()
-						.padding(top = 6.dp),
-					horizontalArrangement = Arrangement.spacedBy(10.dp)
+						.padding(top = 4.dp),
+					horizontalArrangement = Arrangement.spacedBy(10.dp),
+					verticalAlignment = Alignment.CenterVertically
 				) {
-					FilledTonalButton(
+					OutlinedButton(
 						onClick = { exportBackupLauncher.launch("apkup-backup.json") },
 						modifier = Modifier.weight(1f),
 						shape = CircleShape
@@ -743,7 +744,7 @@ fun Settings(
 						Icon(
 							imageVector = Icons.Default.Share,
 							contentDescription = null,
-							modifier = Modifier.size(18.dp)
+							modifier = Modifier.size(16.dp)
 						)
 						Spacer(modifier = Modifier.width(6.dp))
 						Text(
@@ -752,7 +753,7 @@ fun Settings(
 							overflow = TextOverflow.Ellipsis
 						)
 					}
-					OutlinedButton(
+					FilledTonalButton(
 						onClick = { importBackupLauncher.launch(arrayOf("application/json", "text/plain", "*/*")) },
 						modifier = Modifier.weight(1f),
 						shape = CircleShape
@@ -760,7 +761,7 @@ fun Settings(
 						Icon(
 							painter = painterResource(R.drawable.ic_download),
 							contentDescription = null,
-							modifier = Modifier.size(18.dp)
+							modifier = Modifier.size(16.dp)
 						)
 						Spacer(modifier = Modifier.width(6.dp))
 						Text(

@@ -142,8 +142,8 @@ class UpdateGridLayoutTest {
 	@Test
 	fun updateGridsMaintainGenerousTopAndBottomContentPaddingToPreventClipping() {
 		assertEquals(10f, NormalUpdateCardLayout.gridTopPaddingDp, 0.01f)
-		assertEquals(100f, NormalUpdateCardLayout.gridBottomPaddingDp, 0.01f)
+		assertEquals(140f, NormalUpdateCardLayout.gridBottomPaddingDp, 0.01f)
 		assertEquals(10f, CompactUpdateCardLayout.gridTopPaddingDp, 0.01f)
-		assertEquals(100f, CompactUpdateCardLayout.gridBottomPaddingDp, 0.01f)
+		assertEquals(140f, CompactUpdateCardLayout.gridBottomPaddingDp, 0.01f)
 	}
 }
