@@ -27,16 +27,6 @@ class MainActivity : ComponentActivity() {
 		isSnapshotMode = !hasFocus
 	}
 
-	override fun onUserLeaveHint() {
-		super.onUserLeaveHint()
-		isSnapshotMode = true
-	}
-
-	override fun onPause() {
-		super.onPause()
-		isSnapshotMode = true
-	}
-
 	override fun onResume() {
 		super.onResume()
 		isSnapshotMode = false

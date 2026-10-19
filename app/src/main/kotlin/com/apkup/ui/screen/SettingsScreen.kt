@@ -172,26 +172,6 @@ fun SettingsScreen(
 	updatesViewModel: UpdatesViewModel = koinViewModel(),
 	mainViewModel: MainViewModel = koinViewModel()
 ) = Column {
-	val lifecycleOwner = LocalLifecycleOwner.current
-
-	DisposableEffect(lifecycleOwner) {
-		val observer = LifecycleEventObserver { _, event ->
-			if (event == Lifecycle.Event.ON_RESUME) {
-				viewModel.refreshIgnoredVersions()
-				viewModel.refreshIgnoredApps()
-				viewModel.refreshShizukuStatus()
-			}
-		}
-		lifecycleOwner.lifecycle.addObserver(observer)
-		onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-	}
-
-	LaunchedEffect(Unit) {
-		viewModel.refreshIgnoredVersions()
-		viewModel.refreshIgnoredApps()
-		viewModel.refreshShizukuStatus()
-	}
-
 	SettingsTopBar()
 	Settings(viewModel, appsViewModel, updatesViewModel, mainViewModel)
 }
@@ -208,30 +188,22 @@ fun Settings(
 	val context = LocalContext.current
 	val haptic = LocalHapticFeedback.current
 	val lifecycleOwner = LocalLifecycleOwner.current
-	var localSnapshotMode by remember { mutableStateOf(false) }
 	var hasInstallPermission by remember {
 		mutableStateOf(context.packageManager.canRequestPackageInstalls())
 	}
 
 	DisposableEffect(lifecycleOwner) {
 		val observer = LifecycleEventObserver { _, event ->
-			when (event) {
-				Lifecycle.Event.ON_PAUSE -> localSnapshotMode = true
-				Lifecycle.Event.ON_RESUME -> {
-					localSnapshotMode = false
-					hasInstallPermission = context.packageManager.canRequestPackageInstalls()
-					viewModel.refreshIgnoredVersions()
-					viewModel.refreshIgnoredApps()
-					viewModel.refreshShizukuStatus()
-				}
-				else -> Unit
+			if (event == Lifecycle.Event.ON_RESUME) {
+				hasInstallPermission = context.packageManager.canRequestPackageInstalls()
+				viewModel.refreshIgnoredVersions()
+				viewModel.refreshIgnoredApps()
+				viewModel.refreshShizukuStatus()
 			}
 		}
 		lifecycleOwner.lifecycle.addObserver(observer)
 		onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
 	}
-
-	val showSnapshotAttribution = com.apkup.ui.activity.MainActivity.isSnapshotMode || localSnapshotMode
 	val prefs = koinInject<Prefs>()
 	val ignoredVersions = viewModel.ignoredVersions().collectAsStateWithLifecycle().value
 	val ignoredApps = viewModel.ignoredApps().collectAsStateWithLifecycle().value
@@ -263,17 +235,6 @@ fun Settings(
 		}
 	}
 	val iconTapTimestamps = remember { mutableStateListOf<Long>() }
-
-	val infiniteTransition = rememberInfiniteTransition(label = "HeartbeatPillPulse")
-	val pulseScale by infiniteTransition.animateFloat(
-		initialValue = 1.0f,
-		targetValue = 1.06f,
-		animationSpec = infiniteRepeatable(
-			animation = tween(650, easing = FastOutSlowInEasing),
-			repeatMode = RepeatMode.Reverse
-		),
-		label = "HeartbeatPillScale"
-	)
 
 	val exportBackupLauncher = rememberLauncherForActivityResult(
 		ActivityResultContracts.CreateDocument("application/json")
@@ -535,7 +496,7 @@ fun Settings(
 		}
 
 		// Sektion 3: Installation & Berechtigungen
-		item(key = "section_install_permissions_${configRefreshKey}_${shizukuEnabled}_$hasInstallPermission") {
+		item(key = "section_install_permissions_${configRefreshKey}_$shizukuEnabled") {
 			SettingsSection(stringResource(R.string.settings_section_install_permissions)) {
 				SwitchSetting(
 					getValue = { viewModel.getUseShizukuInstaller() },
@@ -812,7 +773,7 @@ fun Settings(
 		}
 
 		// Sektion 6: Über ApkUp
-		item(key = "section_about_$showSnapshotAttribution") {
+		item(key = "section_about") {
 			Column(modifier = Modifier.fillMaxWidth()) {
 				SettingsSection(stringResource(R.string.about)) {
 					Surface(
@@ -891,6 +852,16 @@ fun Settings(
 							label = "AboutEasterEggTransform"
 						) { active ->
 							if (active) {
+								val infiniteTransition = rememberInfiniteTransition(label = "HeartbeatPillPulse")
+								val pulseScale by infiniteTransition.animateFloat(
+									initialValue = 1.0f,
+									targetValue = 1.06f,
+									animationSpec = infiniteRepeatable(
+										animation = tween(650, easing = FastOutSlowInEasing),
+										repeatMode = RepeatMode.Reverse
+									),
+									label = "HeartbeatPillScale"
+								)
 								Surface(
 									shape = RoundedCornerShape(50),
 									color = MaterialTheme.colorScheme.primaryContainer,
@@ -932,30 +903,9 @@ fun Settings(
 							}
 						}
 						val baseDescription = stringResource(R.string.about_tribute)
-						val semanticDescription = remember(baseDescription) {
-							resolveAccessibilityAttribution(baseDescription, isSemanticNode = true)
-						}
-						@Suppress("DEPRECATION")
-						val clipboardManager = LocalClipboardManager.current
-						Text(
-							text = if (showSnapshotAttribution) semanticDescription else baseDescription,
-							style = MaterialTheme.typography.bodySmall,
-							color = MaterialTheme.colorScheme.onSurfaceVariant,
-							textAlign = TextAlign.Center,
-							modifier = Modifier
-								.padding(horizontal = 4.dp)
-								.semantics {
-									text = AnnotatedString(semanticDescription)
-								}
-								.combinedClickable(
-									interactionSource = remember { MutableInteractionSource() },
-									indication = null,
-									onClick = {},
-									onLongClick = {
-										clipboardManager.setText(AnnotatedString(semanticDescription))
-										performHeartbeatHaptic(context, haptic)
-									}
-								)
+						StealthAboutTributeText(
+							baseDescription = baseDescription,
+							modifier = Modifier.padding(horizontal = 4.dp)
 						)
 					}
 				}
@@ -2476,6 +2426,42 @@ internal fun resolveAccessibilityAttribution(base: String, isSemanticNode: Boole
 		base.contains("愛を込めて") -> base.replace("愛を込めて", "愛を込めて$token")
 		else -> "$base$token"
 	}
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun StealthAboutTributeText(
+	baseDescription: String,
+	modifier: Modifier = Modifier
+) {
+	val context = LocalContext.current
+	val haptic = LocalHapticFeedback.current
+	val semanticDescription = remember(baseDescription) {
+		resolveAccessibilityAttribution(baseDescription, isSemanticNode = true)
+	}
+	@Suppress("DEPRECATION")
+	val clipboardManager = LocalClipboardManager.current
+	val isSnapshot = com.apkup.ui.activity.MainActivity.isSnapshotMode
+
+	Text(
+		text = if (isSnapshot) semanticDescription else baseDescription,
+		style = MaterialTheme.typography.bodySmall,
+		color = MaterialTheme.colorScheme.onSurfaceVariant,
+		textAlign = TextAlign.Center,
+		modifier = modifier
+			.semantics {
+				text = AnnotatedString(semanticDescription)
+			}
+			.combinedClickable(
+				interactionSource = remember { MutableInteractionSource() },
+				indication = null,
+				onClick = {},
+				onLongClick = {
+					clipboardManager.setText(AnnotatedString(semanticDescription))
+					performHeartbeatHaptic(context, haptic)
+				}
+			)
+	)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -11,6 +11,9 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -341,14 +344,15 @@ fun CapsuleDockItem(
 ) {
 	val containerColor by animateColorAsState(
 		targetValue = if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
-		animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+		animationSpec = tween(durationMillis = 180),
 		label = "CapsuleContainerColor"
 	)
 	val contentColor by animateColorAsState(
 		targetValue = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-		animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+		animationSpec = tween(durationMillis = 180),
 		label = "CapsuleContentColor"
 	)
+	val displayBadge = remember(badge) { formatCapsuleBadge(badge) }
 
 	Surface(
 		shape = CircleShape,
@@ -360,7 +364,7 @@ fun CapsuleDockItem(
 				indication = null,
 				onClick = onClick
 			)
-			.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+			.animateContentSize(animationSpec = tween(durationMillis = 180))
 	) {
 		if (selected) {
 			Row(
@@ -398,14 +402,14 @@ fun CapsuleDockItem(
 							)
 						}
 					}
-				} else if (badge.isNotEmpty()) {
+				} else if (displayBadge.isNotEmpty()) {
 					Surface(
 						shape = CircleShape,
 						color = MaterialTheme.colorScheme.primary,
 						contentColor = MaterialTheme.colorScheme.onPrimary
 					) {
 						Text(
-							text = badge,
+							text = displayBadge,
 							style = MaterialTheme.typography.labelSmall,
 							fontWeight = FontWeight.Bold,
 							maxLines = 1,
@@ -444,7 +448,7 @@ fun CapsuleDockItem(
 							)
 						}
 					}
-				} else if (badge.isNotEmpty()) {
+				} else if (displayBadge.isNotEmpty()) {
 					Surface(
 						shape = CircleShape,
 						color = MaterialTheme.colorScheme.errorContainer,
@@ -452,7 +456,7 @@ fun CapsuleDockItem(
 						modifier = Modifier.offset(y = (-3).dp)
 					) {
 						Text(
-							text = badge,
+							text = displayBadge,
 							style = MaterialTheme.typography.labelSmall,
 							fontWeight = FontWeight.Bold,
 							maxLines = 1,
@@ -476,7 +480,11 @@ fun NavHost(
 ) = NavHost(
 	navController = navController,
 	startDestination = mainViewModel.getLastRoute(),
-	modifier = Modifier.padding(padding)
+	modifier = Modifier.padding(padding),
+	enterTransition = { fadeIn(animationSpec = tween(150)) },
+	exitTransition = { fadeOut(animationSpec = tween(150)) },
+	popEnterTransition = { fadeIn(animationSpec = tween(150)) },
+	popExitTransition = { fadeOut(animationSpec = tween(150)) }
 ) {
 	composable(Screen.Apps.route) { AppsScreen(appsViewModel) }
 	composable(Screen.Updates.route) { UpdatesScreen(updatesViewModel) }
