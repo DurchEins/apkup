@@ -37,6 +37,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -45,6 +47,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -201,10 +205,10 @@ fun MainScreen(
 					modifier = Modifier
 						.align(Alignment.BottomCenter)
 						.navigationBarsPadding()
-						.padding(bottom = 16.dp, start = 24.dp, end = 24.dp)
+						.padding(bottom = 12.dp, start = 20.dp, end = 20.dp)
 						.fillMaxWidth()
-						.widthIn(max = 400.dp)
-						.height(72.dp)
+						.widthIn(max = 420.dp)
+						.height(68.dp)
 				)
 			}
 		}
@@ -306,7 +310,7 @@ fun FloatingCapsuleDock(
 	val currentRoute = navBackStackEntry?.destination?.route
 
 	Surface(
-		modifier = modifier.height(72.dp),
+		modifier = modifier.height(68.dp),
 		shape = CircleShape,
 		color = MaterialTheme.colorScheme.surfaceContainer,
 		tonalElevation = 6.dp,
@@ -345,6 +349,7 @@ internal fun formatCapsuleBadge(badge: String): String {
 	return if (count != null && count > 99) "99+" else badge
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CapsuleDockItem(
 	screen: Screen,
@@ -354,13 +359,14 @@ fun CapsuleDockItem(
 	onClick: () -> Unit,
 	modifier: Modifier = Modifier
 ) {
+	val haptics = LocalHapticFeedback.current
 	val indicatorColor by animateColorAsState(
 		targetValue = if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
 		animationSpec = spring(dampingRatio = 0.8f, stiffness = 380f),
 		label = "CapsuleIndicatorColor"
 	)
 	val indicatorWidth by animateDpAsState(
-		targetValue = if (selected) 64.dp else 32.dp,
+		targetValue = if (selected) 64.dp else 36.dp,
 		animationSpec = spring(dampingRatio = 0.8f, stiffness = 380f),
 		label = "CapsuleIndicatorWidth"
 	)
@@ -382,30 +388,46 @@ fun CapsuleDockItem(
 		modifier = modifier
 			.fillMaxHeight()
 			.clip(CircleShape)
-			.clickable(
-				interactionSource = remember { MutableInteractionSource() },
-				indication = null,
-				onClick = onClick
-			)
-			.padding(vertical = 2.dp)
+			.clickable {
+				haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+				onClick()
+			}
+			.padding(vertical = 4.dp)
 	) {
-		// 1. Icon & darunter zentrierte Badge-Pille (vertikaler Anker)
+		// 1. Icon in animierter Indicator-Pille mit BadgedBox
 		Box(
 			modifier = Modifier
-				.height(44.dp)
+				.height(36.dp)
 				.widthIn(min = 64.dp),
 			contentAlignment = Alignment.Center
 		) {
 			Box(
 				modifier = Modifier
-					.height(44.dp)
+					.height(36.dp)
 					.width(indicatorWidth)
 					.clip(CircleShape)
 					.background(indicatorColor)
 			)
-			Column(
-				horizontalAlignment = Alignment.CenterHorizontally,
-				modifier = Modifier.wrapContentSize()
+			BadgedBox(
+				badge = {
+					if (badgeCount > 0) {
+						Badge(
+							containerColor = MaterialTheme.colorScheme.error,
+							contentColor = MaterialTheme.colorScheme.onError
+						) {
+							Text(
+								text = formatCapsuleBadge(badgeCount),
+								style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold)
+							)
+						}
+					} else if (isLoadingUpdates) {
+						CircularProgressIndicator(
+							modifier = Modifier.size(10.dp),
+							strokeWidth = 1.5.dp,
+							color = MaterialTheme.colorScheme.primary
+						)
+					}
+				}
 			) {
 				Icon(
 					imageVector = if (selected) screen.iconSelected else screen.icon,
@@ -413,33 +435,6 @@ fun CapsuleDockItem(
 					modifier = Modifier.size(24.dp),
 					tint = iconColor
 				)
-				if (badgeCount > 0) {
-					// Rote Badge-Pille sitzt mittig zentriert unter dem Icon
-					Surface(
-						shape = CircleShape,
-						color = MaterialTheme.colorScheme.error,
-						modifier = Modifier
-							.padding(top = 2.dp)
-							.height(16.dp)
-					) {
-						Text(
-							text = formatCapsuleBadge(badgeCount),
-							style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-							color = MaterialTheme.colorScheme.onError,
-							fontWeight = FontWeight.Bold,
-							modifier = Modifier.padding(horizontal = 5.dp)
-						)
-					}
-				} else if (isLoadingUpdates) {
-					// Kompakter Ladeindikator mittig unter dem Icon
-					CircularProgressIndicator(
-						modifier = Modifier
-							.padding(top = 2.dp)
-							.size(12.dp),
-						strokeWidth = 1.5.dp,
-						color = MaterialTheme.colorScheme.primary
-					)
-				}
 			}
 		}
 
@@ -451,7 +446,7 @@ fun CapsuleDockItem(
 			color = textColor,
 			maxLines = 1,
 			softWrap = false,
-			modifier = Modifier.padding(top = 2.dp)
+			modifier = Modifier.padding(top = 4.dp)
 		)
 	}
 }
