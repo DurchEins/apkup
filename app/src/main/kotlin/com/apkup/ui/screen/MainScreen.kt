@@ -201,9 +201,10 @@ fun MainScreen(
 					modifier = Modifier
 						.align(Alignment.BottomCenter)
 						.navigationBarsPadding()
-						.padding(bottom = 16.dp, start = 20.dp, end = 20.dp)
-						.widthIn(max = 420.dp)
+						.padding(bottom = 16.dp, start = 24.dp, end = 24.dp)
 						.fillMaxWidth()
+						.widthIn(max = 400.dp)
+						.height(72.dp)
 				)
 			}
 		}
@@ -305,18 +306,17 @@ fun FloatingCapsuleDock(
 	val currentRoute = navBackStackEntry?.destination?.route
 
 	Surface(
-		modifier = modifier.heightIn(min = 72.dp),
+		modifier = modifier.height(72.dp),
 		shape = CircleShape,
-		color = MaterialTheme.colorScheme.surfaceContainerHigh,
+		color = MaterialTheme.colorScheme.surfaceContainer,
 		tonalElevation = 6.dp,
 		shadowElevation = 8.dp,
 		border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
 	) {
 		Row(
 			modifier = Modifier
-				.fillMaxWidth()
-				.heightIn(min = 72.dp)
-				.padding(horizontal = 8.dp, vertical = 6.dp),
+				.fillMaxSize()
+				.padding(horizontal = 8.dp),
 			horizontalArrangement = Arrangement.SpaceEvenly,
 			verticalAlignment = Alignment.CenterVertically
 		) {
@@ -329,7 +329,9 @@ fun FloatingCapsuleDock(
 					badge = badges[screen.route].orEmpty(),
 					isLoadingUpdates = isLiveChecking,
 					onClick = { mainViewModel.navigateTo(navController, screen.route) },
-					modifier = Modifier.weight(1f)
+					modifier = Modifier
+						.weight(1f)
+						.fillMaxHeight()
 				)
 			}
 		}
