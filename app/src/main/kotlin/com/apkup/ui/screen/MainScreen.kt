@@ -7,33 +7,33 @@ import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -41,8 +41,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -203,7 +201,9 @@ fun MainScreen(
 					modifier = Modifier
 						.align(Alignment.BottomCenter)
 						.navigationBarsPadding()
-						.padding(bottom = 16.dp, start = 16.dp, end = 16.dp)
+						.padding(bottom = 16.dp, start = 20.dp, end = 20.dp)
+						.widthIn(max = 420.dp)
+						.fillMaxWidth()
 				)
 			}
 		}
@@ -305,7 +305,7 @@ fun FloatingCapsuleDock(
 	val currentRoute = navBackStackEntry?.destination?.route
 
 	Surface(
-		modifier = modifier.heightIn(min = 64.dp),
+		modifier = modifier.heightIn(min = 68.dp),
 		shape = CircleShape,
 		color = MaterialTheme.colorScheme.surfaceContainerHigh,
 		tonalElevation = 6.dp,
@@ -314,9 +314,10 @@ fun FloatingCapsuleDock(
 	) {
 		Row(
 			modifier = Modifier
-				.heightIn(min = 64.dp)
-				.padding(horizontal = 12.dp, vertical = 6.dp),
-			horizontalArrangement = Arrangement.spacedBy(8.dp),
+				.fillMaxWidth()
+				.heightIn(min = 68.dp)
+				.padding(horizontal = 8.dp, vertical = 6.dp),
+			horizontalArrangement = Arrangement.SpaceEvenly,
 			verticalAlignment = Alignment.CenterVertically
 		) {
 			mainViewModel.screens.forEach { screen ->
@@ -327,7 +328,8 @@ fun FloatingCapsuleDock(
 					selected = selected,
 					badge = badges[screen.route].orEmpty(),
 					isLiveChecking = isLiveChecking,
-					onClick = { mainViewModel.navigateTo(navController, screen.route) }
+					onClick = { mainViewModel.navigateTo(navController, screen.route) },
+					modifier = Modifier.weight(1f)
 				)
 			}
 		}
@@ -345,114 +347,98 @@ fun CapsuleDockItem(
 	selected: Boolean,
 	badge: String,
 	isLiveChecking: Boolean = false,
-	onClick: () -> Unit
+	onClick: () -> Unit,
+	modifier: Modifier = Modifier
 ) {
-	val containerColor by animateColorAsState(
+	val indicatorColor by animateColorAsState(
 		targetValue = if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
-		animationSpec = tween(durationMillis = 240),
-		label = "CapsuleContainerColor"
+		animationSpec = spring(dampingRatio = 0.8f, stiffness = 380f),
+		label = "CapsuleIndicatorColor"
 	)
-	val contentColor by animateColorAsState(
+	val indicatorWidth by animateDpAsState(
+		targetValue = if (selected) 64.dp else 32.dp,
+		animationSpec = spring(dampingRatio = 0.8f, stiffness = 380f),
+		label = "CapsuleIndicatorWidth"
+	)
+	val iconColor by animateColorAsState(
 		targetValue = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-		animationSpec = tween(durationMillis = 240),
-		label = "CapsuleContentColor"
+		animationSpec = spring(dampingRatio = 0.8f, stiffness = 380f),
+		label = "CapsuleIconColor"
 	)
-	val animatedHorizontalPadding by animateDpAsState(
-		targetValue = if (selected) 16.dp else 12.dp,
-		animationSpec = tween(durationMillis = 240),
-		label = "CapsulePadding"
+	val textColor by animateColorAsState(
+		targetValue = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+		animationSpec = spring(dampingRatio = 0.8f, stiffness = 380f),
+		label = "CapsuleTextColor"
 	)
 	val displayBadge = remember(badge) { formatCapsuleBadge(badge) }
 
-	Surface(
-		shape = CircleShape,
-		color = containerColor,
-		contentColor = contentColor,
-		modifier = Modifier
+	Column(
+		modifier = modifier
+			.clip(CircleShape)
 			.clickable(
 				interactionSource = remember { MutableInteractionSource() },
 				indication = null,
 				onClick = onClick
 			)
-			.animateContentSize(
-				animationSpec = tween(
-					durationMillis = 280,
-					easing = FastOutSlowInEasing
-				)
-			)
+			.padding(vertical = 4.dp),
+		horizontalAlignment = Alignment.CenterHorizontally,
+		verticalArrangement = Arrangement.Center
 	) {
-		Row(
-			verticalAlignment = Alignment.CenterVertically,
+		Box(
 			modifier = Modifier
-				.padding(horizontal = animatedHorizontalPadding, vertical = 6.dp)
+				.height(32.dp)
+				.width(indicatorWidth)
+				.clip(CircleShape)
+				.background(indicatorColor),
+			contentAlignment = Alignment.Center
 		) {
-			// 1. Fester linker Anker: Icon mit darunter zentrierter Badge-Pille
-			Column(
-				horizontalAlignment = Alignment.CenterHorizontally,
-				modifier = Modifier.width(IntrinsicSize.Min)
-			) {
-				Icon(
-					imageVector = if (selected) screen.iconSelected else screen.icon,
-					contentDescription = stringResource(screen.resourceId),
-					modifier = Modifier.size(24.dp)
-				)
-				if (isLiveChecking) {
-					Surface(
-						shape = CircleShape,
-						color = MaterialTheme.colorScheme.primaryContainer,
-						contentColor = MaterialTheme.colorScheme.primary,
-						modifier = Modifier.offset(y = (-2).dp)
-					) {
-						Box(
-							modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-							contentAlignment = Alignment.Center
+			BadgedBox(
+				badge = {
+					if (isLiveChecking) {
+						Badge(
+							containerColor = MaterialTheme.colorScheme.primaryContainer,
+							contentColor = MaterialTheme.colorScheme.primary,
+							modifier = Modifier.offset(x = 6.dp, y = (-2).dp)
 						) {
 							CircularProgressIndicator(
-								modifier = Modifier.size(10.dp),
+								modifier = Modifier.size(10.dp).padding(1.dp),
 								strokeWidth = 1.6.dp,
 								color = MaterialTheme.colorScheme.primary
 							)
 						}
-					}
-				} else if (displayBadge.isNotEmpty()) {
-					Surface(
-						shape = CircleShape,
-						color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.errorContainer,
-						contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onErrorContainer,
-						modifier = Modifier.offset(y = (-2).dp)
-					) {
-						Text(
-							text = displayBadge,
-							style = MaterialTheme.typography.labelSmall,
-							fontWeight = FontWeight.Bold,
-							maxLines = 1,
-							modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-						)
+					} else if (displayBadge.isNotEmpty()) {
+						Badge(
+							containerColor = MaterialTheme.colorScheme.error,
+							contentColor = MaterialTheme.colorScheme.onError,
+							modifier = Modifier.offset(x = 6.dp, y = (-2).dp)
+						) {
+							Text(
+								text = displayBadge,
+								style = MaterialTheme.typography.labelSmall,
+								fontWeight = FontWeight.Bold,
+								modifier = Modifier.padding(horizontal = 4.dp)
+							)
+						}
 					}
 				}
-			}
-
-			// 2. Weich expandierender Tab-Titel
-			AnimatedVisibility(
-				visible = selected,
-				enter = fadeIn(tween(200, delayMillis = 60)) + expandHorizontally(
-					animationSpec = tween(280, easing = FastOutSlowInEasing),
-					expandFrom = Alignment.Start
-				),
-				exit = fadeOut(tween(120)) + shrinkHorizontally(
-					animationSpec = tween(240, easing = FastOutSlowInEasing),
-					shrinkTowards = Alignment.Start
-				)
 			) {
-				Text(
-					text = stringResource(screen.resourceId),
-					style = MaterialTheme.typography.labelLarge,
-					modifier = Modifier.padding(start = 8.dp, end = 4.dp),
-					maxLines = 1,
-					softWrap = false
+				Icon(
+					imageVector = if (selected) screen.iconSelected else screen.icon,
+					contentDescription = stringResource(screen.resourceId),
+					tint = iconColor,
+					modifier = Modifier.size(24.dp)
 				)
 			}
 		}
+		Spacer(modifier = Modifier.height(4.dp))
+		Text(
+			text = stringResource(screen.resourceId),
+			style = MaterialTheme.typography.labelMedium,
+			fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+			color = textColor,
+			maxLines = 1,
+			overflow = TextOverflow.Ellipsis
+		)
 	}
 }
 

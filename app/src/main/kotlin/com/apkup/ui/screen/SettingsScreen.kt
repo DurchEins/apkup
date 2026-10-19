@@ -831,7 +831,7 @@ fun Settings(
 								color = MaterialTheme.colorScheme.onSurfaceVariant
 							)
 							Text(
-								text = BuildConfig.VERSION_NAME,
+								text = BuildConfig.VERSION_NAME.substringBefore(" ("),
 								style = MaterialTheme.typography.labelMedium,
 								fontWeight = FontWeight.SemiBold,
 								color = MaterialTheme.colorScheme.primary
