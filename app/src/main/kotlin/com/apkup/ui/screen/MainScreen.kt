@@ -7,24 +7,26 @@ import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
@@ -347,19 +349,18 @@ fun CapsuleDockItem(
 ) {
 	val containerColor by animateColorAsState(
 		targetValue = if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
-		animationSpec = spring(
-			dampingRatio = Spring.DampingRatioNoBouncy,
-			stiffness = Spring.StiffnessMediumLow
-		),
+		animationSpec = tween(durationMillis = 240),
 		label = "CapsuleContainerColor"
 	)
 	val contentColor by animateColorAsState(
 		targetValue = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-		animationSpec = spring(
-			dampingRatio = Spring.DampingRatioNoBouncy,
-			stiffness = Spring.StiffnessMediumLow
-		),
+		animationSpec = tween(durationMillis = 240),
 		label = "CapsuleContentColor"
+	)
+	val animatedHorizontalPadding by animateDpAsState(
+		targetValue = if (selected) 16.dp else 12.dp,
+		animationSpec = tween(durationMillis = 240),
+		label = "CapsulePadding"
 	)
 	val displayBadge = remember(badge) { formatCapsuleBadge(badge) }
 
@@ -374,120 +375,82 @@ fun CapsuleDockItem(
 				onClick = onClick
 			)
 			.animateContentSize(
-				animationSpec = spring(
-					dampingRatio = Spring.DampingRatioNoBouncy,
-					stiffness = Spring.StiffnessMediumLow
+				animationSpec = tween(
+					durationMillis = 280,
+					easing = FastOutSlowInEasing
 				)
 			)
 	) {
-		AnimatedContent(
-			targetState = selected,
-			transitionSpec = {
-				fadeIn(animationSpec = tween(220, delayMillis = 40))
-					.togetherWith(fadeOut(animationSpec = tween(120)))
-					.using(null)
-			},
-			label = "CapsuleDockContent"
-		) { isSelected ->
-			if (isSelected) {
-				Row(
-					modifier = Modifier
-						.padding(horizontal = 16.dp, vertical = 12.dp),
-					verticalAlignment = Alignment.CenterVertically,
-					horizontalArrangement = Arrangement.spacedBy(6.dp)
-				) {
-					Icon(
-						imageVector = screen.iconSelected,
-						contentDescription = stringResource(screen.resourceId),
-						modifier = Modifier.size(20.dp)
-					)
-					Text(
-						text = stringResource(screen.resourceId),
-						style = MaterialTheme.typography.labelMedium,
-						fontWeight = FontWeight.Bold,
-						maxLines = 1,
-						overflow = TextOverflow.Ellipsis
-					)
-					if (isLiveChecking) {
-						Surface(
-							shape = CircleShape,
-							color = MaterialTheme.colorScheme.primaryContainer,
-							contentColor = MaterialTheme.colorScheme.primary
+		Row(
+			verticalAlignment = Alignment.CenterVertically,
+			modifier = Modifier
+				.padding(horizontal = animatedHorizontalPadding, vertical = 6.dp)
+		) {
+			// 1. Fester linker Anker: Icon mit darunter zentrierter Badge-Pille
+			Column(
+				horizontalAlignment = Alignment.CenterHorizontally,
+				modifier = Modifier.width(IntrinsicSize.Min)
+			) {
+				Icon(
+					imageVector = if (selected) screen.iconSelected else screen.icon,
+					contentDescription = stringResource(screen.resourceId),
+					modifier = Modifier.size(24.dp)
+				)
+				if (isLiveChecking) {
+					Surface(
+						shape = CircleShape,
+						color = MaterialTheme.colorScheme.primaryContainer,
+						contentColor = MaterialTheme.colorScheme.primary,
+						modifier = Modifier.offset(y = (-2).dp)
+					) {
+						Box(
+							modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+							contentAlignment = Alignment.Center
 						) {
-							Box(
-								modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-								contentAlignment = Alignment.Center
-							) {
-								CircularProgressIndicator(
-									modifier = Modifier.size(10.dp),
-									strokeWidth = 1.6.dp,
-									color = MaterialTheme.colorScheme.primary
-								)
-							}
-						}
-					} else if (displayBadge.isNotEmpty()) {
-						Surface(
-							shape = CircleShape,
-							color = MaterialTheme.colorScheme.primary,
-							contentColor = MaterialTheme.colorScheme.onPrimary
-						) {
-							Text(
-								text = displayBadge,
-								style = MaterialTheme.typography.labelSmall,
-								fontWeight = FontWeight.Bold,
-								maxLines = 1,
-								modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+							CircularProgressIndicator(
+								modifier = Modifier.size(10.dp),
+								strokeWidth = 1.6.dp,
+								color = MaterialTheme.colorScheme.primary
 							)
 						}
 					}
-				}
-			} else {
-				Column(
-					modifier = Modifier
-						.padding(horizontal = 16.dp, vertical = 4.dp),
-					horizontalAlignment = Alignment.CenterHorizontally,
-					verticalArrangement = Arrangement.Center
-				) {
-					Icon(
-						imageVector = screen.icon,
-						contentDescription = stringResource(screen.resourceId),
-						modifier = Modifier.size(24.dp)
-					)
-					if (isLiveChecking) {
-						Surface(
-							shape = CircleShape,
-							color = MaterialTheme.colorScheme.primaryContainer,
-							contentColor = MaterialTheme.colorScheme.primary,
-							modifier = Modifier.offset(y = (-3).dp)
-						) {
-							Box(
-								modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-								contentAlignment = Alignment.Center
-							) {
-								CircularProgressIndicator(
-									modifier = Modifier.size(10.dp),
-									strokeWidth = 1.6.dp,
-									color = MaterialTheme.colorScheme.primary
-								)
-							}
-						}
-					} else if (displayBadge.isNotEmpty()) {
-						Surface(
-							shape = CircleShape,
-							color = MaterialTheme.colorScheme.errorContainer,
-							contentColor = MaterialTheme.colorScheme.onErrorContainer,
-							modifier = Modifier.offset(y = (-3).dp)
-						) {
-							Text(
-								text = displayBadge,
-								style = MaterialTheme.typography.labelSmall,
-								fontWeight = FontWeight.Bold,
-								maxLines = 1,
-								modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-							)
-						}
+				} else if (displayBadge.isNotEmpty()) {
+					Surface(
+						shape = CircleShape,
+						color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.errorContainer,
+						contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onErrorContainer,
+						modifier = Modifier.offset(y = (-2).dp)
+					) {
+						Text(
+							text = displayBadge,
+							style = MaterialTheme.typography.labelSmall,
+							fontWeight = FontWeight.Bold,
+							maxLines = 1,
+							modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+						)
 					}
 				}
+			}
+
+			// 2. Weich expandierender Tab-Titel
+			AnimatedVisibility(
+				visible = selected,
+				enter = fadeIn(tween(200, delayMillis = 60)) + expandHorizontally(
+					animationSpec = tween(280, easing = FastOutSlowInEasing),
+					expandFrom = Alignment.Start
+				),
+				exit = fadeOut(tween(120)) + shrinkHorizontally(
+					animationSpec = tween(240, easing = FastOutSlowInEasing),
+					shrinkTowards = Alignment.Start
+				)
+			) {
+				Text(
+					text = stringResource(screen.resourceId),
+					style = MaterialTheme.typography.labelLarge,
+					modifier = Modifier.padding(start = 8.dp, end = 4.dp),
+					maxLines = 1,
+					softWrap = false
+				)
 			}
 		}
 	}

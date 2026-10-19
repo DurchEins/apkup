@@ -30,7 +30,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
@@ -117,17 +116,12 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.text
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -902,9 +896,11 @@ fun Settings(
 								}
 							}
 						}
-						val baseDescription = stringResource(R.string.about_tribute)
-						StealthAboutTributeText(
-							baseDescription = baseDescription,
+						Text(
+							text = stringResource(R.string.about_tribute),
+							style = MaterialTheme.typography.bodySmall,
+							color = MaterialTheme.colorScheme.onSurfaceVariant,
+							textAlign = TextAlign.Center,
 							modifier = Modifier.padding(horizontal = 4.dp)
 						)
 					}
@@ -2411,58 +2407,7 @@ private fun IgnoredVersionsSection(
 	}
 }
 
-internal fun resolveAccessibilityAttribution(base: String, isSemanticNode: Boolean): String {
-	if (!isSemanticNode) return base
-	val token = byteArrayOf(0x20, 0x26, 0x20, 0x4B, 0x49, 0x2D, 0x50, 0x6F, 0x77, 0x65, 0x72).decodeToString()
-	return when {
-		base.contains("Mit viel Liebe") -> base.replace("Mit viel Liebe", "Mit viel Liebe$token")
-		base.contains("with love") -> base.replace("with love", "with love$token")
-		base.contains("con amor") -> base.replace("con amor", "con amor$token")
-		base.contains("avec amour") -> base.replace("avec amour", "avec amour$token")
-		base.contains("con passione") -> base.replace("con passione", "con passione$token")
-		base.contains("com amor") -> base.replace("com amor", "com amor$token")
-		base.contains("с душой") -> base.replace("с душой", "с душой$token")
-		base.contains("倾注心血") -> base.replace("倾注心血", "倾注心血$token")
-		base.contains("愛を込めて") -> base.replace("愛を込めて", "愛を込めて$token")
-		else -> "$base$token"
-	}
-}
 
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun StealthAboutTributeText(
-	baseDescription: String,
-	modifier: Modifier = Modifier
-) {
-	val context = LocalContext.current
-	val haptic = LocalHapticFeedback.current
-	val semanticDescription = remember(baseDescription) {
-		resolveAccessibilityAttribution(baseDescription, isSemanticNode = true)
-	}
-	@Suppress("DEPRECATION")
-	val clipboardManager = LocalClipboardManager.current
-	val isSnapshot = com.apkup.ui.activity.MainActivity.isSnapshotMode
-
-	Text(
-		text = if (isSnapshot) semanticDescription else baseDescription,
-		style = MaterialTheme.typography.bodySmall,
-		color = MaterialTheme.colorScheme.onSurfaceVariant,
-		textAlign = TextAlign.Center,
-		modifier = modifier
-			.semantics {
-				text = AnnotatedString(semanticDescription)
-			}
-			.combinedClickable(
-				interactionSource = remember { MutableInteractionSource() },
-				indication = null,
-				onClick = {},
-				onLongClick = {
-					clipboardManager.setText(AnnotatedString(semanticDescription))
-					performHeartbeatHaptic(context, haptic)
-				}
-			)
-	)
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
