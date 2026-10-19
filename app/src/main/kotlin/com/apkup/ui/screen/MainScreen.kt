@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -34,9 +35,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -59,6 +59,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.activity.compose.LocalActivity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -71,7 +72,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.apkup.data.ui.Screen
-import com.apkup.ui.component.BadgeText
 import com.apkup.ui.theme.AppTheme
 import com.apkup.util.Badger
 import com.apkup.util.InstallLog
@@ -305,7 +305,7 @@ fun FloatingCapsuleDock(
 	val currentRoute = navBackStackEntry?.destination?.route
 
 	Surface(
-		modifier = modifier.heightIn(min = 68.dp),
+		modifier = modifier.heightIn(min = 72.dp),
 		shape = CircleShape,
 		color = MaterialTheme.colorScheme.surfaceContainerHigh,
 		tonalElevation = 6.dp,
@@ -315,7 +315,7 @@ fun FloatingCapsuleDock(
 		Row(
 			modifier = Modifier
 				.fillMaxWidth()
-				.heightIn(min = 68.dp)
+				.heightIn(min = 72.dp)
 				.padding(horizontal = 8.dp, vertical = 6.dp),
 			horizontalArrangement = Arrangement.SpaceEvenly,
 			verticalAlignment = Alignment.CenterVertically
@@ -327,7 +327,7 @@ fun FloatingCapsuleDock(
 					screen = screen,
 					selected = selected,
 					badge = badges[screen.route].orEmpty(),
-					isLiveChecking = isLiveChecking,
+					isLoadingUpdates = isLiveChecking,
 					onClick = { mainViewModel.navigateTo(navController, screen.route) },
 					modifier = Modifier.weight(1f)
 				)
@@ -335,6 +335,8 @@ fun FloatingCapsuleDock(
 		}
 	}
 }
+
+internal fun formatCapsuleBadge(count: Int): String = if (count > 99) "99+" else count.toString()
 
 internal fun formatCapsuleBadge(badge: String): String {
 	val count = badge.toIntOrNull()
@@ -346,7 +348,7 @@ fun CapsuleDockItem(
 	screen: Screen,
 	selected: Boolean,
 	badge: String,
-	isLiveChecking: Boolean = false,
+	isLoadingUpdates: Boolean = false,
 	onClick: () -> Unit,
 	modifier: Modifier = Modifier
 ) {
@@ -370,74 +372,84 @@ fun CapsuleDockItem(
 		animationSpec = spring(dampingRatio = 0.8f, stiffness = 380f),
 		label = "CapsuleTextColor"
 	)
-	val displayBadge = remember(badge) { formatCapsuleBadge(badge) }
+	val badgeCount = remember(badge) { badge.toIntOrNull() ?: 0 }
 
 	Column(
+		horizontalAlignment = Alignment.CenterHorizontally,
+		verticalArrangement = Arrangement.Center,
 		modifier = modifier
+			.fillMaxHeight()
 			.clip(CircleShape)
 			.clickable(
 				interactionSource = remember { MutableInteractionSource() },
 				indication = null,
 				onClick = onClick
 			)
-			.padding(vertical = 4.dp),
-		horizontalAlignment = Alignment.CenterHorizontally,
-		verticalArrangement = Arrangement.Center
+			.padding(vertical = 2.dp)
 	) {
+		// 1. Icon & darunter zentrierte Badge-Pille (vertikaler Anker)
 		Box(
 			modifier = Modifier
-				.height(32.dp)
-				.width(indicatorWidth)
-				.clip(CircleShape)
-				.background(indicatorColor),
+				.height(44.dp)
+				.widthIn(min = 64.dp),
 			contentAlignment = Alignment.Center
 		) {
-			BadgedBox(
-				badge = {
-					if (isLiveChecking) {
-						Badge(
-							containerColor = MaterialTheme.colorScheme.primaryContainer,
-							contentColor = MaterialTheme.colorScheme.primary,
-							modifier = Modifier.offset(x = 6.dp, y = (-2).dp)
-						) {
-							CircularProgressIndicator(
-								modifier = Modifier.size(10.dp).padding(1.dp),
-								strokeWidth = 1.6.dp,
-								color = MaterialTheme.colorScheme.primary
-							)
-						}
-					} else if (displayBadge.isNotEmpty()) {
-						Badge(
-							containerColor = MaterialTheme.colorScheme.error,
-							contentColor = MaterialTheme.colorScheme.onError,
-							modifier = Modifier.offset(x = 6.dp, y = (-2).dp)
-						) {
-							Text(
-								text = displayBadge,
-								style = MaterialTheme.typography.labelSmall,
-								fontWeight = FontWeight.Bold,
-								modifier = Modifier.padding(horizontal = 4.dp)
-							)
-						}
-					}
-				}
+			Box(
+				modifier = Modifier
+					.height(44.dp)
+					.width(indicatorWidth)
+					.clip(CircleShape)
+					.background(indicatorColor)
+			)
+			Column(
+				horizontalAlignment = Alignment.CenterHorizontally,
+				modifier = Modifier.wrapContentSize()
 			) {
 				Icon(
 					imageVector = if (selected) screen.iconSelected else screen.icon,
-					contentDescription = stringResource(screen.resourceId),
-					tint = iconColor,
-					modifier = Modifier.size(24.dp)
+					contentDescription = null,
+					modifier = Modifier.size(24.dp),
+					tint = iconColor
 				)
+				if (badgeCount > 0) {
+					// Rote Badge-Pille sitzt mittig zentriert unter dem Icon
+					Surface(
+						shape = CircleShape,
+						color = MaterialTheme.colorScheme.error,
+						modifier = Modifier
+							.padding(top = 2.dp)
+							.height(16.dp)
+					) {
+						Text(
+							text = formatCapsuleBadge(badgeCount),
+							style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+							color = MaterialTheme.colorScheme.onError,
+							fontWeight = FontWeight.Bold,
+							modifier = Modifier.padding(horizontal = 5.dp)
+						)
+					}
+				} else if (isLoadingUpdates) {
+					// Kompakter Ladeindikator mittig unter dem Icon
+					CircularProgressIndicator(
+						modifier = Modifier
+							.padding(top = 2.dp)
+							.size(12.dp),
+						strokeWidth = 1.5.dp,
+						color = MaterialTheme.colorScheme.primary
+					)
+				}
 			}
 		}
-		Spacer(modifier = Modifier.height(4.dp))
+
+		// 2. Tab-Label darunter
 		Text(
 			text = stringResource(screen.resourceId),
 			style = MaterialTheme.typography.labelMedium,
 			fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
 			color = textColor,
 			maxLines = 1,
-			overflow = TextOverflow.Ellipsis
+			softWrap = false,
+			modifier = Modifier.padding(top = 2.dp)
 		)
 	}
 }
