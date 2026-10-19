@@ -96,6 +96,7 @@ android {
     lint {
         abortOnError = false
         checkReleaseBuilds = false
+        checkTestSources = false
         warning.addAll(arrayOf("ExtraTranslation", "MissingTranslation", "MissingQuantity"))
     }
 }
