@@ -32,11 +32,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Update
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -293,6 +296,14 @@ fun UpdatesScreenSuccess(
 		hasInstallableUpdates = hasInstallable
 	)
 
+	if (updates.isNotEmpty() && !isChecking) {
+		UpdatesHeroBanner(
+			updatesCount = displayedUpdates.size,
+			hasInstallable = hasInstallable,
+			onInstallAll = { viewModel.installAll() }
+		)
+	}
+
 	if (updates.isNotEmpty() && sourceCounts.isNotEmpty()) {
 		UpdatesSourceFilterRow(
 			totalCount = updates.size,
@@ -304,7 +315,7 @@ fun UpdatesScreenSuccess(
 
 	if (isChecking) {
 		UpdateCheckProgressBar(checkedApps, totalApps, activeSourceName)
-	} else if (lastCheckedAtMillis != null && lastCheckedAtMillis > 0L) {
+	} else if (lastCheckedAtMillis != null && lastCheckedAtMillis > 0L && updates.isEmpty()) {
 		LastCheckedStatusBanner(lastCheckedAtMillis = lastCheckedAtMillis)
 	}
 
@@ -354,6 +365,9 @@ fun UpdatesScreenSuccess(
 		updates.isEmpty() -> UpdatesMessage(
 			title = stringResource(R.string.updates_empty_title),
 			message = stringResource(R.string.updates_empty_message),
+			icon = Icons.Rounded.CheckCircle,
+			actionLabel = stringResource(R.string.refresh_updates),
+			onAction = { viewModel.refresh() },
 			modifier = Modifier.weight(1f)
 		)
 		displayedUpdates.isEmpty() -> UpdatesMessage(
@@ -366,6 +380,91 @@ fun UpdatesScreenSuccess(
 	}
 }
 
+@Composable
+private fun UpdatesHeroBanner(
+	updatesCount: Int,
+	hasInstallable: Boolean,
+	onInstallAll: () -> Unit
+) {
+	val shape = RoundedCornerShape(24.dp)
+	Surface(
+		modifier = Modifier
+			.fillMaxWidth()
+			.padding(horizontal = 12.dp, vertical = 4.dp),
+		shape = shape,
+		color = MaterialTheme.colorScheme.primaryContainer,
+		border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)),
+		shadowElevation = 2.dp
+	) {
+		Row(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(horizontal = 16.dp, vertical = 12.dp),
+			verticalAlignment = Alignment.CenterVertically,
+			horizontalArrangement = Arrangement.SpaceBetween
+		) {
+			Row(
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(12.dp),
+				modifier = Modifier.weight(1f, fill = false)
+			) {
+				Surface(
+					shape = CircleShape,
+					color = MaterialTheme.colorScheme.primary,
+					modifier = Modifier.size(40.dp)
+				) {
+					Box(contentAlignment = Alignment.Center) {
+						Icon(
+							painter = painterResource(R.drawable.ic_install),
+							contentDescription = null,
+							tint = MaterialTheme.colorScheme.onPrimary,
+							modifier = Modifier.size(20.dp)
+						)
+					}
+				}
+				Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+					Text(
+						text = if (updatesCount == 1) "$updatesCount Update" else "$updatesCount Updates",
+						style = MaterialTheme.typography.titleMedium,
+						fontWeight = FontWeight.Bold,
+						color = MaterialTheme.colorScheme.onPrimaryContainer
+					)
+					Text(
+						text = stringResource(if (hasInstallable) R.string.tab_updates else R.string.updates_empty_source_filter_message),
+						style = MaterialTheme.typography.labelSmall,
+						color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis
+					)
+				}
+			}
+			if (hasInstallable) {
+				Button(
+					onClick = onInstallAll,
+					shape = CircleShape,
+					colors = ButtonDefaults.buttonColors(
+						containerColor = MaterialTheme.colorScheme.primary,
+						contentColor = MaterialTheme.colorScheme.onPrimary
+					),
+					contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+				) {
+					Icon(
+						painter = painterResource(R.drawable.ic_install),
+						contentDescription = null,
+						modifier = Modifier.size(16.dp)
+					)
+					Spacer(Modifier.width(6.dp))
+					Text(
+						text = stringResource(R.string.install_all),
+						style = MaterialTheme.typography.labelMedium,
+						fontWeight = FontWeight.Bold
+					)
+				}
+			}
+		}
+	}
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun UpdatesSourceFilterRow(
@@ -374,60 +473,59 @@ private fun UpdatesSourceFilterRow(
 	selectedSource: String?,
 	onSelectSource: (String?) -> Unit
 ) {
-	CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
-		Row(
-			modifier = Modifier
-				.fillMaxWidth()
-				.horizontalScroll(rememberScrollState())
-				.padding(horizontal = 12.dp, vertical = 3.dp),
-			horizontalArrangement = Arrangement.spacedBy(6.dp),
-			verticalAlignment = Alignment.CenterVertically
-		) {
-			val allSelected = selectedSource == null
-			FilterChip(
-				selected = allSelected,
-				onClick = { onSelectSource(null) },
-				modifier = Modifier.height(32.dp),
-				label = {
-					Text(
-						text = "${stringResource(R.string.apps_filter_all)} ($totalCount)",
-						style = MaterialTheme.typography.labelMedium,
-						fontWeight = if (allSelected) FontWeight.SemiBold else FontWeight.Medium
-					)
-				},
-				leadingIcon = if (allSelected) {
-					{
-						Icon(
-							imageVector = Icons.Filled.Check,
-							contentDescription = null,
-							modifier = Modifier.size(16.dp)
-						)
-					}
-				} else null,
-				shape = CircleShape,
-				border = FilterChipDefaults.filterChipBorder(
-					enabled = true,
-					selected = allSelected,
-					borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
-				),
-				colors = FilterChipDefaults.filterChipColors(
-					selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-					selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-					selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer
+	Row(
+		modifier = Modifier
+			.fillMaxWidth()
+			.horizontalScroll(rememberScrollState())
+			.padding(horizontal = 12.dp, vertical = 4.dp),
+		horizontalArrangement = Arrangement.spacedBy(8.dp),
+		verticalAlignment = Alignment.CenterVertically
+	) {
+		val allSelected = selectedSource == null
+		FilterChip(
+			selected = allSelected,
+			onClick = { onSelectSource(null) },
+			modifier = Modifier.height(36.dp),
+			label = {
+				Text(
+					text = "${stringResource(R.string.apps_filter_all)} ($totalCount)",
+					style = MaterialTheme.typography.labelMedium,
+					fontWeight = if (allSelected) FontWeight.SemiBold else FontWeight.Medium
 				)
+			},
+			leadingIcon = if (allSelected) {
+				{
+					Icon(
+						imageVector = Icons.Filled.Check,
+						contentDescription = null,
+						modifier = Modifier.size(16.dp)
+					)
+				}
+			} else null,
+			shape = CircleShape,
+			border = FilterChipDefaults.filterChipBorder(
+				enabled = true,
+				selected = allSelected,
+				borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+			),
+			colors = FilterChipDefaults.filterChipColors(
+				selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+				selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+				selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer
 			)
+		)
 
-			sourceCounts.forEach { (source, count) ->
-				if (count > 0) {
-					val isSelected = selectedSource == source.name
-					val labelText = "${sourceName(source)} ($count)"
-					FilterChip(
-						selected = isSelected,
-						onClick = { onSelectSource(if (isSelected) null else source.name) },
-						modifier = Modifier.height(32.dp),
-						label = {
-							Text(
-								text = labelText,
+		sourceCounts.forEach { (source, count) ->
+			if (count > 0) {
+				val isSelected = selectedSource == source.name
+				val labelText = "${sourceName(source)} ($count)"
+				FilterChip(
+					selected = isSelected,
+					onClick = { onSelectSource(if (isSelected) null else source.name) },
+					modifier = Modifier.height(36.dp),
+					label = {
+						Text(
+							text = labelText,
 								style = MaterialTheme.typography.labelMedium,
 								fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium
 							)
@@ -466,7 +564,6 @@ private fun UpdatesSourceFilterRow(
 			}
 		}
 	}
-}
 
 @Composable
 private fun LastCheckedStatusBanner(lastCheckedAtMillis: Long) {
@@ -732,13 +829,18 @@ private fun UpdateCard(
 				}
 			}
 
-			Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+			Row(
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(4.dp),
+				modifier = Modifier.fillMaxWidth()
+			) {
 				Surface(
 					shape = CircleShape,
-					color = MaterialTheme.colorScheme.surfaceContainerHigh
+					color = MaterialTheme.colorScheme.surfaceContainerHigh,
+					modifier = Modifier.weight(1f, fill = false)
 				) {
 					Text(
-						text = "${stringResource(R.string.installed_short)} ${card.installedVersion.ifBlank { "—" }}",
+						text = card.installedVersion.ifBlank { "—" },
 						modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
 						style = MaterialTheme.typography.labelSmall,
 						color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -746,15 +848,22 @@ private fun UpdateCard(
 						overflow = TextOverflow.Ellipsis
 					)
 				}
+				Icon(
+					imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
+					contentDescription = null,
+					tint = MaterialTheme.colorScheme.primary,
+					modifier = Modifier.size(12.dp)
+				)
 				Surface(
 					shape = CircleShape,
-					color = MaterialTheme.colorScheme.primaryContainer
+					color = MaterialTheme.colorScheme.primaryContainer,
+					modifier = Modifier.weight(1f, fill = false)
 				) {
 					Text(
-						text = "${stringResource(R.string.available_short)} ${card.availableVersion.ifBlank { "—" }}",
+						text = card.availableVersion.ifBlank { "—" },
 						modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
 						style = MaterialTheme.typography.labelSmall,
-						fontWeight = FontWeight.SemiBold,
+						fontWeight = FontWeight.Bold,
 						color = MaterialTheme.colorScheme.onPrimaryContainer,
 						maxLines = 1,
 						overflow = TextOverflow.Ellipsis
@@ -1442,8 +1551,10 @@ private fun UpdatesMessage(
 	title: String,
 	message: String,
 	modifier: Modifier = Modifier,
-	icon: androidx.compose.ui.graphics.vector.ImageVector = Icons.Rounded.Update
-) = AppEmptyState(title, message, icon, modifier)
+	icon: androidx.compose.ui.graphics.vector.ImageVector = Icons.Rounded.Update,
+	actionLabel: String? = null,
+	onAction: (() -> Unit)? = null
+) = AppEmptyState(title, message, icon, modifier, actionLabel, onAction)
 
 @Composable
 private fun UpdatesLoadingList(modifier: Modifier = Modifier) = LazyColumn(
