@@ -7,6 +7,8 @@ import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
@@ -14,6 +16,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -344,12 +347,18 @@ fun CapsuleDockItem(
 ) {
 	val containerColor by animateColorAsState(
 		targetValue = if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
-		animationSpec = tween(durationMillis = 180),
+		animationSpec = spring(
+			dampingRatio = Spring.DampingRatioNoBouncy,
+			stiffness = Spring.StiffnessMediumLow
+		),
 		label = "CapsuleContainerColor"
 	)
 	val contentColor by animateColorAsState(
 		targetValue = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-		animationSpec = tween(durationMillis = 180),
+		animationSpec = spring(
+			dampingRatio = Spring.DampingRatioNoBouncy,
+			stiffness = Spring.StiffnessMediumLow
+		),
 		label = "CapsuleContentColor"
 	)
 	val displayBadge = remember(badge) { formatCapsuleBadge(badge) }
@@ -364,104 +373,119 @@ fun CapsuleDockItem(
 				indication = null,
 				onClick = onClick
 			)
-			.animateContentSize(animationSpec = tween(durationMillis = 180))
+			.animateContentSize(
+				animationSpec = spring(
+					dampingRatio = Spring.DampingRatioNoBouncy,
+					stiffness = Spring.StiffnessMediumLow
+				)
+			)
 	) {
-		if (selected) {
-			Row(
-				modifier = Modifier
-					.padding(horizontal = 16.dp, vertical = 12.dp),
-				verticalAlignment = Alignment.CenterVertically,
-				horizontalArrangement = Arrangement.spacedBy(6.dp)
-			) {
-				Icon(
-					imageVector = screen.iconSelected,
-					contentDescription = stringResource(screen.resourceId),
-					modifier = Modifier.size(20.dp)
-				)
-				Text(
-					text = stringResource(screen.resourceId),
-					style = MaterialTheme.typography.labelMedium,
-					fontWeight = FontWeight.Bold,
-					maxLines = 1,
-					overflow = TextOverflow.Ellipsis
-				)
-				if (isLiveChecking) {
-					Surface(
-						shape = CircleShape,
-						color = MaterialTheme.colorScheme.primaryContainer,
-						contentColor = MaterialTheme.colorScheme.primary
-					) {
-						Box(
-							modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-							contentAlignment = Alignment.Center
+		AnimatedContent(
+			targetState = selected,
+			transitionSpec = {
+				fadeIn(animationSpec = tween(220, delayMillis = 40))
+					.togetherWith(fadeOut(animationSpec = tween(120)))
+					.using(null)
+			},
+			label = "CapsuleDockContent"
+		) { isSelected ->
+			if (isSelected) {
+				Row(
+					modifier = Modifier
+						.padding(horizontal = 16.dp, vertical = 12.dp),
+					verticalAlignment = Alignment.CenterVertically,
+					horizontalArrangement = Arrangement.spacedBy(6.dp)
+				) {
+					Icon(
+						imageVector = screen.iconSelected,
+						contentDescription = stringResource(screen.resourceId),
+						modifier = Modifier.size(20.dp)
+					)
+					Text(
+						text = stringResource(screen.resourceId),
+						style = MaterialTheme.typography.labelMedium,
+						fontWeight = FontWeight.Bold,
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis
+					)
+					if (isLiveChecking) {
+						Surface(
+							shape = CircleShape,
+							color = MaterialTheme.colorScheme.primaryContainer,
+							contentColor = MaterialTheme.colorScheme.primary
 						) {
-							CircularProgressIndicator(
-								modifier = Modifier.size(10.dp),
-								strokeWidth = 1.6.dp,
-								color = MaterialTheme.colorScheme.primary
+							Box(
+								modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+								contentAlignment = Alignment.Center
+							) {
+								CircularProgressIndicator(
+									modifier = Modifier.size(10.dp),
+									strokeWidth = 1.6.dp,
+									color = MaterialTheme.colorScheme.primary
+								)
+							}
+						}
+					} else if (displayBadge.isNotEmpty()) {
+						Surface(
+							shape = CircleShape,
+							color = MaterialTheme.colorScheme.primary,
+							contentColor = MaterialTheme.colorScheme.onPrimary
+						) {
+							Text(
+								text = displayBadge,
+								style = MaterialTheme.typography.labelSmall,
+								fontWeight = FontWeight.Bold,
+								maxLines = 1,
+								modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
 							)
 						}
-					}
-				} else if (displayBadge.isNotEmpty()) {
-					Surface(
-						shape = CircleShape,
-						color = MaterialTheme.colorScheme.primary,
-						contentColor = MaterialTheme.colorScheme.onPrimary
-					) {
-						Text(
-							text = displayBadge,
-							style = MaterialTheme.typography.labelSmall,
-							fontWeight = FontWeight.Bold,
-							maxLines = 1,
-							modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-						)
 					}
 				}
-			}
-		} else {
-			Column(
-				modifier = Modifier
-					.padding(horizontal = 16.dp, vertical = 4.dp),
-				horizontalAlignment = Alignment.CenterHorizontally,
-				verticalArrangement = Arrangement.Center
-			) {
-				Icon(
-					imageVector = screen.icon,
-					contentDescription = stringResource(screen.resourceId),
-					modifier = Modifier.size(24.dp)
-				)
-				if (isLiveChecking) {
-					Surface(
-						shape = CircleShape,
-						color = MaterialTheme.colorScheme.primaryContainer,
-						contentColor = MaterialTheme.colorScheme.primary,
-						modifier = Modifier.offset(y = (-3).dp)
-					) {
-						Box(
-							modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-							contentAlignment = Alignment.Center
+			} else {
+				Column(
+					modifier = Modifier
+						.padding(horizontal = 16.dp, vertical = 4.dp),
+					horizontalAlignment = Alignment.CenterHorizontally,
+					verticalArrangement = Arrangement.Center
+				) {
+					Icon(
+						imageVector = screen.icon,
+						contentDescription = stringResource(screen.resourceId),
+						modifier = Modifier.size(24.dp)
+					)
+					if (isLiveChecking) {
+						Surface(
+							shape = CircleShape,
+							color = MaterialTheme.colorScheme.primaryContainer,
+							contentColor = MaterialTheme.colorScheme.primary,
+							modifier = Modifier.offset(y = (-3).dp)
 						) {
-							CircularProgressIndicator(
-								modifier = Modifier.size(10.dp),
-								strokeWidth = 1.6.dp,
-								color = MaterialTheme.colorScheme.primary
+							Box(
+								modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+								contentAlignment = Alignment.Center
+							) {
+								CircularProgressIndicator(
+									modifier = Modifier.size(10.dp),
+									strokeWidth = 1.6.dp,
+									color = MaterialTheme.colorScheme.primary
+								)
+							}
+						}
+					} else if (displayBadge.isNotEmpty()) {
+						Surface(
+							shape = CircleShape,
+							color = MaterialTheme.colorScheme.errorContainer,
+							contentColor = MaterialTheme.colorScheme.onErrorContainer,
+							modifier = Modifier.offset(y = (-3).dp)
+						) {
+							Text(
+								text = displayBadge,
+								style = MaterialTheme.typography.labelSmall,
+								fontWeight = FontWeight.Bold,
+								maxLines = 1,
+								modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
 							)
 						}
-					}
-				} else if (displayBadge.isNotEmpty()) {
-					Surface(
-						shape = CircleShape,
-						color = MaterialTheme.colorScheme.errorContainer,
-						contentColor = MaterialTheme.colorScheme.onErrorContainer,
-						modifier = Modifier.offset(y = (-3).dp)
-					) {
-						Text(
-							text = displayBadge,
-							style = MaterialTheme.typography.labelSmall,
-							fontWeight = FontWeight.Bold,
-							maxLines = 1,
-							modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-						)
 					}
 				}
 			}
