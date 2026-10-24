@@ -1,7 +1,7 @@
 # ApkUp
 
 <p align="center">
-  <img src="design/ic_launcher_512.png" width="96" height="96" alt="ApkUp Icon" />
+  <img src=".github/assets/logo.png" width="96" height="96" alt="ApkUp Icon" />
 </p>
 
 <p align="center">
@@ -70,27 +70,27 @@
 ## 📸 Screenshots
 
 <p align="center">
-  <img src="screenshots/updates%201.png" width="260" alt="Updates Screen" />
+  <img src=".github/assets/screenshots/updates%201.png" width="260" alt="Updates Screen" />
   &nbsp;&nbsp;
-  <img src="screenshots/updates%202.png" width="260" alt="Update Details Sheet" />
+  <img src=".github/assets/screenshots/updates%202.png" width="260" alt="Update Details Sheet" />
   &nbsp;&nbsp;
-  <img src="screenshots/apps%201.png" width="260" alt="Installed Apps List" />
+  <img src=".github/assets/screenshots/apps%201.png" width="260" alt="Installed Apps List" />
 </p>
 
 <p align="center">
-  <img src="screenshots/apps%202.png" width="260" alt="Apps Search & Grid" />
+  <img src=".github/assets/screenshots/apps%202.png" width="260" alt="Apps Search & Grid" />
   &nbsp;&nbsp;
-  <img src="screenshots/apps%203.png" width="260" alt="App Details & Context Actions" />
+  <img src=".github/assets/screenshots/apps%203.png" width="260" alt="App Details & Context Actions" />
   &nbsp;&nbsp;
-  <img src="screenshots/setup%201.png" width="260" alt="Settings & Appearance" />
+  <img src=".github/assets/screenshots/setup%201.png" width="260" alt="Settings & Appearance" />
 </p>
 
 <p align="center">
-  <img src="screenshots/setup%202.png" width="260" alt="Settings & Sources" />
+  <img src=".github/assets/screenshots/setup%202.png" width="260" alt="Settings & Sources" />
   &nbsp;&nbsp;
-  <img src="screenshots/setup%203.png" width="260" alt="Shizuku & App Management" />
+  <img src=".github/assets/screenshots/setup%203.png" width="260" alt="Shizuku & App Management" />
   &nbsp;&nbsp;
-  <img src="screenshots/setup%204.png" width="260" alt="About ApkUp" />
+  <img src=".github/assets/screenshots/setup%204.png" width="260" alt="About ApkUp" />
 </p>
 
 ---
