@@ -651,13 +651,13 @@ class UpdateProcessingTest {
     }
 
     @Test
-    fun installedAppsGridColumnCountUsesThreeInPortraitAndResponsiveCountOnWideScreens() {
-        assertEquals(3, com.apkup.ui.component.installedAppsGridColumnCount(360f))
-        assertEquals(3, com.apkup.ui.component.installedAppsGridColumnCount(411f))
-        assertEquals(3, com.apkup.ui.component.installedAppsGridColumnCount(599f))
-        assertEquals(4, com.apkup.ui.component.installedAppsGridColumnCount(600f))
-        assertEquals(5, com.apkup.ui.component.installedAppsGridColumnCount(650f))
-        assertEquals(6, com.apkup.ui.component.installedAppsGridColumnCount(840f))
+    fun installedAppsGridColumnCountUsesTwoInPortraitAndResponsiveCountOnWideScreens() {
+        assertEquals(2, com.apkup.ui.component.installedAppsGridColumnCount(360f))
+        assertEquals(2, com.apkup.ui.component.installedAppsGridColumnCount(411f))
+        assertEquals(2, com.apkup.ui.component.installedAppsGridColumnCount(599f))
+        assertEquals(3, com.apkup.ui.component.installedAppsGridColumnCount(600f))
+        assertEquals(3, com.apkup.ui.component.installedAppsGridColumnCount(650f))
+        assertEquals(5, com.apkup.ui.component.installedAppsGridColumnCount(840f))
     }
 
     @Test
@@ -689,6 +689,39 @@ class UpdateProcessingTest {
         assertFalse(com.apkup.data.ui.ShizukuSetupStatus(true, false, false).isReady)
         assertFalse(com.apkup.data.ui.ShizukuSetupStatus(true, true, false).isReady)
         assertTrue(com.apkup.data.ui.ShizukuSetupStatus(true, true, true).isReady)
+    }
+
+    @Test
+    fun installQueuePromotesDirectInstallableAlternativeWhenPrimaryIsBrowserOnly() {
+        val playAlt = AppUpdate(
+            name = "PlayApp",
+            packageName = "com.example.hybrid",
+            version = "2.0",
+            oldVersion = "1.0",
+            versionCode = 20L,
+            oldVersionCode = 10L,
+            source = PlaySource,
+            link = Link.Play { emptyList() }
+        )
+        val mirrorPrimary = AppUpdate(
+            name = "MirrorApp",
+            packageName = "com.example.hybrid",
+            version = "2.0",
+            oldVersion = "1.0",
+            versionCode = 20L,
+            oldVersionCode = 10L,
+            source = ApkMirrorSource,
+            link = Link.Url("https://www.apkmirror.com/apk/example"),
+            alternativeUpdates = listOf(playAlt)
+        )
+
+        val (directQueue, browserSkipped) = partitionInstallQueueCandidates(
+            updates = listOf(mirrorPrimary),
+            directApkMirrorEnabled = false
+        )
+
+        assertEquals(listOf(playAlt), directQueue)
+        assertTrue(browserSkipped.isEmpty())
     }
 
     private data class VersionCandidate(

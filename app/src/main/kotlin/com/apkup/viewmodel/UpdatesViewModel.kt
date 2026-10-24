@@ -268,10 +268,24 @@ class UpdatesViewModel(
 		val current = state.value.mutableUpdates()
 		val alreadyActive = activeDownloadJobs.keys
 		candidates.forEach { candidate ->
-			val inState = current.find { it.id == candidate.id }
-			if (inState != null && !inState.isInstalling && !inState.isQueued && candidate.id !in alreadyActive) {
-				current.setIsQueued(candidate.id, true)
-				newlyQueued.add(candidate)
+			val idx = current.indexOfFirst { it.id == candidate.id || it.packageName == candidate.packageName }
+			if (idx != -1) {
+				val inState = current[idx]
+				val isSameId = inState.id == candidate.id
+				if (!inState.isInstalling && (!inState.isQueued || !isSameId) &&
+					candidate.id !in alreadyActive && inState.id !in alreadyActive
+				) {
+					val queuedCandidate = if (!isSameId) {
+						candidate.copy(
+							isQueued = true,
+							alternativeUpdates = inState.alternativeUpdates.ifEmpty { candidate.alternativeUpdates }
+						)
+					} else {
+						candidate.copy(isQueued = true)
+					}
+					current[idx] = queuedCandidate
+					newlyQueued.add(queuedCandidate)
+				}
 			}
 		}
 		if (newlyQueued.isNotEmpty()) {
@@ -760,18 +774,16 @@ internal fun partitionInstallQueueCandidates(
 	val browserOnly = mutableListOf<AppUpdate>()
 	updates.forEach { update ->
 		val isDirect = update.isDirectInstallable(directApkMirrorEnabled)
-		val isBrowser = update.isBrowserOnlyUpdate(directApkMirrorEnabled)
+		val directAlt = if (!isDirect) {
+			update.alternativeUpdates.firstOrNull { it.isDirectInstallable(directApkMirrorEnabled) }
+		} else null
+		val isBrowser = update.isBrowserOnlyUpdate(directApkMirrorEnabled) ||
+			update.alternativeUpdates.any { it.isBrowserOnlyUpdate(directApkMirrorEnabled) }
+
 		when {
 			isDirect -> direct.add(update)
+			directAlt != null -> direct.add(directAlt)
 			isBrowser -> browserOnly.add(update)
-			else -> {
-				val directAlt = update.alternativeUpdates.firstOrNull { it.isDirectInstallable(directApkMirrorEnabled) }
-				if (directAlt != null) {
-					direct.add(directAlt)
-				} else if (update.alternativeUpdates.any { it.isBrowserOnlyUpdate(directApkMirrorEnabled) }) {
-					browserOnly.add(update)
-				}
-			}
 		}
 	}
 	return direct to browserOnly

@@ -76,9 +76,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.UriHandler
@@ -98,6 +102,7 @@ import com.apkup.data.ui.InstallOrigin
 import com.apkup.data.ui.IzzyOnDroidSource
 import com.apkup.data.ui.PlaySource
 import com.apkup.data.ui.Source
+import com.apkup.data.ui.cleanChangelogText
 import com.apkup.data.ui.hasPotentialSignatureConflict
 import com.apkup.prefs.Prefs
 import com.apkup.ui.component.AppEmptyState
@@ -109,6 +114,7 @@ import com.apkup.ui.component.RefreshIcon
 import com.apkup.ui.component.shimmering
 import com.apkup.ui.component.toUpdateCardContent
 import com.apkup.ui.component.updateGridColumnCount
+import com.apkup.ui.theme.telemetryColors
 import com.apkup.util.getAppName
 import com.apkup.viewmodel.AppsViewModel
 import com.apkup.viewmodel.UpdatesViewModel
@@ -144,67 +150,78 @@ fun UpdatesTopBar(
 	viewModel: UpdatesViewModel,
 	updatesCount: Int? = null,
 	hasInstallableUpdates: Boolean = false
-) = TopAppBar(
-	title = {
-		Row(
-			verticalAlignment = Alignment.CenterVertically,
-			horizontalArrangement = Arrangement.spacedBy(8.dp)
-		) {
-			Text(
-				text = stringResource(R.string.tab_updates),
-				style = MaterialTheme.typography.headlineMedium,
-				fontWeight = FontWeight.Bold
-			)
-			if (updatesCount != null && updatesCount > 0) {
-				Surface(
-					shape = CircleShape,
-					color = MaterialTheme.colorScheme.primaryContainer
-				) {
-					Text(
-						text = updatesCount.toString(),
-						modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-						style = MaterialTheme.typography.labelMedium,
-						fontWeight = FontWeight.SemiBold,
-						color = MaterialTheme.colorScheme.onPrimaryContainer
-					)
+) {
+	val haptic = LocalHapticFeedback.current
+	val telemetry = MaterialTheme.telemetryColors
+	TopAppBar(
+		title = {
+			Row(
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(10.dp)
+			) {
+				Text(
+					text = stringResource(R.string.tab_updates),
+					style = MaterialTheme.typography.headlineMedium,
+					fontWeight = FontWeight.Bold
+				)
+				if (updatesCount != null && updatesCount > 0) {
+					Surface(
+						shape = CircleShape,
+						color = MaterialTheme.colorScheme.primaryContainer,
+						border = BorderStroke(1.dp, telemetry.orbitCyan.copy(alpha = 0.35f))
+					) {
+						Text(
+							text = updatesCount.toString(),
+							modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp),
+							style = MaterialTheme.typography.labelMedium,
+							fontWeight = FontWeight.Bold,
+							color = MaterialTheme.colorScheme.onPrimaryContainer
+						)
+					}
 				}
 			}
-		}
-	},
-	colors = TopAppBarDefaults.topAppBarColors(
-		containerColor = MaterialTheme.colorScheme.background,
-		scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
-	),
-	actions = {
-		if (hasInstallableUpdates) {
-			IconButton(onClick = { viewModel.installAll() }) {
-				DownloadIcon(stringResource(R.string.install_all))
+		},
+		colors = TopAppBarDefaults.topAppBarColors(
+			containerColor = MaterialTheme.colorScheme.background,
+			scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+		),
+		actions = {
+			if (hasInstallableUpdates) {
+				IconButton(onClick = {
+					haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+					viewModel.installAll()
+				}) {
+					DownloadIcon(stringResource(R.string.install_all))
+				}
+			}
+			IconButton(onClick = {
+				haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+				viewModel.refresh()
+			}) {
+				RefreshIcon(stringResource(R.string.refresh_updates))
+			}
+		},
+		windowInsets = WindowInsets(0),
+		navigationIcon = {
+			Box(
+				modifier = Modifier
+					.minimumInteractiveComponentSize()
+					.padding(start = 8.dp, end = 4.dp)
+					.size(36.dp)
+					.clip(RoundedCornerShape(12.dp))
+					.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+				contentAlignment = Alignment.Center
+			) {
+				Icon(
+					imageVector = Icons.Rounded.Update,
+					contentDescription = stringResource(R.string.tab_updates),
+					tint = telemetry.orbitCyan,
+					modifier = Modifier.size(20.dp)
+				)
 			}
 		}
-		IconButton(onClick = { viewModel.refresh() }) {
-			RefreshIcon(stringResource(R.string.refresh_updates))
-		}
-	},
-	windowInsets = WindowInsets(0),
-	navigationIcon = {
-		Box(
-			modifier = Modifier
-				.minimumInteractiveComponentSize()
-				.padding(start = 8.dp, end = 4.dp)
-				.size(36.dp)
-				.clip(RoundedCornerShape(12.dp))
-				.background(MaterialTheme.colorScheme.surfaceContainerHigh),
-			contentAlignment = Alignment.Center
-		) {
-			Icon(
-				imageVector = Icons.Rounded.Update,
-				contentDescription = stringResource(R.string.tab_updates),
-				tint = MaterialTheme.colorScheme.primary,
-				modifier = Modifier.size(20.dp)
-			)
-		}
-	}
-)
+	)
+}
 
 @Composable
 fun UpdatesScreenLoading(viewModel: UpdatesViewModel) = Column(Modifier.fillMaxSize()) {
@@ -286,8 +303,10 @@ fun UpdatesScreenSuccess(
 	}
 	val localeLanguage = LocalConfiguration.current.locales[0]?.language.orEmpty()
 	val isGerman = localeLanguage.startsWith("de", ignoreCase = true)
+	val directMirrorEnabled = prefs.directApkMirrorDownloads.get()
 	val hasInstallable = displayedUpdates.any {
-		it.isDirectInstallable || it.alternativeUpdates.any(AppUpdate::isDirectInstallable)
+		it.isDirectInstallable(directMirrorEnabled) ||
+			it.alternativeUpdates.any { alt -> alt.isDirectInstallable(directMirrorEnabled) }
 	}
 
 	UpdatesTopBar(
@@ -298,7 +317,7 @@ fun UpdatesScreenSuccess(
 
 	if (updates.isNotEmpty() && !isChecking) {
 		UpdatesHeroBanner(
-			updatesCount = displayedUpdates.size,
+			updates = displayedUpdates,
 			hasInstallable = hasInstallable,
 			onInstallAll = { viewModel.installAll() }
 		)
@@ -382,83 +401,171 @@ fun UpdatesScreenSuccess(
 
 @Composable
 private fun UpdatesHeroBanner(
-	updatesCount: Int,
+	updates: List<AppUpdate>,
 	hasInstallable: Boolean,
 	onInstallAll: () -> Unit
 ) {
-	val shape = RoundedCornerShape(24.dp)
+	val haptic = LocalHapticFeedback.current
+	val updatesCount = updates.size
+	val totalBytes = remember(updates) { updates.sumOf { it.totalSize } }
+	val totalSizeText = if (totalBytes > 0L) formatSizeMegabytes(totalBytes) else ""
+	val verifiedCount = remember(updates) {
+		updates.count { !hasPotentialSignatureConflict(it.installOrigin, it.source) }
+	}
+
+	val shape = RoundedCornerShape(18.dp)
+	val telemetry = MaterialTheme.telemetryColors
+
 	Surface(
 		modifier = Modifier
 			.fillMaxWidth()
-			.padding(horizontal = 12.dp, vertical = 4.dp),
+			.padding(horizontal = 12.dp, vertical = 6.dp),
 		shape = shape,
-		color = MaterialTheme.colorScheme.primaryContainer,
-		border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)),
-		shadowElevation = 2.dp
+		color = MaterialTheme.colorScheme.surfaceContainer,
+		border = BorderStroke(1.dp, telemetry.glowBorder),
+		shadowElevation = 3.dp
 	) {
-		Row(
+		Box(
 			modifier = Modifier
 				.fillMaxWidth()
-				.padding(horizontal = 16.dp, vertical = 12.dp),
-			verticalAlignment = Alignment.CenterVertically,
-			horizontalArrangement = Arrangement.SpaceBetween
-		) {
-			Row(
-				verticalAlignment = Alignment.CenterVertically,
-				horizontalArrangement = Arrangement.spacedBy(12.dp),
-				modifier = Modifier.weight(1f, fill = false)
-			) {
-				Surface(
-					shape = CircleShape,
-					color = MaterialTheme.colorScheme.primary,
-					modifier = Modifier.size(40.dp)
-				) {
-					Box(contentAlignment = Alignment.Center) {
-						Icon(
-							painter = painterResource(R.drawable.ic_install),
-							contentDescription = null,
-							tint = MaterialTheme.colorScheme.onPrimary,
-							modifier = Modifier.size(20.dp)
+				.background(
+					Brush.horizontalGradient(
+						colors = listOf(
+							telemetry.electricAzure.copy(alpha = 0.08f),
+							Color.Transparent,
+							telemetry.uplinkViolet.copy(alpha = 0.06f)
 						)
+					)
+				)
+				.padding(18.dp)
+		) {
+			Column(
+				modifier = Modifier.fillMaxWidth(),
+				verticalArrangement = Arrangement.spacedBy(14.dp)
+			) {
+				// Top telemetry tag row
+				Row(
+					modifier = Modifier.fillMaxWidth(),
+					horizontalArrangement = Arrangement.SpaceBetween,
+					verticalAlignment = Alignment.CenterVertically
+				) {
+					Row(
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(8.dp)
+					) {
+						Surface(
+							shape = CircleShape,
+							color = telemetry.orbitCyan.copy(alpha = 0.16f),
+							border = BorderStroke(1.dp, telemetry.orbitCyan.copy(alpha = 0.35f))
+						) {
+							Row(
+								modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+								verticalAlignment = Alignment.CenterVertically,
+								horizontalArrangement = Arrangement.spacedBy(6.dp)
+							) {
+								Box(
+									modifier = Modifier
+										.size(6.dp)
+										.clip(CircleShape)
+										.background(telemetry.orbitCyan)
+								)
+								Text(
+									text = "SYSTEM UPLINK",
+									style = MaterialTheme.typography.labelSmall,
+									fontWeight = FontWeight.Bold,
+									letterSpacing = 0.8.sp,
+									color = telemetry.orbitCyan
+								)
+							}
+						}
+
+						if (totalSizeText.isNotBlank()) {
+							Surface(
+								shape = CircleShape,
+								color = MaterialTheme.colorScheme.surfaceContainerHighest
+							) {
+								Text(
+									text = totalSizeText,
+									modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+									style = MaterialTheme.typography.labelSmall,
+									fontWeight = FontWeight.Medium,
+									color = MaterialTheme.colorScheme.onSurfaceVariant
+								)
+							}
+						}
+					}
+
+					if (verifiedCount == updatesCount && updatesCount > 0) {
+						Row(
+							verticalAlignment = Alignment.CenterVertically,
+							horizontalArrangement = Arrangement.spacedBy(4.dp)
+						) {
+							Icon(
+								imageVector = Icons.Rounded.CheckCircle,
+								contentDescription = null,
+								tint = telemetry.verified,
+								modifier = Modifier.size(15.dp)
+							)
+							Text(
+								text = "Signaturen OK",
+								style = MaterialTheme.typography.labelSmall,
+								fontWeight = FontWeight.Medium,
+								color = telemetry.verified
+							)
+						}
 					}
 				}
-				Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
-					Text(
-						text = if (updatesCount == 1) "$updatesCount Update" else "$updatesCount Updates",
-						style = MaterialTheme.typography.titleMedium,
-						fontWeight = FontWeight.Bold,
-						color = MaterialTheme.colorScheme.onPrimaryContainer
-					)
-					Text(
-						text = stringResource(if (hasInstallable) R.string.tab_updates else R.string.updates_empty_source_filter_message),
-						style = MaterialTheme.typography.labelSmall,
-						color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
-						maxLines = 1,
-						overflow = TextOverflow.Ellipsis
-					)
-				}
-			}
-			if (hasInstallable) {
-				Button(
-					onClick = onInstallAll,
-					shape = CircleShape,
-					colors = ButtonDefaults.buttonColors(
-						containerColor = MaterialTheme.colorScheme.primary,
-						contentColor = MaterialTheme.colorScheme.onPrimary
-					),
-					contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+
+				// Main Headline + 1-Tap Action Row
+				Row(
+					modifier = Modifier.fillMaxWidth(),
+					verticalAlignment = Alignment.CenterVertically,
+					horizontalArrangement = Arrangement.SpaceBetween
 				) {
-					Icon(
-						painter = painterResource(R.drawable.ic_install),
-						contentDescription = null,
-						modifier = Modifier.size(16.dp)
-					)
-					Spacer(Modifier.width(6.dp))
-					Text(
-						text = stringResource(R.string.install_all),
-						style = MaterialTheme.typography.labelMedium,
-						fontWeight = FontWeight.Bold
-					)
+					Column(
+						modifier = Modifier.weight(1f, fill = false),
+						verticalArrangement = Arrangement.spacedBy(2.dp)
+					) {
+						Text(
+							text = if (updatesCount == 1) "1 Update bereit" else "$updatesCount Updates bereit",
+							style = MaterialTheme.typography.headlineSmall,
+							fontWeight = FontWeight.Bold,
+							color = MaterialTheme.colorScheme.onSurface
+						)
+						Text(
+							text = if (hasInstallable) "Direkte Installation verfügbar" else "Pakete manuell prüfen",
+							style = MaterialTheme.typography.bodySmall,
+							color = MaterialTheme.colorScheme.onSurfaceVariant
+						)
+					}
+
+					if (hasInstallable) {
+						Button(
+							onClick = {
+								haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+								onInstallAll()
+							},
+							shape = CircleShape,
+							colors = ButtonDefaults.buttonColors(
+								containerColor = MaterialTheme.colorScheme.primary,
+								contentColor = MaterialTheme.colorScheme.onPrimary
+							),
+							contentPadding = PaddingValues(horizontal = 18.dp, vertical = 10.dp),
+							elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
+						) {
+							Icon(
+								painter = painterResource(R.drawable.ic_install),
+								contentDescription = null,
+								modifier = Modifier.size(18.dp)
+							)
+							Spacer(Modifier.width(8.dp))
+							Text(
+								text = stringResource(R.string.install_all),
+								style = MaterialTheme.typography.labelLarge,
+								fontWeight = FontWeight.Bold
+							)
+						}
+					}
 				}
 			}
 		}
@@ -473,6 +580,7 @@ private fun UpdatesSourceFilterRow(
 	selectedSource: String?,
 	onSelectSource: (String?) -> Unit
 ) {
+	val haptic = LocalHapticFeedback.current
 	Row(
 		modifier = Modifier
 			.fillMaxWidth()
@@ -484,13 +592,16 @@ private fun UpdatesSourceFilterRow(
 		val allSelected = selectedSource == null
 		FilterChip(
 			selected = allSelected,
-			onClick = { onSelectSource(null) },
-			modifier = Modifier.height(36.dp),
+			onClick = {
+				haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+				onSelectSource(null)
+			},
+			modifier = Modifier.height(38.dp),
 			label = {
 				Text(
 					text = "${stringResource(R.string.apps_filter_all)} ($totalCount)",
 					style = MaterialTheme.typography.labelMedium,
-					fontWeight = if (allSelected) FontWeight.SemiBold else FontWeight.Medium
+					fontWeight = if (allSelected) FontWeight.Bold else FontWeight.Medium
 				)
 			},
 			leadingIcon = if (allSelected) {
@@ -506,12 +617,13 @@ private fun UpdatesSourceFilterRow(
 			border = FilterChipDefaults.filterChipBorder(
 				enabled = true,
 				selected = allSelected,
-				borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+				borderColor = if (allSelected) Color.Transparent else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
 			),
 			colors = FilterChipDefaults.filterChipColors(
-				selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-				selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-				selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer
+				selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+				selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+				selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+				containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
 			)
 		)
 
@@ -521,49 +633,53 @@ private fun UpdatesSourceFilterRow(
 				val labelText = "${sourceName(source)} ($count)"
 				FilterChip(
 					selected = isSelected,
-					onClick = { onSelectSource(if (isSelected) null else source.name) },
-					modifier = Modifier.height(36.dp),
+					onClick = {
+						haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+						onSelectSource(if (isSelected) null else source.name)
+					},
+					modifier = Modifier.height(38.dp),
 					label = {
 						Text(
 							text = labelText,
-								style = MaterialTheme.typography.labelMedium,
-								fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium
-							)
-						},
-						leadingIcon = if (isSelected) {
-							{
-								Icon(
-									imageVector = Icons.Filled.Check,
-									contentDescription = null,
-									modifier = Modifier.size(16.dp)
-								)
-							}
-						} else {
-							{
-								Icon(
-									painter = painterResource(source.resourceId),
-									contentDescription = null,
-									modifier = Modifier.size(16.dp),
-									tint = MaterialTheme.colorScheme.onSurfaceVariant
-								)
-							}
-						},
-						shape = CircleShape,
-						border = FilterChipDefaults.filterChipBorder(
-							enabled = true,
-							selected = isSelected,
-							borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
-						),
-						colors = FilterChipDefaults.filterChipColors(
-							selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-							selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-							selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer
+							style = MaterialTheme.typography.labelMedium,
+							fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
 						)
+					},
+					leadingIcon = if (isSelected) {
+						{
+							Icon(
+								imageVector = Icons.Filled.Check,
+								contentDescription = null,
+								modifier = Modifier.size(16.dp)
+							)
+						}
+					} else {
+						{
+							Icon(
+								painter = painterResource(source.resourceId),
+								contentDescription = null,
+								modifier = Modifier.size(16.dp),
+								tint = MaterialTheme.colorScheme.onSurfaceVariant
+							)
+						}
+					},
+					shape = CircleShape,
+					border = FilterChipDefaults.filterChipBorder(
+						enabled = true,
+						selected = isSelected,
+						borderColor = if (isSelected) Color.Transparent else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+					),
+					colors = FilterChipDefaults.filterChipColors(
+						selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+						selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+						selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+						containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
 					)
-				}
+				)
 			}
 		}
 	}
+}
 
 @Composable
 private fun LastCheckedStatusBanner(lastCheckedAtMillis: Long) {
@@ -601,6 +717,7 @@ private fun UpdateCheckProgressBar(
 	totalApps: Int? = null,
 	activeSourceName: String? = null
 ) {
+	val telemetry = MaterialTheme.telemetryColors
 	val resolvedActiveSource = when {
 		activeSourceName.isNullOrBlank() -> null
 		activeSourceName.equals("Google Play", ignoreCase = true) ||
@@ -611,79 +728,125 @@ private fun UpdateCheckProgressBar(
 	Surface(
 		color = MaterialTheme.colorScheme.surfaceContainer,
 		shape = RoundedCornerShape(24.dp),
-		border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
+		border = BorderStroke(1.dp, telemetry.glowBorder),
 		modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
 	) {
-		Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp)) {
+		Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
 			if (checkedApps != null && totalApps != null && totalApps > 0) {
 				val completed = checkedApps.coerceIn(0, totalApps - 1)
+				val pct = ((completed.toFloat() / totalApps) * 100).toInt()
 				Row(
-					modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
+					modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
 					horizontalArrangement = Arrangement.SpaceBetween,
 					verticalAlignment = Alignment.CenterVertically
 				) {
-					Text(
-						text = stringResource(R.string.updates_checking_apps, completed, totalApps),
-						style = MaterialTheme.typography.labelMedium,
-						color = MaterialTheme.colorScheme.onSurfaceVariant,
-						maxLines = 1,
-						overflow = TextOverflow.Ellipsis,
+					Row(
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(8.dp),
 						modifier = Modifier.weight(1f, fill = false)
-					)
-					if (!resolvedActiveSource.isNullOrBlank()) {
-						Spacer(Modifier.width(8.dp))
+					) {
+						Box(
+							modifier = Modifier
+								.size(8.dp)
+								.clip(CircleShape)
+								.background(telemetry.orbitCyan)
+						)
 						Text(
-							text = stringResource(R.string.updates_checking_source, resolvedActiveSource),
-							style = MaterialTheme.typography.labelSmall,
-							fontWeight = FontWeight.Medium,
-							color = MaterialTheme.colorScheme.primary,
-							maxLines = 1
+							text = stringResource(R.string.updates_checking_apps, completed, totalApps),
+							style = MaterialTheme.typography.labelMedium,
+							fontWeight = FontWeight.SemiBold,
+							color = MaterialTheme.colorScheme.onSurface,
+							maxLines = 1,
+							overflow = TextOverflow.Ellipsis
+						)
+					}
+					Row(
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(6.dp)
+					) {
+						if (!resolvedActiveSource.isNullOrBlank()) {
+							Surface(
+								shape = CircleShape,
+								color = MaterialTheme.colorScheme.surfaceContainerHighest
+							) {
+								Text(
+									text = resolvedActiveSource,
+									modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+									style = MaterialTheme.typography.labelSmall,
+									fontWeight = FontWeight.Medium,
+									color = telemetry.orbitCyan,
+									maxLines = 1
+								)
+							}
+						}
+						Text(
+							text = "$pct%",
+							style = MaterialTheme.typography.labelMedium,
+							fontWeight = FontWeight.Bold,
+							color = telemetry.orbitCyan
 						)
 					}
 				}
 				if (completed > 0) {
 					LinearProgressIndicator(
 						progress = { completed.toFloat() / totalApps },
-						modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
-						color = MaterialTheme.colorScheme.primary,
-						trackColor = MaterialTheme.colorScheme.secondaryContainer
+						modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
+						color = telemetry.orbitCyan,
+						trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
 					)
 				} else {
 					LinearProgressIndicator(
-						modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
-						color = MaterialTheme.colorScheme.primary,
-						trackColor = MaterialTheme.colorScheme.secondaryContainer
+						modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
+						color = telemetry.orbitCyan,
+						trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
 					)
 				}
 			} else {
 				Row(
-					modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
+					modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
 					horizontalArrangement = Arrangement.SpaceBetween,
 					verticalAlignment = Alignment.CenterVertically
 				) {
-					Text(
-						text = stringResource(R.string.updates_checking),
-						style = MaterialTheme.typography.labelMedium,
-						color = MaterialTheme.colorScheme.onSurfaceVariant,
-						maxLines = 1,
-						overflow = TextOverflow.Ellipsis,
+					Row(
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(8.dp),
 						modifier = Modifier.weight(1f, fill = false)
-					)
-					if (!resolvedActiveSource.isNullOrBlank()) {
-						Spacer(Modifier.width(8.dp))
-						Text(
-							text = stringResource(R.string.updates_checking_source, resolvedActiveSource),
-							style = MaterialTheme.typography.labelSmall,
-							fontWeight = FontWeight.Medium,
-							color = MaterialTheme.colorScheme.primary,
-							maxLines = 1
+					) {
+						Box(
+							modifier = Modifier
+								.size(8.dp)
+								.clip(CircleShape)
+								.background(telemetry.orbitCyan)
 						)
+						Text(
+							text = stringResource(R.string.updates_checking),
+							style = MaterialTheme.typography.labelMedium,
+							fontWeight = FontWeight.SemiBold,
+							color = MaterialTheme.colorScheme.onSurface,
+							maxLines = 1,
+							overflow = TextOverflow.Ellipsis
+						)
+					}
+					if (!resolvedActiveSource.isNullOrBlank()) {
+						Surface(
+							shape = CircleShape,
+							color = MaterialTheme.colorScheme.surfaceContainerHighest
+						) {
+							Text(
+								text = resolvedActiveSource,
+								modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+								style = MaterialTheme.typography.labelSmall,
+								fontWeight = FontWeight.Medium,
+								color = telemetry.orbitCyan,
+								maxLines = 1
+							)
+						}
 					}
 				}
 				LinearProgressIndicator(
-					modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
-					color = MaterialTheme.colorScheme.primary,
-					trackColor = MaterialTheme.colorScheme.secondaryContainer
+					modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
+					color = telemetry.orbitCyan,
+					trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
 				)
 			}
 		}
@@ -698,6 +861,7 @@ private fun UpdatesList(
 	modifier: Modifier
 ) {
 	val appsViewModel: AppsViewModel = koinViewModel()
+	val prefs = koinInject<Prefs>()
 	var selectedPackageName by remember { mutableStateOf<String?>(null) }
 	val selectedUpdate = updates.find { it.packageName == selectedPackageName }
 
@@ -731,7 +895,7 @@ private fun UpdatesList(
 			onDismiss = { selectedPackageName = null },
 			onInstallVariant = { chosen ->
 				viewModel.install(chosen, handler)
-				if (chosen.isBrowserOnlyUpdate) {
+				if (chosen.isBrowserOnlyUpdate(prefs.directApkMirrorDownloads.get())) {
 					selectedPackageName = null
 				}
 			},
@@ -756,140 +920,180 @@ private fun UpdateCard(
 	onInstall: () -> Unit
 ) {
 	val context = LocalContext.current
+	val haptic = LocalHapticFeedback.current
+	val telemetry = MaterialTheme.telemetryColors
 	val appName = update.name.ifBlank {
 		context.getAppName(update.packageName).ifBlank { update.packageName }
 	}
 	val card = update.toUpdateCardContent(appName)
 	val sourceName = sourceName(card.source)
+	val hasSignatureConflict = hasPotentialSignatureConflict(update.installOrigin, update.source)
+	val formattedSize = formatSizeMegabytes(update.totalSize)
 
-	val cardShape = RoundedCornerShape(NormalUpdateCardLayout.cardCornerRadiusDp.dp)
+	val cardShape = RoundedCornerShape(16.dp)
 	ElevatedCard(
-		onClick = onSelect,
+		onClick = {
+			haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+			onSelect()
+		},
 		modifier = Modifier
 			.fillMaxWidth()
-			.border(BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)), cardShape)
+			.border(BorderStroke(1.dp, telemetry.glowBorder.copy(alpha = 0.25f)), cardShape)
 			.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
 		shape = cardShape,
 		colors = CardDefaults.elevatedCardColors(
 			containerColor = MaterialTheme.colorScheme.surfaceContainerLow
 		),
-		elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
+		elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
 	) {
 		Column(
 			modifier = Modifier
 				.fillMaxWidth()
 				.heightIn(min = NormalUpdateCardLayout.minCardHeightDp.dp)
-				.padding(
-					horizontal = NormalUpdateCardLayout.cardPaddingHorizontalDp.dp,
-					vertical = NormalUpdateCardLayout.cardPaddingVerticalDp.dp
-				),
-			verticalArrangement = Arrangement.spacedBy(NormalUpdateCardLayout.sectionSpacingDp.dp)
+				.padding(12.dp),
+			verticalArrangement = Arrangement.spacedBy(8.dp)
 		) {
+			// Row 1: App Icon + App Size Badge
 			Row(
 				verticalAlignment = Alignment.CenterVertically,
-				horizontalArrangement = Arrangement.spacedBy(8.dp)
+				horizontalArrangement = Arrangement.SpaceBetween,
+				modifier = Modifier.fillMaxWidth()
 			) {
 				Box(
 					modifier = Modifier
-						.size(NormalUpdateCardLayout.iconSizeDp.dp)
+						.size(42.dp)
 						.clip(RoundedCornerShape(12.dp))
-						.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+						.background(MaterialTheme.colorScheme.surfaceContainerHighest),
 					contentAlignment = Alignment.Center
 				) {
 					LoadingImageApp(
 						card.packageName,
-						Modifier.requiredSize((NormalUpdateCardLayout.iconSizeDp + 16f).dp)
+						Modifier.requiredSize(54.dp)
 					)
 				}
-				Column(
-					modifier = Modifier.weight(1f),
-					verticalArrangement = Arrangement.spacedBy(1.dp)
-				) {
-					Text(
-						text = card.appName,
-						style = MaterialTheme.typography.titleSmall.copy(
-							lineHeight = NormalUpdateCardLayout.appNameLineHeightSp.sp
-						),
-						fontWeight = FontWeight.SemiBold,
-						color = MaterialTheme.colorScheme.onSurface,
-						minLines = 2,
-						maxLines = 2,
-						overflow = TextOverflow.Ellipsis
-					)
-					Text(
-						text = card.packageName,
-						style = MaterialTheme.typography.labelSmall.copy(
-							fontSize = NormalUpdateCardLayout.packageIdFontSizeSp.sp,
-							lineHeight = NormalUpdateCardLayout.packageIdLineHeightSp.sp
-						),
-						color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
-						maxLines = 1,
-						overflow = TextOverflow.Ellipsis
-					)
+
+				if (formattedSize.isNotBlank()) {
+					Surface(
+						shape = CircleShape,
+						color = MaterialTheme.colorScheme.surfaceContainerHighest
+					) {
+						Text(
+							text = formattedSize,
+							modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+							style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+							fontWeight = FontWeight.Medium,
+							color = MaterialTheme.colorScheme.onSurfaceVariant
+						)
+					}
 				}
 			}
 
-			Row(
-				verticalAlignment = Alignment.CenterVertically,
-				horizontalArrangement = Arrangement.spacedBy(4.dp),
-				modifier = Modifier.fillMaxWidth()
+			// Row 2: App Name & Package
+			Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+				Text(
+					text = card.appName,
+					style = MaterialTheme.typography.titleSmall.copy(
+						fontSize = 13.5.sp,
+						lineHeight = 17.sp
+					),
+					fontWeight = FontWeight.Bold,
+					color = MaterialTheme.colorScheme.onSurface,
+					minLines = 2,
+					maxLines = 2,
+					overflow = TextOverflow.Ellipsis
+				)
+				Text(
+					text = card.packageName,
+					style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+					color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+					maxLines = 1,
+					overflow = TextOverflow.Ellipsis
+				)
+			}
+
+			// Row 3: Vertically Stacked Versions (Old vs New)
+			Column(
+				modifier = Modifier.fillMaxWidth(),
+				verticalArrangement = Arrangement.spacedBy(4.dp)
 			) {
 				Surface(
-					shape = CircleShape,
+					shape = RoundedCornerShape(8.dp),
 					color = MaterialTheme.colorScheme.surfaceContainerHigh,
-					modifier = Modifier.weight(1f, fill = false)
+					modifier = Modifier.fillMaxWidth()
 				) {
 					Text(
-						text = card.installedVersion.ifBlank { "—" },
-						modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-						style = MaterialTheme.typography.labelSmall,
+						text = "${stringResource(R.string.installed_short)}: ${card.installedVersion.ifBlank { "—" }}",
+						modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+						style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.5.sp),
 						color = MaterialTheme.colorScheme.onSurfaceVariant,
 						maxLines = 1,
 						overflow = TextOverflow.Ellipsis
 					)
 				}
-				Icon(
-					imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
-					contentDescription = null,
-					tint = MaterialTheme.colorScheme.primary,
-					modifier = Modifier.size(12.dp)
-				)
 				Surface(
-					shape = CircleShape,
+					shape = RoundedCornerShape(8.dp),
 					color = MaterialTheme.colorScheme.primaryContainer,
-					modifier = Modifier.weight(1f, fill = false)
+					modifier = Modifier.fillMaxWidth()
 				) {
-					Text(
-						text = card.availableVersion.ifBlank { "—" },
-						modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-						style = MaterialTheme.typography.labelSmall,
-						fontWeight = FontWeight.Bold,
-						color = MaterialTheme.colorScheme.onPrimaryContainer,
-						maxLines = 1,
-						overflow = TextOverflow.Ellipsis
-					)
+					Row(
+						verticalAlignment = Alignment.CenterVertically,
+						modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+					) {
+						Icon(
+							imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
+							contentDescription = null,
+							tint = telemetry.orbitCyan,
+							modifier = Modifier.size(11.dp)
+						)
+						Spacer(Modifier.width(4.dp))
+						Text(
+							text = card.availableVersion.ifBlank { "—" },
+							style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.5.sp),
+							fontWeight = FontWeight.Bold,
+							color = MaterialTheme.colorScheme.onPrimaryContainer,
+							maxLines = 1,
+							overflow = TextOverflow.Ellipsis
+						)
+					}
 				}
 			}
 
+			// Row 4: Live Progress Bar (if installing or queued)
 			if (card.isInstalling || update.isQueued) {
 				Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-					Text(
-						text = stringResource(if (update.isQueued && !card.isInstalling) R.string.queued_update else R.string.installing_update),
-						style = MaterialTheme.typography.labelSmall,
-						color = MaterialTheme.colorScheme.primary,
-						maxLines = 1,
-						overflow = TextOverflow.Ellipsis
-					)
+					Row(
+						modifier = Modifier.fillMaxWidth(),
+						horizontalArrangement = Arrangement.SpaceBetween,
+						verticalAlignment = Alignment.CenterVertically
+					) {
+						Text(
+							text = stringResource(if (update.isQueued && !card.isInstalling) R.string.queued_update else R.string.installing_update),
+							style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+							fontWeight = FontWeight.SemiBold,
+							color = telemetry.orbitCyan,
+							maxLines = 1,
+							overflow = TextOverflow.Ellipsis
+						)
+						if (card.isInstalling && update.total > 0L) {
+							val pct = ((update.progress.toFloat() / update.total) * 100).toInt()
+							Text(
+								text = "$pct%",
+								style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+								fontWeight = FontWeight.Bold,
+								color = telemetry.orbitCyan
+							)
+						}
+					}
 					if (card.isInstalling && update.total > 0L) {
 						LinearProgressIndicator(
 							progress = { (update.progress.toFloat() / update.total).coerceIn(0f, 1f) },
-							modifier = Modifier.fillMaxWidth().height(4.dp),
+							modifier = Modifier.fillMaxWidth().height(4.dp).clip(CircleShape),
 							color = MaterialTheme.colorScheme.primary,
 							trackColor = MaterialTheme.colorScheme.secondaryContainer
 						)
 					} else {
 						LinearProgressIndicator(
-							modifier = Modifier.fillMaxWidth().height(4.dp),
+							modifier = Modifier.fillMaxWidth().height(4.dp).clip(CircleShape),
 							color = MaterialTheme.colorScheme.primary,
 							trackColor = MaterialTheme.colorScheme.secondaryContainer
 						)
@@ -897,15 +1101,16 @@ private fun UpdateCard(
 				}
 			}
 
-			Spacer(modifier = Modifier.weight(1f))
+			Spacer(modifier = Modifier.weight(1f, fill = false))
 
+			// Row 5: Footer Actions (Source + Signature Status + Update Button)
 			Row(
 				modifier = Modifier.fillMaxWidth(),
 				verticalAlignment = Alignment.CenterVertically,
 				horizontalArrangement = Arrangement.SpaceBetween
 			) {
 				Row(
-					modifier = Modifier.weight(1f, fill = false).padding(end = 6.dp),
+					modifier = Modifier.weight(1f, fill = false).padding(end = 4.dp),
 					verticalAlignment = Alignment.CenterVertically,
 					horizontalArrangement = Arrangement.spacedBy(4.dp)
 				) {
@@ -913,12 +1118,12 @@ private fun UpdateCard(
 						painter = painterResource(update.source.resourceId),
 						contentDescription = null,
 						tint = MaterialTheme.colorScheme.onSurfaceVariant,
-						modifier = Modifier.size(NormalUpdateCardLayout.sourceIconSizeDp.dp)
+						modifier = Modifier.size(14.dp)
 					)
 					Text(
 						text = sourceName,
-						modifier = Modifier.weight(1f, fill = false),
-						style = MaterialTheme.typography.labelSmall,
+						style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+						fontWeight = FontWeight.Medium,
 						maxLines = 1,
 						overflow = TextOverflow.Ellipsis,
 						color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -926,31 +1131,54 @@ private fun UpdateCard(
 					if (card.additionalSourcesCount > 0) {
 						Text(
 							text = "+${card.additionalSourcesCount}",
-							style = MaterialTheme.typography.labelSmall,
-							fontWeight = FontWeight.SemiBold,
-							maxLines = 1,
+							style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+							fontWeight = FontWeight.Bold,
 							color = MaterialTheme.colorScheme.primary
 						)
 					}
+
+					if (!hasSignatureConflict) {
+						Icon(
+							imageVector = Icons.Rounded.CheckCircle,
+							contentDescription = null,
+							tint = telemetry.verified,
+							modifier = Modifier.size(13.dp)
+						)
+					} else {
+						Icon(
+							imageVector = Icons.Filled.Warning,
+							contentDescription = null,
+							tint = telemetry.warning,
+							modifier = Modifier.size(13.dp)
+						)
+					}
 				}
+
 				if (card.canInstall && !update.isQueued) {
 					CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
-						FilledTonalButton(
-							onClick = onInstall,
-							modifier = Modifier.height(NormalUpdateCardLayout.actionButtonHeightDp.dp),
+						Button(
+							onClick = {
+								haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+								onInstall()
+							},
+							modifier = Modifier.height(30.dp),
 							shape = CircleShape,
+							colors = ButtonDefaults.buttonColors(
+								containerColor = MaterialTheme.colorScheme.primary,
+								contentColor = MaterialTheme.colorScheme.onPrimary
+							),
 							contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)
 						) {
 							Icon(
 								painter = painterResource(R.drawable.ic_install),
 								contentDescription = null,
-								modifier = Modifier.size(NormalUpdateCardLayout.actionIconSizeDp.dp)
+								modifier = Modifier.size(14.dp)
 							)
 							Spacer(Modifier.width(4.dp))
 							Text(
 								text = stringResource(R.string.update_action),
-								style = MaterialTheme.typography.labelSmall,
-								fontWeight = FontWeight.SemiBold,
+								style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+								fontWeight = FontWeight.Bold,
 								maxLines = 1
 							)
 						}
@@ -970,6 +1198,9 @@ private fun CompactUpdatesGrid(
 	modifier: Modifier
 ) {
 	val appsViewModel: AppsViewModel = koinViewModel()
+	val prefs = koinInject<Prefs>()
+	val haptic = LocalHapticFeedback.current
+	val telemetry = MaterialTheme.telemetryColors
 	var selectedPackageName by remember { mutableStateOf<String?>(null) }
 	val selectedUpdate = updates.find { it.packageName == selectedPackageName }
 
@@ -993,17 +1224,20 @@ private fun CompactUpdatesGrid(
 					context.getAppName(update.packageName).ifBlank { update.packageName }
 				}
 				val card = update.toUpdateCardContent(appName)
-				val cardShape = RoundedCornerShape(CompactUpdateCardLayout.cardCornerRadiusDp.dp)
+				val cardShape = RoundedCornerShape(20.dp)
 				ElevatedCard(
-					onClick = { selectedPackageName = update.packageName },
+					onClick = {
+						haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+						selectedPackageName = update.packageName
+					},
 					modifier = Modifier
 						.fillMaxWidth()
 						.heightIn(min = CompactUpdateCardLayout.minCardHeightDp.dp)
-						.border(BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)), cardShape)
+						.border(BorderStroke(1.dp, telemetry.glowBorder.copy(alpha = 0.25f)), cardShape)
 						.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
 					shape = cardShape,
 					colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-					elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
+					elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
 				) {
 					Column(
 						modifier = Modifier
@@ -1025,7 +1259,7 @@ private fun CompactUpdatesGrid(
 							Box(
 								modifier = Modifier
 									.size(CompactUpdateCardLayout.iconSizeDp.dp)
-									.clip(RoundedCornerShape(10.dp))
+									.clip(RoundedCornerShape(12.dp))
 									.background(MaterialTheme.colorScheme.surfaceContainerHigh),
 								contentAlignment = Alignment.Center
 							) {
@@ -1041,7 +1275,7 @@ private fun CompactUpdatesGrid(
 								fontSize = CompactUpdateCardLayout.appNameFontSizeSp.sp,
 								lineHeight = CompactUpdateCardLayout.appNameLineHeightDp.sp
 							),
-							fontWeight = FontWeight.SemiBold,
+							fontWeight = FontWeight.Bold,
 							color = MaterialTheme.colorScheme.onSurface,
 							maxLines = 1,
 							overflow = TextOverflow.Ellipsis
@@ -1066,8 +1300,8 @@ private fun CompactUpdatesGrid(
 									fontSize = CompactUpdateCardLayout.metaFontSizeSp.sp,
 									lineHeight = CompactUpdateCardLayout.metaLineHeightDp.sp
 								),
-								fontWeight = FontWeight.SemiBold,
-								color = MaterialTheme.colorScheme.primary,
+								fontWeight = FontWeight.Bold,
+								color = telemetry.orbitCyan,
 								maxLines = 1,
 								overflow = TextOverflow.Ellipsis
 							)
@@ -1134,7 +1368,7 @@ private fun CompactUpdatesGrid(
 			onDismiss = { selectedPackageName = null },
 			onInstallVariant = { chosen ->
 				viewModel.install(chosen, handler)
-				if (chosen.isBrowserOnlyUpdate) {
+				if (chosen.isBrowserOnlyUpdate(prefs.directApkMirrorDownloads.get())) {
 					selectedPackageName = null
 				}
 			},

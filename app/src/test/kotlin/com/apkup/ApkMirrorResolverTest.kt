@@ -498,6 +498,39 @@ class ApkMirrorResolverTest {
     }
 
     @Test
+    fun testQueuePartitioningPromotesDirectAlternativeWhenPrimaryIsBrowserOnly() {
+        val playAlt = AppUpdate(
+            name = "PlayApp",
+            packageName = "com.example.hybrid",
+            version = "2.0",
+            oldVersion = "1.0",
+            versionCode = 20L,
+            oldVersionCode = 10L,
+            source = PlaySource,
+            link = Link.Play { emptyList() }
+        )
+        val apkMirrorPrimary = AppUpdate(
+            name = "MirrorApp",
+            packageName = "com.example.hybrid",
+            version = "2.0",
+            oldVersion = "1.0",
+            versionCode = 20L,
+            oldVersionCode = 10L,
+            source = ApkMirrorSource,
+            link = Link.Url("https://www.apkmirror.com/apk/example/download/"),
+            alternativeUpdates = listOf(playAlt)
+        )
+
+        val (directQueue, browserSkipped) = partitionInstallQueueCandidates(
+            updates = listOf(apkMirrorPrimary),
+            directApkMirrorEnabled = false
+        )
+
+        assertEquals(listOf(playAlt), directQueue)
+        assertTrue(browserSkipped.isEmpty())
+    }
+
+    @Test
     fun testAppUpdateDirectInstallablePropertyRespondsToToggle() {
         val apkMirrorUpdate = AppUpdate(
             name = "MirrorApp",

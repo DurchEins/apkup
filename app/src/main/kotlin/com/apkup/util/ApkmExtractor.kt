@@ -4,7 +4,6 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.util.zip.ZipFile
-import java.util.zip.ZipInputStream
 
 object ApkmExtractor {
 
@@ -48,73 +47,113 @@ object ApkmExtractor {
     }
 
     /**
-     * Extracts all .apk entries from an input stream into the destination staging directory.
-     * Enforces Zip Slip validation and orders base.apk first.
+     * Extracts all .apk entries from an APKM archive file into the destination staging directory.
+     * Enforces full ZIP archive integrity (validating End of Central Directory and Central Directory),
+     * Zip Slip path traversal security, deduplication by canonical path, and orders base.apk first.
      *
-     * @param inputStream Stream containing the .apkm ZIP archive.
-     * @param targetDir Destination directory where splits will be extracted.
-     * @return Ordered list of extracted .apk files with base.apk sorted first.
+     * @param archiveFile The .apkm ZIP file.
+     * @param destinationDir The target staging directory (e.g. download_staging_<id>/).
+     * @return Ordered, deduplicated list of extracted .apk files with base.apk first.
+     * @throws IOException If the archive is truncated, corrupted, invalid, or has no valid .apk entries.
      */
     @Throws(IOException::class)
-    fun unpackApkmStream(inputStream: InputStream, targetDir: File): List<File> {
-        targetDir.mkdirs()
-        val canonicalDest = targetDir.canonicalPath
-        val extractedFiles = mutableListOf<File>()
-
-        ZipInputStream(inputStream).use { zis ->
-            while (true) {
-                val entry = zis.nextEntry ?: break
-                if (entry.isDirectory || !entry.name.endsWith(".apk", ignoreCase = true)) {
-                    zis.closeEntry()
-                    continue
-                }
-
-                // Flatten file structure by extracting only the simple filename
-                val simpleName = File(entry.name).name
-                val targetFile = File(targetDir, simpleName)
-
-                // Zip Slip security guard
-                if (!targetFile.canonicalPath.startsWith(canonicalDest)) {
-                    throw SecurityException("Zip Slip path traversal detected in archive entry: ${entry.name}")
-                }
-
-                targetFile.outputStream().use { output ->
-                    zis.copyTo(output)
-                    output.flush()
-                }
-                zis.closeEntry()
-
-                if (targetFile.length() > 0L) {
-                    extractedFiles.add(targetFile)
-                } else {
-                    targetFile.delete()
-                }
-            }
+    fun extractApkm(archiveFile: File, destinationDir: File): List<File> {
+        if (!archiveFile.exists() || archiveFile.length() < 22L) {
+            throw IOException("Archive file does not exist or is too small to be a valid ZIP: ${archiveFile.absolutePath}")
         }
 
-        if (extractedFiles.isEmpty()) {
+        destinationDir.mkdirs()
+        val canonicalDest = destinationDir.canonicalFile
+
+        // Step 1: Open ZipFile. This immediately validates the ZIP End of Central Directory (EOCD)
+        // record and parses all Central Directory headers. If the file is truncated anywhere
+        // (including after base.apk), ZipFile throws ZipException / IOException.
+        val zip = try {
+            ZipFile(archiveFile)
+        } catch (e: Exception) {
+            throw IOException("Corrupt or truncated APKM archive: ${archiveFile.name}", e)
+        }
+
+        // Map canonical path -> File to deduplicate collisions when multiple entries flatten to the same name
+        val extractedFilesMap = LinkedHashMap<String, File>()
+
+        try {
+            zip.use { zipFile ->
+                val entries = zipFile.entries()
+                while (entries.hasMoreElements()) {
+                    val entry = entries.nextElement()
+                    if (entry.isDirectory || !entry.name.endsWith(".apk", ignoreCase = true)) {
+                        continue
+                    }
+
+                    // Flatten entry name to simple filename
+                    val simpleName = File(entry.name).name
+                    if (simpleName.isBlank()) continue
+
+                    val targetFile = File(destinationDir, simpleName).canonicalFile
+
+                    // Defense-in-depth Zip Slip security guard
+                    if (targetFile.parentFile != canonicalDest) {
+                        throw SecurityException("Zip Slip path traversal detected in archive entry: ${entry.name}")
+                    }
+
+                    // Extract entry stream to target file
+                    zipFile.getInputStream(entry).use { input ->
+                        targetFile.outputStream().use { output ->
+                            input.copyTo(output)
+                            output.flush()
+                        }
+                    }
+
+                    if (targetFile.length() > 0L) {
+                        extractedFilesMap[targetFile.canonicalPath] = targetFile
+                    } else {
+                        targetFile.delete()
+                        extractedFilesMap.remove(targetFile.canonicalPath)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            // Clean up partially extracted files on failure
+            extractedFilesMap.values.forEach { runCatching { it.delete() } }
+            if (e is IOException) throw e
+            if (e is SecurityException) throw e
+            throw IOException("Failed to extract APKM archive: ${archiveFile.name}", e)
+        }
+
+        if (extractedFilesMap.isEmpty()) {
             throw IOException("No valid .apk entries found inside archive")
         }
 
-        // Sort base.apk first, followed by alphabetical split names
-        return extractedFiles.sortedWith(
+        // Sort base.apk first, followed alphabetically by split filename
+        return extractedFilesMap.values.sortedWith(
             compareByDescending<File> { it.name.equals("base.apk", ignoreCase = true) }
                 .thenBy { it.name }
         )
     }
 
     /**
-     * Extracts all .apk entries from an APKM archive into the destination staging directory.
-     * Enforces Zip Slip validation and orders base.apk first.
+     * Extracts all .apk entries from an input stream into the destination staging directory.
+     * Spools the stream to a temporary archive to ensure full ZIP archive integrity
+     * (preventing silent split drops on truncated streams), deduplicates entries, and orders base.apk first.
      *
-     * @param archiveFile The .apkm ZIP file.
-     * @param destinationDir The target staging directory (e.g. download_staging_<id>/).
-     * @return Ordered list of extracted .apk files with base.apk first.
+     * @param inputStream Stream containing the .apkm ZIP archive.
+     * @param targetDir Destination directory where splits will be extracted.
+     * @return Ordered, deduplicated list of extracted .apk files with base.apk sorted first.
+     * @throws IOException If the stream is truncated, corrupt, or contains no valid .apk entries.
      */
     @Throws(IOException::class)
-    fun extractApkm(archiveFile: File, destinationDir: File): List<File> {
-        return archiveFile.inputStream().use { stream ->
-            unpackApkmStream(stream, destinationDir)
+    fun unpackApkmStream(inputStream: InputStream, targetDir: File): List<File> {
+        targetDir.mkdirs()
+        val tempArchive = File.createTempFile("apkm_stream_", ".zip", targetDir)
+        try {
+            tempArchive.outputStream().use { out ->
+                inputStream.copyTo(out)
+                out.flush()
+            }
+            return extractApkm(tempArchive, targetDir)
+        } finally {
+            tempArchive.delete()
         }
     }
 }
