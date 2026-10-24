@@ -15,6 +15,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
@@ -643,6 +644,216 @@ class PlayAuthRetryTest {
         }
         assertEquals("Dispenser should be called exactly once across all 3 concurrent download workers", 1, dispenserCalls.get())
         assertEquals("Each worker should take 2 attempts (1 failure + 1 retry) = 6 total attempts", 6, deliveryAttemptsPerWorker.get())
+    }
+
+    // =========================================================================
+    // EMPIRICAL CHALLENGER STRESS TESTS: EXTREME CONCURRENCY & BOUNDARY CONDITIONS
+    // =========================================================================
+
+    @Test
+    fun extremeConcurrencyColdStartSixtyCoroutinesExecuteWithExactlyOneDispenserCallAndZeroDeadlocks() = runBlocking(Dispatchers.Default) {
+        val dispenserCalls = AtomicInteger(0)
+        var cachedSession: AuthData? = null
+        val sessionMutex = Mutex()
+        val concurrentCount = 60
+
+        suspend fun getOrRefreshAuth(): AuthData {
+            val memory = cachedSession
+            if (memory != null && memory.authToken.isNotBlank()) {
+                return memory
+            }
+
+            return sessionMutex.withLock {
+                val doubleCheck = cachedSession
+                if (doubleCheck != null && doubleCheck.authToken.isNotBlank()) {
+                    return@withLock doubleCheck
+                }
+                dispenserCalls.incrementAndGet()
+                delay(60L) // Simulate network dispenser latency under load
+                val fresh = createTestAuth("dispenser-cold-start-shared-token")
+                cachedSession = fresh
+                fresh
+            }
+        }
+
+        withTimeout(15_000L) {
+            val jobs = (1..concurrentCount).map {
+                async {
+                    getOrRefreshAuth()
+                }
+            }
+            val results = jobs.awaitAll()
+
+            assertEquals("All $concurrentCount callers must complete successfully", concurrentCount, results.size)
+            results.forEach { auth ->
+                assertEquals("dispenser-cold-start-shared-token", auth.authToken)
+            }
+            assertEquals("Dispenser must be called exactly ONCE despite $concurrentCount concurrent requests", 1, dispenserCalls.get())
+        }
+    }
+
+    @Test
+    fun extremeConcurrencyFortyTwoNineStampedeSixtyCoroutinesShareSingleTokenRefreshWithZeroDeadlocks() = runBlocking(Dispatchers.Default) {
+        val dispenserCalls = AtomicInteger(0)
+        val sessionMutex = Mutex()
+        var currentActiveSession = createTestAuth("stale-token-causing-429")
+        val concurrentCount = 60
+
+        suspend fun refreshAuthIfNeeded(failedToken: String): AuthData = sessionMutex.withLock {
+            if (currentActiveSession.authToken != failedToken) {
+                return@withLock currentActiveSession
+            }
+            dispenserCalls.incrementAndGet()
+            delay(60L) // Simulate token dispenser processing
+            val newSession = createTestAuth("fresh-token-post-429-stampede")
+            currentActiveSession = newSession
+            newSession
+        }
+
+        withTimeout(15_000L) {
+            val workers = (1..concurrentCount).map {
+                async {
+                    refreshAuthIfNeeded("stale-token-causing-429")
+                }
+            }
+            val resolvedAuths = workers.awaitAll()
+
+            assertEquals(concurrentCount, resolvedAuths.size)
+            resolvedAuths.forEach { auth ->
+                assertEquals("fresh-token-post-429-stampede", auth.authToken)
+            }
+            assertEquals("Dispenser must be contacted exactly ONCE for $concurrentCount concurrent 429 failures", 1, dispenserCalls.get())
+        }
+    }
+
+    @Test
+    fun cooldownBoundaryExactlyAt3000msThresholdWaitsAndExecutesSuccessfully() {
+        var simulatedClock = 10_000L
+        val cooldownUntil = 13_000L // EXACTLY 3,000ms remaining
+        val sleepDelays = mutableListOf<Long>()
+        var executed = false
+
+        val testAuth = createTestAuth("token-1")
+        val result = executeWithPlayDeliveryRetry(
+            clock = { simulatedClock },
+            sleep = { delayMs ->
+                sleepDelays += delayMs
+                simulatedClock += delayMs
+            },
+            getAuth = { testAuth },
+            refreshAuth = { testAuth },
+            responseCode = { 200 },
+            isCooldownActive = { simulatedClock < cooldownUntil },
+            remainingCooldownMs = { (cooldownUntil - simulatedClock).coerceAtLeast(0L) },
+            operation = {
+                executed = true
+                listOf(PlayFile(name = "base.apk", type = PlayFile.Type.BASE))
+            }
+        )
+
+        assertTrue("Operation must execute after waiting exactly 3000ms threshold", executed)
+        assertEquals(1, result.size)
+        assertEquals("base.apk", result[0].name)
+        assertEquals("Must sleep exactly the 3,000ms remaining", listOf(3000L), sleepDelays)
+    }
+
+    @Test
+    fun cooldownBoundaryAt3001msThresholdRejectsImmediatelyWithoutExecutionOrSleep() {
+        val simulatedClock = 10_000L
+        val cooldownUntil = 13_001L // EXACTLY 3,001ms remaining (> 3000ms threshold)
+        val sleepDelays = mutableListOf<Long>()
+        var operationAttempted = false
+
+        val testAuth = createTestAuth("token-1")
+        val thrown = assertThrows(IllegalStateException::class.java) {
+            executeWithPlayDeliveryRetry(
+                clock = { simulatedClock },
+                sleep = { sleepDelays += it },
+                getAuth = { testAuth },
+                refreshAuth = { testAuth },
+                responseCode = { 200 },
+                isCooldownActive = { true },
+                remainingCooldownMs = { cooldownUntil - simulatedClock },
+                operation = {
+                    operationAttempted = true
+                    listOf(PlayFile(name = "base.apk", type = PlayFile.Type.BASE))
+                }
+            )
+        }
+
+        assertFalse("Operation must never be attempted when remaining cooldown exceeds 3000ms", operationAttempted)
+        assertTrue("No sleep must occur when rejecting beyond threshold", sleepDelays.isEmpty())
+        assertTrue("Exception message must describe active cooldown", thrown.message!!.contains("cooldown active"))
+    }
+
+    @Test
+    fun cooldownBoundaryZeroOrNegativeRemainingExecutesImmediatelyWithoutSleep() {
+        val simulatedClock = 10_000L
+        val sleepDelays = mutableListOf<Long>()
+        var executed = false
+
+        val testAuth = createTestAuth("token-1")
+        val result = executeWithPlayDeliveryRetry(
+            clock = { simulatedClock },
+            sleep = { sleepDelays += it },
+            getAuth = { testAuth },
+            refreshAuth = { testAuth },
+            responseCode = { 200 },
+            isCooldownActive = { true },
+            remainingCooldownMs = { 0L }, // 0ms remaining
+            operation = {
+                executed = true
+                listOf(PlayFile(name = "base.apk", type = PlayFile.Type.BASE))
+            }
+        )
+
+        assertTrue(executed)
+        assertEquals(1, result.size)
+        assertTrue("0ms remaining should not trigger any sleep", sleepDelays.isEmpty())
+    }
+
+    @Test
+    fun monotonicTimestampProgressionUnderHighContentionFiftyThreads() = runBlocking(Dispatchers.Default) {
+        val threadCount = 60
+        val baseClock = 1_000_000L
+        val cooldownUntilMs = AtomicLong(0L)
+        val lock = Any()
+        var synchronizedCooldown = 0L
+
+        fun setCooldownAtomic(duration: Long, clock: Long) {
+            cooldownUntilMs.updateAndGet { current -> maxOf(current, clock + duration) }
+        }
+
+        fun setCooldownSynchronized(duration: Long, clock: Long) {
+            synchronized(lock) {
+                synchronizedCooldown = maxOf(synchronizedCooldown, clock + duration)
+            }
+        }
+
+        val offsets = (1..threadCount).map { i ->
+            when (i % 5) {
+                0 -> -5_000L // stale/past
+                1 -> 10_000L
+                2 -> 30_000L
+                3 -> 120_000L // highest
+                else -> 60_000L
+            }
+        }
+
+        val expectedMax = baseClock + 120_000L
+
+        withTimeout(10_000L) {
+            val jobs = offsets.map { offset ->
+                async {
+                    setCooldownAtomic(offset, baseClock)
+                    setCooldownSynchronized(offset, baseClock)
+                }
+            }
+            jobs.awaitAll()
+
+            assertEquals("Atomic cooldown progression must reach exact maximum without regression", expectedMax, cooldownUntilMs.get())
+            assertEquals("Synchronized cooldown progression must reach exact maximum without regression", expectedMax, synchronizedCooldown)
+        }
     }
 
     // =========================================================================
