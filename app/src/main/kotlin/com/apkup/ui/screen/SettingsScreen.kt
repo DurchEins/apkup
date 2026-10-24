@@ -387,10 +387,25 @@ fun Settings(
 			SettingsSection(stringResource(R.string.settings_section_sources)) {
 				SwitchSetting(
 					{ viewModel.getUseApkMirror() },
-					{ viewModel.setUseApkMirror(it) },
+					{
+						viewModel.setUseApkMirror(it)
+						configRefreshKey++
+					},
 					stringResource(R.string.source_apkmirror),
 					R.drawable.ic_apkmirror
 				)
+				if (viewModel.getUseApkMirror()) {
+					SwitchSetting(
+						getValue = { viewModel.getDirectApkMirrorDownloads() },
+						setValue = {
+							viewModel.setDirectApkMirrorDownloads(it)
+							configRefreshKey++
+						},
+						text = stringResource(R.string.settings_apkmirror_direct_downloads),
+						subtitle = stringResource(R.string.settings_apkmirror_direct_downloads_desc),
+						icon = R.drawable.ic_download
+					)
+				}
 				SwitchSetting(
 					{ viewModel.getUsePlay() },
 					{ viewModel.setUsePlay(it) },
