@@ -76,6 +76,7 @@ object ApkmExtractor {
 
         // Map canonical path -> File to deduplicate collisions when multiple entries flatten to the same name
         val extractedFilesMap = LinkedHashMap<String, File>()
+        val allCreatedFiles = mutableSetOf<File>()
 
         try {
             zip.use { zipFile ->
@@ -97,6 +98,9 @@ object ApkmExtractor {
                         throw SecurityException("Zip Slip path traversal detected in archive entry: ${entry.name}")
                     }
 
+                    // Record target file before opening output stream so partial writes are cleaned up on failure
+                    allCreatedFiles.add(targetFile)
+
                     // Extract entry stream to target file
                     zipFile.getInputStream(entry).use { input ->
                         targetFile.outputStream().use { output ->
@@ -114,8 +118,8 @@ object ApkmExtractor {
                 }
             }
         } catch (e: Exception) {
-            // Clean up partially extracted files on failure
-            extractedFilesMap.values.forEach { runCatching { it.delete() } }
+            // Clean up all created and partially extracted files on failure
+            allCreatedFiles.forEach { runCatching { it.delete() } }
             if (e is IOException) throw e
             if (e is SecurityException) throw e
             throw IOException("Failed to extract APKM archive: ${archiveFile.name}", e)

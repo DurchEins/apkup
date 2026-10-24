@@ -514,6 +514,308 @@ class ApkMirrorEmpiricalChallengerTest {
         assertTrue(count > 0)
     }
 
+    // =========================================================================
+    // 4. ADVERSARIAL STRESS TESTING: CORRUPTIONS, TRUNCATIONS, LEAKS & SCALE
+    // =========================================================================
+
+    @Test
+    fun testExtractApkmZeroByteAndSub22ByteArchivesThrowIOExceptionWithoutFileDescriptorLeaks() {
+        val tempDir = File.createTempFile("challenger_leak_dest_", "").apply {
+            delete()
+            mkdirs()
+        }
+
+        try {
+            // Test 1: Zero-byte file
+            val zeroByteArchive = File.createTempFile("challenger_zero_", ".apkm")
+            try {
+                assertThrows(IOException::class.java) {
+                    ApkmExtractor.extractApkm(zeroByteArchive, tempDir)
+                }
+                // Verify no files written to destination
+                assertEquals(0, tempDir.listFiles()?.size ?: 0)
+            } finally {
+                // Must be deletable immediately (proves no file descriptor or lock was leaked on Windows)
+                assertTrue("Zero-byte archive file must be deletable without lock leak", zeroByteArchive.delete())
+            }
+
+            // Test 2: 15-byte file (sub-22-byte minimum EOCD size)
+            val sub22Archive = File.createTempFile("challenger_sub22_", ".apkm")
+            try {
+                sub22Archive.writeBytes(ByteArray(15) { 0x50 })
+                assertThrows(IOException::class.java) {
+                    ApkmExtractor.extractApkm(sub22Archive, tempDir)
+                }
+                assertEquals(0, tempDir.listFiles()?.size ?: 0)
+            } finally {
+                assertTrue("Sub-22-byte archive file must be deletable without lock leak", sub22Archive.delete())
+            }
+        } finally {
+            tempDir.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun testExtractApkmTruncatedBeforeCentralDirectoryThrowsIOExceptionAndLeavesNoPartialFilesOrLocks() {
+        val baos = ByteArrayOutputStream()
+        ZipOutputStream(baos).use { zos ->
+            zos.putNextEntry(ZipEntry("base.apk"))
+            zos.write("BASE_APK_BINARY_PAYLOAD".toByteArray())
+            zos.closeEntry()
+
+            zos.putNextEntry(ZipEntry("split_config.arm64.apk"))
+            zos.write("ARM64_SPLIT_PAYLOAD".toByteArray())
+            zos.closeEntry()
+        }
+        val fullBytes = baos.toByteArray()
+        // Truncate right before central directory (drop last 40 bytes containing central directory headers and EOCD)
+        val truncatedBytes = fullBytes.copyOfRange(0, fullBytes.size - 40)
+
+        val archiveFile = File.createTempFile("challenger_trunc_cd_", ".apkm")
+        archiveFile.writeBytes(truncatedBytes)
+
+        val destDir = File.createTempFile("challenger_trunc_dest_", "").apply {
+            delete()
+            mkdirs()
+        }
+
+        try {
+            assertThrows(IOException::class.java) {
+                ApkmExtractor.extractApkm(archiveFile, destDir)
+            }
+            // Destination directory must have 0 files (no partial extractions left behind)
+            assertEquals("Destination directory must be empty after truncation failure", 0, destDir.listFiles()?.size ?: 0)
+        } finally {
+            // Verify file lock is completely released on Windows
+            assertTrue("Archive file must be deletable after extraction exception", archiveFile.delete())
+            destDir.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun testUnpackApkmStreamCleansUpTempArchivesOnTruncatedOrCorruptStreamWithoutLeaks() {
+        val targetDir = File.createTempFile("challenger_stream_dest_", "").apply {
+            delete()
+            mkdirs()
+        }
+
+        try {
+            // Case 1: Truncated stream
+            val truncatedStream = ByteArrayInputStream(byteArrayOf(0x50, 0x4B, 0x03, 0x04, 0x14, 0x00))
+            assertThrows(IOException::class.java) {
+                ApkmExtractor.unpackApkmStream(truncatedStream, targetDir)
+            }
+
+            // Verify no temporary apkm_stream_*.zip files leaked in targetDir
+            val remainingTempZips = targetDir.listFiles { _, name -> name.startsWith("apkm_stream_") }
+            assertTrue(
+                "Temporary archive must be purged on stream failure, but found: ${remainingTempZips?.map { it.name }}",
+                remainingTempZips.isNullOrEmpty()
+            )
+            // Verify no partial .apk files remained
+            val remainingApks = targetDir.listFiles { _, name -> name.endsWith(".apk") }
+            assertTrue(
+                "No APK files should remain on stream failure, but found: ${remainingApks?.map { it.name }}",
+                remainingApks.isNullOrEmpty()
+            )
+
+            // Case 2: Valid stream
+            val baos = ByteArrayOutputStream()
+            ZipOutputStream(baos).use { zos ->
+                zos.putNextEntry(ZipEntry("base.apk"))
+                zos.write("BASE_PAYLOAD".toByteArray())
+                zos.closeEntry()
+
+                zos.putNextEntry(ZipEntry("split_config.xxhdpi.apk"))
+                zos.write("XXHDPI_PAYLOAD".toByteArray())
+                zos.closeEntry()
+            }
+            val validStream = ByteArrayInputStream(baos.toByteArray())
+            val extracted = ApkmExtractor.unpackApkmStream(validStream, targetDir)
+            assertEquals(2, extracted.size)
+            assertEquals("base.apk", extracted[0].name)
+            assertEquals("split_config.xxhdpi.apk", extracted[1].name)
+
+            // Verify temporary archive was deleted on success as well
+            val tempZipsAfterSuccess = targetDir.listFiles { _, name -> name.startsWith("apkm_stream_") }
+            assertTrue("Temporary archive must be purged on success", tempZipsAfterSuccess.isNullOrEmpty())
+        } finally {
+            targetDir.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun testExtractApkmWithCorruptedEntryStreamCleansUpAndRethrowsIOException() {
+        // Build a zip where entry 1 (base.apk) is valid, but entry 2 (split.apk) has corrupted deflate stream
+        val baos = ByteArrayOutputStream()
+        ZipOutputStream(baos).use { zos ->
+            zos.putNextEntry(ZipEntry("base.apk"))
+            zos.write("VALID_BASE_DATA".toByteArray())
+            zos.closeEntry()
+
+            // Large entry so deflate stream has substantial compressed bytes
+            zos.putNextEntry(ZipEntry("split_data.apk"))
+            val payload = ByteArray(4096) { (it % 127).toByte() }
+            zos.write(payload)
+            zos.closeEntry()
+        }
+
+        val rawBytes = baos.toByteArray()
+        // Corrupt compressed bytes of split_data.apk:
+        // Find "split_data.apk" local file header in rawBytes
+        val needle = "split_data.apk".toByteArray()
+        var splitHeaderOffset = -1
+        for (i in 0 until rawBytes.size - needle.size) {
+            var match = true
+            for (j in needle.indices) {
+                if (rawBytes[i + j] != needle[j]) {
+                    match = false
+                    break
+                }
+            }
+            if (match) {
+                splitHeaderOffset = i
+                break
+            }
+        }
+        assertTrue("Must locate split_data.apk header in rawBytes", splitHeaderOffset > 0)
+
+        // Local header format: 30 bytes fixed header, filename length, extra field length.
+        // The compressed data starts after the filename and extra field.
+        // Corrupt several bytes of the compressed data:
+        val corruptedBytes = rawBytes.copyOf()
+        val dataOffset = splitHeaderOffset + needle.size + 10
+        for (i in dataOffset until (dataOffset + 32).coerceAtMost(corruptedBytes.size - 22)) {
+            corruptedBytes[i] = (corruptedBytes[i].toInt() xor 0xFF).toByte()
+        }
+
+        val archiveFile = File.createTempFile("challenger_corrupt_entry_", ".apkm")
+        archiveFile.writeBytes(corruptedBytes)
+
+        val destDir = File.createTempFile("challenger_corrupt_dest_", "").apply {
+            delete()
+            mkdirs()
+        }
+
+        try {
+            assertThrows(IOException::class.java) {
+                ApkmExtractor.extractApkm(archiveFile, destDir)
+            }
+
+            // Destination directory must NOT leak partially extracted base.apk!
+            val remainingFiles = destDir.listFiles() ?: emptyArray()
+            assertEquals(
+                "Partially extracted files must be cleaned up on entry corruption failure: ${remainingFiles.map { it.name }}",
+                0,
+                remainingFiles.size
+            )
+        } finally {
+            assertTrue("Archive file must be deletable without lock leak", archiveFile.delete())
+            destDir.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun testExtractApkmWithLargeSplitBundleMaintainsOrderAndNoLeaks() {
+        val splitCount = 50
+        val baos = ByteArrayOutputStream()
+        ZipOutputStream(baos).use { zos ->
+            // Add base.apk
+            zos.putNextEntry(ZipEntry("base.apk"))
+            zos.write("BASE_CONTENT".toByteArray())
+            zos.closeEntry()
+
+            // Add 50 split APKs with 2-digit zero-padded names
+            for (i in 1..splitCount) {
+                val paddedIndex = String.format("%02d", i)
+                zos.putNextEntry(ZipEntry("splits/split_config.$paddedIndex.apk"))
+                zos.write("SPLIT_CONTENT_$paddedIndex".toByteArray())
+                zos.closeEntry()
+            }
+        }
+
+        val archiveFile = File.createTempFile("challenger_large_bundle_", ".apkm")
+        archiveFile.writeBytes(baos.toByteArray())
+
+        val destDir = File.createTempFile("challenger_large_dest_", "").apply {
+            delete()
+            mkdirs()
+        }
+
+        try {
+            val extracted = ApkmExtractor.extractApkm(archiveFile, destDir)
+
+            // Total files must equal 1 (base) + 50 (splits) = 51
+            assertEquals(51, extracted.size)
+
+            // Base APK must always be first
+            assertEquals("base.apk", extracted[0].name)
+            assertEquals("BASE_CONTENT", extracted[0].readText())
+
+            // Subsequent splits must be sorted alphabetically
+            for (i in 1..splitCount) {
+                val paddedIndex = String.format("%02d", i)
+                val expectedName = "split_config.$paddedIndex.apk"
+                assertEquals(expectedName, extracted[i].name)
+                assertEquals("SPLIT_CONTENT_$paddedIndex", extracted[i].readText())
+            }
+
+            // Exactly 51 files on disk in destDir
+            assertEquals(51, destDir.listFiles()?.size ?: 0)
+        } finally {
+            assertTrue("Large bundle archive must be deletable without lock leak", archiveFile.delete())
+            destDir.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun testExtractApkmDuplicateEntryNamesWithMixedZeroByteAndValidContent() {
+        val baos = ByteArrayOutputStream()
+        ZipOutputStream(baos).use { zos ->
+            // Entry 1: valid base.apk
+            zos.putNextEntry(ZipEntry("folder_a/base.apk"))
+            zos.write("BASE_V1".toByteArray())
+            zos.closeEntry()
+
+            // Entry 2: duplicate base.apk that overwrites entry 1
+            zos.putNextEntry(ZipEntry("folder_b/base.apk"))
+            zos.write("BASE_V2".toByteArray())
+            zos.closeEntry()
+
+            // Entry 3: zero-byte split.apk (should be deleted and removed)
+            zos.putNextEntry(ZipEntry("splits/split.apk"))
+            zos.closeEntry()
+
+            // Entry 4: duplicate split.apk with valid content (should replace previous zero-byte entry)
+            zos.putNextEntry(ZipEntry("other/split.apk"))
+            zos.write("SPLIT_VALID".toByteArray())
+            zos.closeEntry()
+        }
+
+        val archiveFile = File.createTempFile("challenger_dup_mixed_", ".apkm")
+        archiveFile.writeBytes(baos.toByteArray())
+
+        val destDir = File.createTempFile("challenger_dup_dest_", "").apply {
+            delete()
+            mkdirs()
+        }
+
+        try {
+            val extracted = ApkmExtractor.extractApkm(archiveFile, destDir)
+            assertEquals(2, extracted.size)
+            assertEquals("base.apk", extracted[0].name)
+            assertEquals("BASE_V2", extracted[0].readText())
+
+            assertEquals("split.apk", extracted[1].name)
+            assertEquals("SPLIT_VALID", extracted[1].readText())
+
+            assertEquals(2, destDir.listFiles()?.size ?: 0)
+        } finally {
+            assertTrue(archiveFile.delete())
+            destDir.deleteRecursively()
+        }
+    }
+
     private class TestKryptoPrefs : KryptoPrefs {
         private val values = java.util.concurrent.ConcurrentHashMap<String, Any>()
 
