@@ -154,7 +154,6 @@ import com.apkup.viewmodel.SettingsViewModel
 import com.apkup.viewmodel.UpdatesViewModel
 import com.apkup.prefs.Prefs
 import com.apkup.ui.component.ChangelogBottomSheet
-import com.apkup.ui.theme.telemetryColors
 import kotlinx.coroutines.delay
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -388,25 +387,10 @@ fun Settings(
 			SettingsSection(stringResource(R.string.settings_section_sources)) {
 				SwitchSetting(
 					{ viewModel.getUseApkMirror() },
-					{
-						viewModel.setUseApkMirror(it)
-						configRefreshKey++
-					},
+					{ viewModel.setUseApkMirror(it) },
 					stringResource(R.string.source_apkmirror),
 					R.drawable.ic_apkmirror
 				)
-				if (viewModel.getUseApkMirror()) {
-					SwitchSetting(
-						getValue = { viewModel.getDirectApkMirrorDownloads() },
-						setValue = {
-							viewModel.setDirectApkMirrorDownloads(it)
-							configRefreshKey++
-						},
-						text = stringResource(R.string.settings_apkmirror_direct_downloads),
-						subtitle = stringResource(R.string.settings_apkmirror_direct_downloads_desc),
-						icon = R.drawable.ic_download
-					)
-				}
 				SwitchSetting(
 					{ viewModel.getUsePlay() },
 					{ viewModel.setUsePlay(it) },
@@ -2432,7 +2416,7 @@ fun SettingsTopBar() = TopAppBar(
 		Text(
 			text = stringResource(R.string.tab_settings),
 			style = MaterialTheme.typography.headlineMedium,
-			fontWeight = FontWeight.Bold
+			fontWeight = FontWeight.SemiBold
 		)
 	},
 	colors = TopAppBarDefaults.topAppBarColors(
@@ -2453,7 +2437,7 @@ fun SettingsTopBar() = TopAppBar(
 			Icon(
 				imageVector = Icons.Filled.Settings,
 				contentDescription = stringResource(R.string.tab_settings),
-				tint = MaterialTheme.telemetryColors.orbitCyan,
+				tint = MaterialTheme.colorScheme.primary,
 				modifier = Modifier.size(18.dp)
 			)
 		}
