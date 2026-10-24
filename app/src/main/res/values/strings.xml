@@ -136,6 +136,10 @@
     <string name="backup_import_success">Configuration restored successfully.</string>
     <string name="backup_import_error">Could not process backup file.</string>
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
+    <string name="settings_apkmirror_direct_downloads">Direct APKMirror downloads</string>
+    <string name="settings_apkmirror_direct_downloads_desc">Download and install APKMirror updates directly in-app</string>
+    <string name="apkmirror_challenge_fallback">APKMirror security challenge detected. Opening browser…</string>
+    <string name="apkmirror_resolution_failed_fallback">APKMirror download link resolution failed. Opening browser…</string>
     <string name="source_play">Google Play Store</string>
     <string name="source_izzyondroid" translatable="false">IzzyOnDroid</string>
     <string name="source_github" translatable="false">GitHub</string>

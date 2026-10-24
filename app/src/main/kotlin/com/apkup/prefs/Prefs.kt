@@ -31,6 +31,7 @@ class Prefs(
 	val ignoredVersionEntries = json("ignoredVersionEntries", emptyList<IgnoredVersionEntry>(), true)
 	val updatesDisplayMode = int("updatesDisplayMode", defValue = 0, backed = true)
 	val useApkMirror = boolean("useApkMirror", defValue = true, backed = true)
+	val directApkMirrorDownloads = boolean("directApkMirrorDownloads", defValue = true, backed = true)
 	val usePlay = boolean("usePlay", defValue = true, backed = true)
 	val useIzzyOnDroid = boolean("useIzzyOnDroid", defValue = true, backed = true)
 	val useGitHub = boolean("useGitHub", defValue = true, backed = true)

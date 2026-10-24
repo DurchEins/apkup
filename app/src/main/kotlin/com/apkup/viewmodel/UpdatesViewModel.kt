@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.apkup.R
+import com.apkup.prefs.Prefs
 import com.apkup.data.snack.TextSnack
 import com.apkup.data.ui.AppInstallProgress
 import com.apkup.data.ui.AppInstallStatus
@@ -21,8 +22,10 @@ import com.apkup.data.ui.setIsQueued
 import com.apkup.data.ui.setProgress
 import com.apkup.data.ui.toUpdatesUiState
 import com.apkup.data.ui.updateCheckLoadingState
-import com.apkup.prefs.Prefs
+import com.apkup.repository.ApkMirrorResolutionResult
+import com.apkup.repository.ApkMirrorResolver
 import com.apkup.repository.UpdatesRepository
+import com.apkup.util.ApkmExtractor
 import com.apkup.util.Badger
 import com.apkup.util.Downloader
 import com.apkup.util.InstallLog
@@ -51,6 +54,8 @@ import java.io.File
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 
+class ApkMirrorCloudflareException(val fallbackUrl: String) : IOException("Cloudflare challenge encountered on APKMirror")
+
 data class DownloadedPackage(
 	val id: Int,
 	val packageName: String,
@@ -68,8 +73,9 @@ class UpdatesViewModel(
 	private val snackBar: SnackBar,
 	private val stringer: Stringer,
 	private val installLog: InstallLog,
-	private val context: Context? = null
-) : InstallViewModel(downloader, installer, snackBar, stringer, installLog) {
+	private val context: Context? = null,
+	private val apkMirrorResolver: ApkMirrorResolver? = null
+) : InstallViewModel(downloader, installer, snackBar, stringer, installLog, prefs) {
 
 	private val mutex = Mutex()
 	private val installQueueMutex = Mutex()
@@ -217,8 +223,12 @@ class UpdatesViewModel(
 		}.also { updateCheckJob = it }
 	}
 
+	override fun isApkMirrorBlocked(): Boolean =
+		apkMirrorResolver?.isCloudflareBlocked() ?: false
+
 	override fun install(update: AppUpdate, uriHandler: UriHandler) {
-		if (update.source != ApkMirrorSource && !canProceedWithInstall()) {
+		val isDirectApkMirror = update.source == ApkMirrorSource && prefs.directApkMirrorDownloads.get()
+		if ((update.source != ApkMirrorSource || isDirectApkMirror) && !canProceedWithInstall()) {
 			triggerInstallPermissionPrompt()
 			return
 		}
@@ -227,7 +237,8 @@ class UpdatesViewModel(
 
 	fun installAll() = viewModelScope.launch(Dispatchers.IO) {
 		val currentUpdates = state.value.updates()
-		val (directInstallable, browserOnly) = partitionInstallQueueCandidates(currentUpdates)
+		val directMirror = prefs.directApkMirrorDownloads.get()
+		val (directInstallable, browserOnly) = partitionInstallQueueCandidates(currentUpdates, directMirror)
 		if (directInstallable.isEmpty()) {
 			if (browserOnly.isNotEmpty()) {
 				snackBar.snackBar(
@@ -319,6 +330,26 @@ class UpdatesViewModel(
 				installLog.emitProgress(AppInstallProgress(update.id, 0L))
 				cancelInstall(update.id)
 				throw cancellation
+			} catch (cf: ApkMirrorCloudflareException) {
+				Log.w("UpdatesViewModel", "Cloudflare security challenge for ${update.packageName}; launching browser fallback.")
+				runCatching { stagingDir.deleteRecursively() }
+				installLog.emitProgress(AppInstallProgress(update.id, 0L))
+				cancelInstall(update.id).join()
+				snackBar.snackBar(
+					viewModelScope,
+					TextSnack(stringer.get(R.string.apkmirror_challenge_fallback))
+				)
+				val fallbackUrl = cf.fallbackUrl.ifBlank { (update.link as? Link.Url)?.link.orEmpty() }
+				if (fallbackUrl.isNotBlank()) {
+					context?.let { ctx ->
+						runCatching {
+							val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(fallbackUrl)).apply {
+								addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+							}
+							ctx.startActivity(intent)
+						}
+					}
+				}
 			} catch (error: Throwable) {
 				Log.e("UpdatesViewModel", "Download failed for ${update.packageName}", error)
 				runCatching { stagingDir.deleteRecursively() }
@@ -421,18 +452,61 @@ class UpdatesViewModel(
 			if (link.link.isBlank()) {
 				throw IOException("Blank download URL for ${update.packageName}")
 			}
-			val totalBytes = link.size
-			var downloadedBytes = 0L
-			onProgress(0L, totalBytes)
-			val targetFile = File(stagingDir, "base.apk")
-			val success = downloader.downloadToFile(link.link, targetFile) { chunk ->
-				downloadedBytes += chunk
-				onProgress(downloadedBytes, totalBytes)
+
+			if (update.source == ApkMirrorSource) {
+				val resolver = apkMirrorResolver ?: throw IOException("ApkMirrorResolver not initialized")
+				when (val resolution = resolver.resolveDirectDownload(link.link)) {
+					is ApkMirrorResolutionResult.CloudflareBlocked -> {
+						throw ApkMirrorCloudflareException(resolution.fallbackUrl)
+					}
+					is ApkMirrorResolutionResult.Failed -> {
+						throw IOException("APKMirror resolution failed: ${resolution.error.message}", resolution.error)
+					}
+					is ApkMirrorResolutionResult.Success -> {
+						val directUrl = resolution.directUrl
+						val isApkmHint = resolution.isApkm || resolution.filename.endsWith(".apkm", ignoreCase = true)
+						val tempPayload = File(stagingDir, if (isApkmHint) "bundle.apkm" else "download.bin")
+
+						var downloadedBytes = 0L
+						val totalBytes = link.size.takeIf { it > 0 } ?: 0L
+						onProgress(0L, totalBytes)
+
+						val success = downloader.downloadToFile(directUrl, tempPayload) { chunk ->
+							downloadedBytes += chunk
+							onProgress(downloadedBytes, if (totalBytes > 0) totalBytes else downloadedBytes)
+						}
+
+						if (!success || tempPayload.length() <= 0L) {
+							throw IOException("Failed to download APKMirror payload for ${update.packageName}")
+						}
+
+						if (isApkmHint || ApkmExtractor.isApkmArchive(tempPayload)) {
+							val extractedFiles = ApkmExtractor.extractApkm(tempPayload, stagingDir)
+							tempPayload.delete()
+							extractedFiles
+						} else {
+							val baseApk = File(stagingDir, "base.apk")
+							if (tempPayload != baseApk) {
+								tempPayload.renameTo(baseApk)
+							}
+							listOf(baseApk)
+						}
+					}
+				}
+			} else {
+				val totalBytes = link.size
+				var downloadedBytes = 0L
+				onProgress(0L, totalBytes)
+				val targetFile = File(stagingDir, "base.apk")
+				val success = downloader.downloadToFile(link.link, targetFile) { chunk ->
+					downloadedBytes += chunk
+					onProgress(downloadedBytes, totalBytes)
+				}
+				if (!success || targetFile.length() <= 0L) {
+					throw IOException("Failed to download URL APK for ${update.packageName}")
+				}
+				listOf(targetFile)
 			}
-			if (!success || targetFile.length() <= 0L) {
-				throw IOException("Failed to download URL APK for ${update.packageName}")
-			}
-			listOf(targetFile)
 		}
 	}
 
@@ -679,19 +753,22 @@ class UpdatesViewModel(
 }
 
 internal fun partitionInstallQueueCandidates(
-	updates: List<AppUpdate>
+	updates: List<AppUpdate>,
+	directApkMirrorEnabled: Boolean = false
 ): Pair<List<AppUpdate>, List<AppUpdate>> {
 	val direct = mutableListOf<AppUpdate>()
 	val browserOnly = mutableListOf<AppUpdate>()
 	updates.forEach { update ->
+		val isDirect = update.isDirectInstallable(directApkMirrorEnabled)
+		val isBrowser = update.isBrowserOnlyUpdate(directApkMirrorEnabled)
 		when {
-			update.isDirectInstallable -> direct.add(update)
-			update.isBrowserOnlyUpdate -> browserOnly.add(update)
+			isDirect -> direct.add(update)
+			isBrowser -> browserOnly.add(update)
 			else -> {
-				val playAlt = update.alternativeUpdates.firstOrNull { it.isDirectInstallable }
-				if (playAlt != null) {
-					direct.add(playAlt)
-				} else if (update.alternativeUpdates.any { it.isBrowserOnlyUpdate }) {
+				val directAlt = update.alternativeUpdates.firstOrNull { it.isDirectInstallable(directApkMirrorEnabled) }
+				if (directAlt != null) {
+					direct.add(directAlt)
+				} else if (update.alternativeUpdates.any { it.isBrowserOnlyUpdate(directApkMirrorEnabled) }) {
 					browserOnly.add(update)
 				}
 			}

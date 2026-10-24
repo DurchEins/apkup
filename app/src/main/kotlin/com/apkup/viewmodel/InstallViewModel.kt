@@ -4,11 +4,14 @@ import android.util.Log
 import androidx.compose.ui.platform.UriHandler
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.apkup.R
+import com.apkup.data.snack.TextSnack
 import com.apkup.data.ui.ApkMirrorSource
 import com.apkup.data.ui.AppInstallProgress
 import com.apkup.data.ui.AppInstallStatus
 import com.apkup.data.ui.AppUpdate
 import com.apkup.data.ui.Link
+import com.apkup.prefs.Prefs
 import com.apkup.util.Downloader
 import com.apkup.util.InstallLog
 import com.apkup.util.InstallPart
@@ -28,15 +31,29 @@ abstract class InstallViewModel(
     private val installer: SessionInstaller,
     private val snackBar: SnackBar,
     private val stringer: Stringer,
-    private val installLog: InstallLog
+    private val installLog: InstallLog,
+    private val prefs: Prefs? = null
 ): ViewModel() {
+
+    open fun isApkMirrorBlocked(): Boolean = false
 
     open fun install(update: AppUpdate, uriHandler: UriHandler) {
         when (update.source) {
             ApkMirrorSource -> {
                 val url = (update.link as? Link.Url)?.link.orEmpty()
-                if (url.isNotBlank()) {
-                    uriHandler.openUri(url)
+                val directEnabled = prefs?.directApkMirrorDownloads?.get() ?: false
+                if (directEnabled && !isApkMirrorBlocked()) {
+                    downloadAndInstall(update)
+                } else {
+                    if (directEnabled && isApkMirrorBlocked()) {
+                        snackBar.snackBar(
+                            viewModelScope,
+                            TextSnack(stringer.get(R.string.apkmirror_challenge_fallback))
+                        )
+                    }
+                    if (url.isNotBlank()) {
+                        uriHandler.openUri(url)
+                    }
                 }
             }
             else -> downloadAndInstall(update)

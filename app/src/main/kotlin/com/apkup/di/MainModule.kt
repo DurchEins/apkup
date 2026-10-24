@@ -5,6 +5,8 @@ import com.apkup.BuildConfig
 import com.apkup.R
 import com.apkup.prefs.Prefs
 import com.apkup.repository.ApkMirrorRepository
+import com.apkup.repository.ApkMirrorResolver
+import com.apkup.repository.InMemoryCookieJar
 import com.apkup.repository.AppsRepository
 import com.apkup.repository.GitHubRepository
 import com.apkup.repository.GitLabRepository
@@ -74,6 +76,14 @@ val mainModule = module {
 
 	single { ApkMirrorRepository(get(), androidContext().packageManager) }
 
+	single {
+		val apkMirrorOkHttpClient = OkHttpClient.Builder()
+			.followRedirects(true)
+			.cookieJar(InMemoryCookieJar())
+			.build()
+		ApkMirrorResolver(client = apkMirrorOkHttpClient, minDelayMs = 1500L)
+	}
+
 	single { AppsRepository(get(), get()) }
 
 	single { PlayRepository(get(), get(), get(), get()) }
@@ -114,7 +124,20 @@ val mainModule = module {
 
 	viewModel { AppsViewModel(get(), get(), get()) }
 
-	viewModel { UpdatesViewModel(get(), get(), get(), get(), get(), get(), get(), get(), androidContext()) }
+	viewModel {
+		UpdatesViewModel(
+			updatesRepository = get(),
+			installer = get(),
+			prefs = get(),
+			badger = get(),
+			downloader = get(),
+			snackBar = get(),
+			stringer = get(),
+			installLog = get(),
+			context = androidContext(),
+			apkMirrorResolver = get()
+		)
+	}
 
 	viewModel { SettingsViewModel(get(), get(), WorkManager.getInstance(get()), get(), get(), get(), get(), get()) }
 

@@ -229,6 +229,8 @@ class SettingsViewModel(
 	fun setUpdatesDisplayMode(mode: Int) = prefs.updatesDisplayMode.put(mode)
 	fun getUseApkMirror() = prefs.useApkMirror.get()
 	fun setUseApkMirror(b: Boolean) = prefs.useApkMirror.put(b)
+	fun getDirectApkMirrorDownloads(): Boolean = prefs.directApkMirrorDownloads.get()
+	fun setDirectApkMirrorDownloads(b: Boolean) = prefs.directApkMirrorDownloads.put(b)
 	fun getUsePlay() = prefs.usePlay.get()
 	fun setUsePlay(b: Boolean) = prefs.usePlay.put(b)
 	fun getUseIzzyOnDroid() = prefs.useIzzyOnDroid.get()

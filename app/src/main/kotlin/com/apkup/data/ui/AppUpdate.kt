@@ -23,10 +23,16 @@ data class AppUpdate(
 	val alternativeUpdates: List<AppUpdate> = emptyList()
 ) {
 	val isDirectInstallable: Boolean
-		get() = link is Link.Play || (link is Link.Url && source != ApkMirrorSource)
+		get() = isDirectInstallable(directApkMirrorEnabled = false)
 
 	val isBrowserOnlyUpdate: Boolean
-		get() = source == ApkMirrorSource && link is Link.Url
+		get() = isBrowserOnlyUpdate(directApkMirrorEnabled = false)
+
+	fun isDirectInstallable(directApkMirrorEnabled: Boolean): Boolean =
+		link is Link.Play || (link is Link.Url && (source != ApkMirrorSource || directApkMirrorEnabled))
+
+	fun isBrowserOnlyUpdate(directApkMirrorEnabled: Boolean): Boolean =
+		source == ApkMirrorSource && link is Link.Url && !directApkMirrorEnabled
 }
 
 internal fun normalizeVersionString(version: String): String =
