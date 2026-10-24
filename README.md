@@ -5,8 +5,8 @@
 </p>
 
 <p align="center">
-  <b>A modern open-source Android app for managing and installing app updates (Google Play & APKMirror) featuring Material 3 Expressive design, Shizuku integration, and a clean Google Pixel aesthetic.</b><br>
-  <i>Eine moderne Open-Source-Android-App zur Verwaltung und Installation von App-Updates (Google Play & APKMirror) mit Material 3 Expressive Design, Shizuku-Unterstützung und minimalistischem Pixel-Look.</i>
+  <b>A modern open-source Android app for managing and installing app updates (Google Play, APKMirror, IzzyOnDroid, GitHub & GitLab) featuring Material 3 Expressive design, Shizuku integration, and a clean Google Pixel aesthetic.</b><br>
+  <i>Eine moderne Open-Source-Android-App zur Verwaltung und Installation von App-Updates (Google Play, APKMirror, IzzyOnDroid, GitHub & GitLab) mit Material 3 Expressive Design, Shizuku-Unterstützung und minimalistischem Pixel-Look.</i>
 </p>
 
 <p align="center">
@@ -28,17 +28,19 @@
 
 ### ✨ Features
 * **🚀 Robust Update Sources & Self-Updater:**
-  * **Google Play Store:** Direct store query with accurate delta version recognition.
-  * **APKMirror Turbo:** Parallel, optimized scraper engine for instant detection of the latest app releases.
+  * **Google Play Store:** Direct store query with accurate delta version recognition and automatic HTTP 429 rate-limit recovery.
+  * **APKMirror In-App Downloads:** Direct in-app downloading and installation (including `.apkm` split-bundle extraction) with polite rate-limiting and automatic Cloudflare browser fallback.
   * **IzzyOnDroid:** Curated open-source repository with mandatory SHA-256 certificate validation and ABI filtering.
+  * **GitHub & GitLab:** Built-in recognition for popular FOSS projects plus custom repository binding (`owner/repo` or self-hosted GitLab).
   * **ApkUp Self-Updater:** Automatic release checks and direct in-app updating without relying on external app stores.
 * **🎨 Material 3 Expressive Design:**
-  * Pixel-inspired UI optimized for Android 15/16/17 styling.
+  * Pixel-inspired UI optimized for Android 15/16/17 styling with floating capsule navigation and tactile haptic feedback.
   * Comprehensive **Dynamic Color (Material You)** support with dark, light, and system themes.
   * Multiple display modes for the update list (*Compact Grid Tiles* vs. *Detailed List*).
-* **⚡ Seamless Installation with Shizuku:**
-  * Silent, unattended background updates without repeated permission dialogs when connected to Shizuku.
-  * Reliable native fallback to Android's `PackageInstaller` session API.
+* **⚡ Uninterrupted Background Downloads & Shizuku:**
+  * **Foreground Download Service:** Downloads and batch updates (*Update All*) continue reliably in the background and across screen locks, complete with live progress notifications and instant cancellation.
+  * **Silent Shizuku Installs:** Unattended background updates without repeated permission dialogs when connected to Shizuku.
+  * **Reliable Native Fallback:** Seamless fallback to Android's `PackageInstaller` session API with Android 14+ Background Activity Launch (BAL) notification support.
 * **🛡️ Smart Version Detection & Filters:**
   * **Zero False Positives:** Verifiable semantic version and `versionCode` progression check.
   * **Skip Single Version:** Ignore a specific faulty build once; you will be notified again when a newer release arrives.
@@ -48,7 +50,7 @@
   * Periodic update checks powered by Android `WorkManager` (configurable: 6h, 12h, 24h, 48h, or 7 days).
   * Informative system notifications alerting you when new updates are ready to install.
 * **💾 Configuration Backup & Restore:**
-  * Export and import your entire setup, ignored apps, and skipped versions via a single JSON file.
+  * Export and import your entire setup, custom repository bindings, ignored apps, and skipped versions via a single JSON file.
 * **🔒 Privacy First:**
   * No ads. No telemetry. No user tracking. Pure open source.
 
@@ -57,9 +59,9 @@
 * **UI Framework:** Jetpack Compose & Material 3 Expressive
 * **Architecture:** MVVM with Coroutines & Reactive StateFlow
 * **Dependency Injection:** Koin
-* **Network & Parsing:** Retrofit 2, OkHttp 5, Jsoup
+* **Network & Parsing:** Retrofit 3, OkHttp 5, Jsoup
 * **Privileged Install:** Shizuku API 13.x
-* **Background Tasks:** AndroidX WorkManager
+* **Background Tasks:** AndroidX WorkManager & Foreground Service (`dataSync`)
 
 ### 📥 Requirements
 * **Minimum:** Android 10.0 (API Level 29) or higher.
@@ -100,17 +102,19 @@
 
 ### ✨ Funktionen
 * **🚀 Leistungsstarke Update-Quellen & Self-Updater:**
-  * **Google Play Store:** Direkte Store-Abfrage mit präziser Erkennung von Versionssprüngen.
-  * **APKMirror Turbo:** Paralleler, optimierter Web-Scraper zur schnellen Erkennung neuester Releases.
+  * **Google Play Store:** Direkte Store-Abfrage mit präziser Erkennung von Versionssprüngen und automatischer HTTP-429-Ratenlimit-Erholung.
+  * **APKMirror In-App-Direktdownload:** Direkter Download und Installation in der App (inkl. Entpacken von `.apkm`-Split-Bundles) mit intelligentem Rate-Limiting und automatischem Cloudflare-Browser-Fallback.
   * **IzzyOnDroid:** Kuratiertes Open-Source-Repository mit verpflichtendem SHA-256-Signaturabgleich und ABI-Filterung.
+  * **GitHub & GitLab:** Integrierte Erkennung bekannter Open-Source-Apps sowie freie Verknüpfung eigener Repositories (`owner/repo` oder Self-Hosted GitLab).
   * **ApkUp Self-Updater:** Automatische Release-Prüfung und komfortable In-App-Aktualisierung ohne externe App-Stores.
 * **🎨 Material 3 Expressive Design:**
-  * Authentische Ästhetik im Stil moderner Google-Pixel-Flaggschiffe (Android 15/16/17).
+  * Authentische Ästhetik im Stil moderner Google-Pixel-Flaggschiffe (Android 15/16/17) mit schwebendem Capsule-Dock und haptischem Feedback.
   * Vollständige Unterstützung von **Dynamic Color (Material You)** sowie Dark-, Light- und System-Theming.
   * Wählbare Ansichten für den Updates-Tab (*Kompakte Kacheln* vs. *Detaillierte Liste*).
-* **⚡ Nahtlose Installation mit Shizuku:**
-  * Vollautomatische Hintergrund-Installation ohne manuelle Bestätigungs-Dialoge bei aktiver Shizuku-Verbindung.
-  * Zuverlässiger Fallback auf die native Android `PackageInstaller`-Session-API.
+* **⚡ Unterbrechungsfreie Hintergrund-Downloads & Shizuku:**
+  * **Foreground Download Service:** Downloads und Sammel-Updates (*Alle aktualisieren*) laufen zuverlässig im Hintergrund und bei gesperrtem Bildschirm weiter – inklusive Live-Fortschrittsbenachrichtigung und Sofort-Abbruch.
+  * **Stille Shizuku-Installation:** Vollautomatische Hintergrund-Installation ohne manuelle Bestätigungs-Dialoge bei aktiver Shizuku-Verbindung.
+  * **Zuverlässiger System-Fallback:** Nahtloser Rückgriff auf die native Android `PackageInstaller`-Session-API mit Android 14+ Background Activity Launch (BAL) Benachrichtigungs-Support.
 * **🛡️ Präziser Versionsabgleich & Filter:**
   * **Keine False-Positives:** Exakte Erkennung höherer Versionsnummern und Build-Codes (`versionCode`).
   * **Übersprungene Einzel-Updates:** Eine fehlerhafte Version gezielt einmalig ignorieren – bei einem neueren Update wird wieder benachrichtigt.
@@ -120,7 +124,7 @@
   * Periodische Update-Prüfung via Android `WorkManager` (wählbare Intervalle: 6h, 12h, 24h, 48h oder 7 Tage).
   * Informative System-Benachrichtigung bei neuen Updates mit Direkt-Sprung in die App.
 * **💾 Backup & Wiederherstellung:**
-  * Export und Import aller Einstellungen, ignorierten Apps und Versionen als JSON-Datei.
+  * Export und Import aller Einstellungen, verknüpften Repositories, ignorierten Apps und Versionen als JSON-Datei.
 * **🔒 Privatsphäre garantiert:**
   * Keine Werbung. Kein Tracking. Keine Telemetrie. Vollständig Open Source.
 
@@ -129,9 +133,9 @@
 * **UI:** Jetpack Compose & Material 3 Expressive
 * **Architektur:** MVVM mit Kotlin Coroutines & Reactive StateFlow
 * **Dependency Injection:** Koin
-* **Networking & Parsing:** Retrofit 2, OkHttp 5, Jsoup
+* **Networking & Parsing:** Retrofit 3, OkHttp 5, Jsoup
 * **Rootless ADB / Elevated Privileges:** Shizuku API 13.x
-* **Background Processing:** AndroidX WorkManager
+* **Background Processing:** AndroidX WorkManager & Foreground Service (`dataSync`)
 
 ### 📥 Voraussetzungen
 * **Mindestversion:** Android 10 (API Level 29) oder höher.

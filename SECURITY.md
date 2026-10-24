@@ -10,13 +10,13 @@ We actively provide security patches for the following versions of ApkUp:
 
 | Version | Supported |
 | --- | --- |
-| 1.31-Beta (or newer) | :white_check_mark: |
-| 1.30.x | :white_check_mark: |
-| < 1.30 | :x: |
+| 1.32-Beta (or newer) | :white_check_mark: |
+| 1.31.x | :white_check_mark: |
+| < 1.31 | :x: |
 
 ## Reporting a Vulnerability
 
-If you discover a potential security vulnerability within ApkUp (especially regarding APK signature verification, Shizuku IPC handling, or network traffic), please do **NOT** disclose it via public GitHub issues, discussions, or social media.
+If you discover a potential security vulnerability within ApkUp (especially regarding APK signature verification, `.apkm` archive extraction / Zip-Slip protection, Shizuku IPC handling, or network traffic), please do **NOT** disclose it via public GitHub issues, discussions, or social media.
 
 Instead, please report it confidentially via GitHub's **Private Vulnerability Reporting**:
 1. Navigate to the [Security Advisories](https://github.com/DurchEins/apkup/security/advisories) tab.
@@ -35,13 +35,13 @@ Sicherheitsupdates werden aktiv für folgende Versionen von ApkUp bereitgestellt
 
 | Version | Unterstützt |
 | --- | --- |
-| 1.31-Beta (oder neuer) | :white_check_mark: |
-| 1.30.x | :white_check_mark: |
-| < 1.30 | :x: |
+| 1.32-Beta (oder neuer) | :white_check_mark: |
+| 1.31.x | :white_check_mark: |
+| < 1.31 | :x: |
 
 ## Sicherheitslücken melden
 
-Solltest du eine Sicherheitslücke in ApkUp entdecken (insbesondere im Bereich der APK-Signaturprüfung, der Shizuku-Schnittstelle oder des Download-Handlings), erstelle bitte **KEIN** öffentliches Issue.
+Solltest du eine Sicherheitslücke in ApkUp entdecken (insbesondere im Bereich der APK-Signaturprüfung, der `.apkm`-Archiv-Entpackung / Zip-Slip-Schutz, der Shizuku-Schnittstelle oder des Download-Handlings), erstelle bitte **KEIN** öffentliches Issue.
 
 Nutze stattdessen das diskrete **Private Vulnerability Reporting**:
 1. Öffne den Reiter [Security Advisories](https://github.com/DurchEins/apkup/security/advisories).
