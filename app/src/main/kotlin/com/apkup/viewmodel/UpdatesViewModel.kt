@@ -3,6 +3,7 @@ package com.apkup.viewmodel
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.apkup.service.DownloadInstallService
 import com.apkup.R
 import com.apkup.prefs.Prefs
 import com.apkup.data.snack.TextSnack
@@ -94,9 +95,37 @@ class UpdatesViewModel(
 		context?.cacheDir ?: File(System.getProperty("java.io.tmpdir") ?: ".", "apkup_cache")
 
 	init {
+		downloader.cleanupOrphanStagingFiles(getCacheDir())
 		subscribeToInstallStatus()
 		subscribeToInstallProgress { progress ->
 			state.value = successState(state.value.mutableUpdates().setProgress(progress))
+		}
+		viewModelScope.launch(Dispatchers.IO) {
+			DownloadInstallService.activeTasksFlow.collect { activeMap ->
+				if (activeMap.isEmpty()) return@collect
+				mutex.withLock {
+					val currentList = state.value.mutableUpdates()
+					var modified = false
+					currentList.forEachIndexed { index, appUpdate ->
+						val task = activeMap[appUpdate.id]
+						if (task != null) {
+							val updated = appUpdate.copy(
+								isInstalling = task.isInstalling,
+								isQueued = task.isQueued,
+								progress = task.progress,
+								total = if (task.total > 0) task.total else appUpdate.total
+							)
+							if (currentList[index] != updated) {
+								currentList[index] = updated
+								modified = true
+							}
+						}
+					}
+					if (modified) {
+						state.value = successState(currentList)
+					}
+				}
+			}
 		}
 		viewModelScope.launch(Dispatchers.IO) {
 			prefs.showSystemAppsFlow
@@ -290,9 +319,14 @@ class UpdatesViewModel(
 		}
 		if (newlyQueued.isNotEmpty()) {
 			state.value = successState(current)
-			ensureInstallProcessorStarted()
-			newlyQueued.forEach { update ->
-				startDownload(update)
+			val ctx = context
+			if (ctx != null) {
+				DownloadInstallService.startDownloads(ctx, newlyQueued)
+			} else {
+				ensureInstallProcessorStarted()
+				newlyQueued.forEach { update ->
+					startDownload(update)
+				}
 			}
 		}
 	}
@@ -444,6 +478,7 @@ class UpdatesViewModel(
 			var downloadedBytes = 0L
 			onProgress(0L, totalBytes)
 
+			val callTag = "update_${update.id}"
 			sortedFiles.mapIndexed { index, playFile ->
 				val partName = when {
 					playFile.type == PlayFile.Type.BASE -> "base.apk"
@@ -452,7 +487,7 @@ class UpdatesViewModel(
 					else -> "split_$index.apk"
 				}
 				val targetFile = File(stagingDir, partName)
-				val success = downloader.downloadToFile(playFile.url, targetFile) { chunk ->
+				val success = downloader.downloadToFile(playFile.url, targetFile, callTag) { chunk ->
 					downloadedBytes += chunk
 					onProgress(downloadedBytes, totalBytes)
 				}
@@ -467,6 +502,7 @@ class UpdatesViewModel(
 				throw IOException("Blank download URL for ${update.packageName}")
 			}
 
+			val callTag = "update_${update.id}"
 			if (update.source == ApkMirrorSource) {
 				val resolver = apkMirrorResolver ?: throw IOException("ApkMirrorResolver not initialized")
 				when (val resolution = resolver.resolveDirectDownload(link.link)) {
@@ -485,7 +521,7 @@ class UpdatesViewModel(
 						val totalBytes = link.size.takeIf { it > 0 } ?: 0L
 						onProgress(0L, totalBytes)
 
-						val success = downloader.downloadToFile(directUrl, tempPayload) { chunk ->
+						val success = downloader.downloadToFile(directUrl, tempPayload, callTag) { chunk ->
 							downloadedBytes += chunk
 							onProgress(downloadedBytes, if (totalBytes > 0) totalBytes else downloadedBytes)
 						}
@@ -512,7 +548,7 @@ class UpdatesViewModel(
 				var downloadedBytes = 0L
 				onProgress(0L, totalBytes)
 				val targetFile = File(stagingDir, "base.apk")
-				val success = downloader.downloadToFile(link.link, targetFile) { chunk ->
+				val success = downloader.downloadToFile(link.link, targetFile, callTag) { chunk ->
 					downloadedBytes += chunk
 					onProgress(downloadedBytes, totalBytes)
 				}
@@ -601,6 +637,8 @@ class UpdatesViewModel(
 	}
 
 	override fun cancelInstall(id: Int) = viewModelScope.launchWithMutex(mutex, Dispatchers.IO) {
+		context?.let { ctx -> DownloadInstallService.cancelDownload(ctx, id) }
+		downloader.cancel("update_$id")
 		activeDownloadJobs.remove(id)?.cancel()
 		runCatching {
 			File(getCacheDir(), "download_staging_$id").deleteRecursively()
@@ -610,7 +648,7 @@ class UpdatesViewModel(
 				.setIsQueued(id, false)
 				.setIsInstalling(id, false)
 		)
-		installer.finish()
+		installer.finish(id)
 	}
 
 	override fun finishInstall(id: Int) = viewModelScope.launchWithMutex(mutex, Dispatchers.IO) {
@@ -636,7 +674,7 @@ class UpdatesViewModel(
 			),
 			timestampMillis = state.value.lastCheckedAtMillis() ?: System.currentTimeMillis()
 		)
-		installer.finish()
+		installer.finish(id)
 	}
 
 	override fun downloadAndInstall(update: AppUpdate) = viewModelScope.launch(Dispatchers.IO) {

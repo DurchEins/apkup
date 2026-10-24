@@ -2,11 +2,14 @@ package com.apkup.util
 
 import android.annotation.SuppressLint
 import android.app.ActivityOptions
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_MUTABLE
 import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.content.BroadcastReceiver
 import android.content.Context
+import androidx.core.app.NotificationCompat
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageInstaller
@@ -94,6 +97,9 @@ class SessionInstaller internal constructor(
 
     companion object {
         const val INSTALL_ACTION = "installAction"
+        const val INSTALL_CANCEL_ACTION = "com.apkup.installCancelAction"
+        const val NOTIFICATION_ID_CONFIRM_BASE = 8000
+        const val CONFIRM_NOTIFICATION_CHANNEL_ID = "apkup_install_confirm_channel"
         const val SHIZUKU_PERMISSION_REQUEST_CODE = 9401
         const val SHIZUKU_PACKAGE_NAME = "moe.shizuku.privileged.api"
     }
@@ -477,6 +483,10 @@ class SessionInstaller internal constructor(
 
             fun completeOnce(success: Boolean) {
                 if (terminalHandled.compareAndSet(false, true)) {
+                    runCatching {
+                        val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                        nm.cancel(NOTIFICATION_ID_CONFIRM_BASE + id)
+                    }
                     installLog.emitStatus(AppInstallStatus(success, id, snack = true))
                     safeUnregisterReceiver()
                     safeUnregisterCallback()
@@ -489,6 +499,12 @@ class SessionInstaller internal constructor(
 
             receiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context, @SuppressLint("UnsafeIntentLaunch") intent: Intent?) {
+                    if (intent?.action == "$INSTALL_CANCEL_ACTION.$id") {
+                        Log.i("InstallerReceiver", "User dismissed installation prompt for $packageName ($id)")
+                        completeOnce(false)
+                        return
+                    }
+
                     val status = intent?.extras?.getInt(PackageInstaller.EXTRA_STATUS)
                     val message = intent?.extras?.getString(PackageInstaller.EXTRA_STATUS_MESSAGE)
                     Log.i("InstallerReceiver", "PackageInstaller callback for $packageName ($id): status=$status, message=$message")
@@ -498,21 +514,33 @@ class SessionInstaller internal constructor(
                             val confirmIntent = intent.getIntentExtra()
                             if (confirmIntent != null) {
                                 confirmIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                val options = ActivityOptions.makeBasic()
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                                    @Suppress("DEPRECATION")
-                                    options.setPendingIntentBackgroundActivityStartMode(
-                                        ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
-                                    )
-                                }
-                                scope.launch(Dispatchers.Main) {
-                                    mutex.lock()
-                                    runCatching {
-                                        (context.applicationContext ?: context).startActivity(confirmIntent, options.toBundle())
-                                    }.onFailure { error ->
-                                        Log.e("InstallerReceiver", "Failed to launch confirmation activity for $packageName ($id)", error)
-                                        if (mutex.isLocked) runCatching { mutex.unlock() }
-                                        completeOnce(false)
+
+                                val isForeground = AppLifecycleTracker.isAppInForeground
+                                if (isForeground) {
+                                    val options = ActivityOptions.makeBasic()
+                                    if (Build.VERSION.SDK_INT >= 35) {
+                                        options.setPendingIntentCreatorBackgroundActivityStartMode(
+                                            ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
+                                        )
+                                    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                                        @Suppress("DEPRECATION")
+                                        options.setPendingIntentBackgroundActivityStartMode(
+                                            ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
+                                        )
+                                    }
+                                    scope.launch(Dispatchers.Main) {
+                                        mutex.lock()
+                                        runCatching {
+                                            (context.applicationContext ?: context).startActivity(confirmIntent, options.toBundle())
+                                        }.onFailure { error ->
+                                            Log.w("InstallerReceiver", "Direct launch failed in foreground ($error); falling back to notification")
+                                            postConfirmationNotification(context, id, packageName, confirmIntent)
+                                        }
+                                    }
+                                } else {
+                                    scope.launch(Dispatchers.Main) {
+                                        mutex.lock()
+                                        postConfirmationNotification(context, id, packageName, confirmIntent)
                                     }
                                 }
                             } else {
@@ -545,10 +573,14 @@ class SessionInstaller internal constructor(
                 }
             }
 
+            val filter = IntentFilter().apply {
+                addAction("$INSTALL_ACTION.$id")
+                addAction("$INSTALL_CANCEL_ACTION.$id")
+            }
             if (Build.VERSION.SDK_INT >= 33) {
-                ctx.registerReceiver(receiver, IntentFilter("$INSTALL_ACTION.$id"), Context.RECEIVER_NOT_EXPORTED)
+                ctx.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
             } else {
-                ctx.registerReceiver(receiver, IntentFilter("$INSTALL_ACTION.$id"))
+                ctx.registerReceiver(receiver, filter)
             }
             packageInstaller.registerSessionCallback(callback, Handler(Looper.getMainLooper()))
 
@@ -606,7 +638,67 @@ class SessionInstaller internal constructor(
         }
     }
 
-    fun finish() {
+    private fun postConfirmationNotification(
+        context: Context,
+        id: Int,
+        packageName: String,
+        confirmIntent: Intent
+    ) {
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CONFIRM_NOTIFICATION_CHANNEL_ID,
+                context.getString(R.string.notification_install_channel_name),
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = context.getString(R.string.notification_install_channel_desc)
+            }
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            id,
+            confirmIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val cancelIntent = Intent("$INSTALL_CANCEL_ACTION.$id").setPackage(context.packageName)
+        val deletePendingIntent = PendingIntent.getBroadcast(
+            context,
+            id,
+            cancelIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val appName = runCatching {
+            val pm = context.packageManager
+            pm.getApplicationLabel(pm.getApplicationInfo(packageName, 0)).toString()
+        }.getOrDefault(packageName)
+
+        val notification = NotificationCompat.Builder(context, CONFIRM_NOTIFICATION_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_install)
+            .setContentTitle(context.getString(R.string.notification_install_confirm_title, appName))
+            .setContentText(context.getString(R.string.notification_install_confirm_text))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_STATUS)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .setDeleteIntent(deletePendingIntent)
+            .build()
+
+        notificationManager.notify(NOTIFICATION_ID_CONFIRM_BASE + id, notification)
+    }
+
+    fun finish(id: Int? = null) {
+        if (id != null) {
+            context?.let { ctx ->
+                runCatching {
+                    val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                    nm.cancel(NOTIFICATION_ID_CONFIRM_BASE + id)
+                }
+            }
+        }
         if (mutex.isLocked) {
             runCatching { mutex.unlock() }
         }

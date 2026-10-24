@@ -17,6 +17,8 @@ class App : Application(), SingletonImageLoader.Factory, KoinComponent {
 
 	override fun onCreate() {
 		super.onCreate()
+		registerActivityLifecycleCallbacks(com.apkup.util.AppLifecycleTracker)
+		com.apkup.util.Downloader(okhttp3.OkHttpClient(), okhttp3.OkHttpClient()).cleanupOrphanStagingFiles(cacheDir)
 
 		startKoin {
 			androidLogger()

@@ -251,4 +251,21 @@
     <string name="permission_install_unknown_apps_button">Enable in settings</string>
     <string name="permission_install_unknown_apps_later">Later</string>
 
+    <!-- Foreground Download & Install Service -->
+    <string name="notification_channel_downloads">Downloads &amp; Installations</string>
+    <string name="notification_channel_downloads_desc">Displays the progress of active package downloads and installations.</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="notification_download_starting">Starting download…</string>
+    <string name="notification_download_progress">%1$s / %2$s (%3$d%%)</string>
+    <string name="notification_download_progress_queued">%1$s / %2$s (%3$d%%) • %4$d in queue</string>
+    <string name="notification_download_unknown">Downloading update…</string>
+    <string name="notification_installing_named">Installing %1$s…</string>
+    <string name="notification_batch_title">%1$s (%2$d of %3$d)</string>
+
+    <!-- Installation Confirmation Notification (BAL Resilience) -->
+    <string name="notification_install_channel_name">Installation Prompts</string>
+    <string name="notification_install_channel_desc">Prompts to confirm app installations when ApkUp is running in the background.</string>
+    <string name="notification_install_confirm_title">Install ready: %1$s</string>
+    <string name="notification_install_confirm_text">Tap to complete installation</string>
+
 </resources>
