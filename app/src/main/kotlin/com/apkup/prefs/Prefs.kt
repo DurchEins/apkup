@@ -37,6 +37,7 @@ class Prefs(
 	val useGitHub = boolean("useGitHub", defValue = true, backed = true)
 	val useGitLab = boolean("useGitLab", defValue = true, backed = true)
 	val githubToken = string("githubToken", defValue = "", backed = true)
+	val gitlabToken = string("gitlabToken", defValue = "", backed = true)
 	val customRepoBindings = json("customRepoBindings", emptyMap<String, RepoBinding>(), true)
 	val enableBackgroundChecks = boolean("enableAlarm", defValue = true, backed = true)
 	val backgroundCheckIntervalHours = int("backgroundCheckIntervalHours", defValue = 24, backed = true)

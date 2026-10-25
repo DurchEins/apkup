@@ -58,10 +58,13 @@ data class DownloadTaskState(
     val id: Int,
     val packageName: String,
     val appName: String,
+    val version: String = "",
+    val source: com.apkup.data.ui.Source = com.apkup.data.ui.PlaySource,
     var progress: Long = 0L,
     var total: Long = 0L,
     var isInstalling: Boolean = false,
-    var isQueued: Boolean = true
+    var isQueued: Boolean = true,
+    var isResolvingLink: Boolean = false
 )
 
 class DownloadInstallService : Service(), KoinComponent {
@@ -72,6 +75,7 @@ class DownloadInstallService : Service(), KoinComponent {
         const val ACTION_START_DOWNLOAD = "com.apkup.service.ACTION_START_DOWNLOAD"
         const val ACTION_ENQUEUE_DOWNLOADS = "com.apkup.service.ACTION_ENQUEUE_DOWNLOADS"
         const val ACTION_CANCEL_DOWNLOAD = "com.apkup.service.ACTION_CANCEL_DOWNLOAD"
+        const val ACTION_CANCEL_ALL_DOWNLOADS = "com.apkup.service.ACTION_CANCEL_ALL_DOWNLOADS"
         const val ACTION_STOP_SERVICE = "com.apkup.service.ACTION_STOP_SERVICE"
 
         const val EXTRA_UPDATE_ID = "extra_update_id"
@@ -80,10 +84,18 @@ class DownloadInstallService : Service(), KoinComponent {
         private val _activeTasksFlow = MutableStateFlow<Map<Int, DownloadTaskState>>(emptyMap())
         val activeTasksFlow: StateFlow<Map<Int, DownloadTaskState>> = _activeTasksFlow.asStateFlow()
 
+        private val completedTasks = CopyOnWriteArrayList<DownloadTaskState>()
+        private val _completedTasksFlow = MutableStateFlow<List<DownloadTaskState>>(emptyList())
+        val completedTasksFlow: StateFlow<List<DownloadTaskState>> = _completedTasksFlow.asStateFlow()
+
         private val taskOrder = CopyOnWriteArrayList<Int>()
         private val pendingUpdates = ConcurrentLinkedQueue<AppUpdate>()
 
         fun startDownload(context: Context, update: AppUpdate) {
+            if (activeTasks.isEmpty()) {
+                completedTasks.clear()
+                _completedTasksFlow.value = emptyList()
+            }
             if (!taskOrder.contains(update.id)) {
                 taskOrder.add(update.id)
             }
@@ -92,8 +104,11 @@ class DownloadInstallService : Service(), KoinComponent {
                 id = update.id,
                 packageName = update.packageName,
                 appName = update.name,
+                version = update.version,
+                source = update.source,
                 isInstalling = false,
-                isQueued = true
+                isQueued = true,
+                isResolvingLink = update.source == ApkMirrorSource
             )
             _activeTasksFlow.value = activeTasks.toMap()
 
@@ -105,6 +120,10 @@ class DownloadInstallService : Service(), KoinComponent {
         }
 
         fun startDownloads(context: Context, updates: List<AppUpdate>) {
+            if (activeTasks.isEmpty()) {
+                completedTasks.clear()
+                _completedTasksFlow.value = emptyList()
+            }
             updates.forEach { update ->
                 if (!taskOrder.contains(update.id)) {
                     taskOrder.add(update.id)
@@ -114,8 +133,11 @@ class DownloadInstallService : Service(), KoinComponent {
                     id = update.id,
                     packageName = update.packageName,
                     appName = update.name,
+                    version = update.version,
+                    source = update.source,
                     isInstalling = false,
-                    isQueued = true
+                    isQueued = true,
+                    isResolvingLink = update.source == ApkMirrorSource
                 )
             }
             _activeTasksFlow.value = activeTasks.toMap()
@@ -132,6 +154,18 @@ class DownloadInstallService : Service(), KoinComponent {
                 putExtra(EXTRA_UPDATE_ID, updateId)
             }
             context.startService(intent)
+        }
+
+        fun cancelAllDownloads(context: Context) {
+            val intent = Intent(context, DownloadInstallService::class.java).apply {
+                action = ACTION_CANCEL_ALL_DOWNLOADS
+            }
+            context.startService(intent)
+        }
+
+        fun clearCompletedTasks() {
+            completedTasks.clear()
+            _completedTasksFlow.value = emptyList()
         }
 
         fun stop(context: Context) {
@@ -182,6 +216,11 @@ class DownloadInstallService : Service(), KoinComponent {
                     handleCancelTask(updateId)
                 }
             }
+            ACTION_CANCEL_ALL_DOWNLOADS -> {
+                pendingUpdates.clear()
+                val allIds = taskOrder.toList()
+                allIds.forEach { id -> handleCancelTask(id) }
+            }
             ACTION_STOP_SERVICE -> {
                 stopForegroundAndSelf()
             }
@@ -202,7 +241,8 @@ class DownloadInstallService : Service(), KoinComponent {
                 isInstalling = initialTask?.isInstalling ?: false,
                 activeUpdateId = initialTask?.id,
                 batchIndex = 1,
-                batchTotal = taskOrder.size.coerceAtLeast(1)
+                batchTotal = taskOrder.size.coerceAtLeast(1),
+                isResolvingLink = initialTask?.isResolvingLink ?: false
             )
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -395,6 +435,11 @@ class DownloadInstallService : Service(), KoinComponent {
 
             val callTag = "update_${update.id}"
             if (update.source == ApkMirrorSource) {
+                activeTasks[update.id]?.let {
+                    it.isResolvingLink = true
+                    _activeTasksFlow.value = activeTasks.toMap()
+                }
+                refreshNotification(force = true)
                 when (val resolution = apkMirrorResolver.resolveDirectDownload(link.link)) {
                     is ApkMirrorResolutionResult.CloudflareBlocked -> {
                         throw ApkMirrorCloudflareException(resolution.fallbackUrl)
@@ -403,6 +448,10 @@ class DownloadInstallService : Service(), KoinComponent {
                         throw IOException("APKMirror resolution failed: ${resolution.error.message}", resolution.error)
                     }
                     is ApkMirrorResolutionResult.Success -> {
+                        activeTasks[update.id]?.let {
+                            it.isResolvingLink = false
+                            _activeTasksFlow.value = activeTasks.toMap()
+                        }
                         val directUrl = resolution.directUrl
                         val isApkmHint = resolution.isApkm || resolution.filename.endsWith(".apkm", ignoreCase = true)
                         val tempPayload = File(stagingDir, if (isApkmHint) "bundle.apkm" else "download.bin")
@@ -499,6 +548,14 @@ class DownloadInstallService : Service(), KoinComponent {
 
         serviceScope.launch {
             installLog.status().collectLatest { status ->
+                if (status.success) {
+                    activeTasks[status.id]?.let { completedTask ->
+                        if (completedTasks.none { it.id == completedTask.id }) {
+                            completedTasks.add(0, completedTask.copy(isInstalling = false, isQueued = false, isResolvingLink = false))
+                            _completedTasksFlow.value = completedTasks.toList()
+                        }
+                    }
+                }
                 removeTask(status.id)
                 refreshNotification(force = true)
             }
@@ -533,7 +590,8 @@ class DownloadInstallService : Service(), KoinComponent {
             isInstalling = activeTask.isInstalling,
             activeUpdateId = activeTask.id,
             batchIndex = currentIndex,
-            batchTotal = totalCount
+            batchTotal = totalCount,
+            isResolvingLink = activeTask.isResolvingLink
         )
         notificationManager.update(notification)
     }

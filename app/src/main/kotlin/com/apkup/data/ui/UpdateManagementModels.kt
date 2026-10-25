@@ -49,6 +49,7 @@ data class ApkUpBackupConfig(
 	val showSystemApps: Boolean = false,
 	val updatesDisplayMode: Int = 0,
 	val useApkMirror: Boolean = true,
+	val directApkMirrorDownloads: Boolean = true,
 	val usePlay: Boolean = true,
 	val useIzzyOnDroid: Boolean = true,
 	val useGitHub: Boolean = true,

@@ -80,7 +80,8 @@ class DownloadNotificationManager(private val context: Context) {
         isInstalling: Boolean,
         activeUpdateId: Int?,
         batchIndex: Int = 1,
-        batchTotal: Int = 1
+        batchTotal: Int = 1,
+        isResolvingLink: Boolean = false
     ): Notification {
         val title = if (batchTotal > 1) {
             context.getString(R.string.notification_batch_title, appName, batchIndex, batchTotal)
@@ -93,6 +94,9 @@ class DownloadNotificationManager(private val context: Context) {
         val (contentText, percent, indeterminate) = when {
             isInstalling -> {
                 Triple(context.getString(R.string.notification_installing_named, appName), 0, true)
+            }
+            isResolvingLink && currentBytes == 0L -> {
+                Triple(context.getString(R.string.queue_status_resolving_apkmirror), 0, true)
             }
             totalBytes > 0L -> {
                 val pct = ((currentBytes * 100) / totalBytes).toInt().coerceIn(0, 100)

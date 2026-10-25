@@ -74,7 +74,12 @@ internal suspend fun <Input, Output> requestConcurrentBatches(
 				val index = nextBatch.getAndIncrement()
 				if (index >= batches.size) break
 				val response = try {
-					request(batches[index])
+					try {
+						request(batches[index])
+					} catch (timeout: java.net.SocketTimeoutException) {
+						delay(1500L)
+						request(batches[index])
+					}
 				} catch (cancellation: CancellationException) {
 					throw cancellation
 				} catch (exception: Exception) {

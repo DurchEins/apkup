@@ -134,6 +134,10 @@
     <string name="backup_export_success">Konfiguration erfolgreich exportiert.</string>
     <string name="backup_import_success">Konfiguration erfolgreich wiederhergestellt.</string>
     <string name="backup_import_error">Sicherungsdatei konnte nicht verarbeitet werden.</string>
+    <string name="settings_apkmirror_direct_downloads">Direkte APKMirror-Downloads</string>
+    <string name="settings_apkmirror_direct_downloads_desc">APKMirror-Updates direkt in der App herunterladen und installieren</string>
+    <string name="apkmirror_challenge_fallback">APKMirror-Sicherheitsprüfung erkannt. Öffne im Browser…</string>
+    <string name="apkmirror_resolution_failed_fallback">APKMirror-Downloadlink konnte nicht aufgelöst werden. Öffne im Browser…</string>
     <string name="source_play">Google Play Store</string>
     <string name="source_github" translatable="false">GitHub</string>
     <string name="source_gitlab" translatable="false">GitLab</string>
@@ -148,6 +152,25 @@
     <string name="github_token_dialog_save">Speichern</string>
     <string name="github_token_status_set">Token konfiguriert</string>
     <string name="github_token_status_not_set">Kein Token hinterlegt (Limit: 60 Anfragen/h)</string>
+    <string name="gitlab_token_title">GitLab API-Token</string>
+    <string name="gitlab_token_desc">Optionales Personal Access Token für höhere Rate-Limits oder eigene Instanzen</string>
+    <string name="gitlab_token_dialog_title">GitLab Personal Access Token</string>
+    <string name="gitlab_token_dialog_desc">Gib ein Personal Access Token (read_api) ein, um Rate-Limits zu erhöhen oder auf geschützte GitLab-Releases zuzugreifen.</string>
+    <string name="gitlab_token_dialog_hint">glpat-xxxxxxxxxxxx</string>
+    <string name="gitlab_token_status_set">Token konfiguriert</string>
+    <string name="gitlab_token_status_not_set">Kein Token hinterlegt (optional)</string>
+    <string name="token_toggle_visibility">Token ein-/ausblenden</string>
+    <string name="queue_banner_title">Aktualisiere Apps (%1$d von %2$d)</string>
+    <string name="queue_banner_subtitle_tap">%1$s • Antippen für Warteschlange</string>
+    <string name="queue_banner_action_details">Liste</string>
+    <string name="queue_sheet_title">Aktive Warteschlange</string>
+    <string name="queue_cancel_all">Alle abbrechen</string>
+    <string name="queue_status_waiting">Wartet in Warteschlange…</string>
+    <string name="queue_status_downloading">Wird heruntergeladen…</string>
+    <string name="queue_status_installing">Wird installiert…</string>
+    <string name="queue_status_resolving_apkmirror">Löse APKMirror-Link auf…</string>
+    <string name="queue_section_completed">Abgeschlossen</string>
+    <string name="queue_item_completed">Aktualisiert</string>
     <string name="action_link_repo">Repository verknüpfen</string>
     <string name="repo_menu_linked">Repository verknüpft</string>
     <string name="repo_menu_link">Repository verknüpfen</string>
@@ -243,5 +266,22 @@
     <string name="permission_install_unknown_apps_message">Um Updates direkt installieren zu können, benötigt ApkUp die Systemberechtigung „Unbekannte Apps installieren“.</string>
     <string name="permission_install_unknown_apps_button">In Einstellungen aktivieren</string>
     <string name="permission_install_unknown_apps_later">Später</string>
+
+    <!-- Foreground Download & Install Service -->
+    <string name="notification_channel_downloads">Downloads &amp; Installationen</string>
+    <string name="notification_channel_downloads_desc">Zeigt den Fortschritt aktiver Paket-Downloads und Installationen an.</string>
+    <string name="action_cancel">Abbrechen</string>
+    <string name="notification_download_starting">Download wird gestartet…</string>
+    <string name="notification_download_progress">%1$s / %2$s (%3$d%%)</string>
+    <string name="notification_download_progress_queued">%1$s / %2$s (%3$d%%) • %4$d in Warteschlange</string>
+    <string name="notification_download_unknown">Update wird heruntergeladen…</string>
+    <string name="notification_installing_named">Installiere %1$s…</string>
+    <string name="notification_batch_title">%1$s (%2$d von %3$d)</string>
+
+    <!-- Installation Confirmation Notification (BAL Resilience) -->
+    <string name="notification_install_channel_name">Installationsbestätigungen</string>
+    <string name="notification_install_channel_desc">Hinweise zum Bestätigen von App-Installationen, wenn ApkUp im Hintergrund läuft.</string>
+    <string name="notification_install_confirm_title">Installation bereit: %1$s</string>
+    <string name="notification_install_confirm_text">Antippen, um die Installation abzuschließen</string>
 
 </resources>

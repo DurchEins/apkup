@@ -1,5 +1,9 @@
 package com.apkup.ui.screen
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -24,9 +28,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items as gridItems
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,6 +41,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.rounded.CheckCircle
@@ -41,6 +49,7 @@ import androidx.compose.material.icons.rounded.Update
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -76,6 +85,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -88,6 +98,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.apkup.R
 import com.apkup.data.ui.ApkMirrorSource
@@ -100,6 +111,8 @@ import com.apkup.data.ui.PlaySource
 import com.apkup.data.ui.Source
 import com.apkup.data.ui.hasPotentialSignatureConflict
 import com.apkup.prefs.Prefs
+import com.apkup.service.DownloadInstallService
+import com.apkup.service.DownloadTaskState
 import com.apkup.ui.component.AppEmptyState
 import com.apkup.ui.component.CompactUpdateCardLayout
 import com.apkup.ui.component.DownloadIcon
@@ -176,11 +189,6 @@ fun UpdatesTopBar(
 		scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
 	),
 	actions = {
-		if (hasInstallableUpdates) {
-			IconButton(onClick = { viewModel.installAll() }) {
-				DownloadIcon(stringResource(R.string.install_all))
-			}
-		}
 		IconButton(onClick = { viewModel.refresh() }) {
 			RefreshIcon(stringResource(R.string.refresh_updates))
 		}
@@ -247,6 +255,7 @@ fun UpdatesScreenSuccess(
 	sourceErrors: Map<String, String> = emptyMap(),
 	lastCheckedAtMillis: Long? = null
 ) = Column(Modifier.fillMaxSize()) {
+	val context = LocalContext.current
 	val handler = LocalUriHandler.current
 	val prefs = koinInject<Prefs>()
 	val displayMode = prefs.updatesDisplayMode.get()
@@ -255,6 +264,26 @@ fun UpdatesScreenSuccess(
 		view.keepScreenOn = isChecking
 		onDispose { view.keepScreenOn = false }
 	}
+
+	val notificationPermissionLauncher = rememberLauncherForActivityResult(
+		ActivityResultContracts.RequestPermission()
+	) {}
+	val requestNotificationPermissionIfNeeded: () -> Unit = remember(context, notificationPermissionLauncher) {
+		{
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+				if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) {
+					runCatching {
+						notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+					}
+				}
+			}
+		}
+	}
+
+	val activeTasksMap by DownloadInstallService.activeTasksFlow.collectAsStateWithLifecycle()
+	val completedTasks by DownloadInstallService.completedTasksFlow.collectAsStateWithLifecycle()
+	val activeTasks = remember(activeTasksMap) { activeTasksMap.values.toList() }
+	var showQueueSheet by rememberSaveable { mutableStateOf(false) }
 
 	var selectedSourceFilter by rememberSaveable { mutableStateOf<String?>(null) }
 
@@ -283,11 +312,15 @@ fun UpdatesScreenSuccess(
 	val activeSources = buildList {
 		if (prefs.useApkMirror.get()) add("APKMirror")
 		if (prefs.usePlay.get()) add("Google Play")
+		if (prefs.useIzzyOnDroid.get()) add("IzzyOnDroid")
+		if (prefs.useGitHub.get()) add("GitHub")
+		if (prefs.useGitLab.get()) add("GitLab")
 	}
 	val localeLanguage = LocalConfiguration.current.locales[0]?.language.orEmpty()
 	val isGerman = localeLanguage.startsWith("de", ignoreCase = true)
+	val directMirror = prefs.directApkMirrorDownloads.get()
 	val hasInstallable = displayedUpdates.any {
-		it.isDirectInstallable || it.alternativeUpdates.any(AppUpdate::isDirectInstallable)
+		it.isDirectInstallable(directMirror) || it.alternativeUpdates.any { alt -> alt.isDirectInstallable(directMirror) }
 	}
 
 	UpdatesTopBar(
@@ -296,11 +329,17 @@ fun UpdatesScreenSuccess(
 		hasInstallableUpdates = hasInstallable
 	)
 
-	if (updates.isNotEmpty() && !isChecking) {
+	if ((updates.isNotEmpty() && !isChecking) || activeTasks.isNotEmpty()) {
 		UpdatesHeroBanner(
 			updatesCount = displayedUpdates.size,
 			hasInstallable = hasInstallable,
-			onInstallAll = { viewModel.installAll() }
+			activeTasks = activeTasks,
+			completedCount = completedTasks.size,
+			onInstallAll = {
+				requestNotificationPermissionIfNeeded()
+				viewModel.installAll()
+			},
+			onOpenQueue = { showQueueSheet = true }
 		)
 	}
 
@@ -320,32 +359,84 @@ fun UpdatesScreenSuccess(
 	}
 
 	if (hasSourceErrors && updates.isNotEmpty()) {
-		val bannerText = formatSourceErrorBanner(
-			sourceErrors = sourceErrors,
-			activeSources = activeSources,
-			isGerman = isGerman
-		)
-		Surface(
-			color = MaterialTheme.colorScheme.errorContainer,
-			shape = RoundedCornerShape(24.dp),
-			modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
-		) {
-			Row(
-				modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
-				verticalAlignment = Alignment.CenterVertically,
-				horizontalArrangement = Arrangement.spacedBy(10.dp)
+		val errorEntries = remember(sourceErrors) { sourceErrors.entries.toList() }
+		if (errorEntries.size <= 1) {
+			val bannerText = formatSourceErrorBanner(
+				sourceErrors = sourceErrors,
+				activeSources = activeSources,
+				isGerman = isGerman
+			)
+			Surface(
+				color = MaterialTheme.colorScheme.errorContainer,
+				shape = RoundedCornerShape(24.dp),
+				modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
 			) {
-				Icon(
-					imageVector = Icons.Filled.Info,
-					contentDescription = null,
-					tint = MaterialTheme.colorScheme.onErrorContainer,
-					modifier = Modifier.size(20.dp)
+				Row(
+					modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
+					verticalAlignment = Alignment.CenterVertically,
+					horizontalArrangement = Arrangement.spacedBy(10.dp)
+				) {
+					Icon(
+						imageVector = Icons.Filled.Info,
+						contentDescription = null,
+						tint = MaterialTheme.colorScheme.onErrorContainer,
+						modifier = Modifier.size(20.dp)
+					)
+					Text(
+						text = bannerText,
+						color = MaterialTheme.colorScheme.onErrorContainer,
+						style = MaterialTheme.typography.labelMedium
+					)
+				}
+			}
+		} else {
+			val pagerState = rememberPagerState(pageCount = { errorEntries.size })
+			HorizontalPager(
+				state = pagerState,
+				modifier = Modifier.fillMaxWidth()
+			) { page ->
+				val entry = errorEntries[page]
+				val singleBannerText = formatSourceErrorBanner(
+					sourceErrors = mapOf(entry.key to entry.value),
+					activeSources = activeSources,
+					isGerman = isGerman
 				)
-				Text(
-					text = bannerText,
-					color = MaterialTheme.colorScheme.onErrorContainer,
-					style = MaterialTheme.typography.labelMedium
-				)
+				Surface(
+					color = MaterialTheme.colorScheme.errorContainer,
+					shape = RoundedCornerShape(24.dp),
+					modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
+				) {
+					Row(
+						modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(10.dp)
+					) {
+						Icon(
+							imageVector = Icons.Filled.Info,
+							contentDescription = null,
+							tint = MaterialTheme.colorScheme.onErrorContainer,
+							modifier = Modifier.size(20.dp)
+						)
+						Text(
+							text = singleBannerText,
+							color = MaterialTheme.colorScheme.onErrorContainer,
+							style = MaterialTheme.typography.labelMedium,
+							modifier = Modifier.weight(1f)
+						)
+						Surface(
+							shape = CircleShape,
+							color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.14f)
+						) {
+							Text(
+								text = "${page + 1}/${errorEntries.size}",
+								style = MaterialTheme.typography.labelSmall,
+								fontWeight = FontWeight.SemiBold,
+								color = MaterialTheme.colorScheme.onErrorContainer,
+								modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+							)
+						}
+					}
+				}
 			}
 		}
 	}
@@ -375,8 +466,33 @@ fun UpdatesScreenSuccess(
 			message = stringResource(R.string.updates_empty_source_filter_message),
 			modifier = Modifier.weight(1f)
 		)
-		displayMode == 1 -> CompactUpdatesGrid(viewModel, displayedUpdates, handler, Modifier.weight(1f))
-		else -> UpdatesList(viewModel, displayedUpdates, handler, Modifier.weight(1f))
+		displayMode == 1 -> CompactUpdatesGrid(
+			viewModel = viewModel,
+			updates = displayedUpdates,
+			handler = handler,
+			modifier = Modifier.weight(1f),
+			onBeforeInstall = requestNotificationPermissionIfNeeded
+		)
+		else -> UpdatesList(
+			viewModel = viewModel,
+			updates = displayedUpdates,
+			handler = handler,
+			modifier = Modifier.weight(1f),
+			onBeforeInstall = requestNotificationPermissionIfNeeded
+		)
+	}
+
+	if (showQueueSheet) {
+		ActiveQueueBottomSheet(
+			activeTasks = activeTasks,
+			completedTasks = completedTasks,
+			onCancelTask = { id -> viewModel.cancelInstall(id) },
+			onCancelAll = {
+				viewModel.cancelAllInstalls()
+				showQueueSheet = false
+			},
+			onDismiss = { showQueueSheet = false }
+		)
 	}
 }
 
@@ -384,9 +500,133 @@ fun UpdatesScreenSuccess(
 private fun UpdatesHeroBanner(
 	updatesCount: Int,
 	hasInstallable: Boolean,
-	onInstallAll: () -> Unit
+	activeTasks: List<DownloadTaskState> = emptyList(),
+	completedCount: Int = 0,
+	onInstallAll: () -> Unit,
+	onOpenQueue: () -> Unit = {}
 ) {
+	val context = LocalContext.current
 	val shape = RoundedCornerShape(24.dp)
+	if (activeTasks.isNotEmpty()) {
+		val currentTask = activeTasks.firstOrNull { !it.isQueued || it.isInstalling } ?: activeTasks.first()
+		val currentAppName = currentTask.appName.ifBlank {
+			context.getAppName(currentTask.packageName).ifBlank { currentTask.packageName }
+		}
+		val totalInRun = (completedCount + activeTasks.size).coerceAtLeast(1)
+		val currentStep = (completedCount + 1).coerceAtMost(totalInRun)
+		Surface(
+			onClick = onOpenQueue,
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(horizontal = 12.dp, vertical = 4.dp),
+			shape = shape,
+			color = MaterialTheme.colorScheme.primaryContainer,
+			border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
+			shadowElevation = 2.dp
+		) {
+			Column(
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(horizontal = 16.dp, vertical = 12.dp),
+				verticalArrangement = Arrangement.spacedBy(8.dp)
+			) {
+				Row(
+					modifier = Modifier.fillMaxWidth(),
+					verticalAlignment = Alignment.CenterVertically,
+					horizontalArrangement = Arrangement.SpaceBetween
+				) {
+					Row(
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(12.dp),
+						modifier = Modifier.weight(1f, fill = false)
+					) {
+						Surface(
+							shape = CircleShape,
+							color = MaterialTheme.colorScheme.primary,
+							modifier = Modifier.size(40.dp)
+						) {
+							Box(contentAlignment = Alignment.Center) {
+								CircularProgressIndicator(
+									modifier = Modifier.size(20.dp),
+									strokeWidth = 2.2.dp,
+									color = MaterialTheme.colorScheme.onPrimary
+								)
+							}
+						}
+						Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+							Text(
+								text = stringResource(R.string.queue_banner_title, currentStep, totalInRun),
+								style = MaterialTheme.typography.titleSmall,
+								fontWeight = FontWeight.Bold,
+								color = MaterialTheme.colorScheme.onPrimaryContainer,
+								maxLines = 1,
+								overflow = TextOverflow.Ellipsis
+							)
+							Text(
+								text = stringResource(R.string.queue_banner_subtitle_tap, currentAppName),
+								style = MaterialTheme.typography.labelSmall,
+								color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f),
+								maxLines = 1,
+								overflow = TextOverflow.Ellipsis
+							)
+						}
+					}
+					Spacer(Modifier.width(8.dp))
+					Surface(
+						shape = CircleShape,
+						color = MaterialTheme.colorScheme.primary
+					) {
+						Row(
+							modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+							verticalAlignment = Alignment.CenterVertically,
+							horizontalArrangement = Arrangement.spacedBy(6.dp)
+						) {
+							Text(
+								text = stringResource(R.string.queue_banner_action_details),
+								style = MaterialTheme.typography.labelMedium,
+								fontWeight = FontWeight.Bold,
+								color = MaterialTheme.colorScheme.onPrimary
+							)
+							Surface(
+								shape = CircleShape,
+								color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.22f)
+							) {
+								Text(
+									text = activeTasks.size.toString(),
+									style = MaterialTheme.typography.labelSmall,
+									fontWeight = FontWeight.Bold,
+									color = MaterialTheme.colorScheme.onPrimary,
+									modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp)
+								)
+							}
+						}
+					}
+				}
+				if (!currentTask.isInstalling && !currentTask.isResolvingLink && currentTask.total > 0L) {
+					LinearProgressIndicator(
+						progress = { (currentTask.progress.toFloat() / currentTask.total).coerceIn(0f, 1f) },
+						modifier = Modifier
+							.fillMaxWidth()
+							.height(5.dp)
+							.clip(RoundedCornerShape(3.dp)),
+						color = MaterialTheme.colorScheme.primary,
+						trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
+					)
+				} else {
+					LinearProgressIndicator(
+						modifier = Modifier
+							.fillMaxWidth()
+							.height(5.dp)
+							.clip(RoundedCornerShape(3.dp)),
+						color = MaterialTheme.colorScheme.primary,
+						trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
+					)
+				}
+			}
+		}
+		return
+	}
+
 	Surface(
 		modifier = Modifier
 			.fillMaxWidth()
@@ -467,6 +707,299 @@ private fun UpdatesHeroBanner(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+private fun ActiveQueueBottomSheet(
+	activeTasks: List<DownloadTaskState>,
+	completedTasks: List<DownloadTaskState>,
+	onCancelTask: (Int) -> Unit,
+	onCancelAll: () -> Unit,
+	onDismiss: () -> Unit
+) {
+	val context = LocalContext.current
+	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+	LaunchedEffect(activeTasks.size, completedTasks.size) {
+		if (activeTasks.isEmpty() && completedTasks.isEmpty()) {
+			onDismiss()
+		}
+	}
+
+	ModalBottomSheet(
+		onDismissRequest = onDismiss,
+		sheetState = sheetState,
+		shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+		containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+	) {
+		Column(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(start = 20.dp, end = 20.dp, bottom = 24.dp),
+			verticalArrangement = Arrangement.spacedBy(12.dp)
+		) {
+			Row(
+				modifier = Modifier.fillMaxWidth(),
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.SpaceBetween
+			) {
+				Row(
+					verticalAlignment = Alignment.CenterVertically,
+					horizontalArrangement = Arrangement.spacedBy(10.dp),
+					modifier = Modifier.weight(1f, fill = false)
+				) {
+					Text(
+						text = stringResource(R.string.queue_sheet_title),
+						style = MaterialTheme.typography.titleLarge,
+						fontWeight = FontWeight.Bold
+					)
+					if (activeTasks.isNotEmpty()) {
+						Surface(
+							shape = CircleShape,
+							color = MaterialTheme.colorScheme.primaryContainer
+						) {
+							Text(
+								text = activeTasks.size.toString(),
+								style = MaterialTheme.typography.labelMedium,
+								fontWeight = FontWeight.Bold,
+								color = MaterialTheme.colorScheme.onPrimaryContainer,
+								modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+							)
+						}
+					}
+				}
+				if (activeTasks.isNotEmpty()) {
+					TextButton(onClick = onCancelAll) {
+						Icon(
+							imageVector = Icons.Filled.Close,
+							contentDescription = null,
+							tint = MaterialTheme.colorScheme.error,
+							modifier = Modifier.size(16.dp)
+						)
+						Spacer(Modifier.width(4.dp))
+						Text(
+							text = stringResource(R.string.queue_cancel_all),
+							color = MaterialTheme.colorScheme.error,
+							style = MaterialTheme.typography.labelLarge,
+							fontWeight = FontWeight.SemiBold
+						)
+					}
+				}
+			}
+
+			LazyColumn(
+				modifier = Modifier
+					.fillMaxWidth()
+					.heightIn(max = 460.dp),
+				verticalArrangement = Arrangement.spacedBy(8.dp)
+			) {
+				items(items = activeTasks, key = { "active_${it.id}" }) { task ->
+					val appName = task.appName.ifBlank {
+						context.getAppName(task.packageName).ifBlank { task.packageName }
+					}
+					val statusLabel = when {
+						task.isInstalling -> stringResource(R.string.queue_status_installing)
+						task.isResolvingLink && task.progress == 0L -> stringResource(R.string.queue_status_resolving_apkmirror)
+						task.isQueued && task.progress == 0L -> stringResource(R.string.queue_status_waiting)
+						task.total > 0L -> {
+							val pct = ((task.progress * 100) / task.total).toInt().coerceIn(0, 100)
+							"${formatSizeMegabytes(task.progress)} / ${formatSizeMegabytes(task.total)} • $pct%"
+						}
+						else -> stringResource(R.string.queue_status_downloading)
+					}
+					Surface(
+						modifier = Modifier.fillMaxWidth(),
+						shape = RoundedCornerShape(18.dp),
+						color = MaterialTheme.colorScheme.surfaceContainerHigh,
+						border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+					) {
+						Column(
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(horizontal = 12.dp, vertical = 10.dp),
+							verticalArrangement = Arrangement.spacedBy(8.dp)
+						) {
+							Row(
+								modifier = Modifier.fillMaxWidth(),
+								verticalAlignment = Alignment.CenterVertically,
+								horizontalArrangement = Arrangement.spacedBy(10.dp)
+							) {
+								Box(
+									modifier = Modifier
+										.size(40.dp)
+										.clip(RoundedCornerShape(10.dp))
+										.background(MaterialTheme.colorScheme.surfaceContainerHighest),
+									contentAlignment = Alignment.Center
+								) {
+									LoadingImageApp(task.packageName, Modifier.requiredSize(50.dp))
+								}
+								Column(
+									modifier = Modifier.weight(1f),
+									verticalArrangement = Arrangement.spacedBy(2.dp)
+								) {
+									Row(
+										verticalAlignment = Alignment.CenterVertically,
+										horizontalArrangement = Arrangement.spacedBy(6.dp)
+									) {
+										Text(
+											text = appName,
+											style = MaterialTheme.typography.bodyMedium,
+											fontWeight = FontWeight.SemiBold,
+											color = MaterialTheme.colorScheme.onSurface,
+											maxLines = 1,
+											overflow = TextOverflow.Ellipsis,
+											modifier = Modifier.weight(1f, fill = false)
+										)
+										Icon(
+											painter = painterResource(task.source.resourceId),
+											contentDescription = null,
+											tint = MaterialTheme.colorScheme.onSurfaceVariant,
+											modifier = Modifier.size(13.dp)
+										)
+										if (task.version.isNotBlank()) {
+											Text(
+												text = task.version,
+												style = MaterialTheme.typography.labelSmall,
+												color = MaterialTheme.colorScheme.onSurfaceVariant,
+												maxLines = 1
+											)
+										}
+									}
+									Text(
+										text = statusLabel,
+										style = MaterialTheme.typography.labelSmall,
+										fontWeight = FontWeight.Medium,
+										color = if (task.isQueued && task.progress == 0L && !task.isInstalling) {
+											MaterialTheme.colorScheme.onSurfaceVariant
+										} else {
+											MaterialTheme.colorScheme.primary
+										},
+										maxLines = 1,
+										overflow = TextOverflow.Ellipsis
+									)
+								}
+								IconButton(
+									onClick = { onCancelTask(task.id) },
+									modifier = Modifier.size(32.dp)
+								) {
+									Icon(
+										imageVector = Icons.Filled.Close,
+										contentDescription = stringResource(R.string.action_cancel),
+										tint = MaterialTheme.colorScheme.onSurfaceVariant,
+										modifier = Modifier.size(18.dp)
+									)
+								}
+							}
+							if (!task.isQueued || task.isInstalling || task.progress > 0L) {
+								if (!task.isInstalling && !task.isResolvingLink && task.total > 0L) {
+									LinearProgressIndicator(
+										progress = { (task.progress.toFloat() / task.total).coerceIn(0f, 1f) },
+										modifier = Modifier
+											.fillMaxWidth()
+											.height(5.dp)
+											.clip(RoundedCornerShape(3.dp)),
+										color = MaterialTheme.colorScheme.primary,
+										trackColor = MaterialTheme.colorScheme.secondaryContainer
+									)
+								} else {
+									LinearProgressIndicator(
+										modifier = Modifier
+											.fillMaxWidth()
+											.height(5.dp)
+											.clip(RoundedCornerShape(3.dp)),
+										color = MaterialTheme.colorScheme.primary,
+										trackColor = MaterialTheme.colorScheme.secondaryContainer
+									)
+								}
+							}
+						}
+					}
+				}
+
+				if (completedTasks.isNotEmpty()) {
+					item(key = "completed_header") {
+						Text(
+							text = "${stringResource(R.string.queue_section_completed)} (${completedTasks.size})",
+							style = MaterialTheme.typography.labelLarge,
+							fontWeight = FontWeight.SemiBold,
+							color = MaterialTheme.colorScheme.onSurfaceVariant,
+							modifier = Modifier.padding(top = 6.dp, bottom = 2.dp)
+						)
+					}
+					items(items = completedTasks, key = { "done_${it.id}" }) { done ->
+						val appName = done.appName.ifBlank {
+							context.getAppName(done.packageName).ifBlank { done.packageName }
+						}
+						Surface(
+							modifier = Modifier.fillMaxWidth(),
+							shape = RoundedCornerShape(14.dp),
+							color = MaterialTheme.colorScheme.surfaceContainer
+						) {
+							Row(
+								modifier = Modifier
+									.fillMaxWidth()
+									.padding(horizontal = 12.dp, vertical = 8.dp),
+								verticalAlignment = Alignment.CenterVertically,
+								horizontalArrangement = Arrangement.spacedBy(10.dp)
+							) {
+								Box(
+									modifier = Modifier
+										.size(32.dp)
+										.clip(RoundedCornerShape(8.dp))
+										.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+									contentAlignment = Alignment.Center
+								) {
+									LoadingImageApp(done.packageName, Modifier.requiredSize(40.dp))
+								}
+								Column(modifier = Modifier.weight(1f)) {
+									Text(
+										text = appName,
+										style = MaterialTheme.typography.bodySmall,
+										fontWeight = FontWeight.SemiBold,
+										color = MaterialTheme.colorScheme.onSurface,
+										maxLines = 1,
+										overflow = TextOverflow.Ellipsis
+									)
+									if (done.version.isNotBlank()) {
+										Text(
+											text = done.version,
+											style = MaterialTheme.typography.labelSmall,
+											color = MaterialTheme.colorScheme.onSurfaceVariant,
+											maxLines = 1
+										)
+									}
+								}
+								Surface(
+									shape = CircleShape,
+									color = Color(0xFFE8F5E9)
+								) {
+									Row(
+										modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+										verticalAlignment = Alignment.CenterVertically,
+										horizontalArrangement = Arrangement.spacedBy(4.dp)
+									) {
+										Icon(
+											imageVector = Icons.Filled.Check,
+											contentDescription = null,
+											tint = Color(0xFF2E7D32),
+											modifier = Modifier.size(12.dp)
+										)
+										Text(
+											text = stringResource(R.string.queue_item_completed),
+											style = MaterialTheme.typography.labelSmall,
+											fontWeight = FontWeight.SemiBold,
+											color = Color(0xFF2E7D32)
+										)
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 private fun UpdatesSourceFilterRow(
 	totalCount: Int,
 	sourceCounts: Map<Source, Int>,
@@ -477,19 +1010,19 @@ private fun UpdatesSourceFilterRow(
 		modifier = Modifier
 			.fillMaxWidth()
 			.horizontalScroll(rememberScrollState())
-			.padding(horizontal = 12.dp, vertical = 4.dp),
-		horizontalArrangement = Arrangement.spacedBy(8.dp),
+			.padding(horizontal = 12.dp, vertical = 2.dp),
+		horizontalArrangement = Arrangement.spacedBy(6.dp),
 		verticalAlignment = Alignment.CenterVertically
 	) {
 		val allSelected = selectedSource == null
 		FilterChip(
 			selected = allSelected,
 			onClick = { onSelectSource(null) },
-			modifier = Modifier.height(36.dp),
+			modifier = Modifier.height(30.dp),
 			label = {
 				Text(
 					text = "${stringResource(R.string.apps_filter_all)} ($totalCount)",
-					style = MaterialTheme.typography.labelMedium,
+					style = MaterialTheme.typography.labelSmall,
 					fontWeight = if (allSelected) FontWeight.SemiBold else FontWeight.Medium
 				)
 			},
@@ -498,7 +1031,7 @@ private fun UpdatesSourceFilterRow(
 					Icon(
 						imageVector = Icons.Filled.Check,
 						contentDescription = null,
-						modifier = Modifier.size(16.dp)
+						modifier = Modifier.size(14.dp)
 					)
 				}
 			} else null,
@@ -522,48 +1055,48 @@ private fun UpdatesSourceFilterRow(
 				FilterChip(
 					selected = isSelected,
 					onClick = { onSelectSource(if (isSelected) null else source.name) },
-					modifier = Modifier.height(36.dp),
+					modifier = Modifier.height(30.dp),
 					label = {
 						Text(
 							text = labelText,
-								style = MaterialTheme.typography.labelMedium,
-								fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium
-							)
-						},
-						leadingIcon = if (isSelected) {
-							{
-								Icon(
-									imageVector = Icons.Filled.Check,
-									contentDescription = null,
-									modifier = Modifier.size(16.dp)
-								)
-							}
-						} else {
-							{
-								Icon(
-									painter = painterResource(source.resourceId),
-									contentDescription = null,
-									modifier = Modifier.size(16.dp),
-									tint = MaterialTheme.colorScheme.onSurfaceVariant
-								)
-							}
-						},
-						shape = CircleShape,
-						border = FilterChipDefaults.filterChipBorder(
-							enabled = true,
-							selected = isSelected,
-							borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
-						),
-						colors = FilterChipDefaults.filterChipColors(
-							selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-							selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-							selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer
+							style = MaterialTheme.typography.labelSmall,
+							fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium
 						)
+					},
+					leadingIcon = if (isSelected) {
+						{
+							Icon(
+								imageVector = Icons.Filled.Check,
+								contentDescription = null,
+								modifier = Modifier.size(14.dp)
+							)
+						}
+					} else {
+						{
+							Icon(
+								painter = painterResource(source.resourceId),
+								contentDescription = null,
+								modifier = Modifier.size(14.dp),
+								tint = MaterialTheme.colorScheme.onSurfaceVariant
+							)
+						}
+					},
+					shape = CircleShape,
+					border = FilterChipDefaults.filterChipBorder(
+						enabled = true,
+						selected = isSelected,
+						borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+					),
+					colors = FilterChipDefaults.filterChipColors(
+						selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+						selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+						selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer
 					)
-				}
+				)
 			}
 		}
 	}
+}
 
 @Composable
 private fun LastCheckedStatusBanner(lastCheckedAtMillis: Long) {
@@ -695,7 +1228,8 @@ private fun UpdatesList(
 	viewModel: UpdatesViewModel,
 	updates: List<AppUpdate>,
 	handler: UriHandler,
-	modifier: Modifier
+	modifier: Modifier,
+	onBeforeInstall: () -> Unit = {}
 ) {
 	val appsViewModel: AppsViewModel = koinViewModel()
 	var selectedPackageName by remember { mutableStateOf<String?>(null) }
@@ -719,7 +1253,10 @@ private fun UpdatesList(
 				UpdateCard(
 					update = update,
 					onSelect = { selectedPackageName = update.packageName },
-					onInstall = { viewModel.install(update, handler) }
+					onInstall = {
+						onBeforeInstall()
+						viewModel.install(update, handler)
+					}
 				)
 			}
 		}
@@ -730,6 +1267,7 @@ private fun UpdatesList(
 			update = update,
 			onDismiss = { selectedPackageName = null },
 			onInstallVariant = { chosen ->
+				onBeforeInstall()
 				viewModel.install(chosen, handler)
 				if (chosen.isBrowserOnlyUpdate) {
 					selectedPackageName = null
@@ -967,7 +1505,8 @@ private fun CompactUpdatesGrid(
 	viewModel: UpdatesViewModel,
 	updates: List<AppUpdate>,
 	handler: UriHandler,
-	modifier: Modifier
+	modifier: Modifier,
+	onBeforeInstall: () -> Unit = {}
 ) {
 	val appsViewModel: AppsViewModel = koinViewModel()
 	var selectedPackageName by remember { mutableStateOf<String?>(null) }
@@ -1133,6 +1672,7 @@ private fun CompactUpdatesGrid(
 			update = update,
 			onDismiss = { selectedPackageName = null },
 			onInstallVariant = { chosen ->
+				onBeforeInstall()
 				viewModel.install(chosen, handler)
 				if (chosen.isBrowserOnlyUpdate) {
 					selectedPackageName = null

@@ -3,6 +3,7 @@ package com.apkup.repository
 import android.os.SystemClock
 import android.util.Log
 import com.apkup.BuildConfig
+import com.apkup.data.ui.ApkMirrorSource
 import com.apkup.data.ui.AppInstalled
 import com.apkup.data.ui.AppUpdate
 import com.apkup.data.ui.CachedUpdateSnapshot
@@ -80,7 +81,7 @@ class UpdatesRepository(
                     filteredResults,
                     packageName = AppUpdate::packageName,
                     versionCode = AppUpdate::versionCode,
-                    sourcePriority = { when (it.source) { PlaySource -> 4; GitHubSource -> 3; GitLabSource -> 2; IzzyOnDroidSource -> 1; else -> 0 } }
+                    sourcePriority = { when (it.source) { PlaySource -> 4; GitHubSource -> 3; ApkMirrorSource -> 2; GitLabSource -> 1; IzzyOnDroidSource -> 0; else -> 0 } }
                 )
                 val enrichedUpdates = enrichWithSourceAlternatives(
                     primaryUpdates = combined.updates,
@@ -240,7 +241,7 @@ internal fun enrichWithSourceAlternatives(
                 sameSourceCandidates.maxByOrNull { it.versionCode }!!
             }
             .sortedWith(
-                compareByDescending<AppUpdate> { when (it.source) { PlaySource -> 4; GitHubSource -> 3; GitLabSource -> 2; IzzyOnDroidSource -> 1; else -> 0 } }
+                compareByDescending<AppUpdate> { when (it.source) { PlaySource -> 4; GitHubSource -> 3; ApkMirrorSource -> 2; GitLabSource -> 1; IzzyOnDroidSource -> 0; else -> 0 } }
                     .thenByDescending { it.versionCode }
             )
         if (distinctSources.size > 1) {

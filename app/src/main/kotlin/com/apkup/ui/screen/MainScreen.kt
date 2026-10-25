@@ -123,6 +123,14 @@ fun MainScreen(
 	val settingsViewModel: SettingsViewModel = koinViewModel()
 
 	val showPermissionDialog by updatesViewModel.showInstallPermissionDialog.collectAsStateWithLifecycle()
+	val updatesState by updatesViewModel.state().collectAsStateWithLifecycle()
+	val isCheckingUpdates = updatesState is com.apkup.data.ui.UpdatesUiState.Loading ||
+		(updatesState as? com.apkup.data.ui.UpdatesUiState.Success)?.isChecking == true
+	val rootView = androidx.compose.ui.platform.LocalView.current
+	DisposableEffect(isCheckingUpdates) {
+		rootView.keepScreenOn = isCheckingUpdates
+		onDispose { rootView.keepScreenOn = false }
+	}
 
 	// Navigation
 	val navController = rememberNavController()

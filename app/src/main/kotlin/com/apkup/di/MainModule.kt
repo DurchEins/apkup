@@ -54,6 +54,9 @@ val mainModule = module {
 		}
 		OkHttpClient.Builder()
 			.dispatcher(dispatcher)
+			.connectTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
+			.readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+			.writeTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
 			.cache(get())
 			.addUserAgentInterceptor("APKUpdater-v" + BuildConfig.VERSION_NAME)
 			.build()
@@ -80,6 +83,9 @@ val mainModule = module {
 		val apkMirrorOkHttpClient = OkHttpClient.Builder()
 			.followRedirects(true)
 			.cookieJar(InMemoryCookieJar())
+			.connectTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
+			.readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+			.writeTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
 			.build()
 		ApkMirrorResolver(client = apkMirrorOkHttpClient, minDelayMs = 1500L)
 	}

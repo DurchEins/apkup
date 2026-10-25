@@ -241,6 +241,8 @@ class SettingsViewModel(
 	fun setUseGitLab(b: Boolean) = prefs.useGitLab.put(b)
 	fun getGitHubToken(): String = prefs.githubToken.get()
 	fun setGitHubToken(token: String) = prefs.githubToken.put(token.trim())
+	fun getGitLabToken(): String = prefs.gitlabToken.get()
+	fun setGitLabToken(token: String) = prefs.gitlabToken.put(token.trim())
 	fun getBackgroundChecksEnabled() = prefs.enableBackgroundChecks.get()
 	fun getBackgroundCheckIntervalHours(): Int =
 		BackgroundCheckInterval.fromHours(prefs.backgroundCheckIntervalHours.get()).hours
@@ -280,6 +282,7 @@ class SettingsViewModel(
 			showSystemApps = prefs.showSystemApps.get(),
 			updatesDisplayMode = prefs.updatesDisplayMode.get(),
 			useApkMirror = prefs.useApkMirror.get(),
+			directApkMirrorDownloads = prefs.directApkMirrorDownloads.get(),
 			usePlay = prefs.usePlay.get(),
 			useIzzyOnDroid = prefs.useIzzyOnDroid.get(),
 			useGitHub = prefs.useGitHub.get(),
@@ -302,6 +305,7 @@ class SettingsViewModel(
 		prefs.setShowSystemApps(config.showSystemApps)
 		prefs.updatesDisplayMode.put(config.updatesDisplayMode.coerceIn(0, 1))
 		prefs.useApkMirror.put(config.useApkMirror)
+		prefs.directApkMirrorDownloads.put(config.directApkMirrorDownloads)
 		prefs.usePlay.put(config.usePlay)
 		prefs.useIzzyOnDroid.put(config.useIzzyOnDroid)
 		prefs.useGitHub.put(config.useGitHub)

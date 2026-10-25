@@ -207,6 +207,7 @@ fun Settings(
 	var showHiddenAppsSheet by remember { mutableStateOf(false) }
 	var showChangelogSheet by remember { mutableStateOf(false) }
 	var showGitHubTokenDialog by remember { mutableStateOf(false) }
+	var showGitLabTokenDialog by remember { mutableStateOf(false) }
 	var configRefreshKey by remember { mutableIntStateOf(0) }
 
 	var easterEggActiveUntil by remember { mutableLongStateOf(0L) }
@@ -395,16 +396,52 @@ fun Settings(
 					R.drawable.ic_apkmirror
 				)
 				if (viewModel.getUseApkMirror()) {
-					SwitchSetting(
-						getValue = { viewModel.getDirectApkMirrorDownloads() },
-						setValue = {
-							viewModel.setDirectApkMirrorDownloads(it)
+					val directApkMirrorEnabled = remember(configRefreshKey) { viewModel.getDirectApkMirrorDownloads() }
+					Surface(
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(start = 12.dp, end = 4.dp, top = 2.dp, bottom = 4.dp),
+						shape = RoundedCornerShape(14.dp),
+						color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
+						onClick = {
+							viewModel.setDirectApkMirrorDownloads(!directApkMirrorEnabled)
 							configRefreshKey++
-						},
-						text = stringResource(R.string.settings_apkmirror_direct_downloads),
-						subtitle = stringResource(R.string.settings_apkmirror_direct_downloads_desc),
-						icon = R.drawable.ic_download
-					)
+						}
+					) {
+						Row(
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(horizontal = 14.dp, vertical = 8.dp),
+							verticalAlignment = CenterVertically,
+							horizontalArrangement = Arrangement.spacedBy(10.dp)
+						) {
+							Icon(
+								painter = painterResource(R.drawable.ic_download),
+								contentDescription = null,
+								tint = if (directApkMirrorEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+								modifier = Modifier.size(20.dp)
+							)
+							Column(modifier = Modifier.weight(1f)) {
+								Text(
+									text = stringResource(R.string.settings_apkmirror_direct_downloads),
+									style = MaterialTheme.typography.bodyMedium,
+									fontWeight = FontWeight.Medium
+								)
+								Text(
+									text = stringResource(R.string.settings_apkmirror_direct_downloads_desc),
+									style = MaterialTheme.typography.bodySmall,
+									color = MaterialTheme.colorScheme.onSurfaceVariant
+								)
+							}
+							androidx.compose.material3.Switch(
+								checked = directApkMirrorEnabled,
+								onCheckedChange = {
+									viewModel.setDirectApkMirrorDownloads(it)
+									configRefreshKey++
+								}
+							)
+						}
+					}
 				}
 				SwitchSetting(
 					{ viewModel.getUsePlay() },
@@ -428,50 +465,52 @@ fun Settings(
 					icon = R.drawable.ic_github,
 					subtitle = stringResource(R.string.settings_source_github_desc)
 				)
-				val currentGitHubToken = remember(configRefreshKey) { viewModel.getGitHubToken() }
-				Surface(
-					modifier = Modifier
-						.fillMaxWidth()
-						.padding(start = 12.dp, end = 4.dp, top = 2.dp, bottom = 4.dp),
-					shape = RoundedCornerShape(14.dp),
-					color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
-					onClick = { showGitHubTokenDialog = true }
-				) {
-					Row(
+				if (viewModel.getUseGitHub()) {
+					val currentGitHubToken = remember(configRefreshKey) { viewModel.getGitHubToken() }
+					Surface(
 						modifier = Modifier
 							.fillMaxWidth()
-							.padding(horizontal = 14.dp, vertical = 10.dp),
-						verticalAlignment = CenterVertically,
-						horizontalArrangement = Arrangement.spacedBy(10.dp)
+							.padding(start = 12.dp, end = 4.dp, top = 2.dp, bottom = 4.dp),
+						shape = RoundedCornerShape(14.dp),
+						color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
+						onClick = { showGitHubTokenDialog = true }
 					) {
-						Icon(
-							painter = painterResource(R.drawable.ic_github),
-							contentDescription = null,
-							tint = if (currentGitHubToken.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-							modifier = Modifier.size(20.dp)
-						)
-						Column(modifier = Modifier.weight(1f)) {
-							Text(
-								text = stringResource(R.string.github_token_title),
-								style = MaterialTheme.typography.bodyMedium,
-								fontWeight = FontWeight.Medium
+						Row(
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(horizontal = 14.dp, vertical = 10.dp),
+							verticalAlignment = CenterVertically,
+							horizontalArrangement = Arrangement.spacedBy(10.dp)
+						) {
+							Icon(
+								painter = painterResource(R.drawable.ic_github),
+								contentDescription = null,
+								tint = if (currentGitHubToken.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+								modifier = Modifier.size(20.dp)
 							)
-							Text(
-								text = if (currentGitHubToken.isNotEmpty()) {
-									stringResource(R.string.github_token_status_set)
-								} else {
-									stringResource(R.string.github_token_status_not_set)
-								},
-								style = MaterialTheme.typography.bodySmall,
-								color = MaterialTheme.colorScheme.onSurfaceVariant
+							Column(modifier = Modifier.weight(1f)) {
+								Text(
+									text = stringResource(R.string.github_token_title),
+									style = MaterialTheme.typography.bodyMedium,
+									fontWeight = FontWeight.Medium
+								)
+								Text(
+									text = if (currentGitHubToken.isNotEmpty()) {
+										stringResource(R.string.github_token_status_set)
+									} else {
+										stringResource(R.string.github_token_status_not_set)
+									},
+									style = MaterialTheme.typography.bodySmall,
+									color = MaterialTheme.colorScheme.onSurfaceVariant
+								)
+							}
+							Icon(
+								imageVector = Icons.Default.Settings,
+								contentDescription = null,
+								tint = MaterialTheme.colorScheme.onSurfaceVariant,
+								modifier = Modifier.size(18.dp)
 							)
 						}
-						Icon(
-							imageVector = Icons.Default.Settings,
-							contentDescription = null,
-							tint = MaterialTheme.colorScheme.onSurfaceVariant,
-							modifier = Modifier.size(18.dp)
-						)
 					}
 				}
 				SwitchSetting(
@@ -484,6 +523,54 @@ fun Settings(
 					icon = R.drawable.ic_gitlab,
 					subtitle = stringResource(R.string.settings_source_gitlab_desc)
 				)
+				if (viewModel.getUseGitLab()) {
+					val currentGitLabToken = remember(configRefreshKey) { viewModel.getGitLabToken() }
+					Surface(
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(start = 12.dp, end = 4.dp, top = 2.dp, bottom = 4.dp),
+						shape = RoundedCornerShape(14.dp),
+						color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
+						onClick = { showGitLabTokenDialog = true }
+					) {
+						Row(
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(horizontal = 14.dp, vertical = 10.dp),
+							verticalAlignment = CenterVertically,
+							horizontalArrangement = Arrangement.spacedBy(10.dp)
+						) {
+							Icon(
+								painter = painterResource(R.drawable.ic_gitlab),
+								contentDescription = null,
+								tint = if (currentGitLabToken.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+								modifier = Modifier.size(20.dp)
+							)
+							Column(modifier = Modifier.weight(1f)) {
+								Text(
+									text = stringResource(R.string.gitlab_token_title),
+									style = MaterialTheme.typography.bodyMedium,
+									fontWeight = FontWeight.Medium
+								)
+								Text(
+									text = if (currentGitLabToken.isNotEmpty()) {
+										stringResource(R.string.gitlab_token_status_set)
+									} else {
+										stringResource(R.string.gitlab_token_status_not_set)
+									},
+									style = MaterialTheme.typography.bodySmall,
+									color = MaterialTheme.colorScheme.onSurfaceVariant
+								)
+							}
+							Icon(
+								imageVector = Icons.Default.Settings,
+								contentDescription = null,
+								tint = MaterialTheme.colorScheme.onSurfaceVariant,
+								modifier = Modifier.size(18.dp)
+							)
+						}
+					}
+				}
 				SwitchSetting(
 					getValue = { bgChecksEnabled },
 					setValue = { enabled ->
@@ -1189,7 +1276,10 @@ fun Settings(
 	}
 
 	if (showGitHubTokenDialog) {
-		GitHubTokenDialog(
+		ApiTokenDialog(
+			title = stringResource(R.string.github_token_dialog_title),
+			description = stringResource(R.string.github_token_dialog_desc),
+			placeholder = stringResource(R.string.github_token_dialog_hint),
 			initialToken = viewModel.getGitHubToken(),
 			onDismiss = { showGitHubTokenDialog = false },
 			onSaveToken = { token ->
@@ -1198,24 +1288,42 @@ fun Settings(
 			}
 		)
 	}
+
+	if (showGitLabTokenDialog) {
+		ApiTokenDialog(
+			title = stringResource(R.string.gitlab_token_dialog_title),
+			description = stringResource(R.string.gitlab_token_dialog_desc),
+			placeholder = stringResource(R.string.gitlab_token_dialog_hint),
+			initialToken = viewModel.getGitLabToken(),
+			onDismiss = { showGitLabTokenDialog = false },
+			onSaveToken = { token ->
+				viewModel.setGitLabToken(token)
+				configRefreshKey++
+			}
+		)
+	}
 }
 
 @Composable
-private fun GitHubTokenDialog(
+private fun ApiTokenDialog(
+	title: String,
+	description: String,
+	placeholder: String,
 	initialToken: String,
 	onDismiss: () -> Unit,
 	onSaveToken: (String) -> Unit
 ) {
 	var tokenText by remember { mutableStateOf(initialToken) }
+	var isTokenVisible by remember { mutableStateOf(false) }
 	AlertDialog(
 		onDismissRequest = onDismiss,
 		shape = RoundedCornerShape(28.dp),
 		containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-		title = { Text(stringResource(R.string.github_token_dialog_title)) },
+		title = { Text(title) },
 		text = {
 			Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
 				Text(
-					text = stringResource(R.string.github_token_dialog_desc),
+					text = description,
 					style = MaterialTheme.typography.bodyMedium,
 					color = MaterialTheme.colorScheme.onSurfaceVariant
 				)
@@ -1223,8 +1331,23 @@ private fun GitHubTokenDialog(
 					value = tokenText,
 					onValueChange = { tokenText = it },
 					label = { Text("Token") },
-					placeholder = { Text(stringResource(R.string.github_token_dialog_hint)) },
+					placeholder = { Text(placeholder) },
 					singleLine = true,
+					visualTransformation = if (isTokenVisible) {
+						androidx.compose.ui.text.input.VisualTransformation.None
+					} else {
+						androidx.compose.ui.text.input.PasswordVisualTransformation()
+					},
+					trailingIcon = {
+						androidx.compose.material3.IconButton(onClick = { isTokenVisible = !isTokenVisible }) {
+							Icon(
+								painter = painterResource(
+									if (isTokenVisible) R.drawable.ic_visible_off else R.drawable.ic_visible
+								),
+								contentDescription = stringResource(R.string.token_toggle_visibility)
+							)
+						}
+					},
 					modifier = Modifier.fillMaxWidth()
 				)
 			}

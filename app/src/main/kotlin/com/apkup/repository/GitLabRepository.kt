@@ -185,6 +185,11 @@ class GitLabRepository(
             .header("Accept", "application/json")
             .header("User-Agent", "ApkUp")
 
+        val token = prefs.gitlabToken.get().trim().filter { it in '!'..'~' }
+        if (token.isNotEmpty()) {
+            requestBuilder.header("PRIVATE-TOKEN", token)
+        }
+
         if (cached?.etag != null) {
             requestBuilder.header("If-None-Match", cached.etag)
         }

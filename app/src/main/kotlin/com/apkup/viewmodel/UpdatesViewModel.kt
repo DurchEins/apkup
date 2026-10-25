@@ -102,7 +102,6 @@ class UpdatesViewModel(
 		}
 		viewModelScope.launch(Dispatchers.IO) {
 			DownloadInstallService.activeTasksFlow.collect { activeMap ->
-				if (activeMap.isEmpty()) return@collect
 				mutex.withLock {
 					val currentList = state.value.mutableUpdates()
 					var modified = false
@@ -110,7 +109,7 @@ class UpdatesViewModel(
 						val task = activeMap[appUpdate.id]
 						if (task != null) {
 							val updated = appUpdate.copy(
-								isInstalling = task.isInstalling,
+								isInstalling = task.isInstalling || !task.isQueued,
 								isQueued = task.isQueued,
 								progress = task.progress,
 								total = if (task.total > 0) task.total else appUpdate.total
@@ -119,6 +118,14 @@ class UpdatesViewModel(
 								currentList[index] = updated
 								modified = true
 							}
+						} else if (context != null && (appUpdate.isInstalling || appUpdate.isQueued)) {
+							val reset = appUpdate.copy(
+								isInstalling = false,
+								isQueued = false,
+								progress = 0L
+							)
+							currentList[index] = reset
+							modified = true
 						}
 					}
 					if (modified) {
@@ -636,7 +643,7 @@ class UpdatesViewModel(
 		)
 	}
 
-	override fun cancelInstall(id: Int) = viewModelScope.launchWithMutex(mutex, Dispatchers.IO) {
+	public override fun cancelInstall(id: Int) = viewModelScope.launchWithMutex(mutex, Dispatchers.IO) {
 		context?.let { ctx -> DownloadInstallService.cancelDownload(ctx, id) }
 		downloader.cancel("update_$id")
 		activeDownloadJobs.remove(id)?.cancel()
@@ -649,6 +656,25 @@ class UpdatesViewModel(
 				.setIsInstalling(id, false)
 		)
 		installer.finish(id)
+	}
+
+	fun cancelAllInstalls() = viewModelScope.launchWithMutex(mutex, Dispatchers.IO) {
+		context?.let { ctx -> DownloadInstallService.cancelAllDownloads(ctx) }
+		val current = state.value.mutableUpdates()
+		val resetList = current.map { update ->
+			if (update.isInstalling || update.isQueued) {
+				downloader.cancel("update_${update.id}")
+				activeDownloadJobs.remove(update.id)?.cancel()
+				runCatching {
+					File(getCacheDir(), "download_staging_${update.id}").deleteRecursively()
+				}
+				installer.finish(update.id)
+				update.copy(isQueued = false, isInstalling = false, progress = 0L)
+			} else {
+				update
+			}
+		}
+		state.value = successState(resetList)
 	}
 
 	override fun finishInstall(id: Int) = viewModelScope.launchWithMutex(mutex, Dispatchers.IO) {
