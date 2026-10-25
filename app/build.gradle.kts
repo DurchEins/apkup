@@ -24,7 +24,7 @@ android {
         minSdk = 29
         targetSdk = 37
         versionCode = if (buildNumber.isEmpty()) 141 else buildNumber.toInt()
-        versionName = if (buildNumber.isEmpty()) "1.32-Beta (141)" else "1.32.$buildNumber"
+        versionName = if (buildNumber.isEmpty()) "1.36-Beta (141)" else "1.36.$buildNumber"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

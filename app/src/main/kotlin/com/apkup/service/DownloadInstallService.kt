@@ -123,15 +123,16 @@ class DownloadInstallService : Service(), KoinComponent {
                 taskOrder.add(update.id)
             }
             pendingUpdates.offer(update)
+            val isCachedReady = Downloader.hasReadyCachedApk(context.cacheDir, update.id, update.versionCode)
             activeTasks[update.id] = DownloadTaskState(
                 id = update.id,
                 packageName = update.packageName,
                 appName = update.name,
                 version = update.version,
                 source = update.source,
-                isInstalling = false,
-                isQueued = true,
-                isResolvingLink = update.source == ApkMirrorSource
+                isInstalling = isCachedReady,
+                isQueued = !isCachedReady,
+                isResolvingLink = if (isCachedReady) false else update.source == ApkMirrorSource
             )
             publishActiveTasks()
 
@@ -153,15 +154,16 @@ class DownloadInstallService : Service(), KoinComponent {
                     taskOrder.add(update.id)
                 }
                 pendingUpdates.offer(update)
+                val isCachedReady = Downloader.hasReadyCachedApk(context.cacheDir, update.id, update.versionCode)
                 activeTasks[update.id] = DownloadTaskState(
                     id = update.id,
                     packageName = update.packageName,
                     appName = update.name,
                     version = update.version,
                     source = update.source,
-                    isInstalling = false,
-                    isQueued = true,
-                    isResolvingLink = update.source == ApkMirrorSource
+                    isInstalling = isCachedReady,
+                    isQueued = !isCachedReady,
+                    isResolvingLink = if (isCachedReady) false else update.source == ApkMirrorSource
                 )
             }
             publishActiveTasks()
@@ -237,6 +239,7 @@ class DownloadInstallService : Service(), KoinComponent {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         ensureForegroundStarted()
+        ensureInstallProcessorStarted()
 
         val action = intent?.action
         val updateId = intent?.getIntExtra(EXTRA_UPDATE_ID, 0) ?: 0
@@ -315,10 +318,12 @@ class DownloadInstallService : Service(), KoinComponent {
                 val cachedFiles = downloader.getReadyStagingFiles(cacheDir, update.id, update.versionCode)
                 if (cachedFiles != null && cachedFiles.isNotEmpty()) {
                     Log.i(TAG, "Reusing ready cached APK files for ${update.packageName} (${update.id}); skipping download")
+                    installLog.beginInstall(update.id)
                     mutateTask(update.id) {
                         it.copy(isInstalling = true, isQueued = false, isResolvingLink = false)
                     }
                     refreshNotification(force = true)
+                    ensureInstallProcessorStarted()
                     installChannel.send(
                         DownloadedPackage(
                             id = update.id,
@@ -451,6 +456,12 @@ class DownloadInstallService : Service(), KoinComponent {
         activeDownloadJobs[update.id] = currentJob
     }
 
+    private fun ensureInstallProcessorStarted() {
+        if (installProcessorJob?.isActive != true) {
+            startInstallProcessor()
+        }
+    }
+
     private fun startInstallProcessor() {
         if (installProcessorJob?.isActive == true) return
         installProcessorJob = serviceScope.launch {
@@ -471,10 +482,10 @@ class DownloadInstallService : Service(), KoinComponent {
                         }
                         installSucceeded = installer.installParts(pkg.id, pkg.packageName, parts)
                     } catch (cancellation: CancellationException) {
+                        Log.i(TAG, "Installation cancelled for ${pkg.packageName} (${pkg.id})")
                         installLog.emitProgress(AppInstallProgress(pkg.id, 0L))
                         removeTask(pkg.id)
                         refreshNotification(force = true)
-                        throw cancellation
                     } catch (error: Throwable) {
                         Log.e(TAG, "Installation failed for ${pkg.packageName}", error)
                         installLog.emitProgress(AppInstallProgress(pkg.id, 0L))
@@ -485,6 +496,10 @@ class DownloadInstallService : Service(), KoinComponent {
                     } finally {
                         if (installSucceeded) {
                             runCatching { pkg.stagingDir.deleteRecursively() }
+                        }
+                        if (!installSucceeded && activeTasks.containsKey(pkg.id)) {
+                            removeTask(pkg.id)
+                            refreshNotification(force = true)
                         }
                     }
                 }

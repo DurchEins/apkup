@@ -37,60 +37,69 @@ class Downloader(
     companion object {
         const val READY_CACHE_TTL_MS = 24 * 60 * 60 * 1000L // 24 hours
         const val READY_MARKER_FILE = ".ready"
+
+        fun markStagingReady(stagingDir: File, versionCode: Long) {
+            runCatching {
+                val marker = File(stagingDir, READY_MARKER_FILE)
+                marker.writeText("$versionCode:${System.currentTimeMillis()}")
+                Log.i("Downloader", "Marked staging as ready: ${stagingDir.name} (versionCode=$versionCode)")
+            }
+        }
+
+        fun getReadyStagingFiles(cacheDir: File, updateId: Int, versionCode: Long): List<File>? {
+            return runCatching {
+                val stagingDir = File(cacheDir, "download_staging_$updateId")
+                if (!stagingDir.exists() || !stagingDir.isDirectory) return@runCatching null
+
+                val marker = File(stagingDir, READY_MARKER_FILE)
+                if (!marker.exists() || !marker.isFile) return@runCatching null
+
+                val content = marker.readText().trim()
+                val parts = content.split(":")
+                if (parts.isEmpty()) return@runCatching null
+
+                val savedVersionCode = parts[0].toLongOrNull() ?: return@runCatching null
+                if (savedVersionCode != versionCode) {
+                    Log.i("Downloader", "Ready staging versionCode mismatch ($savedVersionCode != $versionCode) for $updateId; discarding")
+                    stagingDir.deleteRecursively()
+                    return@runCatching null
+                }
+
+                val timestamp = parts.getOrNull(1)?.toLongOrNull() ?: marker.lastModified()
+                val now = System.currentTimeMillis()
+                if (now - timestamp > READY_CACHE_TTL_MS) {
+                    Log.i("Downloader", "Ready staging expired (>24h) for $updateId; discarding")
+                    stagingDir.deleteRecursively()
+                    return@runCatching null
+                }
+
+                val apkFiles = stagingDir.listFiles { file ->
+                    file.isFile && file.extension.equals("apk", ignoreCase = true) && file.length() > 0L
+                }?.toList().orEmpty()
+
+                if (apkFiles.isEmpty()) {
+                    stagingDir.deleteRecursively()
+                    return@runCatching null
+                }
+
+                apkFiles
+            }.getOrNull()
+        }
+
+        fun hasReadyCachedApk(cacheDir: File, updateId: Int, versionCode: Long): Boolean =
+            getReadyStagingFiles(cacheDir, updateId, versionCode) != null
     }
 
     private val activeCalls = ConcurrentHashMap<String, CopyOnWriteArrayList<Call>>()
 
-    fun markStagingReady(stagingDir: File, versionCode: Long) {
-        runCatching {
-            val marker = File(stagingDir, READY_MARKER_FILE)
-            marker.writeText("$versionCode:${System.currentTimeMillis()}")
-            Log.i("Downloader", "Marked staging as ready: ${stagingDir.name} (versionCode=$versionCode)")
-        }
-    }
+    fun markStagingReady(stagingDir: File, versionCode: Long) =
+        Companion.markStagingReady(stagingDir, versionCode)
 
-    fun getReadyStagingFiles(cacheDir: File, updateId: Int, versionCode: Long): List<File>? {
-        return runCatching {
-            val stagingDir = File(cacheDir, "download_staging_$updateId")
-            if (!stagingDir.exists() || !stagingDir.isDirectory) return@runCatching null
-
-            val marker = File(stagingDir, READY_MARKER_FILE)
-            if (!marker.exists() || !marker.isFile) return@runCatching null
-
-            val content = marker.readText().trim()
-            val parts = content.split(":")
-            if (parts.isEmpty()) return@runCatching null
-
-            val savedVersionCode = parts[0].toLongOrNull() ?: return@runCatching null
-            if (savedVersionCode != versionCode) {
-                Log.i("Downloader", "Ready staging versionCode mismatch ($savedVersionCode != $versionCode) for $updateId; discarding")
-                stagingDir.deleteRecursively()
-                return@runCatching null
-            }
-
-            val timestamp = parts.getOrNull(1)?.toLongOrNull() ?: marker.lastModified()
-            val now = System.currentTimeMillis()
-            if (now - timestamp > READY_CACHE_TTL_MS) {
-                Log.i("Downloader", "Ready staging expired (>24h) for $updateId; discarding")
-                stagingDir.deleteRecursively()
-                return@runCatching null
-            }
-
-            val apkFiles = stagingDir.listFiles { file ->
-                file.isFile && file.extension.equals("apk", ignoreCase = true) && file.length() > 0L
-            }?.toList().orEmpty()
-
-            if (apkFiles.isEmpty()) {
-                stagingDir.deleteRecursively()
-                return@runCatching null
-            }
-
-            apkFiles
-        }.getOrNull()
-    }
+    fun getReadyStagingFiles(cacheDir: File, updateId: Int, versionCode: Long): List<File>? =
+        Companion.getReadyStagingFiles(cacheDir, updateId, versionCode)
 
     fun hasReadyCachedApk(cacheDir: File, updateId: Int, versionCode: Long): Boolean =
-        getReadyStagingFiles(cacheDir, updateId, versionCode) != null
+        Companion.hasReadyCachedApk(cacheDir, updateId, versionCode)
 
     fun registerCall(tag: String, call: Call) {
         activeCalls.computeIfAbsent(tag) { CopyOnWriteArrayList() }.add(call)

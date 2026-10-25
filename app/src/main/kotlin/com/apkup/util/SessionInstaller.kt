@@ -147,6 +147,10 @@ class SessionInstaller internal constructor(
         packageName: String,
         parts: List<InstallPart>
     ): Boolean {
+        if (mutex.isLocked) {
+            runCatching { mutex.unlock() }
+        }
+        installLog.beginInstall(id)
         if (parts.isEmpty()) {
             throw IOException("No installation parts provided for $packageName")
         }
@@ -529,6 +533,7 @@ class SessionInstaller internal constructor(
                                         )
                                     }
                                     scope.launch(Dispatchers.Main) {
+                                        if (mutex.isLocked) runCatching { mutex.unlock() }
                                         mutex.lock()
                                         runCatching {
                                             (context.applicationContext ?: context).startActivity(confirmIntent, options.toBundle())
@@ -539,6 +544,7 @@ class SessionInstaller internal constructor(
                                     }
                                 } else {
                                     scope.launch(Dispatchers.Main) {
+                                        if (mutex.isLocked) runCatching { mutex.unlock() }
                                         mutex.lock()
                                         postConfirmationNotification(context, id, packageName, confirmIntent)
                                     }

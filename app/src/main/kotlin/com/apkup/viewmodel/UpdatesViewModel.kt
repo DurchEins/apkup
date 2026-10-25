@@ -576,9 +576,9 @@ class UpdatesViewModel(
 							}
 							installer.installParts(pkg.id, pkg.packageName, parts)
 						} catch (cancellation: CancellationException) {
+							Log.i("UpdatesViewModel", "Installation cancelled for ${pkg.packageName} (${pkg.id})")
 							installLog.emitProgress(AppInstallProgress(pkg.id, 0L))
 							cancelInstall(pkg.id)
-							throw cancellation
 						} catch (error: Throwable) {
 							Log.e("UpdatesViewModel", "Installation failed for ${pkg.packageName}", error)
 							installLog.emitProgress(AppInstallProgress(pkg.id, 0L))
