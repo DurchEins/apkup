@@ -141,7 +141,8 @@ val mainModule = module {
 			stringer = get(),
 			installLog = get(),
 			context = androidContext(),
-			apkMirrorResolver = get()
+			apkMirrorResolver = get(),
+			updatesNotification = get()
 		)
 	}
 

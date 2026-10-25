@@ -58,7 +58,8 @@ data class ApkUpBackupConfig(
 	val enableBackgroundChecks: Boolean = true,
 	val backgroundCheckIntervalHours: Int = 24,
 	val theme: Int = 0,
-	val useShizukuInstaller: Boolean = false
+	val useShizukuInstaller: Boolean = false,
+	val downloadWifiOnly: Boolean = false
 )
 
 enum class BackgroundCheckInterval(val hours: Int) {

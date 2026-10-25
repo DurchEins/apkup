@@ -284,4 +284,18 @@
     <string name="notification_install_confirm_title">Installation bereit: %1$s</string>
     <string name="notification_install_confirm_text">Antippen, um die Installation abzuschließen</string>
 
+    <!-- Background Update Check Progress Notification -->
+    <string name="notification_check_channel_name">Update-Prüfung</string>
+    <string name="notification_check_channel_desc">Zeigt den Fortschritt einer laufenden Update-Suche im Hintergrund an.</string>
+    <string name="notification_check_title">Suche nach Updates…</string>
+    <string name="notification_check_title_source">Suche nach Updates (%1$s)…</string>
+    <string name="notification_check_progress_text">%1$d von %2$d Apps geprüft</string>
+
+    <!-- Wi-Fi Only Data Saver -->
+    <string name="settings_download_wifi_only">Updates nur über WLAN laden</string>
+    <string name="settings_download_wifi_only_desc">Spart mobiles Datenvolumen bei App-Downloads</string>
+    <string name="dialog_mobile_data_title">Über mobile Daten herunterladen?</string>
+    <string name="dialog_mobile_data_message">Du hast „Updates nur über WLAN laden“ aktiviert und bist aktuell nicht mit einem WLAN verbunden. Möchtest du trotzdem über mobile Daten herunterladen?</string>
+    <string name="dialog_mobile_data_confirm">Trotzdem laden</string>
+
 </resources>

@@ -284,6 +284,7 @@ fun UpdatesScreenSuccess(
 	val completedTasks by DownloadInstallService.completedTasksFlow.collectAsStateWithLifecycle()
 	val activeTasks = remember(activeTasksMap) { activeTasksMap.values.toList() }
 	var showQueueSheet by rememberSaveable { mutableStateOf(false) }
+	val showMobileDataDialog by viewModel.showMobileDataDialog.collectAsStateWithLifecycle()
 
 	var selectedSourceFilter by rememberSaveable { mutableStateOf<String?>(null) }
 
@@ -492,6 +493,35 @@ fun UpdatesScreenSuccess(
 				showQueueSheet = false
 			},
 			onDismiss = { showQueueSheet = false }
+		)
+	}
+
+	if (showMobileDataDialog) {
+		androidx.compose.material3.AlertDialog(
+			onDismissRequest = { viewModel.dismissMobileDataDialog() },
+			title = {
+				Text(
+					text = stringResource(R.string.dialog_mobile_data_title),
+					style = MaterialTheme.typography.titleLarge,
+					fontWeight = FontWeight.Bold
+				)
+			},
+			text = {
+				Text(
+					text = stringResource(R.string.dialog_mobile_data_message),
+					style = MaterialTheme.typography.bodyMedium
+				)
+			},
+			confirmButton = {
+				Button(onClick = { viewModel.confirmMobileDataDownload() }) {
+					Text(text = stringResource(R.string.dialog_mobile_data_confirm))
+				}
+			},
+			dismissButton = {
+				TextButton(onClick = { viewModel.dismissMobileDataDialog() }) {
+					Text(text = stringResource(R.string.action_cancel))
+				}
+			}
 		)
 	}
 }

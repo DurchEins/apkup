@@ -131,6 +131,23 @@ fun MainScreen(
 		rootView.keepScreenOn = isCheckingUpdates
 		onDispose { rootView.keepScreenOn = false }
 	}
+	val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+	DisposableEffect(lifecycleOwner) {
+		val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+			when (event) {
+				androidx.lifecycle.Lifecycle.Event.ON_START,
+				androidx.lifecycle.Lifecycle.Event.ON_RESUME -> {
+					updatesViewModel.setAppInForeground(true)
+				}
+				androidx.lifecycle.Lifecycle.Event.ON_STOP -> {
+					updatesViewModel.setAppInForeground(false)
+				}
+				else -> Unit
+			}
+		}
+		lifecycleOwner.lifecycle.addObserver(observer)
+		onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+	}
 
 	// Navigation
 	val navController = rememberNavController()

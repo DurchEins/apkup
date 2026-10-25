@@ -595,6 +595,16 @@ fun Settings(
 		item(key = "section_install_permissions_${configRefreshKey}_$shizukuEnabled") {
 			SettingsSection(stringResource(R.string.settings_section_install_permissions)) {
 				SwitchSetting(
+					getValue = { viewModel.getDownloadWifiOnly() },
+					setValue = {
+						viewModel.setDownloadWifiOnly(it)
+						configRefreshKey++
+					},
+					text = stringResource(R.string.settings_download_wifi_only),
+					icon = R.drawable.ic_download,
+					subtitle = stringResource(R.string.settings_download_wifi_only_desc)
+				)
+				SwitchSetting(
 					getValue = { viewModel.getUseShizukuInstaller() },
 					setValue = { viewModel.setUseShizukuInstaller(it) },
 					text = stringResource(R.string.settings_shizuku_installer),

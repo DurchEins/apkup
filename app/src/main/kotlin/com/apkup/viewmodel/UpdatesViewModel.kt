@@ -1,6 +1,8 @@
 package com.apkup.viewmodel
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.apkup.service.DownloadInstallService
@@ -34,6 +36,7 @@ import com.apkup.util.InstallPart
 import com.apkup.util.SessionInstaller
 import com.apkup.util.SnackBar
 import com.apkup.util.Stringer
+import com.apkup.util.UpdatesNotification
 import com.apkup.util.launchWithMutex
 import com.aurora.gplayapi.data.models.PlayFile
 import kotlinx.coroutines.CancellationException
@@ -75,7 +78,8 @@ class UpdatesViewModel(
 	private val stringer: Stringer,
 	private val installLog: InstallLog,
 	private val context: Context? = null,
-	private val apkMirrorResolver: ApkMirrorResolver? = null
+	private val apkMirrorResolver: ApkMirrorResolver? = null,
+	private val updatesNotification: UpdatesNotification? = null
 ) : InstallViewModel(downloader, installer, snackBar, stringer, installLog, prefs) {
 
 	private val mutex = Mutex()
@@ -90,6 +94,11 @@ class UpdatesViewModel(
 	private val state = MutableStateFlow<UpdatesUiState>(UpdatesUiState.Loading)
 	private val _showInstallPermissionDialog = MutableStateFlow(false)
 	val showInstallPermissionDialog: StateFlow<Boolean> = _showInstallPermissionDialog.asStateFlow()
+	private val _showMobileDataDialog = MutableStateFlow(false)
+	val showMobileDataDialog: StateFlow<Boolean> = _showMobileDataDialog.asStateFlow()
+	private var pendingMobileDataInstallAction: (() -> Unit)? = null
+	@Volatile
+	private var isAppInForeground: Boolean = true
 
 	private fun getCacheDir(): File =
 		context?.cacheDir ?: File(System.getProperty("java.io.tmpdir") ?: ".", "apkup_cache")
@@ -157,6 +166,50 @@ class UpdatesViewModel(
 
 	fun dismissInstallPermissionDialog() {
 		_showInstallPermissionDialog.value = false
+	}
+
+	fun setAppInForeground(inForeground: Boolean) {
+		isAppInForeground = inForeground
+		if (inForeground) {
+			updatesNotification?.cancelCheckProgressNotification()
+		} else {
+			val currentState = state.value
+			val checking = currentState is UpdatesUiState.Loading || currentState.isChecking()
+			if (checking) {
+				updatesNotification?.showCheckProgressNotification(
+					checkedApps = currentState.checkedApps(),
+					totalApps = currentState.totalApps(),
+					activeSource = currentState.activeSourceName()
+				)
+			}
+		}
+	}
+
+	private fun isUnmeteredWifiConnected(): Boolean {
+		val ctx = context ?: return true
+		return runCatching {
+			val cm = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return true
+			val network = cm.activeNetwork ?: return false
+			val caps = cm.getNetworkCapabilities(network) ?: return false
+			caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+				caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) ||
+				caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
+		}.getOrDefault(true)
+	}
+
+	private fun shouldPromptForMobileData(): Boolean =
+		prefs.downloadWifiOnly.get() && !isUnmeteredWifiConnected()
+
+	fun confirmMobileDataDownload() {
+		val action = pendingMobileDataInstallAction
+		pendingMobileDataInstallAction = null
+		_showMobileDataDialog.value = false
+		action?.invoke()
+	}
+
+	fun dismissMobileDataDialog() {
+		pendingMobileDataInstallAction = null
+		_showMobileDataDialog.value = false
 	}
 
 	fun state(): StateFlow<UpdatesUiState> = state
@@ -263,9 +316,15 @@ class UpdatesViewModel(
 		apkMirrorResolver?.isCloudflareBlocked() ?: false
 
 	override fun install(update: AppUpdate, uriHandler: UriHandler) {
-		val isDirectApkMirror = update.source == ApkMirrorSource && prefs.directApkMirrorDownloads.get()
-		if ((update.source != ApkMirrorSource || isDirectApkMirror) && !canProceedWithInstall()) {
+		val isDirectApkMirror = update.source == ApkMirrorSource && prefs.directApkMirrorDownloads.get() && !isApkMirrorBlocked()
+		val isDirectDownload = update.source != ApkMirrorSource || isDirectApkMirror
+		if (isDirectDownload && !canProceedWithInstall()) {
 			triggerInstallPermissionPrompt()
+			return
+		}
+		if (isDirectDownload && shouldPromptForMobileData()) {
+			pendingMobileDataInstallAction = { super.install(update, uriHandler) }
+			_showMobileDataDialog.value = true
 			return
 		}
 		super.install(update, uriHandler)
@@ -286,6 +345,21 @@ class UpdatesViewModel(
 		}
 		if (!canProceedWithInstall()) {
 			triggerInstallPermissionPrompt()
+			return@launch
+		}
+		if (shouldPromptForMobileData()) {
+			pendingMobileDataInstallAction = {
+				viewModelScope.launch(Dispatchers.IO) {
+					if (browserOnly.isNotEmpty()) {
+						snackBar.snackBar(
+							viewModelScope,
+							TextSnack(stringer.get(R.string.install_all_skipped_browser_hint, browserOnly.size))
+						)
+					}
+					enqueueInstallations(directInstallable)
+				}
+			}
+			_showMobileDataDialog.value = true
 			return@launch
 		}
 
@@ -738,6 +812,7 @@ class UpdatesViewModel(
 	private fun setSuccess(result: UpdateCheckResult<AppUpdate>) {
 		when (val mappedState = result.toUpdatesUiState()) {
 			UpdatesUiState.Error -> {
+				updatesNotification?.cancelCheckProgressNotification()
 				if (retainedUpdatesDuringCheck.isNotEmpty()) {
 					setSuccess(
 						updates = retainedUpdatesDuringCheck,
@@ -755,6 +830,7 @@ class UpdatesViewModel(
 				}
 			}
 			is UpdatesUiState.Success -> {
+				val wasChecking = state.value is UpdatesUiState.Loading || state.value.isChecking()
 				val effectiveUpdates = mergeRetainedUpdatesDuringCheck(
 					retainedUpdates = retainedUpdatesDuringCheck,
 					incomingUpdates = mappedState.updates,
@@ -777,7 +853,8 @@ class UpdatesViewModel(
 					totalApps = mappedState.totalApps,
 					activeSourceName = mappedState.activeSourceName,
 					sourceErrors = mappedState.sourceErrors,
-					lastCheckedAtMillis = checkedTimestamp
+					lastCheckedAtMillis = checkedTimestamp,
+					notifyCompletionIfBackground = wasChecking && !mappedState.isChecking
 				)
 			}
 			UpdatesUiState.Loading -> Unit
@@ -792,7 +869,8 @@ class UpdatesViewModel(
 		totalApps: Int? = state.value.totalApps(),
 		activeSourceName: String? = state.value.activeSourceName(),
 		sourceErrors: Map<String, String> = state.value.sourceErrors(),
-		lastCheckedAtMillis: Long? = state.value.lastCheckedAtMillis()
+		lastCheckedAtMillis: Long? = state.value.lastCheckedAtMillis(),
+		notifyCompletionIfBackground: Boolean = false
 	) {
 		val filtered = updates.filterIgnoredVersions(prefs.ignoredVersions.get())
 		state.value = UpdatesUiState.Success(
@@ -806,6 +884,20 @@ class UpdatesViewModel(
 			lastCheckedAtMillis = lastCheckedAtMillis
 		)
 		badger.changeUpdatesBadge(if (filtered.isEmpty()) "" else filtered.size.toString())
+		if (isChecking) {
+			if (!isAppInForeground) {
+				updatesNotification?.showCheckProgressNotification(
+					checkedApps = checkedApps,
+					totalApps = totalApps,
+					activeSource = activeSourceName
+				)
+			}
+		} else {
+			updatesNotification?.cancelCheckProgressNotification()
+			if (notifyCompletionIfBackground && !isAppInForeground && filtered.isNotEmpty()) {
+				updatesNotification?.showUpdateNotification(filtered.size)
+			}
+		}
 	}
 
 	private fun successState(updates: List<AppUpdate>) =

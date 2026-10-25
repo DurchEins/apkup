@@ -243,6 +243,8 @@ class SettingsViewModel(
 	fun setGitHubToken(token: String) = prefs.githubToken.put(token.trim())
 	fun getGitLabToken(): String = prefs.gitlabToken.get()
 	fun setGitLabToken(token: String) = prefs.gitlabToken.put(token.trim())
+	fun getDownloadWifiOnly(): Boolean = prefs.downloadWifiOnly.get()
+	fun setDownloadWifiOnly(wifiOnly: Boolean) = prefs.downloadWifiOnly.put(wifiOnly)
 	fun getBackgroundChecksEnabled() = prefs.enableBackgroundChecks.get()
 	fun getBackgroundCheckIntervalHours(): Int =
 		BackgroundCheckInterval.fromHours(prefs.backgroundCheckIntervalHours.get()).hours
@@ -291,7 +293,8 @@ class SettingsViewModel(
 			enableBackgroundChecks = prefs.enableBackgroundChecks.get(),
 			backgroundCheckIntervalHours = getBackgroundCheckIntervalHours(),
 			theme = prefs.theme.get(),
-			useShizukuInstaller = prefs.useShizukuInstaller.get()
+			useShizukuInstaller = prefs.useShizukuInstaller.get(),
+			downloadWifiOnly = prefs.downloadWifiOnly.get()
 		)
 		return gson.toJson(config)
 	}
@@ -322,6 +325,7 @@ class SettingsViewModel(
 			(sessionInstaller?.getShizukuSetupStatus()?.isReady == true)
 		prefs.useShizukuInstaller.put(canEnableShizuku)
 		shizukuEnabledFlow.value = canEnableShizuku
+		prefs.downloadWifiOnly.put(config.downloadWifiOnly)
 		if (config.enableBackgroundChecks) {
 			workManager?.let { UpdatesWorker.launch(it) }
 		} else {

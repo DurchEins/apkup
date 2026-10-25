@@ -287,4 +287,18 @@
     <string name="notification_install_confirm_title">Install ready: %1$s</string>
     <string name="notification_install_confirm_text">Tap to complete installation</string>
 
+    <!-- Background Update Check Progress Notification -->
+    <string name="notification_check_channel_name">Update Check</string>
+    <string name="notification_check_channel_desc">Displays progress while checking for updates in the background.</string>
+    <string name="notification_check_title">Checking for updates…</string>
+    <string name="notification_check_title_source">Checking for updates (%1$s)…</string>
+    <string name="notification_check_progress_text">%1$d of %2$d apps checked</string>
+
+    <!-- Wi-Fi Only Data Saver -->
+    <string name="settings_download_wifi_only">Download updates over Wi-Fi only</string>
+    <string name="settings_download_wifi_only_desc">Saves mobile data when downloading app updates</string>
+    <string name="dialog_mobile_data_title">Download over mobile data?</string>
+    <string name="dialog_mobile_data_message">You enabled \"Download updates over Wi-Fi only\" and are not connected to Wi-Fi. Do you want to download over mobile data anyway?</string>
+    <string name="dialog_mobile_data_confirm">Download anyway</string>
+
 </resources>
