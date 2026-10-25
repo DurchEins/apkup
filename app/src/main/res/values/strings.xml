@@ -300,5 +300,7 @@
     <string name="dialog_mobile_data_title">Download over mobile data?</string>
     <string name="dialog_mobile_data_message">You enabled \"Download updates over Wi-Fi only\" and are not connected to Wi-Fi. Do you want to download over mobile data anyway?</string>
     <string name="dialog_mobile_data_confirm">Download anyway</string>
+    <string name="error_banner_wiki_help">Wiki Help ↗</string>
+    <string name="downloading_update_percent">Downloading… %1$d%%</string>
 
 </resources>

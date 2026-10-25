@@ -1,9 +1,13 @@
 package com.apkup.repository
 
 import android.util.Log
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import okhttp3.Call
 import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
@@ -196,6 +200,7 @@ class ApkMirrorResolver(
     private val mutex = Mutex()
     private var lastRequestTimeMs = 0L
     private var lastWasBlocked = false
+    private val activeCalls = ConcurrentHashMap<String, CopyOnWriteArrayList<Call>>()
 
     private val noRedirectClient: OkHttpClient by lazy {
         client.newBuilder().followRedirects(false).build()
@@ -207,12 +212,40 @@ class ApkMirrorResolver(
         lastWasBlocked = false
     }
 
-    suspend fun resolveDirectDownload(variantUrl: String): ApkMirrorResolutionResult {
+    fun cancelResolution(callTag: String) {
+        val calls = activeCalls.remove(callTag) ?: return
+        for (call in calls) {
+            if (!call.isCanceled()) {
+                runCatching { call.cancel() }
+            }
+        }
+    }
+
+    private fun registerCall(tag: String?, call: Call) {
+        if (tag == null) return
+        activeCalls.computeIfAbsent(tag) { CopyOnWriteArrayList() }.add(call)
+    }
+
+    private fun unregisterCall(tag: String?, call: Call) {
+        if (tag == null) return
+        activeCalls[tag]?.let { list ->
+            list.remove(call)
+            if (list.isEmpty()) {
+                activeCalls.remove(tag, list)
+            }
+        }
+    }
+
+    suspend fun resolveDirectDownload(variantUrl: String, callTag: String? = null): ApkMirrorResolutionResult {
+        currentCoroutineContext().ensureActive()
         return mutex.withLock {
+            currentCoroutineContext().ensureActive()
             enforceRateLimit()
+            currentCoroutineContext().ensureActive()
             try {
                 // Step 1: Request variant URL
-                val step1Result = executeStep1(variantUrl)
+                val step1Result = executeStep1(variantUrl, callTag)
+                currentCoroutineContext().ensureActive()
                 if (step1Result !is Step1Result.Success) {
                     val result = when (step1Result) {
                         is Step1Result.Cloudflare -> {
@@ -226,10 +259,12 @@ class ApkMirrorResolver(
 
                 // Polite delay between Step 1 and Step 2
                 delayFn(minDelayMs)
+                currentCoroutineContext().ensureActive()
                 lastRequestTimeMs = clock()
 
                 // Step 2: Request intermediate landing page
-                val step2Result = executeStep2(step1Result.intermediateUrl, referer = variantUrl)
+                val step2Result = executeStep2(step1Result.intermediateUrl, referer = variantUrl, callTag = callTag)
+                currentCoroutineContext().ensureActive()
                 if (step2Result !is Step2Result.Success) {
                     val result = when (step2Result) {
                         is Step2Result.Cloudflare -> {
@@ -246,15 +281,22 @@ class ApkMirrorResolver(
                     downloadPhpUrl = step2Result.downloadPhpUrl,
                     referer = step1Result.intermediateUrl,
                     fallbackUrl = variantUrl,
-                    isApkmCandidate = step1Result.isApkmCandidate
+                    isApkmCandidate = step1Result.isApkmCandidate,
+                    callTag = callTag
                 )
+                currentCoroutineContext().ensureActive()
                 if (step3Result is ApkMirrorResolutionResult.CloudflareBlocked) {
                     lastWasBlocked = true
                 } else if (step3Result is ApkMirrorResolutionResult.Success) {
                     lastWasBlocked = false
                 }
                 step3Result
+            } catch (cancellation: CancellationException) {
+                throw cancellation
             } catch (error: Throwable) {
+                if (error is IOException && error.message?.contains("Canceled", ignoreCase = true) == true) {
+                    throw CancellationException("APKMirror resolution call canceled", error)
+                }
                 Log.e(TAG, "Resolution failed for $variantUrl: ${error.message}", error)
                 ApkMirrorResolutionResult.Failed(error, variantUrl)
             } finally {
@@ -272,7 +314,7 @@ class ApkMirrorResolver(
         }
     }
 
-    private fun executeStep1(variantUrl: String): Step1Result {
+    private fun executeStep1(variantUrl: String, callTag: String? = null): Step1Result {
         val request = Request.Builder()
             .url(variantUrl)
             .header("User-Agent", BROWSER_USER_AGENT)
@@ -280,30 +322,36 @@ class ApkMirrorResolver(
             .header("Accept-Language", "en-US,en;q=0.9")
             .build()
 
-        client.newCall(request).execute().use { response ->
-            val body = response.body.string()
-            if (isCloudflareChallenge(response, body)) {
-                return Step1Result.Cloudflare
+        val call = client.newCall(request)
+        registerCall(callTag, call)
+        try {
+            call.execute().use { response ->
+                val body = response.body.string()
+                if (isCloudflareChallenge(response, body)) {
+                    return Step1Result.Cloudflare
+                }
+                if (!response.isSuccessful) {
+                    return Step1Result.Failure(IOException("Variant page returned HTTP ${response.code}"))
+                }
+
+                val intermediateHref = extractDownloadButtonHref(body)
+                    ?: return Step1Result.Failure(IOException("Failed to locate download button on variant page"))
+
+                val intermediateUrl = canonicalizeUrl(intermediateHref, variantUrl)
+                val isApkmCandidate = body.contains("APK Bundle", ignoreCase = true) ||
+                    variantUrl.contains("apk-bundle", ignoreCase = true) ||
+                    variantUrl.contains("bundle-download", ignoreCase = true) ||
+                    body.contains("app-bundle", ignoreCase = true) ||
+                    body.contains("badge-bundle", ignoreCase = true)
+
+                return Step1Result.Success(intermediateUrl, isApkmCandidate)
             }
-            if (!response.isSuccessful) {
-                return Step1Result.Failure(IOException("Variant page returned HTTP ${response.code}"))
-            }
-
-            val intermediateHref = extractDownloadButtonHref(body)
-                ?: return Step1Result.Failure(IOException("Failed to locate download button on variant page"))
-
-            val intermediateUrl = canonicalizeUrl(intermediateHref, variantUrl)
-            val isApkmCandidate = body.contains("APK Bundle", ignoreCase = true) ||
-                variantUrl.contains("apk-bundle", ignoreCase = true) ||
-                variantUrl.contains("bundle-download", ignoreCase = true) ||
-                body.contains("app-bundle", ignoreCase = true) ||
-                body.contains("badge-bundle", ignoreCase = true)
-
-            return Step1Result.Success(intermediateUrl, isApkmCandidate)
+        } finally {
+            unregisterCall(callTag, call)
         }
     }
 
-    private fun executeStep2(intermediateUrl: String, referer: String): Step2Result {
+    private fun executeStep2(intermediateUrl: String, referer: String, callTag: String? = null): Step2Result {
         val request = Request.Builder()
             .url(intermediateUrl)
             .header("User-Agent", BROWSER_USER_AGENT)
@@ -312,20 +360,26 @@ class ApkMirrorResolver(
             .header("Referer", referer)
             .build()
 
-        client.newCall(request).execute().use { response ->
-            val body = response.body.string()
-            if (isCloudflareChallenge(response, body)) {
-                return Step2Result.Cloudflare
-            }
-            if (!response.isSuccessful) {
-                return Step2Result.Failure(IOException("Intermediate page returned HTTP ${response.code}"))
-            }
+        val call = client.newCall(request)
+        registerCall(callTag, call)
+        try {
+            call.execute().use { response ->
+                val body = response.body.string()
+                if (isCloudflareChallenge(response, body)) {
+                    return Step2Result.Cloudflare
+                }
+                if (!response.isSuccessful) {
+                    return Step2Result.Failure(IOException("Intermediate page returned HTTP ${response.code}"))
+                }
 
-            val downloadPhpHref = extractDownloadPhpHref(body)
-                ?: return Step2Result.Failure(IOException("Failed to locate download.php link on intermediate page"))
+                val downloadPhpHref = extractDownloadPhpHref(body)
+                    ?: return Step2Result.Failure(IOException("Failed to locate download.php link on intermediate page"))
 
-            val downloadPhpUrl = canonicalizeUrl(downloadPhpHref, intermediateUrl)
-            return Step2Result.Success(downloadPhpUrl)
+                val downloadPhpUrl = canonicalizeUrl(downloadPhpHref, intermediateUrl)
+                return Step2Result.Success(downloadPhpUrl)
+            }
+        } finally {
+            unregisterCall(callTag, call)
         }
     }
 
@@ -333,7 +387,8 @@ class ApkMirrorResolver(
         downloadPhpUrl: String,
         referer: String,
         fallbackUrl: String,
-        isApkmCandidate: Boolean
+        isApkmCandidate: Boolean,
+        callTag: String? = null
     ): ApkMirrorResolutionResult {
         val request = Request.Builder()
             .url(downloadPhpUrl)
@@ -342,33 +397,39 @@ class ApkMirrorResolver(
             .header("Referer", referer)
             .build()
 
-        noRedirectClient.newCall(request).execute().use { response ->
-            if (isCloudflareChallenge(response, null)) {
-                return ApkMirrorResolutionResult.CloudflareBlocked(fallbackUrl)
-            }
-
-            val location = response.header("Location")
-            val directUrl = when {
-                response.code in listOf(301, 302, 303, 307, 308) && !location.isNullOrBlank() -> {
-                    canonicalizeUrl(location, downloadPhpUrl)
+        val call = noRedirectClient.newCall(request)
+        registerCall(callTag, call)
+        try {
+            call.execute().use { response ->
+                if (isCloudflareChallenge(response, null)) {
+                    return ApkMirrorResolutionResult.CloudflareBlocked(fallbackUrl)
                 }
-                response.isSuccessful -> downloadPhpUrl
-                else -> {
-                    return ApkMirrorResolutionResult.Failed(
-                        IOException("download.php returned unexpected HTTP ${response.code}"),
-                        fallbackUrl
-                    )
+
+                val location = response.header("Location")
+                val directUrl = when {
+                    response.code in listOf(301, 302, 303, 307, 308) && !location.isNullOrBlank() -> {
+                        canonicalizeUrl(location, downloadPhpUrl)
+                    }
+                    response.isSuccessful -> downloadPhpUrl
+                    else -> {
+                        return ApkMirrorResolutionResult.Failed(
+                            IOException("download.php returned unexpected HTTP ${response.code}"),
+                            fallbackUrl
+                        )
+                    }
                 }
+
+                val filename = extractFilenameFromHeader(response.header("Content-Disposition"), directUrl)
+                val isApkm = isApkmFile(filename, directUrl) || isApkmCandidate
+
+                return ApkMirrorResolutionResult.Success(
+                    directUrl = directUrl,
+                    isApkm = isApkm,
+                    filename = filename
+                )
             }
-
-            val filename = extractFilenameFromHeader(response.header("Content-Disposition"), directUrl)
-            val isApkm = isApkmFile(filename, directUrl) || isApkmCandidate
-
-            return ApkMirrorResolutionResult.Success(
-                directUrl = directUrl,
-                isApkm = isApkm,
-                filename = filename
-            )
+        } finally {
+            unregisterCall(callTag, call)
         }
     }
 

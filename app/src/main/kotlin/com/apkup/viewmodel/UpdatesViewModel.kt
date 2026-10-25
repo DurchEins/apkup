@@ -107,7 +107,13 @@ class UpdatesViewModel(
 		downloader.cleanupOrphanStagingFiles(getCacheDir())
 		subscribeToInstallStatus()
 		subscribeToInstallProgress { progress ->
-			state.value = successState(state.value.mutableUpdates().setProgress(progress))
+			viewModelScope.launch(Dispatchers.IO) {
+				mutex.withLock {
+					if (context == null || DownloadInstallService.activeTasksFlow.value.containsKey(progress.id)) {
+						state.value = successState(state.value.mutableUpdates().setProgress(progress))
+					}
+				}
+			}
 		}
 		viewModelScope.launch(Dispatchers.IO) {
 			DownloadInstallService.activeTasksFlow.collect { activeMap ->
@@ -116,6 +122,7 @@ class UpdatesViewModel(
 					var modified = false
 					currentList.forEachIndexed { index, appUpdate ->
 						val task = activeMap[appUpdate.id]
+							?: activeMap.values.firstOrNull { it.packageName == appUpdate.packageName }
 						if (task != null) {
 							val updated = appUpdate.copy(
 								isInstalling = task.isInstalling || !task.isQueued,
@@ -127,7 +134,7 @@ class UpdatesViewModel(
 								currentList[index] = updated
 								modified = true
 							}
-						} else if (context != null && (appUpdate.isInstalling || appUpdate.isQueued)) {
+						} else if (context != null && (appUpdate.isInstalling || appUpdate.isQueued || appUpdate.progress > 0L)) {
 							val reset = appUpdate.copy(
 								isInstalling = false,
 								isQueued = false,
@@ -373,33 +380,50 @@ class UpdatesViewModel(
 		enqueueInstallations(directInstallable)
 	}
 
-	private fun enqueueInstallations(candidates: List<AppUpdate>) {
-		val newlyQueued = mutableListOf<AppUpdate>()
-		val current = state.value.mutableUpdates()
-		val alreadyActive = activeDownloadJobs.keys
-		candidates.forEach { candidate ->
-			val idx = current.indexOfFirst { it.id == candidate.id || it.packageName == candidate.packageName }
-			if (idx != -1) {
-				val inState = current[idx]
-				val isSameId = inState.id == candidate.id
-				if (!inState.isInstalling && (!inState.isQueued || !isSameId) &&
-					candidate.id !in alreadyActive && inState.id !in alreadyActive
-				) {
-					val queuedCandidate = if (!isSameId) {
-						candidate.copy(
-							isQueued = true,
-							alternativeUpdates = inState.alternativeUpdates.ifEmpty { candidate.alternativeUpdates }
-						)
+	private suspend fun enqueueInstallations(candidates: List<AppUpdate>) {
+		val newlyQueued = mutex.withLock {
+			val queued = mutableListOf<AppUpdate>()
+			val current = state.value.mutableUpdates()
+			val alreadyActive = activeDownloadJobs.keys
+			val serviceActiveMap = DownloadInstallService.activeTasksFlow.value
+			candidates.forEach { candidate ->
+				val idx = current.indexOfFirst { it.id == candidate.id || it.packageName == candidate.packageName }
+				if (idx != -1) {
+					val inState = current[idx]
+					val isSameId = inState.id == candidate.id
+					val isCurrentlyActive = if (context != null) {
+						serviceActiveMap.containsKey(candidate.id) ||
+							(isSameId && serviceActiveMap.containsKey(inState.id))
 					} else {
-						candidate.copy(isQueued = true)
+						inState.isInstalling || (inState.isQueued && isSameId) ||
+							candidate.id in alreadyActive || inState.id in alreadyActive
 					}
-					current[idx] = queuedCandidate
-					newlyQueued.add(queuedCandidate)
+					if (!isCurrentlyActive) {
+						val queuedCandidate = if (!isSameId) {
+							candidate.copy(
+								isQueued = true,
+								isInstalling = false,
+								progress = 0L,
+								alternativeUpdates = inState.alternativeUpdates.ifEmpty { candidate.alternativeUpdates }
+							)
+						} else {
+							candidate.copy(
+								isQueued = true,
+								isInstalling = false,
+								progress = 0L
+							)
+						}
+						current[idx] = queuedCandidate
+						queued.add(queuedCandidate)
+					}
 				}
 			}
+			if (queued.isNotEmpty()) {
+				state.value = successState(current)
+			}
+			queued
 		}
 		if (newlyQueued.isNotEmpty()) {
-			state.value = successState(current)
 			val ctx = context
 			if (ctx != null) {
 				DownloadInstallService.startDownloads(ctx, newlyQueued)
@@ -586,7 +610,7 @@ class UpdatesViewModel(
 			val callTag = "update_${update.id}"
 			if (update.source == ApkMirrorSource) {
 				val resolver = apkMirrorResolver ?: throw IOException("ApkMirrorResolver not initialized")
-				when (val resolution = resolver.resolveDirectDownload(link.link)) {
+				when (val resolution = resolver.resolveDirectDownload(link.link, callTag)) {
 					is ApkMirrorResolutionResult.CloudflareBlocked -> {
 						throw ApkMirrorCloudflareException(resolution.fallbackUrl)
 					}
@@ -719,15 +743,20 @@ class UpdatesViewModel(
 
 	public override fun cancelInstall(id: Int) = viewModelScope.launchWithMutex(mutex, Dispatchers.IO) {
 		context?.let { ctx -> DownloadInstallService.cancelDownload(ctx, id) }
+		apkMirrorResolver?.cancelResolution("update_$id")
 		downloader.cancel("update_$id")
 		activeDownloadJobs.remove(id)?.cancel()
 		runCatching {
 			File(getCacheDir(), "download_staging_$id").deleteRecursively()
 		}
 		state.value = successState(
-			state.value.mutableUpdates()
-				.setIsQueued(id, false)
-				.setIsInstalling(id, false)
+			state.value.mutableUpdates().map { update ->
+				if (update.id == id) {
+					update.copy(isQueued = false, isInstalling = false, progress = 0L)
+				} else {
+					update
+				}
+			}
 		)
 		installer.finish(id)
 	}
@@ -736,7 +765,8 @@ class UpdatesViewModel(
 		context?.let { ctx -> DownloadInstallService.cancelAllDownloads(ctx) }
 		val current = state.value.mutableUpdates()
 		val resetList = current.map { update ->
-			if (update.isInstalling || update.isQueued) {
+			if (update.isInstalling || update.isQueued || update.progress > 0L) {
+				apkMirrorResolver?.cancelResolution("update_${update.id}")
 				downloader.cancel("update_${update.id}")
 				activeDownloadJobs.remove(update.id)?.cancel()
 				runCatching {
@@ -779,16 +809,7 @@ class UpdatesViewModel(
 
 	override fun downloadAndInstall(update: AppUpdate) = viewModelScope.launch(Dispatchers.IO) {
 		if (installer.checkPermission()) {
-			val target = mutex.withLock {
-				val list = state.value.mutableUpdates()
-				val idx = list.indexOfFirst { it.packageName == update.packageName }
-				if (idx != -1 && list[idx].id != update.id) {
-					list[idx] = update.copy(isQueued = true)
-					state.value = successState(list)
-				}
-				update
-			}
-			enqueueInstallations(listOf(target))
+			enqueueInstallations(listOf(update))
 		}
 	}
 

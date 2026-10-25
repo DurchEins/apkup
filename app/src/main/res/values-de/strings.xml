@@ -297,5 +297,7 @@
     <string name="dialog_mobile_data_title">Über mobile Daten herunterladen?</string>
     <string name="dialog_mobile_data_message">Du hast „Updates nur über WLAN laden“ aktiviert und bist aktuell nicht mit einem WLAN verbunden. Möchtest du trotzdem über mobile Daten herunterladen?</string>
     <string name="dialog_mobile_data_confirm">Trotzdem laden</string>
+    <string name="error_banner_wiki_help">Wiki-Hilfe ↗</string>
+    <string name="downloading_update_percent">Lädt herunter… %1$d%%</string>
 
 </resources>

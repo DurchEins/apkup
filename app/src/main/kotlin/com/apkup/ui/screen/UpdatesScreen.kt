@@ -234,11 +234,14 @@ fun UpdatesScreenLoading(viewModel: UpdatesViewModel) = Column(Modifier.fillMaxS
 
 @Composable
 fun UpdatesScreenError(viewModel: UpdatesViewModel) = Column(Modifier.fillMaxSize()) {
+	val handler = LocalUriHandler.current
 	UpdatesTopBar(viewModel)
 	UpdatesMessage(
 		title = stringResource(R.string.updates_error_title),
 		message = stringResource(R.string.updates_error_message),
 		icon = Icons.Filled.Info,
+		actionLabel = stringResource(R.string.error_banner_wiki_help),
+		onAction = { handler.openUri(resolveWikiUrlForSourceError(null)) },
 		modifier = Modifier.weight(1f)
 	)
 }
@@ -362,12 +365,15 @@ fun UpdatesScreenSuccess(
 	if (hasSourceErrors && updates.isNotEmpty()) {
 		val errorEntries = remember(sourceErrors) { sourceErrors.entries.toList() }
 		if (errorEntries.size <= 1) {
+			val singleSourceKey = errorEntries.firstOrNull()?.key
+			val wikiUrl = resolveWikiUrlForSourceError(singleSourceKey)
 			val bannerText = formatSourceErrorBanner(
 				sourceErrors = sourceErrors,
 				activeSources = activeSources,
 				isGerman = isGerman
 			)
 			Surface(
+				onClick = { handler.openUri(wikiUrl) },
 				color = MaterialTheme.colorScheme.errorContainer,
 				shape = RoundedCornerShape(24.dp),
 				modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
@@ -386,8 +392,21 @@ fun UpdatesScreenSuccess(
 					Text(
 						text = bannerText,
 						color = MaterialTheme.colorScheme.onErrorContainer,
-						style = MaterialTheme.typography.labelMedium
+						style = MaterialTheme.typography.labelMedium,
+						modifier = Modifier.weight(1f)
 					)
+					Surface(
+						shape = CircleShape,
+						color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.14f)
+					) {
+						Text(
+							text = stringResource(R.string.error_banner_wiki_help),
+							style = MaterialTheme.typography.labelSmall,
+							fontWeight = FontWeight.SemiBold,
+							color = MaterialTheme.colorScheme.onErrorContainer,
+							modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+						)
+					}
 				}
 			}
 		} else {
@@ -397,12 +416,14 @@ fun UpdatesScreenSuccess(
 				modifier = Modifier.fillMaxWidth()
 			) { page ->
 				val entry = errorEntries[page]
+				val wikiUrl = resolveWikiUrlForSourceError(entry.key)
 				val singleBannerText = formatSourceErrorBanner(
 					sourceErrors = mapOf(entry.key to entry.value),
 					activeSources = activeSources,
 					isGerman = isGerman
 				)
 				Surface(
+					onClick = { handler.openUri(wikiUrl) },
 					color = MaterialTheme.colorScheme.errorContainer,
 					shape = RoundedCornerShape(24.dp),
 					modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
@@ -424,17 +445,34 @@ fun UpdatesScreenSuccess(
 							style = MaterialTheme.typography.labelMedium,
 							modifier = Modifier.weight(1f)
 						)
-						Surface(
-							shape = CircleShape,
-							color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.14f)
+						Column(
+							horizontalAlignment = Alignment.End,
+							verticalArrangement = Arrangement.spacedBy(4.dp)
 						) {
-							Text(
-								text = "${page + 1}/${errorEntries.size}",
-								style = MaterialTheme.typography.labelSmall,
-								fontWeight = FontWeight.SemiBold,
-								color = MaterialTheme.colorScheme.onErrorContainer,
-								modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-							)
+							Surface(
+								shape = CircleShape,
+								color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.14f)
+							) {
+								Text(
+									text = "${page + 1}/${errorEntries.size}",
+									style = MaterialTheme.typography.labelSmall,
+									fontWeight = FontWeight.SemiBold,
+									color = MaterialTheme.colorScheme.onErrorContainer,
+									modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+								)
+							}
+							Surface(
+								shape = CircleShape,
+								color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.14f)
+							) {
+								Text(
+									text = stringResource(R.string.error_banner_wiki_help),
+									style = MaterialTheme.typography.labelSmall,
+									fontWeight = FontWeight.SemiBold,
+									color = MaterialTheme.colorScheme.onErrorContainer,
+									modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+								)
+							}
 						}
 					}
 				}
@@ -452,6 +490,11 @@ fun UpdatesScreenSuccess(
 				isGerman = isGerman
 			),
 			icon = Icons.Filled.Info,
+			actionLabel = stringResource(R.string.error_banner_wiki_help),
+			onAction = {
+				val firstSource = sourceErrors.keys.firstOrNull()
+				handler.openUri(resolveWikiUrlForSourceError(firstSource))
+			},
 			modifier = Modifier.weight(1f)
 		)
 		updates.isEmpty() -> UpdatesMessage(
@@ -470,6 +513,7 @@ fun UpdatesScreenSuccess(
 		displayMode == 1 -> CompactUpdatesGrid(
 			viewModel = viewModel,
 			updates = displayedUpdates,
+			activeTasksMap = activeTasksMap,
 			handler = handler,
 			modifier = Modifier.weight(1f),
 			onBeforeInstall = requestNotificationPermissionIfNeeded
@@ -477,6 +521,7 @@ fun UpdatesScreenSuccess(
 		else -> UpdatesList(
 			viewModel = viewModel,
 			updates = displayedUpdates,
+			activeTasksMap = activeTasksMap,
 			handler = handler,
 			modifier = Modifier.weight(1f),
 			onBeforeInstall = requestNotificationPermissionIfNeeded
@@ -544,6 +589,16 @@ private fun UpdatesHeroBanner(
 		}
 		val totalInRun = (completedCount + activeTasks.size).coerceAtLeast(1)
 		val currentStep = (completedCount + 1).coerceAtMost(totalInRun)
+		val liveSubtitle = when {
+			currentTask.isInstalling -> "$currentAppName • ${stringResource(R.string.queue_status_installing)}"
+			currentTask.isResolvingLink && currentTask.progress == 0L ->
+				"$currentAppName • ${stringResource(R.string.queue_status_resolving_apkmirror)}"
+			currentTask.total > 0L && currentTask.progress > 0L -> {
+				val pct = ((currentTask.progress * 100) / currentTask.total).toInt().coerceIn(0, 100)
+				"$currentAppName • $pct% (${formatSizeMegabytes(currentTask.progress)} / ${formatSizeMegabytes(currentTask.total)})"
+			}
+			else -> stringResource(R.string.queue_banner_subtitle_tap, currentAppName)
+		}
 		Surface(
 			onClick = onOpenQueue,
 			modifier = Modifier
@@ -593,7 +648,7 @@ private fun UpdatesHeroBanner(
 								overflow = TextOverflow.Ellipsis
 							)
 							Text(
-								text = stringResource(R.string.queue_banner_subtitle_tap, currentAppName),
+								text = liveSubtitle,
 								style = MaterialTheme.typography.labelSmall,
 								color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f),
 								maxLines = 1,
@@ -632,7 +687,7 @@ private fun UpdatesHeroBanner(
 						}
 					}
 				}
-				if (!currentTask.isInstalling && !currentTask.isResolvingLink && currentTask.total > 0L) {
+				if (!currentTask.isInstalling && currentTask.total > 0L && currentTask.progress > 0L) {
 					LinearProgressIndicator(
 						progress = { (currentTask.progress.toFloat() / currentTask.total).coerceIn(0f, 1f) },
 						modifier = Modifier
@@ -746,9 +801,21 @@ private fun ActiveQueueBottomSheet(
 ) {
 	val context = LocalContext.current
 	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+	val liveActiveMap by DownloadInstallService.activeTasksFlow.collectAsStateWithLifecycle()
+	val liveCompleted by DownloadInstallService.completedTasksFlow.collectAsStateWithLifecycle()
+	val currentActiveTasks = if (liveActiveMap.isNotEmpty() || activeTasks.isEmpty()) {
+		liveActiveMap.values.toList()
+	} else {
+		activeTasks
+	}
+	val currentCompletedTasks = if (liveCompleted.isNotEmpty() || completedTasks.isEmpty()) {
+		liveCompleted
+	} else {
+		completedTasks
+	}
 
-	LaunchedEffect(activeTasks.size, completedTasks.size) {
-		if (activeTasks.isEmpty() && completedTasks.isEmpty()) {
+	LaunchedEffect(currentActiveTasks.size, currentCompletedTasks.size) {
+		if (currentActiveTasks.isEmpty() && currentCompletedTasks.isEmpty()) {
 			onDismiss()
 		}
 	}
@@ -780,13 +847,13 @@ private fun ActiveQueueBottomSheet(
 						style = MaterialTheme.typography.titleLarge,
 						fontWeight = FontWeight.Bold
 					)
-					if (activeTasks.isNotEmpty()) {
+					if (currentActiveTasks.isNotEmpty()) {
 						Surface(
 							shape = CircleShape,
 							color = MaterialTheme.colorScheme.primaryContainer
 						) {
 							Text(
-								text = activeTasks.size.toString(),
+								text = currentActiveTasks.size.toString(),
 								style = MaterialTheme.typography.labelMedium,
 								fontWeight = FontWeight.Bold,
 								color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -795,7 +862,7 @@ private fun ActiveQueueBottomSheet(
 						}
 					}
 				}
-				if (activeTasks.isNotEmpty()) {
+				if (currentActiveTasks.isNotEmpty()) {
 					TextButton(onClick = onCancelAll) {
 						Icon(
 							imageVector = Icons.Filled.Close,
@@ -820,7 +887,7 @@ private fun ActiveQueueBottomSheet(
 					.heightIn(max = 460.dp),
 				verticalArrangement = Arrangement.spacedBy(8.dp)
 			) {
-				items(items = activeTasks, key = { "active_${it.id}" }) { task ->
+				items(items = currentActiveTasks, key = { "active_${it.id}" }) { task ->
 					val appName = task.appName.ifBlank {
 						context.getAppName(task.packageName).ifBlank { task.packageName }
 					}
@@ -828,10 +895,11 @@ private fun ActiveQueueBottomSheet(
 						task.isInstalling -> stringResource(R.string.queue_status_installing)
 						task.isResolvingLink && task.progress == 0L -> stringResource(R.string.queue_status_resolving_apkmirror)
 						task.isQueued && task.progress == 0L -> stringResource(R.string.queue_status_waiting)
-						task.total > 0L -> {
+						task.total > 0L && task.progress > 0L -> {
 							val pct = ((task.progress * 100) / task.total).toInt().coerceIn(0, 100)
-							"${formatSizeMegabytes(task.progress)} / ${formatSizeMegabytes(task.total)} • $pct%"
+							"${stringResource(R.string.downloading_update_percent, pct)} (${formatSizeMegabytes(task.progress)} / ${formatSizeMegabytes(task.total)})"
 						}
+						task.progress > 0L -> "${stringResource(R.string.queue_status_downloading)} (${formatSizeMegabytes(task.progress)})"
 						else -> stringResource(R.string.queue_status_downloading)
 					}
 					Surface(
@@ -918,7 +986,7 @@ private fun ActiveQueueBottomSheet(
 								}
 							}
 							if (!task.isQueued || task.isInstalling || task.progress > 0L) {
-								if (!task.isInstalling && !task.isResolvingLink && task.total > 0L) {
+								if (!task.isInstalling && !task.isResolvingLink && task.total > 0L && task.progress > 0L) {
 									LinearProgressIndicator(
 										progress = { (task.progress.toFloat() / task.total).coerceIn(0f, 1f) },
 										modifier = Modifier
@@ -943,17 +1011,17 @@ private fun ActiveQueueBottomSheet(
 					}
 				}
 
-				if (completedTasks.isNotEmpty()) {
+				if (currentCompletedTasks.isNotEmpty()) {
 					item(key = "completed_header") {
 						Text(
-							text = "${stringResource(R.string.queue_section_completed)} (${completedTasks.size})",
+							text = "${stringResource(R.string.queue_section_completed)} (${currentCompletedTasks.size})",
 							style = MaterialTheme.typography.labelLarge,
 							fontWeight = FontWeight.SemiBold,
 							color = MaterialTheme.colorScheme.onSurfaceVariant,
 							modifier = Modifier.padding(top = 6.dp, bottom = 2.dp)
 						)
 					}
-					items(items = completedTasks, key = { "done_${it.id}" }) { done ->
+					items(items = currentCompletedTasks, key = { "done_${it.id}" }) { done ->
 						val appName = done.appName.ifBlank {
 							context.getAppName(done.packageName).ifBlank { done.packageName }
 						}
@@ -1257,6 +1325,7 @@ private fun UpdateCheckProgressBar(
 private fun UpdatesList(
 	viewModel: UpdatesViewModel,
 	updates: List<AppUpdate>,
+	activeTasksMap: Map<Int, DownloadTaskState> = emptyMap(),
 	handler: UriHandler,
 	modifier: Modifier,
 	onBeforeInstall: () -> Unit = {}
@@ -1280,8 +1349,11 @@ private fun UpdatesList(
 			horizontalArrangement = Arrangement.spacedBy(NormalUpdateCardLayout.gridSpacingDp.dp)
 		) {
 			gridItems(items = updates, key = { it.id }) { update ->
+				val liveTask = activeTasksMap[update.id]
+					?: activeTasksMap.values.firstOrNull { it.packageName == update.packageName }
 				UpdateCard(
 					update = update,
+					liveTask = liveTask,
 					onSelect = { selectedPackageName = update.packageName },
 					onInstall = {
 						onBeforeInstall()
@@ -1320,6 +1392,7 @@ private fun UpdatesList(
 @Composable
 private fun UpdateCard(
 	update: AppUpdate,
+	liveTask: DownloadTaskState? = null,
 	onSelect: () -> Unit,
 	onInstall: () -> Unit
 ) {
@@ -1329,6 +1402,10 @@ private fun UpdateCard(
 	}
 	val card = update.toUpdateCardContent(appName)
 	val sourceName = sourceName(card.source)
+	val effInstalling = liveTask?.let { it.isInstalling || !it.isQueued } ?: card.isInstalling
+	val effQueued = liveTask?.isQueued ?: update.isQueued
+	val effProgress = liveTask?.progress ?: update.progress
+	val effTotal = liveTask?.total?.takeIf { it > 0L } ?: update.total
 
 	val cardShape = RoundedCornerShape(NormalUpdateCardLayout.cardCornerRadiusDp.dp)
 	ElevatedCard(
@@ -1439,18 +1516,29 @@ private fun UpdateCard(
 				}
 			}
 
-			if (card.isInstalling || update.isQueued) {
+			if (effInstalling || effQueued) {
+				val cardProgressLabel = when {
+					liveTask?.isInstalling == true -> stringResource(R.string.queue_status_installing)
+					liveTask?.isResolvingLink == true && effProgress == 0L -> stringResource(R.string.queue_status_resolving_apkmirror)
+					effQueued && !effInstalling -> stringResource(R.string.queued_update)
+					effTotal > 0L && effProgress > 0L -> {
+						val pct = ((effProgress * 100) / effTotal).toInt().coerceIn(0, 100)
+						"${stringResource(R.string.downloading_update_percent, pct)} (${formatSizeMegabytes(effProgress)} / ${formatSizeMegabytes(effTotal)})"
+					}
+					effProgress > 0L -> "${stringResource(R.string.queue_status_downloading)} (${formatSizeMegabytes(effProgress)})"
+					else -> stringResource(R.string.installing_update)
+				}
 				Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
 					Text(
-						text = stringResource(if (update.isQueued && !card.isInstalling) R.string.queued_update else R.string.installing_update),
+						text = cardProgressLabel,
 						style = MaterialTheme.typography.labelSmall,
 						color = MaterialTheme.colorScheme.primary,
 						maxLines = 1,
 						overflow = TextOverflow.Ellipsis
 					)
-					if (card.isInstalling && update.total > 0L) {
+					if (liveTask?.isInstalling != true && effTotal > 0L && effProgress > 0L) {
 						LinearProgressIndicator(
-							progress = { (update.progress.toFloat() / update.total).coerceIn(0f, 1f) },
+							progress = { (effProgress.toFloat() / effTotal).coerceIn(0f, 1f) },
 							modifier = Modifier.fillMaxWidth().height(4.dp),
 							color = MaterialTheme.colorScheme.primary,
 							trackColor = MaterialTheme.colorScheme.secondaryContainer
@@ -1501,7 +1589,7 @@ private fun UpdateCard(
 						)
 					}
 				}
-				if (card.canInstall && !update.isQueued) {
+				if (card.canInstall && !effQueued && !effInstalling) {
 					CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
 						FilledTonalButton(
 							onClick = onInstall,
@@ -1534,6 +1622,7 @@ private fun UpdateCard(
 private fun CompactUpdatesGrid(
 	viewModel: UpdatesViewModel,
 	updates: List<AppUpdate>,
+	activeTasksMap: Map<Int, DownloadTaskState> = emptyMap(),
 	handler: UriHandler,
 	modifier: Modifier,
 	onBeforeInstall: () -> Unit = {}
@@ -1562,6 +1651,12 @@ private fun CompactUpdatesGrid(
 					context.getAppName(update.packageName).ifBlank { update.packageName }
 				}
 				val card = update.toUpdateCardContent(appName)
+				val liveTask = activeTasksMap[update.id]
+					?: activeTasksMap.values.firstOrNull { it.packageName == update.packageName }
+				val effInstalling = liveTask?.let { it.isInstalling || !it.isQueued } ?: card.isInstalling
+				val effQueued = liveTask?.isQueued ?: update.isQueued
+				val effProgress = liveTask?.progress ?: update.progress
+				val effTotal = liveTask?.total?.takeIf { it > 0L } ?: update.total
 				val cardShape = RoundedCornerShape(CompactUpdateCardLayout.cardCornerRadiusDp.dp)
 				ElevatedCard(
 					onClick = { selectedPackageName = update.packageName },
@@ -1677,10 +1772,31 @@ private fun CompactUpdatesGrid(
 								)
 							}
 						}
-						if (card.isInstalling || update.isQueued) {
-							if (card.isInstalling && update.total > 0L) {
+						if (effInstalling || effQueued) {
+							val compactLabel = when {
+								liveTask?.isInstalling == true -> stringResource(R.string.queue_status_installing)
+								liveTask?.isResolvingLink == true && effProgress == 0L -> stringResource(R.string.queue_status_resolving_apkmirror)
+								effQueued && !effInstalling -> stringResource(R.string.queued_update)
+								effTotal > 0L && effProgress > 0L -> {
+									val pct = ((effProgress * 100) / effTotal).toInt().coerceIn(0, 100)
+									"$pct%"
+								}
+								else -> stringResource(R.string.installing_update)
+							}
+							Text(
+								text = compactLabel,
+								style = MaterialTheme.typography.labelSmall.copy(
+									fontSize = CompactUpdateCardLayout.metaFontSizeSp.sp,
+									lineHeight = CompactUpdateCardLayout.metaLineHeightDp.sp
+								),
+								fontWeight = FontWeight.SemiBold,
+								color = MaterialTheme.colorScheme.primary,
+								maxLines = 1,
+								overflow = TextOverflow.Ellipsis
+							)
+							if (liveTask?.isInstalling != true && effTotal > 0L && effProgress > 0L) {
 								LinearProgressIndicator(
-									progress = { (update.progress.toFloat() / update.total).coerceIn(0f, 1f) },
+									progress = { (effProgress.toFloat() / effTotal).coerceIn(0f, 1f) },
 									modifier = Modifier.fillMaxWidth().height(CompactUpdateCardLayout.progressHeightDp.dp),
 									color = MaterialTheme.colorScheme.primary,
 									trackColor = MaterialTheme.colorScheme.secondaryContainer
@@ -1731,7 +1847,11 @@ private fun UpdateDetailsSheet(
 	onIgnoreAppPermanently: (String) -> Unit
 ) {
 	val context = LocalContext.current
+	val handler = LocalUriHandler.current
 	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+	val liveActiveMap by DownloadInstallService.activeTasksFlow.collectAsStateWithLifecycle()
+	val liveTask = liveActiveMap[update.id]
+		?: liveActiveMap.values.firstOrNull { it.packageName == update.packageName }
 
 	val sourceVariants = remember(update.packageName, update.alternativeUpdates.size) {
 		update.alternativeUpdates.takeIf { it.size > 1 } ?: listOf(update)
@@ -1741,12 +1861,16 @@ private fun UpdateDetailsSheet(
 		mutableIntStateOf(idx)
 	}
 	val rawActiveVariant = sourceVariants.getOrElse(selectedSourceIndex) { update }
-	// Mirror live installation, queue, and byte progress state from the parent update item
+	val effInstalling = liveTask?.let { it.isInstalling || !it.isQueued } ?: update.isInstalling
+	val effQueued = liveTask?.isQueued ?: update.isQueued
+	val effProgress = liveTask?.progress ?: update.progress
+	val effTotal = liveTask?.total?.takeIf { it > 0L } ?: update.total
+
 	val activeVariant = rawActiveVariant.copy(
-		isInstalling = update.isInstalling,
-		isQueued = update.isQueued,
-		progress = update.progress,
-		total = update.total
+		isInstalling = effInstalling,
+		isQueued = effQueued,
+		progress = effProgress,
+		total = effTotal
 	)
 
 	val appName = activeVariant.name.ifBlank {
@@ -1755,7 +1879,7 @@ private fun UpdateDetailsSheet(
 	val card = activeVariant.toUpdateCardContent(appName)
 	val originText = installOriginLabel(activeVariant.installOrigin)
 	val showSignatureWarning = hasPotentialSignatureConflict(activeVariant.installOrigin, activeVariant.source)
-	val isUpdateBusy = update.isInstalling || update.isQueued
+	val isUpdateBusy = effInstalling || effQueued
 
 	ModalBottomSheet(
 		onDismissRequest = onDismiss,
@@ -1952,6 +2076,7 @@ private fun UpdateDetailsSheet(
 
 			if (showSignatureWarning) {
 				Surface(
+					onClick = { handler.openUri(resolveWikiUrlForSourceError("signature")) },
 					shape = RoundedCornerShape(16.dp),
 					color = MaterialTheme.colorScheme.tertiaryContainer
 				) {
@@ -1973,8 +2098,21 @@ private fun UpdateDetailsSheet(
 								sourceName(activeVariant.source)
 							),
 							style = MaterialTheme.typography.bodySmall,
-							color = MaterialTheme.colorScheme.onTertiaryContainer
+							color = MaterialTheme.colorScheme.onTertiaryContainer,
+							modifier = Modifier.weight(1f)
 						)
+						Surface(
+							shape = CircleShape,
+							color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.14f)
+						) {
+							Text(
+								text = stringResource(R.string.error_banner_wiki_help),
+								style = MaterialTheme.typography.labelSmall,
+								fontWeight = FontWeight.SemiBold,
+								color = MaterialTheme.colorScheme.onTertiaryContainer,
+								modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+							)
+						}
 					}
 				}
 			}
@@ -2008,6 +2146,12 @@ private fun UpdateDetailsSheet(
 			}
 
 			if (isUpdateBusy) {
+				val detailStatusText = when {
+					liveTask?.isInstalling == true -> stringResource(R.string.queue_status_installing)
+					liveTask?.isResolvingLink == true && effProgress == 0L -> stringResource(R.string.queue_status_resolving_apkmirror)
+					effQueued && !effInstalling -> stringResource(R.string.queued_update)
+					else -> stringResource(R.string.installing_update)
+				}
 				Surface(
 					shape = RoundedCornerShape(24.dp),
 					border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
@@ -2024,26 +2168,24 @@ private fun UpdateDetailsSheet(
 							verticalAlignment = Alignment.CenterVertically
 						) {
 							Text(
-								text = stringResource(
-									if (update.isQueued && !update.isInstalling) R.string.queued_update else R.string.installing_update
-								),
+								text = detailStatusText,
 								style = MaterialTheme.typography.labelLarge,
 								fontWeight = FontWeight.SemiBold,
 								color = MaterialTheme.colorScheme.primary
 							)
-							if (update.isInstalling && update.total > 0L) {
-								val fraction = (update.progress.toFloat() / update.total).coerceIn(0f, 1f)
+							if (liveTask?.isInstalling != true && effTotal > 0L && effProgress > 0L) {
+								val fraction = (effProgress.toFloat() / effTotal).coerceIn(0f, 1f)
 								val pct = (fraction * 100).toInt()
 								Text(
-									text = "$pct% (${formatSizeMegabytes(update.progress)} / ${formatSizeMegabytes(update.total)})",
+									text = "$pct% (${formatSizeMegabytes(effProgress)} / ${formatSizeMegabytes(effTotal)})",
 									style = MaterialTheme.typography.labelMedium,
 									color = MaterialTheme.colorScheme.onSurfaceVariant
 								)
 							}
 						}
-						if (update.isInstalling && update.total > 0L) {
+						if (liveTask?.isInstalling != true && effTotal > 0L && effProgress > 0L) {
 							LinearProgressIndicator(
-								progress = { (update.progress.toFloat() / update.total).coerceIn(0f, 1f) },
+								progress = { (effProgress.toFloat() / effTotal).coerceIn(0f, 1f) },
 								modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
 								color = MaterialTheme.colorScheme.primary,
 								trackColor = MaterialTheme.colorScheme.secondaryContainer
@@ -2069,8 +2211,8 @@ private fun UpdateDetailsSheet(
 				Spacer(Modifier.width(8.dp))
 				Text(
 					text = when {
-						update.isQueued && !update.isInstalling -> stringResource(R.string.queued_update)
-						update.isInstalling -> stringResource(R.string.installing_update)
+						effQueued && !effInstalling -> stringResource(R.string.queued_update)
+						effInstalling -> stringResource(R.string.installing_update)
 						else -> stringResource(R.string.update_action)
 					}
 				)
@@ -2175,6 +2317,27 @@ private fun sourceName(source: Source): String = when (source) {
 	GitHubSource -> stringResource(R.string.source_github)
 	GitLabSource -> stringResource(R.string.source_gitlab)
 	else -> source.name
+}
+
+internal fun resolveWikiUrlForSourceError(sourceName: String?): String {
+	val base = "https://github.com/DurchEins/apkup/wiki/Update-Quellen,-Repository-Verkn%C3%BCpfung-&-Signaturschutz"
+	val lower = sourceName?.lowercase().orEmpty()
+	return when {
+		lower.contains("signature") ->
+			"$base#31-warum-zeigt-apkup-manchmal-ein-warnsymbol-wegen-eines-signaturkonflikts-an"
+		lower.contains("apkmirror") ->
+			"$base#23-direkte-apkmirror-aufl%C3%B6sung--sichere-apkm-split-extraktion"
+		lower.contains("play") ->
+			"$base#39-typischer-fehler-google-play-store-download-bricht-ab-http-429-oder-kauf-apps"
+		lower.contains("github") ->
+			"$base#310-typischer-fehler-github-updates-werden-kurzzeitig-nicht-gefunden-http-403-rate-limit"
+		lower.contains("gitlab") ->
+			"$base#24-open-source--entwickler-quellen-github-gitlab-izzyondroid"
+		lower.contains("izzy") ->
+			"$base#24-open-source--entwickler-quellen-github-gitlab-izzyondroid"
+		else ->
+			"$base#-teil-3-ausf%C3%BChrliche-h%C3%A4ufige-fragen-faq--typische-fehlerbilder"
+	}
 }
 
 internal fun localizeFailureReason(rawReason: String, isGerman: Boolean): String {

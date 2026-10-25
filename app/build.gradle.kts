@@ -23,8 +23,8 @@ android {
         applicationId = "com.apkup" + System.getenv("BUILD_TAG").orEmpty()
         minSdk = 29
         targetSdk = 37
-        versionCode = if (buildNumber.isEmpty()) 138 else buildNumber.toInt()
-        versionName = if (buildNumber.isEmpty()) "1.32-Beta (138)" else "1.32.$buildNumber"
+        versionCode = if (buildNumber.isEmpty()) 139 else buildNumber.toInt()
+        versionName = if (buildNumber.isEmpty()) "1.32-Beta (139)" else "1.32.$buildNumber"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

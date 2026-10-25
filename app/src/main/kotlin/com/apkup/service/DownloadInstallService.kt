@@ -60,11 +60,11 @@ data class DownloadTaskState(
     val appName: String,
     val version: String = "",
     val source: com.apkup.data.ui.Source = com.apkup.data.ui.PlaySource,
-    var progress: Long = 0L,
-    var total: Long = 0L,
-    var isInstalling: Boolean = false,
-    var isQueued: Boolean = true,
-    var isResolvingLink: Boolean = false
+    val progress: Long = 0L,
+    val total: Long = 0L,
+    val isInstalling: Boolean = false,
+    val isQueued: Boolean = true,
+    val isResolvingLink: Boolean = false
 )
 
 class DownloadInstallService : Service(), KoinComponent {
@@ -91,11 +91,33 @@ class DownloadInstallService : Service(), KoinComponent {
         private val taskOrder = CopyOnWriteArrayList<Int>()
         private val pendingUpdates = ConcurrentLinkedQueue<AppUpdate>()
 
+        private fun publishActiveTasks() {
+            val ordered = linkedMapOf<Int, DownloadTaskState>()
+            for (id in taskOrder) {
+                activeTasks[id]?.let { ordered[id] = it }
+            }
+            for ((id, task) in activeTasks) {
+                if (!ordered.containsKey(id)) {
+                    ordered[id] = task
+                }
+            }
+            _activeTasksFlow.value = ordered
+        }
+
+        private fun mutateTask(id: Int, transform: (DownloadTaskState) -> DownloadTaskState): DownloadTaskState? {
+            val updated = activeTasks.computeIfPresent(id) { _, existing -> transform(existing) }
+            if (updated != null) {
+                publishActiveTasks()
+            }
+            return updated
+        }
+
         fun startDownload(context: Context, update: AppUpdate) {
             if (activeTasks.isEmpty()) {
                 completedTasks.clear()
                 _completedTasksFlow.value = emptyList()
             }
+            pendingUpdates.removeAll { it.id == update.id }
             if (!taskOrder.contains(update.id)) {
                 taskOrder.add(update.id)
             }
@@ -110,7 +132,7 @@ class DownloadInstallService : Service(), KoinComponent {
                 isQueued = true,
                 isResolvingLink = update.source == ApkMirrorSource
             )
-            _activeTasksFlow.value = activeTasks.toMap()
+            publishActiveTasks()
 
             val intent = Intent(context, DownloadInstallService::class.java).apply {
                 action = ACTION_START_DOWNLOAD
@@ -125,6 +147,7 @@ class DownloadInstallService : Service(), KoinComponent {
                 _completedTasksFlow.value = emptyList()
             }
             updates.forEach { update ->
+                pendingUpdates.removeAll { it.id == update.id }
                 if (!taskOrder.contains(update.id)) {
                     taskOrder.add(update.id)
                 }
@@ -140,7 +163,7 @@ class DownloadInstallService : Service(), KoinComponent {
                     isResolvingLink = update.source == ApkMirrorSource
                 )
             }
-            _activeTasksFlow.value = activeTasks.toMap()
+            publishActiveTasks()
 
             val intent = Intent(context, DownloadInstallService::class.java).apply {
                 action = ACTION_ENQUEUE_DOWNLOADS
@@ -149,18 +172,28 @@ class DownloadInstallService : Service(), KoinComponent {
         }
 
         fun cancelDownload(context: Context, updateId: Int) {
+            pendingUpdates.removeAll { it.id == updateId }
+            val hadTask = activeTasks.remove(updateId) != null
+            taskOrder.remove(updateId)
+            if (hadTask) {
+                publishActiveTasks()
+            }
             val intent = Intent(context, DownloadInstallService::class.java).apply {
                 action = ACTION_CANCEL_DOWNLOAD
                 putExtra(EXTRA_UPDATE_ID, updateId)
             }
-            context.startService(intent)
+            runCatching { context.startService(intent) }
         }
 
         fun cancelAllDownloads(context: Context) {
+            pendingUpdates.clear()
+            activeTasks.clear()
+            taskOrder.clear()
+            publishActiveTasks()
             val intent = Intent(context, DownloadInstallService::class.java).apply {
                 action = ACTION_CANCEL_ALL_DOWNLOADS
             }
-            context.startService(intent)
+            runCatching { context.startService(intent) }
         }
 
         fun clearCompletedTasks() {
@@ -214,12 +247,18 @@ class DownloadInstallService : Service(), KoinComponent {
             ACTION_CANCEL_DOWNLOAD -> {
                 if (updateId != 0) {
                     handleCancelTask(updateId)
+                } else if (taskOrder.isEmpty() && activeDownloadJobs.isEmpty()) {
+                    stopForegroundAndSelf()
                 }
             }
             ACTION_CANCEL_ALL_DOWNLOADS -> {
                 pendingUpdates.clear()
-                val allIds = taskOrder.toList()
-                allIds.forEach { id -> handleCancelTask(id) }
+                val allIds = (taskOrder + activeDownloadJobs.keys).distinct()
+                if (allIds.isEmpty()) {
+                    stopForegroundAndSelf()
+                } else {
+                    allIds.forEach { id -> handleCancelTask(id) }
+                }
             }
             ACTION_STOP_SERVICE -> {
                 stopForegroundAndSelf()
@@ -266,29 +305,43 @@ class DownloadInstallService : Service(), KoinComponent {
     }
 
     private fun startDownloadForUpdate(update: AppUpdate) {
-        if (activeDownloadJobs.containsKey(update.id)) return
+        activeDownloadJobs.remove(update.id)?.cancel()
 
-        val job = serviceScope.launch {
+        lateinit var currentJob: Job
+        currentJob = serviceScope.launch {
             val stagingDir = File(cacheDir, "download_staging_${update.id}").apply { mkdirs() }
             try {
                 downloadSemaphore.withPermit {
                     // Update state to active downloading
-                    val task = activeTasks[update.id]
-                    if (task != null) {
-                        task.isQueued = false
-                        _activeTasksFlow.value = activeTasks.toMap()
-                    }
+                    mutateTask(update.id) { it.copy(isQueued = false) }
 
                     installLog.beginInstall(update.id)
                     installLog.emitProgress(AppInstallProgress(update.id, 0L))
                     refreshNotification(force = true)
 
+                    var lastEmittedPercent = -1
+                    var lastEmittedAtMs = 0L
+
                     val files = downloadUpdateFiles(update, stagingDir) { currentBytes, totalBytes ->
-                        installLog.emitProgress(AppInstallProgress(update.id, currentBytes, totalBytes))
-                        activeTasks[update.id]?.let {
-                            it.progress = currentBytes
-                            it.total = totalBytes
-                            _activeTasksFlow.value = activeTasks.toMap()
+                        val now = System.currentTimeMillis()
+                        val pct = if (totalBytes > 0L) ((currentBytes * 100) / totalBytes).toInt() else -1
+                        val shouldEmit = currentBytes == 0L ||
+                            (totalBytes > 0L && currentBytes >= totalBytes) ||
+                            (pct != lastEmittedPercent) ||
+                            (now - lastEmittedAtMs >= 150L)
+                        if (shouldEmit) {
+                            lastEmittedPercent = pct
+                            lastEmittedAtMs = now
+                            mutateTask(update.id) {
+                                it.copy(
+                                    isQueued = false,
+                                    isResolvingLink = false,
+                                    progress = currentBytes,
+                                    total = totalBytes
+                                )
+                            }
+                            installLog.emitProgress(AppInstallProgress(update.id, currentBytes, totalBytes))
+                            refreshNotification()
                         }
                     }
 
@@ -297,9 +350,8 @@ class DownloadInstallService : Service(), KoinComponent {
                     }
 
                     // Download complete, transition to install queue
-                    activeTasks[update.id]?.let {
-                        it.isInstalling = true
-                        _activeTasksFlow.value = activeTasks.toMap()
+                    mutateTask(update.id) {
+                        it.copy(isInstalling = true, isQueued = false, isResolvingLink = false)
                     }
                     refreshNotification(force = true)
 
@@ -315,15 +367,21 @@ class DownloadInstallService : Service(), KoinComponent {
                 }
             } catch (cancellation: CancellationException) {
                 Log.i(TAG, "Download canceled for ${update.packageName} (${update.id})")
-                runCatching { stagingDir.deleteRecursively() }
-                installLog.emitProgress(AppInstallProgress(update.id, 0L))
-                handleCancelTask(update.id)
+                if (activeDownloadJobs[update.id] === currentJob) {
+                    runCatching { stagingDir.deleteRecursively() }
+                    installLog.emitProgress(AppInstallProgress(update.id, 0L))
+                    removeTask(update.id)
+                    refreshNotification(force = true)
+                }
                 throw cancellation
             } catch (cf: ApkMirrorCloudflareException) {
                 Log.w(TAG, "Cloudflare challenge encountered for ${update.packageName}")
-                runCatching { stagingDir.deleteRecursively() }
-                installLog.emitProgress(AppInstallProgress(update.id, 0L))
-                handleCancelTask(update.id)
+                if (activeDownloadJobs[update.id] === currentJob) {
+                    runCatching { stagingDir.deleteRecursively() }
+                    installLog.emitProgress(AppInstallProgress(update.id, 0L))
+                    removeTask(update.id)
+                    refreshNotification(force = true)
+                }
                 snackBar.snackBar(serviceScope, TextSnack(stringer.get(R.string.apkmirror_challenge_fallback)))
                 val fallbackUrl = cf.fallbackUrl.ifBlank { (update.link as? Link.Url)?.link.orEmpty() }
                 if (fallbackUrl.isNotBlank()) {
@@ -336,17 +394,20 @@ class DownloadInstallService : Service(), KoinComponent {
                 }
             } catch (error: Throwable) {
                 Log.e(TAG, "Download failed for ${update.packageName}", error)
-                runCatching { stagingDir.deleteRecursively() }
-                installLog.emitProgress(AppInstallProgress(update.id, 0L))
-                if (!installLog.emitStatus(AppInstallStatus(false, update.id, snack = true))) {
-                    handleCancelTask(update.id)
+                if (activeDownloadJobs[update.id] === currentJob) {
+                    runCatching { stagingDir.deleteRecursively() }
+                    installLog.emitProgress(AppInstallProgress(update.id, 0L))
+                    if (!installLog.emitStatus(AppInstallStatus(false, update.id, snack = true))) {
+                        removeTask(update.id)
+                        refreshNotification(force = true)
+                    }
                 }
             } finally {
-                activeDownloadJobs.remove(update.id)
+                activeDownloadJobs.remove(update.id, currentJob)
             }
         }
 
-        activeDownloadJobs[update.id] = job
+        activeDownloadJobs[update.id] = currentJob
     }
 
     private fun startInstallProcessor() {
@@ -360,8 +421,7 @@ class DownloadInstallService : Service(), KoinComponent {
                         continue
                     }
 
-                    task.isInstalling = true
-                    _activeTasksFlow.value = activeTasks.toMap()
+                    mutateTask(pkg.id) { it.copy(isInstalling = true, isQueued = false, isResolvingLink = false) }
                     refreshNotification(force = true)
 
                     try {
@@ -371,13 +431,15 @@ class DownloadInstallService : Service(), KoinComponent {
                         installer.installParts(pkg.id, pkg.packageName, parts)
                     } catch (cancellation: CancellationException) {
                         installLog.emitProgress(AppInstallProgress(pkg.id, 0L))
-                        handleCancelTask(pkg.id)
+                        removeTask(pkg.id)
+                        refreshNotification(force = true)
                         throw cancellation
                     } catch (error: Throwable) {
                         Log.e(TAG, "Installation failed for ${pkg.packageName}", error)
                         installLog.emitProgress(AppInstallProgress(pkg.id, 0L))
                         if (!installLog.emitStatus(AppInstallStatus(false, pkg.id, snack = true))) {
-                            handleCancelTask(pkg.id)
+                            removeTask(pkg.id)
+                            refreshNotification(force = true)
                         }
                     } finally {
                         runCatching { pkg.stagingDir.deleteRecursively() }
@@ -435,12 +497,9 @@ class DownloadInstallService : Service(), KoinComponent {
 
             val callTag = "update_${update.id}"
             if (update.source == ApkMirrorSource) {
-                activeTasks[update.id]?.let {
-                    it.isResolvingLink = true
-                    _activeTasksFlow.value = activeTasks.toMap()
-                }
+                mutateTask(update.id) { it.copy(isResolvingLink = true) }
                 refreshNotification(force = true)
-                when (val resolution = apkMirrorResolver.resolveDirectDownload(link.link)) {
+                when (val resolution = apkMirrorResolver.resolveDirectDownload(link.link, callTag)) {
                     is ApkMirrorResolutionResult.CloudflareBlocked -> {
                         throw ApkMirrorCloudflareException(resolution.fallbackUrl)
                     }
@@ -448,10 +507,7 @@ class DownloadInstallService : Service(), KoinComponent {
                         throw IOException("APKMirror resolution failed: ${resolution.error.message}", resolution.error)
                     }
                     is ApkMirrorResolutionResult.Success -> {
-                        activeTasks[update.id]?.let {
-                            it.isResolvingLink = false
-                            _activeTasksFlow.value = activeTasks.toMap()
-                        }
+                        mutateTask(update.id) { it.copy(isResolvingLink = false) }
                         val directUrl = resolution.directUrl
                         val isApkmHint = resolution.isApkm || resolution.filename.endsWith(".apkm", ignoreCase = true)
                         val tempPayload = File(stagingDir, if (isApkmHint) "bundle.apkm" else "download.bin")
@@ -502,8 +558,9 @@ class DownloadInstallService : Service(), KoinComponent {
     private fun handleCancelTask(id: Int) {
         Log.i(TAG, "Canceling download task for ID: $id")
 
-        // 1. Cooperative socket cancellation via Downloader
+        // 1. Cooperative socket cancellation via Downloader and ApkMirrorResolver
         downloader.cancel("update_$id")
+        apkMirrorResolver.cancelResolution("update_$id")
 
         // 2. Cancel active coroutine job
         activeDownloadJobs.remove(id)?.cancel()
@@ -515,11 +572,7 @@ class DownloadInstallService : Service(), KoinComponent {
         // 4. Reset install session if in progress
         installer.finish(id)
 
-        // 5. Emit progress and cancellation status to InstallLog
-        installLog.emitProgress(AppInstallProgress(id, 0L))
-        installLog.emitStatus(AppInstallStatus(false, id, snack = true))
-
-        // 6. Remove from task lists
+        // 5. Remove from task lists and update notification
         removeTask(id)
         refreshNotification(force = true)
     }
@@ -527,7 +580,7 @@ class DownloadInstallService : Service(), KoinComponent {
     private fun removeTask(id: Int) {
         activeTasks.remove(id)
         taskOrder.remove(id)
-        _activeTasksFlow.value = activeTasks.toMap()
+        publishActiveTasks()
         if (taskOrder.isEmpty()) {
             stopForegroundAndSelf()
         }
@@ -536,11 +589,13 @@ class DownloadInstallService : Service(), KoinComponent {
     private fun observeInstallLog() {
         serviceScope.launch {
             installLog.progress().collectLatest { prog ->
-                val task = activeTasks[prog.id]
-                if (task != null) {
-                    prog.progress?.let { task.progress = it }
-                    prog.total?.let { task.total = it }
-                    _activeTasksFlow.value = activeTasks.toMap()
+                val updated = mutateTask(prog.id) { task ->
+                    task.copy(
+                        progress = prog.progress ?: task.progress,
+                        total = prog.total ?: task.total
+                    )
+                }
+                if (updated != null) {
                     refreshNotification()
                 }
             }
