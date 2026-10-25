@@ -115,7 +115,6 @@ import com.apkup.service.DownloadInstallService
 import com.apkup.service.DownloadTaskState
 import com.apkup.ui.component.AppEmptyState
 import com.apkup.ui.component.CompactUpdateCardLayout
-import com.apkup.ui.component.DownloadIcon
 import com.apkup.ui.component.LoadingImageApp
 import com.apkup.ui.component.NormalUpdateCardLayout
 import com.apkup.ui.component.RefreshIcon

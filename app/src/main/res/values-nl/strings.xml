@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="tab_apps">Applicaties</string>
     <string name="tab_updates">Updates</string>
@@ -7,22 +7,17 @@
     <string name="ignore_cd">App Negeren</string>
     <string name="unignore_cd">App niet Negeren</string>
     <string name="refresh_updates">Zoeken naar Updates</string>
-    <string name="install_cd">App Installeren</string>
     <string name="app_cd">App Icoon</string>
-    <string name="install_success">%1$s geïnstalleerd.</string>
-    <string name="install_failure">%1$s niet geïnstalleerd.</string>
+    <string name="install_success">%1$s geÃ¯nstalleerd.</string>
+    <string name="install_failure">%1$s niet geÃ¯nstalleerd.</string>
 
     // Settings
-    <string name="settings_sources">Bronnen</string>
-    <string name="settings_ui">UI</string>
-    <string name="settings_options">Opties</string>
     <string name="about">Over</string>
     <string name="theme">Thema</string>
     <string name="theme_system">Systeem</string>
     <string name="theme_dark">Donker</string>
     <string name="theme_light">Licht</string>
     <string name="about_github">Verkrijg de broncode, rapporteer bugs, vraag nieuwe functies aan en voeg vertalingen toe.</string>
-    <string name="copy_to_clipboard">Kopieer naar klembord</string>
 
     // Notifications
     <string name="notification_channel_name">Updates</string>

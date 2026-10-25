@@ -57,20 +57,3 @@ fun RefreshIcon(
         modifier = modifier
     )
 }
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DownloadIcon(
-    text: String,
-    modifier: Modifier = Modifier
-) = TooltipBox(
-    positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
-    state = rememberTooltipState(),
-    tooltip = { PlainTooltip { Text(text) } }
-) {
-    Icon(
-        painter = painterResource(id = R.drawable.ic_download),
-        contentDescription = text,
-        modifier = modifier
-    )
-}

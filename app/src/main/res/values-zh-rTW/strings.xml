@@ -1,42 +1,37 @@
-<resources>
+﻿<resources>
 
     <string name="app_name" translatable="false">APKUpdater</string>
-    <string name="tab_apps">應用程式</string>
-    <string name="tab_updates">更新</string>
-    <string name="tab_settings">設定</string>
-    <string name="something_went_wrong">"發生錯誤\n\uD83E\uDD26"</string>
-    <string name="ignore_version">忽略版本</string>
-    <string name="ignore_cd">忽略應用程式</string>
-    <string name="unignore_cd">取消忽略應用程式</string>
-    <string name="refresh_updates">尋找更新</string>
-    <string name="install_cd">安裝應用程式</string>
-    <string name="app_cd">應用程式圖示</string>
-    <string name="install_success">%1$s 已安裝。</string>
-    <string name="install_failure">%1$s 安裝失敗。</string>
+    <string name="tab_apps">æ‡‰ç”¨ç¨‹å¼</string>
+    <string name="tab_updates">æ›´æ–°</string>
+    <string name="tab_settings">è¨­å®š</string>
+    <string name="something_went_wrong">"ç™¼ç”ŸéŒ¯èª¤\n\uD83E\uDD26"</string>
+    <string name="ignore_version">å¿½ç•¥ç‰ˆæœ¬</string>
+    <string name="ignore_cd">å¿½ç•¥æ‡‰ç”¨ç¨‹å¼</string>
+    <string name="unignore_cd">å–æ¶ˆå¿½ç•¥æ‡‰ç”¨ç¨‹å¼</string>
+    <string name="refresh_updates">å°‹æ‰¾æ›´æ–°</string>
+    <string name="app_cd">æ‡‰ç”¨ç¨‹å¼åœ–ç¤º</string>
+    <string name="install_success">%1$s å·²å®‰è£ã€‚</string>
+    <string name="install_failure">%1$s å®‰è£å¤±æ•—ã€‚</string>
 
     // Settings
-    <string name="settings_sources">來源</string>
-    <string name="settings_ui">使用者介面</string>
-    <string name="settings_options">選項</string>
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
     <string name="source_play" translatable="false">Play</string>
-    <string name="about">關於</string>
-    <string name="theme">主題</string>
-    <string name="theme_system">系統</string>
-    <string name="theme_dark">深色</string>
-    <string name="theme_light">淺色</string>
-    <string name="about_github">取得原始碼、回報錯誤、請求新功能並添加翻譯。</string>
-    <string name="copy_to_clipboard">複製到剪貼簿</string>
+    <string name="about">é—œæ–¼</string>
+    <string name="theme">ä¸»é¡Œ</string>
+    <string name="theme_system">ç³»çµ±</string>
+    <string name="theme_dark">æ·±è‰²</string>
+    <string name="theme_light">æ·ºè‰²</string>
+    <string name="about_github">å–å¾—åŽŸå§‹ç¢¼ã€å›žå ±éŒ¯èª¤ã€è«‹æ±‚æ–°åŠŸèƒ½ä¸¦æ·»åŠ ç¿»è­¯ã€‚</string>
 
     // Notifications
-    <string name="notification_channel_name">更新</string>
-    <string name="notification_channel_description">更新通知的頻道。</string>
+    <string name="notification_channel_name">æ›´æ–°</string>
+    <string name="notification_channel_description">æ›´æ–°é€šçŸ¥çš„é »é“ã€‚</string>
     <string name="notification_channel_id" translatable="false">updateChannel</string>
-    <string name="notification_update_title">更新</string>
+    <string name="notification_update_title">æ›´æ–°</string>
     <plurals name="notification_update_description">
-        <item quantity="zero">沒有找到更新。</item>
-        <item quantity="one">找到 %1$d 個更新。</item>
-        <item quantity="other">找到 %1$d 個更新。</item>
+        <item quantity="zero">æ²’æœ‰æ‰¾åˆ°æ›´æ–°ã€‚</item>
+        <item quantity="one">æ‰¾åˆ° %1$d å€‹æ›´æ–°ã€‚</item>
+        <item quantity="other">æ‰¾åˆ° %1$d å€‹æ›´æ–°ã€‚</item>
     </plurals>
 
 </resources>

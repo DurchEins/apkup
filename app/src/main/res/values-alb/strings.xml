@@ -1,41 +1,36 @@
-<resources>
+﻿<resources>
 
     <string name="app_name" translatable="false">APKUpdater</string>
     <string name="tab_apps">Aplikacionet</string>
-    <string name="tab_updates">Përditësime</string>
-    <string name="tab_settings">Cilësimet</string>
-    <string name="something_went_wrong">"Diçka shkoi keq\n\uD83E\uDD26"</string>
+    <string name="tab_updates">PÃ«rditÃ«sime</string>
+    <string name="tab_settings">CilÃ«simet</string>
+    <string name="something_went_wrong">"DiÃ§ka shkoi keq\n\uD83E\uDD26"</string>
     <string name="ignore_version">Ignoro Versionin</string>
     <string name="ignore_cd">Ignoro Aplikacionin</string>
     <string name="unignore_cd">Mos e Ignoro Aplikacionin</string>
-    <string name="refresh_updates">Kërko për Përditësime</string>
-    <string name="install_cd">Instalo Aplikacionin</string>
+    <string name="refresh_updates">KÃ«rko pÃ«r PÃ«rditÃ«sime</string>
     <string name="app_cd">Ikona e Aplikacionit</string>
     <string name="install_success">%1$s u instalua.</string>
-    <string name="install_failure">%1$s dështoi të instalohet.</string>
+    <string name="install_failure">%1$s dÃ«shtoi tÃ« instalohet.</string>
 
     // Settings
-    <string name="settings_sources">Burimet</string>
-    <string name="settings_ui">UI</string>
-    <string name="settings_options">Opsionet</string>
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
     <string name="about">Rreth</string>
     <string name="theme">Tema</string>
     <string name="theme_system">Sistemi</string>
-    <string name="theme_dark">Errët</string>
-    <string name="theme_light">Dritë</string>
-    <string name="about_github">Merr kodin burim, raporto gabimet, kërko karakteristika të reja dhe shto përkthimet.</string>
-    <string name="copy_to_clipboard">Kopjo në të kujtesë</string>
+    <string name="theme_dark">ErrÃ«t</string>
+    <string name="theme_light">DritÃ«</string>
+    <string name="about_github">Merr kodin burim, raporto gabimet, kÃ«rko karakteristika tÃ« reja dhe shto pÃ«rkthimet.</string>
 
     // Notifications
-    <string name="notification_channel_name">Përditësime</string>
-    <string name="notification_channel_description">Kanali për njoftimet e përditësimeve.</string>
+    <string name="notification_channel_name">PÃ«rditÃ«sime</string>
+    <string name="notification_channel_description">Kanali pÃ«r njoftimet e pÃ«rditÃ«simeve.</string>
     <string name="notification_channel_id" translatable="false">updateChannel</string>
-    <string name="notification_update_title">Përditësime</string>
+    <string name="notification_update_title">PÃ«rditÃ«sime</string>
     <plurals name="notification_update_description">
-        <item quantity="zero">Asnjë përditësim i gjetur.</item>
-        <item quantity="one">Gjeti %1$d përditësim.</item>
-        <item quantity="other">Gjeti %1$d përditësime.</item>
+        <item quantity="zero">AsnjÃ« pÃ«rditÃ«sim i gjetur.</item>
+        <item quantity="one">Gjeti %1$d pÃ«rditÃ«sim.</item>
+        <item quantity="other">Gjeti %1$d pÃ«rditÃ«sime.</item>
     </plurals>
 
 </resources>

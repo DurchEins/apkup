@@ -1,4 +1,4 @@
-<resources>
+﻿<resources>
 
     <string name="app_name" translatable="false">APKUpdater</string>
     <string name="tab_apps">Apps</string>
@@ -9,15 +9,11 @@
     <string name="ignore_cd">Abaikan App</string>
     <string name="unignore_cd">Abaikan App</string>
     <string name="refresh_updates">Cari Kemas Kini</string>
-    <string name="install_cd">Pasang Apl</string>
     <string name="app_cd">Ikon Aplikasi</string>
     <string name="install_success">%1$s dipasang.</string>
     <string name="install_failure">%1$s gagal dipasang.</string>
 
     // Settings
-    <string name="settings_sources">Sumber</string>
-    <string name="settings_ui">UI</string>
-    <string name="settings_options">Pilihan</string>
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
     <string name="source_play" translatable="false">Play</string>
     <string name="about">Tentang</string>
@@ -26,7 +22,6 @@
     <string name="theme_dark">Gelap</string>
     <string name="theme_light">Cahaya</string>
     <string name="about_github">Dapatkan code sumber, laporkan pepijat, minta ciri baharu dan tambah terjemahan.</string>
-    <string name="copy_to_clipboard">Salin ke papan keratan</string>
 
     // Notifications
     <string name="notification_channel_name">Updates</string>

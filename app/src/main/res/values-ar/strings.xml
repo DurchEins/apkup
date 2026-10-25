@@ -1,42 +1,37 @@
-<resources>
+﻿<resources>
 
     <string name="app_name" translatable="false">APKUpdater</string>
-    <string name="tab_apps">التطبيقات</string>
-    <string name="tab_updates">التحديثات</string>
-    <string name="tab_settings">الإعدادات</string>
-    <string name="something_went_wrong">"حدث خطأً ما\n\uD83E\uDD26"</string>
-    <string name="ignore_version">تجاهل الإصدار</string>
-    <string name="ignore_cd">تجاهل التطبيق</string>
-    <string name="unignore_cd">إلغاء تجاهل التطبيق</string>
-    <string name="refresh_updates">ابحث عن التحديثات</string>
-    <string name="install_cd">تثبيت التطبيق</string>
-    <string name="app_cd">أيقونة التطبيق</string>
-    <string name="install_success">%1$s تم التثبيت.</string>
-    <string name="install_failure">%1$s فشل التثبيت.</string>
+    <string name="tab_apps">Ø§Ù„ØªØ·Ø¨ÙŠÙ‚Ø§Øª</string>
+    <string name="tab_updates">Ø§Ù„ØªØ­Ø¯ÙŠØ«Ø§Øª</string>
+    <string name="tab_settings">Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª</string>
+    <string name="something_went_wrong">"Ø­Ø¯Ø« Ø®Ø·Ø£Ù‹ Ù…Ø§\n\uD83E\uDD26"</string>
+    <string name="ignore_version">ØªØ¬Ø§Ù‡Ù„ Ø§Ù„Ø¥ØµØ¯Ø§Ø±</string>
+    <string name="ignore_cd">ØªØ¬Ø§Ù‡Ù„ Ø§Ù„ØªØ·Ø¨ÙŠÙ‚</string>
+    <string name="unignore_cd">Ø¥Ù„ØºØ§Ø¡ ØªØ¬Ø§Ù‡Ù„ Ø§Ù„ØªØ·Ø¨ÙŠÙ‚</string>
+    <string name="refresh_updates">Ø§Ø¨Ø­Ø« Ø¹Ù† Ø§Ù„ØªØ­Ø¯ÙŠØ«Ø§Øª</string>
+    <string name="app_cd">Ø£ÙŠÙ‚ÙˆÙ†Ø© Ø§Ù„ØªØ·Ø¨ÙŠÙ‚</string>
+    <string name="install_success">%1$s ØªÙ… Ø§Ù„ØªØ«Ø¨ÙŠØª.</string>
+    <string name="install_failure">%1$s ÙØ´Ù„ Ø§Ù„ØªØ«Ø¨ÙŠØª.</string>
 
     // Settings
-    <string name="settings_sources">المصادر</string>
-    <string name="settings_ui">الواجهة</string>
-    <string name="settings_options">خيارات</string>
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
     <string name="source_play" translatable="false">Play</string>
-    <string name="about">حول</string>
-    <string name="theme">المظهر</string>
-    <string name="theme_system">النظام</string>
-    <string name="theme_dark">داكن</string>
-    <string name="theme_light">ساطع</string>
-    <string name="about_github">احصل على الكود المصدري، وأبلغ عن الأخطاء، واطلب ميزات جديدة، وأضف الترجمات.</string>
-    <string name="copy_to_clipboard">نسخ إلى الحافظة</string>
+    <string name="about">Ø­ÙˆÙ„</string>
+    <string name="theme">Ø§Ù„Ù…Ø¸Ù‡Ø±</string>
+    <string name="theme_system">Ø§Ù„Ù†Ø¸Ø§Ù…</string>
+    <string name="theme_dark">Ø¯Ø§ÙƒÙ†</string>
+    <string name="theme_light">Ø³Ø§Ø·Ø¹</string>
+    <string name="about_github">Ø§Ø­ØµÙ„ Ø¹Ù„Ù‰ Ø§Ù„ÙƒÙˆØ¯ Ø§Ù„Ù…ØµØ¯Ø±ÙŠØŒ ÙˆØ£Ø¨Ù„Øº Ø¹Ù† Ø§Ù„Ø£Ø®Ø·Ø§Ø¡ØŒ ÙˆØ§Ø·Ù„Ø¨ Ù…ÙŠØ²Ø§Øª Ø¬Ø¯ÙŠØ¯Ø©ØŒ ÙˆØ£Ø¶Ù Ø§Ù„ØªØ±Ø¬Ù…Ø§Øª.</string>
 
     // Notifications
-    <string name="notification_channel_name">التحديثات</string>
-    <string name="notification_channel_description">قناة لإشعارات التحديث.</string>
+    <string name="notification_channel_name">Ø§Ù„ØªØ­Ø¯ÙŠØ«Ø§Øª</string>
+    <string name="notification_channel_description">Ù‚Ù†Ø§Ø© Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª Ø§Ù„ØªØ­Ø¯ÙŠØ«.</string>
     <string name="notification_channel_id" translatable="false">updateChannel</string>
-    <string name="notification_update_title">التحديثات</string>
+    <string name="notification_update_title">Ø§Ù„ØªØ­Ø¯ÙŠØ«Ø§Øª</string>
     <plurals name="notification_update_description">
-        <item quantity="zero">لم يتم العثور على تحديثات.</item>
-        <item quantity="one">تم العثور على %1$d تحديث.</item>
-        <item quantity="other">تم العثور على %1$d تحديثات.</item>
+        <item quantity="zero">Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ ØªØ­Ø¯ÙŠØ«Ø§Øª.</item>
+        <item quantity="one">ØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ %1$d ØªØ­Ø¯ÙŠØ«.</item>
+        <item quantity="other">ØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ %1$d ØªØ­Ø¯ÙŠØ«Ø§Øª.</item>
     </plurals>
 
 </resources>

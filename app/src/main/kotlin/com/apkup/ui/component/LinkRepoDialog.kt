@@ -136,6 +136,11 @@ fun LinkRepoDialog(
                 )
 
                 // Platform selection
+                Text(
+                    text = stringResource(R.string.link_repo_platform),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                     SegmentedButton(
                         selected = selectedType == "github",

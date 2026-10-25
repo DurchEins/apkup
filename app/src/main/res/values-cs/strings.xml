@@ -1,42 +1,37 @@
-<resources>
+﻿<resources>
 
     <string name="tab_apps">Aplikace</string>
     <string name="tab_updates">Aktualizace</string>
-    <string name="tab_settings">Nastavení</string>
-    <string name="something_went_wrong">"Něco se pokazilo\n\uD83E\uDD26"</string>
+    <string name="tab_settings">NastavenÃ­</string>
+    <string name="something_went_wrong">"NÄ›co se pokazilo\n\uD83E\uDD26"</string>
     <string name="ignore_version">Ignorovat verzi</string>
     <string name="ignore_cd">Ignorovat aplikaci</string>
-    <string name="unignore_cd">Zrušit ignorování aplikace</string>
+    <string name="unignore_cd">ZruÅ¡it ignorovÃ¡nÃ­ aplikace</string>
     <string name="refresh_updates">Vyhledat aktualizace</string>
-    <string name="install_cd">Instalovat</string>
-    <string name="install_all">Instaloat vše</string>
+    <string name="install_all">Instaloat vÅ¡e</string>
     <string name="app_cd">Ikona aplikace</string>
-    <string name="install_success">%1$s nainstalováno.</string>
+    <string name="install_success">%1$s nainstalovÃ¡no.</string>
     <string name="install_failure">%1$s se nepovedlo nainstalovat.</string>
 
     // Settings
-    <string name="settings_sources">Zdroje</string>
-    <string name="settings_ui">UI</string>
-    <string name="settings_options">Nastavení</string>
 
 
-    <string name="about">O nás</string>
+    <string name="about">O nÃ¡s</string>
     <string name="theme">Motiv</string>
-    <string name="theme_system">Systémový</string>
-    <string name="theme_dark">Tmavý</string>
-    <string name="theme_light">Světlý</string>
-    <string name="about_github">Získejte zdrojový kód, nahlaste chyby, požádejte o nové funkce a přidejte překlady.</string>
-    <string name="copy_to_clipboard">Kopírovat do schránky</string>
+    <string name="theme_system">SystÃ©movÃ½</string>
+    <string name="theme_dark">TmavÃ½</string>
+    <string name="theme_light">SvÄ›tlÃ½</string>
+    <string name="about_github">ZÃ­skejte zdrojovÃ½ kÃ³d, nahlaste chyby, poÅ¾Ã¡dejte o novÃ© funkce a pÅ™idejte pÅ™eklady.</string>
 
     // Notifications
     <string name="notification_channel_name">Aktualizace</string>
-    <string name="notification_channel_description">Kanál pro notifikace o aktualizacích</string>
+    <string name="notification_channel_description">KanÃ¡l pro notifikace o aktualizacÃ­ch</string>
 
     <string name="notification_update_title">Aktualizace</string>
     <plurals name="notification_update_description">
-        <item quantity="zero">Žádné aktualizace nenalezeny.</item>
+        <item quantity="zero">Å½Ã¡dnÃ© aktualizace nenalezeny.</item>
         <item quantity="one">Nalezena %1$d aktualizace.</item>
-        <item quantity="other">Nalezeno %1$d aktualizací.</item>
+        <item quantity="other">Nalezeno %1$d aktualizacÃ­.</item>
     </plurals>
 
 </resources>

@@ -3,11 +3,11 @@ package com.apkup.util.play
 import android.util.Log
 import android.os.SystemClock
 import com.aurora.gplayapi.data.models.PlayResponse
+import com.aurora.gplayapi.network.IHttpClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import okhttp3.Cache
-import okhttp3.Credentials
 import okhttp3.Headers.Companion.toHeaders
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -18,14 +18,12 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
-import java.net.InetSocketAddress
-import java.net.Proxy
 import java.util.concurrent.TimeUnit
 
 
 class PlayHttpClient(
     cache: Cache
-) : IProxyHttpClient {
+) : IHttpClient {
 
     companion object {
         private const val POST = "POST"
@@ -43,34 +41,7 @@ class PlayHttpClient(
         .followRedirects(true)
         .followSslRedirects(true)
         .cache(cache)
-    private var okHttpClient = okHttpClientBuilder.build()
-
-    override fun setProxy(proxyInfo: ProxyInfo): PlayHttpClient {
-        val proxy = Proxy(
-            if (proxyInfo.protocol == "SOCKS") Proxy.Type.SOCKS else Proxy.Type.HTTP,
-            InetSocketAddress.createUnresolved(proxyInfo.host, proxyInfo.port)
-        )
-
-        val proxyUser = proxyInfo.proxyUser
-        val proxyPassword = proxyInfo.proxyPassword
-
-        if (!proxyUser.isNullOrBlank() && !proxyPassword.isNullOrBlank()) {
-            okHttpClientBuilder.proxyAuthenticator { _, response ->
-                if (response.request.header("Proxy-Authorization") != null) {
-                    return@proxyAuthenticator null
-                }
-
-                val credential = Credentials.basic(proxyUser, proxyPassword)
-                response.request
-                    .newBuilder()
-                    .header("Proxy-Authorization", credential)
-                    .build()
-            }
-        }
-
-        okHttpClient = okHttpClientBuilder.proxy(proxy).build()
-        return this
-    }
+    private val okHttpClient = okHttpClientBuilder.build()
 
     @Throws(IOException::class)
     fun post(url: String, headers: Map<String, String>, requestBody: RequestBody): PlayResponse {

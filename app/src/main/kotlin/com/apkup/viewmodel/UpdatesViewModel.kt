@@ -59,6 +59,7 @@ import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 
 class ApkMirrorCloudflareException(val fallbackUrl: String) : IOException("Cloudflare challenge encountered on APKMirror")
+class ApkMirrorResolutionException(val fallbackUrl: String, cause: Throwable? = null) : IOException("Failed to resolve direct APKMirror download link", cause)
 
 data class DownloadedPackage(
 	val id: Int,
@@ -515,6 +516,26 @@ class UpdatesViewModel(
 						}
 					}
 				}
+			} catch (failed: ApkMirrorResolutionException) {
+				Log.w("UpdatesViewModel", "APKMirror link resolution failed for ${update.packageName}; launching browser fallback.")
+				runCatching { stagingDir.deleteRecursively() }
+				installLog.emitProgress(AppInstallProgress(update.id, 0L))
+				cancelInstall(update.id).join()
+				snackBar.snackBar(
+					viewModelScope,
+					TextSnack(stringer.get(R.string.apkmirror_resolution_failed_fallback))
+				)
+				val fallbackUrl = failed.fallbackUrl.ifBlank { (update.link as? Link.Url)?.link.orEmpty() }
+				if (fallbackUrl.isNotBlank()) {
+					context?.let { ctx ->
+						runCatching {
+							val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(fallbackUrl)).apply {
+								addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+							}
+							ctx.startActivity(intent)
+						}
+					}
+				}
 			} catch (error: Throwable) {
 				Log.e("UpdatesViewModel", "Download failed for ${update.packageName}", error)
 				runCatching { stagingDir.deleteRecursively() }
@@ -627,7 +648,7 @@ class UpdatesViewModel(
 						throw ApkMirrorCloudflareException(resolution.fallbackUrl)
 					}
 					is ApkMirrorResolutionResult.Failed -> {
-						throw IOException("APKMirror resolution failed: ${resolution.error.message}", resolution.error)
+						throw ApkMirrorResolutionException(link.link, resolution.error)
 					}
 					is ApkMirrorResolutionResult.Success -> {
 						val directUrl = resolution.directUrl

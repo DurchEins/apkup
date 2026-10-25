@@ -17,7 +17,6 @@ import kotlinx.coroutines.sync.withLock
 import okhttp3.OkHttpClient
 import java.security.MessageDigest
 import java.util.Calendar
-import java.util.UUID
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -99,8 +98,6 @@ fun Intent.getAppId() = runCatching {
 }.getOrNull()
 
 fun PackageManager.isAndroidTv() = hasSystemFeature(PackageManager.FEATURE_LEANBACK)
-
-fun randomUUID() = UUID.randomUUID().toString()
 
 fun isDark() = Resources.getSystem().configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
 

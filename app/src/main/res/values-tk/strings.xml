@@ -1,42 +1,37 @@
-<resources>
+﻿<resources>
 
     <string name="app_name" translatable="false">APKUpdater</string>
-    <string name="tab_apps">Ýüklemeler</string>
-    <string name="tab_updates">Täzeleme</string>
+    <string name="tab_apps">ÃÃ¼klemeler</string>
+    <string name="tab_updates">TÃ¤zeleme</string>
     <string name="tab_settings">Sazlamalar</string>
-    <string name="something_went_wrong">"Ýalňyşlyk ýüze çykdy\n\uD83E\uDD26"</string>
-    <string name="ignore_version">Wersiýa gerek däl</string>
-    <string name="ignore_cd">Ýükleme gerek däl</string>
-    <string name="unignore_cd">Ýükleme gerek</string>
-    <string name="refresh_updates">Täzelemeleri ýükle</string>
-    <string name="install_cd">Ýüklemek</string>
-    <string name="app_cd">Ýükleme suraty</string>
-    <string name="install_success">%1$s ýüklendi.</string>
-    <string name="install_failure">%1$s ýükläp bolmady.</string>
+    <string name="something_went_wrong">"ÃalÅˆyÅŸlyk Ã½Ã¼ze Ã§ykdy\n\uD83E\uDD26"</string>
+    <string name="ignore_version">WersiÃ½a gerek dÃ¤l</string>
+    <string name="ignore_cd">ÃÃ¼kleme gerek dÃ¤l</string>
+    <string name="unignore_cd">ÃÃ¼kleme gerek</string>
+    <string name="refresh_updates">TÃ¤zelemeleri Ã½Ã¼kle</string>
+    <string name="app_cd">ÃÃ¼kleme suraty</string>
+    <string name="install_success">%1$s Ã½Ã¼klendi.</string>
+    <string name="install_failure">%1$s Ã½Ã¼klÃ¤p bolmady.</string>
 
     // Settings
-    <string name="settings_sources">Çeşmeler</string>
-    <string name="settings_ui">UI</string>
-    <string name="settings_options">Görnüş</string>
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
     <string name="source_play" translatable="false">Play</string>
     <string name="about">Biz barada</string>
     <string name="theme">Tema</string>
     <string name="theme_system">Sistema</string>
-    <string name="theme_dark">Garaňky</string>
-    <string name="theme_light">Ýagty</string>
-    <string name="about_github">Çeşme koduny alyň, kemçilikleri habar beriň, täze aýratynlyklary soraň we terjime goşuň.</string>
-    <string name="copy_to_clipboard">Kopýala</string>
+    <string name="theme_dark">GaraÅˆky</string>
+    <string name="theme_light">Ãagty</string>
+    <string name="about_github">Ã‡eÅŸme koduny alyÅˆ, kemÃ§ilikleri habar beriÅˆ, tÃ¤ze aÃ½ratynlyklary soraÅˆ we terjime goÅŸuÅˆ.</string>
 
     // Notifications
-    <string name="notification_channel_name">Täzelemeler</string>
-    <string name="notification_channel_description">Täzelenme habarnamalary üçin kanal.</string>
+    <string name="notification_channel_name">TÃ¤zelemeler</string>
+    <string name="notification_channel_description">TÃ¤zelenme habarnamalary Ã¼Ã§in kanal.</string>
     <string name="notification_channel_id" translatable="false">updateChannel</string>
-    <string name="notification_update_title">Täzelemeler</string>
+    <string name="notification_update_title">TÃ¤zelemeler</string>
     <plurals name="notification_update_description">
-        <item quantity="zero">Täzelenme tapylmady</item>
-        <item quantity="one"> %1$d täzelenme tapyldy.</item>
-        <item quantity="other"> %1$d täzelenmeler tapyldy.</item>
+        <item quantity="zero">TÃ¤zelenme tapylmady</item>
+        <item quantity="one"> %1$d tÃ¤zelenme tapyldy.</item>
+        <item quantity="other"> %1$d tÃ¤zelenmeler tapyldy.</item>
     </plurals>
 
 </resources>

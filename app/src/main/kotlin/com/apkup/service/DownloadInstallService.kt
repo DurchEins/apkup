@@ -18,6 +18,7 @@ import com.apkup.data.ui.AppInstallStatus
 import com.apkup.data.ui.AppUpdate
 import com.apkup.data.ui.Link
 import com.apkup.viewmodel.ApkMirrorCloudflareException
+import com.apkup.viewmodel.ApkMirrorResolutionException
 import com.apkup.repository.ApkMirrorResolver
 import com.apkup.util.ApkmExtractor
 import com.apkup.util.DownloadNotificationManager
@@ -414,6 +415,24 @@ class DownloadInstallService : Service(), KoinComponent {
                         startActivity(browserIntent)
                     }
                 }
+            } catch (failed: ApkMirrorResolutionException) {
+                Log.w(TAG, "Direct APKMirror download resolution failed for ${update.packageName}")
+                if (activeDownloadJobs[update.id] === currentJob) {
+                    runCatching { stagingDir.deleteRecursively() }
+                    installLog.emitProgress(AppInstallProgress(update.id, 0L))
+                    removeTask(update.id)
+                    refreshNotification(force = true)
+                }
+                snackBar.snackBar(serviceScope, TextSnack(stringer.get(R.string.apkmirror_resolution_failed_fallback)))
+                val fallbackUrl = failed.fallbackUrl.ifBlank { (update.link as? Link.Url)?.link.orEmpty() }
+                if (fallbackUrl.isNotBlank()) {
+                    runCatching {
+                        val browserIntent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(fallbackUrl)).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        startActivity(browserIntent)
+                    }
+                }
             } catch (error: Throwable) {
                 Log.e(TAG, "Download failed for ${update.packageName}", error)
                 if (activeDownloadJobs[update.id] === currentJob) {
@@ -528,7 +547,7 @@ class DownloadInstallService : Service(), KoinComponent {
                         throw ApkMirrorCloudflareException(resolution.fallbackUrl)
                     }
                     is ApkMirrorResolutionResult.Failed -> {
-                        throw IOException("APKMirror resolution failed: ${resolution.error.message}", resolution.error)
+                        throw ApkMirrorResolutionException(link.link, resolution.error)
                     }
                     is ApkMirrorResolutionResult.Success -> {
                         mutateTask(update.id) { it.copy(isResolvingLink = false) }

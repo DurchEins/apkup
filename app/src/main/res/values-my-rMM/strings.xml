@@ -1,40 +1,35 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">APKUpdater</string>
-    <string name="tab_apps">Appများ</string>
-    <string name="tab_updates">ဗားရှင်းအသစ်များ</string>
-    <string name="tab_settings">ဆက်တင်များ</string>
-    <string name="something_went_wrong">"တစ်ခုခုမှားယွင်းနေပါသည်\n\uD83E\uDD26"</string>
-    <string name="ignore_cd">ငြင်းပယ်ထားသောAppများ</string>
-    <string name="unignore_cd">မငြင်းပယ်ထားသောAppများ</string>
-    <string name="refresh_updates">ဗားရှင်းအသစ်များရှာဖွေခြင်း</string>
-    <string name="install_cd">ထည့်သွင်းထားသောအပ်ပလီကေးရှင်း</string>
-    <string name="app_cd">အပ်ပလီကေးရှင်းရုပ်ပုံ</string>
-    <string name="install_success">%1$s ထည့်သွင်းပြီး။</string>
-    <string name="install_failure">%1$s ထည့်သွင်းမှုမအောင်မြင်ပါ။</string>
+    <string name="tab_apps">Appá€™á€»á€¬á€¸</string>
+    <string name="tab_updates">á€—á€¬á€¸á€›á€¾á€„á€ºá€¸á€¡á€žá€…á€ºá€™á€»á€¬á€¸</string>
+    <string name="tab_settings">á€†á€€á€ºá€á€„á€ºá€™á€»á€¬á€¸</string>
+    <string name="something_went_wrong">"á€á€…á€ºá€á€¯á€á€¯á€™á€¾á€¬á€¸á€šá€½á€„á€ºá€¸á€”á€±á€•á€«á€žá€Šá€º\n\uD83E\uDD26"</string>
+    <string name="ignore_cd">á€„á€¼á€„á€ºá€¸á€•á€šá€ºá€‘á€¬á€¸á€žá€±á€¬Appá€™á€»á€¬á€¸</string>
+    <string name="unignore_cd">á€™á€„á€¼á€„á€ºá€¸á€•á€šá€ºá€‘á€¬á€¸á€žá€±á€¬Appá€™á€»á€¬á€¸</string>
+    <string name="refresh_updates">á€—á€¬á€¸á€›á€¾á€„á€ºá€¸á€¡á€žá€…á€ºá€™á€»á€¬á€¸á€›á€¾á€¬á€–á€½á€±á€á€¼á€„á€ºá€¸</string>
+    <string name="app_cd">á€¡á€•á€ºá€•á€œá€®á€€á€±á€¸á€›á€¾á€„á€ºá€¸á€›á€¯á€•á€ºá€•á€¯á€¶</string>
+    <string name="install_success">%1$s á€‘á€Šá€ºá€·á€žá€½á€„á€ºá€¸á€•á€¼á€®á€¸á‹</string>
+    <string name="install_failure">%1$s á€‘á€Šá€ºá€·á€žá€½á€„á€ºá€¸á€™á€¾á€¯á€™á€¡á€±á€¬á€„á€ºá€™á€¼á€„á€ºá€•á€«á‹</string>
 
     // Settings
-    <string name="settings_sources">အရင်းမြစ်များ</string>
-    <string name="settings_ui">ပြသပုံ</string>
-    <string name="settings_options">ရွေးချယ်စရာများ</string>
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
-    <string name="about">ကျွန်ုပ်တို့အကြောင်း</string>
-    <string name="theme">တင်ပြပုံ</string>
-    <string name="theme_system">စက်အတိုင်း</string>
-    <string name="theme_dark">အမှောင်</string>
-    <string name="theme_light">အလင်း</string>
-    <string name="about_github">ပင်ရင်းကုဒ်တွင် ဘာသာစကားများ၊ လိုအပ်ချက်များ၊ ပါဝင်မှုအသစ်များ ထည့်သွင်းရန်။</string>
-    <string name="copy_to_clipboard">ကော်ပီကူးယူသည်</string>
+    <string name="about">á€€á€»á€½á€”á€ºá€¯á€•á€ºá€á€­á€¯á€·á€¡á€€á€¼á€±á€¬á€„á€ºá€¸</string>
+    <string name="theme">á€á€„á€ºá€•á€¼á€•á€¯á€¶</string>
+    <string name="theme_system">á€…á€€á€ºá€¡á€á€­á€¯á€„á€ºá€¸</string>
+    <string name="theme_dark">á€¡á€™á€¾á€±á€¬á€„á€º</string>
+    <string name="theme_light">á€¡á€œá€„á€ºá€¸</string>
+    <string name="about_github">á€•á€„á€ºá€›á€„á€ºá€¸á€€á€¯á€’á€ºá€á€½á€„á€º á€˜á€¬á€žá€¬á€…á€€á€¬á€¸á€™á€»á€¬á€¸áŠ á€œá€­á€¯á€¡á€•á€ºá€á€»á€€á€ºá€™á€»á€¬á€¸áŠ á€•á€«á€á€„á€ºá€™á€¾á€¯á€¡á€žá€…á€ºá€™á€»á€¬á€¸ á€‘á€Šá€ºá€·á€žá€½á€„á€ºá€¸á€›á€”á€ºá‹</string>
 
     // Notifications
-    <string name="notification_channel_name">ဗားရှင်းအသစ်များ</string>
-    <string name="notification_channel_description">ဗားရှင်းအသစ်များအတွက်အသိပေးချက်ရယူရန်။</string>
+    <string name="notification_channel_name">á€—á€¬á€¸á€›á€¾á€„á€ºá€¸á€¡á€žá€…á€ºá€™á€»á€¬á€¸</string>
+    <string name="notification_channel_description">á€—á€¬á€¸á€›á€¾á€„á€ºá€¸á€¡á€žá€…á€ºá€™á€»á€¬á€¸á€¡á€á€½á€€á€ºá€¡á€žá€­á€•á€±á€¸á€á€»á€€á€ºá€›á€šá€°á€›á€”á€ºá‹</string>
     <string name="notification_channel_id" translatable="false">updateChannel</string>
-    <string name="notification_update_title">ဗားရှင်းအသစ်များ</string>
+    <string name="notification_update_title">á€—á€¬á€¸á€›á€¾á€„á€ºá€¸á€¡á€žá€…á€ºá€™á€»á€¬á€¸</string>
     <plurals name="notification_update_description">
-        <item quantity="zero">ဗားရှင်းအသစ် မတွေ့ပါ။</item>
-        <item quantity="one">ဗားရှင်းအသစ် %1$d ခု။</item>
-        <item quantity="other">ဗားရှင်းအသစ် %1$d ခု။</item>
+        <item quantity="zero">á€—á€¬á€¸á€›á€¾á€„á€ºá€¸á€¡á€žá€…á€º á€™á€á€½á€±á€·á€•á€«á‹</item>
+        <item quantity="one">á€—á€¬á€¸á€›á€¾á€„á€ºá€¸á€¡á€žá€…á€º %1$d á€á€¯á‹</item>
+        <item quantity="other">á€—á€¬á€¸á€›á€¾á€„á€ºá€¸á€¡á€žá€…á€º %1$d á€á€¯á‹</item>
     </plurals>
 
 </resources>
