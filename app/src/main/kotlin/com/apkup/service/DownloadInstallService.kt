@@ -28,7 +28,6 @@ import com.apkup.util.InstallPart
 import com.apkup.util.SessionInstaller
 import com.apkup.util.SnackBar
 import com.apkup.util.Stringer
-import com.apkup.viewmodel.DownloadedPackage
 import com.aurora.gplayapi.data.models.PlayFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -225,21 +224,17 @@ class DownloadInstallService : Service(), KoinComponent {
 
     private val downloadSemaphore = Semaphore(3)
     private val activeDownloadJobs = ConcurrentHashMap<Int, Job>()
-    private val installChannel = Channel<DownloadedPackage>(Channel.UNLIMITED)
-    private val installQueueMutex = Mutex()
-    private var installProcessorJob: Job? = null
+    private val installMutex = Mutex()
 
     override fun onCreate() {
         super.onCreate()
         notificationManager = DownloadNotificationManager(this)
         downloader.cleanupOrphanStagingFiles(cacheDir)
         observeInstallLog()
-        startInstallProcessor()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         ensureForegroundStarted()
-        ensureInstallProcessorStarted()
 
         val action = intent?.action
         val updateId = intent?.getIntExtra(EXTRA_UPDATE_ID, 0) ?: 0
@@ -316,87 +311,84 @@ class DownloadInstallService : Service(), KoinComponent {
             val stagingDir = File(cacheDir, "download_staging_${update.id}").apply { mkdirs() }
             try {
                 val cachedFiles = downloader.getReadyStagingFiles(cacheDir, update.id, update.versionCode)
-                if (cachedFiles != null && cachedFiles.isNotEmpty()) {
+                val files = if (cachedFiles != null && cachedFiles.isNotEmpty()) {
                     Log.i(TAG, "Reusing ready cached APK files for ${update.packageName} (${update.id}); skipping download")
-                    installLog.beginInstall(update.id)
-                    mutateTask(update.id) {
-                        it.copy(isInstalling = true, isQueued = false, isResolvingLink = false)
+                    cachedFiles
+                } else {
+                    downloadSemaphore.withPermit {
+                        mutateTask(update.id) { it.copy(isQueued = false) }
+
+                        installLog.beginInstall(update.id)
+                        installLog.emitProgress(AppInstallProgress(update.id, 0L))
+                        refreshNotification(force = true)
+
+                        var lastEmittedPercent = -1
+                        var lastEmittedAtMs = 0L
+
+                        val downloaded = downloadUpdateFiles(update, stagingDir) { currentBytes, totalBytes ->
+                            val now = System.currentTimeMillis()
+                            val pct = if (totalBytes > 0L) ((currentBytes * 100) / totalBytes).toInt() else -1
+                            val shouldEmit = currentBytes == 0L ||
+                                (totalBytes > 0L && currentBytes >= totalBytes) ||
+                                (pct != lastEmittedPercent) ||
+                                (now - lastEmittedAtMs >= 150L)
+                            if (shouldEmit) {
+                                lastEmittedPercent = pct
+                                lastEmittedAtMs = now
+                                mutateTask(update.id) {
+                                    it.copy(
+                                        isQueued = false,
+                                        isResolvingLink = false,
+                                        progress = currentBytes,
+                                        total = totalBytes
+                                    )
+                                }
+                                installLog.emitProgress(AppInstallProgress(update.id, currentBytes, totalBytes))
+                                refreshNotification()
+                            }
+                        }
+
+                        if (downloaded.isEmpty()) {
+                            throw IOException("No files downloaded for ${update.packageName}")
+                        }
+
+                        // Mark as ready before handing off to installer
+                        downloader.markStagingReady(stagingDir, update.versionCode)
+                        downloaded
                     }
-                    refreshNotification(force = true)
-                    ensureInstallProcessorStarted()
-                    installChannel.send(
-                        DownloadedPackage(
-                            id = update.id,
-                            packageName = update.packageName,
-                            appName = update.name,
-                            stagingDir = stagingDir,
-                            files = cachedFiles
-                        )
-                    )
-                    return@launch
                 }
 
-                downloadSemaphore.withPermit {
-                    // Update state to active downloading
-                    mutateTask(update.id) { it.copy(isQueued = false) }
+                // Download complete / cache ready, transition to install state
+                mutateTask(update.id) {
+                    it.copy(isInstalling = true, isQueued = false, isResolvingLink = false)
+                }
+                refreshNotification(force = true)
 
+                var installSucceeded = false
+                installMutex.withLock {
                     installLog.beginInstall(update.id)
-                    installLog.emitProgress(AppInstallProgress(update.id, 0L))
-                    refreshNotification(force = true)
-
-                    var lastEmittedPercent = -1
-                    var lastEmittedAtMs = 0L
-
-                    val files = downloadUpdateFiles(update, stagingDir) { currentBytes, totalBytes ->
-                        val now = System.currentTimeMillis()
-                        val pct = if (totalBytes > 0L) ((currentBytes * 100) / totalBytes).toInt() else -1
-                        val shouldEmit = currentBytes == 0L ||
-                            (totalBytes > 0L && currentBytes >= totalBytes) ||
-                            (pct != lastEmittedPercent) ||
-                            (now - lastEmittedAtMs >= 150L)
-                        if (shouldEmit) {
-                            lastEmittedPercent = pct
-                            lastEmittedAtMs = now
-                            mutateTask(update.id) {
-                                it.copy(
-                                    isQueued = false,
-                                    isResolvingLink = false,
-                                    progress = currentBytes,
-                                    total = totalBytes
-                                )
-                            }
-                            installLog.emitProgress(AppInstallProgress(update.id, currentBytes, totalBytes))
-                            refreshNotification()
+                    try {
+                        val parts = files.map { file ->
+                            InstallPart(file.name) { file.inputStream() }
+                        }
+                        Log.i(TAG, "Invoking installer.installParts for ${update.packageName} (${update.id})")
+                        installSucceeded = installer.installParts(update.id, update.packageName, parts)
+                    } finally {
+                        if (installSucceeded) {
+                            runCatching { stagingDir.deleteRecursively() }
+                        }
+                        if (!installSucceeded && activeTasks.containsKey(update.id)) {
+                            removeTask(update.id)
+                            refreshNotification(force = true)
                         }
                     }
-
-                    if (files.isEmpty()) {
-                        throw IOException("No files downloaded for ${update.packageName}")
-                    }
-
-                    // Mark as ready before handing off to installer
-                    downloader.markStagingReady(stagingDir, update.versionCode)
-
-                    // Download complete, transition to install queue
-                    mutateTask(update.id) {
-                        it.copy(isInstalling = true, isQueued = false, isResolvingLink = false)
-                    }
-                    refreshNotification(force = true)
-
-                    installChannel.send(
-                        DownloadedPackage(
-                            id = update.id,
-                            packageName = update.packageName,
-                            appName = update.name,
-                            stagingDir = stagingDir,
-                            files = files
-                        )
-                    )
                 }
             } catch (cancellation: CancellationException) {
-                Log.i(TAG, "Download canceled for ${update.packageName} (${update.id})")
+                Log.i(TAG, "Download/install canceled for ${update.packageName} (${update.id})")
                 if (activeDownloadJobs[update.id] === currentJob) {
-                    runCatching { stagingDir.deleteRecursively() }
+                    if (!downloader.hasReadyCachedApk(cacheDir, update.id, update.versionCode)) {
+                        runCatching { stagingDir.deleteRecursively() }
+                    }
                     installLog.emitProgress(AppInstallProgress(update.id, 0L))
                     removeTask(update.id)
                     refreshNotification(force = true)
@@ -439,9 +431,11 @@ class DownloadInstallService : Service(), KoinComponent {
                     }
                 }
             } catch (error: Throwable) {
-                Log.e(TAG, "Download failed for ${update.packageName}", error)
+                Log.e(TAG, "Download or installation failed for ${update.packageName}", error)
                 if (activeDownloadJobs[update.id] === currentJob) {
-                    runCatching { stagingDir.deleteRecursively() }
+                    if (!downloader.hasReadyCachedApk(cacheDir, update.id, update.versionCode)) {
+                        runCatching { stagingDir.deleteRecursively() }
+                    }
                     installLog.emitProgress(AppInstallProgress(update.id, 0L))
                     if (!installLog.emitStatus(AppInstallStatus(false, update.id, snack = true))) {
                         removeTask(update.id)
@@ -454,57 +448,6 @@ class DownloadInstallService : Service(), KoinComponent {
         }
 
         activeDownloadJobs[update.id] = currentJob
-    }
-
-    private fun ensureInstallProcessorStarted() {
-        if (installProcessorJob?.isActive != true) {
-            startInstallProcessor()
-        }
-    }
-
-    private fun startInstallProcessor() {
-        if (installProcessorJob?.isActive == true) return
-        installProcessorJob = serviceScope.launch {
-            for (pkg in installChannel) {
-                installQueueMutex.withLock {
-                    val task = activeTasks[pkg.id]
-                    if (task == null) {
-                        continue
-                    }
-
-                    mutateTask(pkg.id) { it.copy(isInstalling = true, isQueued = false, isResolvingLink = false) }
-                    refreshNotification(force = true)
-
-                    var installSucceeded = false
-                    try {
-                        val parts = pkg.files.map { file ->
-                            InstallPart(file.name) { file.inputStream() }
-                        }
-                        installSucceeded = installer.installParts(pkg.id, pkg.packageName, parts)
-                    } catch (cancellation: CancellationException) {
-                        Log.i(TAG, "Installation cancelled for ${pkg.packageName} (${pkg.id})")
-                        installLog.emitProgress(AppInstallProgress(pkg.id, 0L))
-                        removeTask(pkg.id)
-                        refreshNotification(force = true)
-                    } catch (error: Throwable) {
-                        Log.e(TAG, "Installation failed for ${pkg.packageName}", error)
-                        installLog.emitProgress(AppInstallProgress(pkg.id, 0L))
-                        if (!installLog.emitStatus(AppInstallStatus(false, pkg.id, snack = true))) {
-                            removeTask(pkg.id)
-                            refreshNotification(force = true)
-                        }
-                    } finally {
-                        if (installSucceeded) {
-                            runCatching { pkg.stagingDir.deleteRecursively() }
-                        }
-                        if (!installSucceeded && activeTasks.containsKey(pkg.id)) {
-                            removeTask(pkg.id)
-                            refreshNotification(force = true)
-                        }
-                    }
-                }
-            }
-        }
     }
 
     private suspend fun downloadUpdateFiles(

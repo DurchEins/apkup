@@ -1,38 +1,44 @@
-﻿<resources>
+<resources>
 
     <string name="app_name" translatable="false">APKUpdater</string>
-    <string name="tab_apps">à®šà¯†à®¯à®²à®¿à®•à®³à¯</string>
-    <string name="tab_updates">à®ªà¯à®¤à¯à®ªà¯à®ªà®¿à®ªà¯à®ªà¯à®•à®³à¯</string>
-    <string name="tab_settings">à®…à®®à¯ˆà®ªà¯à®ªà¯à®•à®³à¯</string>
-    <string name="something_went_wrong">"à®à®¤à¯‹ à®¤à®µà®±à®¾à®•à®¿à®µà®¿à®Ÿà¯à®Ÿà®¤à¯\n\uD83E\uDD26"</string>
-    <string name="ignore_version">à®ªà®¤à®¿à®ªà¯à®ªà¯ˆà®ªà¯ à®ªà¯à®±à®•à¯à®•à®£à®¿à®•à¯à®•à®µà¯à®®à¯</string>
-    <string name="ignore_cd">à®šà¯†à®¯à®²à®¿à®¯à¯ˆà®ªà¯ à®ªà¯à®±à®•à¯à®•à®£à®¿à®•à¯à®•à®µà¯à®®à¯</string>
-    <string name="unignore_cd">à®šà¯†à®¯à®²à®¿à®¯à¯ˆà®ªà¯ à®ªà¯à®±à®•à¯à®•à®£à®¿à®•à¯à®• à®µà¯‡à®£à¯à®Ÿà®¾à®®à¯</string>
-    <string name="refresh_updates">à®ªà¯à®¤à¯à®ªà¯à®ªà®¿à®ªà¯à®ªà¯à®•à®³à¯ˆà®¤à¯ à®¤à¯‡à®Ÿà¯</string>
-    <string name="app_cd">à®šà¯†à®¯à®²à®¿ à®‰à®°à¯à®šà¯à®šà®¿à®©à¯à®©à®®à¯</string>
-    <string name="install_success">%1$s à®¨à®¿à®±à¯à®µà®ªà¯à®ªà®Ÿà¯à®Ÿà®¤à¯.</string>
-    <string name="install_failure">%1$s à®¨à®¿à®±à¯à®µ à®®à¯à®Ÿà®¿à®¯à®µà®¿à®²à¯à®²à¯ˆ.</string>
+    <string name="tab_apps">செயலிகள்</string>
+    <string name="tab_updates">புதுப்பிப்புகள்</string>
+    <string name="tab_settings">அமைப்புகள்</string>
+    <string name="something_went_wrong">"ஏதோ தவறாகிவிட்டது\n\uD83E\uDD26"</string>
+    <string name="ignore_version">பதிப்பைப் புறக்கணிக்கவும்</string>
+    <string name="ignore_cd">செயலியைப் புறக்கணிக்கவும்</string>
+    <string name="unignore_cd">செயலியைப் புறக்கணிக்க வேண்டாம்</string>
+    <string name="refresh_updates">புதுப்பிப்புகளைத் தேடு</string>
+    <string name="install_cd">செயலியை நிறுவவும்</string>
+    <string name="app_cd">செயலி உருச்சின்னம்</string>
+    <string name="install_success">%1$s நிறுவப்பட்டது.</string>
+    <string name="install_failure">%1$s நிறுவ முடியவில்லை.</string>
 
     // Settings
+    <string name="settings_sources">மூலங்கள்</string>
+    <string name="settings_ui">பயனர் இடைமுகம்</string>
+    <string name="settings_options">விருப்பங்கள்</string>
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
     <string name="source_play" translatable="false">Play</string>
-    <string name="about">à®šà¯†à®¯à®²à®¿ à®•à¯à®±à®¿à®¤à¯à®¤à¯</string>
-    <string name="theme">à®µà®£à¯à®£à®®à¯</string>
-    <string name="theme_system">à®…à®®à¯ˆà®ªà¯à®ªà¯</string>
-    <string name="theme_dark">à®‡à®°à¯à®³à¯</string>
-    <string name="theme_light">à®µà¯†à®³à®¿à®°à¯</string>
-    <string name="about_github">à®®à¯‚à®²à®•à¯ à®•à¯à®±à®¿à®¯à¯€à®Ÿà¯à®Ÿà¯ˆà®ªà¯ à®ªà¯†à®±à®µà¯à®®à¯, à®ªà®¿à®´à¯ˆà®•à®³à¯ˆà®ªà¯ à®ªà¯à®•à®¾à®°à®³à®¿à®•à¯à®•à®µà¯à®®à¯, à®ªà¯à®¤à®¿à®¯ à®…à®®à¯à®šà®™à¯à®•à®³à¯ˆà®•à¯ à®•à¯‹à®°à®µà¯à®®à¯ à®®à®±à¯à®±à¯à®®à¯ à®®à¯Šà®´à®¿à®ªà¯†à®¯à®°à¯à®ªà¯à®ªà¯à®•à®³à¯ˆà®šà¯ à®šà¯‡à®°à¯à®•à¯à®•à®µà¯à®®à¯.</string>
+    <string name="about">செயலி குறித்து</string>
+    <string name="theme">வண்ணம்</string>
+    <string name="theme_system">அமைப்பு</string>
+    <string name="theme_dark">இருள்</string>
+    <string name="theme_light">வெளிர்</string>
+    <string name="about_github">மூலக் குறியீட்டைப் பெறவும், பிழைகளைப் புகாரளிக்கவும், புதிய அம்சங்களைக் கோரவும் மற்றும் மொழிபெயர்ப்புகளைச் சேர்க்கவும்.</string>
+    <string name="copy_to_clipboard">கிளிப்போர்டுக்கு நகலெடுக்கவும்</string>
 
     // Notifications
-    <string name="notification_channel_name">à®ªà¯à®¤à¯à®ªà¯à®ªà®¿à®ªà¯à®ªà¯à®•à®³à¯</string>
-    <string name="notification_channel_description">à®ªà¯à®¤à¯à®ªà¯à®ªà®¿à®ªà¯à®ªà¯ à®…à®±à®¿à®µà®¿à®ªà¯à®ªà¯à®•à®³à¯à®•à¯à®•à®¾à®© à®¤à®Ÿà®®à¯.</string>
+    <string name="notification_channel_name">புதுப்பிப்புகள்</string>
+    <string name="notification_channel_description">புதுப்பிப்பு அறிவிப்புகளுக்கான தடம்.</string>
     <string name="notification_channel_id" translatable="false">updateChannel</string>
-    <string name="notification_update_title">à®ªà¯à®¤à¯à®ªà¯à®ªà®¿à®ªà¯à®ªà¯à®•à®³à¯</string>
+    <string name="notification_update_title">புதுப்பிப்புகள்</string>
     <plurals name="notification_update_description">
-        <item quantity="zero">à®ªà¯à®¤à¯à®ªà¯à®ªà®¿à®ªà¯à®ªà¯à®•à®³à¯ à®Žà®¤à¯à®µà¯à®®à¯ à®‡à®²à¯à®²à¯ˆ.</item>
-        <item quantity="one">%1$d à®ªà¯à®¤à¯à®ªà¯à®ªà®¿à®ªà¯à®ªà¯ à®•à®¿à®Ÿà¯ˆà®¤à¯à®¤à®¤à¯.</item>
-        <item quantity="other">%1$d à®ªà¯à®¤à¯à®ªà¯à®ªà®¿à®ªà¯à®ªà¯à®•à®³à¯ à®‰à®³à¯à®³à®©.</item>
+        <item quantity="zero">புதுப்பிப்புகள் எதுவும் இல்லை.</item>
+        <item quantity="one">%1$d புதுப்பிப்பு கிடைத்தது.</item>
+        <item quantity="other">%1$d புதுப்பிப்புகள் உள்ளன.</item>
     </plurals>
 
+    <string name="install_cached_action">நிறுவு</string>
 </resources>
       

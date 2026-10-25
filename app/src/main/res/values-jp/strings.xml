@@ -1,37 +1,43 @@
-﻿<resources>
+<resources>
 
     <string name="app_name" translatable="false">APKUpdater</string>
-    <string name="tab_apps">ã‚¢ãƒ—ãƒª</string>
-    <string name="tab_updates">ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆ</string>
-    <string name="tab_settings">è¨­å®š</string>
-    <string name="something_went_wrong">"å¤±æ•—ã—ã¾ã—ãŸ\n\uD83E\uDD26"</string>
-    <string name="ignore_version">ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã‚’ç„¡è¦–ã™ã‚‹</string>
-    <string name="ignore_cd">ã‚¢ãƒ—ãƒªã‚’é™¤å¤–ã™ã‚‹</string>
-    <string name="unignore_cd">ã‚¢ãƒ—ãƒªã®ç„¡è¦–ã‚’è§£é™¤ã™ã‚‹</string>
-    <string name="refresh_updates">ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆä¸€è¦§ã‚’æ›´æ–°ã™ã‚‹</string>
-    <string name="app_cd">ã‚¢ãƒ—ãƒªã‚¢ã‚¤ã‚³ãƒ³</string>
-    <string name="install_success">%1$sã‚’ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ã¾ã—ãŸã€‚</string>
-    <string name="install_failure">%1$sã®ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã«å¤±æ•—ã—ã¾ã—ãŸã€‚</string>
+    <string name="tab_apps">アプリ</string>
+    <string name="tab_updates">アップデート</string>
+    <string name="tab_settings">設定</string>
+    <string name="something_went_wrong">"失敗しました\n\uD83E\uDD26"</string>
+    <string name="ignore_version">バージョンを無視する</string>
+    <string name="ignore_cd">アプリを除外する</string>
+    <string name="unignore_cd">アプリの無視を解除する</string>
+    <string name="refresh_updates">アップデート一覧を更新する</string>
+    <string name="install_cd">アプリをインストールする</string>
+    <string name="app_cd">アプリアイコン</string>
+    <string name="install_success">%1$sをインストールしました。</string>
+    <string name="install_failure">%1$sのインストールに失敗しました。</string>
 
     // Settings
+    <string name="settings_sources">ソース</string>
+    <string name="settings_ui">UI</string>
+    <string name="settings_options">オプション</string>
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
     <string name="source_play" translatable="false">Play</string>
-    <string name="about">ã“ã®ã‚¢ãƒ—ãƒªã«ã¤ã„ã¦</string>
-    <string name="theme">ãƒ†ãƒ¼ãƒž</string>
-    <string name="theme_system">ã‚·ã‚¹ãƒ†ãƒ ã«åˆã‚ã›ã‚‹</string>
-    <string name="theme_dark">ãƒ€ãƒ¼ã‚¯ãƒ†ãƒ¼ãƒž</string>
-    <string name="theme_light">ãƒ©ã‚¤ãƒˆãƒ†ãƒ¼ãƒž</string>
-    <string name="about_github">ã‚½ãƒ¼ã‚¹ã‚³ãƒ¼ãƒ‰ã®å–å¾—ã€ãƒã‚°ã®å ±å‘Šã€æ–°æ©Ÿèƒ½ã®ãƒªã‚¯ã‚¨ã‚¹ãƒˆã€ç¿»è¨³ã®è¿½åŠ ãŒã§ãã¾ã™ã€‚</string>
+    <string name="about">このアプリについて</string>
+    <string name="theme">テーマ</string>
+    <string name="theme_system">システムに合わせる</string>
+    <string name="theme_dark">ダークテーマ</string>
+    <string name="theme_light">ライトテーマ</string>
+    <string name="about_github">ソースコードの取得、バグの報告、新機能のリクエスト、翻訳の追加ができます。</string>
+    <string name="copy_to_clipboard">クリップボードにコピー</string>
 
     // Notifications
     <string name="notification_channel_name">Updates</string>
-    <string name="notification_channel_description">ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆã®é€šçŸ¥ã‚’å—ã‘å–ã‚‹ãƒãƒ£ãƒ³ãƒãƒ«ã§ã™ã€‚</string>
-    <string name="notification_channel_id" translatable="false">ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆãƒãƒ£ãƒ³ãƒãƒ«</string>
-    <string name="notification_update_title">ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆ</string>
+    <string name="notification_channel_description">アップデートの通知を受け取るチャンネルです。</string>
+    <string name="notification_channel_id" translatable="false">アップデートチャンネル</string>
+    <string name="notification_update_title">アップデート</string>
     <plurals name="notification_update_description">
-        <item quantity="zero">ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆã¯ã‚ã‚Šã¾ã›ã‚“ã€‚</item>
-        <item quantity="one">%1$dä»¶ã®ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆãŒã‚ã‚Šã¾ã™ã€‚</item>
-        <item quantity="other">%1$dä»¶ã®ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆãŒã‚ã‚Šã¾ã™ã€‚</item>
+        <item quantity="zero">アップデートはありません。</item>
+        <item quantity="one">%1$d件のアップデートがあります。</item>
+        <item quantity="other">%1$d件のアップデートがあります。</item>
     </plurals>
 
+    <string name="install_cached_action">インストール</string>
 </resources>

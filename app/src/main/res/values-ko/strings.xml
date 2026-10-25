@@ -1,36 +1,42 @@
-﻿<resources>
+<resources>
 
     <string name="app_name" translatable="false">APKUpdater</string>
-    <string name="tab_apps">ëª¨ë“  ì•±</string>
-    <string name="tab_updates">ì—…ë°ì´íŠ¸</string>
-    <string name="tab_settings">ì„¤ì •</string>
-    <string name="something_went_wrong">"ë¬¸ì œê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.\n\uD83E\uDD26"</string>
-    <string name="ignore_version">ë²„ì „ ë¬´ì‹œ</string>
-    <string name="ignore_cd">ì•± ë¬´ì‹œ</string>
-    <string name="unignore_cd">ì•± ë¬´ì‹œ í•´ì œ</string>
-    <string name="refresh_updates">ì—…ë°ì´íŠ¸ ì°¾ê¸°</string>
-    <string name="app_cd">ì•± ì•„ì´ì½˜</string>
-    <string name="install_success">%1$s ì„¤ì¹˜ë¨.</string>
-    <string name="install_failure">%1$s ì„¤ì¹˜ ì‹¤íŒ¨ë¨.</string>
+    <string name="tab_apps">모든 앱</string>
+    <string name="tab_updates">업데이트</string>
+    <string name="tab_settings">설정</string>
+    <string name="something_went_wrong">"문제가 발생했습니다.\n\uD83E\uDD26"</string>
+    <string name="ignore_version">버전 무시</string>
+    <string name="ignore_cd">앱 무시</string>
+    <string name="unignore_cd">앱 무시 해제</string>
+    <string name="refresh_updates">업데이트 찾기</string>
+    <string name="install_cd">앱 설치</string>
+    <string name="app_cd">앱 아이콘</string>
+    <string name="install_success">%1$s 설치됨.</string>
+    <string name="install_failure">%1$s 설치 실패됨.</string>
 
     // Settings
+    <string name="settings_sources">출처</string>
+    <string name="settings_ui">UI</string>
+    <string name="settings_options">옵션</string>
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
-    <string name="about">ë„ì›€ë§</string>
-    <string name="theme">í…Œë§ˆ</string>
-    <string name="theme_system">ì‹œìŠ¤í…œ</string>
-    <string name="theme_dark">ì–´ë‘¡ê²Œ</string>
-    <string name="theme_light">ë°ê²Œ</string>
-    <string name="about_github">ì†ŒìŠ¤ ì½”ë“œ, ë²„ê·¸ ë³´ê³ , ìƒˆë¡œìš´ ê¸°ëŠ¥ ìš”ì²­, ë²ˆì—­ ì¶”ê°€ í•´ì£¼ì„¸ìš”.</string>
+    <string name="about">도움말</string>
+    <string name="theme">테마</string>
+    <string name="theme_system">시스템</string>
+    <string name="theme_dark">어둡게</string>
+    <string name="theme_light">밝게</string>
+    <string name="about_github">소스 코드, 버그 보고, 새로운 기능 요청, 번역 추가 해주세요.</string>
+    <string name="copy_to_clipboard">클립보드에 복사</string>
 
     // Notifications
-    <string name="notification_channel_name">ì—…ë°ì´íŠ¸</string>
-    <string name="notification_channel_description">ì—…ë°ì´íŠ¸ ì•Œë¦¼ ì±„ë„.</string>
-    <string name="notification_channel_id" translatable="false">ì—…ë°ì´íŠ¸ ì±„ë„</string>
-    <string name="notification_update_title">ì—…ë°ì´íŠ¸</string>
+    <string name="notification_channel_name">업데이트</string>
+    <string name="notification_channel_description">업데이트 알림 채널.</string>
+    <string name="notification_channel_id" translatable="false">업데이트 채널</string>
+    <string name="notification_update_title">업데이트</string>
     <plurals name="notification_update_description">
-        <item quantity="zero">ì—…ë°ì´íŠ¸ë¥¼ ì°¾ì„ ìˆ˜ ì—†ì–´ìš”.</item>
-        <item quantity="one">%1$d ì—…ë°ì´íŠ¸ë¥¼ ì°¾ì•˜ì–´ìš”.</item>
-        <item quantity="other">%1$dê°œì˜ ì—…ë°ì´íŠ¸ë¥¼ ì°¾ì•˜ì–´ìš”.</item>
+        <item quantity="zero">업데이트를 찾을 수 없어요.</item>
+        <item quantity="one">%1$d 업데이트를 찾았어요.</item>
+        <item quantity="other">%1$d개의 업데이트를 찾았어요.</item>
     </plurals>
 
+    <string name="install_cached_action">설치</string>
 </resources>

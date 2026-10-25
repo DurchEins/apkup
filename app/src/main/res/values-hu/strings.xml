@@ -1,37 +1,43 @@
-﻿<resources>
+<resources>
 
     <string name="app_name" translatable="false">APKUpdater</string>
     <string name="tab_apps">Appok</string>
-    <string name="tab_updates">FrissÃ­tÃ©sek</string>
-    <string name="tab_settings">BeÃ¡llÃ­tÃ¡sok</string>
-    <string name="something_went_wrong">"Valami fÃ©lrement\n\uD83E\uDD26"</string>
-    <string name="ignore_version">VerziÃ³t mellÅ‘z</string>
-    <string name="ignore_cd">Nem frissÃ­t</string>
-    <string name="unignore_cd">App figyelÃ©s</string>
-    <string name="refresh_updates">Keressen frissÃ­tÃ©seket</string>
+    <string name="tab_updates">Frissítések</string>
+    <string name="tab_settings">Beállítások</string>
+    <string name="something_went_wrong">"Valami félrement\n\uD83E\uDD26"</string>
+    <string name="ignore_version">Verziót mellőz</string>
+    <string name="ignore_cd">Nem frissít</string>
+    <string name="unignore_cd">App figyelés</string>
+    <string name="refresh_updates">Keressen frissítéseket</string>
+    <string name="install_cd">Telepítés</string>
     <string name="app_cd">App ikon</string>
-    <string name="install_success">%1$s telepÃ­tve.</string>
-    <string name="install_failure">%1$s nem sikerÃ¼lt telepÃ­teni.</string>
+    <string name="install_success">%1$s telepítve.</string>
+    <string name="install_failure">%1$s nem sikerült telepíteni.</string>
 
     // Settings
+    <string name="settings_sources">Források</string>
+    <string name="settings_ui">Felület</string>
+    <string name="settings_options">Lehetőségek</string>
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
     <string name="source_play" translatable="false">Play</string>
-    <string name="about">RÃ³lunk</string>
-    <string name="theme">TÃ©ma</string>
+    <string name="about">Rólunk</string>
+    <string name="theme">Téma</string>
     <string name="theme_system">Rendszer</string>
-    <string name="theme_dark">SÃ¶tÃ©t</string>
-    <string name="theme_light">VilÃ¡gos</string>
-    <string name="about_github">Szerezze be a forrÃ¡skÃ³dot, jelezze a hibÃ¡kat, kÃ©rjen Ãºj funkciÃ³kat Ã©s adjon hozzÃ¡ fordÃ­tÃ¡sokat.</string>
+    <string name="theme_dark">Sötét</string>
+    <string name="theme_light">Világos</string>
+    <string name="about_github">Szerezze be a forráskódot, jelezze a hibákat, kérjen új funkciókat és adjon hozzá fordításokat.</string>
+    <string name="copy_to_clipboard">Másolja a vágólapra</string>
 
     // Notifications
-    <string name="notification_channel_name">FrissÃ­tÃ©sek</string>
-    <string name="notification_channel_description">A frissÃ­tÃ©si Ã©rtesÃ­tÃ©sek csatornÃ¡ja.</string>
+    <string name="notification_channel_name">Frissítések</string>
+    <string name="notification_channel_description">A frissítési értesítések csatornája.</string>
     <string name="notification_channel_id" translatable="false">updateChannel</string>
-    <string name="notification_update_title">FrissÃ­tÃ©sek</string>
+    <string name="notification_update_title">Frissítések</string>
     <plurals name="notification_update_description">
-        <item quantity="zero">Nem talÃ¡lhatÃ³k frissÃ­tÃ©sek.</item>
-        <item quantity="one">%1$d frissÃ­tÃ©s talÃ¡lhatÃ³.</item>
-        <item quantity="other">%1$d frissÃ­tÃ©s talÃ¡lhatÃ³.</item>
+        <item quantity="zero">Nem találhatók frissítések.</item>
+        <item quantity="one">%1$d frissítés található.</item>
+        <item quantity="other">%1$d frissítés található.</item>
     </plurals>
 
+    <string name="install_cached_action">Telepítés</string>
 </resources>

@@ -1,37 +1,43 @@
-﻿<resources>
+<resources>
 
     <string name="app_name" translatable="false">APKUpdater</string>
-    <string name="tab_apps">×™×©×•×ž×™×</string>
-    <string name="tab_updates">×¢×“×›×•× ×™×</string>
-    <string name="tab_settings">×”×’×“×¨×•×ª</string>
-    <string name="something_went_wrong">"×§×¨×ª×” ×©×’×™××”\n\uD83E\uDD26"</string>
-    <string name="ignore_version">×”×ª×¢×œ× ×ž×’×™×¨×¡×”</string>
-    <string name="ignore_cd">×”×ª×¢×œ×ž×•×ª ×ž×™×©×•×ž×•×Ÿ</string>
-    <string name="unignore_cd">×‘×˜×œ ×”×ª×¢×œ×ž×•×ª ×ž×™×©×•×ž×•×Ÿ</string>
-    <string name="refresh_updates">×—×¤×© ×¢×“×›×•× ×™×</string>
-    <string name="app_cd">×¦×œ×ž×™×ª ×™×©×•×ž×•×Ÿ</string>
-    <string name="install_success">%1$s ×”×”×ª×§× ×” ×”×¦×œ×™×—×”.</string>
-    <string name="install_failure">%1$s ×”×”×ª×§× ×” × ×›×©×œ×”.</string>
+    <string name="tab_apps">ישומים</string>
+    <string name="tab_updates">עדכונים</string>
+    <string name="tab_settings">הגדרות</string>
+    <string name="something_went_wrong">"קרתה שגיאה\n\uD83E\uDD26"</string>
+    <string name="ignore_version">התעלם מגירסה</string>
+    <string name="ignore_cd">התעלמות מישומון</string>
+    <string name="unignore_cd">בטל התעלמות מישומון</string>
+    <string name="refresh_updates">חפש עדכונים</string>
+    <string name="install_cd">התקן ישומון</string>
+    <string name="app_cd">צלמית ישומון</string>
+    <string name="install_success">%1$s ההתקנה הצליחה.</string>
+    <string name="install_failure">%1$s ההתקנה נכשלה.</string>
 
     // Settings
+    <string name="settings_sources">מקורות</string>
+    <string name="settings_ui">ממשק משתמש</string>
+    <string name="settings_options">אפשרויות</string>
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
-    <string name="about">××•×“×•×ª</string>
-    <string name="theme">×¢×¨×›×ª × ×•×©×</string>
-    <string name="theme_system">×ž×¢×¨×›×ª</string>
-    <string name="theme_dark">×›×”×”</string>
-    <string name="theme_light">×‘×”×™×¨</string>
-    <string name="about_github">×œ×§×•×“ ×ž×§×•×¨, ×“×™×•×•×— ×©×’×™××•×ª, ×‘×§×©×” ×œ×ª×›×•× ×™×•×ª ×—×“×©×•×ª ×•×ª×¨×’×•×ž×™×.</string>
+    <string name="about">אודות</string>
+    <string name="theme">ערכת נושא</string>
+    <string name="theme_system">מערכת</string>
+    <string name="theme_dark">כהה</string>
+    <string name="theme_light">בהיר</string>
+    <string name="about_github">לקוד מקור, דיווח שגיאות, בקשה לתכוניות חדשות ותרגומים.</string>
+    <string name="copy_to_clipboard">העתק לזיכרון</string>
 
     // Notifications
-    <string name="notification_channel_name">×¢×“×›×•× ×™×</string>
-    <string name="notification_channel_description">×¢×¨×•×¥ ×¢×‘×•×¨ ×”×•×“×¢×•×ª ×¢×“×›×•× ×™×.</string>
-    <string name="notification_channel_id" translatable="false">×¢×“×›×Ÿ ×¢×¨×•×¥</string>
-    <string name="notification_update_title">×¢×“×›×•× ×™×</string>
+    <string name="notification_channel_name">עדכונים</string>
+    <string name="notification_channel_description">ערוץ עבור הודעות עדכונים.</string>
+    <string name="notification_channel_id" translatable="false">עדכן ערוץ</string>
+    <string name="notification_update_title">עדכונים</string>
     <plurals name="notification_update_description">
-        <item quantity="zero">×œ× × ×ž×¦××• ×¢×“×›×•× ×™×.</item>
-        <item quantity="one">× ×ž×¦××• %1$d ×¢×“×›×•× ×™×.</item>
-        <item quantity="other">× ×ž×¦××• %1$d ×¢×“×›×•× ×™×.</item>
-        <item quantity="two">× ×ž×¦××• %1$d ×¢×“×›×•× ×™×.</item>
+        <item quantity="zero">לא נמצאו עדכונים.</item>
+        <item quantity="one">נמצאו %1$d עדכונים.</item>
+        <item quantity="other">נמצאו %1$d עדכונים.</item>
+        <item quantity="two">נמצאו %1$d עדכונים.</item>
     </plurals>
 
+    <string name="install_cached_action">התקן</string>
 </resources>

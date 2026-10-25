@@ -1,29 +1,34 @@
-﻿<resources>
+<resources>
 
     <string name="app_name" translatable="false">APKUpdater</string>
-    <string name="tab_apps">AplicaÈ›ii</string>
-    <string name="tab_updates">ActualizÄƒri</string>
-    <string name="tab_settings">SetÄƒri</string>
+    <string name="tab_apps">Aplicații</string>
+    <string name="tab_updates">Actualizări</string>
+    <string name="tab_settings">Setări</string>
     <string name="something_went_wrong">"Ceva nu a mers bine\n\uD83E\uDD26"</string>
-    <string name="ignore_cd">IgnorÄƒ AplicaÈ›ia</string>
-    <string name="unignore_cd">Nu mai ignora AplicaÈ›ia</string>
-    <string name="refresh_updates">CautÄƒ actualizÄƒri</string>
-    <string name="app_cd">IconiÈ›a AplicaÈ›iei</string>
+    <string name="ignore_cd">Ignoră Aplicația</string>
+    <string name="unignore_cd">Nu mai ignora Aplicația</string>
+    <string name="refresh_updates">Caută actualizări</string>
+    <string name="install_cd">Instalează Aplicația</string>
+    <string name="app_cd">Iconița Aplicației</string>
 
     // Settings
+    <string name="settings_sources">Surse</string>
+    <string name="settings_ui">UI</string>
+    <string name="settings_options">Opțiuni</string>
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
     <string name="about">Despre</string>
 
     // Notifications
-    <string name="notification_channel_name">ActualizÄƒri</string>
-    <string name="notification_channel_description">Canalul pentru notificÄƒri despre actualizÄƒri.</string>
+    <string name="notification_channel_name">Actualizări</string>
+    <string name="notification_channel_description">Canalul pentru notificări despre actualizări.</string>
     <string name="notification_channel_id" translatable="false">updateChannel</string>
-    <string name="notification_update_title">ActualizÄƒri</string>
+    <string name="notification_update_title">Actualizări</string>
     <plurals name="notification_update_description">
-        <item quantity="few">Au fost gÄƒsite %1$d actualizÄƒri.</item>
-        <item quantity="zero">Nicio actualizare gÄƒsitÄƒ.</item>
-        <item quantity="one">A fost gÄƒsitÄƒ %1$d actualizare.</item>
-        <item quantity="other">Au fost gÄƒsite %1$d actualizÄƒri.</item>
+        <item quantity="few">Au fost găsite %1$d actualizări.</item>
+        <item quantity="zero">Nicio actualizare găsită.</item>
+        <item quantity="one">A fost găsită %1$d actualizare.</item>
+        <item quantity="other">Au fost găsite %1$d actualizări.</item>
     </plurals>
 
+    <string name="install_cached_action">Instalează</string>
 </resources>

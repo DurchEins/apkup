@@ -472,12 +472,18 @@ class UpdatesViewModel(
 					installLog.beginInstall(update.id)
 					installLog.emitProgress(AppInstallProgress(update.id, 0L))
 
-					val files = downloadUpdateFiles(update, stagingDir) { currentBytes, totalBytes ->
-						installLog.emitProgress(AppInstallProgress(update.id, currentBytes, totalBytes))
-					}
-
-					if (files.isEmpty()) {
-						throw IOException("No files downloaded for ${update.packageName}")
+					val cachedFiles = downloader.getReadyStagingFiles(getCacheDir(), update.id, update.versionCode)
+					val files = if (cachedFiles != null && cachedFiles.isNotEmpty()) {
+						cachedFiles
+					} else {
+						val downloaded = downloadUpdateFiles(update, stagingDir) { currentBytes, totalBytes ->
+							installLog.emitProgress(AppInstallProgress(update.id, currentBytes, totalBytes))
+						}
+						if (downloaded.isEmpty()) {
+							throw IOException("No files downloaded for ${update.packageName}")
+						}
+						downloader.markStagingReady(stagingDir, update.versionCode)
+						downloaded
 					}
 
 					ensureInstallProcessorStarted()
