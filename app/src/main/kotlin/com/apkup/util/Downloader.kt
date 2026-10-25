@@ -34,7 +34,63 @@ class Downloader(
     private val client: OkHttpClient,
     private val auroraClient: OkHttpClient
 ) {
+    companion object {
+        const val READY_CACHE_TTL_MS = 24 * 60 * 60 * 1000L // 24 hours
+        const val READY_MARKER_FILE = ".ready"
+    }
+
     private val activeCalls = ConcurrentHashMap<String, CopyOnWriteArrayList<Call>>()
+
+    fun markStagingReady(stagingDir: File, versionCode: Long) {
+        runCatching {
+            val marker = File(stagingDir, READY_MARKER_FILE)
+            marker.writeText("$versionCode:${System.currentTimeMillis()}")
+            Log.i("Downloader", "Marked staging as ready: ${stagingDir.name} (versionCode=$versionCode)")
+        }
+    }
+
+    fun getReadyStagingFiles(cacheDir: File, updateId: Int, versionCode: Long): List<File>? {
+        return runCatching {
+            val stagingDir = File(cacheDir, "download_staging_$updateId")
+            if (!stagingDir.exists() || !stagingDir.isDirectory) return@runCatching null
+
+            val marker = File(stagingDir, READY_MARKER_FILE)
+            if (!marker.exists() || !marker.isFile) return@runCatching null
+
+            val content = marker.readText().trim()
+            val parts = content.split(":")
+            if (parts.isEmpty()) return@runCatching null
+
+            val savedVersionCode = parts[0].toLongOrNull() ?: return@runCatching null
+            if (savedVersionCode != versionCode) {
+                Log.i("Downloader", "Ready staging versionCode mismatch ($savedVersionCode != $versionCode) for $updateId; discarding")
+                stagingDir.deleteRecursively()
+                return@runCatching null
+            }
+
+            val timestamp = parts.getOrNull(1)?.toLongOrNull() ?: marker.lastModified()
+            val now = System.currentTimeMillis()
+            if (now - timestamp > READY_CACHE_TTL_MS) {
+                Log.i("Downloader", "Ready staging expired (>24h) for $updateId; discarding")
+                stagingDir.deleteRecursively()
+                return@runCatching null
+            }
+
+            val apkFiles = stagingDir.listFiles { file ->
+                file.isFile && file.extension.equals("apk", ignoreCase = true) && file.length() > 0L
+            }?.toList().orEmpty()
+
+            if (apkFiles.isEmpty()) {
+                stagingDir.deleteRecursively()
+                return@runCatching null
+            }
+
+            apkFiles
+        }.getOrNull()
+    }
+
+    fun hasReadyCachedApk(cacheDir: File, updateId: Int, versionCode: Long): Boolean =
+        getReadyStagingFiles(cacheDir, updateId, versionCode) != null
 
     fun registerCall(tag: String, call: Call) {
         activeCalls.computeIfAbsent(tag) { CopyOnWriteArrayList() }.add(call)
@@ -206,10 +262,12 @@ class Downloader(
     }
 
     /**
-     * Tier 3 cleanup: Purges orphaned staging directories leftover from prior crashes or process kills.
+     * Tier 3 cleanup: Purges orphaned staging directories leftover from prior crashes or process kills,
+     * while preserving valid ready-to-install packages that are younger than 24 hours.
      */
     fun cleanupOrphanStagingFiles(cacheDir: File) {
         runCatching {
+            val now = System.currentTimeMillis()
             val stagingDirs = cacheDir.listFiles { file ->
                 file.isDirectory && (
                     file.name.startsWith("download_staging_") ||
@@ -219,7 +277,18 @@ class Downloader(
             } ?: emptyArray()
 
             for (dir in stagingDirs) {
-                Log.i("Downloader", "Purging orphaned staging directory from previous session: ${dir.name}")
+                if (dir.name.startsWith("download_staging_")) {
+                    val marker = File(dir, READY_MARKER_FILE)
+                    if (marker.exists()) {
+                        val content = marker.readText().trim()
+                        val timestamp = content.split(":").getOrNull(1)?.toLongOrNull() ?: marker.lastModified()
+                        if (now - timestamp <= READY_CACHE_TTL_MS) {
+                            Log.d("Downloader", "Preserving valid ready-to-install staging dir: ${dir.name}")
+                            continue
+                        }
+                    }
+                }
+                Log.i("Downloader", "Purging orphaned/expired staging directory: ${dir.name}")
                 dir.deleteRecursively()
             }
         }

@@ -24,6 +24,7 @@
     <string name="installed_version">Installed version</string>
     <string name="available_version">Available version</string>
     <string name="update_action">Get update</string>
+    <string name="install_cached_action">Install</string>
     <string name="installing_update">Installing update…</string>
     <string name="queued_update">In queue…</string>
     <string name="install_all_browser_only_hint">APKMirror updates open in the browser.</string>

@@ -96,6 +96,8 @@ class UpdatesViewModel(
 	val showInstallPermissionDialog: StateFlow<Boolean> = _showInstallPermissionDialog.asStateFlow()
 	private val _showMobileDataDialog = MutableStateFlow(false)
 	val showMobileDataDialog: StateFlow<Boolean> = _showMobileDataDialog.asStateFlow()
+	private val _readyUpdateIds = MutableStateFlow<Set<Int>>(emptySet())
+	val readyUpdateIds: StateFlow<Set<Int>> = _readyUpdateIds.asStateFlow()
 	private var pendingMobileDataInstallAction: (() -> Unit)? = null
 	@Volatile
 	private var isAppInForeground: Boolean = true
@@ -319,17 +321,27 @@ class UpdatesViewModel(
 		}.also { updateCheckJob = it }
 	}
 
+	fun refreshReadyUpdateIds() {
+		val cache = getCacheDir()
+		val currentUpdates = state.value.updates()
+		val ready = currentUpdates.filter { update ->
+			downloader.hasReadyCachedApk(cache, update.id, update.versionCode)
+		}.map { it.id }.toSet()
+		_readyUpdateIds.value = ready
+	}
+
 	override fun isApkMirrorBlocked(): Boolean =
 		apkMirrorResolver?.isCloudflareBlocked() ?: false
 
 	override fun install(update: AppUpdate, uriHandler: UriHandler) {
 		val isDirectApkMirror = update.source == ApkMirrorSource && prefs.directApkMirrorDownloads.get() && !isApkMirrorBlocked()
 		val isDirectDownload = update.source != ApkMirrorSource || isDirectApkMirror
+		val isCachedReady = downloader.hasReadyCachedApk(getCacheDir(), update.id, update.versionCode)
 		if (isDirectDownload && !canProceedWithInstall()) {
 			triggerInstallPermissionPrompt()
 			return
 		}
-		if (isDirectDownload && shouldPromptForMobileData()) {
+		if (isDirectDownload && !isCachedReady && shouldPromptForMobileData()) {
 			pendingMobileDataInstallAction = { super.install(update, uriHandler) }
 			_showMobileDataDialog.value = true
 			return
@@ -746,8 +758,9 @@ class UpdatesViewModel(
 		apkMirrorResolver?.cancelResolution("update_$id")
 		downloader.cancel("update_$id")
 		activeDownloadJobs.remove(id)?.cancel()
-		runCatching {
-			File(getCacheDir(), "download_staging_$id").deleteRecursively()
+		val stagingDir = File(getCacheDir(), "download_staging_$id")
+		if (!File(stagingDir, Downloader.READY_MARKER_FILE).exists()) {
+			runCatching { stagingDir.deleteRecursively() }
 		}
 		state.value = successState(
 			state.value.mutableUpdates().map { update ->
@@ -759,6 +772,7 @@ class UpdatesViewModel(
 			}
 		)
 		installer.finish(id)
+		refreshReadyUpdateIds()
 	}
 
 	fun cancelAllInstalls() = viewModelScope.launchWithMutex(mutex, Dispatchers.IO) {
@@ -769,8 +783,9 @@ class UpdatesViewModel(
 				apkMirrorResolver?.cancelResolution("update_${update.id}")
 				downloader.cancel("update_${update.id}")
 				activeDownloadJobs.remove(update.id)?.cancel()
-				runCatching {
-					File(getCacheDir(), "download_staging_${update.id}").deleteRecursively()
+				val stagingDir = File(getCacheDir(), "download_staging_${update.id}")
+				if (!File(stagingDir, Downloader.READY_MARKER_FILE).exists()) {
+					runCatching { stagingDir.deleteRecursively() }
 				}
 				installer.finish(update.id)
 				update.copy(isQueued = false, isInstalling = false, progress = 0L)
@@ -779,6 +794,7 @@ class UpdatesViewModel(
 			}
 		}
 		state.value = successState(resetList)
+		refreshReadyUpdateIds()
 	}
 
 	override fun finishInstall(id: Int) = viewModelScope.launchWithMutex(mutex, Dispatchers.IO) {
@@ -805,6 +821,7 @@ class UpdatesViewModel(
 			timestampMillis = state.value.lastCheckedAtMillis() ?: System.currentTimeMillis()
 		)
 		installer.finish(id)
+		refreshReadyUpdateIds()
 	}
 
 	override fun downloadAndInstall(update: AppUpdate) = viewModelScope.launch(Dispatchers.IO) {
@@ -905,6 +922,7 @@ class UpdatesViewModel(
 			lastCheckedAtMillis = lastCheckedAtMillis
 		)
 		badger.changeUpdatesBadge(if (filtered.isEmpty()) "" else filtered.size.toString())
+		refreshReadyUpdateIds()
 		if (isChecking) {
 			if (!isAppInForeground) {
 				updatesNotification?.showCheckProgressNotification(

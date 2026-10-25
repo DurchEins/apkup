@@ -70,7 +70,7 @@ class DownloadServiceLifecycleTest {
 
     @Test
     fun `DownloadTaskState maintains correct lifecycle transitions`() {
-        val task = DownloadTaskState(
+        var task = DownloadTaskState(
             id = 42,
             packageName = "org.example.app",
             appName = "Example App",
@@ -83,16 +83,14 @@ class DownloadServiceLifecycleTest {
         assertEquals(0L, task.progress)
 
         // Transition: active downloading
-        task.isQueued = false
-        task.progress = 5_000_000L
-        task.total = 10_000_000L
+        task = task.copy(isQueued = false, progress = 5_000_000L, total = 10_000_000L)
 
         assertFalse(task.isQueued)
         assertEquals(5_000_000L, task.progress)
         assertEquals(10_000_000L, task.total)
 
         // Transition: installing
-        task.isInstalling = true
+        task = task.copy(isInstalling = true)
         assertTrue(task.isInstalling)
     }
 }

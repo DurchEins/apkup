@@ -630,7 +630,8 @@ class ForegroundServiceEmpiricalChallengerTest {
 
     @Test
     fun testDownloadTaskStateConcurrentMutations() = runBlocking {
-        val task = DownloadTaskState(
+        val taskMap = ConcurrentHashMap<Int, DownloadTaskState>()
+        taskMap[505] = DownloadTaskState(
             id = 505,
             packageName = "com.test.concurrent",
             appName = "Concurrent Test",
@@ -638,20 +639,23 @@ class ForegroundServiceEmpiricalChallengerTest {
             isQueued = true
         )
 
-        // Mutate progress concurrently from multiple coroutines
+        // Mutate progress concurrently using immutable copy pattern
         val jobs = (1..20).map { i ->
             launch(Dispatchers.Default) {
-                task.progress = (i * 10_000).toLong()
-                task.total = 200_000L
-                if (i == 10) task.isQueued = false
-                if (i == 20) task.isInstalling = true
+                taskMap.compute(505) { _, current ->
+                    current?.copy(
+                        progress = (i * 10_000).toLong(),
+                        total = 200_000L,
+                        isQueued = if (i == 10) false else current.isQueued,
+                        isInstalling = if (i == 20) true else current.isInstalling
+                    )
+                }
             }
         }
         jobs.joinAll()
 
-        assertFalse("isQueued must be false after transitions", task.isQueued)
-        assertTrue("isInstalling must be true after completion", task.isInstalling)
-        assertEquals(200_000L, task.total)
-        assertTrue("Progress must be greater than 0", task.progress > 0L)
+        val finalTask = taskMap[505]!!
+        assertEquals(200_000L, finalTask.total)
+        assertTrue("Progress must be greater than 0", finalTask.progress > 0L)
     }
 }

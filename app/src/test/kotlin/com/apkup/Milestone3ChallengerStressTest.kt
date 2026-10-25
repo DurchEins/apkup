@@ -110,20 +110,17 @@ class Milestone3ChallengerStressTest {
         assertEquals(2, collectedEmissions.size)
         assertTrue(collectedEmissions.last()[101]!!.isQueued)
 
-        // Empirical check: In-place mutation on the same instance
-        task.isQueued = false
+        // Empirical check: Mutation with copy pattern
+        val updatedTask1 = task.copy(isQueued = false)
+        activeTasks[task.id] = updatedTask1
         stateFlow.value = activeTasks.toMap()
+        assertEquals(3, collectedEmissions.size)
 
-        // Because activeTasks.toMap() contains the exact same instance reference
-        // that stateFlow.value already held, stateFlow compares old == new (which is true!)
-        // and drops the emission!
-        val inPlaceEmitted = (collectedEmissions.size == 3)
-
-        // Now test with immutable copy pattern
-        val updatedTask = task.copy(progress = 5000L, total = 10000L)
+        // Now test with progress copy pattern
+        val updatedTask = updatedTask1.copy(progress = 5000L, total = 10000L)
         activeTasks[task.id] = updatedTask
         stateFlow.value = activeTasks.toMap()
-        val copyEmitted = (collectedEmissions.size >= 3)
+        val copyEmitted = (collectedEmissions.size >= 4)
 
         collectorJob.cancel()
         assertTrue("Copy pattern must reliably emit to StateFlow subscribers", copyEmitted)
@@ -338,7 +335,7 @@ class Milestone3ChallengerStressTest {
 
     @Test
     fun `DownloadTaskState rapid transition sequence maintains integrity`() {
-        val task = DownloadTaskState(
+        var task = DownloadTaskState(
             id = 999,
             packageName = "com.rapid.test",
             appName = "Rapid Test",
@@ -352,21 +349,17 @@ class Milestone3ChallengerStressTest {
         assertEquals(0L, task.progress)
 
         // State 2: Active download progress
-        task.isQueued = false
-        task.progress = 1024L
-        task.total = 4096L
+        task = task.copy(isQueued = false, progress = 1024L, total = 4096L)
         assertFalse(task.isQueued)
         assertEquals(1024L, task.progress)
         assertEquals(4096L, task.total)
 
         // State 3: Download complete, transitioning to installation
-        task.isInstalling = true
+        task = task.copy(isInstalling = true)
         assertTrue(task.isInstalling)
 
         // State 4: Reset on cancellation
-        task.progress = 0L
-        task.isInstalling = false
-        task.isQueued = false
+        task = task.copy(progress = 0L, isInstalling = false, isQueued = false)
         assertEquals(0L, task.progress)
         assertFalse(task.isInstalling)
         assertFalse(task.isQueued)

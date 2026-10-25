@@ -311,6 +311,25 @@ class DownloadInstallService : Service(), KoinComponent {
         currentJob = serviceScope.launch {
             val stagingDir = File(cacheDir, "download_staging_${update.id}").apply { mkdirs() }
             try {
+                val cachedFiles = downloader.getReadyStagingFiles(cacheDir, update.id, update.versionCode)
+                if (cachedFiles != null && cachedFiles.isNotEmpty()) {
+                    Log.i(TAG, "Reusing ready cached APK files for ${update.packageName} (${update.id}); skipping download")
+                    mutateTask(update.id) {
+                        it.copy(isInstalling = true, isQueued = false, isResolvingLink = false)
+                    }
+                    refreshNotification(force = true)
+                    installChannel.send(
+                        DownloadedPackage(
+                            id = update.id,
+                            packageName = update.packageName,
+                            appName = update.name,
+                            stagingDir = stagingDir,
+                            files = cachedFiles
+                        )
+                    )
+                    return@launch
+                }
+
                 downloadSemaphore.withPermit {
                     // Update state to active downloading
                     mutateTask(update.id) { it.copy(isQueued = false) }
@@ -348,6 +367,9 @@ class DownloadInstallService : Service(), KoinComponent {
                     if (files.isEmpty()) {
                         throw IOException("No files downloaded for ${update.packageName}")
                     }
+
+                    // Mark as ready before handing off to installer
+                    downloader.markStagingReady(stagingDir, update.versionCode)
 
                     // Download complete, transition to install queue
                     mutateTask(update.id) {
@@ -417,18 +439,18 @@ class DownloadInstallService : Service(), KoinComponent {
                 installQueueMutex.withLock {
                     val task = activeTasks[pkg.id]
                     if (task == null) {
-                        runCatching { pkg.stagingDir.deleteRecursively() }
                         continue
                     }
 
                     mutateTask(pkg.id) { it.copy(isInstalling = true, isQueued = false, isResolvingLink = false) }
                     refreshNotification(force = true)
 
+                    var installSucceeded = false
                     try {
                         val parts = pkg.files.map { file ->
                             InstallPart(file.name) { file.inputStream() }
                         }
-                        installer.installParts(pkg.id, pkg.packageName, parts)
+                        installSucceeded = installer.installParts(pkg.id, pkg.packageName, parts)
                     } catch (cancellation: CancellationException) {
                         installLog.emitProgress(AppInstallProgress(pkg.id, 0L))
                         removeTask(pkg.id)
@@ -442,7 +464,9 @@ class DownloadInstallService : Service(), KoinComponent {
                             refreshNotification(force = true)
                         }
                     } finally {
-                        runCatching { pkg.stagingDir.deleteRecursively() }
+                        if (installSucceeded) {
+                            runCatching { pkg.stagingDir.deleteRecursively() }
+                        }
                     }
                 }
             }
@@ -565,9 +589,11 @@ class DownloadInstallService : Service(), KoinComponent {
         // 2. Cancel active coroutine job
         activeDownloadJobs.remove(id)?.cancel()
 
-        // 3. Wipe partial staging directory
+        // 3. Wipe partial staging directory (preserve if .ready marker exists)
         val stagingDir = File(cacheDir, "download_staging_$id")
-        runCatching { stagingDir.deleteRecursively() }
+        if (!File(stagingDir, Downloader.READY_MARKER_FILE).exists()) {
+            runCatching { stagingDir.deleteRecursively() }
+        }
 
         // 4. Reset install session if in progress
         installer.finish(id)
@@ -604,6 +630,9 @@ class DownloadInstallService : Service(), KoinComponent {
         serviceScope.launch {
             installLog.status().collectLatest { status ->
                 if (status.success) {
+                    runCatching {
+                        File(cacheDir, "download_staging_${status.id}").deleteRecursively()
+                    }
                     activeTasks[status.id]?.let { completedTask ->
                         if (completedTasks.none { it.id == completedTask.id }) {
                             completedTasks.add(0, completedTask.copy(isInstalling = false, isQueued = false, isResolvingLink = false))

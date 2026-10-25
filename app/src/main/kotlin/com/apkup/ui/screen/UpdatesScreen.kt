@@ -285,6 +285,7 @@ fun UpdatesScreenSuccess(
 
 	val activeTasksMap by DownloadInstallService.activeTasksFlow.collectAsStateWithLifecycle()
 	val completedTasks by DownloadInstallService.completedTasksFlow.collectAsStateWithLifecycle()
+	val readyUpdateIds by viewModel.readyUpdateIds.collectAsStateWithLifecycle()
 	val activeTasks = remember(activeTasksMap) { activeTasksMap.values.toList() }
 	var showQueueSheet by rememberSaveable { mutableStateOf(false) }
 	val showMobileDataDialog by viewModel.showMobileDataDialog.collectAsStateWithLifecycle()
@@ -514,6 +515,7 @@ fun UpdatesScreenSuccess(
 			viewModel = viewModel,
 			updates = displayedUpdates,
 			activeTasksMap = activeTasksMap,
+			readyUpdateIds = readyUpdateIds,
 			handler = handler,
 			modifier = Modifier.weight(1f),
 			onBeforeInstall = requestNotificationPermissionIfNeeded
@@ -522,6 +524,7 @@ fun UpdatesScreenSuccess(
 			viewModel = viewModel,
 			updates = displayedUpdates,
 			activeTasksMap = activeTasksMap,
+			readyUpdateIds = readyUpdateIds,
 			handler = handler,
 			modifier = Modifier.weight(1f),
 			onBeforeInstall = requestNotificationPermissionIfNeeded
@@ -1326,6 +1329,7 @@ private fun UpdatesList(
 	viewModel: UpdatesViewModel,
 	updates: List<AppUpdate>,
 	activeTasksMap: Map<Int, DownloadTaskState> = emptyMap(),
+	readyUpdateIds: Set<Int> = emptySet(),
 	handler: UriHandler,
 	modifier: Modifier,
 	onBeforeInstall: () -> Unit = {}
@@ -1351,9 +1355,11 @@ private fun UpdatesList(
 			gridItems(items = updates, key = { it.id }) { update ->
 				val liveTask = activeTasksMap[update.id]
 					?: activeTasksMap.values.firstOrNull { it.packageName == update.packageName }
+				val isCachedReady = update.id in readyUpdateIds
 				UpdateCard(
 					update = update,
 					liveTask = liveTask,
+					isCachedReady = isCachedReady,
 					onSelect = { selectedPackageName = update.packageName },
 					onInstall = {
 						onBeforeInstall()
@@ -1367,6 +1373,7 @@ private fun UpdatesList(
 	selectedUpdate?.let { update ->
 		UpdateDetailsSheet(
 			update = update,
+			isCachedReady = update.id in readyUpdateIds,
 			onDismiss = { selectedPackageName = null },
 			onInstallVariant = { chosen ->
 				onBeforeInstall()
@@ -1393,6 +1400,7 @@ private fun UpdatesList(
 private fun UpdateCard(
 	update: AppUpdate,
 	liveTask: DownloadTaskState? = null,
+	isCachedReady: Boolean = false,
 	onSelect: () -> Unit,
 	onInstall: () -> Unit
 ) {
@@ -1604,7 +1612,7 @@ private fun UpdateCard(
 							)
 							Spacer(Modifier.width(4.dp))
 							Text(
-								text = stringResource(R.string.update_action),
+								text = stringResource(if (isCachedReady) R.string.install_cached_action else R.string.update_action),
 								style = MaterialTheme.typography.labelSmall,
 								fontWeight = FontWeight.SemiBold,
 								maxLines = 1
@@ -1623,6 +1631,7 @@ private fun CompactUpdatesGrid(
 	viewModel: UpdatesViewModel,
 	updates: List<AppUpdate>,
 	activeTasksMap: Map<Int, DownloadTaskState> = emptyMap(),
+	readyUpdateIds: Set<Int> = emptySet(),
 	handler: UriHandler,
 	modifier: Modifier,
 	onBeforeInstall: () -> Unit = {}
@@ -1816,6 +1825,7 @@ private fun CompactUpdatesGrid(
 	selectedUpdate?.let { update ->
 		UpdateDetailsSheet(
 			update = update,
+			isCachedReady = update.id in readyUpdateIds,
 			onDismiss = { selectedPackageName = null },
 			onInstallVariant = { chosen ->
 				onBeforeInstall()
@@ -1841,6 +1851,7 @@ private fun CompactUpdatesGrid(
 @Composable
 private fun UpdateDetailsSheet(
 	update: AppUpdate,
+	isCachedReady: Boolean = false,
 	onDismiss: () -> Unit,
 	onInstallVariant: (AppUpdate) -> Unit,
 	onIgnoreVersion: (Int) -> Unit,
@@ -2213,6 +2224,7 @@ private fun UpdateDetailsSheet(
 					text = when {
 						effQueued && !effInstalling -> stringResource(R.string.queued_update)
 						effInstalling -> stringResource(R.string.installing_update)
+						isCachedReady -> stringResource(R.string.install_cached_action)
 						else -> stringResource(R.string.update_action)
 					}
 				)

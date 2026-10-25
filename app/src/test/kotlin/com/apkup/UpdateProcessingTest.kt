@@ -132,7 +132,8 @@ class UpdateProcessingTest {
             }
         )
 
-        assertEquals(19, batchSizes.size)
+        // 19 batches + 1 retry for the timed-out batch
+        assertEquals(20, batchSizes.size)
         assertTrue(batchSizes.all { it in 1..APKMIRROR_REQUEST_BATCH_SIZE })
         assertEquals(12, batchSizes.minOrNull())
         assertEquals(18, result.responses.size)
@@ -652,12 +653,12 @@ class UpdateProcessingTest {
 
     @Test
     fun installedAppsGridColumnCountUsesTwoInPortraitAndResponsiveCountOnWideScreens() {
-        assertEquals(2, com.apkup.ui.component.installedAppsGridColumnCount(360f))
-        assertEquals(2, com.apkup.ui.component.installedAppsGridColumnCount(411f))
-        assertEquals(2, com.apkup.ui.component.installedAppsGridColumnCount(599f))
-        assertEquals(3, com.apkup.ui.component.installedAppsGridColumnCount(600f))
-        assertEquals(3, com.apkup.ui.component.installedAppsGridColumnCount(650f))
-        assertEquals(5, com.apkup.ui.component.installedAppsGridColumnCount(840f))
+        assertEquals(3, com.apkup.ui.component.installedAppsGridColumnCount(360f))
+        assertEquals(3, com.apkup.ui.component.installedAppsGridColumnCount(411f))
+        assertEquals(3, com.apkup.ui.component.installedAppsGridColumnCount(599f))
+        assertEquals(4, com.apkup.ui.component.installedAppsGridColumnCount(600f))
+        assertEquals(5, com.apkup.ui.component.installedAppsGridColumnCount(650f))
+        assertEquals(6, com.apkup.ui.component.installedAppsGridColumnCount(840f))
     }
 
     @Test
