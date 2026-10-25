@@ -404,12 +404,21 @@ class UpdatesViewModel(
 				if (idx != -1) {
 					val inState = current[idx]
 					val isSameId = inState.id == candidate.id
+					val isCachedReady = candidate.id in readyUpdateIds.value || inState.id in readyUpdateIds.value
 					val isCurrentlyActive = if (context != null) {
-						serviceActiveMap.containsKey(candidate.id) ||
-							(isSameId && serviceActiveMap.containsKey(inState.id))
+						if (isCachedReady && candidates.size == 1) {
+							false
+						} else {
+							serviceActiveMap.containsKey(candidate.id) ||
+								(isSameId && serviceActiveMap.containsKey(inState.id))
+						}
 					} else {
-						inState.isInstalling || (inState.isQueued && isSameId) ||
-							candidate.id in alreadyActive || inState.id in alreadyActive
+						if (isCachedReady && candidates.size == 1) {
+							false
+						} else {
+							inState.isInstalling || (inState.isQueued && isSameId) ||
+								candidate.id in alreadyActive || inState.id in alreadyActive
+						}
 					}
 					if (!isCurrentlyActive) {
 						val queuedCandidate = if (!isSameId) {

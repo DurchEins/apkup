@@ -305,6 +305,7 @@ class DownloadInstallService : Service(), KoinComponent {
 
     private fun startDownloadForUpdate(update: AppUpdate) {
         activeDownloadJobs.remove(update.id)?.cancel()
+        installer.finish(update.id)
 
         lateinit var currentJob: Job
         currentJob = serviceScope.launch {

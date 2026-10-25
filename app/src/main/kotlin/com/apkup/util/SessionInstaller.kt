@@ -42,6 +42,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.UUID.randomUUID
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resume
 import kotlin.io.DEFAULT_BUFFER_SIZE
@@ -113,6 +114,7 @@ class SessionInstaller internal constructor(
 
     private val mutex = Mutex()
     private val scope = CoroutineScope(Dispatchers.IO)
+    private val activeSessions = ConcurrentHashMap<Int, Int>()
 
     private val shizukuBridge: ShizukuBridge by lazy {
         shizukuBridgeOverride ?: AndroidShizukuBridge()
@@ -487,6 +489,7 @@ class SessionInstaller internal constructor(
 
             fun completeOnce(success: Boolean) {
                 if (terminalHandled.compareAndSet(false, true)) {
+                    activeSessions.remove(id)
                     runCatching {
                         val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                         nm.cancel(NOTIFICATION_ID_CONFIRM_BASE + id)
@@ -574,7 +577,8 @@ class SessionInstaller internal constructor(
                 override fun onProgressChanged(sessionId: Int, p: Float) {}
                 override fun onFinished(sessionId: Int, success: Boolean) {
                     if (createdSessionId != null && sessionId == createdSessionId) {
-                        safeUnregisterCallback()
+                        Log.i("InstallerReceiver", "PackageInstaller SessionCallback.onFinished for $packageName ($id, session=$sessionId): success=$success")
+                        completeOnce(success)
                     }
                 }
             }
@@ -595,15 +599,17 @@ class SessionInstaller internal constructor(
             continuation.invokeOnCancellation {
                 safeUnregisterReceiver()
                 safeUnregisterCallback()
-                if (!committed) {
-                    createdSessionId?.let { runCatching { packageInstaller.abandonSession(it) } }
+                createdSessionId?.let { sessId ->
+                    runCatching { packageInstaller.abandonSession(sessId) }
                 }
+                activeSessions.remove(id)
                 if (mutex.isLocked) runCatching { mutex.unlock() }
             }
 
             try {
                 val sessionId = packageInstaller.createSession(params)
                 createdSessionId = sessionId
+                activeSessions[id] = sessionId
                 var totalBytes = 0L
                 packageInstaller.openSession(sessionId).use { session ->
                     parts.forEachIndexed { index, part ->
@@ -698,6 +704,13 @@ class SessionInstaller internal constructor(
 
     fun finish(id: Int? = null) {
         if (id != null) {
+            activeSessions.remove(id)?.let { sessId ->
+                context?.let { ctx ->
+                    runCatching {
+                        ctx.packageManager.packageInstaller.abandonSession(sessId)
+                    }
+                }
+            }
             context?.let { ctx ->
                 runCatching {
                     val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
