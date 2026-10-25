@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.32--Beta-6750A4?style=flat-square" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-1.38--Beta-6750A4?style=flat-square" alt="Version" />
   <img src="https://img.shields.io/badge/Android-10.0%2B%20(API%2029%2B)-3DDC84?style=flat-square&logo=android" alt="Android" />
   <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License" />
   <img src="https://img.shields.io/badge/Shizuku-Supported-00897B?style=flat-square" alt="Shizuku" />
@@ -37,10 +37,15 @@
   * Pixel-inspired UI optimized for Android 15/16/17 styling with floating capsule navigation and tactile haptic feedback.
   * Comprehensive **Dynamic Color (Material You)** support with dark, light, and system themes.
   * Multiple display modes for the update list (*Compact Grid Tiles* vs. *Detailed List*).
-* **⚡ Uninterrupted Background Downloads & Shizuku:**
+  * **Interactive Live Queue Sheet:** Play-Store-style bottom sheet and banner with per-app live progress, queuing, and individual or full-queue abort controls.
+* **⚡ Uninterrupted Background Downloads, 24h Cache & Shizuku:**
   * **Foreground Download Service:** Downloads and batch updates (*Update All*) continue reliably in the background and across screen locks, complete with live progress notifications and instant cancellation.
+  * **24-Hour Smart Cache & Instant Resume:** Downloaded APKs are preserved locally for up to 24 hours. Dismissed installations can be resumed instantly with "Install" without re-downloading.
   * **Silent Shizuku Installs:** Unattended background updates without repeated permission dialogs when connected to Shizuku.
-  * **Reliable Native Fallback:** Seamless fallback to Android's `PackageInstaller` session API with Android 14+ Background Activity Launch (BAL) notification support.
+  * **Reliable Native Fallback:** Seamless fallback to Android's `PackageInstaller` session API with Android 14+ Background Activity Launch (BAL) notification support and robust session abandonment.
+* **📶 Network Data Saver & Masked Security:**
+  * **Wi-Fi Only Mode:** Restrict downloads to unmetered Wi-Fi connections with an active mobile data safety prompt.
+  * **Masked API Tokens:** Password-style masked input with eye visibility toggle for GitHub & GitLab Personal Access Tokens.
 * **🛡️ Smart Version Detection & Filters:**
   * **Zero False Positives:** Verifiable semantic version and `versionCode` progression check.
   * **Skip Single Version:** Ignore a specific faulty build once; you will be notified again when a newer release arrives.
@@ -111,10 +116,15 @@
   * Authentische Ästhetik im Stil moderner Google-Pixel-Flaggschiffe (Android 15/16/17) mit schwebendem Capsule-Dock und haptischem Feedback.
   * Vollständige Unterstützung von **Dynamic Color (Material You)** sowie Dark-, Light- und System-Theming.
   * Wählbare Ansichten für den Updates-Tab (*Kompakte Kacheln* vs. *Detaillierte Liste*).
-* **⚡ Unterbrechungsfreie Hintergrund-Downloads & Shizuku:**
+  * **Interaktive Live-Warteschlange:** Panel im Play-Store-Stil mit Live-Fortschrittsbalken pro App, Warteschlange und Einzel- oder Gesamtabbruch.
+* **⚡ Unterbrechungsfreie Hintergrund-Downloads, 24h-Cache & Shizuku:**
   * **Foreground Download Service:** Downloads und Sammel-Updates (*Alle aktualisieren*) laufen zuverlässig im Hintergrund und bei gesperrtem Bildschirm weiter – inklusive Live-Fortschrittsbenachrichtigung und Sofort-Abbruch.
+  * **24-Stunden-Installationscache & Sofort-Fortsetzung:** Heruntergeladene APKs bleiben bis zu 24 Stunden lokal gespeichert. Abgebrochene Dialoge können sofort ohne erneuten Download über „Installieren“ fortgesetzt werden.
   * **Stille Shizuku-Installation:** Vollautomatische Hintergrund-Installation ohne manuelle Bestätigungs-Dialoge bei aktiver Shizuku-Verbindung.
-  * **Zuverlässiger System-Fallback:** Nahtloser Rückgriff auf die native Android `PackageInstaller`-Session-API mit Android 14+ Background Activity Launch (BAL) Benachrichtigungs-Support.
+  * **Zuverlässiger System-Fallback:** Nahtloser Rückgriff auf die native Android `PackageInstaller`-Session-API mit Android 14+ Background Activity Launch (BAL) Benachrichtigungs-Support und sauberer Sitzungs-Freigabe.
+* **📶 Datensparmodus & Maskierte Sicherheit:**
+  * **WLAN-Only Modus:** Downloads optional auf ungedeckelte WLAN-Verbindungen beschränken inklusive Sicherheitsabfrage bei mobilen Daten.
+  * **Maskierte API-Tokens:** Geschützte Passworteingabe mit Auge-Symbol zum sicheren Ein- und Ausblenden von GitHub- & GitLab-Tokens.
 * **🛡️ Präziser Versionsabgleich & Filter:**
   * **Keine False-Positives:** Exakte Erkennung höherer Versionsnummern und Build-Codes (`versionCode`).
   * **Übersprungene Einzel-Updates:** Eine fehlerhafte Version gezielt einmalig ignorieren – bei einem neueren Update wird wieder benachrichtigt.
