@@ -1,14 +1,18 @@
 package com.apkup
 
+import com.apkup.data.ui.AppInstallStatus
+import com.apkup.util.InstallLog
 import com.apkup.util.InstallPart
 import com.apkup.util.wrapStreamIfGzip
 import com.aurora.gplayapi.data.models.PlayFile
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.util.zip.GZIPOutputStream
 
 class InstallPipelineTest {
@@ -120,5 +124,28 @@ class InstallPipelineTest {
 
         // Scenario 4: Already seen current version (no re-trigger)
         assertTrue(!shouldShowChangelog(lastSeen = 127L, isFreshInstall = false))
+    }
+
+    @Test
+    fun `InstallLog status flow has zero replay so restarted DownloadInstallService never receives stale cancel events`() = runBlocking {
+        val log = InstallLog()
+        log.emitStatus(AppInstallStatus(success = false, id = 1974986299, snack = false))
+
+        assertTrue(
+            "InstallLog.status replayCache must be empty (replay=0) so a newly started service does not replay prior cancel statuses",
+            log.status().replayCache.isEmpty()
+        )
+    }
+
+    @Test
+    fun `Proguard rules keep KnownRepoEntry to prevent R8 LinkedTreeMap ClassCastException`() {
+        val proguardFile = File("proguard-rules.pro").takeIf { it.exists() }
+            ?: File("app/proguard-rules.pro")
+        assertTrue("proguard-rules.pro must exist", proguardFile.exists())
+        val content = proguardFile.readText()
+        assertTrue(
+            "proguard-rules.pro must keep com.apkup.repository.KnownRepoEntry",
+            content.contains("-keep class com.apkup.repository.KnownRepoEntry")
+        )
     }
 }

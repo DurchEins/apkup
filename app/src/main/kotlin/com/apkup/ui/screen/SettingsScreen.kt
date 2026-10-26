@@ -11,8 +11,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
@@ -38,10 +40,12 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -71,6 +75,7 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
@@ -100,6 +105,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
@@ -139,6 +145,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.roundToInt
 import com.apkup.BuildConfig
 import com.apkup.R
+import com.apkup.data.selfupdate.SelfUpdateState
 import com.apkup.data.ui.AppInstalled
 import com.apkup.data.ui.BackgroundCheckInterval
 import com.apkup.data.ui.IgnoredVersionEntry
@@ -146,11 +153,13 @@ import com.apkup.data.ui.ShizukuSetupStatus
 import com.apkup.ui.component.LoadingImageApp
 import com.apkup.ui.component.SegmentedButtonSetting
 import com.apkup.ui.component.SettingsSection
+import com.apkup.ui.component.AutoResizeText
 import com.apkup.ui.component.SwitchSetting
 import com.apkup.util.SessionInstaller
 import com.apkup.viewmodel.AppsViewModel
 import com.apkup.viewmodel.MainViewModel
 import com.apkup.viewmodel.SettingsViewModel
+import com.apkup.viewmodel.TokenValidationResult
 import com.apkup.viewmodel.UpdatesViewModel
 import com.apkup.prefs.Prefs
 import com.apkup.ui.component.ChangelogBottomSheet
@@ -208,6 +217,8 @@ fun Settings(
 	var showChangelogSheet by remember { mutableStateOf(false) }
 	var showGitHubTokenDialog by remember { mutableStateOf(false) }
 	var showGitLabTokenDialog by remember { mutableStateOf(false) }
+	var showVirusTotalKeyDialog by remember { mutableStateOf(false) }
+	var isAdvancedExpanded by rememberSaveable { mutableStateOf(false) }
 	var configRefreshKey by remember { mutableIntStateOf(0) }
 
 	var easterEggActiveUntil by remember { mutableLongStateOf(0L) }
@@ -611,91 +622,6 @@ fun Settings(
 					icon = R.drawable.ic_root,
 					subtitle = stringResource(R.string.settings_shizuku_installer_subtitle)
 				)
-
-				Surface(
-					onClick = {
-						runCatching {
-							val intent = Intent(
-								Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-								"package:${context.packageName}".toUri()
-							).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
-							context.startActivity(intent)
-						}
-					},
-					modifier = Modifier.fillMaxWidth(),
-					shape = RoundedCornerShape(20.dp),
-					color = MaterialTheme.colorScheme.surfaceContainerHigh,
-					border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
-				) {
-					Row(
-						modifier = Modifier
-							.fillMaxWidth()
-							.padding(horizontal = 12.dp, vertical = 12.dp),
-						verticalAlignment = CenterVertically,
-						horizontalArrangement = Arrangement.spacedBy(12.dp)
-					) {
-						Box(
-							modifier = Modifier
-								.size(38.dp)
-								.clip(RoundedCornerShape(12.dp))
-								.background(MaterialTheme.colorScheme.surfaceContainerHighest),
-							contentAlignment = Alignment.Center
-						) {
-							Icon(
-								painter = painterResource(R.drawable.ic_install),
-								contentDescription = null,
-								tint = MaterialTheme.colorScheme.primary,
-								modifier = Modifier.size(20.dp)
-							)
-						}
-						Column(modifier = Modifier.weight(1f)) {
-							Text(
-								text = stringResource(R.string.permission_unknown_apps_title),
-								style = MaterialTheme.typography.titleSmall,
-								fontWeight = FontWeight.SemiBold,
-								color = MaterialTheme.colorScheme.onSurface
-							)
-							Text(
-								text = stringResource(
-									if (hasInstallPermission) R.string.permission_unknown_apps_subtitle_granted
-									else R.string.permission_unknown_apps_subtitle_missing
-								),
-								style = MaterialTheme.typography.bodySmall,
-								color = MaterialTheme.colorScheme.onSurfaceVariant
-							)
-						}
-						Surface(
-							shape = CircleShape,
-							color = if (hasInstallPermission) {
-								Color(0xFFE8F5E9)
-							} else {
-								MaterialTheme.colorScheme.errorContainer
-							}
-						) {
-							Row(
-								modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-								verticalAlignment = CenterVertically,
-								horizontalArrangement = Arrangement.spacedBy(4.dp)
-							) {
-								Icon(
-									imageVector = if (hasInstallPermission) Icons.Default.Check else Icons.Default.Warning,
-									contentDescription = null,
-									tint = if (hasInstallPermission) Color(0xFF2E7D32) else MaterialTheme.colorScheme.onErrorContainer,
-									modifier = Modifier.size(12.dp)
-								)
-								Text(
-									text = stringResource(
-										if (hasInstallPermission) R.string.permission_status_granted
-										else R.string.permission_status_missing
-									),
-									style = MaterialTheme.typography.labelSmall,
-									fontWeight = FontWeight.SemiBold,
-									color = if (hasInstallPermission) Color(0xFF2E7D32) else MaterialTheme.colorScheme.onErrorContainer
-								)
-							}
-						}
-					}
-				}
 			}
 		}
 
@@ -825,9 +751,98 @@ fun Settings(
 			}
 		}
 
-		// Sektion 5: Daten & Sicherung
-		item(key = "section_backup") {
-			SettingsSection(stringResource(R.string.settings_backup_section)) {
+		// Sektion 5: Erweiterte Einstellungen (Sicherung/Wiederherstellung & Einmal-Systemberechtigung)
+		item(key = "section_advanced_${configRefreshKey}_$hasInstallPermission") {
+			SettingsSection(
+				title = stringResource(R.string.settings_advanced_section),
+				expanded = isAdvancedExpanded,
+				onExpandedChange = { isAdvancedExpanded = it },
+				showCollapsedWarningBadge = !hasInstallPermission
+			) {
+				Surface(
+					onClick = {
+						runCatching {
+							val intent = Intent(
+								Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+								"package:${context.packageName}".toUri()
+							).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+							context.startActivity(intent)
+						}
+					},
+					modifier = Modifier.fillMaxWidth(),
+					shape = RoundedCornerShape(12.dp),
+					color = MaterialTheme.colorScheme.surfaceContainerHigh,
+					border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+				) {
+					Row(
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(horizontal = 10.dp, vertical = 8.dp),
+						verticalAlignment = CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(8.dp)
+					) {
+						Box(
+							modifier = Modifier
+								.size(24.dp)
+								.clip(RoundedCornerShape(7.dp))
+								.background(MaterialTheme.colorScheme.surfaceContainerHighest),
+							contentAlignment = Alignment.Center
+						) {
+							Icon(
+								painter = painterResource(R.drawable.ic_install),
+								contentDescription = null,
+								tint = MaterialTheme.colorScheme.primary,
+								modifier = Modifier.size(14.dp)
+							)
+						}
+						Text(
+							text = stringResource(R.string.permission_unknown_apps_title),
+							style = MaterialTheme.typography.bodyMedium,
+							fontWeight = FontWeight.Medium,
+							color = MaterialTheme.colorScheme.onSurface,
+							maxLines = 1,
+							overflow = TextOverflow.Ellipsis,
+							modifier = Modifier.weight(1f)
+						)
+						Surface(
+							shape = CircleShape,
+							color = if (hasInstallPermission) {
+								Color(0xFFE8F5E9)
+							} else {
+								MaterialTheme.colorScheme.errorContainer
+							}
+						) {
+							Row(
+								modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+								verticalAlignment = CenterVertically,
+								horizontalArrangement = Arrangement.spacedBy(3.dp)
+							) {
+								Icon(
+									imageVector = if (hasInstallPermission) Icons.Default.Check else Icons.Default.Warning,
+									contentDescription = null,
+									tint = if (hasInstallPermission) Color(0xFF2E7D32) else MaterialTheme.colorScheme.onErrorContainer,
+									modifier = Modifier.size(11.dp)
+								)
+								Text(
+									text = stringResource(
+										if (hasInstallPermission) R.string.permission_status_granted
+										else R.string.permission_status_missing
+									),
+									style = MaterialTheme.typography.labelSmall,
+									fontWeight = FontWeight.SemiBold,
+									color = if (hasInstallPermission) Color(0xFF2E7D32) else MaterialTheme.colorScheme.onErrorContainer
+								)
+							}
+						}
+					}
+				}
+
+				Text(
+					text = stringResource(R.string.settings_backup_section),
+					style = MaterialTheme.typography.labelLarge,
+					fontWeight = FontWeight.SemiBold,
+					color = MaterialTheme.colorScheme.onSurface
+				)
 				Text(
 					text = stringResource(R.string.settings_backup_description),
 					style = MaterialTheme.typography.bodySmall,
@@ -878,309 +893,452 @@ fun Settings(
 			}
 		}
 
-		// Sektion 6: Über ApkUp
+		// Sektion 6: Über ApkUp (Unified Hero-Card + 2x2 Bento-Grid + dezenter Footer-Link)
 		item(key = "section_about") {
 			Column(modifier = Modifier.fillMaxWidth()) {
 				SettingsSection(stringResource(R.string.about)) {
+					// 1. Unified Hero-Card
 					Surface(
-					modifier = Modifier.fillMaxWidth(),
-					shape = RoundedCornerShape(20.dp),
-					color = MaterialTheme.colorScheme.surfaceContainerHigh,
-					border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
-				) {
-					Column(
-						modifier = Modifier
-							.fillMaxWidth()
-							.padding(top = 16.dp, bottom = 14.dp, start = 16.dp, end = 16.dp),
-						horizontalAlignment = CenterHorizontally,
-						verticalArrangement = Arrangement.spacedBy(4.dp)
+						modifier = Modifier.fillMaxWidth(),
+						shape = RoundedCornerShape(20.dp),
+						color = MaterialTheme.colorScheme.surfaceContainerHigh,
+						border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
 					) {
-						Box(
+						Column(
 							modifier = Modifier
-								.size(52.dp)
-								.clip(RoundedCornerShape(14.dp))
-								.clickable(
-									interactionSource = remember { MutableInteractionSource() },
-									indication = null
-								) {
-									val now = System.currentTimeMillis()
-									iconTapTimestamps.removeAll { now - it > 2500L }
-									iconTapTimestamps.add(now)
-									if (iconTapTimestamps.size >= 5) {
-										iconTapTimestamps.clear()
-										triggerEasterEgg()
-									}
-								},
-							contentAlignment = Alignment.Center
+								.fillMaxWidth()
+								.padding(top = 16.dp, bottom = 14.dp, start = 16.dp, end = 16.dp),
+							horizontalAlignment = CenterHorizontally,
+							verticalArrangement = Arrangement.spacedBy(4.dp)
 						) {
-							Icon(
-								painter = painterResource(R.drawable.ic_launcher_background),
-								contentDescription = null,
-								tint = Color.Unspecified,
-								modifier = Modifier.fillMaxSize()
-							)
-							Icon(
-								painter = painterResource(R.drawable.ic_launcher_foreground),
-								contentDescription = stringResource(R.string.app_name),
-								tint = Color.Unspecified,
-								modifier = Modifier.fillMaxSize()
-							)
-						}
-						Spacer(modifier = Modifier.heightIn(min = 2.dp))
-						Row(
-							verticalAlignment = CenterVertically,
-							horizontalArrangement = Arrangement.spacedBy(6.dp)
-						) {
-							Text(
-								text = stringResource(R.string.app_name),
-								style = MaterialTheme.typography.titleMedium,
-								fontWeight = FontWeight.Bold,
-								color = MaterialTheme.colorScheme.onSurface
-							)
-							Text(
-								text = "•",
-								style = MaterialTheme.typography.labelMedium,
-								color = MaterialTheme.colorScheme.onSurfaceVariant
-							)
-							Text(
-								text = BuildConfig.VERSION_NAME.substringBefore(" ("),
-								style = MaterialTheme.typography.labelMedium,
-								fontWeight = FontWeight.SemiBold,
-								color = MaterialTheme.colorScheme.primary
-							)
-						}
-						AnimatedContent(
-							targetState = isEasterEggActive,
-							transitionSpec = {
-								(fadeIn(animationSpec = tween(400)) + scaleIn(initialScale = 0.85f, animationSpec = tween(400)))
-									.togetherWith(fadeOut(animationSpec = tween(300)) + scaleOut(targetScale = 0.85f, animationSpec = tween(300)))
-							},
-							label = "AboutEasterEggTransform"
-						) { active ->
-							if (active) {
-								val infiniteTransition = rememberInfiniteTransition(label = "HeartbeatPillPulse")
-								val pulseScale by infiniteTransition.animateFloat(
-									initialValue = 1.0f,
-									targetValue = 1.06f,
-									animationSpec = infiniteRepeatable(
-										animation = tween(650, easing = FastOutSlowInEasing),
-										repeatMode = RepeatMode.Reverse
-									),
-									label = "HeartbeatPillScale"
-								)
-								Surface(
-									shape = RoundedCornerShape(50),
-									color = MaterialTheme.colorScheme.primaryContainer,
-									modifier = Modifier
-										.scale(pulseScale)
-										.padding(vertical = 2.dp)
-								) {
-									Text(
-										text = "n² \u2764\uFE0F\u200D\uD83D\uDD25",
-										style = MaterialTheme.typography.labelLarge,
-										fontWeight = FontWeight.Bold,
-										color = MaterialTheme.colorScheme.onPrimaryContainer,
-										modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
-									)
-								}
-							} else {
-								Box(
-									modifier = Modifier.pointerInput(triggerEasterEgg) {
-										awaitEachGesture {
-											awaitFirstDown(requireUnconsumed = false)
-											val passed = withTimeoutOrNull(2000L) {
-												waitForUpOrCancellation()
-											}
-											if (passed == null) {
-												triggerEasterEgg()
-												waitForUpOrCancellation()
-											}
+							Box(
+								modifier = Modifier
+									.size(52.dp)
+									.clip(RoundedCornerShape(14.dp))
+									.clickable(
+										interactionSource = remember { MutableInteractionSource() },
+										indication = null
+									) {
+										val now = System.currentTimeMillis()
+										iconTapTimestamps.removeAll { now - it > 2500L }
+										iconTapTimestamps.add(now)
+										if (iconTapTimestamps.size >= 5) {
+											iconTapTimestamps.clear()
+											triggerEasterEgg()
 										}
 									},
+								contentAlignment = Alignment.Center
+							) {
+								Icon(
+									painter = painterResource(R.drawable.ic_launcher_background),
+									contentDescription = null,
+									tint = Color.Unspecified,
+									modifier = Modifier.fillMaxSize()
+								)
+								Icon(
+									painter = painterResource(R.drawable.ic_launcher_foreground),
+									contentDescription = stringResource(R.string.app_name),
+									tint = Color.Unspecified,
+									modifier = Modifier.fillMaxSize()
+								)
+							}
+							Spacer(modifier = Modifier.heightIn(min = 2.dp))
+							Row(
+								verticalAlignment = CenterVertically,
+								horizontalArrangement = Arrangement.spacedBy(6.dp)
+							) {
+								Text(
+									text = stringResource(R.string.app_name),
+									style = MaterialTheme.typography.titleMedium,
+									fontWeight = FontWeight.Bold,
+									color = MaterialTheme.colorScheme.onSurface,
+									maxLines = 1
+								)
+								Text(
+									text = "•",
+									style = MaterialTheme.typography.labelMedium,
+									color = MaterialTheme.colorScheme.onSurfaceVariant
+								)
+								AutoResizeText(
+									text = "v" + BuildConfig.VERSION_NAME.removePrefix("v"),
+									style = MaterialTheme.typography.labelMedium,
+									fontWeight = FontWeight.SemiBold,
+									color = MaterialTheme.colorScheme.primary,
+									maxLines = 1
+								)
+							}
+							AnimatedContent(
+								targetState = isEasterEggActive,
+								transitionSpec = {
+									(fadeIn(animationSpec = tween(400)) + scaleIn(initialScale = 0.85f, animationSpec = tween(400)))
+										.togetherWith(fadeOut(animationSpec = tween(300)) + scaleOut(targetScale = 0.85f, animationSpec = tween(300)))
+								},
+								label = "AboutEasterEggTransform"
+							) { active ->
+								if (active) {
+									val infiniteTransition = rememberInfiniteTransition(label = "HeartbeatPillPulse")
+									val pulseScale by infiniteTransition.animateFloat(
+										initialValue = 1.0f,
+										targetValue = 1.06f,
+										animationSpec = infiniteRepeatable(
+											animation = tween(650, easing = FastOutSlowInEasing),
+											repeatMode = RepeatMode.Reverse
+										),
+										label = "HeartbeatPillScale"
+									)
+									Surface(
+										shape = RoundedCornerShape(50),
+										color = MaterialTheme.colorScheme.primaryContainer,
+										modifier = Modifier
+											.scale(pulseScale)
+											.padding(vertical = 2.dp)
+									) {
+										Text(
+											text = "n² \u2764\uFE0F\u200D\uD83D\uDD25",
+											style = MaterialTheme.typography.labelLarge,
+											fontWeight = FontWeight.Bold,
+											color = MaterialTheme.colorScheme.onPrimaryContainer,
+											modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
+										)
+									}
+								} else {
+									Box(
+										modifier = Modifier.pointerInput(triggerEasterEgg) {
+											awaitEachGesture {
+												awaitFirstDown(requireUnconsumed = false)
+												val passed = withTimeoutOrNull(2000L) {
+													waitForUpOrCancellation()
+												}
+												if (passed == null) {
+													triggerEasterEgg()
+													waitForUpOrCancellation()
+												}
+											}
+										},
+										contentAlignment = Alignment.Center
+									) {
+										Text(
+											text = stringResource(R.string.about_copyright),
+											style = MaterialTheme.typography.bodySmall,
+											fontWeight = FontWeight.Medium,
+											color = MaterialTheme.colorScheme.onSurface
+										)
+									}
+								}
+							}
+							Text(
+								text = stringResource(R.string.about_tribute),
+								style = MaterialTheme.typography.bodySmall,
+								color = MaterialTheme.colorScheme.onSurfaceVariant,
+								textAlign = TextAlign.Center,
+								modifier = Modifier.padding(horizontal = 4.dp)
+							)
+						}
+					}
+
+					// 2. Kompaktes Bento-Grid (Update prüfen & Was ist neu nebeneinander als flache Row-Kacheln)
+					val selfUpdateState by mainViewModel.selfUpdateState.collectAsStateWithLifecycle()
+					val isCheckingSelfUpdate = selfUpdateState is SelfUpdateState.Checking
+					val isUpToDateSelfUpdate = selfUpdateState is SelfUpdateState.UpToDate
+					val isErrorSelfUpdate = selfUpdateState is SelfUpdateState.Error
+					val successGreen = Color(0xFF4CAF50)
+					val updateTileBorderColor by animateColorAsState(
+						targetValue = when {
+							isUpToDateSelfUpdate -> successGreen.copy(alpha = 0.65f)
+							isErrorSelfUpdate -> MaterialTheme.colorScheme.error.copy(alpha = 0.65f)
+							isCheckingSelfUpdate -> MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)
+							else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+						},
+						animationSpec = tween(250),
+						label = "UpdateTileBorderColor"
+					)
+					val updateIconBgColor by animateColorAsState(
+						targetValue = when {
+							isUpToDateSelfUpdate -> successGreen.copy(alpha = 0.20f)
+							isErrorSelfUpdate -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.65f)
+							else -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.65f)
+						},
+						animationSpec = tween(250),
+						label = "UpdateIconBgColor"
+					)
+					val updateTitleColor by animateColorAsState(
+						targetValue = when {
+							isUpToDateSelfUpdate -> successGreen
+							isErrorSelfUpdate -> MaterialTheme.colorScheme.error
+							else -> MaterialTheme.colorScheme.onSurface
+						},
+						animationSpec = tween(250),
+						label = "UpdateTitleColor"
+					)
+
+					Row(
+						modifier = Modifier
+							.fillMaxWidth()
+							.height(IntrinsicSize.Min),
+						horizontalArrangement = Arrangement.spacedBy(8.dp)
+					) {
+						Surface(
+							onClick = {
+								if (!isCheckingSelfUpdate) {
+									mainViewModel.checkForSelfUpdate(manual = true, context = context)
+								}
+							},
+							modifier = Modifier
+								.weight(1f)
+								.fillMaxHeight(),
+							shape = RoundedCornerShape(14.dp),
+							color = MaterialTheme.colorScheme.surfaceContainerHigh,
+							border = BorderStroke(1.dp, updateTileBorderColor)
+						) {
+							Row(
+								modifier = Modifier
+									.fillMaxSize()
+									.padding(horizontal = 10.dp, vertical = 8.dp),
+								verticalAlignment = CenterVertically,
+								horizontalArrangement = Arrangement.spacedBy(8.dp)
+							) {
+								Box(
+									modifier = Modifier
+										.size(28.dp)
+										.clip(RoundedCornerShape(8.dp))
+										.background(updateIconBgColor),
 									contentAlignment = Alignment.Center
 								) {
+									AnimatedContent(
+										targetState = when {
+											isCheckingSelfUpdate -> 1
+											isUpToDateSelfUpdate -> 2
+											isErrorSelfUpdate -> 3
+											else -> 0
+										},
+										transitionSpec = {
+											(fadeIn(tween(220)) + scaleIn(initialScale = 0.7f, animationSpec = tween(220)))
+												.togetherWith(fadeOut(tween(180)) + scaleOut(targetScale = 0.7f, animationSpec = tween(180)))
+										},
+										label = "SelfUpdateBentoIcon"
+									) { iconState ->
+										when (iconState) {
+											1 -> {
+												val spinTransition = rememberInfiniteTransition(label = "SelfUpdateRefreshSpin")
+												val rotation by spinTransition.animateFloat(
+													initialValue = 0f,
+													targetValue = 360f,
+													animationSpec = infiniteRepeatable(
+														animation = tween(durationMillis = 850, easing = LinearEasing),
+														repeatMode = RepeatMode.Restart
+													),
+													label = "SelfUpdateRotationAngle"
+												)
+												Icon(
+													painter = painterResource(R.drawable.ic_refresh),
+													contentDescription = null,
+													tint = MaterialTheme.colorScheme.primary,
+													modifier = Modifier
+														.size(15.dp)
+														.graphicsLayer { rotationZ = rotation }
+												)
+											}
+											2 -> {
+												Icon(
+													imageVector = Icons.Default.Check,
+													contentDescription = null,
+													tint = successGreen,
+													modifier = Modifier.size(16.dp)
+												)
+											}
+											3 -> {
+												Icon(
+													imageVector = Icons.Default.Warning,
+													contentDescription = null,
+													tint = MaterialTheme.colorScheme.error,
+													modifier = Modifier.size(15.dp)
+												)
+											}
+											else -> {
+												Icon(
+													painter = painterResource(R.drawable.ic_refresh),
+													contentDescription = null,
+													tint = MaterialTheme.colorScheme.primary,
+													modifier = Modifier.size(15.dp)
+												)
+											}
+										}
+									}
+								}
+								Column(
+									modifier = Modifier.weight(1f),
+									verticalArrangement = Arrangement.spacedBy(1.dp)
+								) {
 									Text(
-										text = stringResource(R.string.about_copyright),
-										style = MaterialTheme.typography.bodySmall,
-										fontWeight = FontWeight.Medium,
-										color = MaterialTheme.colorScheme.onSurface
+										text = when {
+											isCheckingSelfUpdate -> stringResource(R.string.self_update_bento_checking_title)
+											isUpToDateSelfUpdate -> stringResource(R.string.self_update_bento_uptodate_title)
+											isErrorSelfUpdate -> stringResource(R.string.self_update_bento_error_title)
+											else -> stringResource(R.string.self_update_bento_title)
+										},
+										style = MaterialTheme.typography.labelMedium,
+										fontWeight = FontWeight.SemiBold,
+										color = updateTitleColor,
+										maxLines = 1,
+										overflow = TextOverflow.Ellipsis
+									)
+									Text(
+										text = when {
+											isCheckingSelfUpdate -> stringResource(R.string.self_update_bento_checking_subtitle)
+											isUpToDateSelfUpdate -> stringResource(R.string.self_update_bento_uptodate_subtitle)
+											isErrorSelfUpdate -> stringResource(R.string.self_update_bento_error_subtitle)
+											else -> stringResource(R.string.self_update_bento_subtitle)
+										},
+										style = MaterialTheme.typography.labelSmall,
+										color = MaterialTheme.colorScheme.onSurfaceVariant,
+										maxLines = 1,
+										overflow = TextOverflow.Ellipsis
 									)
 								}
 							}
 						}
-						Text(
-							text = stringResource(R.string.about_tribute),
-							style = MaterialTheme.typography.bodySmall,
-							color = MaterialTheme.colorScheme.onSurfaceVariant,
-							textAlign = TextAlign.Center,
-							modifier = Modifier.padding(horizontal = 4.dp)
-						)
-					}
-				}
 
-				Surface(
-					onClick = { mainViewModel.checkForSelfUpdate(manual = true, context = context) },
-					modifier = Modifier
-						.fillMaxWidth()
-						.heightIn(min = 44.dp),
-					shape = RoundedCornerShape(20.dp),
-					color = MaterialTheme.colorScheme.surfaceContainerHigh,
-					border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
-				) {
-					Row(
-						modifier = Modifier
-							.fillMaxWidth()
-							.padding(horizontal = 14.dp, vertical = 10.dp),
-						verticalAlignment = CenterVertically,
-						horizontalArrangement = Arrangement.spacedBy(10.dp)
+						Surface(
+							onClick = { showChangelogSheet = true },
+							modifier = Modifier
+								.weight(1f)
+								.fillMaxHeight(),
+							shape = RoundedCornerShape(14.dp),
+							color = MaterialTheme.colorScheme.surfaceContainerHigh,
+							border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+						) {
+							Row(
+								modifier = Modifier
+									.fillMaxSize()
+									.padding(horizontal = 10.dp, vertical = 8.dp),
+								verticalAlignment = CenterVertically,
+								horizontalArrangement = Arrangement.spacedBy(8.dp)
+							) {
+								Box(
+									modifier = Modifier
+										.size(28.dp)
+										.clip(RoundedCornerShape(8.dp))
+										.background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.65f)),
+									contentAlignment = Alignment.Center
+								) {
+									Icon(
+										painter = painterResource(R.drawable.ic_changelog),
+										contentDescription = null,
+										tint = MaterialTheme.colorScheme.primary,
+										modifier = Modifier.size(15.dp)
+									)
+								}
+								Column(
+									modifier = Modifier.weight(1f),
+									verticalArrangement = Arrangement.spacedBy(1.dp)
+								) {
+									Text(
+										text = stringResource(R.string.changelog_bento_title),
+										style = MaterialTheme.typography.labelMedium,
+										fontWeight = FontWeight.SemiBold,
+										color = MaterialTheme.colorScheme.onSurface,
+										maxLines = 1,
+										overflow = TextOverflow.Ellipsis
+									)
+									Text(
+										text = stringResource(R.string.changelog_bento_subtitle),
+										style = MaterialTheme.typography.labelSmall,
+										color = MaterialTheme.colorScheme.onSurfaceVariant,
+										maxLines = 1,
+										overflow = TextOverflow.Ellipsis
+									)
+								}
+							}
+						}
+					}
+
+					// 3. Kompakte GitHub-Bento-Kachel
+					Surface(
+						onClick = { handler.openUri("https://github.com/DurchEins/apkup") },
+						modifier = Modifier.fillMaxWidth(),
+						shape = RoundedCornerShape(18.dp),
+						color = MaterialTheme.colorScheme.surfaceContainerHigh,
+						border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
 					) {
-						Icon(
-							painter = painterResource(R.drawable.ic_refresh),
-							contentDescription = null,
-							tint = MaterialTheme.colorScheme.primary,
-							modifier = Modifier.size(18.dp)
-						)
-						Column(modifier = Modifier.weight(1f)) {
-							Text(
-								text = stringResource(R.string.self_update_card_title),
-								style = MaterialTheme.typography.bodySmall,
-								fontWeight = FontWeight.SemiBold,
-								color = MaterialTheme.colorScheme.onSurface
-							)
-							Text(
-								text = stringResource(R.string.self_update_card_subtitle),
-								style = MaterialTheme.typography.labelSmall,
-								color = MaterialTheme.colorScheme.onSurfaceVariant
+						Row(
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(horizontal = 12.dp, vertical = 10.dp),
+							verticalAlignment = CenterVertically,
+							horizontalArrangement = Arrangement.spacedBy(10.dp)
+						) {
+							Box(
+								modifier = Modifier
+									.size(32.dp)
+									.clip(RoundedCornerShape(10.dp))
+									.background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.65f)),
+								contentAlignment = Alignment.Center
+							) {
+								Icon(
+									painter = painterResource(R.drawable.ic_github),
+									contentDescription = null,
+									tint = MaterialTheme.colorScheme.primary,
+									modifier = Modifier.size(16.dp)
+								)
+							}
+							Column(modifier = Modifier.weight(1f)) {
+								Text(
+									text = stringResource(R.string.about_github_title),
+									style = MaterialTheme.typography.labelLarge,
+									fontWeight = FontWeight.SemiBold,
+									color = MaterialTheme.colorScheme.onSurface,
+									maxLines = 1,
+									overflow = TextOverflow.Ellipsis
+								)
+								Text(
+									text = stringResource(R.string.about_github_bento_subtitle),
+									style = MaterialTheme.typography.labelSmall,
+									color = MaterialTheme.colorScheme.onSurfaceVariant,
+									maxLines = 1,
+									overflow = TextOverflow.Ellipsis
+								)
+							}
+							Icon(
+								painter = painterResource(R.drawable.ic_open_in_new),
+								contentDescription = null,
+								tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
+								modifier = Modifier.size(15.dp)
 							)
 						}
-						Icon(
-							painter = painterResource(R.drawable.ic_info),
-							contentDescription = null,
-							tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
-							modifier = Modifier.size(16.dp)
-						)
 					}
-				}
 
-				Surface(
-					onClick = { showChangelogSheet = true },
-					modifier = Modifier
-						.fillMaxWidth()
-						.heightIn(min = 44.dp),
-					shape = RoundedCornerShape(20.dp),
-					color = MaterialTheme.colorScheme.surfaceContainerHigh,
-					border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
-				) {
+					// 4. Dezenter rahmenloser Footer-Link für das rumboalla-Originalprojekt
 					Row(
 						modifier = Modifier
 							.fillMaxWidth()
-							.padding(horizontal = 14.dp, vertical = 10.dp),
+							.clip(RoundedCornerShape(10.dp))
+							.clickable { handler.openUri("https://github.com/rumboalla/apkupdater") }
+							.padding(horizontal = 8.dp, vertical = 6.dp),
 						verticalAlignment = CenterVertically,
-						horizontalArrangement = Arrangement.spacedBy(10.dp)
-					) {
-						Icon(
-							painter = painterResource(R.drawable.ic_changelog),
-							contentDescription = null,
-							tint = MaterialTheme.colorScheme.primary,
-							modifier = Modifier.size(18.dp)
-						)
-						Column(modifier = Modifier.weight(1f)) {
-							Text(
-								text = stringResource(R.string.changelog_menu_item),
-								style = MaterialTheme.typography.bodySmall,
-								fontWeight = FontWeight.SemiBold,
-								color = MaterialTheme.colorScheme.onSurface
-							)
-							Text(
-								text = stringResource(R.string.changelog_menu_subtitle),
-								style = MaterialTheme.typography.labelSmall,
-								color = MaterialTheme.colorScheme.onSurfaceVariant
-							)
-						}
-						Icon(
-							painter = painterResource(R.drawable.ic_info),
-							contentDescription = null,
-							tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
-							modifier = Modifier.size(16.dp)
-						)
-					}
-				}
-
-				Surface(
-					onClick = { handler.openUri("https://github.com/DurchEins/apkup") },
-					modifier = Modifier
-						.fillMaxWidth()
-						.heightIn(min = 44.dp),
-					shape = RoundedCornerShape(20.dp),
-					color = MaterialTheme.colorScheme.surfaceContainerHigh,
-					border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
-				) {
-					Row(
-						modifier = Modifier
-							.fillMaxWidth()
-							.padding(horizontal = 14.dp, vertical = 10.dp),
-						verticalAlignment = CenterVertically,
-						horizontalArrangement = Arrangement.spacedBy(10.dp)
+						horizontalArrangement = Arrangement.Center
 					) {
 						Icon(
 							painter = painterResource(R.drawable.ic_github),
 							contentDescription = null,
-							tint = MaterialTheme.colorScheme.primary,
-							modifier = Modifier.size(18.dp)
+							tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+							modifier = Modifier.size(12.dp)
 						)
-						Text(
-							text = stringResource(R.string.about_github_title),
-							style = MaterialTheme.typography.bodySmall,
-							fontWeight = FontWeight.SemiBold,
-							color = MaterialTheme.colorScheme.onSurface,
-							modifier = Modifier.weight(1f)
-						)
-						Icon(
-							painter = painterResource(R.drawable.ic_open_in_new),
-							contentDescription = null,
-							tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
-							modifier = Modifier.size(16.dp)
-						)
-					}
-				}
-
-				Surface(
-					onClick = { handler.openUri("https://github.com/rumboalla/apkupdater") },
-					modifier = Modifier
-						.fillMaxWidth()
-						.heightIn(min = 44.dp),
-					shape = RoundedCornerShape(20.dp),
-					color = MaterialTheme.colorScheme.surfaceContainerHigh,
-					border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
-				) {
-					Row(
-						modifier = Modifier
-							.fillMaxWidth()
-							.padding(horizontal = 14.dp, vertical = 10.dp),
-						verticalAlignment = CenterVertically,
-						horizontalArrangement = Arrangement.spacedBy(10.dp)
-					) {
-						Icon(
-							painter = painterResource(R.drawable.ic_github),
-							contentDescription = null,
-							tint = MaterialTheme.colorScheme.primary,
-							modifier = Modifier.size(18.dp)
-						)
+						Spacer(modifier = Modifier.width(6.dp))
 						Text(
 							text = stringResource(R.string.about_original_project),
-							style = MaterialTheme.typography.bodySmall,
-							color = MaterialTheme.colorScheme.onSurfaceVariant,
-							modifier = Modifier.weight(1f)
+							style = MaterialTheme.typography.labelSmall,
+							color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f),
+							textAlign = TextAlign.Center
 						)
+						Spacer(modifier = Modifier.width(4.dp))
 						Icon(
 							painter = painterResource(R.drawable.ic_open_in_new),
 							contentDescription = null,
-							tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
-							modifier = Modifier.size(16.dp)
+							tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
+							modifier = Modifier.size(11.dp)
 						)
 					}
 				}
-			}
 
 				// Easter-Egg: Im Ruhezustand unsichtbar (0.dp, alpha = 0f), fährt erst per Overscroll-Pull direkt unter der "Über"-Karte aus
 				val revealHeight = (72.dp * pullProgress)
@@ -1292,6 +1450,8 @@ fun Settings(
 			placeholder = stringResource(R.string.github_token_dialog_hint),
 			initialToken = viewModel.getGitHubToken(),
 			onDismiss = { showGitHubTokenDialog = false },
+			onVerifyToken = { raw -> viewModel.validateGitHubToken(raw) },
+			onVerifiedMessage = { msg -> viewModel.notifyTextSnack(msg) },
 			onSaveToken = { token ->
 				viewModel.setGitHubToken(token)
 				configRefreshKey++
@@ -1306,8 +1466,24 @@ fun Settings(
 			placeholder = stringResource(R.string.gitlab_token_dialog_hint),
 			initialToken = viewModel.getGitLabToken(),
 			onDismiss = { showGitLabTokenDialog = false },
+			onVerifyToken = { raw -> viewModel.validateGitLabToken(raw) },
+			onVerifiedMessage = { msg -> viewModel.notifyTextSnack(msg) },
 			onSaveToken = { token ->
 				viewModel.setGitLabToken(token)
+				configRefreshKey++
+			}
+		)
+	}
+
+	if (showVirusTotalKeyDialog) {
+		ApiTokenDialog(
+			title = stringResource(R.string.settings_virustotal_api_key),
+			description = stringResource(R.string.settings_virustotal_description),
+			placeholder = "API Key",
+			initialToken = viewModel.getVirusTotalApiKey(),
+			onDismiss = { showVirusTotalKeyDialog = false },
+			onSaveToken = { key ->
+				viewModel.setVirusTotalApiKey(key)
 				configRefreshKey++
 			}
 		)
@@ -1321,17 +1497,51 @@ private fun ApiTokenDialog(
 	placeholder: String,
 	initialToken: String,
 	onDismiss: () -> Unit,
+	onVerifyToken: (suspend (String) -> TokenValidationResult)? = null,
+	onVerifiedMessage: ((String) -> Unit)? = null,
 	onSaveToken: (String) -> Unit
 ) {
+	val context = LocalContext.current
+	val coroutineScope = rememberCoroutineScope()
 	var tokenText by remember { mutableStateOf(initialToken) }
 	var isTokenVisible by remember { mutableStateOf(false) }
+	var isVerifying by remember { mutableStateOf(false) }
+	var isSaving by remember { mutableStateOf(false) }
+	var validationResult by remember { mutableStateOf<TokenValidationResult?>(null) }
+	var validatedTokenValue by remember { mutableStateOf<String?>(null) }
+
+	fun formatValidationMessage(result: TokenValidationResult): String {
+		return when (result) {
+			is TokenValidationResult.Valid -> {
+				if (!result.rateLimitRemaining.isNullOrBlank() && !result.rateLimitTotal.isNullOrBlank()) {
+					context.getString(
+						R.string.token_validation_valid_with_limit,
+						result.username,
+						result.rateLimitRemaining,
+						result.rateLimitTotal
+					)
+				} else {
+					context.getString(R.string.token_validation_valid_user, result.username)
+				}
+			}
+			is TokenValidationResult.Invalid -> {
+				context.getString(R.string.token_validation_invalid, result.httpCode)
+			}
+			is TokenValidationResult.Error -> {
+				context.getString(R.string.token_validation_error, result.message)
+			}
+		}
+	}
+
 	AlertDialog(
-		onDismissRequest = onDismiss,
+		onDismissRequest = {
+			if (!isSaving) onDismiss()
+		},
 		shape = RoundedCornerShape(28.dp),
 		containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
 		title = { Text(title) },
 		text = {
-			Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+			Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
 				Text(
 					text = description,
 					style = MaterialTheme.typography.bodyMedium,
@@ -1339,7 +1549,12 @@ private fun ApiTokenDialog(
 				)
 				OutlinedTextField(
 					value = tokenText,
-					onValueChange = { tokenText = it },
+					onValueChange = {
+						tokenText = it
+						if (it.trim() != validatedTokenValue) {
+							validationResult = null
+						}
+					},
 					label = { Text("Token") },
 					placeholder = { Text(placeholder) },
 					singleLine = true,
@@ -1360,33 +1575,162 @@ private fun ApiTokenDialog(
 					},
 					modifier = Modifier.fillMaxWidth()
 				)
+
+				if (onVerifyToken != null) {
+					OutlinedButton(
+						onClick = {
+							val trimmed = tokenText.trim()
+							if (trimmed.isNotEmpty() && !isVerifying && !isSaving) {
+								isVerifying = true
+								coroutineScope.launch {
+									val res = onVerifyToken(trimmed)
+									validationResult = res
+									validatedTokenValue = trimmed
+									isVerifying = false
+								}
+							}
+						},
+						enabled = tokenText.isNotBlank() && !isVerifying && !isSaving,
+						modifier = Modifier.fillMaxWidth(),
+						shape = CircleShape
+					) {
+						if (isVerifying) {
+							CircularProgressIndicator(
+								modifier = Modifier.size(16.dp),
+								strokeWidth = 2.dp
+							)
+							Spacer(modifier = Modifier.width(8.dp))
+							Text(stringResource(R.string.token_validation_checking))
+						} else {
+							Icon(
+								imageVector = Icons.Default.Check,
+								contentDescription = null,
+								modifier = Modifier.size(16.dp)
+							)
+							Spacer(modifier = Modifier.width(6.dp))
+							Text(stringResource(R.string.token_dialog_verify_button))
+						}
+					}
+				}
+
+				val currentResult = validationResult
+				if (currentResult != null) {
+					val bannerBg = when (currentResult) {
+						is TokenValidationResult.Valid -> MaterialTheme.colorScheme.primaryContainer
+						is TokenValidationResult.Invalid -> MaterialTheme.colorScheme.errorContainer
+						is TokenValidationResult.Error -> MaterialTheme.colorScheme.surfaceContainerHighest
+					}
+					val bannerFg = when (currentResult) {
+						is TokenValidationResult.Valid -> MaterialTheme.colorScheme.onPrimaryContainer
+						is TokenValidationResult.Invalid -> MaterialTheme.colorScheme.onErrorContainer
+						is TokenValidationResult.Error -> MaterialTheme.colorScheme.onSurfaceVariant
+					}
+					val bannerIcon = when (currentResult) {
+						is TokenValidationResult.Valid -> Icons.Default.Check
+						is TokenValidationResult.Invalid -> Icons.Default.Warning
+						is TokenValidationResult.Error -> Icons.Default.Info
+					}
+					Surface(
+						modifier = Modifier.fillMaxWidth(),
+						shape = RoundedCornerShape(14.dp),
+						color = bannerBg
+					) {
+						Row(
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(horizontal = 12.dp, vertical = 10.dp),
+							verticalAlignment = CenterVertically,
+							horizontalArrangement = Arrangement.spacedBy(8.dp)
+						) {
+							Icon(
+								imageVector = bannerIcon,
+								contentDescription = null,
+								tint = bannerFg,
+								modifier = Modifier.size(18.dp)
+							)
+							Text(
+								text = formatValidationMessage(currentResult),
+								style = MaterialTheme.typography.bodySmall,
+								fontWeight = FontWeight.Medium,
+								color = bannerFg
+							)
+						}
+					}
+				}
 			}
 		},
 		confirmButton = {
 			Button(
 				onClick = {
-					onSaveToken(tokenText)
-					onDismiss()
+					val trimmed = tokenText.trim()
+					if (trimmed.isEmpty() || onVerifyToken == null) {
+						onSaveToken(trimmed)
+						onDismiss()
+					} else if (validatedTokenValue == trimmed && validationResult != null) {
+						// Token wurde im Dialog bereits für exakt diesen Wert geprüft -> direkt speichern
+						onSaveToken(trimmed)
+						validationResult?.let { res ->
+							onVerifiedMessage?.invoke(formatValidationMessage(res))
+						}
+						onDismiss()
+					} else if (!isSaving && !isVerifying) {
+						isSaving = true
+						coroutineScope.launch {
+							val res = onVerifyToken(trimmed)
+							validationResult = res
+							validatedTokenValue = trimmed
+							isSaving = false
+							when (res) {
+								is TokenValidationResult.Valid,
+								is TokenValidationResult.Error -> {
+									onSaveToken(trimmed)
+									onVerifiedMessage?.invoke(formatValidationMessage(res))
+									onDismiss()
+								}
+								is TokenValidationResult.Invalid -> {
+									// Bei ungültigem Token bleibt der Dialog beim ersten Klick geöffnet,
+									// damit der Nutzer die Fehlermeldung sofort sieht und korrigieren kann.
+								}
+							}
+						}
+					}
 				},
+				enabled = !isSaving && !isVerifying,
 				shape = CircleShape
 			) {
-				Text(stringResource(R.string.github_token_dialog_save))
+				if (isSaving) {
+					CircularProgressIndicator(
+						modifier = Modifier.size(16.dp),
+						strokeWidth = 2.dp,
+						color = MaterialTheme.colorScheme.onPrimary
+					)
+					Spacer(modifier = Modifier.width(8.dp))
+					Text(stringResource(R.string.token_validation_checking))
+				} else {
+					Text(stringResource(R.string.github_token_dialog_save))
+				}
 			}
 		},
 		dismissButton = {
 			Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
 				if (initialToken.isNotEmpty()) {
-					TextButton(onClick = {
-						onSaveToken("")
-						onDismiss()
-					}) {
+					TextButton(
+						onClick = {
+							onSaveToken("")
+							onDismiss()
+						},
+						enabled = !isSaving && !isVerifying
+					) {
 						Text(
 							stringResource(R.string.github_token_dialog_clear),
 							color = MaterialTheme.colorScheme.error
 						)
 					}
 				}
-				TextButton(onClick = onDismiss) {
+				TextButton(
+					onClick = onDismiss,
+					enabled = !isSaving && !isVerifying
+				) {
 					Text(stringResource(android.R.string.cancel))
 				}
 			}

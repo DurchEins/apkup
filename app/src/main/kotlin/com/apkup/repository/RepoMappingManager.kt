@@ -1,5 +1,10 @@
 package com.apkup.repository
 
+/**
+ * Central manager for tracking which installed application is mapped to which update source
+ * (e.g., GitHub, ApkMirror, Play Store). It persists these mappings and provides the logic
+ * to determine the correct repository to query when checking a specific app for updates.
+ */
 import android.content.Context
 import android.util.Log
 import com.apkup.data.repomapping.RepoBinding

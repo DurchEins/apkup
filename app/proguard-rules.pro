@@ -24,6 +24,7 @@
 -keep class com.apkup.data.izzy.** { *; }
 -keep class com.apkup.data.selfupdate.** { *; }
 -keep class com.apkup.data.repomapping.** { *; }
+-keep class com.apkup.repository.KnownRepoEntry { *; }
 
 # Shizuku
 -keep class rikka.shizuku.** { *; }

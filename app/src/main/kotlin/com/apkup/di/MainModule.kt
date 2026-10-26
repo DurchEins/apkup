@@ -146,6 +146,6 @@ val mainModule = module {
 		)
 	}
 
-	viewModel { SettingsViewModel(get(), get(), WorkManager.getInstance(get()), get(), get(), get(), get(), get()) }
+	viewModel { SettingsViewModel(get(), get(), WorkManager.getInstance(get()), get(), get(), get(), get(), get(), get()) }
 
 }

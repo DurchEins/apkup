@@ -46,9 +46,15 @@ class Downloader(
             }
         }
 
-        fun getReadyStagingFiles(cacheDir: File, updateId: Int, versionCode: Long): List<File>? {
+        fun getReadyStagingFiles(baseDir: File, updateId: Int, versionCode: Long): List<File>? {
             return runCatching {
-                val stagingDir = File(cacheDir, "download_staging_$updateId")
+                val directStaging = File(baseDir, "download_staging_$updateId")
+                val persistentStaging = File(File(baseDir, "downloads"), "download_staging_$updateId")
+                val stagingDir = when {
+                    directStaging.exists() -> directStaging
+                    persistentStaging.exists() -> persistentStaging
+                    else -> directStaging
+                }
                 if (!stagingDir.exists() || !stagingDir.isDirectory) return@runCatching null
 
                 val marker = File(stagingDir, READY_MARKER_FILE)
@@ -75,7 +81,10 @@ class Downloader(
 
                 val apkFiles = stagingDir.listFiles { file ->
                     file.isFile && file.extension.equals("apk", ignoreCase = true) && file.length() > 0L
-                }?.toList().orEmpty()
+                }?.sortedWith(
+                    compareByDescending<File> { it.name.equals("base.apk", ignoreCase = true) }
+                        .thenBy { it.name }
+                ).orEmpty()
 
                 if (apkFiles.isEmpty()) {
                     stagingDir.deleteRecursively()
@@ -186,6 +195,7 @@ class Downloader(
         url: String,
         targetFile: File,
         callTag: String? = null,
+        onContentLength: ((contentLength: Long) -> Unit)? = null,
         onBytesRead: ((bytesReadInChunk: Int) -> Unit)? = null
     ): Boolean = withContext(Dispatchers.IO) {
         var call: Call? = null
@@ -214,6 +224,10 @@ class Downloader(
             }
 
             val body = response.body
+            val contentLength = body.contentLength()
+            if (contentLength > 0L) {
+                onContentLength?.invoke(contentLength)
+            }
             val bodyStream = body.byteStream()
             val stream = wrapStreamIfGzip(bodyStream)
             targetFile.parentFile?.mkdirs()

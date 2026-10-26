@@ -39,6 +39,11 @@ object ApkmExtractor {
 
         return runCatching {
             ZipFile(file).use { zip ->
+                // A standalone Android APK always has AndroidManifest.xml at its archive root.
+                // An APKM/APKS bundle archive does NOT have AndroidManifest.xml at root; instead it contains base.apk and split .apk entries.
+                if (zip.getEntry("AndroidManifest.xml") != null) {
+                    return@use false
+                }
                 zip.entries().asSequence().any { entry ->
                     !entry.isDirectory && entry.name.endsWith(".apk", ignoreCase = true)
                 }

@@ -1,5 +1,10 @@
 package com.apkup.worker
 
+/**
+ * A periodic WorkManager background job that checks for updates of installed apps.
+ * It silently connects to the configured repositories (GitHub, Play Store, etc.) in the background,
+ * compares versions, and triggers a system notification if new updates are available.
+ */
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy

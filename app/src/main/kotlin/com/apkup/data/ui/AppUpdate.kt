@@ -86,7 +86,9 @@ internal fun cleanChangelogText(raw: String?): String {
 		.joinToString("\n")
 }
 
-fun List<AppUpdate>.indexOf(id: Int) = indexOfFirst { it.id == id }
+fun List<AppUpdate>.indexOf(id: Int) = indexOfFirst {
+	it.id == id || it.alternativeUpdates.any { alt -> alt.id == id }
+}
 
 fun MutableList<AppUpdate>.setIsInstalling(id: Int, b: Boolean): List<AppUpdate> {
 	val index = this.indexOf(id)

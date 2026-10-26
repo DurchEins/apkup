@@ -42,12 +42,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.sp
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextOverflow
@@ -437,5 +443,45 @@ private fun Context.openUrl(url: String) {
 		}
 		startActivity(intent)
 	}
+}
+
+@Composable
+fun AutoResizeText(
+	text: String,
+	modifier: Modifier = Modifier,
+	style: TextStyle = LocalTextStyle.current,
+	color: Color = style.color,
+	maxLines: Int = 1,
+	minFontSize: TextUnit = 8.sp,
+	fontWeight: FontWeight? = null
+) {
+	var scaledTextStyle by remember(text, style) { mutableStateOf(style) }
+	var readyToDraw by remember(text, style) { mutableStateOf(false) }
+
+	Text(
+		text = text,
+		modifier = modifier.drawWithContent {
+			if (readyToDraw) drawContent()
+		},
+		style = scaledTextStyle,
+		color = color,
+		maxLines = maxLines,
+		fontWeight = fontWeight,
+		softWrap = false,
+		onTextLayout = { textLayoutResult ->
+			if (textLayoutResult.didOverflowWidth || textLayoutResult.didOverflowHeight) {
+				val currentFontSize = scaledTextStyle.fontSize
+				if (currentFontSize > minFontSize) {
+					scaledTextStyle = scaledTextStyle.copy(
+						fontSize = (currentFontSize.value - 1f).sp
+					)
+				} else {
+					readyToDraw = true
+				}
+			} else {
+				readyToDraw = true
+			}
+		}
+	)
 }
 

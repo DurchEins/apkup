@@ -37,6 +37,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
@@ -47,6 +50,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.TextButton
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.material3.Text
@@ -198,8 +202,7 @@ fun MainScreen(
 
 	AppTheme(theme) {
 		Scaffold(
-			containerColor = MaterialTheme.colorScheme.background,
-			snackbarHost = { SnackbarHost(snackBarHostState) }
+			containerColor = MaterialTheme.colorScheme.background
 		) { padding ->
 			Box(
 				modifier = Modifier
@@ -222,6 +225,15 @@ fun MainScreen(
 				) {
 					NavHost(navController, PaddingValues(0.dp), mainViewModel, appsViewModel, updatesViewModel, settingsViewModel)
 				}
+
+				ApkUpSnackbarHost(
+					hostState = snackBarHostState,
+					modifier = Modifier
+						.align(Alignment.BottomCenter)
+						.navigationBarsPadding()
+						.padding(bottom = 92.dp, start = 20.dp, end = 20.dp)
+						.widthIn(max = 420.dp)
+				)
 
 				FloatingCapsuleDock(
 					mainViewModel = mainViewModel,
@@ -281,6 +293,69 @@ fun handleSnackBar(): SnackbarHostState {
 		snackBarHostState.showSnackbar(it)
 	}
 	return snackBarHostState
+}
+
+@Composable
+fun ApkUpSnackbarHost(
+	hostState: SnackbarHostState,
+	modifier: Modifier = Modifier
+) {
+	SnackbarHost(
+		hostState = hostState,
+		modifier = modifier
+	) { snackbarData ->
+		Surface(
+			modifier = Modifier.fillMaxWidth(),
+			shape = RoundedCornerShape(20.dp),
+			color = MaterialTheme.colorScheme.surfaceContainerHigh,
+			tonalElevation = 6.dp,
+			shadowElevation = 10.dp,
+			border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f))
+		) {
+			Row(
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(horizontal = 14.dp, vertical = 12.dp),
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(12.dp)
+			) {
+				Box(
+					modifier = Modifier
+						.size(32.dp)
+						.clip(CircleShape)
+						.background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f)),
+					contentAlignment = Alignment.Center
+				) {
+					Icon(
+						imageVector = Icons.Default.Info,
+						contentDescription = null,
+						tint = MaterialTheme.colorScheme.primary,
+						modifier = Modifier.size(18.dp)
+					)
+				}
+				Text(
+					text = snackbarData.visuals.message,
+					style = MaterialTheme.typography.bodyMedium,
+					fontWeight = FontWeight.Medium,
+					color = MaterialTheme.colorScheme.onSurface,
+					modifier = Modifier.weight(1f),
+					maxLines = 3,
+					overflow = TextOverflow.Ellipsis
+				)
+				val actionLabel = snackbarData.visuals.actionLabel
+				if (!actionLabel.isNullOrBlank()) {
+					TextButton(onClick = { snackbarData.performAction() }) {
+						Text(
+							text = actionLabel,
+							style = MaterialTheme.typography.labelLarge,
+							fontWeight = FontWeight.Bold,
+							color = MaterialTheme.colorScheme.primary
+						)
+					}
+				}
+			}
+		}
+	}
 }
 
 @Composable
@@ -493,7 +568,7 @@ fun NavHost(
 	popEnterTransition = { fadeIn(animationSpec = tween(150)) },
 	popExitTransition = { fadeOut(animationSpec = tween(150)) }
 ) {
-	composable(Screen.Apps.route) { AppsScreen(appsViewModel) }
-	composable(Screen.Updates.route) { UpdatesScreen(updatesViewModel) }
+	composable(Screen.Apps.route) { AppsScreen(appsViewModel, updatesViewModel) }
+	composable(Screen.Updates.route) { UpdatesScreen(updatesViewModel, appsViewModel) }
 	composable(Screen.Settings.route) { SettingsScreen(settingsViewModel, appsViewModel, updatesViewModel, mainViewModel) }
 }

@@ -338,11 +338,14 @@ class ApkMirrorResolver(
                     ?: return Step1Result.Failure(IOException("Failed to locate download button on variant page"))
 
                 val intermediateUrl = canonicalizeUrl(intermediateHref, variantUrl)
-                val isApkmCandidate = body.contains("APK Bundle", ignoreCase = true) ||
-                    variantUrl.contains("apk-bundle", ignoreCase = true) ||
+                val isApkmCandidate = variantUrl.contains("apk-bundle", ignoreCase = true) ||
                     variantUrl.contains("bundle-download", ignoreCase = true) ||
-                    body.contains("app-bundle", ignoreCase = true) ||
-                    body.contains("badge-bundle", ignoreCase = true)
+                    intermediateUrl.contains("apk-bundle", ignoreCase = true) ||
+                    intermediateUrl.contains("bundle-download", ignoreCase = true) ||
+                    Regex(
+                        """<a\b[^>]*\bdownloadButton\b[^>]*>[\s\S]*?Download\s+APK\s+Bundle[\s\S]*?</a>""",
+                        RegexOption.IGNORE_CASE
+                    ).containsMatchIn(body)
 
                 return Step1Result.Success(intermediateUrl, isApkmCandidate)
             }

@@ -88,20 +88,20 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun AppsScreen(
-	viewModel: AppsViewModel = koinViewModel()
+	viewModel: AppsViewModel = koinViewModel(),
+	updatesViewModel: UpdatesViewModel = koinViewModel()
 ) {
 	viewModel.state().collectAsStateWithLifecycle().value.onLoading {
 		AppsScreenLoading()
 	}.onError {
 		AppsScreenError()
 	}.onSuccess {
-		AppsScreenSuccess(viewModel, it)
+		AppsScreenSuccess(viewModel, updatesViewModel, it)
 	}
 }
 
 @Composable
-fun AppsScreenSuccess(viewModel: AppsViewModel, state: AppsUiState.Success) = Column(Modifier.fillMaxSize()) {
-	val updatesViewModel: UpdatesViewModel = koinViewModel()
+fun AppsScreenSuccess(viewModel: AppsViewModel, updatesViewModel: UpdatesViewModel, state: AppsUiState.Success) = Column(Modifier.fillMaxSize()) {
 	val searchQuery by viewModel.searchQuery().collectAsStateWithLifecycle()
 	val quickFilter by viewModel.quickFilter().collectAsStateWithLifecycle()
 	var searchExpanded by rememberSaveable { mutableStateOf(false) }

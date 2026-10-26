@@ -26,6 +26,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -98,23 +99,68 @@ fun SelfUpdateDialog(
                         }
 
                         if (info.releaseNotes.isNotBlank()) {
+                            val entries = remember(info.releaseNotes) {
+                                parseChangelogMarkdown(info.releaseNotes)
+                            }
                             Surface(
-                                shape = RoundedCornerShape(12.dp),
+                                shape = RoundedCornerShape(16.dp),
                                 color = MaterialTheme.colorScheme.surfaceContainerLow,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .heightIn(max = 160.dp)
+                                    .heightIn(max = 240.dp)
                             ) {
                                 Column(
                                     modifier = Modifier
                                         .padding(12.dp)
-                                        .verticalScroll(rememberScrollState())
+                                        .verticalScroll(rememberScrollState()),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    Text(
-                                        text = info.releaseNotes.trim(),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+                                    if (entries.isNotEmpty()) {
+                                        entries.forEach { entry ->
+                                            Surface(
+                                                shape = RoundedCornerShape(12.dp),
+                                                color = MaterialTheme.colorScheme.surfaceContainer,
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier.padding(10.dp),
+                                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                                    verticalAlignment = Alignment.Top
+                                                ) {
+                                                    Text(
+                                                        text = entry.icon,
+                                                        style = MaterialTheme.typography.titleSmall
+                                                    )
+                                                    Column(
+                                                        modifier = Modifier.weight(1f),
+                                                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                                                    ) {
+                                                        if (entry.title.isNotBlank()) {
+                                                            Text(
+                                                                text = entry.title,
+                                                                style = MaterialTheme.typography.bodyMedium,
+                                                                fontWeight = FontWeight.Bold,
+                                                                color = MaterialTheme.colorScheme.onSurface
+                                                            )
+                                                        }
+                                                        if (entry.description.isNotBlank()) {
+                                                            Text(
+                                                                text = entry.description,
+                                                                style = MaterialTheme.typography.bodySmall,
+                                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        Text(
+                                            text = info.releaseNotes.trim(),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
                                 }
                             }
                         }

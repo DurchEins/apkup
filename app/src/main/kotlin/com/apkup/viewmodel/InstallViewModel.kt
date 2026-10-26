@@ -61,9 +61,11 @@ abstract class InstallViewModel(
             finishInstall(it.id).join()
         } else {
             installLog.emitProgress(AppInstallProgress(it.id, 0L))
-            cancelInstall(it.id).join()
+            onInstallFailed(it.id).join()
         }
     }.launchIn(viewModelScope)
+
+    protected open fun onInstallFailed(id: Int): Job = cancelInstall(id)
 
     protected fun subscribeToInstallProgress(
         block: (AppInstallProgress) -> Unit

@@ -130,7 +130,10 @@ import java.util.Locale
 
 
 @Composable
-fun UpdatesScreen(viewModel: UpdatesViewModel) {
+fun UpdatesScreen(
+	viewModel: UpdatesViewModel,
+	appsViewModel: AppsViewModel = koinViewModel()
+) {
 	viewModel.state().collectAsStateWithLifecycle().value.onLoading {
 		UpdatesScreenLoading(viewModel)
 	}.onError {
@@ -138,6 +141,7 @@ fun UpdatesScreen(viewModel: UpdatesViewModel) {
 	}.onSuccess {
 		UpdatesScreenSuccess(
 			viewModel = viewModel,
+			appsViewModel = appsViewModel,
 			updates = it.updates,
 			hasSourceErrors = it.hasSourceErrors,
 			isChecking = it.isChecking,
@@ -248,6 +252,7 @@ fun UpdatesScreenError(viewModel: UpdatesViewModel) = Column(Modifier.fillMaxSiz
 @Composable
 fun UpdatesScreenSuccess(
 	viewModel: UpdatesViewModel,
+	appsViewModel: AppsViewModel = koinViewModel(),
 	updates: List<AppUpdate>,
 	hasSourceErrors: Boolean = false,
 	isChecking: Boolean = false,
@@ -365,8 +370,8 @@ fun UpdatesScreenSuccess(
 	if (hasSourceErrors && updates.isNotEmpty()) {
 		val errorEntries = remember(sourceErrors) { sourceErrors.entries.toList() }
 		if (errorEntries.size <= 1) {
-			val singleSourceKey = errorEntries.firstOrNull()?.key
-			val wikiUrl = resolveWikiUrlForSourceError(singleSourceKey)
+			val singleEntry = errorEntries.firstOrNull()
+			val wikiUrl = resolveWikiUrlForSourceError(singleEntry?.key, singleEntry?.value)
 			val bannerText = formatSourceErrorBanner(
 				sourceErrors = sourceErrors,
 				activeSources = activeSources,
@@ -416,7 +421,7 @@ fun UpdatesScreenSuccess(
 				modifier = Modifier.fillMaxWidth()
 			) { page ->
 				val entry = errorEntries[page]
-				val wikiUrl = resolveWikiUrlForSourceError(entry.key)
+				val wikiUrl = resolveWikiUrlForSourceError(entry.key, entry.value)
 				val singleBannerText = formatSourceErrorBanner(
 					sourceErrors = mapOf(entry.key to entry.value),
 					activeSources = activeSources,
@@ -492,8 +497,8 @@ fun UpdatesScreenSuccess(
 			icon = Icons.Filled.Info,
 			actionLabel = stringResource(R.string.error_banner_wiki_help),
 			onAction = {
-				val firstSource = sourceErrors.keys.firstOrNull()
-				handler.openUri(resolveWikiUrlForSourceError(firstSource))
+				val firstEntry = sourceErrors.entries.firstOrNull()
+				handler.openUri(resolveWikiUrlForSourceError(firstEntry?.key, firstEntry?.value))
 			},
 			modifier = Modifier.weight(1f)
 		)
@@ -512,6 +517,7 @@ fun UpdatesScreenSuccess(
 		)
 		displayMode == 1 -> CompactUpdatesGrid(
 			viewModel = viewModel,
+			appsViewModel = appsViewModel,
 			updates = displayedUpdates,
 			activeTasksMap = activeTasksMap,
 			readyUpdateIds = readyUpdateIds,
@@ -521,6 +527,7 @@ fun UpdatesScreenSuccess(
 		)
 		else -> UpdatesList(
 			viewModel = viewModel,
+			appsViewModel = appsViewModel,
 			updates = displayedUpdates,
 			activeTasksMap = activeTasksMap,
 			readyUpdateIds = readyUpdateIds,
@@ -598,6 +605,9 @@ private fun UpdatesHeroBanner(
 			currentTask.total > 0L && currentTask.progress > 0L -> {
 				val pct = ((currentTask.progress * 100) / currentTask.total).toInt().coerceIn(0, 100)
 				"$currentAppName • $pct% (${formatSizeMegabytes(currentTask.progress)} / ${formatSizeMegabytes(currentTask.total)})"
+			}
+			currentTask.progress > 0L -> {
+				"$currentAppName • ${formatSizeMegabytes(currentTask.progress)}"
 			}
 			else -> stringResource(R.string.queue_banner_subtitle_tap, currentAppName)
 		}
@@ -1326,6 +1336,7 @@ private fun UpdateCheckProgressBar(
 @Composable
 private fun UpdatesList(
 	viewModel: UpdatesViewModel,
+	appsViewModel: AppsViewModel = koinViewModel(),
 	updates: List<AppUpdate>,
 	activeTasksMap: Map<Int, DownloadTaskState> = emptyMap(),
 	readyUpdateIds: Set<Int> = emptySet(),
@@ -1333,7 +1344,6 @@ private fun UpdatesList(
 	modifier: Modifier,
 	onBeforeInstall: () -> Unit = {}
 ) {
-	val appsViewModel: AppsViewModel = koinViewModel()
 	var selectedPackageName by remember { mutableStateOf<String?>(null) }
 	val selectedUpdate = updates.find { it.packageName == selectedPackageName }
 
@@ -1354,7 +1364,7 @@ private fun UpdatesList(
 			gridItems(items = updates, key = { it.id }) { update ->
 				val liveTask = activeTasksMap[update.id]
 					?: activeTasksMap.values.firstOrNull { it.packageName == update.packageName }
-				val isCachedReady = update.id in readyUpdateIds
+				val isCachedReady = update.id in readyUpdateIds || update.alternativeUpdates.any { it.id in readyUpdateIds }
 				UpdateCard(
 					update = update,
 					liveTask = liveTask,
@@ -1372,7 +1382,8 @@ private fun UpdatesList(
 	selectedUpdate?.let { update ->
 		UpdateDetailsSheet(
 			update = update,
-			isCachedReady = update.id in readyUpdateIds,
+			isCachedReady = update.id in readyUpdateIds || update.alternativeUpdates.any { it.id in readyUpdateIds },
+			readyUpdateIds = readyUpdateIds,
 			onDismiss = { selectedPackageName = null },
 			onInstallVariant = { chosen ->
 				onBeforeInstall()
@@ -1628,6 +1639,7 @@ private fun UpdateCard(
 @Composable
 private fun CompactUpdatesGrid(
 	viewModel: UpdatesViewModel,
+	appsViewModel: AppsViewModel = koinViewModel(),
 	updates: List<AppUpdate>,
 	activeTasksMap: Map<Int, DownloadTaskState> = emptyMap(),
 	readyUpdateIds: Set<Int> = emptySet(),
@@ -1635,7 +1647,6 @@ private fun CompactUpdatesGrid(
 	modifier: Modifier,
 	onBeforeInstall: () -> Unit = {}
 ) {
-	val appsViewModel: AppsViewModel = koinViewModel()
 	var selectedPackageName by remember { mutableStateOf<String?>(null) }
 	val selectedUpdate = updates.find { it.packageName == selectedPackageName }
 
@@ -1824,7 +1835,8 @@ private fun CompactUpdatesGrid(
 	selectedUpdate?.let { update ->
 		UpdateDetailsSheet(
 			update = update,
-			isCachedReady = update.id in readyUpdateIds,
+			isCachedReady = update.id in readyUpdateIds || update.alternativeUpdates.any { it.id in readyUpdateIds },
+			readyUpdateIds = readyUpdateIds,
 			onDismiss = { selectedPackageName = null },
 			onInstallVariant = { chosen ->
 				onBeforeInstall()
@@ -1851,6 +1863,7 @@ private fun CompactUpdatesGrid(
 private fun UpdateDetailsSheet(
 	update: AppUpdate,
 	isCachedReady: Boolean = false,
+	readyUpdateIds: Set<Int> = emptySet(),
 	onDismiss: () -> Unit,
 	onInstallVariant: (AppUpdate) -> Unit,
 	onIgnoreVersion: (Int) -> Unit,
@@ -2211,6 +2224,7 @@ private fun UpdateDetailsSheet(
 				}
 			}
 
+			val isVariantCachedReady = activeVariant.id in readyUpdateIds || (activeVariant.id == update.id && isCachedReady)
 			Button(
 				onClick = { onInstallVariant(activeVariant) },
 				enabled = !isUpdateBusy,
@@ -2223,7 +2237,7 @@ private fun UpdateDetailsSheet(
 					text = when {
 						effQueued && !effInstalling -> stringResource(R.string.queued_update)
 						effInstalling -> stringResource(R.string.installing_update)
-						isCachedReady -> stringResource(R.string.install_cached_action)
+						isVariantCachedReady -> stringResource(R.string.install_cached_action)
 						else -> stringResource(R.string.update_action)
 					}
 				)
@@ -2330,24 +2344,55 @@ private fun sourceName(source: Source): String = when (source) {
 	else -> source.name
 }
 
-internal fun resolveWikiUrlForSourceError(sourceName: String?): String {
+internal fun resolveWikiUrlForSourceError(sourceName: String?, reason: String? = null): String {
 	val base = "https://github.com/DurchEins/apkup/wiki/Update-Quellen,-Repository-Verkn%C3%BCpfung-&-Signaturschutz"
-	val lower = sourceName?.lowercase().orEmpty()
+	val lowerSource = sourceName?.lowercase().orEmpty()
+	val lowerReason = reason?.lowercase().orEmpty()
+
+	if (lowerReason.isNotBlank()) {
+		when {
+			lowerReason.contains("dns") || lowerReason.contains("unknownhost") ->
+				return "$base#41-dns-fehler--server-nicht-erreichbar"
+			lowerReason.contains("timeout") || lowerReason.contains("zeitüberschreitung") ->
+				return "$base#42-netzwerk-timeout--zeit%C3%BCberschreitung"
+			lowerReason.contains("401") || lowerReason.contains("403") || lowerReason.contains("429") || lowerReason.contains("auth") || lowerReason.contains("rate") -> {
+				return when {
+					lowerSource.contains("play") -> "$base#39-typischer-fehler-google-play-store-download-bricht-ab-http-429-oder-kauf-apps"
+					lowerSource.contains("github") && (lowerReason.contains("403") || lowerReason.contains("rate")) -> "$base#310-typischer-fehler-github-updates-werden-kurzzeitig-nicht-gefunden-http-403-rate-limit"
+					else -> "$base#43-auth-fehler--rate-limit-http-401--403--429"
+				}
+			}
+			lowerReason.contains("404") || lowerReason.contains("500") || lowerReason.contains("502") || lowerReason.contains("503") || lowerReason.contains("504") -> {
+				return if (lowerSource.contains("apkmirror") && lowerReason.contains("404")) {
+					"$base#38-typischer-fehler-apkmirror-zeigt-ein-update-an-aber-die-webseite-meldet-404-not-found"
+				} else {
+					"$base#44-serverfehler--nicht-gefunden-http-404--500--502--503"
+				}
+			}
+			lowerReason.contains("cloudflare") || lowerReason.contains("captcha") || lowerReason.contains("browser") ->
+				return "$base#45-apkmirror-cloudflare-schutz--browser-fallback"
+			lowerReason.contains("signature") || lowerReason.contains("incompatible") || lowerReason.contains("konflikt") ->
+				return "$base#46-installation-fehlgeschlagen--signaturkonflikte"
+			lowerReason.contains("asset") || lowerReason.contains("repo") ->
+				return "$base#47-repository-verkn%C3%BCpfung--kein-passendes-apk-asset"
+		}
+	}
+
 	return when {
-		lower.contains("signature") ->
+		lowerSource.contains("signature") ->
 			"$base#31-warum-zeigt-apkup-manchmal-ein-warnsymbol-wegen-eines-signaturkonflikts-an"
-		lower.contains("apkmirror") ->
+		lowerSource.contains("apkmirror") ->
 			"$base#23-direkte-apkmirror-aufl%C3%B6sung--sichere-apkm-split-extraktion"
-		lower.contains("play") ->
+		lowerSource.contains("play") ->
 			"$base#39-typischer-fehler-google-play-store-download-bricht-ab-http-429-oder-kauf-apps"
-		lower.contains("github") ->
+		lowerSource.contains("github") ->
 			"$base#310-typischer-fehler-github-updates-werden-kurzzeitig-nicht-gefunden-http-403-rate-limit"
-		lower.contains("gitlab") ->
+		lowerSource.contains("gitlab") ->
 			"$base#24-open-source--entwickler-quellen-github-gitlab-izzyondroid"
-		lower.contains("izzy") ->
+		lowerSource.contains("izzy") ->
 			"$base#24-open-source--entwickler-quellen-github-gitlab-izzyondroid"
 		else ->
-			"$base#-teil-3-ausf%C3%BChrliche-h%C3%A4ufige-fragen-faq--typische-fehlerbilder"
+			"$base#-teil-4-h%C3%A4ufige-fehlermeldungen--selbsthilfe-troubleshooting"
 	}
 }
 

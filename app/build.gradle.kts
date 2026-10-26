@@ -23,8 +23,8 @@ android {
         applicationId = "com.apkup" + System.getenv("BUILD_TAG").orEmpty()
         minSdk = 29
         targetSdk = 37
-        versionCode = if (buildNumber.isEmpty()) 143 else buildNumber.toInt()
-        versionName = if (buildNumber.isEmpty()) "1.38-Beta (143)" else "1.38.$buildNumber"
+        versionCode = if (buildNumber.isEmpty()) 148 else buildNumber.toInt()
+        versionName = if (buildNumber.isEmpty()) "1.39.3-Beta (148)" else "1.39.3-$buildNumber"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -105,29 +105,29 @@ dependencies {
 
     val composeBom = platform("androidx.compose:compose-bom:2026.09.00")
     implementation(composeBom)
-    implementation("androidx.activity:activity-compose:1.12.4")
+    implementation("androidx.activity:activity-compose:1.13.0")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-core")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.ui:ui")
-    implementation("androidx.core:core-ktx:1.17.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.10.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.10.0")
-    implementation("androidx.navigation:navigation-compose:2.9.7")
-    implementation("androidx.navigation:navigation-runtime-ktx:2.9.7")
-    implementation("androidx.work:work-runtime-ktx:2.11.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    implementation("androidx.core:core-ktx:1.19.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.11.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.11.0")
+    implementation("androidx.navigation:navigation-compose:2.10.2")
+    implementation("androidx.navigation:navigation-runtime-ktx:2.10.2")
+    implementation("androidx.work:work-runtime-ktx:2.12.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
     implementation("com.github.rumboalla.KryptoPrefs:kryptoprefs-gson:0.4.3")
     implementation("com.github.rumboalla.KryptoPrefs:kryptoprefs:0.4.3")
     implementation("com.auroraoss:gplayapi:3.5.8")
     implementation("com.google.code.gson:gson:2.13.2")
-    implementation("com.squareup.okhttp3:okhttp:5.3.2")
+    implementation("com.squareup.okhttp3:okhttp:5.5.1")
     implementation("com.squareup.retrofit2:converter-gson:3.0.0")
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
-    implementation("io.coil-kt.coil3:coil-compose:3.4.0")
-    implementation("io.coil-kt.coil3:coil-network-okhttp:3.4.0")
-    implementation("io.insert-koin:koin-android:4.1.1")
-    implementation("io.insert-koin:koin-androidx-compose:4.1.1")
+    implementation("io.coil-kt.coil3:coil-compose:3.6.3")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.6.3")
+    implementation("io.insert-koin:koin-android:4.2.2")
+    implementation("io.insert-koin:koin-androidx-compose:4.2.2")
     implementation("dev.rikka.shizuku:api:13.1.5")
     implementation("dev.rikka.shizuku:provider:13.1.5")
     testImplementation("junit:junit:4.13.2")

@@ -1,5 +1,10 @@
 package com.apkup.repository
 
+/**
+ * Repository implementation for fetching app update information directly from GitHub Releases.
+ * It interacts with the GitHub API to find the latest release tag and filters the attached
+ * release assets to find the appropriate .apk file for the user's device architecture.
+ */
 import android.content.Context
 import android.os.SystemClock
 import android.util.Log

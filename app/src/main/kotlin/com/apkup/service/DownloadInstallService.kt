@@ -1,5 +1,11 @@
 package com.apkup.service
 
+/**
+ * Foreground service responsible for handling app downloads and initiating installations.
+ * Running as a Foreground Service ensures that the Android OS does not kill the download
+ * process when the user navigates away from the ApkUp app.
+ * It also manages the persistent notification showing download/install progress.
+ */
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -22,6 +28,7 @@ import com.apkup.viewmodel.ApkMirrorResolutionException
 import com.apkup.repository.ApkMirrorResolver
 import com.apkup.util.ApkmExtractor
 import com.apkup.util.DownloadNotificationManager
+import com.apkup.util.DownloadStorageManager
 import com.apkup.util.Downloader
 import com.apkup.util.InstallLog
 import com.apkup.util.InstallPart
@@ -122,7 +129,8 @@ class DownloadInstallService : Service(), KoinComponent {
                 taskOrder.add(update.id)
             }
             pendingUpdates.offer(update)
-            val isCachedReady = Downloader.hasReadyCachedApk(context.cacheDir, update.id, update.versionCode)
+            val storageDir = DownloadStorageManager.getDownloadDir(context)
+            val isCachedReady = Downloader.hasReadyCachedApk(storageDir, update.id, update.versionCode)
             activeTasks[update.id] = DownloadTaskState(
                 id = update.id,
                 packageName = update.packageName,
@@ -147,13 +155,14 @@ class DownloadInstallService : Service(), KoinComponent {
                 completedTasks.clear()
                 _completedTasksFlow.value = emptyList()
             }
+            val storageDir = DownloadStorageManager.getDownloadDir(context)
             updates.forEach { update ->
                 pendingUpdates.removeAll { it.id == update.id }
                 if (!taskOrder.contains(update.id)) {
                     taskOrder.add(update.id)
                 }
                 pendingUpdates.offer(update)
-                val isCachedReady = Downloader.hasReadyCachedApk(context.cacheDir, update.id, update.versionCode)
+                val isCachedReady = Downloader.hasReadyCachedApk(storageDir, update.id, update.versionCode)
                 activeTasks[update.id] = DownloadTaskState(
                     id = update.id,
                     packageName = update.packageName,
@@ -221,6 +230,8 @@ class DownloadInstallService : Service(), KoinComponent {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private lateinit var notificationManager: DownloadNotificationManager
     private val isForegroundActive = AtomicBoolean(false)
+    @Volatile
+    private var lastNotificationRefreshMs = 0L
 
     private val downloadSemaphore = Semaphore(3)
     private val activeDownloadJobs = ConcurrentHashMap<Int, Job>()
@@ -229,7 +240,7 @@ class DownloadInstallService : Service(), KoinComponent {
     override fun onCreate() {
         super.onCreate()
         notificationManager = DownloadNotificationManager(this)
-        downloader.cleanupOrphanStagingFiles(cacheDir)
+        downloader.cleanupOrphanStagingFiles(DownloadStorageManager.getDownloadDir(this))
         observeInstallLog()
     }
 
@@ -293,6 +304,7 @@ class DownloadInstallService : Service(), KoinComponent {
             } else {
                 startForeground(DownloadNotificationManager.NOTIFICATION_ID, initialNotification)
             }
+            lastNotificationRefreshMs = System.currentTimeMillis()
         }
     }
 
@@ -304,14 +316,17 @@ class DownloadInstallService : Service(), KoinComponent {
     }
 
     private fun startDownloadForUpdate(update: AppUpdate) {
-        activeDownloadJobs.remove(update.id)?.cancel()
-        installer.finish(update.id)
+        val previousJob = activeDownloadJobs.remove(update.id)
+        previousJob?.cancel()
 
         lateinit var currentJob: Job
         currentJob = serviceScope.launch {
-            val stagingDir = File(cacheDir, "download_staging_${update.id}").apply { mkdirs() }
+            previousJob?.join()
+            installer.finish(update.id)
+            val storageDir = DownloadStorageManager.getDownloadDir(this@DownloadInstallService)
+            val stagingDir = DownloadStorageManager.getStagingDir(this@DownloadInstallService, update.id)
             try {
-                val cachedFiles = downloader.getReadyStagingFiles(cacheDir, update.id, update.versionCode)
+                val cachedFiles = downloader.getReadyStagingFiles(storageDir, update.id, update.versionCode)
                 val files = if (cachedFiles != null && cachedFiles.isNotEmpty()) {
                     Log.i(TAG, "Reusing ready cached APK files for ${update.packageName} (${update.id}); skipping download")
                     cachedFiles
@@ -360,8 +375,14 @@ class DownloadInstallService : Service(), KoinComponent {
                 }
 
                 // Download complete / cache ready, transition to install state
+                val cachedTotalBytes = files.sumOf { it.length() }
                 mutateTask(update.id) {
-                    it.copy(isInstalling = true, isQueued = false, isResolvingLink = false)
+                    it.copy(
+                        isInstalling = true,
+                        isQueued = false,
+                        isResolvingLink = false,
+                        total = if (cachedTotalBytes > 0L) cachedTotalBytes else it.total
+                    )
                 }
                 refreshNotification(force = true)
 
@@ -370,7 +391,7 @@ class DownloadInstallService : Service(), KoinComponent {
                     installLog.beginInstall(update.id)
                     try {
                         val parts = files.map { file ->
-                            InstallPart(file.name) { file.inputStream() }
+                            InstallPart(file.name, file.length()) { file.inputStream() }
                         }
                         Log.i(TAG, "Invoking installer.installParts for ${update.packageName} (${update.id})")
                         installSucceeded = installer.installParts(update.id, update.packageName, parts)
@@ -378,7 +399,7 @@ class DownloadInstallService : Service(), KoinComponent {
                         if (installSucceeded) {
                             runCatching { stagingDir.deleteRecursively() }
                         }
-                        if (!installSucceeded && activeTasks.containsKey(update.id)) {
+                        if (!installSucceeded && activeTasks.containsKey(update.id) && activeDownloadJobs[update.id] === currentJob) {
                             removeTask(update.id)
                             refreshNotification(force = true)
                         }
@@ -387,7 +408,7 @@ class DownloadInstallService : Service(), KoinComponent {
             } catch (cancellation: CancellationException) {
                 Log.i(TAG, "Download/install canceled for ${update.packageName} (${update.id})")
                 if (activeDownloadJobs[update.id] === currentJob) {
-                    if (!downloader.hasReadyCachedApk(cacheDir, update.id, update.versionCode)) {
+                    if (!downloader.hasReadyCachedApk(storageDir, update.id, update.versionCode)) {
                         runCatching { stagingDir.deleteRecursively() }
                     }
                     installLog.emitProgress(AppInstallProgress(update.id, 0L))
@@ -434,7 +455,7 @@ class DownloadInstallService : Service(), KoinComponent {
             } catch (error: Throwable) {
                 Log.e(TAG, "Download or installation failed for ${update.packageName}", error)
                 if (activeDownloadJobs[update.id] === currentJob) {
-                    if (!downloader.hasReadyCachedApk(cacheDir, update.id, update.versionCode)) {
+                    if (!downloader.hasReadyCachedApk(storageDir, update.id, update.versionCode)) {
                         runCatching { stagingDir.deleteRecursively() }
                     }
                     installLog.emitProgress(AppInstallProgress(update.id, 0L))
@@ -515,25 +536,36 @@ class DownloadInstallService : Service(), KoinComponent {
                         val tempPayload = File(stagingDir, if (isApkmHint) "bundle.apkm" else "download.bin")
 
                         var downloadedBytes = 0L
-                        val totalBytes = link.size.takeIf { it > 0 } ?: 0L
+                        var totalBytes = link.size.takeIf { it > 0 } ?: 0L
                         onProgress(0L, totalBytes)
 
-                        val success = downloader.downloadToFile(directUrl, tempPayload, callTag) { chunk ->
-                            downloadedBytes += chunk
-                            onProgress(downloadedBytes, if (totalBytes > 0) totalBytes else downloadedBytes)
-                        }
+                        val success = downloader.downloadToFile(
+                            url = directUrl,
+                            targetFile = tempPayload,
+                            callTag = callTag,
+                            onContentLength = { cl ->
+                                if (cl > 0L) {
+                                    totalBytes = cl
+                                }
+                            },
+                            onBytesRead = { chunk ->
+                                downloadedBytes += chunk
+                                onProgress(downloadedBytes, totalBytes)
+                            }
+                        )
 
                         if (!success || tempPayload.length() <= 0L) {
                             throw IOException("Failed to download APKMirror payload for ${update.packageName}")
                         }
 
-                        if (isApkmHint || ApkmExtractor.isApkmArchive(tempPayload)) {
+                        if (ApkmExtractor.isApkmArchive(tempPayload)) {
                             val extractedFiles = ApkmExtractor.extractApkm(tempPayload, stagingDir)
                             tempPayload.delete()
                             extractedFiles
                         } else {
                             val baseApk = File(stagingDir, "base.apk")
                             if (tempPayload != baseApk) {
+                                if (baseApk.exists()) baseApk.delete()
                                 tempPayload.renameTo(baseApk)
                             }
                             listOf(baseApk)
@@ -541,14 +573,24 @@ class DownloadInstallService : Service(), KoinComponent {
                     }
                 }
             } else {
-                val totalBytes = link.size
+                var totalBytes = link.size
                 var downloadedBytes = 0L
                 onProgress(0L, totalBytes)
                 val targetFile = File(stagingDir, "base.apk")
-                val success = downloader.downloadToFile(link.link, targetFile, callTag) { chunk ->
-                    downloadedBytes += chunk
-                    onProgress(downloadedBytes, totalBytes)
-                }
+                val success = downloader.downloadToFile(
+                    url = link.link,
+                    targetFile = targetFile,
+                    callTag = callTag,
+                    onContentLength = { cl ->
+                        if (cl > 0L) {
+                            totalBytes = cl
+                        }
+                    },
+                    onBytesRead = { chunk ->
+                        downloadedBytes += chunk
+                        onProgress(downloadedBytes, totalBytes)
+                    }
+                )
                 if (!success || targetFile.length() <= 0L) {
                     throw IOException("Failed to download URL APK for ${update.packageName}")
                 }
@@ -568,7 +610,7 @@ class DownloadInstallService : Service(), KoinComponent {
         activeDownloadJobs.remove(id)?.cancel()
 
         // 3. Wipe partial staging directory (preserve if .ready marker exists)
-        val stagingDir = File(cacheDir, "download_staging_$id")
+        val stagingDir = DownloadStorageManager.getStagingDir(this, id)
         if (!File(stagingDir, Downloader.READY_MARKER_FILE).exists()) {
             runCatching { stagingDir.deleteRecursively() }
         }
@@ -599,17 +641,17 @@ class DownloadInstallService : Service(), KoinComponent {
                         total = prog.total ?: task.total
                     )
                 }
-                if (updated != null) {
+                if (updated != null && updated.isInstalling) {
                     refreshNotification()
                 }
             }
         }
 
         serviceScope.launch {
-            installLog.status().collectLatest { status ->
+            installLog.status().collect { status ->
                 if (status.success) {
                     runCatching {
-                        File(cacheDir, "download_staging_${status.id}").deleteRecursively()
+                        DownloadStorageManager.getStagingDir(this@DownloadInstallService, status.id).deleteRecursively()
                     }
                     activeTasks[status.id]?.let { completedTask ->
                         if (completedTasks.none { it.id == completedTask.id }) {
@@ -617,6 +659,8 @@ class DownloadInstallService : Service(), KoinComponent {
                             _completedTasksFlow.value = completedTasks.toList()
                         }
                     }
+                } else {
+                    installer.finish(status.id)
                 }
                 removeTask(status.id)
                 refreshNotification(force = true)
@@ -641,9 +685,14 @@ class DownloadInstallService : Service(), KoinComponent {
             0
         }
 
+        val now = System.currentTimeMillis()
+        if (!force && now - lastNotificationRefreshMs < 500L) {
+            return
+        }
         if (notificationManager.shouldThrottle(percent, force)) {
             return
         }
+        lastNotificationRefreshMs = now
 
         val notification = notificationManager.buildNotification(
             appName = activeTask.appName.ifBlank { activeTask.packageName },

@@ -33,6 +33,7 @@ import com.apkup.util.InstallPart
 import com.apkup.util.SnackBar
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -73,30 +74,43 @@ class MainViewModel(
 
 	fun checkForSelfUpdate(manual: Boolean = false, context: Context? = null) = viewModelScope.launch(Dispatchers.IO) {
 		val repo = selfUpdateRepository ?: return@launch
+		if (manual && _selfUpdateState.value is SelfUpdateState.Checking) return@launch
+		val startMs = System.currentTimeMillis()
 		if (manual) {
 			_selfUpdateState.value = SelfUpdateState.Checking
-			context?.let { ctx ->
-				snackBar?.snackBar(viewModelScope, TextSnack(ctx.getString(R.string.self_update_checking)))
-			}
 		}
 		val result = repo.checkForUpdate()
+		if (manual) {
+			val elapsed = System.currentTimeMillis() - startMs
+			if (elapsed < 650L) {
+				delay(650L - elapsed)
+			}
+		}
 		if (result.isSuccess) {
 			val info = result.getOrNull()
 			if (info != null) {
 				_selfUpdateState.value = SelfUpdateState.Available(info)
+			} else if (manual) {
+				_selfUpdateState.value = SelfUpdateState.UpToDate(BuildConfig.VERSION_NAME)
+				delay(2500L)
+				if (_selfUpdateState.value is SelfUpdateState.UpToDate) {
+					_selfUpdateState.value = SelfUpdateState.Idle
+				}
 			} else {
 				_selfUpdateState.value = SelfUpdateState.Idle
-				if (manual && context != null) {
-					val msg = context.getString(R.string.self_update_latest, BuildConfig.VERSION_NAME)
-					snackBar?.snackBar(viewModelScope, TextSnack(msg))
-				}
 			}
 		} else {
 			val error = result.exceptionOrNull()
 			Log.e("MainViewModel", "Self update check failed", error)
-			_selfUpdateState.value = SelfUpdateState.Idle
-			if (manual && context != null) {
-				snackBar?.snackBar(viewModelScope, TextSnack(context.getString(R.string.self_update_error)))
+			if (manual) {
+				val errMsg = context?.getString(R.string.self_update_error) ?: (error?.message ?: "Error")
+				_selfUpdateState.value = SelfUpdateState.Error(errMsg)
+				delay(2500L)
+				if (_selfUpdateState.value is SelfUpdateState.Error) {
+					_selfUpdateState.value = SelfUpdateState.Idle
+				}
+			} else {
+				_selfUpdateState.value = SelfUpdateState.Idle
 			}
 		}
 	}

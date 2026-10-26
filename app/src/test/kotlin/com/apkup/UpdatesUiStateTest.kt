@@ -262,4 +262,22 @@ class UpdatesUiStateTest {
         )
         assertEquals(listOf(newlyDiscovered), whenFinished)
     }
+
+    @Test
+    fun resolveWikiUrlForSourceErrorDeepLinksToTroubleshootingSectionByReason() {
+        val dnsUrl = com.apkup.ui.screen.resolveWikiUrlForSourceError("IzzyOnDroid", "UnknownHostException: dns lookup failed")
+        assertTrue(dnsUrl.endsWith("#41-dns-fehler--server-nicht-erreichbar"))
+
+        val timeoutUrl = com.apkup.ui.screen.resolveWikiUrlForSourceError("APKMirror", "read timeout")
+        assertTrue(timeoutUrl.endsWith("#42-netzwerk-timeout--zeit%C3%BCberschreitung"))
+
+        val playAuthUrl = com.apkup.ui.screen.resolveWikiUrlForSourceError("Google Play", "authentication: HTTP 429")
+        assertTrue(playAuthUrl.endsWith("#39-typischer-fehler-google-play-store-download-bricht-ab-http-429-oder-kauf-apps"))
+
+        val gitlabAuthUrl = com.apkup.ui.screen.resolveWikiUrlForSourceError("GitLab", "HTTP 401 Unauthorized")
+        assertTrue(gitlabAuthUrl.endsWith("#43-auth-fehler--rate-limit-http-401--403--429"))
+
+        val serverErrorUrl = com.apkup.ui.screen.resolveWikiUrlForSourceError("IzzyOnDroid", "HTTP 502 Bad Gateway")
+        assertTrue(serverErrorUrl.endsWith("#44-serverfehler--nicht-gefunden-http-404--500--502--503"))
+    }
 }

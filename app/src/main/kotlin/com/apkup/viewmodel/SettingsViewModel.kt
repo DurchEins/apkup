@@ -20,11 +20,27 @@ import com.apkup.util.UpdatesNotification
 import com.apkup.worker.UpdatesWorker
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonParser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.CacheControl
+import okhttp3.OkHttpClient
+import okhttp3.Request
 
+
+sealed class TokenValidationResult {
+	data class Valid(
+		val username: String,
+		val rateLimitRemaining: String? = null,
+		val rateLimitTotal: String? = null
+	) : TokenValidationResult()
+
+	data class Invalid(val httpCode: Int) : TokenValidationResult()
+	data class Error(val message: String) : TokenValidationResult()
+}
 
 class SettingsViewModel(
 	private val prefs: Prefs,
@@ -34,7 +50,8 @@ class SettingsViewModel(
 	private val sessionInstaller: SessionInstaller? = null,
 	private val snackBar: SnackBar? = null,
 	private val stringer: Stringer? = null,
-	private val gson: Gson = GsonBuilder().setPrettyPrinting().create()
+	private val gson: Gson = GsonBuilder().setPrettyPrinting().create(),
+	private val okHttpClient: OkHttpClient = OkHttpClient()
 ) : ViewModel() {
 
 	private val ignoredVersionsFlow = MutableStateFlow(buildIgnoredVersionEntries())
@@ -243,8 +260,99 @@ class SettingsViewModel(
 	fun setGitHubToken(token: String) = prefs.githubToken.put(token.trim())
 	fun getGitLabToken(): String = prefs.gitlabToken.get()
 	fun setGitLabToken(token: String) = prefs.gitlabToken.put(token.trim())
+
+	suspend fun validateGitHubToken(rawToken: String): TokenValidationResult = withContext(Dispatchers.IO) {
+		val cleanToken = rawToken.trim().filter { it in '!'..'~' }
+		if (cleanToken.isBlank()) {
+			return@withContext TokenValidationResult.Invalid(401)
+		}
+		runCatching {
+			val request = Request.Builder()
+				.url("https://api.github.com/user")
+				.cacheControl(CacheControl.FORCE_NETWORK)
+				.header("Accept", "application/vnd.github.v3+json")
+				.header("User-Agent", "ApkUp")
+				.header("Authorization", "Bearer $cleanToken")
+				.build()
+			okHttpClient.newCall(request).execute().use { response ->
+				when {
+					response.isSuccessful -> {
+						val body = response.body.string()
+						val login = runCatching {
+							JsonParser.parseString(body).asJsonObject.get("login")?.asString
+						}.getOrNull().orEmpty().ifBlank { "GitHub" }
+						val remaining = response.header("x-ratelimit-remaining")
+						val limit = response.header("x-ratelimit-limit")
+						TokenValidationResult.Valid(
+							username = login,
+							rateLimitRemaining = remaining,
+							rateLimitTotal = limit
+						)
+					}
+					response.code == 401 || response.code == 403 -> {
+						TokenValidationResult.Invalid(response.code)
+					}
+					else -> {
+						TokenValidationResult.Error("HTTP ${response.code}")
+					}
+				}
+			}
+		}.getOrElse { error ->
+			TokenValidationResult.Error(error.message ?: "Network error")
+		}
+	}
+
+	suspend fun validateGitLabToken(rawToken: String): TokenValidationResult = withContext(Dispatchers.IO) {
+		val cleanToken = rawToken.trim().filter { it in '!'..'~' }
+		if (cleanToken.isBlank()) {
+			return@withContext TokenValidationResult.Invalid(401)
+		}
+		runCatching {
+			val request = Request.Builder()
+				.url("https://gitlab.com/api/v4/user")
+				.cacheControl(CacheControl.FORCE_NETWORK)
+				.header("Accept", "application/json")
+				.header("User-Agent", "ApkUp")
+				.header("PRIVATE-TOKEN", cleanToken)
+				.build()
+			okHttpClient.newCall(request).execute().use { response ->
+				when {
+					response.isSuccessful -> {
+						val body = response.body.string()
+						val username = runCatching {
+							JsonParser.parseString(body).asJsonObject.get("username")?.asString
+						}.getOrNull().orEmpty().ifBlank { "GitLab" }
+						val remaining = response.header("RateLimit-Remaining")
+						val limit = response.header("RateLimit-Limit")
+						TokenValidationResult.Valid(
+							username = username,
+							rateLimitRemaining = remaining,
+							rateLimitTotal = limit
+						)
+					}
+					response.code == 401 || response.code == 403 -> {
+						TokenValidationResult.Invalid(response.code)
+					}
+					else -> {
+						TokenValidationResult.Error("HTTP ${response.code}")
+					}
+				}
+			}
+		}.getOrElse { error ->
+			TokenValidationResult.Error(error.message ?: "Network error")
+		}
+	}
+
+	fun notifyTextSnack(message: String) {
+		val snack = snackBar ?: return
+		snack.snackBar(viewModelScope, TextSnack(message))
+	}
 	fun getDownloadWifiOnly(): Boolean = prefs.downloadWifiOnly.get()
 	fun setDownloadWifiOnly(wifiOnly: Boolean) = prefs.downloadWifiOnly.put(wifiOnly)
+	fun getEnableVirusTotalCheck(): Boolean = prefs.enableVirusTotalCheck.get()
+	fun setEnableVirusTotalCheck(enabled: Boolean) = prefs.enableVirusTotalCheck.put(enabled)
+	fun getVirusTotalApiKey(): String = prefs.virusTotalApiKey.get()
+	fun setVirusTotalApiKey(key: String) = prefs.virusTotalApiKey.put(key.trim())
 	fun getBackgroundChecksEnabled() = prefs.enableBackgroundChecks.get()
 	fun getBackgroundCheckIntervalHours(): Int =
 		BackgroundCheckInterval.fromHours(prefs.backgroundCheckIntervalHours.get()).hours

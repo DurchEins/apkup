@@ -1,5 +1,10 @@
 package com.apkup.util
 
+/**
+ * Handles the actual installation of APK files via the Android PackageInstaller API.
+ * This class takes downloaded files (single APKs or split/AppBundle APKs) and commits them
+ * to an Android installation session.
+ */
 import android.annotation.SuppressLint
 import android.app.ActivityOptions
 import android.app.NotificationChannel
@@ -49,6 +54,7 @@ import kotlin.io.DEFAULT_BUFFER_SIZE
 
 data class InstallPart(
     val name: String,
+    val sizeBytes: Long = -1L,
     val openStream: () -> InputStream?
 )
 
@@ -139,7 +145,7 @@ class SessionInstaller internal constructor(
     ): Boolean {
         val parts = streamProviders.mapIndexed { index, provider ->
             val name = if (index == 0) "base.apk" else "split_$index.apk"
-            InstallPart(name, provider)
+            InstallPart(name, openStream = provider)
         }
         return installParts(id, packageName, parts)
     }
@@ -453,9 +459,13 @@ class SessionInstaller internal constructor(
             return false
         }
         val packageInstaller: PackageInstaller = ctx.packageManager.packageInstaller
+        val knownTotalSize = parts.filter { it.sizeBytes > 0L }.sumOf { it.sizeBytes }
         val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL).apply {
             setAppPackageName(packageName)
             setOriginatingUid(Process.myUid())
+            if (knownTotalSize > 0L) {
+                setSize(knownTotalSize)
+            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_NOT_REQUIRED)
             }
@@ -487,9 +497,11 @@ class SessionInstaller internal constructor(
                 }
             }
 
+            var createdSessionId: Int? = null
+
             fun completeOnce(success: Boolean) {
                 if (terminalHandled.compareAndSet(false, true)) {
-                    activeSessions.remove(id)
+                    createdSessionId?.let { sessId -> activeSessions.remove(id, sessId) } ?: activeSessions.remove(id)
                     runCatching {
                         val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                         nm.cancel(NOTIFICATION_ID_CONFIRM_BASE + id)
@@ -569,7 +581,6 @@ class SessionInstaller internal constructor(
                 }
             }
 
-            var createdSessionId: Int? = null
             callback = object : PackageInstaller.SessionCallback() {
                 override fun onBadgingChanged(sessionId: Int) {}
                 override fun onActiveChanged(sessionId: Int, active: Boolean) {}
@@ -600,9 +611,9 @@ class SessionInstaller internal constructor(
                 safeUnregisterReceiver()
                 safeUnregisterCallback()
                 createdSessionId?.let { sessId ->
+                    activeSessions.remove(id, sessId)
                     runCatching { packageInstaller.abandonSession(sessId) }
-                }
-                activeSessions.remove(id)
+                } ?: activeSessions.remove(id)
                 if (mutex.isLocked) runCatching { mutex.unlock() }
             }
 
@@ -618,7 +629,8 @@ class SessionInstaller internal constructor(
                         val stream = wrapStreamIfGzip(rawStream)
                         stream.use { input ->
                             val partName = if (part.name.endsWith(".apk")) part.name else "${part.name}.apk"
-                            session.openWrite(partName, 0, -1).use { output ->
+                            val partSize = if (part.sizeBytes > 0L && stream !is java.util.zip.GZIPInputStream) part.sizeBytes else -1L
+                            session.openWrite(partName, 0, partSize).use { output ->
                                 totalBytes += input.copyToAndNotify(output, id, installLog, totalBytes)
                                 session.fsync(output)
                             }
@@ -641,9 +653,12 @@ class SessionInstaller internal constructor(
             } catch (error: Throwable) {
                 safeUnregisterReceiver()
                 safeUnregisterCallback()
-                if (!committed) {
-                    createdSessionId?.let { runCatching { packageInstaller.abandonSession(it) } }
-                }
+                createdSessionId?.let { sessId ->
+                    activeSessions.remove(id, sessId)
+                    if (!committed) {
+                        runCatching { packageInstaller.abandonSession(sessId) }
+                    }
+                } ?: activeSessions.remove(id)
                 if (mutex.isLocked) runCatching { mutex.unlock() }
                 throw error
             }

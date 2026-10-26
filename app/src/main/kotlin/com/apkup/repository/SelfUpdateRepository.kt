@@ -75,18 +75,28 @@ class SelfUpdateRepository(
         val major: Int,
         val minor: Int,
         val patch: Int,
-        val preRelease: String?
+        val preRelease: String?,
+        val buildNumber: Int = 0
     )
 
     internal fun parseVersion(versionStr: String): ParsedVersion {
-        val clean = versionStr.trim().removePrefix("v").removePrefix("V").trim()
+        val buildNum = Regex("\\((\\d+)\\)").find(versionStr)?.groupValues?.getOrNull(1)?.toIntOrNull() ?: 0
+        val clean = versionStr
+            .substringBefore("(")
+            .trim()
+            .removePrefix("ApkUp-")
+            .removePrefix("apkup-")
+            .removePrefix("v")
+            .removePrefix("V")
+            .trim()
+            .trimEnd('-')
         val baseAndPre = clean.split("-", limit = 2)
-        val baseParts = baseAndPre[0].split(".")
-        val major = baseParts.getOrNull(0)?.toIntOrNull() ?: 0
-        val minor = baseParts.getOrNull(1)?.toIntOrNull() ?: 0
-        val patch = baseParts.getOrNull(2)?.toIntOrNull() ?: 0
-        val preRelease = baseAndPre.getOrNull(1)?.trim()?.takeIf { it.isNotEmpty() }
-        return ParsedVersion(major, minor, patch, preRelease)
+        val baseParts = baseAndPre[0].trim().split(".")
+        val major = baseParts.getOrNull(0)?.trim()?.toIntOrNull() ?: 0
+        val minor = baseParts.getOrNull(1)?.trim()?.toIntOrNull() ?: 0
+        val patch = baseParts.getOrNull(2)?.trim()?.toIntOrNull() ?: 0
+        val preRelease = baseAndPre.getOrNull(1)?.trim()?.trimEnd('-')?.takeIf { it.isNotEmpty() }
+        return ParsedVersion(major, minor, patch, preRelease, buildNum)
     }
 
     internal fun isNewerVersion(currentVersionName: String, candidateTagName: String): Boolean {
@@ -101,7 +111,12 @@ class SelfUpdateRepository(
         if (current.preRelease == null && candidate.preRelease != null) return false
 
         if (current.preRelease != null && candidate.preRelease != null) {
-            return comparePreRelease(candidate.preRelease, current.preRelease) > 0
+            val preCmp = comparePreRelease(candidate.preRelease, current.preRelease)
+            if (preCmp != 0) return preCmp > 0
+        }
+
+        if (current.buildNumber > 0 && candidate.buildNumber > 0 && candidate.buildNumber != current.buildNumber) {
+            return candidate.buildNumber > current.buildNumber
         }
 
         return false

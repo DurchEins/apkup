@@ -30,6 +30,7 @@ import com.apkup.repository.ApkMirrorResolver
 import com.apkup.repository.UpdatesRepository
 import com.apkup.util.ApkmExtractor
 import com.apkup.util.Badger
+import com.apkup.util.DownloadStorageManager
 import com.apkup.util.Downloader
 import com.apkup.util.InstallLog
 import com.apkup.util.InstallPart
@@ -104,7 +105,7 @@ class UpdatesViewModel(
 	private var isAppInForeground: Boolean = true
 
 	private fun getCacheDir(): File =
-		context?.cacheDir ?: File(System.getProperty("java.io.tmpdir") ?: ".", "apkup_cache")
+		context?.let { DownloadStorageManager.getDownloadDir(it) } ?: File(System.getProperty("java.io.tmpdir") ?: ".", "apkup_cache")
 
 	init {
 		downloader.cleanupOrphanStagingFiles(getCacheDir())
@@ -150,6 +151,7 @@ class UpdatesViewModel(
 					if (modified) {
 						state.value = successState(currentList)
 					}
+					refreshReadyUpdateIds()
 				}
 			}
 		}
@@ -325,7 +327,8 @@ class UpdatesViewModel(
 	fun refreshReadyUpdateIds() {
 		val cache = getCacheDir()
 		val currentUpdates = state.value.updates()
-		val ready = currentUpdates.filter { update ->
+		val allCandidates = currentUpdates.flatMap { listOf(it) + it.alternativeUpdates }
+		val ready = allCandidates.filter { update ->
 			downloader.hasReadyCachedApk(cache, update.id, update.versionCode)
 		}.map { it.id }.toSet()
 		_readyUpdateIds.value = ready
@@ -587,7 +590,7 @@ class UpdatesViewModel(
 
 						try {
 							val parts = pkg.files.map { file ->
-								InstallPart(file.name) { file.inputStream() }
+								InstallPart(file.name, file.length()) { file.inputStream() }
 							}
 							installer.installParts(pkg.id, pkg.packageName, parts)
 						} catch (cancellation: CancellationException) {
@@ -671,25 +674,36 @@ class UpdatesViewModel(
 						val tempPayload = File(stagingDir, if (isApkmHint) "bundle.apkm" else "download.bin")
 
 						var downloadedBytes = 0L
-						val totalBytes = link.size.takeIf { it > 0 } ?: 0L
+						var totalBytes = link.size.takeIf { it > 0 } ?: 0L
 						onProgress(0L, totalBytes)
 
-						val success = downloader.downloadToFile(directUrl, tempPayload, callTag) { chunk ->
-							downloadedBytes += chunk
-							onProgress(downloadedBytes, if (totalBytes > 0) totalBytes else downloadedBytes)
-						}
+						val success = downloader.downloadToFile(
+							url = directUrl,
+							targetFile = tempPayload,
+							callTag = callTag,
+							onContentLength = { cl ->
+								if (cl > 0L) {
+									totalBytes = cl
+								}
+							},
+							onBytesRead = { chunk ->
+								downloadedBytes += chunk
+								onProgress(downloadedBytes, totalBytes)
+							}
+						)
 
 						if (!success || tempPayload.length() <= 0L) {
 							throw IOException("Failed to download APKMirror payload for ${update.packageName}")
 						}
 
-						if (isApkmHint || ApkmExtractor.isApkmArchive(tempPayload)) {
+						if (ApkmExtractor.isApkmArchive(tempPayload)) {
 							val extractedFiles = ApkmExtractor.extractApkm(tempPayload, stagingDir)
 							tempPayload.delete()
 							extractedFiles
 						} else {
 							val baseApk = File(stagingDir, "base.apk")
 							if (tempPayload != baseApk) {
+								if (baseApk.exists()) baseApk.delete()
 								tempPayload.renameTo(baseApk)
 							}
 							listOf(baseApk)
@@ -697,14 +711,24 @@ class UpdatesViewModel(
 					}
 				}
 			} else {
-				val totalBytes = link.size
+				var totalBytes = link.size
 				var downloadedBytes = 0L
 				onProgress(0L, totalBytes)
 				val targetFile = File(stagingDir, "base.apk")
-				val success = downloader.downloadToFile(link.link, targetFile, callTag) { chunk ->
-					downloadedBytes += chunk
-					onProgress(downloadedBytes, totalBytes)
-				}
+				val success = downloader.downloadToFile(
+					url = link.link,
+					targetFile = targetFile,
+					callTag = callTag,
+					onContentLength = { cl ->
+						if (cl > 0L) {
+							totalBytes = cl
+						}
+					},
+					onBytesRead = { chunk ->
+						downloadedBytes += chunk
+						onProgress(downloadedBytes, totalBytes)
+					}
+				)
 				if (!success || targetFile.length() <= 0L) {
 					throw IOException("Failed to download URL APK for ${update.packageName}")
 				}
@@ -789,6 +813,27 @@ class UpdatesViewModel(
 		)
 	}
 
+	override fun onInstallFailed(id: Int): Job = if (context != null) {
+		viewModelScope.launchWithMutex(mutex, Dispatchers.IO) {
+			val stagingDir = File(getCacheDir(), "download_staging_$id")
+			if (!File(stagingDir, Downloader.READY_MARKER_FILE).exists()) {
+				runCatching { stagingDir.deleteRecursively() }
+			}
+			state.value = successState(
+				state.value.mutableUpdates().map { update ->
+					if (update.id == id || update.alternativeUpdates.any { alt -> alt.id == id }) {
+						update.copy(isQueued = false, isInstalling = false, progress = 0L)
+					} else {
+						update
+					}
+				}
+			)
+			refreshReadyUpdateIds()
+		}
+	} else {
+		cancelInstall(id)
+	}
+
 	public override fun cancelInstall(id: Int) = viewModelScope.launchWithMutex(mutex, Dispatchers.IO) {
 		context?.let { ctx -> DownloadInstallService.cancelDownload(ctx, id) }
 		apkMirrorResolver?.cancelResolution("update_$id")
@@ -800,7 +845,7 @@ class UpdatesViewModel(
 		}
 		state.value = successState(
 			state.value.mutableUpdates().map { update ->
-				if (update.id == id) {
+				if (update.id == id || update.alternativeUpdates.any { alt -> alt.id == id }) {
 					update.copy(isQueued = false, isInstalling = false, progress = 0L)
 				} else {
 					update
@@ -838,7 +883,9 @@ class UpdatesViewModel(
 		runCatching {
 			File(getCacheDir(), "download_staging_$id").deleteRecursively()
 		}
-		rawLatestUpdates = rawLatestUpdates.filterNot { it.id == id }
+		rawLatestUpdates = rawLatestUpdates.filterNot {
+			it.id == id || it.alternativeUpdates.any { alt -> alt.id == id }
+		}
 		val remaining = state.value.mutableUpdates().removeId(id)
 		setSuccess(
 			updates = remaining,
@@ -868,7 +915,9 @@ class UpdatesViewModel(
 
 	override fun sendInstallSnack(log: AppInstallStatus) {
 		if (log.snack) {
-			state.value.updates().find { log.id == it.id }?.let { app ->
+			state.value.updates().find {
+				log.id == it.id || it.alternativeUpdates.any { alt -> alt.id == log.id }
+			}?.let { app ->
 				val message = if (log.success) R.string.install_success else R.string.install_failure
 				snackBar.snackBar(viewModelScope, TextSnack(stringer.get(message, app.name)))
 			}
