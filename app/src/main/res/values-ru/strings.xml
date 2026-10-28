@@ -174,9 +174,9 @@
     <string name="theme_light">Светлая</string>
     <string name="about_github_title">GitHub – ApkUp</string>
     <string name="about_github">Исходный код, отчеты об ошибках и предложения новых функций.</string>
-    <string name="about_copyright">Copyright &#169; 2026 DurchEins</string>
+    <string name="about_copyright">Copyright &#169; 2026 DurchEins &#8226; GPL-3.0</string>
     <string name="about_tribute">Полностью переработано с душой автором DurchEins. ♥</string>
-    <string name="about_original_project">На основе оригинального проекта rumboalla</string>
+    <string name="about_original_project">На основе оригинального проекта rumboalla (GPL-3.0)</string>
     <string name="copy_to_clipboard">Скопировать в буфер</string>
     <string name="changelog_title">Что нового</string>
     <string name="changelog_menu_item">Что нового / История версий</string>

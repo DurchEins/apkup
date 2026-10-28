@@ -174,9 +174,9 @@
     <string name="theme_light">Claro</string>
     <string name="about_github_title">GitHub – ApkUp</string>
     <string name="about_github">Obtén el código fuente, informa de errores y sugiere funciones.</string>
-    <string name="about_copyright">Copyright &#169; 2026 DurchEins</string>
+    <string name="about_copyright">Copyright &#169; 2026 DurchEins &#8226; GPL-3.0</string>
     <string name="about_tribute">Rediseñado desde cero con amor por DurchEins. ♥</string>
-    <string name="about_original_project">Basado en el proyecto original de rumboalla</string>
+    <string name="about_original_project">Basado en el proyecto original de rumboalla (GPL-3.0)</string>
     <string name="copy_to_clipboard">Copiar al portapapeles</string>
     <string name="changelog_title">Novedades</string>
     <string name="changelog_menu_item">Novedades / Registro de cambios</string>

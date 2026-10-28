@@ -174,9 +174,9 @@
     <string name="theme_light">浅色</string>
     <string name="about_github_title">GitHub – ApkUp</string>
     <string name="about_github">获取源码、反馈问题或提交功能建议。</string>
-    <string name="about_copyright">版权所有 &#169; 2026 DurchEins</string>
+    <string name="about_copyright">版权所有 &#169; 2026 DurchEins &#8226; GPL-3.0</string>
     <string name="about_tribute">由 DurchEins 倾注心血全面重构。 ♥</string>
-    <string name="about_original_project">基于 rumboalla 的开源项目构建</string>
+    <string name="about_original_project">基于 rumboalla 的开源项目构建 (GPL-3.0)</string>
     <string name="copy_to_clipboard">复制到剪贴板</string>
     <string name="changelog_title">更新日志</string>
     <string name="changelog_menu_item">更新日志 / 版本说明</string>

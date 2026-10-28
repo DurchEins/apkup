@@ -10,9 +10,9 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.38--Beta-6750A4?style=flat-square" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-1.39.4--Beta-6750A4?style=flat-square" alt="Version" />
   <img src="https://img.shields.io/badge/Android-10.0%2B%20(API%2029%2B)-3DDC84?style=flat-square&logo=android" alt="Android" />
-  <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License" />
+  <img src="https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square" alt="License: GPL v3" />
   <img src="https://img.shields.io/badge/Shizuku-Supported-00897B?style=flat-square" alt="Shizuku" />
   <img src="https://img.shields.io/badge/Privacy-No%20Ads%20%7C%20No%20Tracking-brightgreen?style=flat-square" alt="Privacy" />
 </p>
@@ -152,11 +152,25 @@
 <a name="-license--credits"></a>
 ## 📜 License & Credits / Lizenz & Danksagung
 
-This project is licensed under the **[MIT License](LICENSE)**.
+This project is licensed under the **[GNU General Public License v3.0 (GPL-3.0)](LICENSE)** — see the [LICENSE](LICENSE) file for full details.  
+*Dieses Projekt ist unter der **[GNU General Public License v3.0 (GPL-3.0)](LICENSE)** lizenziert – vollständiger Lizenztext in der Datei [LICENSE](LICENSE).*
 
-```
-Copyright (c) 2026 DurchEins
-Portions Copyright (c) 2017-2024 rumboalla (based on the original project APKUpdater)
+```text
+ApkUp – Copyright (C) 2026 DurchEins
+Portions Copyright (C) 2016–2024 rumboalla (based on the original project APKUpdater)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
 ```
 
 > **Special Thanks / Besonderer Dank:**  

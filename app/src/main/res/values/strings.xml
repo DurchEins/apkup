@@ -227,9 +227,9 @@
     <string name="theme_light">Light</string>
     <string name="about_github_title">GitHub – ApkUp</string>
     <string name="about_github">Get the source code, report bugs, and suggest new features.</string>
-    <string name="about_copyright">Copyright &#169; 2026 DurchEins</string>
+    <string name="about_copyright">Copyright &#169; 2026 DurchEins &#8226; GPL-3.0</string>
     <string name="about_tribute">Redesigned from the ground up with love by DurchEins. ♥</string>
-    <string name="about_original_project">Based on the original project by rumboalla</string>
+    <string name="about_original_project">Based on the original project by rumboalla (GPL-3.0)</string>
     <string name="copy_to_clipboard">Copy to clipboard</string>
     <string name="changelog_title">What\'s new</string>
     <string name="changelog_menu_item">What\'s new / Changelog</string>

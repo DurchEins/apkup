@@ -174,9 +174,9 @@
     <string name="theme_light">ライト</string>
     <string name="about_github_title">GitHub – ApkUp</string>
     <string name="about_github">ソースコードの確認、不具合報告、機能提案はこちら。</string>
-    <string name="about_copyright">Copyright &#169; 2026 DurchEins</string>
+    <string name="about_copyright">Copyright &#169; 2026 DurchEins &#8226; GPL-3.0</string>
     <string name="about_tribute">DurchEins により愛を込めてゼロから再構築されました。 ♥</string>
-    <string name="about_original_project">rumboalla によるオリジナルプロジェクトに基づく</string>
+    <string name="about_original_project">rumboalla によるオリジナルプロジェクトに基づく (GPL-3.0)</string>
     <string name="copy_to_clipboard">クリップボードにコピー</string>
     <string name="changelog_title">更新情報</string>
     <string name="changelog_menu_item">更新情報 / 変更履歴</string>

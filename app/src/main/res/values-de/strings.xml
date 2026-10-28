@@ -224,9 +224,9 @@
     <string name="theme_light">Hell</string>
     <string name="about_github_title">GitHub – ApkUp</string>
     <string name="about_github">Hol dir den Quellcode, melde Fehler und schlage Funktionen oder Übersetzungen vor.</string>
-    <string name="about_copyright">Copyright &#169; 2026 DurchEins</string>
+    <string name="about_copyright">Copyright &#169; 2026 DurchEins &#8226; GPL-3.0</string>
     <string name="about_tribute">Mit viel Liebe von DurchEins von Grund auf neu gestaltet. ♥</string>
-    <string name="about_original_project">Basierend auf dem Originalprojekt von rumboalla</string>
+    <string name="about_original_project">Basierend auf dem Originalprojekt von rumboalla (GPL-3.0)</string>
     <string name="copy_to_clipboard">Kopiere in Zwischenablage</string>
     <string name="changelog_title">Was ist neu</string>
     <string name="changelog_menu_item">Was ist neu / Changelog</string>

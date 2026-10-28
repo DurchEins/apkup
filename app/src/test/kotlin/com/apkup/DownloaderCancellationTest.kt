@@ -40,6 +40,7 @@ class DownloaderCancellationTest {
         override fun <T> tag(type: Class<out T>): T? = null
         override fun <T : Any> tag(type: kotlin.reflect.KClass<T>, computeIfAbsent: () -> T): T = computeIfAbsent()
         override fun <T : Any> tag(type: Class<T>, computeIfAbsent: () -> T): T = computeIfAbsent()
+        override fun addEventListener(eventListener: okhttp3.EventListener) {}
     }
 
     @Test
