@@ -32,8 +32,22 @@ class ChangelogBottomSheetTest {
         assertEquals("🛠️ Neu & behoben im aktuellen Patch (v1.39.3)", doc.patchTitle)
         assertEquals(2, doc.patchEntries.size)
         assertEquals("Semantische 3-Zahlen-Versionierung", doc.patchEntries[0].title)
+        assertEquals("Übersichtliches Versionsschema v1.39.3-Beta (148).", doc.patchEntries[0].description)
         assertEquals("✨ Haupt-Features aus v1.39", doc.featureTitle)
         assertEquals(2, doc.featureEntries.size)
         assertEquals("Ausklappbare Erweiterte Einstellungen", doc.featureEntries[0].title)
+    }
+
+    @Test
+    fun `parseChangelogDocument strips trailing title colons and inline markdown syntax`() {
+        val markdown = """
+            ## 🛠️ Neu & behoben im aktuellen Patch (v1.39.5)
+            - ⚡ **Titel mit Doppelpunkt:** Beschreibung mit `Backticks` und *Kursivtext*.
+        """.trimIndent()
+
+        val doc = parseChangelogDocument(markdown)
+        assertEquals(1, doc.patchEntries.size)
+        assertEquals("Titel mit Doppelpunkt", doc.patchEntries[0].title)
+        assertEquals("Beschreibung mit Backticks und Kursivtext.", doc.patchEntries[0].description)
     }
 }

@@ -62,18 +62,3 @@ desktop.ini
 *_notes.md
 release_notes/
 
-# Local AI / Agent workspace rules & configs
-/AGENTS.md
-/GEMINI.md
-/.agents/
-/.agent/
-/_agents/
-/_agent/
-/.artifacts/
-chat_history_export.md
-walkthrough.md
-next_milestones_architecture_plan.md
-implementation_plan.md
-
-
-

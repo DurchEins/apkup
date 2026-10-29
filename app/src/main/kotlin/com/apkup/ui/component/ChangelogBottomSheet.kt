@@ -406,6 +406,15 @@ private enum class ChangelogSectionType {
     FEATURES
 }
 
+internal fun cleanInlineMarkdown(text: String): String {
+    return text
+        .replace("`", "")
+        .replace("**", "")
+        .replace(Regex("""(?<!\*)\*([^\*\n]+)\*(?!\*)"""), "$1")
+        .replace(Regex("""\s+"""), " ")
+        .trim()
+}
+
 internal fun parseChangelogDocument(content: String): ChangelogDocument {
     var patchTitle: String? = null
     val patchEntries = mutableListOf<ChangelogEntry>()
@@ -425,29 +434,38 @@ internal fun parseChangelogDocument(content: String): ChangelogDocument {
                 rawHeading.startsWith("🛠️")
             if (isPatchHeading) {
                 currentSection = ChangelogSectionType.PATCH
-                patchTitle = rawHeading
-                    .removePrefix("[Patch]")
-                    .removePrefix("[patch]")
-                    .removePrefix("Patch:")
-                    .trim()
+                patchTitle = cleanInlineMarkdown(
+                    rawHeading
+                        .removePrefix("[Patch]")
+                        .removePrefix("[patch]")
+                        .removePrefix("Patch:")
+                )
             } else {
                 currentSection = ChangelogSectionType.FEATURES
-                featureTitle = rawHeading
-                    .removePrefix("[Features]")
-                    .removePrefix("[features]")
-                    .removePrefix("Features:")
-                    .trim()
+                featureTitle = cleanInlineMarkdown(
+                    rawHeading
+                        .removePrefix("[Features]")
+                        .removePrefix("[features]")
+                        .removePrefix("Features:")
+                )
             }
         } else if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
             val itemText = trimmed.substring(2).trim()
             val match = boldRegex.find(itemText)
             val entry = if (match != null) {
                 val icon = match.groupValues[1].ifBlank { "✨" }
-                val title = match.groupValues[2].trim()
-                val description = match.groupValues[3].trim()
+                val title = cleanInlineMarkdown(match.groupValues[2])
+                    .removeSuffix(":")
+                    .trim()
+                val description = cleanInlineMarkdown(match.groupValues[3])
+                    .removePrefix(":")
+                    .removePrefix("—")
+                    .removePrefix("–")
+                    .removePrefix("-")
+                    .trim()
                 ChangelogEntry(icon = icon, title = title, description = description)
             } else {
-                ChangelogEntry(icon = "•", title = "", description = itemText)
+                ChangelogEntry(icon = "•", title = "", description = cleanInlineMarkdown(itemText))
             }
             if (currentSection == ChangelogSectionType.PATCH) {
                 patchEntries.add(entry)
