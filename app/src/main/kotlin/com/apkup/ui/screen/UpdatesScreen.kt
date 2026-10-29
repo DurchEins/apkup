@@ -2345,54 +2345,54 @@ private fun sourceName(source: Source): String = when (source) {
 }
 
 internal fun resolveWikiUrlForSourceError(sourceName: String?, reason: String? = null): String {
-	val base = "https://github.com/DurchEins/apkup/wiki/Update-Quellen,-Repository-Verkn%C3%BCpfung-&-Signaturschutz"
+	val base = "https://github.com/DurchEins/apkup/wiki/Update-Sources,-Repository-Linking-&-Signature-Protection"
 	val lowerSource = sourceName?.lowercase().orEmpty()
 	val lowerReason = reason?.lowercase().orEmpty()
 
 	if (lowerReason.isNotBlank()) {
 		when {
 			lowerReason.contains("dns") || lowerReason.contains("unknownhost") ->
-				return "$base#41-dns-fehler--server-nicht-erreichbar"
+				return "$base#41-dns-error--server-unreachable"
 			lowerReason.contains("timeout") || lowerReason.contains("zeitüberschreitung") ->
-				return "$base#42-netzwerk-timeout--zeit%C3%BCberschreitung"
+				return "$base#42-network-timeout--connection-timed-out"
 			lowerReason.contains("401") || lowerReason.contains("403") || lowerReason.contains("429") || lowerReason.contains("auth") || lowerReason.contains("rate") -> {
 				return when {
-					lowerSource.contains("play") -> "$base#39-typischer-fehler-google-play-store-download-bricht-ab-http-429-oder-kauf-apps"
-					lowerSource.contains("github") && (lowerReason.contains("403") || lowerReason.contains("rate")) -> "$base#310-typischer-fehler-github-updates-werden-kurzzeitig-nicht-gefunden-http-403-rate-limit"
-					else -> "$base#43-auth-fehler--rate-limit-http-401--403--429"
+					lowerSource.contains("play") -> "$base#39-common-error-google-play-store-download-fails-http-429-or-paid-apps"
+					lowerSource.contains("github") && (lowerReason.contains("403") || lowerReason.contains("rate")) -> "$base#310-common-error-github-updates-are-temporarily-not-found-http-403-rate-limit"
+					else -> "$base#43-auth-error--rate-limit-http-401--403--429"
 				}
 			}
 			lowerReason.contains("404") || lowerReason.contains("500") || lowerReason.contains("502") || lowerReason.contains("503") || lowerReason.contains("504") -> {
 				return if (lowerSource.contains("apkmirror") && lowerReason.contains("404")) {
-					"$base#38-typischer-fehler-apkmirror-zeigt-ein-update-an-aber-die-webseite-meldet-404-not-found"
+					"$base#38-common-error-apkmirror-shows-an-update-but-the-webpage-says-404-not-found"
 				} else {
-					"$base#44-serverfehler--nicht-gefunden-http-404--500--502--503"
+					"$base#44-server-error--not-found-http-404--500--502--503"
 				}
 			}
 			lowerReason.contains("cloudflare") || lowerReason.contains("captcha") || lowerReason.contains("browser") ->
-				return "$base#45-apkmirror-cloudflare-schutz--browser-fallback"
+				return "$base#45-apkmirror-cloudflare-protection--browser-fallback"
 			lowerReason.contains("signature") || lowerReason.contains("incompatible") || lowerReason.contains("konflikt") ->
-				return "$base#46-installation-fehlgeschlagen--signaturkonflikte"
+				return "$base#46-installation-failed--signature-conflicts"
 			lowerReason.contains("asset") || lowerReason.contains("repo") ->
-				return "$base#47-repository-verkn%C3%BCpfung--kein-passendes-apk-asset"
+				return "$base#47-repository-linking--no-matching-apk-asset"
 		}
 	}
 
 	return when {
 		lowerSource.contains("signature") ->
-			"$base#31-warum-zeigt-apkup-manchmal-ein-warnsymbol-wegen-eines-signaturkonflikts-an"
+			"$base#31-why-does-apkup-sometimes-show-a-warning-icon-for-a-signature-conflict"
 		lowerSource.contains("apkmirror") ->
-			"$base#23-direkte-apkmirror-aufl%C3%B6sung--sichere-apkm-split-extraktion"
+			"$base#23-direct-apkmirror-resolution--hardened-apkm-split-extraction"
 		lowerSource.contains("play") ->
-			"$base#39-typischer-fehler-google-play-store-download-bricht-ab-http-429-oder-kauf-apps"
+			"$base#39-common-error-google-play-store-download-fails-http-429-or-paid-apps"
 		lowerSource.contains("github") ->
-			"$base#310-typischer-fehler-github-updates-werden-kurzzeitig-nicht-gefunden-http-403-rate-limit"
+			"$base#310-common-error-github-updates-are-temporarily-not-found-http-403-rate-limit"
 		lowerSource.contains("gitlab") ->
-			"$base#24-open-source--entwickler-quellen-github-gitlab-izzyondroid"
+			"$base#25-three-tier-repository-resolution-for-github--gitlab"
 		lowerSource.contains("izzy") ->
-			"$base#24-open-source--entwickler-quellen-github-gitlab-izzyondroid"
+			"$base#25-three-tier-repository-resolution-for-github--gitlab"
 		else ->
-			"$base#-teil-4-h%C3%A4ufige-fehlermeldungen--selbsthilfe-troubleshooting"
+			"$base#-part-4-common-error-messages--self-help-troubleshooting"
 	}
 }
 
