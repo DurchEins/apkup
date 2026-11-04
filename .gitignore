@@ -58,6 +58,7 @@ desktop.ini
 
 # Internal design drafts & temporary release notes
 /design/
+/design-lab/
 /screenshots/
 *_notes.md
 release_notes/
