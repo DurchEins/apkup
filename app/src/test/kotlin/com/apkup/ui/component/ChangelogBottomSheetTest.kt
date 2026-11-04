@@ -127,7 +127,7 @@ class ChangelogBottomSheetTest {
     }
 
     @Test
-    fun `production changelog assets parse into 4 monthly accordion sections without stray colons or backticks`() {
+    fun `production changelog assets parse into real monthly accordion sections with banners on every feature release`() {
         val assetDir = sequenceOf(
             File("src/main/assets/changelog"),
             File("app/src/main/assets/changelog")
@@ -135,14 +135,18 @@ class ChangelogBottomSheetTest {
 
         listOf("1.39_de.md", "1.39_en.md").forEach { fileName ->
             val raw = File(assetDir, fileName).readText(Charsets.UTF_8)
-            val doc = parseChangelogDocument(raw, "1.39.5-Beta (150)")
-            assertEquals("Expected 4 month sections in $fileName", 4, doc.monthSections.size)
-            assertTrue("Expected at least 3 October releases in $fileName", doc.monthSections[0].releases.size >= 3)
+            val doc = parseChangelogDocument(raw, "1.39.6-Beta (151)")
+            assertEquals("Expected 2 real month sections (November & October) in $fileName", 2, doc.monthSections.size)
+            assertEquals("Expected 1 November release in $fileName", 1, doc.monthSections[0].releases.size)
+            assertTrue("Expected at least 7 October releases in $fileName", doc.monthSections[1].releases.size >= 7)
             doc.monthSections.flatMap { it.releases }.forEach { release ->
                 assertTrue(release.date.isNotBlank())
                 assertTrue(release.version.isNotBlank())
                 assertTrue(release.badgeLabel.isNotBlank())
                 assertTrue(release.entries.isNotEmpty())
+                if (release.badgeType == ChangelogBadgeType.FEATURE || release.badgeType == ChangelogBadgeType.MAJOR) {
+                    assertNotNull("Expected visual highlight banner for feature release ${release.version} in $fileName", release.banner)
+                }
                 release.entries.forEach { entry ->
                     assertFalse("Title should not end with colon in $fileName: ${entry.title}", entry.title.endsWith(":"))
                     assertFalse("Description should not contain backticks in $fileName", entry.description.contains("`"))
