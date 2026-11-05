@@ -116,7 +116,8 @@ Need help configuring sources or resolving connection errors? Visit the official
 * [Troubleshooting Source Errors](https://github.com/DurchEins/apkup/wiki/Troubleshooting-Source-Errors)
 * [Configuring GitHub & GitLab Personal Access Tokens](https://github.com/DurchEins/apkup/wiki/Configuring-GitHub-&-GitLab-Tokens)
 * [Setting up Shizuku for Silent Updates](https://github.com/DurchEins/apkup/wiki/Setting-up-Shizuku)
-* [Obtainium Migration & Backup Guide](https://github.com/DurchEins/apkup/wiki)
+* [Obtainium Migration & Sync Guide](https://github.com/DurchEins/apkup/wiki/Obtainium-Migration-&-Sync-Guide)
+* [F-Droid & Index V2 Repositories](https://github.com/DurchEins/apkup/wiki/F-Droid-&-Index-V2-Repositories)
 
 ---
 
