@@ -126,10 +126,6 @@
     <string name="action_unignore_version">Freigeben</string>
     <string name="action_clear_ignored_versions">Alle übersprungenen Versionen freigeben</string>
     <string name="settings_advanced_section">Erweiterte Einstellungen</string>
-    <string name="settings_virustotal_title">VirusTotal-Prüfung (Optional)</string>
-    <string name="settings_virustotal_description">SHA-256-Hash von heruntergeladenen Updates vor der Installation automatisch bei VirusTotal abgleichen</string>
-    <string name="settings_virustotal_api_key">VirusTotal API-Key</string>
-    <string name="settings_virustotal_api_key_empty">Kein API-Key hinterlegt (optional)</string>
     <string name="settings_backup_section">Sicherung &amp; Wiederherstellung</string>
     <string name="settings_backup_description">Einstellungen &amp; Repo-Mappings sichern</string>
     <string name="settings_backup_export">Konfiguration exportieren</string>
@@ -325,4 +321,8 @@
     <string name="error_banner_wiki_help">Wiki-Hilfe ↗</string>
     <string name="downloading_update_percent">Lädt herunter… %1$d%%</string>
 
+    <!-- Obtainium Import / Export -->
+    <string name="action_export_obtainium">Obtainium-Export</string>
+    <string name="backup_obtainium_import_success">App-Verknüpfungen erfolgreich aus Obtainium importiert.</string>
+    <string name="backup_obtainium_export_success">Obtainium-Exportdatei erfolgreich erstellt.</string>
 </resources>

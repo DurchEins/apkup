@@ -47,8 +47,6 @@ class Prefs(
 	val lastPlayCheck = long("lastPlayCheck", 0L, true)
 	val useShizukuInstaller = boolean("useShizukuInstaller", defValue = false, backed = true)
 	val downloadWifiOnly = boolean("downloadWifiOnly", defValue = false, backed = true)
-	val enableVirusTotalCheck = boolean("enableVirusTotalCheck", defValue = false, backed = true)
-	val virusTotalApiKey = string("virusTotalApiKey", defValue = "", backed = true)
 	val lastSeenVersionCode = long("last_seen_version_code", 0L, true)
 	val cachedUpdateSnapshot = json("cachedUpdateSnapshot", CachedUpdateSnapshot(), true)
 

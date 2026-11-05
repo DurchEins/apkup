@@ -243,4 +243,8 @@
     <string name="permission_install_unknown_apps_later">Plus tard</string>
 
     <string name="install_cached_action">Installer</string>
+    <!-- Obtainium Import / Export -->
+    <string name="action_export_obtainium">Obtainium Export</string>
+    <string name="backup_obtainium_import_success">Imported app repository mappings from Obtainium.</string>
+    <string name="backup_obtainium_export_success">Obtainium export created successfully.</string>
 </resources>

@@ -86,6 +86,13 @@ class RepoMappingManager(
         prefs.customRepoBindings.put(current)
     }
 
+    fun setCustomBindings(newBindings: Map<String, RepoBinding>) {
+        if (newBindings.isEmpty()) return
+        val current = getCustomBindings().toMutableMap()
+        current.putAll(newBindings)
+        prefs.writeCustomRepoBindings(current)
+    }
+
     fun registerHarvestedRepo(packageName: String, sourceUrl: String) {
         if (packageName.isBlank() || sourceUrl.isBlank()) return
         val parsed = parseRepoUrl(sourceUrl) ?: return
@@ -97,21 +104,40 @@ class RepoMappingManager(
         if (raw.isBlank()) return null
 
         // Check if URL
-        if (raw.startsWith("http://") || raw.startsWith("https://")) {
+        if (raw.startsWith("http://", ignoreCase = true) || raw.startsWith("https://", ignoreCase = true)) {
             val uri = runCatching { URI.create(raw) }.getOrNull() ?: return null
             val host = uri.host?.lowercase().orEmpty()
             val path = uri.path?.trim('/') ?: return null
             val segments = path.split("/").filter { it.isNotBlank() }
             if (segments.size < 2) return null
-            val owner = segments[0]
-            val repo = segments.drop(1).joinToString("/").removeSuffix(".git")
-            val fullRepo = "$owner/$repo"
 
             return when {
-                host.contains("github.com") -> RepoBinding(type = "github", repo = fullRepo)
-                host.contains("gitlab.com") -> RepoBinding(type = "gitlab", repo = fullRepo, host = "gitlab.com")
-                host.contains("gitlab") -> RepoBinding(type = "gitlab", repo = fullRepo, host = host)
-                else -> RepoBinding(type = "github", repo = fullRepo)
+                host.contains("github.com") -> {
+                    val owner = segments[0]
+                    val repo = segments[1].removeSuffix(".git")
+                    RepoBinding(type = "github", repo = "$owner/$repo")
+                }
+                host.contains("gitlab") || segments.contains("-") || host.contains("kde.org") -> {
+                    val dashIndex = segments.indexOf("-")
+                    val effectiveSegments = if (dashIndex != -1) {
+                        segments.subList(0, dashIndex)
+                    } else {
+                        val releaseIndex = segments.indexOfFirst { it.equals("releases", ignoreCase = true) }
+                        if (releaseIndex > 1) segments.subList(0, releaseIndex) else segments
+                    }
+                    if (effectiveSegments.size < 2) return null
+                    val cleanRepo = effectiveSegments.joinToString("/").removeSuffix(".git")
+                    RepoBinding(
+                        type = "gitlab",
+                        repo = cleanRepo,
+                        host = if (host == "gitlab.com") "gitlab.com" else host
+                    )
+                }
+                else -> {
+                    val owner = segments[0]
+                    val repo = segments[1].removeSuffix(".git")
+                    RepoBinding(type = "github", repo = "$owner/$repo")
+                }
             }
         }
 

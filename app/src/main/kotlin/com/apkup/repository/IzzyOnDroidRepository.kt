@@ -5,6 +5,9 @@ import android.os.Build
 import android.os.SystemClock
 import android.util.Log
 import com.apkup.BuildConfig
+import com.apkup.data.fdroid.FDroidV2Entry
+import com.apkup.data.fdroid.FDroidV2Index
+import com.apkup.data.fdroid.toIzzyIndexResponse
 import com.apkup.data.izzy.IzzyIndexResponse
 import com.apkup.data.izzy.IzzyPackageInfo
 import com.apkup.data.ui.AppInstalled
@@ -42,6 +45,8 @@ class IzzyOnDroidRepository(
     private val cacheDirectory: File? = null
 ) {
     companion object {
+        const val ENTRY_JSON_URL = "https://apt.izzysoft.de/fdroid/repo/entry.json"
+        const val INDEX_V2_JSON_URL = "https://apt.izzysoft.de/fdroid/repo/index-v2.json"
         const val INDEX_JAR_URL = "https://apt.izzysoft.de/fdroid/repo/index-v1.jar"
         const val REPO_BASE_URL = "https://apt.izzysoft.de/fdroid/repo/"
         internal const val EMPTY_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
@@ -60,6 +65,12 @@ class IzzyOnDroidRepository(
             dir.mkdirs()
         }
         return dir
+    }
+
+    private fun getIndexV2JsonCacheFile(): File {
+        val file = File(getCacheDir(), "index-v2.json")
+        file.parentFile?.mkdirs()
+        return file
     }
 
     private fun getIndexJsonCacheFile(): File {
@@ -181,77 +192,216 @@ class IzzyOnDroidRepository(
         withContext(Dispatchers.IO) {
             inMemoryIndex?.let { return@withContext it }
 
-            val targetFile = getIndexJsonCacheFile()
-            val hasValidLocalFile = targetFile.exists() && targetFile.length() > 0L
-            val cachedOnDisk = if (hasValidLocalFile) loadFromDiskCache() else null
-
-            // Sende ETag / If-Modified-Since NUR DANN an den Server, wenn die lokale targetFile tatsächlich existiert und nicht leer ist
-            val meta = if (hasValidLocalFile && cachedOnDisk != null) loadMetadata() else Pair(null, null)
-            val (etag, lastModified) = meta
-
-            Log.i("IzzyOnDroidRepository", "Checking IzzyOnDroid repository (ETag: ${etag ?: "none"})")
-
-            val requestBuilder = Request.Builder().url(INDEX_JAR_URL)
-            if (!etag.isNullOrBlank()) {
-                requestBuilder.header("If-None-Match", etag)
-            }
-            if (!lastModified.isNullOrBlank()) {
-                requestBuilder.header("If-Modified-Since", lastModified)
-            }
-
+            // 1. Try F-Droid Index V2 (modern entry.json + index-v2.json)
             try {
-                okHttpClient.newCall(requestBuilder.build()).execute().use { response ->
-                    if (response.code == 304) {
-                        val validFileAfter304 = targetFile.exists() && targetFile.length() > 0L
-                        if (cachedOnDisk != null && validFileAfter304) {
-                            Log.i("IzzyOnDroidRepository", "Index unchanged: HTTP 304")
-                            Log.i("IzzyOnDroidRepository", "Parsed ${cachedOnDisk.apps.size} apps from IzzyOnDroid index")
-                            inMemoryIndex = cachedOnDisk
-                            inMemoryIndexTimestamp = System.currentTimeMillis()
-                            return@withContext cachedOnDisk
-                        } else {
-                            Log.w("IzzyOnDroidRepository", "Server returned HTTP 304 but local index-v1.json is missing or corrupt. Forcing fresh download.")
-                            val fresh = fetchFreshIndex()
-                            inMemoryIndex = fresh
-                            inMemoryIndexTimestamp = System.currentTimeMillis()
-                            return@withContext fresh
-                        }
-                    }
-
-                    if (response.isSuccessful) {
-                        Log.i("IzzyOnDroidRepository", "Downloaded index-v1.jar: HTTP 200")
-                        val body = response.body
-                        val newEtag = response.header("ETag")
-                        val newLastModified = response.header("Last-Modified")
-
-                        val parsed = parseZipStreamAndSave(body.byteStream())
-                        saveMetadata(newEtag, newLastModified)
-                        Log.i("IzzyOnDroidRepository", "Parsed ${parsed.apps.size} apps from IzzyOnDroid index")
-                        inMemoryIndex = parsed
-                        inMemoryIndexTimestamp = System.currentTimeMillis()
-                        return@withContext parsed
-                    }
-
-                    if (cachedOnDisk != null && targetFile.exists() && targetFile.length() > 0L) {
-                        Log.w("IzzyOnDroidRepository", "HTTP ${response.code}: Falling back to cached disk index.")
-                        Log.i("IzzyOnDroidRepository", "Parsed ${cachedOnDisk.apps.size} apps from IzzyOnDroid index")
-                        inMemoryIndex = cachedOnDisk
-                        inMemoryIndexTimestamp = System.currentTimeMillis()
-                        return@withContext cachedOnDisk
-                    }
-
-                    throw IOException("HTTP ${response.code} when fetching IzzyOnDroid index")
-                }
-            } catch (networkError: Throwable) {
-                if (cachedOnDisk != null && targetFile.exists() && targetFile.length() > 0L) {
-                    Log.w("IzzyOnDroidRepository", "Network error (${networkError.message}): Falling back to cached disk index.")
-                    Log.i("IzzyOnDroidRepository", "Parsed ${cachedOnDisk.apps.size} apps from IzzyOnDroid index")
-                    inMemoryIndex = cachedOnDisk
+                val v2Result = fetchOrGetV2Index()
+                if (v2Result != null) {
+                    inMemoryIndex = v2Result
                     inMemoryIndexTimestamp = System.currentTimeMillis()
-                    return@withContext cachedOnDisk
+                    return@withContext v2Result
                 }
-                throw networkError
+            } catch (v2Error: Throwable) {
+                if (v2Error is CancellationException) throw v2Error
+                Log.w("IzzyOnDroidRepository", "F-Droid V2 fetch failed, trying V1 fallback: ${v2Error.message}")
             }
+
+            // 2. Fallback to F-Droid Index V1 (index-v1.jar)
+            try {
+                val v1Result = fetchOrGetV1Index()
+                inMemoryIndex = v1Result
+                inMemoryIndexTimestamp = System.currentTimeMillis()
+                return@withContext v1Result
+            } catch (v1Error: Throwable) {
+                if (v1Error is CancellationException) throw v1Error
+                val cached = loadFromDiskCache()
+                if (cached != null) {
+                    Log.w("IzzyOnDroidRepository", "Network error (${v1Error.message}): Falling back to cached disk index.")
+                    inMemoryIndex = cached
+                    inMemoryIndexTimestamp = System.currentTimeMillis()
+                    return@withContext cached
+                }
+                throw v1Error
+            }
+        }
+    }
+
+    private fun fetchOrGetV2Index(): IzzyIndexResponse? {
+        val targetV2File = getIndexV2JsonCacheFile()
+        val hasValidLocalFile = targetV2File.exists() && targetV2File.length() > 0L
+        val cachedOnDisk = if (hasValidLocalFile) loadFromDiskCacheV2() else null
+        val meta = if (hasValidLocalFile && cachedOnDisk != null) loadMetadata() else IndexMetadata()
+
+        val requestBuilder = Request.Builder().url(ENTRY_JSON_URL)
+        if (meta.format == "v2" && !meta.etag.isNullOrBlank()) {
+            requestBuilder.header("If-None-Match", meta.etag)
+        }
+        if (meta.format == "v2" && !meta.lastModified.isNullOrBlank()) {
+            requestBuilder.header("If-Modified-Since", meta.lastModified)
+        }
+
+        okHttpClient.newCall(requestBuilder.build()).execute().use { response ->
+            if (response.code == 304) {
+                if (cachedOnDisk != null && targetV2File.exists() && targetV2File.length() > 0L) {
+                    Log.i("IzzyOnDroidRepository", "F-Droid V2 entry unchanged: HTTP 304")
+                    Log.i("IzzyOnDroidRepository", "Parsed ${cachedOnDisk.apps.size} apps from IzzyOnDroid V2 index")
+                    return cachedOnDisk
+                } else {
+                    Log.w("IzzyOnDroidRepository", "Server returned HTTP 304 for entry.json but local index-v2.json is missing. Forcing fresh download.")
+                    return fetchFreshV2Index()
+                }
+            }
+
+            if (response.isSuccessful) {
+                val newEtag = response.header("ETag")
+                val newLastModified = response.header("Last-Modified")
+                val entry = runCatching {
+                    gson.fromJson(response.body.charStream(), FDroidV2Entry::class.java)
+                }.getOrNull() ?: return null
+
+                val expectedSha = entry.index?.sha256.orEmpty()
+                val indexUrl = if (!entry.index?.name.isNullOrBlank()) {
+                    val rel = entry.index.name.removePrefix("/")
+                    "$REPO_BASE_URL$rel"
+                } else {
+                    INDEX_V2_JSON_URL
+                }
+
+                if (cachedOnDisk != null && expectedSha.isNotBlank() && expectedSha.equals(meta.indexSha256, ignoreCase = true)) {
+                    Log.i("IzzyOnDroidRepository", "F-Droid V2 index unchanged (matching SHA-256: $expectedSha)")
+                    saveMetadata(IndexMetadata(newEtag, newLastModified, expectedSha, "v2"))
+                    return cachedOnDisk
+                }
+
+                return downloadAndSaveV2Index(indexUrl, expectedSha, newEtag, newLastModified)
+            }
+
+            if (response.code == 404 || response.code == 403) {
+                Log.w("IzzyOnDroidRepository", "F-Droid V2 entry.json not available (HTTP ${response.code}). Falling back to V1.")
+                return null
+            }
+
+            if (cachedOnDisk != null && targetV2File.exists() && targetV2File.length() > 0L) {
+                Log.w("IzzyOnDroidRepository", "HTTP ${response.code} fetching entry.json: Falling back to cached V2 disk index.")
+                return cachedOnDisk
+            }
+
+            return null
+        }
+    }
+
+    private fun fetchFreshV2Index(): IzzyIndexResponse? {
+        val entryRequest = Request.Builder().url(ENTRY_JSON_URL).build()
+        okHttpClient.newCall(entryRequest).execute().use { response ->
+            if (!response.isSuccessful) return null
+            val newEtag = response.header("ETag")
+            val newLastModified = response.header("Last-Modified")
+            val entry = runCatching {
+                gson.fromJson(response.body.charStream(), FDroidV2Entry::class.java)
+            }.getOrNull() ?: return null
+
+            val expectedSha = entry.index?.sha256.orEmpty()
+            val indexUrl = if (!entry.index?.name.isNullOrBlank()) {
+                val rel = entry.index.name.removePrefix("/")
+                "$REPO_BASE_URL$rel"
+            } else {
+                INDEX_V2_JSON_URL
+            }
+            return downloadAndSaveV2Index(indexUrl, expectedSha, newEtag, newLastModified)
+        }
+    }
+
+    private fun downloadAndSaveV2Index(
+        url: String,
+        expectedSha256: String,
+        entryEtag: String?,
+        entryLastModified: String?
+    ): IzzyIndexResponse {
+        val targetFile = getIndexV2JsonCacheFile()
+        val tempFile = File(getCacheDir(), "index-v2.json.tmp")
+        tempFile.parentFile?.mkdirs()
+        if (tempFile.exists()) tempFile.delete()
+
+        try {
+            val req = Request.Builder().url(url).build()
+            okHttpClient.newCall(req).execute().use { indexResponse ->
+                if (!indexResponse.isSuccessful) {
+                    throw IOException("HTTP ${indexResponse.code} when downloading index-v2.json from $url")
+                }
+                FileOutputStream(tempFile).use { out ->
+                    indexResponse.body.byteStream().copyTo(out)
+                }
+            }
+
+            if (targetFile.exists()) targetFile.delete()
+            if (!tempFile.renameTo(targetFile)) {
+                tempFile.copyTo(targetFile, overwrite = true)
+                tempFile.delete()
+            }
+
+            val sizeKb = targetFile.length() / 1024
+            Log.i("IzzyOnDroidRepository", "Successfully downloaded index-v2.json ($sizeKb KB)")
+
+            val parsed = FileInputStream(targetFile).use { fileIn ->
+                InputStreamReader(fileIn, Charsets.UTF_8).use { reader ->
+                    val v2 = gson.fromJson(reader, FDroidV2Index::class.java)
+                        ?: throw IOException("Empty or invalid index-v2.json")
+                    v2.toIzzyIndexResponse()
+                }
+            }
+            saveMetadata(IndexMetadata(entryEtag, entryLastModified, expectedSha256, "v2"))
+            Log.i("IzzyOnDroidRepository", "Parsed ${parsed.apps.size} apps from IzzyOnDroid V2 index")
+            return parsed
+        } finally {
+            if (tempFile.exists()) tempFile.delete()
+        }
+    }
+
+    private fun fetchOrGetV1Index(): IzzyIndexResponse {
+        val targetFile = getIndexJsonCacheFile()
+        val hasValidLocalFile = targetFile.exists() && targetFile.length() > 0L
+        val cachedOnDisk = if (hasValidLocalFile) loadFromDiskCacheV1() else null
+        val meta = if (hasValidLocalFile && cachedOnDisk != null) loadMetadata() else IndexMetadata()
+
+        Log.i("IzzyOnDroidRepository", "Checking IzzyOnDroid V1 repository (ETag: ${meta.etag ?: "none"})")
+
+        val requestBuilder = Request.Builder().url(INDEX_JAR_URL)
+        if (meta.format == "v1" && !meta.etag.isNullOrBlank()) {
+            requestBuilder.header("If-None-Match", meta.etag)
+        }
+        if (meta.format == "v1" && !meta.lastModified.isNullOrBlank()) {
+            requestBuilder.header("If-Modified-Since", meta.lastModified)
+        }
+
+        okHttpClient.newCall(requestBuilder.build()).execute().use { response ->
+            if (response.code == 304) {
+                if (cachedOnDisk != null && targetFile.exists() && targetFile.length() > 0L) {
+                    Log.i("IzzyOnDroidRepository", "V1 index unchanged: HTTP 304")
+                    Log.i("IzzyOnDroidRepository", "Parsed ${cachedOnDisk.apps.size} apps from IzzyOnDroid V1 index")
+                    return cachedOnDisk
+                } else {
+                    Log.w("IzzyOnDroidRepository", "Server returned HTTP 304 but local index-v1.json is missing or corrupt. Forcing fresh download.")
+                    return fetchFreshIndex()
+                }
+            }
+
+            if (response.isSuccessful) {
+                Log.i("IzzyOnDroidRepository", "Downloaded index-v1.jar: HTTP 200")
+                val newEtag = response.header("ETag")
+                val newLastModified = response.header("Last-Modified")
+
+                val parsed = parseZipStreamAndSave(response.body.byteStream())
+                saveMetadata(IndexMetadata(newEtag, newLastModified, null, "v1"))
+                Log.i("IzzyOnDroidRepository", "Parsed ${parsed.apps.size} apps from IzzyOnDroid V1 index")
+                return parsed
+            }
+
+            if (cachedOnDisk != null && targetFile.exists() && targetFile.length() > 0L) {
+                Log.w("IzzyOnDroidRepository", "HTTP ${response.code}: Falling back to cached disk index.")
+                Log.i("IzzyOnDroidRepository", "Parsed ${cachedOnDisk.apps.size} apps from IzzyOnDroid index")
+                return cachedOnDisk
+            }
+
+            throw IOException("HTTP ${response.code} when fetching IzzyOnDroid index")
         }
     }
 
@@ -264,7 +414,7 @@ class IzzyOnDroidRepository(
                 val newLastModified = response.header("Last-Modified")
 
                 val parsed = parseZipStreamAndSave(response.body.byteStream())
-                saveMetadata(newEtag, newLastModified)
+                saveMetadata(IndexMetadata(newEtag, newLastModified, null, "v1"))
                 Log.i("IzzyOnDroidRepository", "Parsed ${parsed.apps.size} apps from IzzyOnDroid index")
                 return parsed
             }
@@ -324,7 +474,18 @@ class IzzyOnDroidRepository(
         }
     }
 
-    private fun loadFromDiskCache(): IzzyIndexResponse? = runCatching {
+    private fun loadFromDiskCacheV2(): IzzyIndexResponse? = runCatching {
+        val file = getIndexV2JsonCacheFile()
+        if (!file.exists() || file.length() <= 0L) return null
+        FileInputStream(file).use { input ->
+            InputStreamReader(input, Charsets.UTF_8).use { reader ->
+                val v2 = gson.fromJson(reader, FDroidV2Index::class.java)
+                v2?.toIzzyIndexResponse()
+            }
+        }
+    }.getOrNull()
+
+    private fun loadFromDiskCacheV1(): IzzyIndexResponse? = runCatching {
         val file = getIndexJsonCacheFile()
         if (!file.exists() || file.length() <= 0L) return null
         FileInputStream(file).use { input ->
@@ -334,20 +495,36 @@ class IzzyOnDroidRepository(
         }
     }.getOrNull()
 
-    private fun loadMetadata(): Pair<String?, String?> = runCatching {
-        val file = getMetaCacheFile()
-        if (!file.exists()) return Pair(null, null)
-        val lines = file.readLines()
-        val etag = lines.getOrNull(0)?.takeIf { it.isNotBlank() }
-        val lastModified = lines.getOrNull(1)?.takeIf { it.isNotBlank() }
-        Pair(etag, lastModified)
-    }.getOrDefault(Pair(null, null))
+    private fun loadFromDiskCache(): IzzyIndexResponse? {
+        val v2 = loadFromDiskCacheV2()
+        if (v2 != null) return v2
+        return loadFromDiskCacheV1()
+    }
 
-    private fun saveMetadata(etag: String?, lastModified: String?) {
+    internal data class IndexMetadata(
+        val etag: String? = null,
+        val lastModified: String? = null,
+        val indexSha256: String? = null,
+        val format: String = "v2"
+    )
+
+    private fun loadMetadata(): IndexMetadata = runCatching {
+        val file = getMetaCacheFile()
+        if (!file.exists()) return IndexMetadata()
+        val lines = file.readLines()
+        IndexMetadata(
+            etag = lines.getOrNull(0)?.takeIf { it.isNotBlank() },
+            lastModified = lines.getOrNull(1)?.takeIf { it.isNotBlank() },
+            indexSha256 = lines.getOrNull(2)?.takeIf { it.isNotBlank() },
+            format = lines.getOrNull(3)?.takeIf { it.isNotBlank() } ?: "v1"
+        )
+    }.getOrDefault(IndexMetadata())
+
+    private fun saveMetadata(metadata: IndexMetadata) {
         runCatching {
             val file = getMetaCacheFile()
             file.parentFile?.mkdirs()
-            file.writeText("${etag.orEmpty()}\n${lastModified.orEmpty()}")
+            file.writeText("${metadata.etag.orEmpty()}\n${metadata.lastModified.orEmpty()}\n${metadata.indexSha256.orEmpty()}\n${metadata.format}")
         }
     }
 

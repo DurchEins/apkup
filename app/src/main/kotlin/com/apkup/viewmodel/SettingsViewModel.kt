@@ -5,12 +5,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
 import com.apkup.R
+import com.apkup.data.obtainium.ObtainiumManager
 import com.apkup.data.snack.TextSnack
 import com.apkup.data.ui.ApkUpBackupConfig
 import com.apkup.data.ui.BackgroundCheckInterval
 import com.apkup.data.ui.IgnoredVersionEntry
 import com.apkup.data.ui.ShizukuSetupStatus
 import com.apkup.prefs.Prefs
+import com.apkup.repository.RepoMappingManager
 import com.apkup.ui.theme.isDarkTheme
 import com.apkup.util.SessionInstaller
 import com.apkup.util.SnackBar
@@ -51,7 +53,8 @@ class SettingsViewModel(
 	private val snackBar: SnackBar? = null,
 	private val stringer: Stringer? = null,
 	private val gson: Gson = GsonBuilder().setPrettyPrinting().create(),
-	private val okHttpClient: OkHttpClient = OkHttpClient()
+	private val okHttpClient: OkHttpClient = OkHttpClient(),
+	private val repoMappingManager: RepoMappingManager? = null
 ) : ViewModel() {
 
 	private val ignoredVersionsFlow = MutableStateFlow(buildIgnoredVersionEntries())
@@ -349,10 +352,6 @@ class SettingsViewModel(
 	}
 	fun getDownloadWifiOnly(): Boolean = prefs.downloadWifiOnly.get()
 	fun setDownloadWifiOnly(wifiOnly: Boolean) = prefs.downloadWifiOnly.put(wifiOnly)
-	fun getEnableVirusTotalCheck(): Boolean = prefs.enableVirusTotalCheck.get()
-	fun setEnableVirusTotalCheck(enabled: Boolean) = prefs.enableVirusTotalCheck.put(enabled)
-	fun getVirusTotalApiKey(): String = prefs.virusTotalApiKey.get()
-	fun setVirusTotalApiKey(key: String) = prefs.virusTotalApiKey.put(key.trim())
 	fun getBackgroundChecksEnabled() = prefs.enableBackgroundChecks.get()
 	fun getBackgroundCheckIntervalHours(): Int =
 		BackgroundCheckInterval.fromHours(prefs.backgroundCheckIntervalHours.get()).hours
@@ -407,45 +406,103 @@ class SettingsViewModel(
 		return gson.toJson(config)
 	}
 
-	fun importBackupJson(rawJson: String): Boolean = runCatching {
-		val config = gson.fromJson(rawJson, ApkUpBackupConfig::class.java)
-			?: throw IllegalArgumentException("Empty backup JSON")
-		prefs.ignoredApps.put(config.ignoredApps.distinct())
-		prefs.ignoredVersions.put(config.ignoredVersions.distinct())
-		prefs.ignoredVersionEntries.put(config.ignoredVersionEntries.distinctBy { it.id })
-		prefs.setShowSystemApps(config.showSystemApps)
-		prefs.updatesDisplayMode.put(config.updatesDisplayMode.coerceIn(0, 1))
-		prefs.useApkMirror.put(config.useApkMirror)
-		prefs.directApkMirrorDownloads.put(config.directApkMirrorDownloads)
-		prefs.usePlay.put(config.usePlay)
-		prefs.useIzzyOnDroid.put(config.useIzzyOnDroid)
-		prefs.useGitHub.put(config.useGitHub)
-		prefs.useGitLab.put(config.useGitLab)
-		if (config.customRepoBindings.isNotEmpty()) {
-			prefs.writeCustomRepoBindings(config.customRepoBindings)
+	fun importBackupJson(rawJson: String): Boolean {
+		if (ObtainiumManager.isObtainiumJson(rawJson)) {
+			val result = repoMappingManager?.let {
+				ObtainiumManager.importObtainium(rawJson, it)
+			} ?: run {
+				val apps = ObtainiumManager.parseObtainiumApps(rawJson)
+				val newBindings = mutableMapOf<String, com.apkup.data.repomapping.RepoBinding>()
+				var skipped = 0
+				for (app in apps) {
+					val pkg = app.id.trim()
+					val url = app.url.trim()
+					if (pkg.isBlank() || url.isBlank()) {
+						skipped++
+						continue
+					}
+					val binding = ObtainiumManager.convertUrlToBinding(url)
+					if (binding != null) {
+						newBindings[pkg] = binding
+					} else {
+						skipped++
+					}
+				}
+				val current = prefs.readCustomRepoBindingsSafe().toMutableMap()
+				current.putAll(newBindings)
+				prefs.writeCustomRepoBindings(current)
+				com.apkup.data.obtainium.ObtainiumImportResult(
+					totalEntries = apps.size,
+					importedBindingsCount = newBindings.size,
+					skippedCount = skipped,
+					importedPackages = newBindings.keys.toList()
+				)
+			}
+
+			return if (result.importedBindingsCount > 0) {
+				val str = stringer?.get(R.string.backup_obtainium_import_success)
+				val message = if (str != null) {
+					runCatching { str.format(result.importedBindingsCount, result.totalEntries) }.getOrDefault(str)
+				} else {
+					"Imported ${result.importedBindingsCount}/${result.totalEntries} apps from Obtainium"
+				}
+				notifyTextSnack(message)
+				true
+			} else {
+				notifySnack(R.string.backup_import_error)
+				false
+			}
 		}
-		prefs.enableBackgroundChecks.put(config.enableBackgroundChecks)
-		prefs.backgroundCheckIntervalHours.put(
-			BackgroundCheckInterval.fromHours(config.backgroundCheckIntervalHours).hours
-		)
-		setTheme(config.theme.coerceIn(0, 2))
-		val canEnableShizuku = config.useShizukuInstaller &&
-			(sessionInstaller?.getShizukuSetupStatus()?.isReady == true)
-		prefs.useShizukuInstaller.put(canEnableShizuku)
-		shizukuEnabledFlow.value = canEnableShizuku
-		prefs.downloadWifiOnly.put(config.downloadWifiOnly)
-		if (config.enableBackgroundChecks) {
-			workManager?.let { UpdatesWorker.launch(it) }
-		} else {
-			workManager?.let { UpdatesWorker.cancel(it) }
+
+		return runCatching {
+			val config = gson.fromJson(rawJson, ApkUpBackupConfig::class.java)
+				?: throw IllegalArgumentException("Empty backup JSON")
+			prefs.ignoredApps.put(config.ignoredApps.distinct())
+			prefs.ignoredVersions.put(config.ignoredVersions.distinct())
+			prefs.ignoredVersionEntries.put(config.ignoredVersionEntries.distinctBy { it.id })
+			prefs.setShowSystemApps(config.showSystemApps)
+			prefs.updatesDisplayMode.put(config.updatesDisplayMode.coerceIn(0, 1))
+			prefs.useApkMirror.put(config.useApkMirror)
+			prefs.directApkMirrorDownloads.put(config.directApkMirrorDownloads)
+			prefs.usePlay.put(config.usePlay)
+			prefs.useIzzyOnDroid.put(config.useIzzyOnDroid)
+			prefs.useGitHub.put(config.useGitHub)
+			prefs.useGitLab.put(config.useGitLab)
+			if (config.customRepoBindings.isNotEmpty()) {
+				prefs.writeCustomRepoBindings(config.customRepoBindings)
+			}
+			prefs.enableBackgroundChecks.put(config.enableBackgroundChecks)
+			prefs.backgroundCheckIntervalHours.put(
+				BackgroundCheckInterval.fromHours(config.backgroundCheckIntervalHours).hours
+			)
+			setTheme(config.theme.coerceIn(0, 2))
+			val canEnableShizuku = config.useShizukuInstaller &&
+				(sessionInstaller?.getShizukuSetupStatus()?.isReady == true)
+			prefs.useShizukuInstaller.put(canEnableShizuku)
+			shizukuEnabledFlow.value = canEnableShizuku
+			prefs.downloadWifiOnly.put(config.downloadWifiOnly)
+			if (config.enableBackgroundChecks) {
+				workManager?.let { UpdatesWorker.launch(it) }
+			} else {
+				workManager?.let { UpdatesWorker.cancel(it) }
+			}
+			refreshIgnoredVersions()
+			refreshIgnoredApps()
+			notifySnack(R.string.backup_import_success)
+			true
+		}.getOrElse {
+			notifySnack(R.string.backup_import_error)
+			false
 		}
-		refreshIgnoredVersions()
-		refreshIgnoredApps()
-		notifySnack(R.string.backup_import_success)
-		true
-	}.getOrElse {
-		notifySnack(R.string.backup_import_error)
-		false
+	}
+
+	fun exportObtainiumJson(appNamesByPackage: Map<String, String> = emptyMap()): String {
+		val bindings = prefs.readCustomRepoBindingsSafe()
+		return ObtainiumManager.exportObtainium(bindings, appNamesByPackage)
+	}
+
+	fun notifyObtainiumExported(success: Boolean) {
+		notifySnack(if (success) R.string.backup_obtainium_export_success else R.string.backup_import_error)
 	}
 
 	fun notifyBackupExported(success: Boolean) {

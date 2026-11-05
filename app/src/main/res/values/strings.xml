@@ -127,10 +127,6 @@
     <string name="action_unignore_version">Restore</string>
     <string name="action_clear_ignored_versions">Restore all skipped versions</string>
     <string name="settings_advanced_section">Advanced Settings</string>
-    <string name="settings_virustotal_title">VirusTotal Scan (Optional)</string>
-    <string name="settings_virustotal_description">Verify SHA-256 hashes of downloaded updates against VirusTotal before installation</string>
-    <string name="settings_virustotal_api_key">VirusTotal API Key</string>
-    <string name="settings_virustotal_api_key_empty">No API key set (optional)</string>
     <string name="settings_backup_section">Backup &amp; Restore</string>
     <string name="settings_backup_description">Backup settings &amp; repo mappings</string>
     <string name="settings_backup_export">Export configuration</string>
@@ -328,4 +324,8 @@
     <string name="error_banner_wiki_help">Wiki Help ↗</string>
     <string name="downloading_update_percent">Downloading… %1$d%%</string>
 
+    <!-- Obtainium Import / Export -->
+    <string name="action_export_obtainium">Obtainium Export</string>
+    <string name="backup_obtainium_import_success">Imported app repository mappings from Obtainium.</string>
+    <string name="backup_obtainium_export_success">Obtainium export created successfully.</string>
 </resources>

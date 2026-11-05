@@ -217,7 +217,6 @@ fun Settings(
 	var showChangelogSheet by remember { mutableStateOf(false) }
 	var showGitHubTokenDialog by remember { mutableStateOf(false) }
 	var showGitLabTokenDialog by remember { mutableStateOf(false) }
-	var showVirusTotalKeyDialog by remember { mutableStateOf(false) }
 	var isAdvancedExpanded by rememberSaveable { mutableStateOf(false) }
 	var configRefreshKey by remember { mutableIntStateOf(0) }
 
@@ -253,6 +252,21 @@ fun Settings(
 				} ?: throw IllegalStateException("Unable to open output stream")
 			}.isSuccess
 			viewModel.notifyBackupExported(success)
+		}
+	}
+
+	val exportObtainiumLauncher = rememberLauncherForActivityResult(
+		ActivityResultContracts.CreateDocument("application/json")
+	) { uri ->
+		if (uri != null) {
+			val success = runCatching {
+				val appNames = (appsViewModel.state().value as? com.apkup.data.ui.AppsUiState.Success)?.apps?.associate { it.packageName to it.name }.orEmpty()
+				val json = viewModel.exportObtainiumJson(appNames)
+				context.contentResolver.openOutputStream(uri)?.use { stream ->
+					stream.write(json.toByteArray(Charsets.UTF_8))
+				} ?: throw IllegalStateException("Unable to open output stream")
+			}.isSuccess
+			viewModel.notifyObtainiumExported(success)
 		}
 	}
 
@@ -890,6 +904,25 @@ fun Settings(
 						)
 					}
 				}
+				OutlinedButton(
+					onClick = { exportObtainiumLauncher.launch("apkup-obtainium-export.json") },
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(top = 4.dp),
+					shape = CircleShape
+				) {
+					Icon(
+						imageVector = Icons.Default.Share,
+						contentDescription = null,
+						modifier = Modifier.size(16.dp)
+					)
+					Spacer(modifier = Modifier.width(6.dp))
+					Text(
+						text = stringResource(R.string.action_export_obtainium),
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis
+					)
+				}
 			}
 		}
 
@@ -1470,20 +1503,6 @@ fun Settings(
 			onVerifiedMessage = { msg -> viewModel.notifyTextSnack(msg) },
 			onSaveToken = { token ->
 				viewModel.setGitLabToken(token)
-				configRefreshKey++
-			}
-		)
-	}
-
-	if (showVirusTotalKeyDialog) {
-		ApiTokenDialog(
-			title = stringResource(R.string.settings_virustotal_api_key),
-			description = stringResource(R.string.settings_virustotal_description),
-			placeholder = "API Key",
-			initialToken = viewModel.getVirusTotalApiKey(),
-			onDismiss = { showVirusTotalKeyDialog = false },
-			onSaveToken = { key ->
-				viewModel.setVirusTotalApiKey(key)
 				configRefreshKey++
 			}
 		)
