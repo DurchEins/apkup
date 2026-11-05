@@ -1,0 +1,10 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Scripts: Ensure Linux shell scripts always have LF line endings
+*.sh text eol=lf
+gradlew text eol=lf
+
+# Windows scripts: Ensure CRLF line endings
+*.bat text eol=crlf
+*.cmd text eol=crlf
