@@ -56,19 +56,3 @@ desktop.ini
 # Memory dumps
 *.hprof
 
-# Internal design drafts & temporary release notes
-/design/
-/design-lab/
-/screenshots/
-*_notes.md
-release_notes/
-.impeccable/
-PRODUCT.md
-
-# Agent internal notes & AI planning artifacts
-AGENTS.md
-.artifacts/
-walkthrough.md
-next_milestones_architecture_plan.md
-chat_history_export.md
-
