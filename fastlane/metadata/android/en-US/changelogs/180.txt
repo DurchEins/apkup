@@ -1,0 +1,5 @@
+• Space-saving source icons with dynamic scan view expansion
+• Reliable back navigation without loops and fluid swipe-to-minimize gesture
+• Faster permissions setup with direct shortcuts to Android battery usage settings
+• Improved pre-release version detection and smoother split-APK bundle installation
+• Multiple under-the-hood bug fixes and improved overall app stability

@@ -1,0 +1,5 @@
+• Kompakte Quellensuche mit platzsparenden Symbolen und dynamischem Aufklappen
+• Zuverlässige Zurück-Navigation ohne Schleifen und flüssiges Wischen zum Minimieren
+• Schnellere Einrichtung mit direkter Weiterleitung zur Akkunutzung und Berechtigungen
+• Verbesserte Versionserkennung für Vorabversionen und reibungslose Split-APK-Installation
+• Zahlreiche Fehlerbehebungen unter der Haube und gesteigerte App-Stabilität

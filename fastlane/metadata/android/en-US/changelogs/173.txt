@@ -1,0 +1,7 @@
+• M3 Expressive Design with fresh color palette and edge-to-edge cards
+• New app home screen with clean separation between user and system apps
+• Native direct downloads from APKMirror within the app
+• Split-action quick settings switches for instant toggling
+• Autonomous background updates via Shizuku
+• Advanced Wi-Fi and charging constraints for update checks
+• Stability and performance optimizations

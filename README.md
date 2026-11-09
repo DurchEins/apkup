@@ -35,6 +35,8 @@
   * Pixel-inspired UI optimized for Android 15, 16, and 17 styling with a floating capsule navigation dock and tactile haptic feedback.
   * Comprehensive **Dynamic Color (Material You)** support with dark, light, and system themes.
   * Monthly-grouped in-app changelog with semantic release tags, expandable month accordions, and visual highlight banners.
+  * **Compact Source Scan:** Space-saving update source icons with real-time status checkmarks and dynamic accordion scan expansion.
+  * **Tiered Predictive Back Navigation:** Context-aware back gesture handling that dismisses active searches, smoothly navigates back from secondary tabs to Updates, and supports fluid swipe-to-minimize.
   * Multiple display modes for the update list (*Compact Grid Tiles* vs. *Detailed List*).
   * Auto-resizing typography ensuring multi-digit version numbers always display cleanly on a single line.
 * **⚡ Uninterrupted Background Downloads, 24h Cache & Autonomous Shizuku Installs:**
@@ -42,11 +44,13 @@
   * **Consolidated Summary Notifications & Update History:** Clean post-update summary notification plus a persistent in-app **Update History** sheet (accessible anytime from the *Updates* top bar or the *Recently Updated* filter in *Apps*) recording version transitions (`old → new`), update source, install mode (*Auto · Shizuku* vs. *Manual*), and a one-tap **Previous Version** link to simplify rollbacks if an upstream release introduces issues.
   * **Foreground Download Service:** Interactive downloads and batch updates (*Update All*) continue reliably in the background and across screen locks, complete with live progress notifications and instant cancellation.
   * **24-Hour Smart Cache & Instant Resume:** Downloaded APKs are preserved locally for up to 24 hours. Dismissed installations can be resumed instantly with "Install" without re-downloading.
+  * **Direct Permission Setup & Battery Navigation:** Deep-links directly to Android's app battery usage page (Optimized vs. Unrestricted) and guided in-app resolution for missing notification and battery exemptions.
   * **Reliable Native Fallback:** Seamless fallback to Android's `PackageInstaller` session API with Android 14+ Background Activity Launch (BAL) notification support and robust session abandonment.
 * **📶 Network Data Saver:**
   * **Wi-Fi Only Mode:** Restrict downloads to unmetered Wi-Fi connections with an active mobile data safety prompt.
 * **🛡️ Smart Version Detection & Filters:**
-  * **Zero False Positives:** Verifiable semantic version and `versionCode` progression check.
+  * **Zero False Positives:** Verifiable semantic version and `versionCode` progression check with robust numeric pre-release comparison.
+  * **Hardened Archive Extraction:** Defense-in-depth safety limits during bundle extraction to safeguard storage against excessively large or malicious archives.
   * **Skip Single Version:** Ignore a specific faulty build once; you will be notified again when a newer release arrives.
   * **Permanently Hidden Apps:** Exclude apps permanently from the update cycle and manage them anytime.
   * **System Apps Toggle:** Filter or include pre-installed system applications on demand.

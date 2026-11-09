@@ -1,0 +1,7 @@
+• M3 Expressive Design mit frischer Farbwelt und rahmenlosen Karten
+• Neue App-Startseite mit klarer Trennung zwischen Benutzer- und System-Apps
+• Nativer APKMirror Direktdownload direkt in der App
+• Zweigeteilte Schnelleinstellungen (Split-Schalter) für schnelles Umschalten
+• Autonome Hintergrund-Updates über Shizuku
+• Erweiterte WLAN- und Lade-Bedingungen für Downloads
+• Stabilitäts- und Performanceverbesserungen
