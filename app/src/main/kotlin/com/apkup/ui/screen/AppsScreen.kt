@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import android.text.format.DateUtils
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -170,6 +171,12 @@ fun AppsScreenSuccess(
 	val showSystemApps by viewModel.showSystemAppsFlow.collectAsStateWithLifecycle()
 	var searchExpanded by rememberSaveable { mutableStateOf(false) }
 	var showHistorySheet by rememberSaveable { mutableStateOf(false) }
+
+	// Tier 1 Predictive Back: If search is active, back press dismisses search first
+	BackHandler(enabled = searchExpanded || searchQuery.isNotBlank()) {
+		viewModel.setSearchQuery("")
+		searchExpanded = false
+	}
 
 	val userAppsCount = remember(state.apps) { state.apps.count { !it.isSystemApp } }
 	val systemAppsCount = remember(state.apps) { state.apps.count { it.isSystemApp } }

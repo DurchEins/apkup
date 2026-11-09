@@ -3,6 +3,7 @@ package com.apkup.ui.screen
 import android.app.Activity.RESULT_CANCELED
 import android.content.Intent
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
@@ -170,12 +171,16 @@ fun MainScreen(
 	// Pull to refresh
 	val isRefreshing = mainViewModel.isRefreshing.collectAsStateWithLifecycle()
 	val pullToRefreshState = rememberPullToRefreshState()
-	val isUpdatesScreen = !shouldShowDefaultPullToRefreshIndicator(
-		navController.currentBackStackEntryAsState().value?.destination?.route
-	)
+	val currentDestinationRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+	val isUpdatesScreen = !shouldShowDefaultPullToRefreshIndicator(currentDestinationRoute)
 	val currentVersionCode = BuildConfig.VERSION_CODE.toLong()
 	val showChangelogSheet by mainViewModel.showChangelogSheet.collectAsStateWithLifecycle()
 	val selfUpdateState by mainViewModel.selfUpdateState.collectAsStateWithLifecycle()
+
+	// Tier 2 Predictive Back: From secondary tabs (Apps / Setup), back press returns to primary Updates tab
+	BackHandler(enabled = currentDestinationRoute != null && currentDestinationRoute != Screen.Updates.route) {
+		mainViewModel.navigateTo(navController, Screen.Updates.route)
+	}
 
 	LaunchedEffect(Unit) {
 		mainViewModel.checkChangelogPrompt(context, currentVersionCode)
