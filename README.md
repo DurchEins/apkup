@@ -9,11 +9,11 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.41.18--Beta%20(173)-38BDF8?style=flat-square" alt="Version" /></a>
-  <img src="https://img.shields.io/badge/Android-10.0%2B%20(API%2029%2B)-3DDC84?style=flat-square&logo=android" alt="Android" />
-  <img src="https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square" alt="License: GPL v3" />
-  <img src="https://img.shields.io/badge/Shizuku-Supported-00897B?style=flat-square" alt="Shizuku" />
-  <img src="https://img.shields.io/badge/Privacy-No%20Ads%20%7C%20No%20Tracking-brightgreen?style=flat-square" alt="Privacy" />
+  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.41.18--Beta%20(173)-38BDF8?style=flat" alt="Version" /></a>
+  <img src="https://img.shields.io/badge/Android-10.0%2B%20(API%2029%2B)-3DDC84?style=flat&logo=android" alt="Android" />
+  <img src="https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat" alt="License: GPL v3" />
+  <img src="https://img.shields.io/badge/Shizuku-Supported-00897B?style=flat" alt="Shizuku" />
+  <img src="https://img.shields.io/badge/Privacy-No%20Ads%20%7C%20No%20Tracking-brightgreen?style=flat" alt="Privacy" />
 </p>
 
 <p align="center">
