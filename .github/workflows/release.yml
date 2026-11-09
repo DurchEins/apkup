@@ -65,9 +65,6 @@ jobs:
             TAG_OR_RUN="${GITHUB_REF_NAME:-run-${GITHUB_RUN_NUMBER}}"
             TARGET_APK="release_assets/ApkUp-${TAG_OR_RUN}.apk"
             cp "$APK_FILE" "$TARGET_APK"
-            cd release_assets
-            sha256sum "$(basename "$TARGET_APK")" > "$(basename "$TARGET_APK").sha256"
-            cd ..
             echo "apk_path=$TARGET_APK" >> $GITHUB_OUTPUT
           else
             echo "Error: No APK file found in app/build/outputs/apk/release"
@@ -90,9 +87,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: |
-            release_assets/*.apk
-            release_assets/*.sha256
+          files: release_assets/*.apk
           body: ${{ env.RELEASE_NOTES }}
           draft: false
           prerelease: true
