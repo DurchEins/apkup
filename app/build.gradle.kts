@@ -39,11 +39,22 @@ android {
                     val ksPath = props.getProperty("keystore.file")
                     if (!ksPath.isNullOrBlank()) {
                         val ksFile = File(ksPath)
-                        storeFile = if (ksFile.isAbsolute) ksFile else rootProject.file(ksPath)
-                        storePassword = props.getProperty("keystore.password")
-                        keyAlias = props.getProperty("keystore.keyalias")
-                        keyPassword = props.getProperty("keystore.keypassword")
-                        configured = true
+                        val resolvedFile = when {
+                            ksFile.isAbsolute && ksFile.exists() -> ksFile
+                            rootProject.file(ksPath).exists() -> rootProject.file(ksPath)
+                            file(ksPath).exists() -> file(ksPath)
+                            rootProject.file("app/$ksPath").exists() -> rootProject.file("app/$ksPath")
+                            else -> null
+                        }
+                        if (resolvedFile != null && resolvedFile.exists()) {
+                            storeFile = resolvedFile
+                            storePassword = props.getProperty("keystore.password")
+                            keyAlias = props.getProperty("keystore.keyalias")
+                            keyPassword = props.getProperty("keystore.keypassword")
+                            configured = true
+                        } else {
+                            println("Keystore file '$ksPath' does not exist at expected paths. Falling back to debug signing config.")
+                        }
                     }
                 }
             } catch (_: Exception) {
