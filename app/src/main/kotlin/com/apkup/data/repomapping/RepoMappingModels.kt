@@ -153,9 +153,39 @@ object ReleaseAssetFilter {
         if (current.preRelease == null && candidate.preRelease != null) return false
 
         if (current.preRelease != null && candidate.preRelease != null) {
-            return candidate.preRelease > current.preRelease
+            return comparePreRelease(candidate.preRelease, current.preRelease) > 0
         }
 
         return false
+    }
+
+    internal fun comparePreRelease(candidate: String, current: String): Int {
+        val candTokens = candidate.split('.', '-', '_')
+        val currTokens = current.split('.', '-', '_')
+        val maxTokens = maxOf(candTokens.size, currTokens.size)
+        for (i in 0 until maxTokens) {
+            val cTok = candTokens.getOrNull(i) ?: return -1
+            val curTok = currTokens.getOrNull(i) ?: return 1
+            val cNum = cTok.toIntOrNull()
+            val curNum = curTok.toIntOrNull()
+            if (cNum != null && curNum != null) {
+                if (cNum != curNum) return cNum.compareTo(curNum)
+            } else {
+                val cNumEmbedded = Regex("\\d+").find(cTok)?.value?.toIntOrNull()
+                val curNumEmbedded = Regex("\\d+").find(curTok)?.value?.toIntOrNull()
+                val cType = cTok.replace(Regex("\\d+"), "").lowercase()
+                val curType = curTok.replace(Regex("\\d+"), "").lowercase()
+                if (cType != curType) {
+                    val cmp = cType.compareTo(curType)
+                    if (cmp != 0) return cmp
+                } else if (cNumEmbedded != null && curNumEmbedded != null && cNumEmbedded != curNumEmbedded) {
+                    return cNumEmbedded.compareTo(curNumEmbedded)
+                } else if (cTok != curTok) {
+                    val cmp = cTok.compareTo(curTok, ignoreCase = true)
+                    if (cmp != 0) return cmp
+                }
+            }
+        }
+        return 0
     }
 }

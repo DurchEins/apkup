@@ -7,6 +7,10 @@ import java.util.zip.ZipFile
 
 object ApkmExtractor {
 
+    const val MAX_ENTRY_BYTES = 1024L * 1024L * 1024L // 1 GB per APK
+    const val MAX_TOTAL_UNCOMPRESSED_BYTES = 2L * 1024L * 1024L * 1024L // 2 GB total
+    const val MAX_ARCHIVE_SPOOL_BYTES = 1024L * 1024L * 1024L // 1 GB
+
     private val ZIP_MAGIC = byteArrayOf(0x50, 0x4B, 0x03, 0x04)
 
     /**
@@ -82,6 +86,7 @@ object ApkmExtractor {
         // Map canonical path -> File to deduplicate collisions when multiple entries flatten to the same name
         val extractedFilesMap = LinkedHashMap<String, File>()
         val allCreatedFiles = mutableSetOf<File>()
+        var totalExtractedBytes = 0L
 
         try {
             zip.use { zipFile ->
@@ -92,13 +97,13 @@ object ApkmExtractor {
                         continue
                     }
 
-                    // Flatten entry name to simple filename
+                    // Flatten entry name to simple filename to neutralize any directory traversal
                     val simpleName = File(entry.name).name
                     if (simpleName.isBlank()) continue
 
                     val targetFile = File(destinationDir, simpleName).canonicalFile
 
-                    // Defense-in-depth Zip Slip security guard
+                    // Defense-in-depth Zip Slip security guard: ensure target file cannot escape canonical destination
                     if (targetFile.parentFile != canonicalDest) {
                         throw SecurityException("Zip Slip path traversal detected in archive entry: ${entry.name}")
                     }
@@ -106,10 +111,21 @@ object ApkmExtractor {
                     // Record target file before opening output stream so partial writes are cleaned up on failure
                     allCreatedFiles.add(targetFile)
 
-                    // Extract entry stream to target file
+                    // Extract entry stream to target file with decompression bomb defense
+                    var entryBytes = 0L
                     zipFile.getInputStream(entry).use { input ->
                         targetFile.outputStream().use { output ->
-                            input.copyTo(output)
+                            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                            var read = input.read(buffer)
+                            while (read >= 0) {
+                                entryBytes += read
+                                totalExtractedBytes += read
+                                if (entryBytes > MAX_ENTRY_BYTES || totalExtractedBytes > MAX_TOTAL_UNCOMPRESSED_BYTES) {
+                                    throw SecurityException("Decompression bomb detected in archive entry: ${entry.name}")
+                                }
+                                output.write(buffer, 0, read)
+                                read = input.read(buffer)
+                            }
                             output.flush()
                         }
                     }
@@ -156,8 +172,18 @@ object ApkmExtractor {
         targetDir.mkdirs()
         val tempArchive = File.createTempFile("apkm_stream_", ".zip", targetDir)
         try {
+            var spooledBytes = 0L
             tempArchive.outputStream().use { out ->
-                inputStream.copyTo(out)
+                val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                var read = inputStream.read(buffer)
+                while (read >= 0) {
+                    spooledBytes += read
+                    if (spooledBytes > MAX_ARCHIVE_SPOOL_BYTES) {
+                        throw SecurityException("Archive stream exceeds maximum allowed spool size ($MAX_ARCHIVE_SPOOL_BYTES bytes)")
+                    }
+                    out.write(buffer, 0, read)
+                    read = inputStream.read(buffer)
+                }
                 out.flush()
             }
             return extractApkm(tempArchive, targetDir)

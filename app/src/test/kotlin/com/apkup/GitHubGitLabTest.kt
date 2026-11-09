@@ -94,6 +94,14 @@ class GitHubGitLabTest {
 
         // Older version
         assertFalse(ReleaseAssetFilter.isNewer("1.0.0", "0.9.5"))
+
+        // Pre-release numeric comparisons (e.g. beta.10 > beta.2, rc10 > rc2)
+        assertTrue(ReleaseAssetFilter.isNewer("1.2.0-beta.2", "1.2.0-beta.10"))
+        assertFalse(ReleaseAssetFilter.isNewer("1.2.0-beta.10", "1.2.0-beta.2"))
+        assertTrue(ReleaseAssetFilter.isNewer("1.0.0-rc2", "1.0.0-rc10"))
+        assertFalse(ReleaseAssetFilter.isNewer("1.0.0-rc10", "1.0.0-rc2"))
+        assertTrue(ReleaseAssetFilter.isNewer("1.0.0-beta.1", "1.0.0"))
+        assertFalse(ReleaseAssetFilter.isNewer("1.0.0", "1.0.0-beta.1"))
     }
 
     @Test

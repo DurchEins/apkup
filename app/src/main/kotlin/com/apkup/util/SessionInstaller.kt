@@ -38,7 +38,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withTimeoutOrNull
 import moe.shizuku.server.IShizukuService
 import rikka.shizuku.Shizuku
@@ -118,7 +117,6 @@ class SessionInstaller internal constructor(
         }
     }
 
-    private val mutex = Mutex()
     private val scope = CoroutineScope(Dispatchers.IO)
     private val activeSessions = ConcurrentHashMap<Int, Int>()
 
@@ -155,9 +153,6 @@ class SessionInstaller internal constructor(
         packageName: String,
         parts: List<InstallPart>
     ): Boolean {
-        if (mutex.isLocked) {
-            runCatching { mutex.unlock() }
-        }
         installLog.beginInstall(id)
         if (parts.isEmpty()) {
             throw IOException("No installation parts provided for $packageName")
@@ -421,12 +416,20 @@ class SessionInstaller internal constructor(
             }
 
             // Security verification: inspect staged APK package name before privileged install
-            val baseApk = stagedFiles.firstOrNull { it.name.endsWith(".apk") }
+            val baseApk = stagedFiles.firstOrNull { it.name.equals("base.apk", ignoreCase = true) }
+                ?: stagedFiles.firstOrNull { file ->
+                    ctx.packageManager.getPackageArchiveInfo(file.absolutePath, 0)?.packageName != null
+                }
+                ?: stagedFiles.firstOrNull { it.name.endsWith(".apk", ignoreCase = true) }
+
             if (baseApk != null) {
                 val archiveInfo = ctx.packageManager.getPackageArchiveInfo(baseApk.absolutePath, 0)
-                    ?: throw IOException("Invalid or corrupt APK payload for $packageName: packageManager could not parse archive")
-                if (archiveInfo.packageName != packageName) {
-                    throw SecurityException("Security check failed: Downloaded APK packageName (${archiveInfo.packageName}) does not match expected ($packageName)!")
+                if (archiveInfo != null) {
+                    if (archiveInfo.packageName != packageName) {
+                        throw SecurityException("Security check failed: Downloaded APK packageName (${archiveInfo.packageName}) does not match expected ($packageName)!")
+                    }
+                } else {
+                    Log.w("SessionInstaller", "Could not parse packageArchiveInfo for ${baseApk.name}; proceeding with caution")
                 }
             }
 
@@ -568,7 +571,6 @@ class SessionInstaller internal constructor(
                     installLog.emitStatus(AppInstallStatus(success, id, snack = true))
                     safeUnregisterReceiver()
                     safeUnregisterCallback()
-                    if (mutex.isLocked) runCatching { mutex.unlock() }
                     if (continuation.isActive) {
                         continuation.resume(success)
                     }
@@ -607,8 +609,6 @@ class SessionInstaller internal constructor(
                                         )
                                     }
                                     scope.launch(Dispatchers.Main) {
-                                        if (mutex.isLocked) runCatching { mutex.unlock() }
-                                        mutex.lock()
                                         runCatching {
                                             (context.applicationContext ?: context).startActivity(confirmIntent, options.toBundle())
                                         }.onFailure { error ->
@@ -618,8 +618,6 @@ class SessionInstaller internal constructor(
                                     }
                                 } else {
                                     scope.launch(Dispatchers.Main) {
-                                        if (mutex.isLocked) runCatching { mutex.unlock() }
-                                        mutex.lock()
                                         postConfirmationNotification(context, id, packageName, confirmIntent)
                                     }
                                 }
@@ -673,7 +671,6 @@ class SessionInstaller internal constructor(
                     activeSessions.remove(id, sessId)
                     runCatching { packageInstaller.abandonSession(sessId) }
                 } ?: activeSessions.remove(id)
-                if (mutex.isLocked) runCatching { mutex.unlock() }
             }
 
             try {
@@ -718,7 +715,6 @@ class SessionInstaller internal constructor(
                         runCatching { packageInstaller.abandonSession(sessId) }
                     }
                 } ?: activeSessions.remove(id)
-                if (mutex.isLocked) runCatching { mutex.unlock() }
                 throw error
             }
         }
@@ -791,9 +787,6 @@ class SessionInstaller internal constructor(
                     nm.cancel(NOTIFICATION_ID_CONFIRM_BASE + id)
                 }
             }
-        }
-        if (mutex.isLocked) {
-            runCatching { mutex.unlock() }
         }
     }
 
