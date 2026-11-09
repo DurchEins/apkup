@@ -45,6 +45,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -74,6 +75,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -143,6 +145,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
@@ -220,6 +223,11 @@ fun Settings(
 	val context = LocalContext.current
 	val haptic = LocalHapticFeedback.current
 	val lifecycleOwner = LocalLifecycleOwner.current
+	val coroutineScope = rememberCoroutineScope()
+	val listState = rememberLazyListState()
+	val density = LocalDensity.current
+	var highlightPermissions by remember { mutableStateOf(false) }
+	var configRefreshKey by remember { mutableIntStateOf(0) }
 	var hasInstallPermission by remember {
 		mutableStateOf(context.packageManager.canRequestPackageInstalls())
 	}
@@ -231,6 +239,7 @@ fun Settings(
 				viewModel.refreshIgnoredVersions()
 				viewModel.refreshIgnoredApps()
 				viewModel.refreshShizukuStatus()
+				configRefreshKey++
 			}
 		}
 		lifecycleOwner.lifecycle.addObserver(observer)
@@ -251,7 +260,6 @@ fun Settings(
 	var showGitHubTokenDialog by remember { mutableStateOf(false) }
 	var showGitLabTokenDialog by remember { mutableStateOf(false) }
 	var isAdvancedExpanded by rememberSaveable { mutableStateOf(false) }
-	var configRefreshKey by remember { mutableIntStateOf(0) }
 
 	var easterEggActiveUntil by remember { mutableLongStateOf(0L) }
 	val isEasterEggActive = easterEggActiveUntil > System.currentTimeMillis()
@@ -474,15 +482,23 @@ fun Settings(
 						actionText = context.getString(R.string.warning_action_exempt),
 						onClick = {
 							runCatching {
-								val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
+								val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+									data = "package:${context.packageName}".toUri()
 									addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 								}
 								context.startActivity(intent)
 							}.onFailure {
 								runCatching {
-									context.startActivity(Intent(Settings.ACTION_SETTINGS).apply {
+									val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
 										addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-									})
+									}
+									context.startActivity(intent)
+								}.onFailure {
+									runCatching {
+										context.startActivity(Intent(Settings.ACTION_SETTINGS).apply {
+											addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+										})
+									}
 								}
 							}
 						}
@@ -507,19 +523,38 @@ fun Settings(
 		LaunchedEffect(activeIssues.size) {
 			badger.changeSettingsBadge(if (activeIssues.isNotEmpty()) "!" else "")
 		}
+
+		val scrollToPermissions: () -> Unit = {
+			isAdvancedExpanded = true
+			highlightPermissions = true
+			coroutineScope.launch {
+				delay(120)
+				val targetIndex = if (activeIssues.isNotEmpty()) 5 else 4
+				listState.animateScrollToItem(
+					index = targetIndex,
+					scrollOffset = with(density) { 240.dp.roundToPx() }
+				)
+				delay(2500)
+				highlightPermissions = false
+			}
+		}
+
 		LazyColumn(
+			state = listState,
 			modifier = Modifier
 				.fillMaxSize()
 				.offset { IntOffset(0, overscrollOffset.roundToInt()) },
 			contentPadding = PaddingValues(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 120.dp),
 			verticalArrangement = Arrangement.spacedBy(14.dp)
 		) {
-			// TemporÃ¤re Status-Warnkarte (nur sichtbar, wenn Einstellungen fehlen)
+			// Temporäre Status-Warnkarte (nur sichtbar, wenn Einstellungen fehlen)
 			if (activeIssues.isNotEmpty()) {
 				item(key = "setup_active_warnings") {
 					val isDark = androidx.compose.foundation.isSystemInDarkTheme()
 					Surface(
-						modifier = Modifier.fillMaxWidth(),
+						modifier = Modifier
+							.fillMaxWidth()
+							.clickable(onClick = scrollToPermissions),
 						shape = RoundedCornerShape(16.dp),
 						color = if (isDark) Color(0xFF331E05) else Color(0xFFFFF3E0),
 						border = BorderStroke(1.dp, if (isDark) Color(0xFFF59E0B).copy(alpha = 0.5f) else Color(0xFFFFB74D))
@@ -555,7 +590,7 @@ fun Settings(
 								)
 								Text(
 									text = if (activeIssues.size == 1) activeIssues.first().subtitle
-									       else activeIssues.joinToString(" â€¢ ") { it.shortName },
+									       else activeIssues.joinToString(" • ") { it.shortName },
 									style = MaterialTheme.typography.bodySmall,
 									color = if (isDark) Color(0xFFD1D5DB) else Color(0xFF5D4037),
 									maxLines = 1,
@@ -563,7 +598,13 @@ fun Settings(
 								)
 							}
 							FilledTonalButton(
-								onClick = { activeIssues.first().onClick() },
+								onClick = {
+									if (activeIssues.size > 1) {
+										scrollToPermissions()
+									} else {
+										activeIssues.first().onClick()
+									}
+								},
 								colors = ButtonDefaults.filledTonalButtonColors(
 									containerColor = if (isDark) Color(0xFFF59E0B) else Color(0xFFE65100),
 									contentColor = if (isDark) Color(0xFF451A03) else Color.White
@@ -899,7 +940,7 @@ fun Settings(
 		}
 
 		// Sektion 5: Erweiterte Einstellungen (App-Verwaltung, System & Datensicherung - einklappbar)
-		item(key = "section_advanced_${isAdvancedExpanded}_${isBatteryIgnoring}_${areNotificationsEnabled}_${hasInstallPermission}_$configRefreshKey") {
+		item(key = "section_advanced") {
 			Surface(
 				modifier = Modifier.fillMaxWidth(),
 				shape = RoundedCornerShape(20.dp),
@@ -1015,8 +1056,29 @@ fun Settings(
 								color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
 							)
 
+							val highlightAlpha by animateFloatAsState(
+								targetValue = if (highlightPermissions) 1f else 0f,
+								animationSpec = tween(durationMillis = 450),
+								label = "permissions_highlight"
+							)
+
 							// 2. System & Berechtigungen
-							Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+							Column(
+								modifier = Modifier
+									.fillMaxWidth()
+									.clip(RoundedCornerShape(16.dp))
+									.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f * highlightAlpha))
+									.border(
+										width = (1.5 * highlightAlpha).dp,
+										color = MaterialTheme.colorScheme.primary.copy(alpha = 0.65f * highlightAlpha),
+										shape = RoundedCornerShape(16.dp)
+									)
+									.padding(
+										horizontal = (6 * highlightAlpha).dp,
+										vertical = (6 * highlightAlpha).dp
+									),
+								verticalArrangement = Arrangement.spacedBy(8.dp)
+							) {
 								Text(
 									text = stringResource(R.string.settings_section_system_permissions),
 									style = MaterialTheme.typography.labelLarge,
@@ -1038,15 +1100,23 @@ fun Settings(
 									),
 									onClick = {
 										runCatching {
-											val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
+											val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+												data = "package:${context.packageName}".toUri()
 												addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 											}
 											context.startActivity(intent)
 										}.onFailure {
 											runCatching {
-												context.startActivity(Intent(Settings.ACTION_SETTINGS).apply {
+												val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
 													addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-												})
+												}
+												context.startActivity(intent)
+											}.onFailure {
+												runCatching {
+													context.startActivity(Intent(Settings.ACTION_SETTINGS).apply {
+														addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+													})
+												}
 											}
 										}
 									}
