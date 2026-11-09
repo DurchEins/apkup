@@ -186,7 +186,7 @@ class GitLabRepository(
             .header("User-Agent", "ApkUp")
 
         val token = prefs.gitlabToken.get().trim().filter { it in '!'..'~' }
-        if (token.isNotEmpty()) {
+        if (token.isNotEmpty() && host.equals("gitlab.com", ignoreCase = true)) {
             requestBuilder.header("PRIVATE-TOKEN", token)
         }
 

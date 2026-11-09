@@ -5,7 +5,6 @@
     <string name="tab_updates">التحديثات</string>
     <string name="tab_settings">الإعدادات</string>
     <string name="something_went_wrong">"حدث خطأً ما\n\uD83E\uDD26"</string>
-    <string name="ignore_version">تجاهل الإصدار</string>
     <string name="ignore_cd">تجاهل التطبيق</string>
     <string name="unignore_cd">إلغاء تجاهل التطبيق</string>
     <string name="refresh_updates">ابحث عن التحديثات</string>
@@ -15,9 +14,6 @@
     <string name="install_failure">%1$s فشل التثبيت.</string>
 
     // Settings
-    <string name="settings_sources">المصادر</string>
-    <string name="settings_ui">الواجهة</string>
-    <string name="settings_options">خيارات</string>
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
     <string name="source_play" translatable="false">Play</string>
     <string name="about">حول</string>
@@ -25,8 +21,6 @@
     <string name="theme_system">النظام</string>
     <string name="theme_dark">داكن</string>
     <string name="theme_light">ساطع</string>
-    <string name="about_github">احصل على الكود المصدري، وأبلغ عن الأخطاء، واطلب ميزات جديدة، وأضف الترجمات.</string>
-    <string name="copy_to_clipboard">نسخ إلى الحافظة</string>
 
     // Notifications
     <string name="notification_channel_name">التحديثات</string>

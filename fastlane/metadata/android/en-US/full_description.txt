@@ -1,16 +1,9 @@
-# ApkUp [![](https://github.com/rumboalla/apkupdater/workflows/Android%20Build/badge.svg)](https://github.com/rumboalla/apkupdater/actions?query=workflow%3A%22Android+Build%22)
-**ApkUp** is an open source tool that helps find updates for installed apps. It aggregates update information from **APKMirror** and **Google Play**.
+ApkUp is a modern, privacy-first open-source Android app updater built with Jetpack Compose and Material 3 Expressive design. It discovers, manages, and installs updates across multiple sources without ads or tracking.
 
-The 3.x branch is a full rewrite using modern technologies like **Jetpack Compose**, **Flow** and **WorkManager**.
-
-# Features
-* **Update Sources**: Find updates from **APKMirror** and **Google Play**.
-* Schedule **background update checks** and receive a **notification** when updates are found.
-* Supports **Android 6** (**API 23**) and newer.
-* Supports **Android TV**.
-* **Material Design 3** with **Dark**, **Light** and **System** theme support.
-* Supports **Material You** on Android 12+.
-* **Direct install** of updates for sources that support it.
-* Supports **installs without user interaction** on Android 12+.
-* No ads. No tracking.
-* **Languages**: English, Spanish, Dutch, German, Traditional Chinese, Simplified Chinese, Romanian, Italian, Portuguese, Russian, Turkish.
+Key Features:
+* Multi-Source Discovery: Check updates across Google Play Store, APKMirror (with direct in-app downloads and .apkm split-bundle extraction), IzzyOnDroid (F-Droid Index V2), GitHub, and GitLab (including self-hosted instances and subgroups).
+* Autonomous Shizuku Background Updates & History: Automatically download and silently install updates in the background via Shizuku with Wi-Fi-only and charging-only guards, consolidated summary notifications, and an in-app Update History sheet with direct links to previous versions for easy rollbacks.
+* 24-Hour Smart APK Cache: Downloaded packages stay ready locally for 24 hours so cancelled or deferred updates can be installed instantly without re-downloading.
+* Obtainium Interoperability & Full Backup: Import and export Obtainium repository mappings directly, or back up your entire ApkUp configuration as a single JSON file.
+* Signature Protection & Granular Filters: Pre-install certificate mismatch warnings, per-version skipping, permanently hidden apps, and Wi-Fi data saver mode.
+* Modern Android Experience: Supports Android 10.0 (API 29) through Android 17 with Dynamic Color (Material You), a floating navigation dock, built-in self-updater, and 9 languages (English, German, Spanish, French, Portuguese, Italian, Russian, Simplified Chinese, and Japanese).

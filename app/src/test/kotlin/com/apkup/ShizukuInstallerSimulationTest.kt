@@ -237,6 +237,66 @@ class ShizukuInstallerSimulationTest {
     }
 
     @Test
+    fun `installPartsSilently executes silently without prompting permissions or falling back to PackageInstaller`() = runBlocking {
+        // Case 1: Binder running, permission missing -> must NOT prompt permission or fall back
+        val deniedBridge = FakeShizukuBridge(
+            installed = true,
+            binderRunning = true,
+            permissionGranted = false,
+            awaitPermissionGranted = true
+        )
+        var fallbackInvoked = false
+        val fallbackNotices = mutableListOf<Int>()
+        val prefs = Prefs(InMemoryKryptoPrefs()).apply {
+            useShizukuInstaller.put(true)
+        }
+        val deniedInstaller = createSimulatedInstaller(
+            bridge = deniedBridge,
+            prefs = prefs,
+            fallbackRunner = { _, _, _ ->
+                fallbackInvoked = true
+                true
+            },
+            onFallbackNotice = { fallbackNotices.add(it) }
+        )
+
+        val deniedResult = deniedInstaller.installPartsSilently(
+            id = 501,
+            packageName = "com.example.silent.denied",
+            parts = listOf(InstallPart("base.apk") { ByteArrayInputStream("apk".toByteArray()) })
+        )
+        assertFalse(deniedResult)
+        assertEquals(0, deniedBridge.permissionRequestsCount)
+        assertEquals(0, deniedBridge.shizukuInstallCalls)
+        assertFalse(fallbackInvoked)
+        assertTrue(fallbackNotices.isEmpty())
+
+        // Case 2: Binder running + permission granted -> silent install succeeds without snack
+        val readyBridge = FakeShizukuBridge(
+            installed = true,
+            binderRunning = true,
+            permissionGranted = true,
+            shizukuInstallOutcome = { true }
+        )
+        val readyInstaller = createSimulatedInstaller(
+            bridge = readyBridge,
+            prefs = prefs,
+            fallbackRunner = { _, _, _ ->
+                fallbackInvoked = true
+                true
+            }
+        )
+        val okResult = readyInstaller.installPartsSilently(
+            id = 502,
+            packageName = "com.example.silent.ok",
+            parts = listOf(InstallPart("base.apk") { ByteArrayInputStream("apk".toByteArray()) })
+        )
+        assertTrue(okResult)
+        assertEquals(1, readyBridge.shizukuInstallCalls)
+        assertFalse(fallbackInvoked)
+    }
+
+    @Test
     fun `background check intervals and active source progress tracking work as expected`() {
         assertEquals(6L, resolvePeriodicIntervalHours(6))
         assertEquals(12L, resolvePeriodicIntervalHours(12))

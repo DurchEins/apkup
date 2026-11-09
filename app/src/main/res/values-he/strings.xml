@@ -5,7 +5,6 @@
     <string name="tab_updates">עדכונים</string>
     <string name="tab_settings">הגדרות</string>
     <string name="something_went_wrong">"קרתה שגיאה\n\uD83E\uDD26"</string>
-    <string name="ignore_version">התעלם מגירסה</string>
     <string name="ignore_cd">התעלמות מישומון</string>
     <string name="unignore_cd">בטל התעלמות מישומון</string>
     <string name="refresh_updates">חפש עדכונים</string>
@@ -15,17 +14,12 @@
     <string name="install_failure">%1$s ההתקנה נכשלה.</string>
 
     // Settings
-    <string name="settings_sources">מקורות</string>
-    <string name="settings_ui">ממשק משתמש</string>
-    <string name="settings_options">אפשרויות</string>
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
     <string name="about">אודות</string>
     <string name="theme">ערכת נושא</string>
     <string name="theme_system">מערכת</string>
     <string name="theme_dark">כהה</string>
     <string name="theme_light">בהיר</string>
-    <string name="about_github">לקוד מקור, דיווח שגיאות, בקשה לתכוניות חדשות ותרגומים.</string>
-    <string name="copy_to_clipboard">העתק לזיכרון</string>
 
     // Notifications
     <string name="notification_channel_name">עדכונים</string>

@@ -43,8 +43,10 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Update
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -94,6 +96,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -103,6 +106,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.apkup.R
 import com.apkup.data.ui.ApkMirrorSource
 import com.apkup.data.ui.AppUpdate
+import com.apkup.data.ui.cleanChangelogText
 import com.apkup.data.ui.GitHubSource
 import com.apkup.data.ui.GitLabSource
 import com.apkup.data.ui.InstallOrigin
@@ -115,9 +119,13 @@ import com.apkup.service.DownloadInstallService
 import com.apkup.service.DownloadTaskState
 import com.apkup.ui.component.AppEmptyState
 import com.apkup.ui.component.CompactUpdateCardLayout
+import com.apkup.ui.component.GrandFestivalEmptyState
+import com.apkup.ui.component.MultiSourceScanTray
+import com.apkup.ui.component.ScanSourceStatus
 import com.apkup.ui.component.LoadingImageApp
 import com.apkup.ui.component.NormalUpdateCardLayout
 import com.apkup.ui.component.RefreshIcon
+import com.apkup.ui.component.UpdateHistoryBottomSheet
 import com.apkup.ui.component.shimmering
 import com.apkup.ui.component.toUpdateCardContent
 import com.apkup.ui.component.updateGridColumnCount
@@ -134,10 +142,18 @@ fun UpdatesScreen(
 	viewModel: UpdatesViewModel,
 	appsViewModel: AppsViewModel = koinViewModel()
 ) {
+	var showHistorySheet by rememberSaveable { mutableStateOf(false) }
+
 	viewModel.state().collectAsStateWithLifecycle().value.onLoading {
-		UpdatesScreenLoading(viewModel)
+		UpdatesScreenLoading(
+			viewModel = viewModel,
+			onOpenHistory = { showHistorySheet = true }
+		)
 	}.onError {
-		UpdatesScreenError(viewModel)
+		UpdatesScreenError(
+			viewModel = viewModel,
+			onOpenHistory = { showHistorySheet = true }
+		)
 	}.onSuccess {
 		UpdatesScreenSuccess(
 			viewModel = viewModel,
@@ -149,8 +165,13 @@ fun UpdatesScreen(
 			totalApps = it.totalApps,
 			activeSourceName = it.activeSourceName,
 			sourceErrors = it.sourceErrors,
-			lastCheckedAtMillis = it.lastCheckedAtMillis
+			lastCheckedAtMillis = it.lastCheckedAtMillis,
+			onOpenHistory = { showHistorySheet = true }
 		)
+	}
+
+	if (showHistorySheet) {
+		UpdateHistoryBottomSheet(onDismiss = { showHistorySheet = false })
 	}
 }
 
@@ -159,7 +180,8 @@ fun UpdatesScreen(
 fun UpdatesTopBar(
 	viewModel: UpdatesViewModel,
 	updatesCount: Int? = null,
-	hasInstallableUpdates: Boolean = false
+	hasInstallableUpdates: Boolean = false,
+	onOpenHistory: (() -> Unit)? = null
 ) = TopAppBar(
 	title = {
 		Row(
@@ -192,6 +214,14 @@ fun UpdatesTopBar(
 		scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
 	),
 	actions = {
+		if (onOpenHistory != null) {
+			IconButton(onClick = onOpenHistory) {
+				Icon(
+					imageVector = Icons.Rounded.History,
+					contentDescription = stringResource(R.string.update_history_title)
+				)
+			}
+		}
 		IconButton(onClick = { viewModel.refresh() }) {
 			RefreshIcon(stringResource(R.string.refresh_updates))
 		}
@@ -218,7 +248,10 @@ fun UpdatesTopBar(
 )
 
 @Composable
-fun UpdatesScreenLoading(viewModel: UpdatesViewModel) = Column(Modifier.fillMaxSize()) {
+fun UpdatesScreenLoading(
+	viewModel: UpdatesViewModel,
+	onOpenHistory: (() -> Unit)? = null
+) = Column(Modifier.fillMaxSize()) {
 	val view = LocalView.current
 	val prefs = koinInject<Prefs>()
 	val initialSource = when {
@@ -230,15 +263,18 @@ fun UpdatesScreenLoading(viewModel: UpdatesViewModel) = Column(Modifier.fillMaxS
 		view.keepScreenOn = true
 		onDispose { view.keepScreenOn = false }
 	}
-	UpdatesTopBar(viewModel)
+	UpdatesTopBar(viewModel = viewModel, onOpenHistory = onOpenHistory)
 	UpdateCheckProgressBar(activeSourceName = initialSource)
 	UpdatesLoadingList(Modifier.weight(1f))
 }
 
 @Composable
-fun UpdatesScreenError(viewModel: UpdatesViewModel) = Column(Modifier.fillMaxSize()) {
+fun UpdatesScreenError(
+	viewModel: UpdatesViewModel,
+	onOpenHistory: (() -> Unit)? = null
+) = Column(Modifier.fillMaxSize()) {
 	val handler = LocalUriHandler.current
-	UpdatesTopBar(viewModel)
+	UpdatesTopBar(viewModel = viewModel, onOpenHistory = onOpenHistory)
 	UpdatesMessage(
 		title = stringResource(R.string.updates_error_title),
 		message = stringResource(R.string.updates_error_message),
@@ -260,7 +296,8 @@ fun UpdatesScreenSuccess(
 	totalApps: Int? = null,
 	activeSourceName: String? = null,
 	sourceErrors: Map<String, String> = emptyMap(),
-	lastCheckedAtMillis: Long? = null
+	lastCheckedAtMillis: Long? = null,
+	onOpenHistory: (() -> Unit)? = null
 ) = Column(Modifier.fillMaxSize()) {
 	val context = LocalContext.current
 	val handler = LocalUriHandler.current
@@ -299,7 +336,10 @@ fun UpdatesScreenSuccess(
 	val sourceCounts = remember(updates) {
 		val map = linkedMapOf<Source, Int>()
 		for (update in updates) {
-			map[update.source] = (map[update.source] ?: 0) + 1
+			val allSources = (listOf(update.source) + update.alternativeUpdates.map { it.source }).distinctBy { it.name }
+			for (src in allSources) {
+				map[src] = (map[src] ?: 0) + 1
+			}
 		}
 		map
 	}
@@ -314,7 +354,14 @@ fun UpdatesScreenSuccess(
 		if (selectedSourceFilter == null) {
 			updates
 		} else {
-			updates.filter { it.source.name == selectedSourceFilter }
+			updates.mapNotNull { update ->
+				if (update.source.name == selectedSourceFilter) {
+					update
+				} else {
+					val alt = update.alternativeUpdates.firstOrNull { it.source.name == selectedSourceFilter }
+					alt?.copy(alternativeUpdates = update.alternativeUpdates)
+				}
+			}
 		}
 	}
 
@@ -332,10 +379,13 @@ fun UpdatesScreenSuccess(
 		it.isDirectInstallable(directMirror) || it.alternativeUpdates.any { alt -> alt.isDirectInstallable(directMirror) }
 	}
 
+	val historyEntries by prefs.updateHistoryFlow.collectAsStateWithLifecycle()
+
 	UpdatesTopBar(
 		viewModel = viewModel,
 		updatesCount = displayedUpdates.size,
-		hasInstallableUpdates = hasInstallable
+		hasInstallableUpdates = hasInstallable,
+		onOpenHistory = onOpenHistory
 	)
 
 	if ((updates.isNotEmpty() && !isChecking) || activeTasks.isNotEmpty()) {
@@ -362,9 +412,13 @@ fun UpdatesScreenSuccess(
 	}
 
 	if (isChecking) {
-		UpdateCheckProgressBar(checkedApps, totalApps, activeSourceName)
-	} else if (lastCheckedAtMillis != null && lastCheckedAtMillis > 0L && updates.isEmpty()) {
-		LastCheckedStatusBanner(lastCheckedAtMillis = lastCheckedAtMillis)
+		UpdateCheckProgressBar(checkedApps, totalApps, activeSourceName, activeSources, sourceCounts)
+	} else if (updates.isEmpty() && ((lastCheckedAtMillis != null && lastCheckedAtMillis > 0L) || historyEntries.isNotEmpty())) {
+		LastCheckedStatusBanner(
+			lastCheckedAtMillis = lastCheckedAtMillis,
+			historyCount = historyEntries.size,
+			onOpenHistory = onOpenHistory
+		)
 	}
 
 	if (hasSourceErrors && updates.isNotEmpty()) {
@@ -502,12 +556,10 @@ fun UpdatesScreenSuccess(
 			},
 			modifier = Modifier.weight(1f)
 		)
-		updates.isEmpty() -> UpdatesMessage(
+		updates.isEmpty() -> GrandFestivalEmptyState(
 			title = stringResource(R.string.updates_empty_title),
 			message = stringResource(R.string.updates_empty_message),
-			icon = Icons.Rounded.CheckCircle,
-			actionLabel = stringResource(R.string.refresh_updates),
-			onAction = { viewModel.refresh() },
+			onRefresh = { viewModel.refresh() },
 			modifier = Modifier.weight(1f)
 		)
 		displayedUpdates.isEmpty() -> UpdatesMessage(
@@ -617,9 +669,8 @@ private fun UpdatesHeroBanner(
 				.fillMaxWidth()
 				.padding(horizontal = 12.dp, vertical = 4.dp),
 			shape = shape,
-			color = MaterialTheme.colorScheme.primaryContainer,
-			border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
-			shadowElevation = 2.dp
+			color = MaterialTheme.colorScheme.surfaceContainer,
+			shadowElevation = 0.dp
 		) {
 			Column(
 				modifier = Modifier
@@ -655,14 +706,14 @@ private fun UpdatesHeroBanner(
 								text = stringResource(R.string.queue_banner_title, currentStep, totalInRun),
 								style = MaterialTheme.typography.titleSmall,
 								fontWeight = FontWeight.Bold,
-								color = MaterialTheme.colorScheme.onPrimaryContainer,
+								color = MaterialTheme.colorScheme.onSurface,
 								maxLines = 1,
 								overflow = TextOverflow.Ellipsis
 							)
 							Text(
 								text = liveSubtitle,
 								style = MaterialTheme.typography.labelSmall,
-								color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f),
+								color = MaterialTheme.colorScheme.onSurfaceVariant,
 								maxLines = 1,
 								overflow = TextOverflow.Ellipsis
 							)
@@ -707,7 +758,7 @@ private fun UpdatesHeroBanner(
 							.height(5.dp)
 							.clip(RoundedCornerShape(3.dp)),
 						color = MaterialTheme.colorScheme.primary,
-						trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
+						trackColor = MaterialTheme.colorScheme.surfaceContainerHigh
 					)
 				} else {
 					LinearProgressIndicator(
@@ -716,7 +767,7 @@ private fun UpdatesHeroBanner(
 							.height(5.dp)
 							.clip(RoundedCornerShape(3.dp)),
 						color = MaterialTheme.colorScheme.primary,
-						trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
+						trackColor = MaterialTheme.colorScheme.surfaceContainerHigh
 					)
 				}
 			}
@@ -729,9 +780,8 @@ private fun UpdatesHeroBanner(
 			.fillMaxWidth()
 			.padding(horizontal = 12.dp, vertical = 4.dp),
 		shape = shape,
-		color = MaterialTheme.colorScheme.primaryContainer,
-		border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)),
-		shadowElevation = 2.dp
+		color = MaterialTheme.colorScheme.surfaceContainer,
+		shadowElevation = 0.dp
 	) {
 		Row(
 			modifier = Modifier
@@ -761,15 +811,15 @@ private fun UpdatesHeroBanner(
 				}
 				Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
 					Text(
-						text = if (updatesCount == 1) "$updatesCount Update" else "$updatesCount Updates",
+						text = pluralStringResource(R.plurals.updates_banner_title_count, updatesCount, updatesCount),
 						style = MaterialTheme.typography.titleMedium,
 						fontWeight = FontWeight.Bold,
-						color = MaterialTheme.colorScheme.onPrimaryContainer
+						color = MaterialTheme.colorScheme.onSurface
 					)
 					Text(
 						text = stringResource(if (hasInstallable) R.string.tab_updates else R.string.updates_empty_source_filter_message),
 						style = MaterialTheme.typography.labelSmall,
-						color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+						color = MaterialTheme.colorScheme.onSurfaceVariant,
 						maxLines = 1,
 						overflow = TextOverflow.Ellipsis
 					)
@@ -783,7 +833,7 @@ private fun UpdatesHeroBanner(
 						containerColor = MaterialTheme.colorScheme.primary,
 						contentColor = MaterialTheme.colorScheme.onPrimary
 					),
-					contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+					contentPadding = PaddingValues(start = 14.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
 				) {
 					Icon(
 						painter = painterResource(R.drawable.ic_install),
@@ -1120,7 +1170,7 @@ private fun UpdatesSourceFilterRow(
 		modifier = Modifier
 			.fillMaxWidth()
 			.horizontalScroll(rememberScrollState())
-			.padding(horizontal = 12.dp, vertical = 2.dp),
+			.padding(horizontal = 12.dp, vertical = 4.dp),
 		horizontalArrangement = Arrangement.spacedBy(6.dp),
 		verticalAlignment = Alignment.CenterVertically
 	) {
@@ -1128,57 +1178,92 @@ private fun UpdatesSourceFilterRow(
 		FilterChip(
 			selected = allSelected,
 			onClick = { onSelectSource(null) },
-			modifier = Modifier.height(30.dp),
+			modifier = Modifier.height(32.dp),
 			label = {
-				Text(
-					text = "${stringResource(R.string.apps_filter_all)} ($totalCount)",
-					style = MaterialTheme.typography.labelSmall,
-					fontWeight = if (allSelected) FontWeight.SemiBold else FontWeight.Medium
-				)
+				Row(
+					verticalAlignment = Alignment.CenterVertically,
+					horizontalArrangement = Arrangement.spacedBy(6.dp)
+				) {
+					Text(
+						text = stringResource(R.string.apps_filter_all),
+						style = MaterialTheme.typography.labelSmall,
+						fontWeight = if (allSelected) FontWeight.Bold else FontWeight.Medium
+					)
+					Surface(
+						shape = CircleShape,
+						color = if (allSelected) MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.16f)
+						else MaterialTheme.colorScheme.surfaceContainerHighest
+					) {
+						Text(
+							text = totalCount.toString(),
+							style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+							fontWeight = FontWeight.Bold,
+							color = if (allSelected) MaterialTheme.colorScheme.onSecondaryContainer
+							else MaterialTheme.colorScheme.onSurfaceVariant,
+							modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp)
+						)
+					}
+				}
 			},
 			leadingIcon = if (allSelected) {
 				{
 					Icon(
 						imageVector = Icons.Filled.Check,
 						contentDescription = null,
-						modifier = Modifier.size(14.dp)
+						modifier = Modifier.size(13.dp)
 					)
 				}
 			} else null,
 			shape = CircleShape,
-			border = FilterChipDefaults.filterChipBorder(
-				enabled = true,
-				selected = allSelected,
-				borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
-			),
+			border = null,
 			colors = FilterChipDefaults.filterChipColors(
 				selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
 				selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-				selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer
+				selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+				containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+				labelColor = MaterialTheme.colorScheme.onSurfaceVariant
 			)
 		)
 
 		sourceCounts.forEach { (source, count) ->
 			if (count > 0) {
 				val isSelected = selectedSource == source.name
-				val labelText = "${sourceName(source)} ($count)"
 				FilterChip(
 					selected = isSelected,
 					onClick = { onSelectSource(if (isSelected) null else source.name) },
-					modifier = Modifier.height(30.dp),
+					modifier = Modifier.height(32.dp),
 					label = {
-						Text(
-							text = labelText,
-							style = MaterialTheme.typography.labelSmall,
-							fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium
-						)
+						Row(
+							verticalAlignment = Alignment.CenterVertically,
+							horizontalArrangement = Arrangement.spacedBy(6.dp)
+						) {
+							Text(
+								text = sourceName(source),
+								style = MaterialTheme.typography.labelSmall,
+								fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+							)
+							Surface(
+								shape = CircleShape,
+								color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.16f)
+								else MaterialTheme.colorScheme.surfaceContainerHighest
+							) {
+								Text(
+									text = count.toString(),
+									style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+									fontWeight = FontWeight.Bold,
+									color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer
+									else MaterialTheme.colorScheme.onSurfaceVariant,
+									modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp)
+								)
+							}
+						}
 					},
 					leadingIcon = if (isSelected) {
 						{
 							Icon(
 								imageVector = Icons.Filled.Check,
 								contentDescription = null,
-								modifier = Modifier.size(14.dp)
+								modifier = Modifier.size(13.dp)
 							)
 						}
 					} else {
@@ -1186,21 +1271,19 @@ private fun UpdatesSourceFilterRow(
 							Icon(
 								painter = painterResource(source.resourceId),
 								contentDescription = null,
-								modifier = Modifier.size(14.dp),
+								modifier = Modifier.size(13.dp),
 								tint = MaterialTheme.colorScheme.onSurfaceVariant
 							)
 						}
 					},
 					shape = CircleShape,
-					border = FilterChipDefaults.filterChipBorder(
-						enabled = true,
-						selected = isSelected,
-						borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
-					),
+					border = null,
 					colors = FilterChipDefaults.filterChipColors(
 						selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
 						selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-						selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer
+						selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+						containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+						labelColor = MaterialTheme.colorScheme.onSurfaceVariant
 					)
 				)
 			}
@@ -1209,31 +1292,77 @@ private fun UpdatesSourceFilterRow(
 }
 
 @Composable
-private fun LastCheckedStatusBanner(lastCheckedAtMillis: Long) {
-	val now = System.currentTimeMillis()
-	val elapsedMinutes = ((now - lastCheckedAtMillis).coerceAtLeast(0L)) / 60_000L
-	val statusText = when {
-		elapsedMinutes < 1L -> stringResource(R.string.updates_last_checked_just_now)
-		elapsedMinutes < 60L -> stringResource(R.string.updates_last_checked_minutes, elapsedMinutes.toInt())
-		elapsedMinutes < 1440L -> stringResource(R.string.updates_last_checked_hours, (elapsedMinutes / 60L).toInt())
-		else -> stringResource(R.string.updates_last_checked_days, (elapsedMinutes / 1440L).toInt())
-	}
+private fun LastCheckedStatusBanner(
+	lastCheckedAtMillis: Long?,
+	historyCount: Int = 0,
+	onOpenHistory: (() -> Unit)? = null
+) {
+	val hasLastChecked = lastCheckedAtMillis != null && lastCheckedAtMillis > 0L
+	val statusText = if (hasLastChecked) {
+		val now = System.currentTimeMillis()
+		val elapsedMinutes = ((now - lastCheckedAtMillis).coerceAtLeast(0L)) / 60_000L
+		when {
+			elapsedMinutes < 1L -> stringResource(R.string.updates_last_checked_just_now)
+			elapsedMinutes < 60L -> stringResource(R.string.updates_last_checked_minutes, elapsedMinutes.toInt())
+			elapsedMinutes < 1440L -> stringResource(R.string.updates_last_checked_hours, (elapsedMinutes / 60L).toInt())
+			else -> stringResource(R.string.updates_last_checked_days, (elapsedMinutes / 1440L).toInt())
+		}
+	} else null
+
 	Row(
 		modifier = Modifier
 			.fillMaxWidth()
+			.horizontalScroll(rememberScrollState())
 			.padding(horizontal = 14.dp, vertical = 2.dp),
-		verticalAlignment = Alignment.CenterVertically
+		verticalAlignment = Alignment.CenterVertically,
+		horizontalArrangement = Arrangement.spacedBy(8.dp)
 	) {
-		Surface(
-			shape = CircleShape,
-			color = MaterialTheme.colorScheme.surfaceContainerHigh
-		) {
-			Text(
-				text = statusText,
-				modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-				style = MaterialTheme.typography.labelSmall,
-				color = MaterialTheme.colorScheme.onSurfaceVariant
-			)
+		if (statusText != null) {
+			Surface(
+				shape = CircleShape,
+				color = MaterialTheme.colorScheme.surfaceContainerHigh
+			) {
+				Text(
+					text = statusText,
+					modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+					style = MaterialTheme.typography.labelSmall,
+					color = MaterialTheme.colorScheme.onSurfaceVariant,
+					maxLines = 1
+				)
+			}
+		}
+		if (historyCount > 0 && onOpenHistory != null) {
+			Surface(
+				onClick = onOpenHistory,
+				shape = CircleShape,
+				color = MaterialTheme.colorScheme.secondaryContainer
+			) {
+				Row(
+					modifier = Modifier.padding(horizontal = 11.dp, vertical = 4.dp),
+					verticalAlignment = Alignment.CenterVertically,
+					horizontalArrangement = Arrangement.spacedBy(5.dp)
+				) {
+					Icon(
+						imageVector = Icons.Rounded.History,
+						contentDescription = null,
+						tint = MaterialTheme.colorScheme.onSecondaryContainer,
+						modifier = Modifier.size(13.dp)
+					)
+					Text(
+						text = stringResource(R.string.updates_recent_history_pill, historyCount),
+						style = MaterialTheme.typography.labelSmall,
+						fontWeight = FontWeight.SemiBold,
+						color = MaterialTheme.colorScheme.onSecondaryContainer,
+						maxLines = 1
+					)
+					Icon(
+						imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
+						contentDescription = null,
+						tint = MaterialTheme.colorScheme.onSecondaryContainer,
+						modifier = Modifier.size(12.dp)
+					)
+				}
+			}
 		}
 	}
 }
@@ -1242,7 +1371,9 @@ private fun LastCheckedStatusBanner(lastCheckedAtMillis: Long) {
 private fun UpdateCheckProgressBar(
 	checkedApps: Int? = null,
 	totalApps: Int? = null,
-	activeSourceName: String? = null
+	activeSourceName: String? = null,
+	activeSources: List<String> = emptyList(),
+	sourceCounts: Map<Source, Int> = emptyMap()
 ) {
 	val resolvedActiveSource = when {
 		activeSourceName.isNullOrBlank() -> null
@@ -1328,6 +1459,17 @@ private fun UpdateCheckProgressBar(
 					color = MaterialTheme.colorScheme.primary,
 					trackColor = MaterialTheme.colorScheme.secondaryContainer
 				)
+			}
+
+			val effectiveSources = if (activeSources.isNotEmpty()) activeSources else listOfNotNull(resolvedActiveSource)
+			if (effectiveSources.isNotEmpty()) {
+				val scanStatuses = effectiveSources.map { source ->
+					val isScanning = activeSourceName?.contains(source, ignoreCase = true) == true || activeSourceName == source
+					val count = sourceCounts.entries.firstOrNull { it.key.toString().contains(source, ignoreCase = true) }?.value ?: 0
+					ScanSourceStatus(name = source, isScanning = isScanning, updateCount = count)
+				}
+				Spacer(Modifier.height(8.dp))
+				MultiSourceScanTray(statuses = scanStatuses)
 			}
 		}
 	}
@@ -1425,115 +1567,186 @@ private fun UpdateCard(
 	val effProgress = liveTask?.progress ?: update.progress
 	val effTotal = liveTask?.total?.takeIf { it > 0L } ?: update.total
 
-	val cardShape = RoundedCornerShape(NormalUpdateCardLayout.cardCornerRadiusDp.dp)
-	ElevatedCard(
+	val cardShape = RoundedCornerShape(20.dp)
+	Surface(
 		onClick = onSelect,
 		modifier = Modifier
 			.fillMaxWidth()
-			.border(BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)), cardShape)
 			.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
 		shape = cardShape,
-		colors = CardDefaults.elevatedCardColors(
-			containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-		),
-		elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
+		color = MaterialTheme.colorScheme.surfaceContainerLow
 	) {
 		Column(
 			modifier = Modifier
 				.fillMaxWidth()
-				.heightIn(min = NormalUpdateCardLayout.minCardHeightDp.dp)
-				.padding(
-					horizontal = NormalUpdateCardLayout.cardPaddingHorizontalDp.dp,
-					vertical = NormalUpdateCardLayout.cardPaddingVerticalDp.dp
-				),
-			verticalArrangement = Arrangement.spacedBy(NormalUpdateCardLayout.sectionSpacingDp.dp)
+				.padding(16.dp),
+			verticalArrangement = Arrangement.spacedBy(10.dp)
 		) {
+			// Top Row: App Icon (46dp) + App Name & Size + Versions
 			Row(
-				verticalAlignment = Alignment.CenterVertically,
-				horizontalArrangement = Arrangement.spacedBy(8.dp)
+				verticalAlignment = Alignment.Top,
+				horizontalArrangement = Arrangement.spacedBy(12.dp),
+				modifier = Modifier.fillMaxWidth()
 			) {
 				Box(
 					modifier = Modifier
-						.size(NormalUpdateCardLayout.iconSizeDp.dp)
-						.clip(RoundedCornerShape(12.dp))
-						.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+						.size(52.dp)
+						.clip(RoundedCornerShape(14.dp))
+						.background(MaterialTheme.colorScheme.surfaceContainer),
 					contentAlignment = Alignment.Center
 				) {
 					LoadingImageApp(
 						card.packageName,
-						Modifier.requiredSize((NormalUpdateCardLayout.iconSizeDp + 16f).dp)
+						Modifier.fillMaxSize()
 					)
 				}
 				Column(
 					modifier = Modifier.weight(1f),
-					verticalArrangement = Arrangement.spacedBy(1.dp)
+					verticalArrangement = Arrangement.spacedBy(2.dp)
 				) {
-					Text(
-						text = card.appName,
-						style = MaterialTheme.typography.titleSmall.copy(
-							lineHeight = NormalUpdateCardLayout.appNameLineHeightSp.sp
-						),
-						fontWeight = FontWeight.SemiBold,
-						color = MaterialTheme.colorScheme.onSurface,
-						minLines = 2,
-						maxLines = 2,
-						overflow = TextOverflow.Ellipsis
-					)
-					Text(
-						text = card.packageName,
-						style = MaterialTheme.typography.labelSmall.copy(
-							fontSize = NormalUpdateCardLayout.packageIdFontSizeSp.sp,
-							lineHeight = NormalUpdateCardLayout.packageIdLineHeightSp.sp
-						),
-						color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
-						maxLines = 1,
-						overflow = TextOverflow.Ellipsis
-					)
+					Row(
+						modifier = Modifier.fillMaxWidth(),
+						horizontalArrangement = Arrangement.SpaceBetween,
+						verticalAlignment = Alignment.CenterVertically
+					) {
+						Text(
+							text = card.appName,
+							style = MaterialTheme.typography.titleMedium,
+							fontWeight = FontWeight.Bold,
+							color = MaterialTheme.colorScheme.onSurface,
+							maxLines = 1,
+							overflow = TextOverflow.Ellipsis,
+							modifier = Modifier.weight(1f, fill = false)
+						)
+						if (update.totalSize > 0L) {
+							Text(
+								text = formatSizeMegabytes(update.totalSize),
+								style = MaterialTheme.typography.labelSmall,
+								color = MaterialTheme.colorScheme.onSurfaceVariant
+							)
+						}
+					}
+					// Row 1: Versions
+					Row(
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(6.dp)
+					) {
+						Text(
+							text = card.installedVersion.ifBlank { "—" },
+							style = MaterialTheme.typography.labelSmall,
+							color = MaterialTheme.colorScheme.onSurfaceVariant,
+							maxLines = 1,
+							overflow = TextOverflow.Ellipsis
+						)
+						Icon(
+							imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
+							contentDescription = null,
+							tint = MaterialTheme.colorScheme.primary,
+							modifier = Modifier.size(12.dp)
+						)
+						Text(
+							text = card.availableVersion.ifBlank { "—" },
+							style = MaterialTheme.typography.labelSmall,
+							fontWeight = FontWeight.Bold,
+							color = MaterialTheme.colorScheme.primary,
+							maxLines = 1,
+							overflow = TextOverflow.Ellipsis
+						)
+					}
+					// Row 2: Source Badge & Multi-Source Indicator Badge
+					Row(
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(6.dp),
+						modifier = Modifier.padding(top = 2.dp)
+					) {
+						Surface(
+							shape = RoundedCornerShape(4.dp),
+							color = MaterialTheme.colorScheme.surfaceContainer
+						) {
+							Row(
+								modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+								verticalAlignment = Alignment.CenterVertically,
+								horizontalArrangement = Arrangement.spacedBy(4.dp)
+							) {
+								Icon(
+									painter = painterResource(card.source.resourceId),
+									contentDescription = null,
+									tint = MaterialTheme.colorScheme.onSurfaceVariant,
+									modifier = Modifier.size(11.dp)
+								)
+								Text(
+									text = sourceName,
+									style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+									color = MaterialTheme.colorScheme.onSurfaceVariant
+								)
+							}
+						}
+						if (card.additionalSourcesCount > 0) {
+							val sourcesPlural = if (card.additionalSourcesCount == 1) {
+								stringResource(R.string.update_sources_multiple_count_singular, card.additionalSourcesCount)
+							} else {
+								stringResource(R.string.update_sources_multiple_count_plural, card.additionalSourcesCount)
+							}
+							Surface(
+								shape = RoundedCornerShape(4.dp),
+								color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f)
+							) {
+								Row(
+									modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+									verticalAlignment = Alignment.CenterVertically,
+									horizontalArrangement = Arrangement.spacedBy(3.dp)
+								) {
+									Icon(
+										imageVector = Icons.Default.Layers,
+										contentDescription = null,
+										tint = MaterialTheme.colorScheme.onPrimaryContainer,
+										modifier = Modifier.size(11.dp)
+									)
+									Text(
+										text = sourcesPlural,
+										style = MaterialTheme.typography.labelSmall.copy(
+											fontSize = 10.sp,
+											fontWeight = FontWeight.Bold
+										),
+										color = MaterialTheme.colorScheme.onPrimaryContainer
+									)
+								}
+							}
+						}
+					}				}
+			}
+
+			// Changelog snippet if available
+			val cleanChangelog = remember(update.whatsNew) { cleanChangelogText(update.whatsNew) }
+			if (cleanChangelog.isNotBlank()) {
+				Surface(
+					shape = RoundedCornerShape(10.dp),
+					color = MaterialTheme.colorScheme.surfaceContainer,
+					modifier = Modifier.fillMaxWidth()
+				) {
+					Row(
+						modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+						horizontalArrangement = Arrangement.spacedBy(8.dp),
+						verticalAlignment = Alignment.Top
+					) {
+						Icon(
+							imageVector = Icons.Default.Info,
+							contentDescription = null,
+							tint = MaterialTheme.colorScheme.primary,
+							modifier = Modifier.size(14.dp).padding(top = 1.dp)
+						)
+						Text(
+							text = cleanChangelog,
+							style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp, lineHeight = 16.sp),
+							color = MaterialTheme.colorScheme.onSurfaceVariant,
+							maxLines = 2,
+							overflow = TextOverflow.Ellipsis
+						)
+					}
 				}
 			}
 
-			Row(
-				verticalAlignment = Alignment.CenterVertically,
-				horizontalArrangement = Arrangement.spacedBy(4.dp),
-				modifier = Modifier.fillMaxWidth()
-			) {
-				Surface(
-					shape = CircleShape,
-					color = MaterialTheme.colorScheme.surfaceContainerHigh,
-					modifier = Modifier.weight(1f, fill = false)
-				) {
-					Text(
-						text = card.installedVersion.ifBlank { "—" },
-						modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-						style = MaterialTheme.typography.labelSmall,
-						color = MaterialTheme.colorScheme.onSurfaceVariant,
-						maxLines = 1,
-						overflow = TextOverflow.Ellipsis
-					)
-				}
-				Icon(
-					imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
-					contentDescription = null,
-					tint = MaterialTheme.colorScheme.primary,
-					modifier = Modifier.size(12.dp)
-				)
-				Surface(
-					shape = CircleShape,
-					color = MaterialTheme.colorScheme.primaryContainer,
-					modifier = Modifier.weight(1f, fill = false)
-				) {
-					Text(
-						text = card.availableVersion.ifBlank { "—" },
-						modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-						style = MaterialTheme.typography.labelSmall,
-						fontWeight = FontWeight.Bold,
-						color = MaterialTheme.colorScheme.onPrimaryContainer,
-						maxLines = 1,
-						overflow = TextOverflow.Ellipsis
-					)
-				}
-			}
-
+			// Progress bar if downloading/installing
 			if (effInstalling || effQueued) {
 				val cardProgressLabel = when {
 					liveTask?.isInstalling == true -> stringResource(R.string.queue_status_installing)
@@ -1554,80 +1767,52 @@ private fun UpdateCard(
 						maxLines = 1,
 						overflow = TextOverflow.Ellipsis
 					)
-					if (liveTask?.isInstalling != true && effTotal > 0L && effProgress > 0L) {
-						LinearProgressIndicator(
-							progress = { (effProgress.toFloat() / effTotal).coerceIn(0f, 1f) },
-							modifier = Modifier.fillMaxWidth().height(4.dp),
-							color = MaterialTheme.colorScheme.primary,
-							trackColor = MaterialTheme.colorScheme.secondaryContainer
-						)
-					} else {
-						LinearProgressIndicator(
-							modifier = Modifier.fillMaxWidth().height(4.dp),
-							color = MaterialTheme.colorScheme.primary,
-							trackColor = MaterialTheme.colorScheme.secondaryContainer
-						)
-					}
+					LinearProgressIndicator(
+						progress = { if (effTotal > 0L && effProgress > 0L) (effProgress.toFloat() / effTotal).coerceIn(0f, 1f) else 0f },
+						modifier = Modifier.fillMaxWidth().height(4.dp),
+						color = MaterialTheme.colorScheme.primary,
+						trackColor = MaterialTheme.colorScheme.surfaceContainer
+					)
 				}
 			}
 
-			Spacer(modifier = Modifier.weight(1f))
-
+			// Bottom Actions: Details link & Install Button
 			Row(
 				modifier = Modifier.fillMaxWidth(),
 				verticalAlignment = Alignment.CenterVertically,
 				horizontalArrangement = Arrangement.SpaceBetween
 			) {
-				Row(
-					modifier = Modifier.weight(1f, fill = false).padding(end = 6.dp),
-					verticalAlignment = Alignment.CenterVertically,
-					horizontalArrangement = Arrangement.spacedBy(4.dp)
+				TextButton(
+					onClick = onSelect,
+					contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)
 				) {
-					Icon(
-						painter = painterResource(update.source.resourceId),
-						contentDescription = null,
-						tint = MaterialTheme.colorScheme.onSurfaceVariant,
-						modifier = Modifier.size(NormalUpdateCardLayout.sourceIconSizeDp.dp)
-					)
 					Text(
-						text = sourceName,
-						modifier = Modifier.weight(1f, fill = false),
-						style = MaterialTheme.typography.labelSmall,
-						maxLines = 1,
-						overflow = TextOverflow.Ellipsis,
+						text = stringResource(R.string.updates_detail_view),
+						style = MaterialTheme.typography.labelMedium,
 						color = MaterialTheme.colorScheme.onSurfaceVariant
 					)
-					if (card.additionalSourcesCount > 0) {
-						Text(
-							text = "+${card.additionalSourcesCount}",
-							style = MaterialTheme.typography.labelSmall,
-							fontWeight = FontWeight.SemiBold,
-							maxLines = 1,
-							color = MaterialTheme.colorScheme.primary
-						)
-					}
 				}
 				if (card.canInstall && !effQueued && !effInstalling) {
-					CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
-						FilledTonalButton(
-							onClick = onInstall,
-							modifier = Modifier.height(NormalUpdateCardLayout.actionButtonHeightDp.dp),
-							shape = CircleShape,
-							contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)
-						) {
-							Icon(
-								painter = painterResource(R.drawable.ic_install),
-								contentDescription = null,
-								modifier = Modifier.size(NormalUpdateCardLayout.actionIconSizeDp.dp)
-							)
-							Spacer(Modifier.width(4.dp))
-							Text(
-								text = stringResource(if (isCachedReady) R.string.install_cached_action else R.string.update_action),
-								style = MaterialTheme.typography.labelSmall,
-								fontWeight = FontWeight.SemiBold,
-								maxLines = 1
-							)
-						}
+					Button(
+						onClick = onInstall,
+						shape = RoundedCornerShape(10.dp),
+						contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+						colors = ButtonDefaults.buttonColors(
+							containerColor = MaterialTheme.colorScheme.primary,
+							contentColor = MaterialTheme.colorScheme.onPrimary
+						)
+					) {
+						Icon(
+							painter = painterResource(R.drawable.ic_install),
+							contentDescription = null,
+							modifier = Modifier.size(15.dp)
+						)
+						Spacer(Modifier.width(6.dp))
+						Text(
+							text = stringResource(if (isCachedReady) R.string.install_cached_action else R.string.update_action),
+							style = MaterialTheme.typography.labelMedium,
+							fontWeight = FontWeight.Bold
+						)
 					}
 				}
 			}
@@ -1676,153 +1861,181 @@ private fun CompactUpdatesGrid(
 				val effQueued = liveTask?.isQueued ?: update.isQueued
 				val effProgress = liveTask?.progress ?: update.progress
 				val effTotal = liveTask?.total?.takeIf { it > 0L } ?: update.total
-				val cardShape = RoundedCornerShape(CompactUpdateCardLayout.cardCornerRadiusDp.dp)
-				ElevatedCard(
+				val isCachedReady = update.id in readyUpdateIds || update.alternativeUpdates.any { it.id in readyUpdateIds }
+				val cardShape = RoundedCornerShape(14.dp)
+				Surface(
 					onClick = { selectedPackageName = update.packageName },
 					modifier = Modifier
 						.fillMaxWidth()
-						.heightIn(min = CompactUpdateCardLayout.minCardHeightDp.dp)
-						.border(BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)), cardShape)
 						.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
 					shape = cardShape,
-					colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-					elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
+					color = MaterialTheme.colorScheme.surfaceContainerLow
 				) {
-					Column(
+					Row(
 						modifier = Modifier
 							.fillMaxWidth()
-							.padding(
-								start = CompactUpdateCardLayout.horizontalPaddingDp.dp,
-								end = CompactUpdateCardLayout.horizontalPaddingDp.dp,
-								top = 12.dp,
-								bottom = CompactUpdateCardLayout.verticalPaddingDp.dp
-							),
-						verticalArrangement = Arrangement.spacedBy(CompactUpdateCardLayout.itemSpacingDp.dp)
+							.padding(horizontal = 14.dp, vertical = 10.dp),
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(12.dp)
 					) {
+						// 42dp app icon
 						Box(
 							modifier = Modifier
-								.fillMaxWidth()
-								.padding(bottom = 8.dp),
+								.size(42.dp)
+								.clip(RoundedCornerShape(12.dp))
+								.background(MaterialTheme.colorScheme.surfaceContainer),
 							contentAlignment = Alignment.Center
 						) {
-							Box(
-								modifier = Modifier
-									.size(CompactUpdateCardLayout.iconSizeDp.dp)
-									.clip(RoundedCornerShape(10.dp))
-									.background(MaterialTheme.colorScheme.surfaceContainerHigh),
-								contentAlignment = Alignment.Center
-							) {
-								LoadingImageApp(
-									card.packageName,
-									Modifier.requiredSize(CompactUpdateCardLayout.iconRequestSizeDp.dp)
-								)
-							}
-						}
-						Text(
-							text = card.appName,
-							style = MaterialTheme.typography.labelMedium.copy(
-								fontSize = CompactUpdateCardLayout.appNameFontSizeSp.sp,
-								lineHeight = CompactUpdateCardLayout.appNameLineHeightDp.sp
-							),
-							fontWeight = FontWeight.SemiBold,
-							color = MaterialTheme.colorScheme.onSurface,
-							maxLines = 1,
-							overflow = TextOverflow.Ellipsis
+							LoadingImageApp(
+								card.packageName,
+								Modifier.fillMaxSize()
 						)
+						}
+
+						// Main Text (Title, versions, source)
 						Column(
-							Modifier.fillMaxWidth(),
-							verticalArrangement = Arrangement.spacedBy(CompactUpdateCardLayout.versionRowSpacingDp.dp)
+							modifier = Modifier.weight(1f),
+							verticalArrangement = Arrangement.spacedBy(2.dp)
 						) {
-							Text(
-								text = card.installedVersion.ifBlank { "—" },
-								style = MaterialTheme.typography.labelSmall.copy(
-									fontSize = CompactUpdateCardLayout.metaFontSizeSp.sp,
-									lineHeight = CompactUpdateCardLayout.metaLineHeightDp.sp
-								),
-								color = MaterialTheme.colorScheme.onSurfaceVariant,
-								maxLines = 1,
-								overflow = TextOverflow.Ellipsis
-							)
-							Text(
-								text = "→ ${card.availableVersion.ifBlank { "—" }}",
-								style = MaterialTheme.typography.labelSmall.copy(
-									fontSize = CompactUpdateCardLayout.metaFontSizeSp.sp,
-									lineHeight = CompactUpdateCardLayout.metaLineHeightDp.sp
-								),
-								fontWeight = FontWeight.SemiBold,
-								color = MaterialTheme.colorScheme.primary,
-								maxLines = 1,
-								overflow = TextOverflow.Ellipsis
-							)
-						}
-						Row(
-							modifier = Modifier.fillMaxWidth(),
-							verticalAlignment = Alignment.CenterVertically,
-							horizontalArrangement = Arrangement.spacedBy(2.dp)
-						) {
-							val resolvedSourceLabel = sourceName(card.source)
-							Icon(
-								painter = painterResource(card.source.resourceId),
-								contentDescription = card.formatSourceWithCount(resolvedSourceLabel),
-								tint = MaterialTheme.colorScheme.onSurfaceVariant,
-								modifier = Modifier.size(CompactUpdateCardLayout.sourceIconSizeDp.dp)
-							)
-							Text(
-								text = resolvedSourceLabel,
-								modifier = Modifier.weight(1f, fill = false),
-								style = MaterialTheme.typography.labelSmall.copy(
-									fontSize = CompactUpdateCardLayout.metaFontSizeSp.sp,
-									lineHeight = CompactUpdateCardLayout.metaLineHeightDp.sp
-								),
-								color = MaterialTheme.colorScheme.onSurfaceVariant,
-								maxLines = 1,
-								overflow = TextOverflow.Ellipsis
-							)
-							if (card.additionalSourcesCount > 0) {
+							Row(
+								modifier = Modifier.fillMaxWidth(),
+								horizontalArrangement = Arrangement.SpaceBetween,
+								verticalAlignment = Alignment.CenterVertically
+							) {
 								Text(
-									text = "+${card.additionalSourcesCount}",
-									style = MaterialTheme.typography.labelSmall.copy(
-										fontSize = CompactUpdateCardLayout.metaFontSizeSp.sp,
-										lineHeight = CompactUpdateCardLayout.metaLineHeightDp.sp
-									),
+									text = card.appName,
+									style = MaterialTheme.typography.titleSmall,
 									fontWeight = FontWeight.SemiBold,
-									color = MaterialTheme.colorScheme.primary,
-									maxLines = 1
+									color = MaterialTheme.colorScheme.onSurface,
+									maxLines = 1,
+									overflow = TextOverflow.Ellipsis,
+									modifier = Modifier.weight(1f, fill = false)
 								)
+								if (update.totalSize > 0L) {
+									Text(
+										text = formatSizeMegabytes(update.totalSize),
+										style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+										color = MaterialTheme.colorScheme.onSurfaceVariant
+									)
+								}
+							}
+
+							Row(
+								verticalAlignment = Alignment.CenterVertically,
+								horizontalArrangement = Arrangement.spacedBy(4.dp)
+							) {
+								Text(
+									text = card.installedVersion.ifBlank { "—" },
+									style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+									color = MaterialTheme.colorScheme.onSurfaceVariant,
+									maxLines = 1,
+									overflow = TextOverflow.Ellipsis,
+									modifier = Modifier.weight(1f, fill = false)
+								)
+								Text(
+									text = "→",
+									style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+									color = MaterialTheme.colorScheme.primary,
+									fontWeight = FontWeight.Bold
+								)
+								Text(
+									text = card.availableVersion.ifBlank { "—" },
+									style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+									fontWeight = FontWeight.Bold,
+									color = MaterialTheme.colorScheme.primary,
+									maxLines = 1,
+									overflow = TextOverflow.Ellipsis,
+									modifier = Modifier.weight(1f, fill = false)
+								)
+								Text(
+									text = "•",
+									style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+									color = MaterialTheme.colorScheme.outline
+								)
+								val resolvedSourceLabel = sourceName(card.source)
+								Row(
+									verticalAlignment = Alignment.CenterVertically,
+									horizontalArrangement = Arrangement.spacedBy(4.dp)
+								) {
+									Icon(
+										painter = painterResource(card.source.resourceId),
+										contentDescription = null,
+										tint = MaterialTheme.colorScheme.onSurfaceVariant,
+										modifier = Modifier.size(10.dp)
+									)
+									Text(
+										text = resolvedSourceLabel,
+										style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+										color = MaterialTheme.colorScheme.onSurfaceVariant,
+										maxLines = 1
+									)
+									if (card.additionalSourcesCount > 0) {
+										Surface(
+											shape = RoundedCornerShape(4.dp),
+											color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f)
+										) {
+											Text(
+												text = "+${card.additionalSourcesCount}",
+												modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
+												style = MaterialTheme.typography.labelSmall.copy(
+													fontSize = 9.sp,
+													fontWeight = FontWeight.Bold
+												),
+												color = MaterialTheme.colorScheme.onPrimaryContainer
+											)
+										}
+									}
+								}
+							}
+
+							if (effInstalling || effQueued) {
+								val compactLabel = when {
+									liveTask?.isInstalling == true -> stringResource(R.string.queue_status_installing)
+									liveTask?.isResolvingLink == true && effProgress == 0L -> stringResource(R.string.queue_status_resolving_apkmirror)
+									effQueued && !effInstalling -> stringResource(R.string.queued_update)
+									effTotal > 0L && effProgress > 0L -> {
+										val pct = ((effProgress * 100) / effTotal).toInt().coerceIn(0, 100)
+										"$pct%"
+									}
+									else -> stringResource(R.string.installing_update)
+								}
+								Row(
+									verticalAlignment = Alignment.CenterVertically,
+									horizontalArrangement = Arrangement.spacedBy(6.dp),
+									modifier = Modifier.padding(top = 2.dp)
+								) {
+									LinearProgressIndicator(
+										progress = { if (effTotal > 0L && effProgress > 0L) (effProgress.toFloat() / effTotal).coerceIn(0f, 1f) else 0f },
+										modifier = Modifier.weight(1f).height(3.dp),
+										color = MaterialTheme.colorScheme.primary,
+										trackColor = MaterialTheme.colorScheme.surfaceContainer
+									)
+									Text(
+										text = compactLabel,
+										style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+										fontWeight = FontWeight.Bold,
+										color = MaterialTheme.colorScheme.primary
+									)
+								}
 							}
 						}
-						if (effInstalling || effQueued) {
-							val compactLabel = when {
-								liveTask?.isInstalling == true -> stringResource(R.string.queue_status_installing)
-								liveTask?.isResolvingLink == true && effProgress == 0L -> stringResource(R.string.queue_status_resolving_apkmirror)
-								effQueued && !effInstalling -> stringResource(R.string.queued_update)
-								effTotal > 0L && effProgress > 0L -> {
-									val pct = ((effProgress * 100) / effTotal).toInt().coerceIn(0, 100)
-									"$pct%"
-								}
-								else -> stringResource(R.string.installing_update)
-							}
-							Text(
-								text = compactLabel,
-								style = MaterialTheme.typography.labelSmall.copy(
-									fontSize = CompactUpdateCardLayout.metaFontSizeSp.sp,
-									lineHeight = CompactUpdateCardLayout.metaLineHeightDp.sp
-								),
-								fontWeight = FontWeight.SemiBold,
-								color = MaterialTheme.colorScheme.primary,
-								maxLines = 1,
-								overflow = TextOverflow.Ellipsis
-							)
-							if (liveTask?.isInstalling != true && effTotal > 0L && effProgress > 0L) {
-								LinearProgressIndicator(
-									progress = { (effProgress.toFloat() / effTotal).coerceIn(0f, 1f) },
-									modifier = Modifier.fillMaxWidth().height(CompactUpdateCardLayout.progressHeightDp.dp),
-									color = MaterialTheme.colorScheme.primary,
-									trackColor = MaterialTheme.colorScheme.secondaryContainer
-								)
-							} else {
-								LinearProgressIndicator(
-									modifier = Modifier.fillMaxWidth().height(CompactUpdateCardLayout.progressHeightDp.dp)
+
+						// Right Action: Fast download button
+						if (card.canInstall && !effQueued && !effInstalling) {
+							IconButton(
+								onClick = {
+									onBeforeInstall()
+									viewModel.install(update, handler)
+								},
+								modifier = Modifier
+									.size(36.dp)
+									.background(MaterialTheme.colorScheme.surfaceContainer, CircleShape)
+							) {
+								Icon(
+									painter = painterResource(R.drawable.ic_install),
+									contentDescription = null,
+									tint = MaterialTheme.colorScheme.primary,
+									modifier = Modifier.size(16.dp)
 								)
 							}
 						}
@@ -1982,14 +2195,9 @@ private fun UpdateDetailsSheet(
 								} else {
 									MaterialTheme.colorScheme.surfaceContainerHigh
 								},
-								border = androidx.compose.foundation.BorderStroke(
-									width = 1.dp,
-									color = if (isSelected) {
-										MaterialTheme.colorScheme.primary
-									} else {
-										MaterialTheme.colorScheme.outlineVariant
-									}
-								)
+								border = if (isSelected) {
+									androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.45f))
+								} else null
 							) {
 								Row(
 									modifier = Modifier

@@ -56,3 +56,16 @@ desktop.ini
 # Memory dumps
 *.hprof
 
+# Internal AI / Assistant Artifacts
+AGENTS.md
+.artifacts/
+walkthrough.md
+next_milestones_architecture_plan.md
+implementation_plan.md
+chat_history_export.md
+design-plans/
+redesign/
+DESIGN.md
+*.apk
+
+

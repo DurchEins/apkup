@@ -2,6 +2,29 @@ package com.apkup.data.ui
 
 import com.aurora.gplayapi.data.models.PlayFile
 
+enum class UpdateInstallMode {
+	AUTO_SHIZUKU,
+	MANUAL_SHIZUKU,
+	MANUAL
+}
+
+data class UpdateHistoryEntry(
+	val packageName: String = "",
+	val appName: String = "",
+	val oldVersion: String = "",
+	val newVersion: String = "",
+	val oldVersionCode: Long = 0L,
+	val newVersionCode: Long = 0L,
+	val sourceName: String = "",
+	val installedAtMillis: Long = 0L,
+	val installModeName: String = UpdateInstallMode.MANUAL.name,
+	val previousVersionUrl: String = ""
+) {
+	val installMode: UpdateInstallMode
+		get() = runCatching { UpdateInstallMode.valueOf(installModeName) }
+			.getOrDefault(UpdateInstallMode.MANUAL)
+}
+
 data class IgnoredVersionEntry(
 	val id: Int = 0,
 	val packageName: String = "",
@@ -59,7 +82,13 @@ data class ApkUpBackupConfig(
 	val backgroundCheckIntervalHours: Int = 24,
 	val theme: Int = 0,
 	val useShizukuInstaller: Boolean = false,
-	val downloadWifiOnly: Boolean = false
+	val autoInstallUpdates: Boolean = false,
+	val autoInstallWifiOnly: Boolean? = true,
+	val autoInstallChargingOnly: Boolean? = true,
+	val downloadWifiOnly: Boolean = false,
+	val downloadChargingOnly: Boolean? = false,
+	val backgroundCheckWifiOnly: Boolean = false,
+	val updateHistory: List<UpdateHistoryEntry>? = null
 )
 
 enum class BackgroundCheckInterval(val hours: Int) {

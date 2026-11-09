@@ -18,6 +18,8 @@ class Badger {
 
     fun changeUpdatesBadge(number: String) = changeBadge(Screen.Updates.route, number)
 
+    fun changeSettingsBadge(badge: String) = changeBadge(Screen.Settings.route, badge)
+
     private fun changeBadge(route: String, number: String) {
         val finalNumber = if (number.toIntOrNull() == 0) "" else number
         val newBadges = badges.value.toMutableMap()

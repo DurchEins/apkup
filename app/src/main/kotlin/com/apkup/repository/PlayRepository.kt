@@ -1,4 +1,4 @@
-package com.apkup.repository
+﻿package com.apkup.repository
 
 import android.content.Context
 import android.os.SystemClock
@@ -798,7 +798,7 @@ fun App.toAppUpdate(
     installOrigin: InstallOrigin = InstallOrigin.SYSTEM,
     installerPackageName: String = ""
 ) = AppUpdate(
-    name = displayName,
+    name = displayName.lineSequence().firstOrNull { it.isNotBlank() }?.trim().orEmpty(),
     packageName = packageName,
     version = versionName,
     oldVersion = oldVersion,

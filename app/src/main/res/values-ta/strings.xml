@@ -5,7 +5,6 @@
     <string name="tab_updates">புதுப்பிப்புகள்</string>
     <string name="tab_settings">அமைப்புகள்</string>
     <string name="something_went_wrong">"ஏதோ தவறாகிவிட்டது\n\uD83E\uDD26"</string>
-    <string name="ignore_version">பதிப்பைப் புறக்கணிக்கவும்</string>
     <string name="ignore_cd">செயலியைப் புறக்கணிக்கவும்</string>
     <string name="unignore_cd">செயலியைப் புறக்கணிக்க வேண்டாம்</string>
     <string name="refresh_updates">புதுப்பிப்புகளைத் தேடு</string>
@@ -15,9 +14,6 @@
     <string name="install_failure">%1$s நிறுவ முடியவில்லை.</string>
 
     // Settings
-    <string name="settings_sources">மூலங்கள்</string>
-    <string name="settings_ui">பயனர் இடைமுகம்</string>
-    <string name="settings_options">விருப்பங்கள்</string>
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
     <string name="source_play" translatable="false">Play</string>
     <string name="about">செயலி குறித்து</string>
@@ -25,8 +21,6 @@
     <string name="theme_system">அமைப்பு</string>
     <string name="theme_dark">இருள்</string>
     <string name="theme_light">வெளிர்</string>
-    <string name="about_github">மூலக் குறியீட்டைப் பெறவும், பிழைகளைப் புகாரளிக்கவும், புதிய அம்சங்களைக் கோரவும் மற்றும் மொழிபெயர்ப்புகளைச் சேர்க்கவும்.</string>
-    <string name="copy_to_clipboard">கிளிப்போர்டுக்கு நகலெடுக்கவும்</string>
 
     // Notifications
     <string name="notification_channel_name">புதுப்பிப்புகள்</string>

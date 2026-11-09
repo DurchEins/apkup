@@ -23,9 +23,12 @@ import com.apkup.data.ui.AppInstallProgress
 import com.apkup.data.ui.AppInstallStatus
 import com.apkup.data.ui.AppUpdate
 import com.apkup.data.ui.Link
+import com.apkup.data.ui.UpdateInstallMode
+import com.apkup.prefs.Prefs
 import com.apkup.viewmodel.ApkMirrorCloudflareException
 import com.apkup.viewmodel.ApkMirrorResolutionException
 import com.apkup.repository.ApkMirrorResolver
+import com.apkup.repository.RepoMappingManager
 import com.apkup.util.ApkmExtractor
 import com.apkup.util.DownloadNotificationManager
 import com.apkup.util.DownloadStorageManager
@@ -35,6 +38,7 @@ import com.apkup.util.InstallPart
 import com.apkup.util.SessionInstaller
 import com.apkup.util.SnackBar
 import com.apkup.util.Stringer
+import com.apkup.util.buildUpdateHistoryEntry
 import com.aurora.gplayapi.data.models.PlayFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -97,6 +101,7 @@ class DownloadInstallService : Service(), KoinComponent {
 
         private val taskOrder = CopyOnWriteArrayList<Int>()
         private val pendingUpdates = ConcurrentLinkedQueue<AppUpdate>()
+        private val knownUpdatesById = ConcurrentHashMap<Int, AppUpdate>()
 
         private fun publishActiveTasks() {
             val ordered = linkedMapOf<Int, DownloadTaskState>()
@@ -129,6 +134,7 @@ class DownloadInstallService : Service(), KoinComponent {
                 taskOrder.add(update.id)
             }
             pendingUpdates.offer(update)
+            knownUpdatesById[update.id] = update
             val storageDir = DownloadStorageManager.getDownloadDir(context)
             val isCachedReady = Downloader.hasReadyCachedApk(storageDir, update.id, update.versionCode)
             activeTasks[update.id] = DownloadTaskState(
@@ -147,7 +153,11 @@ class DownloadInstallService : Service(), KoinComponent {
                 action = ACTION_START_DOWNLOAD
                 putExtra(EXTRA_UPDATE_ID, update.id)
             }
-            ContextCompat.startForegroundService(context, intent)
+            runCatching {
+                ContextCompat.startForegroundService(context, intent)
+            }.onFailure { error ->
+                Log.e(TAG, "Failed to start foreground service for update ${update.id}", error)
+            }
         }
 
         fun startDownloads(context: Context, updates: List<AppUpdate>) {
@@ -162,6 +172,7 @@ class DownloadInstallService : Service(), KoinComponent {
                     taskOrder.add(update.id)
                 }
                 pendingUpdates.offer(update)
+            knownUpdatesById[update.id] = update
                 val isCachedReady = Downloader.hasReadyCachedApk(storageDir, update.id, update.versionCode)
                 activeTasks[update.id] = DownloadTaskState(
                     id = update.id,
@@ -179,7 +190,11 @@ class DownloadInstallService : Service(), KoinComponent {
             val intent = Intent(context, DownloadInstallService::class.java).apply {
                 action = ACTION_ENQUEUE_DOWNLOADS
             }
-            ContextCompat.startForegroundService(context, intent)
+            runCatching {
+                ContextCompat.startForegroundService(context, intent)
+            }.onFailure { error ->
+                Log.e(TAG, "Failed to start foreground service for enqueued downloads", error)
+            }
         }
 
         fun cancelDownload(context: Context, updateId: Int) {
@@ -226,6 +241,8 @@ class DownloadInstallService : Service(), KoinComponent {
     private val snackBar: SnackBar by inject()
     private val stringer: Stringer by inject()
     private val apkMirrorResolver: ApkMirrorResolver by inject()
+    private val prefs: Prefs by inject()
+    private val repoMappingManager: RepoMappingManager by inject()
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private lateinit var notificationManager: DownloadNotificationManager
@@ -659,7 +676,26 @@ class DownloadInstallService : Service(), KoinComponent {
                             _completedTasksFlow.value = completedTasks.toList()
                         }
                     }
+                    if (status.snack) {
+                        knownUpdatesById.remove(status.id)?.let { finishedUpdate ->
+                            val mode = if (installer.isShizukuReady()) {
+                                UpdateInstallMode.MANUAL_SHIZUKU
+                            } else {
+                                UpdateInstallMode.MANUAL
+                            }
+                            val binding = repoMappingManager.getBinding(finishedUpdate.packageName)
+                                ?: prefs.readCustomRepoBindingsSafe()[finishedUpdate.packageName]
+                            prefs.recordUpdateHistory(
+                                buildUpdateHistoryEntry(
+                                    update = finishedUpdate,
+                                    installMode = mode,
+                                    repoBinding = binding
+                                )
+                            )
+                        }
+                    }
                 } else {
+                    knownUpdatesById.remove(status.id)
                     installer.finish(status.id)
                 }
                 removeTask(status.id)
@@ -711,6 +747,19 @@ class DownloadInstallService : Service(), KoinComponent {
         if (isForegroundActive.compareAndSet(true, false)) {
             ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
             stopSelf()
+        }
+    }
+
+    override fun onTimeout(startId: Int, fgsType: Int) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            super.onTimeout(startId, fgsType)
+        }
+        Log.w(TAG, "Foreground service timed out (startId=$startId, fgsType=$fgsType). Stopping service safely.")
+        runCatching {
+            pendingUpdates.clear()
+            activeDownloadJobs.values.forEach { it.cancel() }
+            activeDownloadJobs.clear()
+            stopForegroundAndSelf()
         }
     }
 

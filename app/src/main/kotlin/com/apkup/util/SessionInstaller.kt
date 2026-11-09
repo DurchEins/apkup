@@ -198,7 +198,53 @@ class SessionInstaller internal constructor(
             installLog.emitStatus(AppInstallStatus(result, id, snack = true))
             return result
         }
-        return installWithPackageInstaller(id, packageName, parts)
+        return kotlinx.coroutines.withTimeoutOrNull(120_000L) {
+            installWithPackageInstaller(id, packageName, parts)
+        } ?: false
+    }
+
+    /**
+     * Executes a strictly silent background installation via Shizuku without triggering
+     * interactive system PackageInstaller prompts, permission dialogs, or UI snackbars.
+     */
+    suspend fun installPartsSilently(
+        id: Int,
+        packageName: String,
+        parts: List<InstallPart>
+    ): Boolean {
+        if (parts.isEmpty()) {
+            return false
+        }
+        if (!prefs.useShizukuInstaller.get()) {
+            return false
+        }
+        val binderActive = runCatching { shizukuBridge.pingBinder() }.getOrDefault(false)
+        val permissionGranted = binderActive && runCatching { shizukuBridge.isPermissionGranted() }.getOrDefault(false)
+        if (!binderActive || !permissionGranted) {
+            runCatching {
+                Log.w(
+                    "SessionInstaller",
+                    "Silent Shizuku install skipped for $packageName: binderActive=$binderActive, permissionGranted=$permissionGranted"
+                )
+            }
+            return false
+        }
+
+        installLog.beginInstall(id)
+        val shizukuResult = runCatching {
+            shizukuBridge.executeShizukuInstall(id, packageName, parts)
+        }
+        if (shizukuResult.isFailure) {
+            runCatching {
+                Log.w(
+                    "SessionInstaller",
+                    "Silent Shizuku install failed for $packageName (${shizukuResult.exceptionOrNull()?.message})"
+                )
+            }
+        }
+        val succeeded = shizukuResult.getOrDefault(false)
+        installLog.emitStatus(AppInstallStatus(succeeded, id, snack = false))
+        return succeeded
     }
 
     private fun notifyShizukuFallback(messageRes: Int) {
@@ -374,10 +420,23 @@ class SessionInstaller internal constructor(
                 partFile
             }
 
-            val createOutput = runShizukuCommand(
-                shizukuService,
-                arrayOf("pm", "install-create", "-r", "-i", "com.android.vending")
-            )
+            // Security verification: inspect staged APK package name before privileged install
+            val baseApk = stagedFiles.firstOrNull { it.name.endsWith(".apk") }
+            if (baseApk != null) {
+                val archiveInfo = ctx.packageManager.getPackageArchiveInfo(baseApk.absolutePath, 0)
+                    ?: throw IOException("Invalid or corrupt APK payload for $packageName: packageManager could not parse archive")
+                if (archiveInfo.packageName != packageName) {
+                    throw SecurityException("Security check failed: Downloaded APK packageName (${archiveInfo.packageName}) does not match expected ($packageName)!")
+                }
+            }
+
+            val isInstalled = runCatching { ctx.packageManager.getPackageInfo(packageName, 0) }.isSuccess
+            val createArgs = if (isInstalled) {
+                arrayOf("pm", "install-create", "-r", "-p", packageName, "-i", ctx.packageName)
+            } else {
+                arrayOf("pm", "install-create", "-r", "-i", ctx.packageName)
+            }
+            val createOutput = runShizukuCommand(shizukuService, createArgs)
             sessionId = Regex("\\[(\\d+)]").find(createOutput)?.groupValues?.getOrNull(1)
                 ?: throw IOException("Could not parse Shizuku install session ID from: $createOutput")
 

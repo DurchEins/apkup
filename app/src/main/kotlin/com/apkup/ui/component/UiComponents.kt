@@ -44,6 +44,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -115,14 +119,28 @@ fun InstalledItem(
 	}
 
 	Box(modifier = Modifier.fillMaxWidth()) {
-		val cardShape = RoundedCornerShape(24.dp)
-		ElevatedCard(
+		val interactionSource = remember { MutableInteractionSource() }
+		val isPressed by interactionSource.collectIsPressedAsState()
+		val scale by animateFloatAsState(
+			targetValue = if (isPressed) 0.96f else 1f,
+			animationSpec = spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = Spring.DampingRatioMediumBouncy)
+		)
+		val cardShape = RoundedCornerShape(22.dp)
+		Surface(
 			modifier = Modifier
 				.fillMaxWidth()
+				.graphicsLayer {
+					scaleX = scale
+					scaleY = scale
+				}
 				.clip(cardShape)
-				.border(BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)), cardShape)
 				.combinedClickable(
-					onClick = { showContextMenu = true },
+					interactionSource = interactionSource,
+					indication = null,
+					onClick = {
+						haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+						showContextMenu = true
+					},
 					onLongClick = {
 						haptics.performHapticFeedback(HapticFeedbackType.LongPress)
 						showContextMenu = true
@@ -130,14 +148,7 @@ fun InstalledItem(
 				)
 				.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
 			shape = cardShape,
-			colors = CardDefaults.elevatedCardColors(
-				containerColor = if (app.ignored) {
-					MaterialTheme.colorScheme.surfaceContainer
-				} else {
-					MaterialTheme.colorScheme.surfaceContainerLow
-				}
-			),
-			elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp, pressedElevation = 3.dp)
+			color = MaterialTheme.colorScheme.surfaceContainerLow
 		) {
 			Column(
 				modifier = Modifier.fillMaxWidth().padding(10.dp),
@@ -467,7 +478,7 @@ fun AutoResizeText(
 		color = color,
 		maxLines = maxLines,
 		fontWeight = fontWeight,
-		softWrap = false,
+		softWrap = (maxLines > 1),
 		onTextLayout = { textLayoutResult ->
 			if (textLayoutResult.didOverflowWidth || textLayoutResult.didOverflowHeight) {
 				val currentFontSize = scaledTextStyle.fontSize

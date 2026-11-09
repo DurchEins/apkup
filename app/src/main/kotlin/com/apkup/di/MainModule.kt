@@ -1,9 +1,12 @@
 package com.apkup.di
 
+import android.content.Context
 import androidx.work.WorkManager
 import com.apkup.BuildConfig
 import com.apkup.R
 import com.apkup.prefs.Prefs
+import com.apkup.repository.AndroidApkMirrorCloudflareBypass
+import com.apkup.repository.ApkMirrorCloudflareBypass
 import com.apkup.repository.ApkMirrorRepository
 import com.apkup.repository.ApkMirrorResolver
 import com.apkup.repository.InMemoryCookieJar
@@ -32,6 +35,7 @@ import com.apkup.viewmodel.SettingsViewModel
 import com.apkup.viewmodel.UpdatesViewModel
 import com.google.gson.GsonBuilder
 import com.kryptoprefs.preferences.KryptoBuilder
+import com.kryptoprefs.preferences.KryptoPrefs
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
@@ -45,7 +49,7 @@ val mainModule = module {
 
 	single { GsonBuilder().create() }
 
-	single { Cache(androidContext().cacheDir, 1024 * 1024 * 1024) }
+	single { Cache(java.io.File(androidContext().cacheDir, "http_cache"), 25L * 1024L * 1024L) }
 
 	single {
 		val dispatcher = okhttp3.Dispatcher().apply {
@@ -79,22 +83,28 @@ val mainModule = module {
 
 	single { ApkMirrorRepository(get(), androidContext().packageManager) }
 
+	single<ApkMirrorCloudflareBypass> { AndroidApkMirrorCloudflareBypass(androidContext()) }
+
 	single {
 		val apkMirrorOkHttpClient = OkHttpClient.Builder()
 			.followRedirects(true)
-			.cookieJar(InMemoryCookieJar())
+			.cookieJar(com.apkup.util.WebKitCookieJar())
 			.connectTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
 			.readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
 			.writeTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
 			.build()
-		ApkMirrorResolver(client = apkMirrorOkHttpClient, minDelayMs = 1500L)
+		ApkMirrorResolver(
+			client = apkMirrorOkHttpClient,
+			minDelayMs = 1500L,
+			cloudflareBypass = get()
+		)
 	}
 
 	single { AppsRepository(get(), get()) }
 
 	single { PlayRepository(get(), get(), get(), get()) }
 
-	single { KryptoBuilder.nocrypt(get(), androidContext().getString(R.string.app_name)) }
+	single<KryptoPrefs> { provideSecureKryptoPrefs(get()) }
 
 	single { Prefs(get()) }
 
@@ -148,4 +158,31 @@ val mainModule = module {
 
 	viewModel { SettingsViewModel(get(), get(), WorkManager.getInstance(get()), get(), get(), get(), get(), get(), get(), getOrNull()) }
 
+}
+
+private fun provideSecureKryptoPrefs(context: Context): KryptoPrefs {
+	return runCatching {
+		val rawPrefs = context.getSharedPreferences("ApkUp", Context.MODE_PRIVATE)
+		val rawAll = rawPrefs.all
+		// KryptoPrefs hybrid uses Sha512Hash for keys (length >= 60). Unencrypted legacy keys are short human-readable strings.
+		val legacyKeys = rawAll.filterKeys { key -> key.length < 60 }
+
+		val hybridPrefs = KryptoBuilder.hybrid(context, "ApkUp")
+		if (legacyKeys.isNotEmpty()) {
+			val editor = rawPrefs.edit()
+			for ((key, value) in legacyKeys) {
+				when (value) {
+					is String -> hybridPrefs.putString(key, value)
+					is Boolean -> hybridPrefs.putBoolean(key, value)
+					is Int -> hybridPrefs.putInt(key, value)
+					is Long -> hybridPrefs.putLong(key, value)
+				}
+				editor.remove(key)
+			}
+			editor.apply()
+		}
+		hybridPrefs
+	}.getOrElse {
+		KryptoBuilder.nocrypt(context, "ApkUp")
+	}
 }

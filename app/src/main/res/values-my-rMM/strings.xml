@@ -14,17 +14,12 @@
     <string name="install_failure">%1$s ထည့်သွင်းမှုမအောင်မြင်ပါ။</string>
 
     // Settings
-    <string name="settings_sources">အရင်းမြစ်များ</string>
-    <string name="settings_ui">ပြသပုံ</string>
-    <string name="settings_options">ရွေးချယ်စရာများ</string>
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
     <string name="about">ကျွန်ုပ်တို့အကြောင်း</string>
     <string name="theme">တင်ပြပုံ</string>
     <string name="theme_system">စက်အတိုင်း</string>
     <string name="theme_dark">အမှောင်</string>
     <string name="theme_light">အလင်း</string>
-    <string name="about_github">ပင်ရင်းကုဒ်တွင် ဘာသာစကားများ၊ လိုအပ်ချက်များ၊ ပါဝင်မှုအသစ်များ ထည့်သွင်းရန်။</string>
-    <string name="copy_to_clipboard">ကော်ပီကူးယူသည်</string>
 
     // Notifications
     <string name="notification_channel_name">ဗားရှင်းအသစ်များ</string>

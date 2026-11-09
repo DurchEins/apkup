@@ -19,6 +19,7 @@ import com.apkup.util.SnackBar
 import com.apkup.util.Stringer
 import com.apkup.util.Themer
 import com.apkup.util.UpdatesNotification
+import com.apkup.worker.ShizukuAutoUpdateWorker
 import com.apkup.worker.UpdatesWorker
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -134,6 +135,7 @@ class SettingsViewModel(
 			pendingEnableOnReady = false
 			prefs.useShizukuInstaller.put(false)
 			shizukuEnabledFlow.value = false
+			workManager?.let { ShizukuAutoUpdateWorker.cancel(it) }
 			return
 		}
 		prefs.useShizukuInstaller.put(true)
@@ -148,6 +150,10 @@ class SettingsViewModel(
 		if (alreadyGranted) {
 			refreshShizukuStatus()
 		}
+	}
+
+	fun openShizukuSetupSheet() {
+		showShizukuSetupSheetFlow.value = true
 	}
 
 	fun dismissShizukuSetupSheet() {
@@ -193,6 +199,21 @@ class SettingsViewModel(
 	}
 
 	fun ignoredApps(): StateFlow<List<String>> = ignoredAppsFlow
+
+	fun getIgnoreAppsFilterActive(): Boolean = prefs.ignoreAppsFilterActive.get()
+	fun setIgnoreAppsFilterActive(active: Boolean, appsViewModel: AppsViewModel, updatesViewModel: UpdatesViewModel) {
+		prefs.ignoreAppsFilterActive.put(active)
+		refreshIgnoredApps()
+		appsViewModel.refresh(false)
+		updatesViewModel.syncIgnoredFromPrefs()
+	}
+
+	fun getIgnoreVersionsFilterActive(): Boolean = prefs.ignoreVersionsFilterActive.get()
+	fun setIgnoreVersionsFilterActive(active: Boolean, updatesViewModel: UpdatesViewModel) {
+		prefs.ignoreVersionsFilterActive.put(active)
+		refreshIgnoredVersions()
+		updatesViewModel.syncIgnoredFromPrefs()
+	}
 
 	fun refreshIgnoredApps() {
 		ignoredAppsFlow.value = prefs.ignoredApps.get()
@@ -352,6 +373,65 @@ class SettingsViewModel(
 	}
 	fun getDownloadWifiOnly(): Boolean = prefs.downloadWifiOnly.get()
 	fun setDownloadWifiOnly(wifiOnly: Boolean) = prefs.downloadWifiOnly.put(wifiOnly)
+
+	fun getDownloadChargingOnly(): Boolean = prefs.downloadChargingOnly.get()
+	fun setDownloadChargingOnly(chargingOnly: Boolean) = prefs.downloadChargingOnly.put(chargingOnly)
+
+	fun getBackgroundCheckWifiOnly(): Boolean = prefs.backgroundCheckWifiOnly.get()
+	fun setBackgroundCheckWifiOnly(wifiOnly: Boolean) {
+		prefs.backgroundCheckWifiOnly.put(wifiOnly)
+		if (getBackgroundChecksEnabled()) {
+			workManager?.let { UpdatesWorker.launch(it) }
+		}
+	}
+
+	fun getAutoInstallUpdates(): Boolean = prefs.autoInstallUpdates.get()
+
+	fun setAutoInstallUpdates(enabled: Boolean) {
+		prefs.autoInstallUpdates.put(enabled)
+		val wm = workManager ?: return
+		if (enabled && getUseShizukuInstaller()) {
+			if (prefs.readCachedSnapshotSafe().updates.isNotEmpty()) {
+				ShizukuAutoUpdateWorker.enqueue(
+					workManager = wm,
+					wifiOnly = prefs.autoInstallWifiOnly.get(),
+					chargingOnly = prefs.autoInstallChargingOnly.get()
+				)
+			}
+		} else {
+			ShizukuAutoUpdateWorker.cancel(wm)
+		}
+	}
+
+	fun getAutoInstallWifiOnly(): Boolean = prefs.autoInstallWifiOnly.get()
+
+	fun setAutoInstallWifiOnly(wifiOnly: Boolean) {
+		prefs.autoInstallWifiOnly.put(wifiOnly)
+		if (prefs.autoInstallUpdates.get() && getUseShizukuInstaller() && prefs.readCachedSnapshotSafe().updates.isNotEmpty()) {
+			workManager?.let { wm ->
+				ShizukuAutoUpdateWorker.enqueue(
+					workManager = wm,
+					wifiOnly = wifiOnly,
+					chargingOnly = prefs.autoInstallChargingOnly.get()
+				)
+			}
+		}
+	}
+
+	fun getAutoInstallChargingOnly(): Boolean = prefs.autoInstallChargingOnly.get()
+
+	fun setAutoInstallChargingOnly(chargingOnly: Boolean) {
+		prefs.autoInstallChargingOnly.put(chargingOnly)
+		if (prefs.autoInstallUpdates.get() && getUseShizukuInstaller() && prefs.readCachedSnapshotSafe().updates.isNotEmpty()) {
+			workManager?.let { wm ->
+				ShizukuAutoUpdateWorker.enqueue(
+					workManager = wm,
+					wifiOnly = prefs.autoInstallWifiOnly.get(),
+					chargingOnly = chargingOnly
+				)
+			}
+		}
+	}
 	fun getBackgroundChecksEnabled() = prefs.enableBackgroundChecks.get()
 	fun getBackgroundCheckIntervalHours(): Int =
 		BackgroundCheckInterval.fromHours(prefs.backgroundCheckIntervalHours.get()).hours
@@ -401,7 +481,13 @@ class SettingsViewModel(
 			backgroundCheckIntervalHours = getBackgroundCheckIntervalHours(),
 			theme = prefs.theme.get(),
 			useShizukuInstaller = prefs.useShizukuInstaller.get(),
-			downloadWifiOnly = prefs.downloadWifiOnly.get()
+			autoInstallUpdates = prefs.autoInstallUpdates.get(),
+			autoInstallWifiOnly = prefs.autoInstallWifiOnly.get(),
+			autoInstallChargingOnly = prefs.autoInstallChargingOnly.get(),
+			downloadWifiOnly = prefs.downloadWifiOnly.get(),
+			downloadChargingOnly = prefs.downloadChargingOnly.get(),
+			backgroundCheckWifiOnly = prefs.backgroundCheckWifiOnly.get(),
+			updateHistory = prefs.readUpdateHistorySafe()
 		)
 		return gson.toJson(config)
 	}
@@ -480,7 +566,18 @@ class SettingsViewModel(
 				(sessionInstaller?.getShizukuSetupStatus()?.isReady == true)
 			prefs.useShizukuInstaller.put(canEnableShizuku)
 			shizukuEnabledFlow.value = canEnableShizuku
+			prefs.autoInstallUpdates.put(config.autoInstallUpdates)
+			prefs.autoInstallWifiOnly.put(config.autoInstallWifiOnly ?: true)
+			prefs.autoInstallChargingOnly.put(config.autoInstallChargingOnly ?: true)
+			if (!canEnableShizuku || !config.autoInstallUpdates) {
+				workManager?.let { ShizukuAutoUpdateWorker.cancel(it) }
+			}
 			prefs.downloadWifiOnly.put(config.downloadWifiOnly)
+			prefs.downloadChargingOnly.put(config.downloadChargingOnly ?: false)
+			prefs.backgroundCheckWifiOnly.put(config.backgroundCheckWifiOnly)
+			config.updateHistory?.let { importedHistory ->
+				prefs.replaceUpdateHistory(importedHistory)
+			}
 			if (config.enableBackgroundChecks) {
 				workManager?.let { UpdatesWorker.launch(it) }
 			} else {

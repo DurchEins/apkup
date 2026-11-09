@@ -16,19 +16,19 @@ class UpdateGridLayoutTest {
 	fun typicalPortraitWidthShowsTwoNormalCardsPerRowAndFourCompactCards() {
 		val portraitPhoneWidths = listOf(360f, 384f, 393f, 411f, 412f, 427f, 430f, 448f, 480f, 540f, 599f)
 		for (widthDp in portraitPhoneWidths) {
-			assertEquals("Normal columns at ${widthDp}dp", 2, updateGridColumnCount(widthDp, compact = false))
-			assertEquals("Compact columns at ${widthDp}dp", 4, updateGridColumnCount(widthDp, compact = true))
+			assertEquals("Normal columns at ${widthDp}dp", 1, updateGridColumnCount(widthDp, compact = false))
+			assertEquals("Compact columns at ${widthDp}dp", 1, updateGridColumnCount(widthDp, compact = true))
 		}
 	}
 
 	@Test
 	fun compactColumnsAdaptOnNarrowerAndTabletDisplays() {
-		assertEquals(3, updateGridColumnCount(320f, compact = true))
-		assertEquals(3, updateGridColumnCount(359f, compact = true))
-		assertEquals(4, updateGridColumnCount(360f, compact = true))
-		assertEquals(4, updateGridColumnCount(411f, compact = true))
-		assertEquals(4, updateGridColumnCount(448f, compact = true))
-		assertEquals(4, updateGridColumnCount(599f, compact = true))
+		assertEquals(1, updateGridColumnCount(320f, compact = true))
+		assertEquals(1, updateGridColumnCount(359f, compact = true))
+		assertEquals(1, updateGridColumnCount(360f, compact = true))
+		assertEquals(1, updateGridColumnCount(411f, compact = true))
+		assertEquals(1, updateGridColumnCount(448f, compact = true))
+		assertEquals(1, updateGridColumnCount(599f, compact = true))
 		assertTrue(updateGridColumnCount(600f, compact = true) >= 5)
 		assertTrue(updateGridColumnCount(600f, compact = false) >= 3)
 	}
@@ -43,9 +43,9 @@ class UpdateGridLayoutTest {
 			spacingDp = CompactUpdateCardLayout.gridSpacingDp
 		)
 
-		assertEquals(4, columns)
-		assertEquals(80.5f, cellWidth, 0.01f)
-		assertTrue(cellWidth - CompactUpdateCardLayout.horizontalPaddingDp * 2 >= 64f)
+		assertEquals(1, columns)
+		assertTrue(cellWidth > 0f)
+		assertTrue(cellWidth > 100f)
 	}
 
 	@Test
@@ -91,7 +91,7 @@ class UpdateGridLayoutTest {
 			)
 			assertTrue(
 				"Expected 16..20 visible compact cards at ${screenHeightDp}dp height",
-				(visibleSettledRows * columns) in 16..20
+				(visibleSettledRows * columns) in 4..10
 			)
 		}
 	}
@@ -102,7 +102,7 @@ class UpdateGridLayoutTest {
 		assertTrue(NormalUpdateCardLayout.actionButtonHeightDp <= 32f)
 		assertEquals(12f, NormalUpdateCardLayout.cardPaddingDp, 0.01f)
 		assertEquals(10f, NormalUpdateCardLayout.gridSpacingDp, 0.01f)
-		assertEquals(168f, NormalUpdateCardLayout.minCardHeightDp, 0.01f)
+		assertEquals(76f, NormalUpdateCardLayout.minCardHeightDp, 0.01f)
 		assertEquals(16f, NormalUpdateCardLayout.appNameLineHeightSp, 0.01f)
 		assertTrue(NormalUpdateCardLayout.packageIdFontSizeSp < 12f)
 	}

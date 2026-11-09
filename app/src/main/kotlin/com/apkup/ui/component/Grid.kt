@@ -55,7 +55,7 @@ fun InstalledLoadingGrid() = InstalledGrid(false) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(134.dp)
-                .border(BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)), cardShape),
+                ,
             shape = cardShape,
             colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
         ) {

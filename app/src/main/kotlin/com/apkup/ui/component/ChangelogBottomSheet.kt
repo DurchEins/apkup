@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -423,7 +424,7 @@ private fun ChangelogFeatureBannerCard(banner: ChangelogBanner) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(126.dp)
+            .heightIn(min = 110.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(bgBrush)
             .border(
@@ -431,7 +432,7 @@ private fun ChangelogFeatureBannerCard(banner: ChangelogBanner) {
                 color = Color.White.copy(alpha = 0.08f),
                 shape = RoundedCornerShape(16.dp)
             )
-            .padding(horizontal = 18.dp, vertical = 16.dp),
+            .padding(horizontal = 14.dp, vertical = 14.dp),
         contentAlignment = Alignment.Center
     ) {
         // Subtle floating background card decoration (like Google's floating file icon)
@@ -442,7 +443,7 @@ private fun ChangelogFeatureBannerCard(banner: ChangelogBanner) {
                 shadowElevation = 4.dp,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .offset(x = (-8).dp, y = 4.dp)
+                    .offset(x = (-4).dp, y = (-2).dp)
             ) {
                 Text(
                     text = banner.badgeText,
@@ -454,19 +455,20 @@ private fun ChangelogFeatureBannerCard(banner: ChangelogBanner) {
             }
         }
 
-        // Center glowing capsule (inspired by the Google App screenshot banner)
+        // Center glowing capsule (dynamically resizing for screen sizes)
         Row(
             modifier = Modifier
-                .fillMaxWidth(0.92f)
-                .clip(CircleShape)
+                .fillMaxWidth()
+                .padding(top = if (banner.badgeText.isNotBlank()) 10.dp else 0.dp)
+                .clip(RoundedCornerShape(22.dp))
                 .background(Color(0xFF161922).copy(alpha = 0.92f))
                 .border(
                     BorderStroke(1.5.dp, glowBorderBrush),
-                    shape = CircleShape
+                    shape = RoundedCornerShape(22.dp)
                 )
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 14.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Box(
                 modifier = Modifier
@@ -483,13 +485,13 @@ private fun ChangelogFeatureBannerCard(banner: ChangelogBanner) {
                 )
             }
 
-            Text(
+            AutoResizeText(
                 text = banner.title,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium,
+                style = MaterialTheme.typography.titleSmall.copy(fontSize = 13.sp),
+                fontWeight = FontWeight.SemiBold,
                 color = Color(0xFFF8FAFC),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                maxLines = 2,
+                minFontSize = 9.sp,
                 modifier = Modifier.weight(1f)
             )
         }

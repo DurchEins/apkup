@@ -14,16 +14,70 @@ import androidx.core.app.NotificationManagerCompat
 import com.apkup.R
 import com.apkup.ui.activity.MainActivity
 
-class UpdatesNotification(private val context: Context) {
+internal data class AutoUpdateSummaryContent(
+    val title: String,
+    val contentText: String,
+    val bigText: String
+)
+
+internal fun formatAutoUpdateSummary(
+    updatedAppNames: List<String>,
+    manualRequiredAppNames: List<String>,
+    completeTitle: String,
+    partialTitle: String,
+    completeDescProvider: (Int) -> String,
+    partialDescProvider: (Int, Int) -> String,
+    updatedListProvider: (String) -> String,
+    manualReadyListProvider: (String) -> String
+): AutoUpdateSummaryContent? {
+    val updated = updatedAppNames.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+    val manual = manualRequiredAppNames.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+    if (updated.isEmpty()) return null
+
+    return if (manual.isEmpty()) {
+        val contentText = completeDescProvider(updated.size)
+        val bigText = buildString {
+            appendLine(contentText)
+            append(updatedListProvider(updated.joinToString(", ")))
+        }
+        AutoUpdateSummaryContent(
+            title = completeTitle,
+            contentText = contentText,
+            bigText = bigText
+        )
+    } else {
+        val contentText = partialDescProvider(updated.size, manual.size)
+        val bigText = buildString {
+            appendLine(contentText)
+            appendLine(updatedListProvider(updated.joinToString(", ")))
+            append(manualReadyListProvider(manual.joinToString(", ")))
+        }
+        AutoUpdateSummaryContent(
+            title = partialTitle,
+            contentText = contentText,
+            bigText = bigText
+        )
+    }
+}
+
+interface AutoUpdateNotifier {
+    fun showUpdateNotification(num: Int)
+    fun showAutoUpdateSummaryNotification(
+        updatedAppNames: List<String>,
+        manualRequiredAppNames: List<String>
+    )
+}
+
+open class UpdatesNotification(private val context: Context) : AutoUpdateNotifier {
 
     companion object {
         const val UpdateAction = "updateAction"
     }
 
     private val notificationManager get() = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-    private val channelId = context.getString(R.string.notification_channel_id)
-    private val channelName = context.getString(R.string.notification_channel_name)
-    private val updateTitle = context.getString(R.string.notification_update_title)
+    private val channelId by lazy { context.getString(R.string.notification_channel_id) }
+    private val channelName by lazy { context.getString(R.string.notification_channel_name) }
+    private val updateTitle by lazy { context.getString(R.string.notification_update_title) }
     private val updateId = 42
     private val checkProgressChannelId = "update_check_progress_channel"
     private val checkProgressId = 43
@@ -52,7 +106,7 @@ class UpdatesNotification(private val context: Context) {
         val contentText = if (hasDeterminateProgress) {
             context.getString(
                 R.string.notification_check_progress_text,
-                checkedApps!!.coerceAtMost(totalApps!!),
+                checkedApps.coerceAtMost(totalApps),
                 totalApps
             )
         } else {
@@ -68,8 +122,8 @@ class UpdatesNotification(private val context: Context) {
             .setOnlyAlertOnce(true)
             .setSilent(true)
             .setProgress(
-                if (hasDeterminateProgress) totalApps!! else 0,
-                if (hasDeterminateProgress) checkedApps!!.coerceIn(0, totalApps!!) else 0,
+                if (hasDeterminateProgress) totalApps else 0,
+                if (hasDeterminateProgress) checkedApps.coerceIn(0, totalApps) else 0,
                 !hasDeterminateProgress
             )
             .setContentIntent(
@@ -91,7 +145,7 @@ class UpdatesNotification(private val context: Context) {
     }
 
     @SuppressLint("MissingPermission")
-    fun showUpdateNotification(num: Int) {
+    override fun showUpdateNotification(num: Int) {
         // Intent for the notification click
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
@@ -107,6 +161,73 @@ class UpdatesNotification(private val context: Context) {
                 PendingIntent.getActivity(
                     context,
                     0,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+            )
+            .setAutoCancel(true)
+
+        createNotificationChannel()
+        if (areNotificationsEnabled()) {
+            NotificationManagerCompat.from(context).notify(updateId, builder.build())
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    override fun showAutoUpdateSummaryNotification(
+        updatedAppNames: List<String>,
+        manualRequiredAppNames: List<String>
+    ) {
+        val updated = updatedAppNames.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+        val manual = manualRequiredAppNames.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+        if (updated.isEmpty() && manual.isEmpty()) return
+        if (updated.isEmpty()) {
+            showUpdateNotification(manual.size)
+            return
+        }
+
+        val summary = formatAutoUpdateSummary(
+            updatedAppNames = updated,
+            manualRequiredAppNames = manual,
+            completeTitle = context.getString(R.string.notification_auto_update_complete_title),
+            partialTitle = context.getString(R.string.notification_auto_update_partial_title),
+            completeDescProvider = { count ->
+                context.resources.getQuantityString(
+                    R.plurals.notification_auto_update_complete_desc,
+                    count,
+                    count
+                )
+            },
+            partialDescProvider = { updatedCount, manualCount ->
+                context.getString(
+                    R.string.notification_auto_update_partial_desc,
+                    updatedCount,
+                    manualCount
+                )
+            },
+            updatedListProvider = { names ->
+                context.getString(R.string.notification_auto_update_updated_list, names)
+            },
+            manualReadyListProvider = { names ->
+                context.getString(R.string.notification_auto_update_manual_ready_list, names)
+            }
+        ) ?: return
+
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+            action = UpdateAction
+        }
+
+        val builder = NotificationCompat.Builder(context, channelId)
+            .setSmallIcon(R.drawable.ic_install)
+            .setContentTitle(summary.title)
+            .setContentText(summary.contentText)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(summary.bigText))
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(
+                PendingIntent.getActivity(
+                    context,
+                    2,
                     intent,
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )

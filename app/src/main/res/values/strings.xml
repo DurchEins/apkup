@@ -2,13 +2,10 @@
 
     <string name="app_name" translatable="false">ApkUp</string>
     <string name="app_disabled">Disabled</string>
-    <string name="installed_short">Installed:</string>
-    <string name="available_short">Update:</string>
     <string name="tab_apps">Apps</string>
     <string name="tab_updates">Updates</string>
     <string name="tab_settings">Settings</string>
     <string name="something_went_wrong">"Something went wrong\n\uD83E\uDD26"</string>
-    <string name="ignore_version">Ignore Version</string>
     <string name="ignore_cd">Ignore App</string>
     <string name="unignore_cd">Unignore App</string>
     <string name="refresh_updates">Look for Updates</string>
@@ -21,8 +18,6 @@
     <string name="updates_last_checked_days">Last checked: %1$d d ago</string>
     <string name="install_cd">Install App</string>
     <string name="install_all">Install All</string>
-    <string name="installed_version">Installed version</string>
-    <string name="available_version">Available version</string>
     <string name="update_action">Get update</string>
     <string name="install_cached_action">Install</string>
     <string name="installing_update">Installing update…</string>
@@ -33,9 +28,7 @@
     <string name="updates_empty_message">There are no pending updates right now.</string>
     <string name="updates_error_title">Updates couldn’t be loaded</string>
     <string name="updates_error_message">Check your connection, then refresh to try again.</string>
-    <string name="updates_source_error">%1$s check failed (%2$s). Showing %3$s results.</string>
     <string name="updates_partial_empty_title">Update check was incomplete</string>
-    <string name="updates_partial_empty_message">%1$s check failed (%2$s). %3$s reported no updates.</string>
     <string name="apps_error_message">Pull down to refresh the installed app list.</string>
     <string name="app_cd">App Icon</string>
     <string name="install_success">%1$s installed.</string>
@@ -102,8 +95,6 @@
     <string name="shizuku_setup_recheck">Check status again</string>
     <string name="shizuku_setup_rechecked_feedback">Live status checked and updated</string>
     <string name="shizuku_setup_close">Close</string>
-    <string name="settings_sources">Sources</string>
-    <string name="settings_ui">UI</string>
     <string name="updates_display_mode">Update display</string>
     <string name="updates_detail_view">Detail</string>
     <string name="updates_compact_view">Compact</string>
@@ -114,8 +105,11 @@
     <string name="settings_interval_24h">Every 24 hours (once daily)</string>
     <string name="settings_interval_48h">Every 48 hours (every 2 days)</string>
     <string name="settings_interval_7d">Once a week (every 7 days)</string>
-    <string name="settings_options">Options</string>
-    <string name="settings_show_system_apps">Show system apps</string>
+    <string name="settings_show_system_apps">Show &amp; include system apps</string>
+    <string name="settings_advanced_subtitle">App management, permissions &amp; backup</string>
+    <string name="settings_download_charging_only_desc">Only download updates while device is connected to power</string>
+    <string name="token_guide_toggle_show">Show guide</string>
+    <string name="token_guide_toggle_hide">Hide guide</string>
     <string name="settings_show_system_apps_desc">Shows system apps in the overview and includes them in update checks.</string>
     <string name="settings_ignored_versions_title">Skipped single updates</string>
     <string name="settings_ignored_versions_description">Manage individual update versions you previously chose to skip.</string>
@@ -127,10 +121,7 @@
     <string name="action_unignore_version">Restore</string>
     <string name="action_clear_ignored_versions">Restore all skipped versions</string>
     <string name="settings_advanced_section">Advanced Settings</string>
-    <string name="settings_backup_section">Backup &amp; Restore</string>
     <string name="settings_backup_description">Backup settings &amp; repo mappings</string>
-    <string name="settings_backup_export">Export configuration</string>
-    <string name="settings_backup_import">Import configuration</string>
     <string name="action_export_backup">Export</string>
     <string name="action_import_backup">Import</string>
     <string name="updates_empty_source_filter_message">No updates found for this source.</string>
@@ -146,10 +137,10 @@
     <string name="source_izzyondroid" translatable="false">IzzyOnDroid</string>
     <string name="source_github" translatable="false">GitHub</string>
     <string name="source_gitlab" translatable="false">GitLab</string>
-    <string name="settings_source_github_desc">Check GitHub releases for open-source and mapped apps</string>
+        <string name="settings_source_github_desc">Check GitHub releases for open-source and mapped apps</string>
     <string name="settings_source_gitlab_desc">Check GitLab releases for mapped repositories</string>
     <string name="github_token_title">GitHub API Token</string>
-    <string name="github_token_desc">Optional Personal Access Token to raise rate limit from 60 to 5,000 requests/hour</string>
+    <string name="gitlab_token_title">GitLab API Token</string>
     <string name="github_token_dialog_title">GitHub Personal Access Token</string>
     <string name="github_token_dialog_desc">Enter a personal access token (public repo read only) to avoid GitHub API rate limits (HTTP 403).</string>
     <string name="github_token_dialog_hint">ghp_xxxxxxxxxxxx</string>
@@ -157,8 +148,6 @@
     <string name="github_token_dialog_save">Save</string>
     <string name="github_token_status_set">Token configured</string>
     <string name="github_token_status_not_set">No token set (60 req/h limit)</string>
-    <string name="gitlab_token_title">GitLab API Token</string>
-    <string name="gitlab_token_desc">Optional Personal Access Token for private repositories or higher rate limits</string>
     <string name="gitlab_token_dialog_title">GitLab Personal Access Token</string>
     <string name="gitlab_token_dialog_desc">Enter a Personal Access Token (read_api scope) to avoid rate limits or access self-hosted/private GitLab projects.</string>
     <string name="gitlab_token_dialog_hint">glpat-xxxxxxxxxxxx</string>
@@ -171,8 +160,11 @@
     <string name="token_validation_valid_user">✓ Valid (@%1$s)</string>
     <string name="token_validation_invalid">✗ Invalid or expired token (HTTP %1$d)</string>
     <string name="token_validation_error">Connection error during check (%1$s)</string>
-    <string name="token_saved_verified_snack">✓ Token verified and saved (@%1$s)</string>
-    <string name="token_saved_offline_snack">Token saved (live verification skipped: %1$s)</string>
+    <string name="token_guide_header">Guide &amp; generate token</string>
+    <string name="token_guide_hint">No special permissions (scopes) are required for public repositories.</string>
+    <string name="token_action_generate_github">Generate token on GitHub ↗</string>
+    <string name="token_action_generate_gitlab">Generate token on GitLab ↗</string>
+    <string name="token_action_guide_wiki">Step-by-step wiki guide ↗</string>
     <string name="self_update_bento_title">Check Update</string>
     <string name="self_update_bento_subtitle">Direct install</string>
     <string name="self_update_bento_checking_title">Checking…</string>
@@ -183,7 +175,6 @@
     <string name="self_update_bento_error_subtitle">Tap to retry</string>
     <string name="changelog_bento_title">What\'s New</string>
     <string name="changelog_bento_subtitle">Release highlights</string>
-    <string name="about_github_bento_subtitle">Source code, issues &amp; releases</string>
     <string name="queue_banner_title">Updating apps (%1$d of %2$d)</string>
     <string name="queue_banner_subtitle_tap">%1$s • Tap for queue</string>
     <string name="queue_banner_action_details">Queue</string>
@@ -195,7 +186,6 @@
     <string name="queue_status_resolving_apkmirror">Resolving APKMirror link…</string>
     <string name="queue_section_completed">Completed in this session</string>
     <string name="queue_item_completed">Updated</string>
-    <string name="action_link_repo">Link repository</string>
     <string name="repo_menu_linked">Repository linked</string>
     <string name="repo_menu_link">Link repository</string>
     <string name="repo_view_on_github">View on GitHub</string>
@@ -221,22 +211,14 @@
     <string name="theme_system">System</string>
     <string name="theme_dark">Dark</string>
     <string name="theme_light">Light</string>
-    <string name="about_github_title">GitHub – ApkUp</string>
-    <string name="about_github">Get the source code, report bugs, and suggest new features.</string>
     <string name="about_copyright">Copyright &#169; 2026 DurchEins &#8226; GPL-3.0</string>
     <string name="about_tribute">Redesigned from the ground up with love by DurchEins. ♥</string>
     <string name="about_original_project">Based on the original project by rumboalla (GPL-3.0)</string>
-    <string name="copy_to_clipboard">Copy to clipboard</string>
     <string name="changelog_title">What\'s new</string>
-    <string name="changelog_menu_item">What\'s new / Changelog</string>
     <string name="changelog_menu_subtitle">View release highlights and improvements</string>
     <string name="changelog_button_dismiss">Got it</string>
 
     <!-- Self-Updater -->
-    <string name="self_update_card_title">Check for ApkUp updates</string>
-    <string name="self_update_card_subtitle">Find and install latest ApkUp releases directly</string>
-    <string name="self_update_checking">Checking for ApkUp updates…</string>
-    <string name="self_update_latest">ApkUp is already up to date (%1$s).</string>
     <string name="self_update_dialog_title">ApkUp Update Available</string>
     <string name="self_update_dialog_version">New Version %1$s</string>
     <string name="self_update_dialog_button_update">Update Now</string>
@@ -247,12 +229,12 @@
 
     <!-- Settings Sections -->
     <string name="settings_section_appearance">Appearance &amp; Layout</string>
-    <string name="settings_section_sources">Sources &amp; Scan Behavior</string>
-    <string name="settings_section_install_permissions">Installation &amp; Permissions</string>
+    <string name="settings_section_sources">Update Sources</string>
+    <string name="settings_section_background_checks">Automated Checks &amp; Schedule</string>
+    <string name="settings_section_install_automation">Installation &amp; Automation</string>
     <string name="settings_section_app_management">App Management</string>
+    <string name="settings_section_backup_restore">Backup &amp; Export</string>
     <string name="settings_preview_title">Live preview</string>
-    <string name="settings_preview_sample_app">Sample App</string>
-    <string name="settings_preview_update_action">Update</string>
 
     <string name="permission_unknown_apps_title">Install unknown apps</string>
     <string name="permission_unknown_apps_subtitle_granted">Permission active – direct APK installation enabled</string>
@@ -326,6 +308,115 @@
 
     <!-- Obtainium Import / Export -->
     <string name="action_export_obtainium">Obtainium Export</string>
-    <string name="backup_obtainium_import_success">Imported app repository mappings from Obtainium.</string>
+    <string name="backup_obtainium_import_success">Imported %1$d of %2$d apps from Obtainium.</string>
     <string name="backup_obtainium_export_success">Obtainium export created successfully.</string>
+
+    <!-- Autonomous Shizuku Background Updates & Wiki Bento -->
+    <string name="settings_auto_install_title">Autonomous background updates</string>
+    <string name="settings_auto_install_desc">Automatically download and silently install updates in the background via Shizuku</string>
+    <string name="settings_auto_install_wifi_only">Wi-Fi only</string>
+    <string name="settings_auto_install_charging_only">While charging</string>
+    <string name="about_github_bento_short_title" translatable="false">GitHub</string>
+    <string name="about_github_bento_short_subtitle">Code &amp; releases</string>
+    <string name="about_wiki_bento_title">Help &amp; Wiki</string>
+    <string name="about_wiki_bento_subtitle">Guides &amp; FAQ</string>
+    <string name="notification_auto_update_complete_title">Updates installed automatically</string>
+    <string name="notification_auto_update_partial_title">Background updates completed</string>
+    <plurals name="notification_auto_update_complete_desc">
+        <item quantity="one">%1$d app was updated silently via Shizuku.</item>
+        <item quantity="other">%1$d apps were updated silently via Shizuku.</item>
+    </plurals>
+    <string name="notification_auto_update_partial_desc">%1$d updated • %2$d ready for manual install</string>
+    <string name="notification_auto_update_updated_list">Updated: %1$s</string>
+    <string name="notification_auto_update_manual_ready_list">Ready to install: %1$s</string>
+    <string name="apps_recent_filter_hint">Shows all system-wide app updates from the last 14 days (including outside ApkUp).</string>
+    <string name="apps_open_apkup_history">ApkUp History</string>
+    <string name="update_history_title">Update History</string>
+    <string name="update_history_subtitle">App updates installed by ApkUp</string>
+    <string name="update_history_clear">Clear</string>
+    <string name="update_history_empty_title">No updates recorded yet</string>
+    <string name="update_history_empty_desc">Once ApkUp updates apps manually or automatically via Shizuku, they appear here including a link to the previous version.</string>
+    <string name="update_history_mode_auto_shizuku">Auto · Shizuku</string>
+    <string name="update_history_mode_manual_shizuku">Manual · Shizuku</string>
+    <string name="update_history_mode_manual">Manual</string>
+    <string name="update_history_previous_version_action">Get previous version (%1$s)</string>
+    <string name="update_history_older_versions_action">Browse older versions</string>
+    <string name="updates_recent_history_pill">Update history (%1$d)</string>
+
+    <!-- Split Settings & Compact App Management -->
+    <string name="settings_apkmirror_dialog_title">APKMirror Options</string>
+    <string name="settings_apkmirror_dialog_desc">Configure how ApkUp handles update downloads from APKMirror.</string>
+    <string name="settings_apkmirror_direct_active">Direct downloads active</string>
+    <string name="settings_apkmirror_direct_inactive">Browser redirect</string>
+    <string name="settings_shizuku_dialog_title">Background Installations</string>
+    <string name="settings_shizuku_summary_auto">Autonomous updates active</string>
+    <string name="settings_shizuku_summary_silent">Silent updates via Shizuku</string>
+    <string name="settings_shizuku_summary_inactive">Requires running Shizuku service</string>
+    <string name="settings_interval_dialog_title">Check Interval</string>
+    <string name="settings_interval_summary_6h">Every 6 hours</string>
+    <string name="settings_interval_summary_12h">Every 12 hours</string>
+    <string name="settings_interval_summary_24h">Every 24 hours (daily)</string>
+    <string name="settings_interval_summary_48h">Every 48 hours (every 2 days)</string>
+    <string name="settings_interval_summary_7d">Every 7 days (weekly)</string>
+    <string name="hidden_apps_none">No apps hidden</string>
+
+    <!-- System & Permissions (Advanced Settings) -->
+    <string name="settings_section_system_permissions">System &amp; Permissions</string>
+    <string name="settings_battery_optimization">Battery optimization</string>
+    <string name="settings_battery_optimization_exempted">Reliable background service</string>
+    <string name="settings_battery_optimization_optimized">Optimized (Service may be delayed)</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_notifications_enabled">Status &amp; update alerts</string>
+    <string name="settings_notifications_disabled">Disabled (No update alerts)</string>
+    <string name="settings_install_unknown_apps">Install unknown apps</string>
+    <string name="settings_install_unknown_apps_allowed">Direct APK installation</string>
+    <string name="settings_install_unknown_apps_denied">Not allowed (Tap to enable)</string>
+    <string name="settings_status_active">Active</string>
+    <string name="settings_status_exempted">Unrestricted</string>
+    <string name="settings_status_allowed">Allowed</string>
+    <string name="settings_status_optimized">Restricted</string>
+    <string name="settings_status_disabled">Disabled</string>
+    <string name="settings_status_blocked">Blocked</string>
+    <string name="settings_wifi_shizuku_hint">Applies automatically once Shizuku is configured and active.</string>
+
+    <!-- Setup Warning Card Strings -->
+    <string name="setup_warnings_multiple_title">%d settings require attention</string>
+    <string name="setup_warning_action_resolve">Resolve</string>
+    <string name="warning_install_title">Unknown app installation blocked</string>
+    <string name="warning_install_subtitle">Direct APK installation is not possible</string>
+    <string name="warning_action_allow">Allow</string>
+    <string name="warning_notifications_title">Notifications disabled</string>
+    <string name="warning_notifications_subtitle">No alerts for new app updates</string>
+    <string name="warning_action_enable">Enable</string>
+    <string name="warning_battery_title">Battery optimization active</string>
+    <string name="warning_battery_subtitle">Background checks may be delayed</string>
+    <string name="warning_action_exempt">Exempt</string>
+    <string name="warning_shizuku_title">Shizuku service not running</string>
+    <string name="warning_shizuku_subtitle">Silent background installs are paused</string>
+    <string name="warning_action_check">Check</string>
+
+    <!-- Wi-Fi & Network Settings Dialog -->
+    <string name="settings_wifi_dialog_title">Wi-Fi &amp; Download Settings</string>
+    <string name="settings_wifi_dialog_desc">Configure network constraints for update downloads and periodic background checks.</string>
+    <string name="settings_download_wifi_only_active">Active (Downloads over Wi-Fi only)</string>
+    <string name="settings_wifi_active_charging_desc">Active on Wi-Fi and while charging</string>
+    <string name="settings_wifi_all_networks_desc">Downloads allowed over all networks</string>
+    <string name="settings_bg_check_wifi_only">Background checks over Wi-Fi only</string>
+    <string name="settings_bg_check_wifi_only_desc">Saves mobile data during periodic update scans</string>
+    <plurals name="updates_banner_title_count">
+        <item quantity="one">%1$d update available</item>
+        <item quantity="other">%1$d updates available</item>
+    </plurals>
+    <string name="update_sources_multiple_count_singular">+%1$d source</string>
+    <string name="update_sources_multiple_count_plural">+%1$d sources</string>
+    <string name="apps_filter_sideload">GitHub / Sideload</string>
+    <string name="apps_sort_count_label">%1$d apps sorted (A–Z)</string>
+    <string name="apps_launch_action">Launch app</string>
+    <string name="apps_context_details">Open app info</string>
+    <string name="apps_context_store">Open in Store</string>
+    <string name="apps_context_link_repo">Link repository</string>
+    <string name="apps_context_ignore">Ignore app</string>
+    <string name="apps_context_unignore">Include app</string>
+    <string name="apps_view_list">List view</string>
+    <string name="apps_view_grid">Grid view</string>
 </resources>

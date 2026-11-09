@@ -164,7 +164,6 @@ fun SettingsSection(
 	val cardModifier = modifier
 		.fillMaxWidth()
 		.clip(shape)
-		.border(BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)), shape)
 		.then(
 			if (!isCollapsible) {
 				Modifier.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
@@ -197,7 +196,7 @@ fun SettingsSection(
 		colors = CardDefaults.elevatedCardColors(
 			containerColor = MaterialTheme.colorScheme.surfaceContainerLow
 		),
-		elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
+		elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp)
 	) {
 		Column(
 			modifier = Modifier

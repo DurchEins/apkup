@@ -332,6 +332,13 @@ class IzzyOnDroidRepository(
                 }
             }
 
+            if (expectedSha256.isNotBlank()) {
+                val actualSha256 = calculateFileSha256(tempFile)
+                if (!actualSha256.equals(expectedSha256.trim(), ignoreCase = true)) {
+                    throw IOException("Index SHA-256 mismatch for index-v2.json (expected: $expectedSha256, actual: $actualSha256)")
+                }
+            }
+
             if (targetFile.exists()) targetFile.delete()
             if (!tempFile.renameTo(targetFile)) {
                 tempFile.copyTo(targetFile, overwrite = true)
@@ -569,5 +576,18 @@ class IzzyOnDroidRepository(
     ): Boolean {
         if (minSdkVersion <= 0) return true
         return currentSdk >= minSdkVersion
+    }
+
+    private fun calculateFileSha256(file: File): String {
+        val digest = java.security.MessageDigest.getInstance("SHA-256")
+        file.inputStream().use { input ->
+            val buffer = ByteArray(8192)
+            var read = input.read(buffer)
+            while (read != -1) {
+                digest.update(buffer, 0, read)
+                read = input.read(buffer)
+            }
+        }
+        return digest.digest().joinToString("") { "%02x".format(it) }
     }
 }

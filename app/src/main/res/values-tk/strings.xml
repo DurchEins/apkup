@@ -5,7 +5,6 @@
     <string name="tab_updates">Täzeleme</string>
     <string name="tab_settings">Sazlamalar</string>
     <string name="something_went_wrong">"Ýalňyşlyk ýüze çykdy\n\uD83E\uDD26"</string>
-    <string name="ignore_version">Wersiýa gerek däl</string>
     <string name="ignore_cd">Ýükleme gerek däl</string>
     <string name="unignore_cd">Ýükleme gerek</string>
     <string name="refresh_updates">Täzelemeleri ýükle</string>
@@ -15,9 +14,6 @@
     <string name="install_failure">%1$s ýükläp bolmady.</string>
 
     // Settings
-    <string name="settings_sources">Çeşmeler</string>
-    <string name="settings_ui">UI</string>
-    <string name="settings_options">Görnüş</string>
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
     <string name="source_play" translatable="false">Play</string>
     <string name="about">Biz barada</string>
@@ -25,8 +21,6 @@
     <string name="theme_system">Sistema</string>
     <string name="theme_dark">Garaňky</string>
     <string name="theme_light">Ýagty</string>
-    <string name="about_github">Çeşme koduny alyň, kemçilikleri habar beriň, täze aýratynlyklary soraň we terjime goşuň.</string>
-    <string name="copy_to_clipboard">Kopýala</string>
 
     // Notifications
     <string name="notification_channel_name">Täzelemeler</string>

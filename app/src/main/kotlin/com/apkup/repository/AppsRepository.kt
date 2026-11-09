@@ -17,14 +17,14 @@ class AppsRepository(
 	private val prefs: Prefs
 ) {
 
-	suspend fun getApps(): Result<List<AppInstalled>> = try {
+	suspend fun getApps(includeSystem: Boolean = prefs.showSystemApps.get()): Result<List<AppInstalled>> = try {
 		val startedAt = SystemClock.elapsedRealtime()
 		val ignoredPackages = ignoredApps()
 		val showSystemApps = prefs.showSystemApps.get()
 		val apps = context.packageManager
 			.getInstalledPackages(PackageManager.MATCH_ALL or PackageManager.GET_SIGNING_CERTIFICATES)
 			.asSequence()
-			.filter { includeSystemApp(it.applicationInfo?.flags ?: 0, showSystemApps) }
+			.filter { includeSystemApp(it.applicationInfo?.flags ?: 0, includeSystem) }
 			.map { it.toAppInstalled(context, ignoredPackages) }
 			.sortedWith(compareBy<AppInstalled> { it.ignored }.thenBy { it.name })
 			.toList()
@@ -42,7 +42,7 @@ class AppsRepository(
 		Result.failure(exception)
 	}
 
-	private fun ignoredApps() = prefs.ignoredApps.get()
+	private fun ignoredApps() = if (prefs.ignoreAppsFilterActive.get()) prefs.ignoredApps.get() else emptyList()
 }
 
 internal fun Int.isSystemAppFlags(): Boolean =

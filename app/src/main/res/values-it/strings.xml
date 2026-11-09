@@ -1,13 +1,10 @@
 <resources>
 
     <string name="app_disabled">Disattivata</string>
-    <string name="installed_short">Installata:</string>
-    <string name="available_short">Nuova:</string>
     <string name="tab_apps">Apps</string>
     <string name="tab_updates">Updates</string>
     <string name="tab_settings">Opzioni</string>
     <string name="something_went_wrong">"Qualcosa è andato storto\n\uD83E\uDD26"</string>
-    <string name="ignore_version">Ignora versione</string>
     <string name="ignore_cd">Ignora app</string>
     <string name="unignore_cd">Non ignorare</string>
     <string name="refresh_updates">Cerca aggiornamenti</string>
@@ -20,8 +17,6 @@
     <string name="updates_last_checked_days">Ultimo controllo: %1$d g fa</string>
     <string name="install_cd">Installa app</string>
     <string name="install_all">Aggiorna tutto</string>
-    <string name="installed_version">Versione installata</string>
-    <string name="available_version">Versione disponibile</string>
     <string name="update_action">Aggiorna</string>
     <string name="installing_update">Installazione aggiornamento…</string>
     <string name="queued_update">In coda…</string>
@@ -31,9 +26,7 @@
     <string name="updates_empty_message">Nessun aggiornamento in sospeso al momento.</string>
     <string name="updates_error_title">Impossibile caricare gli aggiornamenti</string>
     <string name="updates_error_message">Controlla la connessione e riprova.</string>
-    <string name="updates_source_error">Controllo %1$s non riuscito (%2$s). Risultati da %3$s.</string>
     <string name="updates_partial_empty_title">Controllo incompleto</string>
-    <string name="updates_partial_empty_message">Controllo %1$s non riuscito (%2$s). %3$s non ha aggiornamenti.</string>
     <string name="apps_error_message">Scorri verso il basso per ricaricare le app installate.</string>
     <string name="app_cd">Icona app</string>
     <string name="install_success">%1$s installata.</string>
@@ -100,8 +93,6 @@
     <string name="shizuku_setup_recheck">Verifica stato</string>
     <string name="shizuku_setup_rechecked_feedback">Stato verificato e aggiornato</string>
     <string name="shizuku_setup_close">Chiudi</string>
-    <string name="settings_sources">Fonti</string>
-    <string name="settings_ui">Interfaccia</string>
     <string name="updates_display_mode">Visualizzazione aggiornamenti</string>
     <string name="updates_detail_view">Dettagli</string>
     <string name="updates_compact_view">Compatta</string>
@@ -112,7 +103,6 @@
     <string name="settings_interval_24h">Ogni 24 ore (giornaliero)</string>
     <string name="settings_interval_48h">Ogni 48 ore (ogni 2 giorni)</string>
     <string name="settings_interval_7d">Una volta a settimana (ogni 7 giorni)</string>
-    <string name="settings_options">Opzioni</string>
     <string name="settings_show_system_apps">Mostra app di sistema</string>
     <string name="settings_show_system_apps_desc">Mostra le app di sistema e le include nella ricerca degli aggiornamenti.</string>
     <string name="settings_ignored_versions_title">Versioni saltate</string>
@@ -124,10 +114,7 @@
     <string name="settings_ignored_version_restore">Ripristina</string>
     <string name="action_unignore_version">Ripristina</string>
     <string name="action_clear_ignored_versions">Ripristina tutte le versioni saltate</string>
-    <string name="settings_backup_section">Backup e Ripristino</string>
     <string name="settings_backup_description">Salva impostazioni e mappature repository</string>
-    <string name="settings_backup_export">Esporta configurazione</string>
-    <string name="settings_backup_import">Importa configurazione</string>
     <string name="action_export_backup">Esporta</string>
     <string name="action_import_backup">Importa</string>
     <string name="updates_empty_source_filter_message">Nessun aggiornamento per questa fonte.</string>
@@ -135,10 +122,6 @@
     <string name="backup_import_success">Configurazione ripristinata con successo.</string>
     <string name="backup_import_error">Impossibile elaborare il file di backup.</string>
     <string name="source_play">Google Play Store</string>
-    <string name="settings_source_github_desc">Verifica release GitHub per app open-source e mappate</string>
-    <string name="settings_source_gitlab_desc">Verifica release GitLab per repository mappati</string>
-    <string name="github_token_title">Token API GitHub</string>
-    <string name="github_token_desc">Personal Access Token (PAT) opzionale per aumentare il limite da 60 a 5.000 richieste/ora</string>
     <string name="github_token_dialog_title">GitHub Personal Access Token</string>
     <string name="github_token_dialog_desc">Inserisci un personal access token (sola lettura repo pubblici) per evitare limiti di frequenza GitHub (HTTP 403).</string>
     <string name="github_token_dialog_hint">ghp_xxxxxxxxxxxx</string>
@@ -146,7 +129,6 @@
     <string name="github_token_dialog_save">Salva</string>
     <string name="github_token_status_set">Token configurato</string>
     <string name="github_token_status_not_set">Nessun token impostato (limite: 60 req/h)</string>
-    <string name="action_link_repo">Collega repository</string>
     <string name="repo_menu_linked">Repository collegato</string>
     <string name="repo_menu_link">Collega repository</string>
     <string name="repo_view_on_github">Visualizza su GitHub</string>
@@ -172,22 +154,14 @@
     <string name="theme_system">Sistema</string>
     <string name="theme_dark">Scuro</string>
     <string name="theme_light">Chiaro</string>
-    <string name="about_github_title">GitHub – ApkUp</string>
-    <string name="about_github">Consulta il codice sorgente, segnala bug e proponi modifiche.</string>
     <string name="about_copyright">Copyright &#169; 2026 DurchEins &#8226; GPL-3.0</string>
     <string name="about_tribute">Riprogettato da zero con passione da DurchEins. ♥</string>
     <string name="about_original_project">Basato sul progetto originale di rumboalla (GPL-3.0)</string>
-    <string name="copy_to_clipboard">Copia negli appunti</string>
     <string name="changelog_title">Novità</string>
-    <string name="changelog_menu_item">Novità / Changelog</string>
     <string name="changelog_menu_subtitle">Visualizza le novità e i miglioramenti di questa versione</string>
     <string name="changelog_button_dismiss">Chiudi</string>
 
     <!-- Self-Updater -->
-    <string name="self_update_card_title">Cerca aggiornamenti di ApkUp</string>
-    <string name="self_update_card_subtitle">Trova e installa direttamente le ultime release di ApkUp</string>
-    <string name="self_update_checking">Verifica aggiornamenti ApkUp…</string>
-    <string name="self_update_latest">ApkUp è già all\'ultima versione (%1$s).</string>
     <string name="self_update_dialog_title">Aggiornamento ApkUp disponibile</string>
     <string name="self_update_dialog_version">Nuova versione %1$s</string>
     <string name="self_update_dialog_button_update">Aggiorna ora</string>
@@ -199,11 +173,8 @@
     <!-- Settings Sections -->
     <string name="settings_section_appearance">Aspetto e layout</string>
     <string name="settings_section_sources">Fonti e scansione</string>
-    <string name="settings_section_install_permissions">Installazione e permessi</string>
     <string name="settings_section_app_management">Gestione app</string>
     <string name="settings_preview_title">Anteprima dal vivo</string>
-    <string name="settings_preview_sample_app">App di esempio</string>
-    <string name="settings_preview_update_action">Aggiorna</string>
 
     <string name="permission_unknown_apps_title">Installa app sconosciute</string>
     <string name="permission_unknown_apps_subtitle_granted">Permesso attivo – installazione APK diretta abilitata</string>
@@ -246,5 +217,37 @@
     <!-- Obtainium Import / Export -->
     <string name="action_export_obtainium">Obtainium Export</string>
     <string name="backup_obtainium_import_success">Imported app repository mappings from Obtainium.</string>
-    <string name="backup_obtainium_export_success">Obtainium export created successfully.</string>
+    <string name="backup_obtainium_export_success">Esportazione Obtainium creata con successo.</string>
+
+    <!-- Autonomous Shizuku Background Updates & Wiki Bento -->
+    <string name="settings_auto_install_title">Aggiornamenti autonomi in background</string>
+    <string name="settings_auto_install_desc">Scarica e installa silenziosamente gli aggiornamenti in background tramite Shizuku</string>
+    <string name="settings_auto_install_wifi_only">Solo Wi-Fi</string>
+    <string name="settings_auto_install_charging_only">In carica</string>
+    <string name="about_github_bento_short_subtitle">Codice e versioni</string>
+    <string name="about_wiki_bento_title">Aiuto e Wiki</string>
+    <string name="about_wiki_bento_subtitle">Guide e FAQ</string>
+    <string name="notification_auto_update_complete_title">Aggiornamenti installati automaticamente</string>
+    <string name="notification_auto_update_partial_title">Aggiornamenti in background completati</string>
+    <plurals name="notification_auto_update_complete_desc">
+        <item quantity="one">%1$d app aggiornata silenziosamente tramite Shizuku.</item>
+        <item quantity="many">%1$d app aggiornate silenziosamente tramite Shizuku.</item>
+        <item quantity="other">%1$d app aggiornate silenziosamente tramite Shizuku.</item>
+    </plurals>
+    <string name="notification_auto_update_partial_desc">%1$d aggiornate • %2$d pronte per l\'installazione</string>
+    <string name="notification_auto_update_updated_list">Aggiornate: %1$s</string>
+    <string name="notification_auto_update_manual_ready_list">Pronte da installare: %1$s</string>
+    <string name="apps_recent_filter_hint">Mostra tutti gli aggiornamenti di sistema degli ultimi 14 giorni (anche esterni ad ApkUp).</string>
+    <string name="apps_open_apkup_history">Cronologia ApkUp</string>
+    <string name="update_history_title">Cronologia aggiornamenti</string>
+    <string name="update_history_subtitle">Aggiornamenti installati da ApkUp</string>
+    <string name="update_history_clear">Cancella</string>
+    <string name="update_history_empty_title">Nessun aggiornamento registrato</string>
+    <string name="update_history_empty_desc">Quando ApkUp aggiorna le app manualmente o in automatico tramite Shizuku, appariranno qui con il link alla versione precedente.</string>
+    <string name="update_history_mode_auto_shizuku">Auto · Shizuku</string>
+    <string name="update_history_mode_manual_shizuku">Manuale · Shizuku</string>
+    <string name="update_history_mode_manual">Manuale</string>
+    <string name="update_history_previous_version_action">Scarica versione precedente (%1$s)</string>
+    <string name="update_history_older_versions_action">Sfoglia versioni precedenti</string>
+    <string name="updates_recent_history_pill">Cronologia (%1$d)</string>
 </resources>

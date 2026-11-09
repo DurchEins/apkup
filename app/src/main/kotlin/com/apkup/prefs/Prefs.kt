@@ -4,6 +4,8 @@ import com.apkup.data.repomapping.RepoBinding
 import com.apkup.data.ui.CachedUpdateSnapshot
 import com.apkup.data.ui.IgnoredVersionEntry
 import com.apkup.data.ui.Screen
+import com.apkup.data.ui.UpdateHistoryEntry
+import kotlin.math.abs
 import com.aurora.gplayapi.data.models.AuthData
 import com.kryptoprefs.context.KryptoContext
 import com.kryptoprefs.gson.json
@@ -29,7 +31,10 @@ class Prefs(
 	val hasSeenInstallPermissionPrompt = boolean("hasSeenInstallPermissionPrompt", defValue = false, backed = true)
 	val ignoredVersions = json("ignoredVersions", emptyList<Int>(), true)
 	val ignoredVersionEntries = json("ignoredVersionEntries", emptyList<IgnoredVersionEntry>(), true)
+	val ignoreAppsFilterActive = boolean("ignoreAppsFilterActive", defValue = true, backed = true)
+	val ignoreVersionsFilterActive = boolean("ignoreVersionsFilterActive", defValue = true, backed = true)
 	val updatesDisplayMode = int("updatesDisplayMode", defValue = 0, backed = true)
+	val appsViewMode = string("appsViewMode", defValue = "list", backed = true)
 	val useApkMirror = boolean("useApkMirror", defValue = true, backed = true)
 	val directApkMirrorDownloads = boolean("directApkMirrorDownloads", defValue = true, backed = true)
 	val usePlay = boolean("usePlay", defValue = true, backed = true)
@@ -46,9 +51,71 @@ class Prefs(
 	val playAuthData = json("playAuthData", AuthData("", ""), true)
 	val lastPlayCheck = long("lastPlayCheck", 0L, true)
 	val useShizukuInstaller = boolean("useShizukuInstaller", defValue = false, backed = true)
+	val autoInstallUpdates = boolean("autoInstallUpdates", defValue = false, backed = true)
+	val autoInstallWifiOnly = boolean("autoInstallWifiOnly", defValue = true, backed = true)
+	val autoInstallChargingOnly = boolean("autoInstallChargingOnly", defValue = true, backed = true)
 	val downloadWifiOnly = boolean("downloadWifiOnly", defValue = false, backed = true)
+	val downloadChargingOnly = boolean("downloadChargingOnly", defValue = false, backed = true)
+	val backgroundCheckWifiOnly = boolean("backgroundCheckWifiOnly", defValue = false, backed = true)
 	val lastSeenVersionCode = long("last_seen_version_code", 0L, true)
 	val cachedUpdateSnapshot = json("cachedUpdateSnapshot", CachedUpdateSnapshot(), true)
+	private val updateHistoryEntries = json("updateHistoryEntries", emptyList<UpdateHistoryEntry>(), true)
+	private val _updateHistoryFlow = MutableStateFlow(readUpdateHistorySafe())
+	val updateHistoryFlow: StateFlow<List<UpdateHistoryEntry>> = _updateHistoryFlow.asStateFlow()
+
+	companion object {
+		const val MAX_UPDATE_HISTORY_ENTRIES = 50
+		private const val DEDUP_WINDOW_MILLIS = 5L * 60L * 1_000L
+	}
+
+	@Synchronized
+	fun readUpdateHistorySafe(): List<UpdateHistoryEntry> = runCatching {
+		updateHistoryEntries.get()
+	}.getOrElse {
+		runCatching { updateHistoryEntries.put(emptyList()) }
+		emptyList()
+	}
+
+	@Synchronized
+	fun recordUpdateHistory(
+		entry: UpdateHistoryEntry,
+		maxEntries: Int = MAX_UPDATE_HISTORY_ENTRIES
+	) {
+		if (entry.packageName.isBlank()) return
+		val current = readUpdateHistorySafe().toMutableList()
+		val duplicateIndex = current.indexOfFirst { existing ->
+			existing.packageName == entry.packageName &&
+				existing.newVersionCode == entry.newVersionCode &&
+				existing.newVersion == entry.newVersion &&
+				abs(existing.installedAtMillis - entry.installedAtMillis) <= DEDUP_WINDOW_MILLIS
+		}
+		if (duplicateIndex != -1) {
+			return
+		}
+		current.add(0, entry)
+		val trimmed = current.take(maxEntries.coerceAtLeast(1))
+		runCatching { updateHistoryEntries.put(trimmed) }
+		_updateHistoryFlow.value = trimmed
+	}
+
+	@Synchronized
+	fun replaceUpdateHistory(
+		entries: List<UpdateHistoryEntry>,
+		maxEntries: Int = MAX_UPDATE_HISTORY_ENTRIES
+	) {
+		val sanitized = entries
+			.filter { it.packageName.isNotBlank() }
+			.sortedByDescending { it.installedAtMillis }
+			.take(maxEntries.coerceAtLeast(1))
+		runCatching { updateHistoryEntries.put(sanitized) }
+		_updateHistoryFlow.value = sanitized
+	}
+
+	@Synchronized
+	fun clearUpdateHistory() {
+		runCatching { updateHistoryEntries.put(emptyList()) }
+		_updateHistoryFlow.value = emptyList()
+	}
 
 	fun readCachedSnapshotSafe(): CachedUpdateSnapshot = runCatching {
 		cachedUpdateSnapshot.get()

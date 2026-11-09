@@ -16,6 +16,7 @@ import com.apkup.data.ui.AppUpdate
 import com.apkup.data.ui.IgnoredVersionEntry
 import com.apkup.data.ui.Link
 import com.apkup.data.ui.UpdateCheckResult
+import com.apkup.data.ui.UpdateInstallMode
 import com.apkup.data.ui.UpdatesUiState
 import com.apkup.data.ui.mergeRetainedUpdatesDuringCheck
 import com.apkup.data.ui.removeId
@@ -38,6 +39,7 @@ import com.apkup.util.SessionInstaller
 import com.apkup.util.SnackBar
 import com.apkup.util.Stringer
 import com.apkup.util.UpdatesNotification
+import com.apkup.util.buildUpdateHistoryEntry
 import com.apkup.util.launchWithMutex
 import com.aurora.gplayapi.data.models.PlayFile
 import kotlinx.coroutines.CancellationException
@@ -915,9 +917,28 @@ class UpdatesViewModel(
 
 	override fun sendInstallSnack(log: AppInstallStatus) {
 		if (log.snack) {
-			state.value.updates().find {
-				log.id == it.id || it.alternativeUpdates.any { alt -> alt.id == log.id }
-			}?.let { app ->
+			val matchedUpdate = state.value.updates().firstNotNullOfOrNull { candidate ->
+				when {
+					candidate.id == log.id -> candidate
+					else -> candidate.alternativeUpdates.firstOrNull { alt -> alt.id == log.id }
+				}
+			}
+			matchedUpdate?.let { app ->
+				if (log.success) {
+					val mode = if (installer.isShizukuReady()) {
+						UpdateInstallMode.MANUAL_SHIZUKU
+					} else {
+						UpdateInstallMode.MANUAL
+					}
+					val binding = prefs.readCustomRepoBindingsSafe()[app.packageName]
+					prefs.recordUpdateHistory(
+						buildUpdateHistoryEntry(
+							update = app,
+							installMode = mode,
+							repoBinding = binding
+						)
+					)
+				}
 				val message = if (log.success) R.string.install_success else R.string.install_failure
 				snackBar.snackBar(viewModelScope, TextSnack(stringer.get(message, app.name)))
 			}
@@ -925,8 +946,10 @@ class UpdatesViewModel(
 	}
 
 	private fun List<AppUpdate>.filterIgnoredVersions(ignoredVersions: List<Int>): List<AppUpdate> {
-		val ignoredSet = ignoredVersions.toSet()
-		val ignoredPackages = prefs.ignoredApps.get().toSet()
+		val isVersionsFilterActive = prefs.ignoreVersionsFilterActive.get()
+		val isAppsFilterActive = prefs.ignoreAppsFilterActive.get()
+		val ignoredSet = if (isVersionsFilterActive) ignoredVersions.toSet() else emptySet()
+		val ignoredPackages = if (isAppsFilterActive) prefs.ignoredApps.get().toSet() else emptySet()
 		return filter { update ->
 			update.id !in ignoredSet && update.packageName !in ignoredPackages
 		}

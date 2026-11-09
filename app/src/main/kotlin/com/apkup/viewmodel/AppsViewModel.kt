@@ -13,6 +13,7 @@ import com.apkup.util.launchWithMutex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -23,14 +24,33 @@ class AppsViewModel(
 	private val badger: Badger
 ) : ViewModel() {
 
+	enum class ScopeTab {
+		USER,
+		SYSTEM
+	}
+
 	private val mutex = Mutex()
 	private val state = MutableStateFlow<AppsUiState>(buildLoadingState())
 	private val searchQueryState = MutableStateFlow("")
 	private val quickFilterState = MutableStateFlow(AppsQuickFilter.ALL)
+	private val scopeTabState = MutableStateFlow(ScopeTab.USER)
+	private val viewModeState = MutableStateFlow(prefs.appsViewMode.get().ifBlank { "list" })
+
+	val showSystemAppsFlow: StateFlow<Boolean> = prefs.showSystemAppsFlow
+
+	init {
+		viewModelScope.launch {
+			prefs.showSystemAppsFlow.collect {
+				refresh(false)
+			}
+		}
+	}
 
 	fun state(): StateFlow<AppsUiState> = state
 	fun searchQuery(): StateFlow<String> = searchQueryState
 	fun quickFilter(): StateFlow<AppsQuickFilter> = quickFilterState
+	fun scopeTab(): StateFlow<ScopeTab> = scopeTabState
+	fun viewMode(): StateFlow<String> = viewModeState
 
 	fun setSearchQuery(query: String) {
 		searchQueryState.value = query
@@ -38,6 +58,15 @@ class AppsViewModel(
 
 	fun setQuickFilter(filter: AppsQuickFilter) {
 		quickFilterState.value = filter
+	}
+
+	fun setScopeTab(tab: ScopeTab) {
+		scopeTabState.value = tab
+	}
+
+	fun setViewMode(mode: String) {
+		viewModeState.value = mode
+		prefs.appsViewMode.put(mode)
 	}
 
 	fun refresh(load: Boolean = true) = viewModelScope.launchWithMutex(mutex, Dispatchers.IO) {
@@ -54,7 +83,7 @@ class AppsViewModel(
 		val result = repository.getApps()
 		result.onSuccess { apps ->
 			state.value = AppsUiState.Success(apps)
-			badger.changeAppsBadge(apps.size.toString())
+			badger.changeAppsBadge("")
 		}.onFailure { ex ->
 			state.value = AppsUiState.Error
 			badger.changeAppsBadge("!")

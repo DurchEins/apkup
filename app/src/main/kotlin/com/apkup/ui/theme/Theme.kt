@@ -1,6 +1,8 @@
 package com.apkup.ui.theme
 
 import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.os.Build
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
@@ -23,70 +25,70 @@ import androidx.core.view.WindowCompat
 import com.apkup.util.isDark
 
 private val LightColors = lightColorScheme(
-	primary = Color(0xFF00639B),
+	primary = Color(0xFF181A1F),
 	onPrimary = Color.White,
-	primaryContainer = Color(0xFFCCE5FF),
-	onPrimaryContainer = Color(0xFF001D32),
-	secondary = Color(0xFF006877),
+	primaryContainer = Color(0xFFE4E7EB),
+	onPrimaryContainer = Color(0xFF0F1115),
+	secondary = Color(0xFF272A30),
 	onSecondary = Color.White,
-	secondaryContainer = Color(0xFFA5EEFF),
-	onSecondaryContainer = Color(0xFF001F25),
-	tertiary = Color(0xFF6750A4),
+	secondaryContainer = Color(0xFFEAECEF),
+	onSecondaryContainer = Color(0xFF14161A),
+	tertiary = Color(0xFF373B44),
 	onTertiary = Color.White,
-	tertiaryContainer = Color(0xFFE7DEFF),
-	onTertiaryContainer = Color(0xFF210F47),
+	tertiaryContainer = Color(0xFFEDEFF2),
+	onTertiaryContainer = Color(0xFF1F2227),
 	error = Color(0xFFBA1A1A),
 	errorContainer = Color(0xFFFFDAD6),
 	onErrorContainer = Color(0xFF410002),
-	background = Color(0xFFF8F9FE),
-	surface = Color(0xFFF8F9FE),
-	surfaceVariant = Color(0xFFDEE3EB),
-	onSurface = Color(0xFF191C1E),
-	onSurfaceVariant = Color(0xFF41474D),
+	background = Color(0xFFF8F9FA),
+	surface = Color(0xFFF8F9FA),
+	surfaceVariant = Color(0xFFE9ECEF),
+	onSurface = Color(0xFF181A1F),
+	onSurfaceVariant = Color(0xFF595F69),
 	surfaceContainerLowest = Color(0xFFFFFFFF),
-	surfaceContainerLow = Color(0xFFF2F4F9),
-	surfaceContainer = Color(0xFFECF0F6),
-	surfaceContainerHigh = Color(0xFFE6EAEE),
-	surfaceContainerHighest = Color(0xFFDFE4E8),
-	outline = Color(0xFF72787E),
-	outlineVariant = Color(0xFFC1C7CE)
+	surfaceContainerLow = Color(0xFFFFFFFF),
+	surfaceContainer = Color(0xFFF1F3F5),
+	surfaceContainerHigh = Color(0xFFE9ECEF),
+	surfaceContainerHighest = Color(0xFFDEE2E6),
+	outline = Color(0xFF8C939E),
+	outlineVariant = Color(0xFFE0E2E6)
 )
 
 private val DarkColors = darkColorScheme(
-	primary = Color(0xFF96CCFF),
-	onPrimary = Color(0xFF003354),
-	primaryContainer = Color(0xFF004B76),
-	onPrimaryContainer = Color(0xFFCCE5FF),
-	secondary = Color(0xFF84D2E6),
-	onSecondary = Color(0xFF00363F),
-	secondaryContainer = Color(0xFF004E5B),
-	onSecondaryContainer = Color(0xFFA5EEFF),
-	tertiary = Color(0xFFCFBCFF),
-	onTertiary = Color(0xFF371E73),
-	tertiaryContainer = Color(0xFF4F378B),
-	onTertiaryContainer = Color(0xFFE7DEFF),
+	primary = Color(0xFFF59E0B),
+	onPrimary = Color(0xFF451A03),
+	primaryContainer = Color(0xFF4D2800),
+	onPrimaryContainer = Color(0xFFFDE68A),
+	secondary = Color(0xFFD97706),
+	onSecondary = Color(0xFF451A03),
+	secondaryContainer = Color(0xFF3B2104),
+	onSecondaryContainer = Color(0xFFFDE68A),
+	tertiary = Color(0xFFFBBF24),
+	onTertiary = Color(0xFF451A03),
+	tertiaryContainer = Color(0xFF4A3402),
+	onTertiaryContainer = Color(0xFFFEF3C7),
 	error = Color(0xFFFFB4AB),
 	errorContainer = Color(0xFF93000A),
 	onErrorContainer = Color(0xFFFFDAD6),
-	background = Color(0xFF0E1116),
-	surface = Color(0xFF0E1116),
-	surfaceVariant = Color(0xFF41474D),
-	onSurface = Color(0xFFE1E2E8),
-	onSurfaceVariant = Color(0xFFC1C7CE),
-	surfaceContainerLowest = Color(0xFF080B0F),
-	surfaceContainerLow = Color(0xFF14171E),
-	surfaceContainer = Color(0xFF181C24),
-	surfaceContainerHigh = Color(0xFF222731),
-	surfaceContainerHighest = Color(0xFF2D323C),
-	outline = Color(0xFF8B9198),
-	outlineVariant = Color(0xFF41474D)
+	background = Color(0xFF121316),
+	surface = Color(0xFF121316),
+	surfaceVariant = Color(0xFF282B33),
+	onSurface = Color(0xFFF3F4F6),
+	onSurfaceVariant = Color(0xFF9CA3AF),
+	surfaceContainerLowest = Color(0xFF0C0D0F),
+	surfaceContainerLow = Color(0xFF181A1F),
+	surfaceContainer = Color(0xFF20232A),
+	surfaceContainerHigh = Color(0xFF2A2E37),
+	surfaceContainerHighest = Color(0xFF353A45),
+	outline = Color(0xFF6B7280),
+	outlineVariant = Color(0xFF2A2E37)
 )
 
 private val AppShapes = Shapes(
 	extraSmall = RoundedCornerShape(8.dp),
 	small = RoundedCornerShape(12.dp),
 	medium = RoundedCornerShape(18.dp),
-	large = RoundedCornerShape(24.dp),
+	large = RoundedCornerShape(22.dp),
 	extraLarge = RoundedCornerShape(28.dp)
 )
 
@@ -102,11 +104,10 @@ private val AppTypography = DefaultTypography.copy(
 	labelMedium = DefaultTypography.labelMedium.copy(fontWeight = FontWeight.Medium)
 )
 
-
 @Composable
 fun AppTheme(
 	darkTheme: Boolean,
-	dynamicColor: Boolean = true,
+	dynamicColor: Boolean = false,
 	content: @Composable () -> Unit
 ) {
 	val colorScheme = when {
@@ -121,7 +122,7 @@ fun AppTheme(
 	val view = LocalView.current
 	if (!view.isInEditMode) {
 		SideEffect {
-			val activity = view.context as Activity
+			val activity = view.context.findActivity() ?: return@SideEffect
 			val insetsController = WindowCompat.getInsetsController(activity.window, view)
 			insetsController.isAppearanceLightStatusBars = !darkTheme
 			insetsController.isAppearanceLightNavigationBars = !darkTheme
@@ -142,4 +143,10 @@ fun isDarkTheme(theme: Int): Boolean {
 	if (theme == 1) return true
 	if (theme == 2) return false
 	return isDark()
+}
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+	is Activity -> this
+	is ContextWrapper -> baseContext.findActivity()
+	else -> null
 }

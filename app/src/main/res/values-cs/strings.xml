@@ -4,7 +4,6 @@
     <string name="tab_updates">Aktualizace</string>
     <string name="tab_settings">Nastavení</string>
     <string name="something_went_wrong">"Něco se pokazilo\n\uD83E\uDD26"</string>
-    <string name="ignore_version">Ignorovat verzi</string>
     <string name="ignore_cd">Ignorovat aplikaci</string>
     <string name="unignore_cd">Zrušit ignorování aplikace</string>
     <string name="refresh_updates">Vyhledat aktualizace</string>
@@ -15,9 +14,6 @@
     <string name="install_failure">%1$s se nepovedlo nainstalovat.</string>
 
     // Settings
-    <string name="settings_sources">Zdroje</string>
-    <string name="settings_ui">UI</string>
-    <string name="settings_options">Nastavení</string>
 
 
     <string name="about">O nás</string>
@@ -25,8 +21,6 @@
     <string name="theme_system">Systémový</string>
     <string name="theme_dark">Tmavý</string>
     <string name="theme_light">Světlý</string>
-    <string name="about_github">Získejte zdrojový kód, nahlaste chyby, požádejte o nové funkce a přidejte překlady.</string>
-    <string name="copy_to_clipboard">Kopírovat do schránky</string>
 
     // Notifications
     <string name="notification_channel_name">Aktualizace</string>

@@ -33,7 +33,12 @@ fun CoroutineScope.launchWithMutex(
 
 fun Boolean?.orFalse() = this ?: false
 
-fun PackageInfo.name(context: Context) = applicationInfo?.loadLabel(context.packageManager)?.toString() ?: ""
+fun PackageInfo.name(context: Context): String =
+	applicationInfo?.loadLabel(context.packageManager)?.toString()
+		?.lineSequence()
+		?.firstOrNull { it.isNotBlank() }
+		?.trim()
+		.orEmpty()
 
 fun Context.getAppIcon(packageName: String) = runCatching {
 	packageManager.getApplicationIcon(packageName)
@@ -45,6 +50,10 @@ fun Context.getAppIcon(packageName: String) = runCatching {
 fun Context.getAppName(packageName: String): String = runCatching {
 	packageManager.getPackageInfo(packageName, 0).name(this)
 }.getOrDefault("")
+	.lineSequence()
+	.firstOrNull { it.isNotBlank() }
+	?.trim()
+	.orEmpty()
 
 fun ByteArray.toSha1(): String = MessageDigest
 	.getInstance("SHA-1")
@@ -103,4 +112,39 @@ fun isDark() = Resources.getSystem().configuration.uiMode and Configuration.UI_M
 
 fun OkHttpClient.Builder.addUserAgentInterceptor(agent: String) = addNetworkInterceptor {
 	it.proceed(it.request().newBuilder().header("User-Agent", agent).build())
+}
+
+fun Context.openAppInPlayStore(packageName: String) {
+	runCatching {
+		val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("market://details?id=$packageName")).apply {
+			addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+		}
+		startActivity(intent)
+	}.onFailure {
+		runCatching {
+			val webIntent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://play.google.com/store/apps/details?id=$packageName")).apply {
+				addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+			}
+			startActivity(webIntent)
+		}
+	}
+}
+
+fun Context.openAppSystemSettings(packageName: String) {
+	runCatching {
+		val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+			data = android.net.Uri.fromParts("package", packageName, null)
+			addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+		}
+		startActivity(intent)
+	}
+}
+
+fun Context.openUrl(url: String) {
+	runCatching {
+		val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)).apply {
+			addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+		}
+		startActivity(intent)
+	}
 }

@@ -18,3 +18,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "apkupdater"
 include(":app")
+
+

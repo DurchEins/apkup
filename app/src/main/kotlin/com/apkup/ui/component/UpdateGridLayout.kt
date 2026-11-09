@@ -1,4 +1,4 @@
-package com.apkup.ui.component
+﻿package com.apkup.ui.component
 
 import com.apkup.data.ui.AppUpdate
 import com.apkup.data.ui.Source
@@ -6,11 +6,11 @@ import kotlin.math.floor
 
 internal const val PHONE_PORTRAIT_MIN_WIDTH_DP = 360f
 internal const val TABLET_MIN_WIDTH_DP = 600f
-internal const val NORMAL_PHONE_COLUMNS = 2
-internal const val COMPACT_PHONE_COLUMNS = 4
+internal const val NORMAL_PHONE_COLUMNS = 1
+internal const val COMPACT_PHONE_COLUMNS = 1
 
 internal object NormalUpdateCardLayout {
-	const val gridHorizontalPaddingDp = 8f
+	const val gridHorizontalPaddingDp = 16f
 	const val gridVerticalPaddingDp = 6f
 	const val gridTopPaddingDp = 10f
 	const val gridBottomPaddingDp = 140f
@@ -19,7 +19,7 @@ internal object NormalUpdateCardLayout {
 	const val cardPaddingDp = 12f
 	const val cardPaddingHorizontalDp = 12f
 	const val cardPaddingVerticalDp = 12f
-	const val minCardHeightDp = 168f
+	const val minCardHeightDp = 76f
 	const val sectionSpacingDp = 5f
 	const val iconSizeDp = 44f
 	const val appNameLineHeightSp = 16f
@@ -31,7 +31,7 @@ internal object NormalUpdateCardLayout {
 }
 
 internal object CompactUpdateCardLayout {
-	const val gridHorizontalPaddingDp = 10f
+	const val gridHorizontalPaddingDp = 16f
 	const val gridVerticalPaddingDp = 8f
 	const val gridTopPaddingDp = 10f
 	const val gridBottomPaddingDp = 140f
@@ -49,7 +49,7 @@ internal object CompactUpdateCardLayout {
 	const val metaLineHeightDp = 12f
 	const val sourceIconSizeDp = 10f
 	const val progressHeightDp = 3f
-	const val minCardHeightDp = 108f
+	const val minCardHeightDp = 58f
 
 	/**
 	 * Natural single-card height in dp without clipping or rigid height constraints.
@@ -130,8 +130,6 @@ internal fun updateGridColumnCount(
 
 	return if (compact) {
 		when {
-			availableWidthDp < PHONE_PORTRAIT_MIN_WIDTH_DP ->
-				fittedColumns.coerceIn(1, COMPACT_PHONE_COLUMNS - 1)
 			availableWidthDp < TABLET_MIN_WIDTH_DP ->
 				COMPACT_PHONE_COLUMNS
 			else ->
@@ -139,8 +137,6 @@ internal fun updateGridColumnCount(
 		}
 	} else {
 		when {
-			availableWidthDp < PHONE_PORTRAIT_MIN_WIDTH_DP ->
-				fittedColumns.coerceIn(1, NORMAL_PHONE_COLUMNS)
 			availableWidthDp < TABLET_MIN_WIDTH_DP ->
 				NORMAL_PHONE_COLUMNS
 			else ->
@@ -178,10 +174,10 @@ internal data class UpdateCardContent(
 }
 
 internal fun AppUpdate.toUpdateCardContent(resolvedAppName: String) = UpdateCardContent(
-	appName = resolvedAppName.ifBlank { packageName },
-	packageName = packageName,
-	installedVersion = oldVersion,
-	availableVersion = version,
+	appName = resolvedAppName.lineSequence().firstOrNull { it.isNotBlank() }?.trim()?.ifBlank { packageName } ?: packageName,
+	packageName = packageName.trim(),
+	installedVersion = oldVersion.trim(),
+	availableVersion = version.trim(),
 	source = source,
 	isInstalling = isInstalling,
 	additionalSourcesCount = (alternativeUpdates.size - 1).coerceAtLeast(0)

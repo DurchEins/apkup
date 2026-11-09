@@ -13,16 +13,11 @@
     <string name="install_failure">%1$s niet geïnstalleerd.</string>
 
     // Settings
-    <string name="settings_sources">Bronnen</string>
-    <string name="settings_ui">UI</string>
-    <string name="settings_options">Opties</string>
     <string name="about">Over</string>
     <string name="theme">Thema</string>
     <string name="theme_system">Systeem</string>
     <string name="theme_dark">Donker</string>
     <string name="theme_light">Licht</string>
-    <string name="about_github">Verkrijg de broncode, rapporteer bugs, vraag nieuwe functies aan en voeg vertalingen toe.</string>
-    <string name="copy_to_clipboard">Kopieer naar klembord</string>
 
     // Notifications
     <string name="notification_channel_name">Updates</string>

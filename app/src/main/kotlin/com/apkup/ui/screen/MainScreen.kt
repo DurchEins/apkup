@@ -120,6 +120,7 @@ fun MainScreen(
 	val context = LocalContext.current
 	val prefs = koinInject<Prefs>()
 	val sessionInstaller = koinInject<SessionInstaller>()
+	val badger = koinInject<Badger>()
 
 	// ViewModels
 	val appsViewModel: AppsViewModel = koinViewModel()
@@ -142,6 +143,16 @@ fun MainScreen(
 				androidx.lifecycle.Lifecycle.Event.ON_START,
 				androidx.lifecycle.Lifecycle.Event.ON_RESUME -> {
 					updatesViewModel.setAppInForeground(true)
+					runCatching {
+						val powerManager = context.getSystemService(android.content.Context.POWER_SERVICE) as? android.os.PowerManager
+						val isBatteryIgnoring = powerManager?.isIgnoringBatteryOptimizations(context.packageName) == true
+						val areNotificationsEnabled = androidx.core.app.NotificationManagerCompat.from(context).areNotificationsEnabled()
+						val hasInstallPermission = context.packageManager.canRequestPackageInstalls()
+						val hasWarning = !isBatteryIgnoring || !areNotificationsEnabled || !hasInstallPermission
+						if (hasWarning) {
+							badger.changeSettingsBadge("!")
+						}
+					}
 				}
 				androidx.lifecycle.Lifecycle.Event.ON_STOP -> {
 					updatesViewModel.setAppInForeground(false)
@@ -430,7 +441,7 @@ fun FloatingCapsuleDock(
 				CapsuleDockItem(
 					screen = screen,
 					selected = selected,
-					badge = badges[screen.route].orEmpty(),
+					badge = if (screen == Screen.Apps) "" else badges[screen.route].orEmpty(),
 					isLoadingUpdates = isLiveChecking,
 					onClick = { mainViewModel.navigateTo(navController, screen.route) },
 					modifier = Modifier
@@ -510,14 +521,18 @@ fun CapsuleDockItem(
 			)
 			BadgedBox(
 				badge = {
-					if (badgeCount > 0) {
+					if (badge.isNotEmpty()) {
+						val isWarning = badge == "!"
 						Badge(
-							containerColor = MaterialTheme.colorScheme.error,
-							contentColor = MaterialTheme.colorScheme.onError
+							containerColor = if (isWarning) Color(0xFFE65100) else MaterialTheme.colorScheme.error,
+							contentColor = Color.White
 						) {
 							Text(
-								text = formatCapsuleBadge(badgeCount),
-								style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold)
+								text = if (isWarning) "!" else formatCapsuleBadge(badge),
+								style = MaterialTheme.typography.labelSmall.copy(
+									fontSize = if (isWarning) 11.sp else 10.sp,
+									fontWeight = FontWeight.Bold
+								)
 							)
 						}
 					} else if (isLoadingUpdates) {

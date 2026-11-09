@@ -32,10 +32,12 @@
 -keep class moe.shizuku.** { *; }
 -keep interface moe.shizuku.** { *; }
 
-# Strip verbose logging in release builds
+
+# Strip verbose and debug logging in release builds
 -assumenosideeffects class android.util.Log {
     public static boolean isLoggable(java.lang.String, int);
     public static int v(...);
+    public static int d(...);
 }
 
 # Google Play API (Aurora gplayapi) & Protobuf
@@ -45,23 +47,6 @@
 
 -keep class com.google.protobuf.** { *; }
 -dontwarn com.google.protobuf.**
-
-# Kotlinx Serialization
--keepattributes *Annotation*, InnerClasses
--dontnote kotlinx.serialization.SerializationKt
--keepclassmembers class * {
-    @kotlinx.serialization.Serializable <fields>;
-}
--keepclassmembers class * {
-    *** Companion;
-}
--keepclassmembers class * {
-    kotlinx.serialization.KSerializer serializer(...);
-}
--keepclassmembers class * extends kotlinx.serialization.internal.GeneratedSerializer {
-    <init>(...);
-}
--keep class kotlinx.serialization.** { *; }
 
 # SessionInstaller & InstallPart
 -keep class com.apkup.util.SessionInstaller** { *; }

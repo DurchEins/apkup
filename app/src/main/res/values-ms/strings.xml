@@ -5,7 +5,6 @@
     <string name="tab_updates">Kemas kini</string>
     <string name="tab_settings">Tetapan</string>
     <string name="something_went_wrong">"Sesuatu telah berlaku\n\uD83E\uDD26"</string>
-    <string name="ignore_version">Abaikan Versi</string>
     <string name="ignore_cd">Abaikan App</string>
     <string name="unignore_cd">Abaikan App</string>
     <string name="refresh_updates">Cari Kemas Kini</string>
@@ -15,9 +14,6 @@
     <string name="install_failure">%1$s gagal dipasang.</string>
 
     // Settings
-    <string name="settings_sources">Sumber</string>
-    <string name="settings_ui">UI</string>
-    <string name="settings_options">Pilihan</string>
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
     <string name="source_play" translatable="false">Play</string>
     <string name="about">Tentang</string>
@@ -25,8 +21,6 @@
     <string name="theme_system">Sistem</string>
     <string name="theme_dark">Gelap</string>
     <string name="theme_light">Cahaya</string>
-    <string name="about_github">Dapatkan code sumber, laporkan pepijat, minta ciri baharu dan tambah terjemahan.</string>
-    <string name="copy_to_clipboard">Salin ke papan keratan</string>
 
     // Notifications
     <string name="notification_channel_name">Updates</string>

@@ -5,7 +5,6 @@
     <string name="tab_updates">업데이트</string>
     <string name="tab_settings">설정</string>
     <string name="something_went_wrong">"문제가 발생했습니다.\n\uD83E\uDD26"</string>
-    <string name="ignore_version">버전 무시</string>
     <string name="ignore_cd">앱 무시</string>
     <string name="unignore_cd">앱 무시 해제</string>
     <string name="refresh_updates">업데이트 찾기</string>
@@ -15,17 +14,12 @@
     <string name="install_failure">%1$s 설치 실패됨.</string>
 
     // Settings
-    <string name="settings_sources">출처</string>
-    <string name="settings_ui">UI</string>
-    <string name="settings_options">옵션</string>
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
     <string name="about">도움말</string>
     <string name="theme">테마</string>
     <string name="theme_system">시스템</string>
     <string name="theme_dark">어둡게</string>
     <string name="theme_light">밝게</string>
-    <string name="about_github">소스 코드, 버그 보고, 새로운 기능 요청, 번역 추가 해주세요.</string>
-    <string name="copy_to_clipboard">클립보드에 복사</string>
 
     // Notifications
     <string name="notification_channel_name">업데이트</string>

@@ -319,6 +319,21 @@ class Downloader(
 
     private fun downloadRequest(url: String, tag: String? = null): Request {
         val builder = Request.Builder().url(url)
+        val cookies = runCatching {
+            android.webkit.CookieManager.getInstance().getCookie(url)
+        }.getOrNull()
+        if (!cookies.isNullOrBlank()) {
+            builder.header("Cookie", cookies)
+        }
+        builder.header(
+            "User-Agent",
+            "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36"
+        )
+        builder.header("Accept", "*/*")
+        builder.header("Accept-Language", "en-US,en;q=0.9,de;q=0.8")
+        if (url.contains("apkmirror.com", ignoreCase = true)) {
+            builder.header("Referer", "https://www.apkmirror.com/")
+        }
         if (tag != null) {
             builder.tag(tag)
         }

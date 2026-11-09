@@ -5,11 +5,11 @@
 </p>
 
 <p align="center">
-  <b>A modern open-source Android application for discovering, managing, and installing app updates across multiple sources (Google Play, APKMirror, IzzyOnDroid / F-Droid Index V2, GitHub & GitLab) featuring Material 3 Expressive design, Shizuku silent installations, and a clean Google Pixel aesthetic.</b>
+  <b>A modern open-source Android application for discovering, managing, and autonomously installing app updates across multiple sources (Google Play, APKMirror, IzzyOnDroid / F-Droid Index V2, GitHub & GitLab) featuring Material 3 Expressive design, unattended Shizuku background updates, and a clean Google Pixel aesthetic.</b>
 </p>
 
 <p align="center">
-  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.40.1--Beta%20(153)-A855F7?style=flat-square" alt="Version" /></a>
+  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.41.18--Beta%20(173)-38BDF8?style=flat-square" alt="Version" /></a>
   <img src="https://img.shields.io/badge/Android-10.0%2B%20(API%2029%2B)-3DDC84?style=flat-square&logo=android" alt="Android" />
   <img src="https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square" alt="License: GPL v3" />
   <img src="https://img.shields.io/badge/Shizuku-Supported-00897B?style=flat-square" alt="Shizuku" />
@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <a href="#-features">Features</a> • <a href="#-tech-stack">Tech Stack</a> • <a href="#-requirements">Requirements</a> • <a href="#-screenshots">Screenshots</a> • <a href="#-troubleshooting--wiki">Wiki</a> • <a href="#-license--credits">License</a>
+  <a href="#-features">Features</a> • <a href="#-requirements">Requirements</a> • <a href="#-tech-stack">Tech Stack</a> • <a href="#-screenshots">Screenshots</a> • <a href="#-troubleshooting--wiki">Wiki</a> • <a href="#-license--credits">License</a>
 </p>
 
 ---
@@ -37,10 +37,11 @@
   * Monthly-grouped in-app changelog with semantic release tags, expandable month accordions, and visual highlight banners.
   * Multiple display modes for the update list (*Compact Grid Tiles* vs. *Detailed List*).
   * Auto-resizing typography ensuring multi-digit version numbers always display cleanly on a single line.
-* **⚡ Uninterrupted Background Downloads, 24h Cache & Shizuku:**
-  * **Foreground Download Service:** Downloads and batch updates (*Update All*) continue reliably in the background and across screen locks, complete with live progress notifications and instant cancellation.
+* **⚡ Uninterrupted Background Downloads, 24h Cache & Autonomous Shizuku Installs:**
+  * **Autonomous Background Updates:** Optional zero-touch background pipeline powered by Shizuku and Android `WorkManager` that automatically downloads and silently installs discovered updates with configurable **Wi-Fi only** and **While charging** guards.
+  * **Consolidated Summary Notifications & Update History:** Clean post-update summary notification plus a persistent in-app **Update History** sheet (accessible anytime from the *Updates* top bar or the *Recently Updated* filter in *Apps*) recording version transitions (`old → new`), update source, install mode (*Auto · Shizuku* vs. *Manual*), and a one-tap **Previous Version** link to simplify rollbacks if an upstream release introduces issues.
+  * **Foreground Download Service:** Interactive downloads and batch updates (*Update All*) continue reliably in the background and across screen locks, complete with live progress notifications and instant cancellation.
   * **24-Hour Smart Cache & Instant Resume:** Downloaded APKs are preserved locally for up to 24 hours. Dismissed installations can be resumed instantly with "Install" without re-downloading.
-  * **Silent Shizuku Installs:** Unattended background updates without repeated permission dialogs when connected to Shizuku.
   * **Reliable Native Fallback:** Seamless fallback to Android's `PackageInstaller` session API with Android 14+ Background Activity Launch (BAL) notification support and robust session abandonment.
 * **📶 Network Data Saver:**
   * **Wi-Fi Only Mode:** Restrict downloads to unmetered Wi-Fi connections with an active mobile data safety prompt.
@@ -53,11 +54,18 @@
   * Periodic update checks powered by Android `WorkManager` (configurable: 6h, 12h, 24h, 48h, or 7 days).
   * Informative system notifications alerting you when new updates are ready to install.
 * **📖 Troubleshooting & Help Wiki:**
-  * One-tap contextual help buttons on repository errors that link directly to comprehensive step-by-step guides in the [ApkUp GitHub Wiki](https://github.com/DurchEins/apkup/wiki).
+  * One-tap contextual help buttons on repository errors plus a dedicated **Help & Wiki** Bento shortcut in Settings that link directly to step-by-step guides in the [ApkUp GitHub Wiki](https://github.com/DurchEins/apkup/wiki).
 * **💾 Configuration Backup & Restore:**
-  * Export and import your entire setup, custom repository bindings, ignored apps, and skipped versions via a single JSON file.
+  * Export and import your entire setup, autonomous Shizuku rules, custom repository bindings, ignored apps, and skipped versions via a single JSON file (plus full Obtainium JSON import/export).
 * **🔒 Privacy First:**
   * No ads. No telemetry. No user tracking. Pure open source.
+
+---
+
+## 📥 Requirements
+
+* **Minimum:** Android 10.0 (API Level 29) or higher.
+* **Recommended:** Android 12+ for full Dynamic Color theming and [Shizuku](https://shizuku.rikka.app/) for silent background installations.
 
 ---
 
@@ -71,13 +79,6 @@
 * **Privileged Install:** Shizuku API 13.x
 * **Background Tasks:** AndroidX WorkManager & Foreground Service (`dataSync`)
 * **SDK Compatibility:** Min SDK 29 (Android 10.0) | Target SDK 37 (Android 17)
-
----
-
-## 📥 Requirements
-
-* **Minimum:** Android 10.0 (API Level 29) or higher.
-* **Recommended:** Android 12+ for full Dynamic Color theming and [Shizuku](https://shizuku.rikka.app/) for silent background installations.
 
 ---
 

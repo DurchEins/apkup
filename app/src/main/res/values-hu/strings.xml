@@ -5,7 +5,6 @@
     <string name="tab_updates">Frissítések</string>
     <string name="tab_settings">Beállítások</string>
     <string name="something_went_wrong">"Valami félrement\n\uD83E\uDD26"</string>
-    <string name="ignore_version">Verziót mellőz</string>
     <string name="ignore_cd">Nem frissít</string>
     <string name="unignore_cd">App figyelés</string>
     <string name="refresh_updates">Keressen frissítéseket</string>
@@ -15,9 +14,6 @@
     <string name="install_failure">%1$s nem sikerült telepíteni.</string>
 
     // Settings
-    <string name="settings_sources">Források</string>
-    <string name="settings_ui">Felület</string>
-    <string name="settings_options">Lehetőségek</string>
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
     <string name="source_play" translatable="false">Play</string>
     <string name="about">Rólunk</string>
@@ -25,8 +21,6 @@
     <string name="theme_system">Rendszer</string>
     <string name="theme_dark">Sötét</string>
     <string name="theme_light">Világos</string>
-    <string name="about_github">Szerezze be a forráskódot, jelezze a hibákat, kérjen új funkciókat és adjon hozzá fordításokat.</string>
-    <string name="copy_to_clipboard">Másolja a vágólapra</string>
 
     // Notifications
     <string name="notification_channel_name">Frissítések</string>

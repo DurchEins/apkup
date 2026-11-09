@@ -12,9 +12,6 @@
     <string name="app_cd">Iconița Aplicației</string>
 
     // Settings
-    <string name="settings_sources">Surse</string>
-    <string name="settings_ui">UI</string>
-    <string name="settings_options">Opțiuni</string>
     <string name="source_apkmirror" translatable="false">ApkMirror</string>
     <string name="about">Despre</string>
 

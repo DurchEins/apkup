@@ -52,7 +52,7 @@ class UpdatesRepository(
             SystemClock.elapsedRealtime() - appLoadStartedAt
         } else null
 
-        val appsToCheck = installedApps.filter { !it.ignored }
+        val appsToCheck = installedApps.filter { !it.ignored && (prefs.showSystemApps.get() || !it.isSystemApp) }
         val sourceChecks = mutableListOf<Pair<String, suspend (suspend (List<String>) -> Unit) -> SourceUpdateResult<AppUpdate>>>()
         if (prefs.useApkMirror.get()) sourceChecks.add("APKMirror" to { onBatchSuccess -> apkMirrorRepository.updates(appsToCheck, onBatchSuccess).first() })
         if (prefs.usePlay.get()) sourceChecks.add("Google Play" to { onBatchSuccess -> playRepository.updates(appsToCheck, onBatchSuccess).first() })

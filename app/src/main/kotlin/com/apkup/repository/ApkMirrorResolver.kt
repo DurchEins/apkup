@@ -61,11 +61,28 @@ class InMemoryCookieJar : CookieJar {
             existing.removeAll { it.name == newCookie.name }
             existing.add(newCookie)
         }
+        runCatching {
+            val manager = android.webkit.CookieManager.getInstance()
+            cookies.forEach { cookie ->
+                manager.setCookie(url.toString(), cookie.toString())
+            }
+            manager.flush()
+        }
     }
 
     override fun loadForRequest(url: HttpUrl): List<Cookie> {
         val now = System.currentTimeMillis()
-        return store[url.host]?.filter { it.expiresAt > now } ?: emptyList()
+        val inMemoryCookies = store[url.host]?.filter { it.expiresAt > now } ?: emptyList()
+        val systemCookies = runCatching {
+            val raw = android.webkit.CookieManager.getInstance().getCookie(url.toString())
+            if (!raw.isNullOrBlank()) {
+                raw.split(";").mapNotNull { part ->
+                    Cookie.parse(url, part.trim())
+                }
+            } else emptyList()
+        }.getOrDefault(emptyList())
+
+        return (inMemoryCookies + systemCookies).distinctBy { it.name }
     }
 }
 
@@ -73,7 +90,8 @@ class ApkMirrorResolver(
     private val client: OkHttpClient,
     private val minDelayMs: Long = 1500L,
     private val clock: () -> Long = { System.currentTimeMillis() },
-    private val delayFn: suspend (Long) -> Unit = { delay(it) }
+    private val delayFn: suspend (Long) -> Unit = { delay(it) },
+    private val cloudflareBypass: ApkMirrorCloudflareBypass? = null
 ) {
     companion object {
         private const val TAG = "ApkMirrorResolver"
@@ -236,6 +254,9 @@ class ApkMirrorResolver(
         }
     }
 
+    val currentBrowserUserAgent: String
+        get() = cloudflareBypass?.getUserAgent()?.takeIf { it.isNotBlank() } ?: BROWSER_USER_AGENT
+
     suspend fun resolveDirectDownload(variantUrl: String, callTag: String? = null): ApkMirrorResolutionResult {
         currentCoroutineContext().ensureActive()
         return mutex.withLock {
@@ -244,8 +265,35 @@ class ApkMirrorResolver(
             currentCoroutineContext().ensureActive()
             try {
                 // Step 1: Request variant URL
-                val step1Result = executeStep1(variantUrl, callTag)
+                var step1Result = executeStep1(variantUrl, callTag)
                 currentCoroutineContext().ensureActive()
+                if (step1Result is Step1Result.Cloudflare && cloudflareBypass != null) {
+                    Log.i(TAG, "Cloudflare challenge detected in Step 1. Attempting WebView bypass for $variantUrl")
+                    val solved = cloudflareBypass.solve(variantUrl)
+                    if (solved) {
+                        val capturedHtml = cloudflareBypass.getResolvedHtml(variantUrl)
+                        if (!capturedHtml.isNullOrBlank()) {
+                            val intermediateHref = extractDownloadButtonHref(capturedHtml)
+                            if (intermediateHref != null) {
+                                val intermediateUrl = canonicalizeUrl(intermediateHref, variantUrl)
+                                val isApkmCandidate = variantUrl.contains("apk-bundle", ignoreCase = true) ||
+                                    variantUrl.contains("bundle-download", ignoreCase = true) ||
+                                    intermediateUrl.contains("apk-bundle", ignoreCase = true) ||
+                                    intermediateUrl.contains("bundle-download", ignoreCase = true) ||
+                                    Regex(
+                                        """<a\b[^>]*\bdownloadButton\b[^>]*>[\s\S]*?Download\s+APK\s+Bundle[\s\S]*?</a>""",
+                                        RegexOption.IGNORE_CASE
+                                    ).containsMatchIn(capturedHtml)
+                                Log.i(TAG, "Extracted intermediate URL directly from WebView DOM: $intermediateUrl (isApkm=$isApkmCandidate)")
+                                step1Result = Step1Result.Success(intermediateUrl, isApkmCandidate)
+                            }
+                        }
+                        if (step1Result !is Step1Result.Success) {
+                            Log.i(TAG, "Retrying Step 1 with OkHttp and acquired clearance.")
+                            step1Result = executeStep1(variantUrl, callTag)
+                        }
+                    }
+                }
                 if (step1Result !is Step1Result.Success) {
                     val result = when (step1Result) {
                         is Step1Result.Cloudflare -> {
@@ -263,8 +311,27 @@ class ApkMirrorResolver(
                 lastRequestTimeMs = clock()
 
                 // Step 2: Request intermediate landing page
-                val step2Result = executeStep2(step1Result.intermediateUrl, referer = variantUrl, callTag = callTag)
+                var step2Result = executeStep2(step1Result.intermediateUrl, referer = variantUrl, callTag = callTag)
                 currentCoroutineContext().ensureActive()
+                if (step2Result is Step2Result.Cloudflare && cloudflareBypass != null) {
+                    Log.i(TAG, "Cloudflare challenge detected in Step 2. Attempting WebView bypass for ${step1Result.intermediateUrl}")
+                    val solved = cloudflareBypass.solve(step1Result.intermediateUrl)
+                    if (solved) {
+                        val capturedHtml = cloudflareBypass.getResolvedHtml(step1Result.intermediateUrl)
+                        if (!capturedHtml.isNullOrBlank()) {
+                            val downloadPhpHref = extractDownloadPhpHref(capturedHtml)
+                            if (downloadPhpHref != null) {
+                                val downloadPhpUrl = canonicalizeUrl(downloadPhpHref, step1Result.intermediateUrl)
+                                Log.i(TAG, "Extracted download.php URL directly from WebView DOM: $downloadPhpUrl")
+                                step2Result = Step2Result.Success(downloadPhpUrl)
+                            }
+                        }
+                        if (step2Result !is Step2Result.Success) {
+                            Log.i(TAG, "Retrying Step 2 with OkHttp and acquired cookies.")
+                            step2Result = executeStep2(step1Result.intermediateUrl, referer = variantUrl, callTag = callTag)
+                        }
+                    }
+                }
                 if (step2Result !is Step2Result.Success) {
                     val result = when (step2Result) {
                         is Step2Result.Cloudflare -> {
@@ -277,7 +344,7 @@ class ApkMirrorResolver(
                 }
 
                 // Step 3: Resolve download.php direct redirect
-                val step3Result = executeStep3(
+                var step3Result = executeStep3(
                     downloadPhpUrl = step2Result.downloadPhpUrl,
                     referer = step1Result.intermediateUrl,
                     fallbackUrl = variantUrl,
@@ -285,6 +352,31 @@ class ApkMirrorResolver(
                     callTag = callTag
                 )
                 currentCoroutineContext().ensureActive()
+                if (step3Result is ApkMirrorResolutionResult.CloudflareBlocked && cloudflareBypass != null) {
+                    Log.i(TAG, "Cloudflare challenge detected in Step 3. Attempting WebView bypass for ${step2Result.downloadPhpUrl}")
+                    val solved = cloudflareBypass.solve(step2Result.downloadPhpUrl)
+                    if (solved) {
+                        val interceptedDirect = cloudflareBypass.getInterceptedDownloadUrl()
+                        if (!interceptedDirect.isNullOrBlank()) {
+                            val filename = extractFilenameFromHeader(null, interceptedDirect)
+                            val isApkm = isApkmFile(filename, interceptedDirect) || step1Result.isApkmCandidate
+                            Log.i(TAG, "Captured direct CDN URL from WebView intercept: $interceptedDirect")
+                            step3Result = ApkMirrorResolutionResult.Success(
+                                directUrl = interceptedDirect,
+                                isApkm = isApkm,
+                                filename = filename
+                            )
+                        } else {
+                            step3Result = executeStep3(
+                                downloadPhpUrl = step2Result.downloadPhpUrl,
+                                referer = step1Result.intermediateUrl,
+                                fallbackUrl = variantUrl,
+                                isApkmCandidate = step1Result.isApkmCandidate,
+                                callTag = callTag
+                            )
+                        }
+                    }
+                }
                 if (step3Result is ApkMirrorResolutionResult.CloudflareBlocked) {
                     lastWasBlocked = true
                 } else if (step3Result is ApkMirrorResolutionResult.Success) {
@@ -315,14 +407,20 @@ class ApkMirrorResolver(
     }
 
     private fun executeStep1(variantUrl: String, callTag: String? = null): Step1Result {
-        val request = Request.Builder()
+        val requestBuilder = Request.Builder()
             .url(variantUrl)
-            .header("User-Agent", BROWSER_USER_AGENT)
+            .header("User-Agent", currentBrowserUserAgent)
             .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-            .header("Accept-Language", "en-US,en;q=0.9")
-            .build()
+            .header("Accept-Language", "en-US,en;q=0.9,de;q=0.8")
 
-        val call = client.newCall(request)
+        val cookies = runCatching {
+            android.webkit.CookieManager.getInstance().getCookie(variantUrl)
+        }.getOrNull()
+        if (!cookies.isNullOrBlank()) {
+            requestBuilder.header("Cookie", cookies)
+        }
+
+        val call = client.newCall(requestBuilder.build())
         registerCall(callTag, call)
         try {
             call.execute().use { response ->
@@ -355,15 +453,21 @@ class ApkMirrorResolver(
     }
 
     private fun executeStep2(intermediateUrl: String, referer: String, callTag: String? = null): Step2Result {
-        val request = Request.Builder()
+        val requestBuilder = Request.Builder()
             .url(intermediateUrl)
-            .header("User-Agent", BROWSER_USER_AGENT)
+            .header("User-Agent", currentBrowserUserAgent)
             .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-            .header("Accept-Language", "en-US,en;q=0.9")
+            .header("Accept-Language", "en-US,en;q=0.9,de;q=0.8")
             .header("Referer", referer)
-            .build()
 
-        val call = client.newCall(request)
+        val cookies = runCatching {
+            android.webkit.CookieManager.getInstance().getCookie(intermediateUrl)
+        }.getOrNull()
+        if (!cookies.isNullOrBlank()) {
+            requestBuilder.header("Cookie", cookies)
+        }
+
+        val call = client.newCall(requestBuilder.build())
         registerCall(callTag, call)
         try {
             call.execute().use { response ->
@@ -393,14 +497,20 @@ class ApkMirrorResolver(
         isApkmCandidate: Boolean,
         callTag: String? = null
     ): ApkMirrorResolutionResult {
-        val request = Request.Builder()
+        val requestBuilder = Request.Builder()
             .url(downloadPhpUrl)
-            .header("User-Agent", BROWSER_USER_AGENT)
+            .header("User-Agent", currentBrowserUserAgent)
             .header("Accept", "*/*")
             .header("Referer", referer)
-            .build()
 
-        val call = noRedirectClient.newCall(request)
+        val cookies = runCatching {
+            android.webkit.CookieManager.getInstance().getCookie(downloadPhpUrl)
+        }.getOrNull()
+        if (!cookies.isNullOrBlank()) {
+            requestBuilder.header("Cookie", cookies)
+        }
+
+        val call = noRedirectClient.newCall(requestBuilder.build())
         registerCall(callTag, call)
         try {
             call.execute().use { response ->

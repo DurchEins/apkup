@@ -10,6 +10,7 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
@@ -17,6 +18,21 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Switch
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Layers
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
@@ -73,6 +89,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
@@ -88,6 +105,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
+import androidx.compose.material3.ButtonDefaults
+import com.apkup.util.Badger
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -98,6 +117,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -135,6 +155,9 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.os.PowerManager
+import androidx.core.app.NotificationManagerCompat
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -155,6 +178,8 @@ import com.apkup.ui.component.SegmentedButtonSetting
 import com.apkup.ui.component.SettingsSection
 import com.apkup.ui.component.AutoResizeText
 import com.apkup.ui.component.SwitchSetting
+import com.apkup.ui.component.SplitSwitchSetting
+import com.apkup.ui.component.NavigationSettingItem
 import com.apkup.util.SessionInstaller
 import com.apkup.viewmodel.AppsViewModel
 import com.apkup.viewmodel.MainViewModel
@@ -214,7 +239,11 @@ fun Settings(
 	val shizukuStatus = viewModel.shizukuSetupStatus().collectAsStateWithLifecycle().value
 	val showShizukuSheet = viewModel.showShizukuSetupSheet().collectAsStateWithLifecycle().value
 	var showHiddenAppsSheet by remember { mutableStateOf(false) }
+	var showIgnoredVersionsSheet by remember { mutableStateOf(false) }
 	var showChangelogSheet by remember { mutableStateOf(false) }
+	var showIntervalSheet by remember { mutableStateOf(false) }
+	var showApkMirrorSheet by remember { mutableStateOf(false) }
+	var showWifiDownloadSheet by remember { mutableStateOf(false) }
 	var showGitHubTokenDialog by remember { mutableStateOf(false) }
 	var showGitLabTokenDialog by remember { mutableStateOf(false) }
 	var isAdvancedExpanded by rememberSaveable { mutableStateOf(false) }
@@ -290,19 +319,16 @@ fun Settings(
 		}
 	}
 
-	val coroutineScope = rememberCoroutineScope()
-	val overscrollPull = remember { Animatable(0f) }
+	var overscrollOffset by remember { mutableFloatStateOf(0f) }
 	var hasTriggeredOverscrollHaptic by remember { mutableStateOf(false) }
 
-	val nestedScrollConnection = remember(coroutineScope, context, haptic) {
+	val nestedScrollConnection = remember(context, haptic) {
 		object : NestedScrollConnection {
 			override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-				if (overscrollPull.value < 0f && available.y > 0f) {
-					val newOffset = (overscrollPull.value + available.y).coerceAtMost(0f)
-					val consumed = newOffset - overscrollPull.value
-					coroutineScope.launch {
-						overscrollPull.snapTo(newOffset)
-					}
+				if (overscrollOffset < 0f && available.y > 0f) {
+					val newOffset = (overscrollOffset + available.y).coerceAtMost(0f)
+					val consumed = newOffset - overscrollOffset
+					overscrollOffset = newOffset
 					return Offset(0f, consumed)
 				}
 				return Offset.Zero
@@ -311,14 +337,12 @@ fun Settings(
 			override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
 				if (available.y < 0f && source == NestedScrollSource.UserInput) {
 					val dampened = available.y * 0.42f
-					val newOffset = (overscrollPull.value + dampened).coerceIn(-220f, 0f)
-					val delta = newOffset - overscrollPull.value
-					coroutineScope.launch {
-						overscrollPull.snapTo(newOffset)
-						if (newOffset <= -120f && !hasTriggeredOverscrollHaptic) {
-							hasTriggeredOverscrollHaptic = true
-							performHeartbeatHaptic(context, haptic)
-						}
+					val newOffset = (overscrollOffset + dampened).coerceIn(-220f, 0f)
+					val delta = newOffset - overscrollOffset
+					overscrollOffset = newOffset
+					if (newOffset <= -120f && !hasTriggeredOverscrollHaptic) {
+						hasTriggeredOverscrollHaptic = true
+						performHeartbeatHaptic(context, haptic)
 					}
 					return Offset(0f, delta)
 				}
@@ -326,36 +350,42 @@ fun Settings(
 			}
 
 			override suspend fun onPreFling(available: Velocity): Velocity {
-				if (overscrollPull.value < 0f) {
+				if (overscrollOffset < 0f) {
 					hasTriggeredOverscrollHaptic = false
-					overscrollPull.animateTo(
+					animate(
+						initialValue = overscrollOffset,
 						targetValue = 0f,
 						animationSpec = spring(
 							dampingRatio = Spring.DampingRatioMediumBouncy,
 							stiffness = Spring.StiffnessLow
 						)
-					)
+					) { value, _ ->
+						overscrollOffset = value
+					}
 				}
 				return Velocity.Zero
 			}
 
 			override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
-				if (overscrollPull.value < 0f) {
+				if (overscrollOffset < 0f) {
 					hasTriggeredOverscrollHaptic = false
-					overscrollPull.animateTo(
+					animate(
+						initialValue = overscrollOffset,
 						targetValue = 0f,
 						animationSpec = spring(
 							dampingRatio = Spring.DampingRatioMediumBouncy,
 							stiffness = Spring.StiffnessLow
 						)
-					)
+					) { value, _ ->
+						overscrollOffset = value
+					}
 				}
 				return Velocity.Zero
 			}
 		}
 	}
 
-	val pullDistance = -overscrollPull.value
+	val pullDistance = -overscrollOffset
 	val pullProgress = (pullDistance / 130f).coerceIn(0f, 1f)
 
 	Box(
@@ -363,13 +393,192 @@ fun Settings(
 			.fillMaxSize()
 			.nestedScroll(nestedScrollConnection)
 	) {
+		val powerManager = remember { context.getSystemService(Context.POWER_SERVICE) as? PowerManager }
+		val isBatteryIgnoring = remember(configRefreshKey) {
+			powerManager?.isIgnoringBatteryOptimizations(context.packageName) == true
+		}
+		val areNotificationsEnabled = remember(configRefreshKey) {
+			NotificationManagerCompat.from(context).areNotificationsEnabled()
+		}
+
+		val badger = koinInject<Badger>()
+		val activeIssues = remember(isBatteryIgnoring, areNotificationsEnabled, hasInstallPermission, shizukuEnabled, shizukuStatus.isBinderRunning) {
+			val list = mutableListOf<SetupWarningItem>()
+			if (!hasInstallPermission) {
+				list.add(
+					SetupWarningItem(
+						id = "install",
+						title = context.getString(R.string.warning_install_title),
+						subtitle = context.getString(R.string.warning_install_subtitle),
+						shortName = context.getString(R.string.settings_install_unknown_apps),
+						actionText = context.getString(R.string.warning_action_allow),
+						onClick = {
+							runCatching {
+								val intent = Intent(
+									Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+									"package:${context.packageName}".toUri()
+								).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+								context.startActivity(intent)
+							}.onFailure {
+								runCatching {
+									val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+										data = "package:${context.packageName}".toUri()
+										addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+									}
+									context.startActivity(intent)
+								}
+							}
+						}
+					)
+				)
+			}
+			if (!areNotificationsEnabled) {
+				list.add(
+					SetupWarningItem(
+						id = "notifications",
+						title = context.getString(R.string.warning_notifications_title),
+						subtitle = context.getString(R.string.warning_notifications_subtitle),
+						shortName = context.getString(R.string.settings_notifications),
+						actionText = context.getString(R.string.warning_action_enable),
+						onClick = {
+							runCatching {
+								val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+									putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+									addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+								}
+								context.startActivity(intent)
+							}.onFailure {
+								runCatching {
+									val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+										data = "package:${context.packageName}".toUri()
+										addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+									}
+									context.startActivity(intent)
+								}
+							}
+						}
+					)
+				)
+			}
+			if (!isBatteryIgnoring) {
+				list.add(
+					SetupWarningItem(
+						id = "battery",
+						title = context.getString(R.string.warning_battery_title),
+						subtitle = context.getString(R.string.warning_battery_subtitle),
+						shortName = context.getString(R.string.settings_battery_optimization),
+						actionText = context.getString(R.string.warning_action_exempt),
+						onClick = {
+							runCatching {
+								val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
+									addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+								}
+								context.startActivity(intent)
+							}.onFailure {
+								runCatching {
+									context.startActivity(Intent(Settings.ACTION_SETTINGS).apply {
+										addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+									})
+								}
+							}
+						}
+					)
+				)
+			}
+			if (shizukuEnabled && !shizukuStatus.isBinderRunning) {
+				list.add(
+					SetupWarningItem(
+						id = "shizuku",
+						title = context.getString(R.string.warning_shizuku_title),
+						subtitle = context.getString(R.string.warning_shizuku_subtitle),
+						shortName = "Shizuku",
+						actionText = context.getString(R.string.warning_action_check),
+						onClick = { viewModel.openShizukuSetupSheet() }
+					)
+				)
+			}
+			list
+		}
+
+		LaunchedEffect(activeIssues.size) {
+			badger.changeSettingsBadge(if (activeIssues.isNotEmpty()) "!" else "")
+		}
 		LazyColumn(
 			modifier = Modifier
 				.fillMaxSize()
-				.offset { IntOffset(0, overscrollPull.value.roundToInt()) },
+				.offset { IntOffset(0, overscrollOffset.roundToInt()) },
 			contentPadding = PaddingValues(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 120.dp),
 			verticalArrangement = Arrangement.spacedBy(14.dp)
 		) {
+			// TemporÃ¤re Status-Warnkarte (nur sichtbar, wenn Einstellungen fehlen)
+			if (activeIssues.isNotEmpty()) {
+				item(key = "setup_active_warnings") {
+					val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+					Surface(
+						modifier = Modifier.fillMaxWidth(),
+						shape = RoundedCornerShape(16.dp),
+						color = if (isDark) Color(0xFF331E05) else Color(0xFFFFF3E0),
+						border = BorderStroke(1.dp, if (isDark) Color(0xFFF59E0B).copy(alpha = 0.5f) else Color(0xFFFFB74D))
+					) {
+						Row(
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(horizontal = 14.dp, vertical = 12.dp),
+							verticalAlignment = Alignment.CenterVertically,
+							horizontalArrangement = Arrangement.spacedBy(12.dp)
+						) {
+							Box(
+								modifier = Modifier
+									.size(36.dp)
+									.clip(RoundedCornerShape(10.dp))
+									.background(if (isDark) Color(0xFF4A2B07) else Color(0xFFFFE0B2)),
+								contentAlignment = Alignment.Center
+							) {
+								Icon(
+									imageVector = Icons.Default.Warning,
+									contentDescription = null,
+									tint = if (isDark) Color(0xFFFBBF24) else Color(0xFFE65100),
+									modifier = Modifier.size(20.dp)
+								)
+							}
+							Column(modifier = Modifier.weight(1f)) {
+								Text(
+									text = if (activeIssues.size == 1) activeIssues.first().title
+									       else stringResource(R.string.setup_warnings_multiple_title, activeIssues.size),
+									style = MaterialTheme.typography.titleSmall,
+									fontWeight = FontWeight.Bold,
+									color = if (isDark) Color(0xFFFEF3C7) else Color(0xFFE65100)
+								)
+								Text(
+									text = if (activeIssues.size == 1) activeIssues.first().subtitle
+									       else activeIssues.joinToString(" â€¢ ") { it.shortName },
+									style = MaterialTheme.typography.bodySmall,
+									color = if (isDark) Color(0xFFD1D5DB) else Color(0xFF5D4037),
+									maxLines = 1,
+									overflow = TextOverflow.Ellipsis
+								)
+							}
+							FilledTonalButton(
+								onClick = { activeIssues.first().onClick() },
+								colors = ButtonDefaults.filledTonalButtonColors(
+									containerColor = if (isDark) Color(0xFFF59E0B) else Color(0xFFE65100),
+									contentColor = if (isDark) Color(0xFF451A03) else Color.White
+								),
+								shape = CircleShape,
+								contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
+								modifier = Modifier.heightIn(min = 32.dp)
+							) {
+								Text(
+									text = if (activeIssues.size == 1) activeIssues.first().actionText else stringResource(R.string.setup_warning_action_resolve),
+									style = MaterialTheme.typography.labelSmall,
+									fontWeight = FontWeight.Bold
+								)
+							}
+						}
+					}
+				}
+			}
+
 			// Sektion 1: Erscheinungsbild & Layout
 			item(key = "section_appearance_$configRefreshKey") {
 				var currentDisplayMode by remember(configRefreshKey) {
@@ -401,73 +610,23 @@ fun Settings(
 			}
 		}
 
-		// Sektion 2: Quellen & Scan-Verhalten
+		// Sektion 2: Update-Quellen
 		item(key = "section_sources_$configRefreshKey") {
-			val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
-			var bgChecksEnabled by remember(configRefreshKey) {
-				mutableStateOf(viewModel.getBackgroundChecksEnabled())
-			}
-			var selectedIntervalHours by remember(configRefreshKey) {
-				mutableIntStateOf(viewModel.getBackgroundCheckIntervalHours())
-			}
 			SettingsSection(stringResource(R.string.settings_section_sources)) {
+				val directApkMirrorEnabled = remember(configRefreshKey) { viewModel.getDirectApkMirrorDownloads() }
 				SwitchSetting(
-					{ viewModel.getUseApkMirror() },
-					{
-						viewModel.setUseApkMirror(it)
+					getValue = { viewModel.getUseApkMirror() },
+					setValue = { enabled ->
+						viewModel.setUseApkMirror(enabled)
 						configRefreshKey++
 					},
-					stringResource(R.string.source_apkmirror),
-					R.drawable.ic_apkmirror
+					text = stringResource(R.string.source_apkmirror),
+					icon = R.drawable.ic_apkmirror,
+					subtitle = if (viewModel.getUseApkMirror()) {
+						if (directApkMirrorEnabled) stringResource(R.string.settings_apkmirror_direct_downloads) else null
+					} else null,
+					onClick = { showApkMirrorSheet = true }
 				)
-				if (viewModel.getUseApkMirror()) {
-					val directApkMirrorEnabled = remember(configRefreshKey) { viewModel.getDirectApkMirrorDownloads() }
-					Surface(
-						modifier = Modifier
-							.fillMaxWidth()
-							.padding(start = 12.dp, end = 4.dp, top = 2.dp, bottom = 4.dp),
-						shape = RoundedCornerShape(14.dp),
-						color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
-						onClick = {
-							viewModel.setDirectApkMirrorDownloads(!directApkMirrorEnabled)
-							configRefreshKey++
-						}
-					) {
-						Row(
-							modifier = Modifier
-								.fillMaxWidth()
-								.padding(horizontal = 14.dp, vertical = 8.dp),
-							verticalAlignment = CenterVertically,
-							horizontalArrangement = Arrangement.spacedBy(10.dp)
-						) {
-							Icon(
-								painter = painterResource(R.drawable.ic_download),
-								contentDescription = null,
-								tint = if (directApkMirrorEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-								modifier = Modifier.size(20.dp)
-							)
-							Column(modifier = Modifier.weight(1f)) {
-								Text(
-									text = stringResource(R.string.settings_apkmirror_direct_downloads),
-									style = MaterialTheme.typography.bodyMedium,
-									fontWeight = FontWeight.Medium
-								)
-								Text(
-									text = stringResource(R.string.settings_apkmirror_direct_downloads_desc),
-									style = MaterialTheme.typography.bodySmall,
-									color = MaterialTheme.colorScheme.onSurfaceVariant
-								)
-							}
-							androidx.compose.material3.Switch(
-								checked = directApkMirrorEnabled,
-								onCheckedChange = {
-									viewModel.setDirectApkMirrorDownloads(it)
-									configRefreshKey++
-								}
-							)
-						}
-					}
-				}
 				SwitchSetting(
 					{ viewModel.getUsePlay() },
 					{ viewModel.setUsePlay(it) },
@@ -480,6 +639,7 @@ fun Settings(
 					stringResource(R.string.source_izzyondroid),
 					R.drawable.ic_izzy
 				)
+				val currentGitHubToken = remember(configRefreshKey) { viewModel.getGitHubToken() }
 				SwitchSetting(
 					getValue = { viewModel.getUseGitHub() },
 					setValue = {
@@ -488,56 +648,14 @@ fun Settings(
 					},
 					text = stringResource(R.string.source_github),
 					icon = R.drawable.ic_github,
-					subtitle = stringResource(R.string.settings_source_github_desc)
+					subtitle = if (currentGitHubToken.isNotEmpty()) {
+						stringResource(R.string.github_token_status_set)
+					} else {
+						stringResource(R.string.settings_source_github_desc)
+					},
+					onClick = { showGitHubTokenDialog = true }
 				)
-				if (viewModel.getUseGitHub()) {
-					val currentGitHubToken = remember(configRefreshKey) { viewModel.getGitHubToken() }
-					Surface(
-						modifier = Modifier
-							.fillMaxWidth()
-							.padding(start = 12.dp, end = 4.dp, top = 2.dp, bottom = 4.dp),
-						shape = RoundedCornerShape(14.dp),
-						color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
-						onClick = { showGitHubTokenDialog = true }
-					) {
-						Row(
-							modifier = Modifier
-								.fillMaxWidth()
-								.padding(horizontal = 14.dp, vertical = 10.dp),
-							verticalAlignment = CenterVertically,
-							horizontalArrangement = Arrangement.spacedBy(10.dp)
-						) {
-							Icon(
-								painter = painterResource(R.drawable.ic_github),
-								contentDescription = null,
-								tint = if (currentGitHubToken.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-								modifier = Modifier.size(20.dp)
-							)
-							Column(modifier = Modifier.weight(1f)) {
-								Text(
-									text = stringResource(R.string.github_token_title),
-									style = MaterialTheme.typography.bodyMedium,
-									fontWeight = FontWeight.Medium
-								)
-								Text(
-									text = if (currentGitHubToken.isNotEmpty()) {
-										stringResource(R.string.github_token_status_set)
-									} else {
-										stringResource(R.string.github_token_status_not_set)
-									},
-									style = MaterialTheme.typography.bodySmall,
-									color = MaterialTheme.colorScheme.onSurfaceVariant
-								)
-							}
-							Icon(
-								imageVector = Icons.Default.Settings,
-								contentDescription = null,
-								tint = MaterialTheme.colorScheme.onSurfaceVariant,
-								modifier = Modifier.size(18.dp)
-							)
-						}
-					}
-				}
+				val currentGitLabToken = remember(configRefreshKey) { viewModel.getGitLabToken() }
 				SwitchSetting(
 					getValue = { viewModel.getUseGitLab() },
 					setValue = {
@@ -546,56 +664,35 @@ fun Settings(
 					},
 					text = stringResource(R.string.source_gitlab),
 					icon = R.drawable.ic_gitlab,
-					subtitle = stringResource(R.string.settings_source_gitlab_desc)
+					subtitle = if (currentGitLabToken.isNotEmpty()) {
+						stringResource(R.string.gitlab_token_status_set)
+					} else {
+						stringResource(R.string.settings_source_gitlab_desc)
+					},
+					onClick = { showGitLabTokenDialog = true }
 				)
-				if (viewModel.getUseGitLab()) {
-					val currentGitLabToken = remember(configRefreshKey) { viewModel.getGitLabToken() }
-					Surface(
-						modifier = Modifier
-							.fillMaxWidth()
-							.padding(start = 12.dp, end = 4.dp, top = 2.dp, bottom = 4.dp),
-						shape = RoundedCornerShape(14.dp),
-						color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
-						onClick = { showGitLabTokenDialog = true }
-					) {
-						Row(
-							modifier = Modifier
-								.fillMaxWidth()
-								.padding(horizontal = 14.dp, vertical = 10.dp),
-							verticalAlignment = CenterVertically,
-							horizontalArrangement = Arrangement.spacedBy(10.dp)
-						) {
-							Icon(
-								painter = painterResource(R.drawable.ic_gitlab),
-								contentDescription = null,
-								tint = if (currentGitLabToken.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-								modifier = Modifier.size(20.dp)
-							)
-							Column(modifier = Modifier.weight(1f)) {
-								Text(
-									text = stringResource(R.string.gitlab_token_title),
-									style = MaterialTheme.typography.bodyMedium,
-									fontWeight = FontWeight.Medium
-								)
-								Text(
-									text = if (currentGitLabToken.isNotEmpty()) {
-										stringResource(R.string.gitlab_token_status_set)
-									} else {
-										stringResource(R.string.gitlab_token_status_not_set)
-									},
-									style = MaterialTheme.typography.bodySmall,
-									color = MaterialTheme.colorScheme.onSurfaceVariant
-								)
-							}
-							Icon(
-								imageVector = Icons.Default.Settings,
-								contentDescription = null,
-								tint = MaterialTheme.colorScheme.onSurfaceVariant,
-								modifier = Modifier.size(18.dp)
-							)
-						}
-					}
-				}
+			}
+		}
+
+		// Sektion 3: Automatische Suche & Zeitplan
+		item(key = "section_background_checks_$configRefreshKey") {
+			val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
+			var bgChecksEnabled by remember(configRefreshKey) {
+				mutableStateOf(viewModel.getBackgroundChecksEnabled())
+			}
+			val selectedIntervalHours = remember(configRefreshKey) {
+				viewModel.getBackgroundCheckIntervalHours()
+			}
+			val intervalLabels = mapOf(
+				6 to R.string.settings_interval_6h,
+				12 to R.string.settings_interval_12h,
+				24 to R.string.settings_interval_24h,
+				48 to R.string.settings_interval_48h,
+				168 to R.string.settings_interval_7d
+			)
+			val activeIntervalLabel = intervalLabels[selectedIntervalHours]?.let { stringResource(it) } ?: "${selectedIntervalHours}h"
+
+			SettingsSection(stringResource(R.string.settings_section_background_checks)) {
 				SwitchSetting(
 					getValue = { bgChecksEnabled },
 					setValue = { enabled ->
@@ -603,330 +700,504 @@ fun Settings(
 						bgChecksEnabled = viewModel.getBackgroundChecksEnabled()
 					},
 					text = stringResource(R.string.settings_background_checks),
-					icon = R.drawable.ic_refresh
-				)
-				BackgroundCheckIntervalSelector(
-					selectedHours = selectedIntervalHours,
-					enabled = bgChecksEnabled,
-					onSelectHours = { hours ->
-						viewModel.setBackgroundCheckIntervalHours(hours)
-						selectedIntervalHours = viewModel.getBackgroundCheckIntervalHours()
-					}
+					icon = R.drawable.ic_refresh,
+					subtitle = if (bgChecksEnabled) activeIntervalLabel else null,
+					onClick = { showIntervalSheet = true }
 				)
 			}
 		}
 
-		// Sektion 3: Installation & Berechtigungen
-		item(key = "section_install_permissions_${configRefreshKey}_$shizukuEnabled") {
-			SettingsSection(stringResource(R.string.settings_section_install_permissions)) {
-				SwitchSetting(
-					getValue = { viewModel.getDownloadWifiOnly() },
-					setValue = {
-						viewModel.setDownloadWifiOnly(it)
-						configRefreshKey++
-					},
-					text = stringResource(R.string.settings_download_wifi_only),
-					icon = R.drawable.ic_download,
-					subtitle = stringResource(R.string.settings_download_wifi_only_desc)
-				)
+		// Sektion 4: Installation & Automatisierung
+		item(key = "section_install_automation_${configRefreshKey}_${shizukuEnabled}_$hasInstallPermission") {
+			SettingsSection(stringResource(R.string.settings_section_install_automation)) {
+				// 2. Shizuku-Installer
 				SwitchSetting(
 					getValue = { viewModel.getUseShizukuInstaller() },
 					setValue = { viewModel.setUseShizukuInstaller(it) },
 					text = stringResource(R.string.settings_shizuku_installer),
 					icon = R.drawable.ic_root,
-					subtitle = stringResource(R.string.settings_shizuku_installer_subtitle)
-				)
-			}
-		}
-
-		// Sektion 4: App-Verwaltung
-		item(key = "section_app_management_${ignoredApps.size}_${ignoredVersions.size}") {
-			SettingsSection(stringResource(R.string.settings_section_app_management)) {
-				// System-Apps einbeziehen
-				SwitchSetting(
-					getValue = { viewModel.getShowSystemApps() },
-					setValue = { show ->
-						viewModel.onShowSystemAppsChanged(
-							show = show,
-							appsViewModel = appsViewModel,
-							updatesViewModel = updatesViewModel
-						)
-					},
-					text = stringResource(R.string.settings_show_system_apps),
-					icon = R.drawable.ic_system,
-					subtitle = stringResource(R.string.settings_show_system_apps_desc)
+					subtitle = stringResource(R.string.settings_shizuku_installer_subtitle),
+					onClick = { viewModel.openShizukuSetupSheet() }
 				)
 
-				// Unterkarte A: Dauerhaft ausgeblendete Apps
-				Surface(
-					modifier = Modifier.fillMaxWidth(),
-					shape = RoundedCornerShape(16.dp),
-					color = MaterialTheme.colorScheme.surfaceContainerHigh,
-					border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
-				) {
-					Column(
+				// Conditional Shizuku Warning Card if enabled but not running
+				if (shizukuEnabled && !shizukuStatus.isBinderRunning) {
+					Surface(
+						onClick = { viewModel.openShizukuSetupSheet() },
 						modifier = Modifier
 							.fillMaxWidth()
-							.padding(10.dp),
-						verticalArrangement = Arrangement.spacedBy(6.dp)
+							.padding(vertical = 4.dp),
+						shape = RoundedCornerShape(16.dp),
+						color = MaterialTheme.colorScheme.errorContainer,
+						border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.4f))
 					) {
 						Row(
-							modifier = Modifier.fillMaxWidth(),
-							verticalAlignment = CenterVertically,
-							horizontalArrangement = Arrangement.spacedBy(8.dp)
-						) {
-							Box(
-								modifier = Modifier
-									.size(28.dp)
-									.clip(RoundedCornerShape(8.dp))
-									.background(MaterialTheme.colorScheme.surfaceContainerHighest),
-								contentAlignment = Alignment.Center
-							) {
-								Icon(
-									painter = painterResource(R.drawable.ic_visible_off),
-									contentDescription = null,
-									tint = MaterialTheme.colorScheme.primary,
-									modifier = Modifier.size(16.dp)
-								)
-							}
-							Column(modifier = Modifier.weight(1f)) {
-								Text(
-									text = stringResource(R.string.hidden_apps_title),
-									style = MaterialTheme.typography.bodyMedium,
-									fontWeight = FontWeight.SemiBold,
-									color = MaterialTheme.colorScheme.onSurface,
-									maxLines = 1,
-									overflow = TextOverflow.Ellipsis
-								)
-								Text(
-									text = stringResource(R.string.hidden_apps_explanation),
-									style = MaterialTheme.typography.labelSmall,
-									color = MaterialTheme.colorScheme.onSurfaceVariant
-								)
-							}
-							Surface(
-								shape = CircleShape,
-								color = if (ignoredApps.isNotEmpty()) {
-									MaterialTheme.colorScheme.primaryContainer
-								} else {
-									MaterialTheme.colorScheme.surfaceContainerHighest
-								}
-							) {
-								Text(
-									text = stringResource(R.string.hidden_apps_badge_count, ignoredApps.size),
-									style = MaterialTheme.typography.labelSmall,
-									fontWeight = FontWeight.SemiBold,
-									color = if (ignoredApps.isNotEmpty()) {
-										MaterialTheme.colorScheme.onPrimaryContainer
-									} else {
-										MaterialTheme.colorScheme.onSurfaceVariant
-									},
-									modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-									maxLines = 1
-								)
-							}
-						}
-
-						FilledTonalButton(
-							onClick = { showHiddenAppsSheet = true },
-							modifier = Modifier
-								.fillMaxWidth()
-								.heightIn(min = 36.dp),
-							contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-							shape = CircleShape
+							modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+							verticalAlignment = Alignment.CenterVertically,
+							horizontalArrangement = Arrangement.spacedBy(10.dp)
 						) {
 							Icon(
-								painter = painterResource(R.drawable.ic_visible_off),
+								imageVector = Icons.Default.Warning,
 								contentDescription = null,
-								modifier = Modifier.size(14.dp)
+								tint = MaterialTheme.colorScheme.error,
+								modifier = Modifier.size(22.dp)
 							)
-							Spacer(modifier = Modifier.width(6.dp))
-							Text(
-								text = stringResource(R.string.hidden_apps_manage),
-								style = MaterialTheme.typography.labelMedium,
-								fontWeight = FontWeight.SemiBold
-							)
+							Column(modifier = Modifier.weight(1f)) {
+								Text(
+									text = stringResource(R.string.shizuku_status_not_running),
+									style = MaterialTheme.typography.titleSmall,
+									fontWeight = FontWeight.Bold,
+									color = MaterialTheme.colorScheme.onErrorContainer
+								)
+								Text(
+									text = stringResource(R.string.shizuku_step2_desc_missing),
+									style = MaterialTheme.typography.bodySmall,
+									color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.85f)
+								)
+							}
 						}
 					}
 				}
 
-				// Unterkarte B: Übersprungene Einzel-Updates
-				IgnoredVersionsSection(
-					entries = ignoredVersions,
-					onUnignore = { id ->
-						viewModel.unignoreVersion(id)
-						updatesViewModel.syncIgnoredFromPrefs()
-					},
-					onClearAll = {
-						viewModel.clearAllIgnoredVersions()
-						updatesViewModel.syncIgnoredFromPrefs()
+				// 3. Wenn Shizuku aktiv: Autonome Updates & Schutzregeln
+				if (shizukuEnabled) {
+					val autoInstallEnabled = remember(configRefreshKey, shizukuEnabled) { viewModel.getAutoInstallUpdates() }
+					val autoInstallWifiOnly = remember(configRefreshKey) { viewModel.getAutoInstallWifiOnly() }
+					val autoInstallChargingOnly = remember(configRefreshKey) { viewModel.getAutoInstallChargingOnly() }
+					Surface(
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(start = 12.dp, end = 4.dp, top = 2.dp, bottom = 4.dp),
+						shape = RoundedCornerShape(14.dp),
+						color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
+						onClick = {
+							viewModel.setAutoInstallUpdates(!autoInstallEnabled)
+							configRefreshKey++
+						}
+					) {
+						Column(
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(horizontal = 14.dp, vertical = 10.dp),
+							verticalArrangement = Arrangement.spacedBy(8.dp)
+						) {
+							Row(
+								modifier = Modifier.fillMaxWidth(),
+								verticalAlignment = CenterVertically,
+								horizontalArrangement = Arrangement.spacedBy(10.dp)
+							) {
+								Icon(
+									painter = painterResource(R.drawable.ic_install),
+									contentDescription = null,
+									tint = if (autoInstallEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+									modifier = Modifier.size(20.dp)
+								)
+								Column(modifier = Modifier.weight(1f)) {
+									Text(
+										text = stringResource(R.string.settings_auto_install_title),
+										style = MaterialTheme.typography.bodyMedium,
+										fontWeight = FontWeight.Medium
+									)
+									Text(
+										text = stringResource(R.string.settings_auto_install_desc),
+										style = MaterialTheme.typography.bodySmall,
+										color = MaterialTheme.colorScheme.onSurfaceVariant
+									)
+								}
+								androidx.compose.material3.Switch(
+									checked = autoInstallEnabled,
+									onCheckedChange = {
+										viewModel.setAutoInstallUpdates(it)
+										configRefreshKey++
+									}
+								)
+							}
+							if (autoInstallEnabled) {
+								Row(
+									modifier = Modifier
+										.fillMaxWidth()
+										.horizontalScroll(rememberScrollState()),
+									horizontalArrangement = Arrangement.spacedBy(8.dp),
+									verticalAlignment = CenterVertically
+								) {
+									FilterChip(
+										selected = autoInstallWifiOnly,
+										onClick = {
+											viewModel.setAutoInstallWifiOnly(!autoInstallWifiOnly)
+											configRefreshKey++
+										},
+										leadingIcon = if (autoInstallWifiOnly) {
+											{
+												Icon(
+													imageVector = Icons.Default.Check,
+													contentDescription = null,
+													modifier = Modifier.size(FilterChipDefaults.IconSize)
+												)
+											}
+										} else null,
+										label = {
+											Text(
+												text = stringResource(R.string.settings_auto_install_wifi_only),
+												style = MaterialTheme.typography.labelMedium,
+												maxLines = 1
+											)
+										}
+									)
+									FilterChip(
+										selected = autoInstallChargingOnly,
+										onClick = {
+											viewModel.setAutoInstallChargingOnly(!autoInstallChargingOnly)
+											configRefreshKey++
+										},
+										leadingIcon = if (autoInstallChargingOnly) {
+											{
+												Icon(
+													imageVector = Icons.Default.Check,
+													contentDescription = null,
+													modifier = Modifier.size(FilterChipDefaults.IconSize)
+												)
+											}
+										} else null,
+										label = {
+											Text(
+												text = stringResource(R.string.settings_auto_install_charging_only),
+												style = MaterialTheme.typography.labelMedium,
+												maxLines = 1
+											)
+										}
+									)
+								}
+							}
+						}
 					}
+				}
+
+				// 4. Updates nur über WLAN laden (SplitSwitch mit Untermenü)
+				val downloadWifiOnly = remember(configRefreshKey) { viewModel.getDownloadWifiOnly() }
+				val downloadChargingOnly = remember(configRefreshKey) { viewModel.getDownloadChargingOnly() }
+
+				SplitSwitchSetting(
+					getValue = { downloadWifiOnly },
+					setValue = {
+						viewModel.setDownloadWifiOnly(it)
+						configRefreshKey++
+					},
+					text = stringResource(R.string.settings_download_wifi_only),
+					icon = R.drawable.ic_wifi,
+					subtitle = when {
+						downloadWifiOnly && downloadChargingOnly -> stringResource(R.string.settings_wifi_active_charging_desc)
+						downloadWifiOnly -> stringResource(R.string.settings_download_wifi_only_desc)
+						else -> stringResource(R.string.settings_wifi_all_networks_desc)
+					},
+					onClick = { showWifiDownloadSheet = true }
 				)
 			}
 		}
 
-		// Sektion 5: Erweiterte Einstellungen (Sicherung/Wiederherstellung & Einmal-Systemberechtigung)
-		item(key = "section_advanced_${configRefreshKey}_$hasInstallPermission") {
-			SettingsSection(
-				title = stringResource(R.string.settings_advanced_section),
-				expanded = isAdvancedExpanded,
-				onExpandedChange = { isAdvancedExpanded = it },
-				showCollapsedWarningBadge = !hasInstallPermission
+		// Sektion 5: Erweiterte Einstellungen (App-Verwaltung, System & Datensicherung - einklappbar)
+		item(key = "section_advanced_${isAdvancedExpanded}_${isBatteryIgnoring}_${areNotificationsEnabled}_${hasInstallPermission}_$configRefreshKey") {
+			Surface(
+				modifier = Modifier.fillMaxWidth(),
+				shape = RoundedCornerShape(20.dp),
+				color = MaterialTheme.colorScheme.surfaceContainerLow
 			) {
-				Surface(
-					onClick = {
-						runCatching {
-							val intent = Intent(
-								Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-								"package:${context.packageName}".toUri()
-							).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
-							context.startActivity(intent)
-						}
-					},
-					modifier = Modifier.fillMaxWidth(),
-					shape = RoundedCornerShape(12.dp),
-					color = MaterialTheme.colorScheme.surfaceContainerHigh,
-					border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+				Column(
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(14.dp),
+					verticalArrangement = Arrangement.spacedBy(10.dp)
 				) {
 					Row(
 						modifier = Modifier
 							.fillMaxWidth()
-							.padding(horizontal = 10.dp, vertical = 8.dp),
+							.clip(RoundedCornerShape(12.dp))
+							.clickable { isAdvancedExpanded = !isAdvancedExpanded }
+							.padding(vertical = 4.dp),
 						verticalAlignment = CenterVertically,
-						horizontalArrangement = Arrangement.spacedBy(8.dp)
+						horizontalArrangement = Arrangement.spacedBy(10.dp)
 					) {
 						Box(
 							modifier = Modifier
-								.size(24.dp)
-								.clip(RoundedCornerShape(7.dp))
-								.background(MaterialTheme.colorScheme.surfaceContainerHighest),
+								.size(36.dp)
+								.clip(RoundedCornerShape(10.dp))
+								.background(MaterialTheme.colorScheme.surfaceContainerHigh),
 							contentAlignment = Alignment.Center
 						) {
 							Icon(
-								painter = painterResource(R.drawable.ic_install),
+								painter = painterResource(R.drawable.ic_system),
 								contentDescription = null,
 								tint = MaterialTheme.colorScheme.primary,
-								modifier = Modifier.size(14.dp)
+								modifier = Modifier.size(20.dp)
 							)
 						}
-						Text(
-							text = stringResource(R.string.permission_unknown_apps_title),
-							style = MaterialTheme.typography.bodyMedium,
-							fontWeight = FontWeight.Medium,
-							color = MaterialTheme.colorScheme.onSurface,
-							maxLines = 1,
-							overflow = TextOverflow.Ellipsis,
-							modifier = Modifier.weight(1f)
+						Column(modifier = Modifier.weight(1f)) {
+							Text(
+								text = stringResource(R.string.settings_advanced_section),
+								style = MaterialTheme.typography.titleSmall,
+								fontWeight = FontWeight.SemiBold,
+								color = MaterialTheme.colorScheme.onSurface
+							)
+							Text(
+								text = stringResource(R.string.settings_advanced_subtitle),
+								style = MaterialTheme.typography.bodySmall,
+								color = MaterialTheme.colorScheme.onSurfaceVariant
+							)
+						}
+						Icon(
+							imageVector = if (isAdvancedExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+							contentDescription = null,
+							tint = MaterialTheme.colorScheme.onSurfaceVariant,
+							modifier = Modifier.size(22.dp)
 						)
-						Surface(
-							shape = CircleShape,
-							color = if (hasInstallPermission) {
-								Color(0xFFE8F5E9)
-							} else {
-								MaterialTheme.colorScheme.errorContainer
-							}
+					}
+
+					AnimatedVisibility(
+						visible = isAdvancedExpanded,
+						enter = expandVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + fadeIn(),
+						exit = shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + fadeOut()
+					) {
+						Column(
+							modifier = Modifier.fillMaxWidth(),
+							verticalArrangement = Arrangement.spacedBy(14.dp)
 						) {
-							Row(
-								modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
-								verticalAlignment = CenterVertically,
-								horizontalArrangement = Arrangement.spacedBy(3.dp)
-							) {
-								Icon(
-									imageVector = if (hasInstallPermission) Icons.Default.Check else Icons.Default.Warning,
-									contentDescription = null,
-									tint = if (hasInstallPermission) Color(0xFF2E7D32) else MaterialTheme.colorScheme.onErrorContainer,
-									modifier = Modifier.size(11.dp)
+							// 1. App-Verwaltung
+							Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+								Text(
+									text = stringResource(R.string.settings_section_app_management),
+									style = MaterialTheme.typography.labelLarge,
+									fontWeight = FontWeight.Bold,
+									color = MaterialTheme.colorScheme.primary
+								)
+								SwitchSetting(
+									getValue = { viewModel.getShowSystemApps() },
+									setValue = { show ->
+										viewModel.onShowSystemAppsChanged(
+											show = show,
+											appsViewModel = appsViewModel,
+											updatesViewModel = updatesViewModel
+										)
+									},
+									text = stringResource(R.string.settings_show_system_apps),
+									icon = R.drawable.ic_system,
+									subtitle = stringResource(R.string.settings_show_system_apps_desc)
+								)
+								// 1. Dauerhaft ausgeblendete Apps
+								NavigationSettingItem(
+									title = stringResource(R.string.hidden_apps_title),
+									subtitle = if (ignoredApps.isEmpty()) stringResource(R.string.hidden_apps_none)
+									else stringResource(R.string.hidden_apps_badge_count, ignoredApps.size),
+									icon = R.drawable.ic_visible_off,
+									badgeText = if (ignoredApps.isNotEmpty()) "${ignoredApps.size} Apps" else "0 Apps",
+									badgeContainerColor = if (ignoredApps.isNotEmpty()) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest,
+									badgeContentColor = if (ignoredApps.isNotEmpty()) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+									onClick = { showHiddenAppsSheet = true }
+								)
+
+								// 2. Übersprungene Einzel-Updates
+								NavigationSettingItem(
+									title = stringResource(R.string.settings_ignored_versions_title),
+									subtitle = if (ignoredVersions.isEmpty()) stringResource(R.string.settings_ignored_versions_empty)
+									else stringResource(R.string.settings_ignored_versions_count, ignoredVersions.size),
+									icon = R.drawable.ic_download,
+									badgeText = if (ignoredVersions.isNotEmpty()) "${ignoredVersions.size}" else "0",
+									badgeContainerColor = if (ignoredVersions.isNotEmpty()) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest,
+									badgeContentColor = if (ignoredVersions.isNotEmpty()) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+									onClick = { showIgnoredVersionsSheet = true }
+								)
+							}
+
+							HorizontalDivider(
+								thickness = 1.dp,
+								color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+							)
+
+							// 2. System & Berechtigungen
+							Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+								Text(
+									text = stringResource(R.string.settings_section_system_permissions),
+									style = MaterialTheme.typography.labelLarge,
+									fontWeight = FontWeight.Bold,
+									color = MaterialTheme.colorScheme.primary
+								)
+								// 1. Akku-Optimierung
+								PermissionSettingItem(
+									title = stringResource(R.string.settings_battery_optimization),
+									subtitle = stringResource(
+										if (isBatteryIgnoring) R.string.settings_battery_optimization_exempted
+										else R.string.settings_battery_optimization_optimized
+									),
+									iconRes = R.drawable.ic_battery,
+									isGranted = isBatteryIgnoring,
+									statusText = stringResource(
+										if (isBatteryIgnoring) R.string.settings_status_exempted
+										else R.string.settings_status_optimized
+									),
+									onClick = {
+										runCatching {
+											val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
+												addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+											}
+											context.startActivity(intent)
+										}.onFailure {
+											runCatching {
+												context.startActivity(Intent(Settings.ACTION_SETTINGS).apply {
+													addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+												})
+											}
+										}
+									}
+								)
+
+								// 2. Benachrichtigungen
+								PermissionSettingItem(
+									title = stringResource(R.string.settings_notifications),
+									subtitle = stringResource(
+										if (areNotificationsEnabled) R.string.settings_notifications_enabled
+										else R.string.settings_notifications_disabled
+									),
+									iconRes = R.drawable.ic_notifications,
+									isGranted = areNotificationsEnabled,
+									statusText = stringResource(
+										if (areNotificationsEnabled) R.string.settings_status_active
+										else R.string.settings_status_disabled
+									),
+									onClick = {
+										runCatching {
+											val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+												putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+												addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+											}
+											context.startActivity(intent)
+										}.onFailure {
+											runCatching {
+												val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+													data = "package:${context.packageName}".toUri()
+													addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+												}
+												context.startActivity(intent)
+											}
+										}
+									}
+								)
+
+								// 3. Unbekannte Apps installieren
+								PermissionSettingItem(
+									title = stringResource(R.string.settings_install_unknown_apps),
+									subtitle = stringResource(
+										if (hasInstallPermission) R.string.settings_install_unknown_apps_allowed
+										else R.string.settings_install_unknown_apps_denied
+									),
+									iconRes = R.drawable.ic_install,
+									isGranted = hasInstallPermission,
+									statusText = stringResource(
+										if (hasInstallPermission) R.string.settings_status_allowed
+										else R.string.settings_status_blocked
+									),
+									onClick = {
+										runCatching {
+											val intent = Intent(
+												Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+												"package:${context.packageName}".toUri()
+											).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+											context.startActivity(intent)
+										}.onFailure {
+											runCatching {
+												val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+													data = "package:${context.packageName}".toUri()
+													addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+												}
+												context.startActivity(intent)
+											}
+										}
+									}
+								)
+							}
+
+							HorizontalDivider(
+								thickness = 1.dp,
+								color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+							)
+
+							// 3. Datensicherung & Export
+							Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+								Text(
+									text = stringResource(R.string.settings_section_backup_restore),
+									style = MaterialTheme.typography.labelLarge,
+									fontWeight = FontWeight.Bold,
+									color = MaterialTheme.colorScheme.primary
 								)
 								Text(
-									text = stringResource(
-										if (hasInstallPermission) R.string.permission_status_granted
-										else R.string.permission_status_missing
-									),
-									style = MaterialTheme.typography.labelSmall,
-									fontWeight = FontWeight.SemiBold,
-									color = if (hasInstallPermission) Color(0xFF2E7D32) else MaterialTheme.colorScheme.onErrorContainer
+									text = stringResource(R.string.settings_backup_description),
+									style = MaterialTheme.typography.bodySmall,
+									color = MaterialTheme.colorScheme.onSurfaceVariant
 								)
+								Row(
+									modifier = Modifier
+										.fillMaxWidth()
+										.padding(top = 4.dp),
+									horizontalArrangement = Arrangement.spacedBy(10.dp),
+									verticalAlignment = CenterVertically
+								) {
+									OutlinedButton(
+										onClick = { exportBackupLauncher.launch("apkup-backup.json") },
+										modifier = Modifier.weight(1f),
+										shape = CircleShape
+									) {
+										Icon(
+											imageVector = Icons.Default.Share,
+											contentDescription = null,
+											modifier = Modifier.size(16.dp)
+										)
+										Spacer(modifier = Modifier.width(6.dp))
+										Text(
+											text = stringResource(R.string.action_export_backup),
+											maxLines = 1,
+											overflow = TextOverflow.Ellipsis
+										)
+									}
+									FilledTonalButton(
+										onClick = { importBackupLauncher.launch(arrayOf("application/json", "text/plain", "*/*")) },
+										modifier = Modifier.weight(1f),
+										shape = CircleShape
+									) {
+										Icon(
+											painter = painterResource(R.drawable.ic_download),
+											contentDescription = null,
+											modifier = Modifier.size(16.dp)
+										)
+										Spacer(modifier = Modifier.width(6.dp))
+										Text(
+											text = stringResource(R.string.action_import_backup),
+											maxLines = 1,
+											overflow = TextOverflow.Ellipsis
+										)
+									}
+								}
+								OutlinedButton(
+									onClick = { exportObtainiumLauncher.launch("apkup-obtainium-export.json") },
+									modifier = Modifier
+										.fillMaxWidth()
+										.padding(top = 4.dp),
+									shape = CircleShape
+								) {
+									Icon(
+										imageVector = Icons.Default.Share,
+										contentDescription = null,
+										modifier = Modifier.size(16.dp)
+									)
+									Spacer(modifier = Modifier.width(6.dp))
+									Text(
+										text = stringResource(R.string.action_export_obtainium),
+										maxLines = 1,
+										overflow = TextOverflow.Ellipsis
+									)
+								}
 							}
 						}
 					}
-				}
-
-				Text(
-					text = stringResource(R.string.settings_backup_section),
-					style = MaterialTheme.typography.labelLarge,
-					fontWeight = FontWeight.SemiBold,
-					color = MaterialTheme.colorScheme.onSurface
-				)
-				Text(
-					text = stringResource(R.string.settings_backup_description),
-					style = MaterialTheme.typography.bodySmall,
-					color = MaterialTheme.colorScheme.onSurfaceVariant
-				)
-				Row(
-					modifier = Modifier
-						.fillMaxWidth()
-						.padding(top = 4.dp),
-					horizontalArrangement = Arrangement.spacedBy(10.dp),
-					verticalAlignment = Alignment.CenterVertically
-				) {
-					OutlinedButton(
-						onClick = { exportBackupLauncher.launch("apkup-backup.json") },
-						modifier = Modifier.weight(1f),
-						shape = CircleShape
-					) {
-						Icon(
-							imageVector = Icons.Default.Share,
-							contentDescription = null,
-							modifier = Modifier.size(16.dp)
-						)
-						Spacer(modifier = Modifier.width(6.dp))
-						Text(
-							text = stringResource(R.string.action_export_backup),
-							maxLines = 1,
-							overflow = TextOverflow.Ellipsis
-						)
-					}
-					FilledTonalButton(
-						onClick = { importBackupLauncher.launch(arrayOf("application/json", "text/plain", "*/*")) },
-						modifier = Modifier.weight(1f),
-						shape = CircleShape
-					) {
-						Icon(
-							painter = painterResource(R.drawable.ic_download),
-							contentDescription = null,
-							modifier = Modifier.size(16.dp)
-						)
-						Spacer(modifier = Modifier.width(6.dp))
-						Text(
-							text = stringResource(R.string.action_import_backup),
-							maxLines = 1,
-							overflow = TextOverflow.Ellipsis
-						)
-					}
-				}
-				OutlinedButton(
-					onClick = { exportObtainiumLauncher.launch("apkup-obtainium-export.json") },
-					modifier = Modifier
-						.fillMaxWidth()
-						.padding(top = 4.dp),
-					shape = CircleShape
-				) {
-					Icon(
-						imageVector = Icons.Default.Share,
-						contentDescription = null,
-						modifier = Modifier.size(16.dp)
-					)
-					Spacer(modifier = Modifier.width(6.dp))
-					Text(
-						text = stringResource(R.string.action_export_obtainium),
-						maxLines = 1,
-						overflow = TextOverflow.Ellipsis
-					)
 				}
 			}
 		}
-
-		// Sektion 6: Über ApkUp (Unified Hero-Card + 2x2 Bento-Grid + dezenter Footer-Link)
 		item(key = "section_about") {
 			Column(modifier = Modifier.fillMaxWidth()) {
 				SettingsSection(stringResource(R.string.about)) {
@@ -1285,58 +1556,129 @@ fun Settings(
 						}
 					}
 
-					// 3. Kompakte GitHub-Bento-Kachel
-					Surface(
-						onClick = { handler.openUri("https://github.com/DurchEins/apkup") },
-						modifier = Modifier.fillMaxWidth(),
-						shape = RoundedCornerShape(18.dp),
-						color = MaterialTheme.colorScheme.surfaceContainerHigh,
-						border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+					// 3. Zweite Bento-Zeile (GitHub & Hilfe/Wiki nebeneinander als 2x2-Vervollständigung)
+					Row(
+						modifier = Modifier
+							.fillMaxWidth()
+							.height(IntrinsicSize.Min),
+						horizontalArrangement = Arrangement.spacedBy(8.dp)
 					) {
-						Row(
+						Surface(
+							onClick = { handler.openUri("https://github.com/DurchEins/apkup") },
 							modifier = Modifier
-								.fillMaxWidth()
-								.padding(horizontal = 12.dp, vertical = 10.dp),
-							verticalAlignment = CenterVertically,
-							horizontalArrangement = Arrangement.spacedBy(10.dp)
+								.weight(1f)
+								.fillMaxHeight(),
+							shape = RoundedCornerShape(14.dp),
+							color = MaterialTheme.colorScheme.surfaceContainerHigh,
+							border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
 						) {
-							Box(
+							Row(
 								modifier = Modifier
-									.size(32.dp)
-									.clip(RoundedCornerShape(10.dp))
-									.background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.65f)),
-								contentAlignment = Alignment.Center
+									.fillMaxSize()
+									.padding(horizontal = 10.dp, vertical = 8.dp),
+								verticalAlignment = CenterVertically,
+								horizontalArrangement = Arrangement.spacedBy(8.dp)
 							) {
+								Box(
+									modifier = Modifier
+										.size(28.dp)
+										.clip(RoundedCornerShape(8.dp))
+										.background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.65f)),
+									contentAlignment = Alignment.Center
+								) {
+									Icon(
+										painter = painterResource(R.drawable.ic_github),
+										contentDescription = null,
+										tint = MaterialTheme.colorScheme.primary,
+										modifier = Modifier.size(15.dp)
+									)
+								}
+								Column(
+									modifier = Modifier.weight(1f),
+									verticalArrangement = Arrangement.spacedBy(1.dp)
+								) {
+									Text(
+										text = stringResource(R.string.about_github_bento_short_title),
+										style = MaterialTheme.typography.labelMedium,
+										fontWeight = FontWeight.SemiBold,
+										color = MaterialTheme.colorScheme.onSurface,
+										maxLines = 1,
+										overflow = TextOverflow.Ellipsis
+									)
+									Text(
+										text = stringResource(R.string.about_github_bento_short_subtitle),
+										style = MaterialTheme.typography.labelSmall,
+										color = MaterialTheme.colorScheme.onSurfaceVariant,
+										maxLines = 1,
+										overflow = TextOverflow.Ellipsis
+									)
+								}
 								Icon(
-									painter = painterResource(R.drawable.ic_github),
+									painter = painterResource(R.drawable.ic_open_in_new),
 									contentDescription = null,
-									tint = MaterialTheme.colorScheme.primary,
-									modifier = Modifier.size(16.dp)
+									tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+									modifier = Modifier.size(13.dp)
 								)
 							}
-							Column(modifier = Modifier.weight(1f)) {
-								Text(
-									text = stringResource(R.string.about_github_title),
-									style = MaterialTheme.typography.labelLarge,
-									fontWeight = FontWeight.SemiBold,
-									color = MaterialTheme.colorScheme.onSurface,
-									maxLines = 1,
-									overflow = TextOverflow.Ellipsis
-								)
-								Text(
-									text = stringResource(R.string.about_github_bento_subtitle),
-									style = MaterialTheme.typography.labelSmall,
-									color = MaterialTheme.colorScheme.onSurfaceVariant,
-									maxLines = 1,
-									overflow = TextOverflow.Ellipsis
+						}
+
+						Surface(
+							onClick = { handler.openUri("https://github.com/DurchEins/apkup/wiki") },
+							modifier = Modifier
+								.weight(1f)
+								.fillMaxHeight(),
+							shape = RoundedCornerShape(14.dp),
+							color = MaterialTheme.colorScheme.surfaceContainerHigh,
+							border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+						) {
+							Row(
+								modifier = Modifier
+									.fillMaxSize()
+									.padding(horizontal = 10.dp, vertical = 8.dp),
+								verticalAlignment = CenterVertically,
+								horizontalArrangement = Arrangement.spacedBy(8.dp)
+							) {
+								Box(
+									modifier = Modifier
+										.size(28.dp)
+										.clip(RoundedCornerShape(8.dp))
+										.background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.65f)),
+									contentAlignment = Alignment.Center
+								) {
+									Icon(
+										painter = painterResource(R.drawable.ic_info),
+										contentDescription = null,
+										tint = MaterialTheme.colorScheme.primary,
+										modifier = Modifier.size(15.dp)
+									)
+								}
+								Column(
+									modifier = Modifier.weight(1f),
+									verticalArrangement = Arrangement.spacedBy(1.dp)
+								) {
+									Text(
+										text = stringResource(R.string.about_wiki_bento_title),
+										style = MaterialTheme.typography.labelMedium,
+										fontWeight = FontWeight.SemiBold,
+										color = MaterialTheme.colorScheme.onSurface,
+										maxLines = 1,
+										overflow = TextOverflow.Ellipsis
+									)
+									Text(
+										text = stringResource(R.string.about_wiki_bento_subtitle),
+										style = MaterialTheme.typography.labelSmall,
+										color = MaterialTheme.colorScheme.onSurfaceVariant,
+										maxLines = 1,
+										overflow = TextOverflow.Ellipsis
+									)
+								}
+								Icon(
+									painter = painterResource(R.drawable.ic_open_in_new),
+									contentDescription = null,
+									tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+									modifier = Modifier.size(13.dp)
 								)
 							}
-							Icon(
-								painter = painterResource(R.drawable.ic_open_in_new),
-								contentDescription = null,
-								tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
-								modifier = Modifier.size(15.dp)
-							)
 						}
 					}
 
@@ -1417,7 +1759,6 @@ fun Settings(
 			}
 		}
 	}
-}
 
 	if (showHiddenAppsSheet) {
 		val installedApps = appsViewModel.state().collectAsStateWithLifecycle().value.apps()
@@ -1431,6 +1772,21 @@ fun Settings(
 				viewModel.ignoreApps(toHide, appsViewModel, updatesViewModel)
 			},
 			onDismiss = { showHiddenAppsSheet = false }
+		)
+	}
+
+	if (showIgnoredVersionsSheet) {
+		IgnoredVersionsBottomSheet(
+			entries = ignoredVersions,
+			onUnignore = { id ->
+				viewModel.unignoreVersion(id)
+				updatesViewModel.syncIgnoredFromPrefs()
+			},
+			onClearAll = {
+				viewModel.clearAllIgnoredVersions()
+				updatesViewModel.syncIgnoredFromPrefs()
+			},
+			onDismiss = { showIgnoredVersionsSheet = false }
 		)
 	}
 
@@ -1467,6 +1823,49 @@ fun Settings(
 		)
 	}
 
+	if (showIntervalSheet) {
+		BackgroundCheckIntervalBottomSheet(
+			selectedHours = viewModel.getBackgroundCheckIntervalHours(),
+			onSelectHours = { hours ->
+				viewModel.setBackgroundCheckIntervalHours(hours)
+				configRefreshKey++
+			},
+			onDismiss = { showIntervalSheet = false }
+		)
+	}
+
+	if (showApkMirrorSheet) {
+		ApkMirrorSettingsBottomSheet(
+			directEnabled = viewModel.getDirectApkMirrorDownloads(),
+			onDirectChanged = {
+				viewModel.setDirectApkMirrorDownloads(it)
+				configRefreshKey++
+			},
+			onDismiss = { showApkMirrorSheet = false }
+		)
+	}
+
+	if (showWifiDownloadSheet) {
+		WifiDownloadBottomSheet(
+			wifiOnly = viewModel.getDownloadWifiOnly(),
+			onWifiOnlyChanged = {
+				viewModel.setDownloadWifiOnly(it)
+				configRefreshKey++
+			},
+			chargingOnly = viewModel.getDownloadChargingOnly(),
+			onChargingOnlyChanged = {
+				viewModel.setDownloadChargingOnly(it)
+				configRefreshKey++
+			},
+			bgCheckWifiOnly = viewModel.getBackgroundCheckWifiOnly(),
+			onBgCheckWifiOnlyChanged = {
+				viewModel.setBackgroundCheckWifiOnly(it)
+				configRefreshKey++
+			},
+			onDismiss = { showWifiDownloadSheet = false }
+		)
+	}
+
 	if (showChangelogSheet) {
 		ChangelogBottomSheet(
 			onDismiss = {
@@ -1482,6 +1881,9 @@ fun Settings(
 			description = stringResource(R.string.github_token_dialog_desc),
 			placeholder = stringResource(R.string.github_token_dialog_hint),
 			initialToken = viewModel.getGitHubToken(),
+			createTokenUrl = "https://github.com/settings/tokens/new?description=ApkUp&scopes=",
+			createTokenButtonText = stringResource(R.string.token_action_generate_github),
+			guideUrl = "https://github.com/DurchEins/apkup/wiki",
 			onDismiss = { showGitHubTokenDialog = false },
 			onVerifyToken = { raw -> viewModel.validateGitHubToken(raw) },
 			onVerifiedMessage = { msg -> viewModel.notifyTextSnack(msg) },
@@ -1498,6 +1900,9 @@ fun Settings(
 			description = stringResource(R.string.gitlab_token_dialog_desc),
 			placeholder = stringResource(R.string.gitlab_token_dialog_hint),
 			initialToken = viewModel.getGitLabToken(),
+			createTokenUrl = "https://gitlab.com/-/user_settings/personal_access_tokens?name=ApkUp&scopes=read_api",
+			createTokenButtonText = stringResource(R.string.token_action_generate_gitlab),
+			guideUrl = "https://github.com/DurchEins/apkup/wiki",
 			onDismiss = { showGitLabTokenDialog = false },
 			onVerifyToken = { raw -> viewModel.validateGitLabToken(raw) },
 			onVerifiedMessage = { msg -> viewModel.notifyTextSnack(msg) },
@@ -1508,6 +1913,7 @@ fun Settings(
 		)
 	}
 }
+}
 
 @Composable
 private fun ApiTokenDialog(
@@ -1515,12 +1921,16 @@ private fun ApiTokenDialog(
 	description: String,
 	placeholder: String,
 	initialToken: String,
+	createTokenUrl: String? = null,
+	createTokenButtonText: String? = null,
+	guideUrl: String? = null,
 	onDismiss: () -> Unit,
 	onVerifyToken: (suspend (String) -> TokenValidationResult)? = null,
 	onVerifiedMessage: ((String) -> Unit)? = null,
 	onSaveToken: (String) -> Unit
 ) {
 	val context = LocalContext.current
+	val uriHandler = LocalUriHandler.current
 	val coroutineScope = rememberCoroutineScope()
 	var tokenText by remember { mutableStateOf(initialToken) }
 	var isTokenVisible by remember { mutableStateOf(false) }
@@ -1528,6 +1938,7 @@ private fun ApiTokenDialog(
 	var isSaving by remember { mutableStateOf(false) }
 	var validationResult by remember { mutableStateOf<TokenValidationResult?>(null) }
 	var validatedTokenValue by remember { mutableStateOf<String?>(null) }
+	var isGuideExpanded by rememberSaveable { mutableStateOf(initialToken.isBlank()) }
 
 	fun formatValidationMessage(result: TokenValidationResult): String {
 		return when (result) {
@@ -1560,12 +1971,107 @@ private fun ApiTokenDialog(
 		containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
 		title = { Text(title) },
 		text = {
-			Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+			Column(
+				modifier = Modifier.verticalScroll(rememberScrollState()),
+				verticalArrangement = Arrangement.spacedBy(10.dp)
+			) {
 				Text(
 					text = description,
 					style = MaterialTheme.typography.bodyMedium,
 					color = MaterialTheme.colorScheme.onSurfaceVariant
 				)
+
+				if (!createTokenUrl.isNullOrBlank() || !guideUrl.isNullOrBlank()) {
+					Surface(
+						shape = RoundedCornerShape(14.dp),
+						color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.6f),
+						modifier = Modifier.fillMaxWidth()
+					) {
+						Column(
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(10.dp),
+							verticalArrangement = Arrangement.spacedBy(8.dp)
+						) {
+							Row(
+								modifier = Modifier
+									.fillMaxWidth()
+									.clickable { isGuideExpanded = !isGuideExpanded },
+								horizontalArrangement = Arrangement.SpaceBetween,
+								verticalAlignment = CenterVertically
+							) {
+								Row(
+									verticalAlignment = CenterVertically,
+									horizontalArrangement = Arrangement.spacedBy(6.dp)
+								) {
+									Icon(
+										imageVector = Icons.Default.Info,
+										contentDescription = null,
+										tint = MaterialTheme.colorScheme.primary,
+										modifier = Modifier.size(16.dp)
+									)
+									Text(
+										text = stringResource(R.string.token_guide_header),
+										style = MaterialTheme.typography.labelMedium,
+										fontWeight = FontWeight.SemiBold,
+										color = MaterialTheme.colorScheme.onSurface
+									)
+								}
+								Icon(
+									imageVector = if (isGuideExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+									contentDescription = null,
+									tint = MaterialTheme.colorScheme.primary,
+									modifier = Modifier.size(18.dp)
+								)
+							}
+
+							AnimatedVisibility(visible = isGuideExpanded) {
+								Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+									Text(
+										text = stringResource(R.string.token_guide_hint),
+										style = MaterialTheme.typography.bodySmall,
+										color = MaterialTheme.colorScheme.onSurfaceVariant
+									)
+									Row(
+										modifier = Modifier.fillMaxWidth(),
+										horizontalArrangement = Arrangement.spacedBy(8.dp)
+									) {
+										if (!createTokenUrl.isNullOrBlank() && !createTokenButtonText.isNullOrBlank()) {
+											FilledTonalButton(
+												onClick = { uriHandler.openUri(createTokenUrl) },
+												modifier = Modifier.weight(1f),
+												contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)
+											) {
+												Text(
+													text = createTokenButtonText,
+													style = MaterialTheme.typography.labelSmall,
+													fontWeight = FontWeight.SemiBold,
+													maxLines = 1,
+													overflow = TextOverflow.Ellipsis
+												)
+											}
+										}
+										if (!guideUrl.isNullOrBlank()) {
+											OutlinedButton(
+												onClick = { uriHandler.openUri(guideUrl) },
+												modifier = Modifier.weight(1f),
+												contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)
+											) {
+												Text(
+													text = stringResource(R.string.token_action_guide_wiki),
+													style = MaterialTheme.typography.labelSmall,
+													maxLines = 1,
+													overflow = TextOverflow.Ellipsis
+												)
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+
 				OutlinedTextField(
 					value = tokenText,
 					onValueChange = {
@@ -2152,6 +2658,8 @@ private fun ShizukuStepCard(
 
 @Composable
 private fun UpdateDisplayModePreview(displayMode: Int) {
+	var isExpanded by rememberSaveable { mutableStateOf(false) }
+
 	Surface(
 		modifier = Modifier
 			.fillMaxWidth()
@@ -2166,254 +2674,337 @@ private fun UpdateDisplayModePreview(displayMode: Int) {
 			verticalArrangement = Arrangement.spacedBy(8.dp)
 		) {
 			Row(
-				modifier = Modifier.fillMaxWidth(),
+				modifier = Modifier
+					.fillMaxWidth()
+					.clip(RoundedCornerShape(8.dp))
+					.clickable { isExpanded = !isExpanded }
+					.padding(vertical = 2.dp),
 				horizontalArrangement = Arrangement.SpaceBetween,
 				verticalAlignment = CenterVertically
 			) {
-				Text(
-					text = stringResource(R.string.settings_preview_title),
-					style = MaterialTheme.typography.labelMedium,
-					fontWeight = FontWeight.SemiBold,
-					color = MaterialTheme.colorScheme.primary
-				)
-				Text(
-					text = if (displayMode == 0) stringResource(R.string.updates_detail_view) else stringResource(R.string.updates_compact_view),
-					style = MaterialTheme.typography.labelSmall,
-					color = MaterialTheme.colorScheme.onSurfaceVariant
+				Row(
+					verticalAlignment = CenterVertically,
+					horizontalArrangement = Arrangement.spacedBy(8.dp)
+				) {
+					Text(
+						text = stringResource(R.string.settings_preview_title),
+						style = MaterialTheme.typography.labelMedium,
+						fontWeight = FontWeight.SemiBold,
+						color = MaterialTheme.colorScheme.primary
+					)
+					Text(
+						text = if (displayMode == 0) stringResource(R.string.updates_detail_view) else stringResource(R.string.updates_compact_view),
+						style = MaterialTheme.typography.labelSmall,
+						color = MaterialTheme.colorScheme.onSurfaceVariant
+					)
+				}
+				Icon(
+					imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+					contentDescription = null,
+					tint = MaterialTheme.colorScheme.onSurfaceVariant,
+					modifier = Modifier.size(20.dp)
 				)
 			}
 
-			AnimatedContent(
-				targetState = displayMode,
-				transitionSpec = {
-					(fadeIn(animationSpec = tween(220, delayMillis = 50)) +
-					 scaleIn(initialScale = 0.94f, animationSpec = tween(220, delayMillis = 50)))
-						.togetherWith(fadeOut(animationSpec = tween(150)))
-						.using(SizeTransform(clip = false))
-				},
-				label = "PreviewModeAnimation"
-			) { mode ->
-				if (mode == 0) {
-					// Detail / Normal View Preview: 2 miniature cards side-by-side
-					Row(
-						modifier = Modifier.fillMaxWidth(),
-						horizontalArrangement = Arrangement.spacedBy(8.dp)
-					) {
-						val detailCards = listOf(
-							Triple("Google Maps", "com.google.android.apps.maps", "11.120 → 11.124") to ("Google Play" to R.drawable.ic_play),
-							Triple("Mozilla Firefox", "org.mozilla.firefox", "128.0 → 129.0") to ("APKMirror" to R.drawable.ic_apkmirror)
-						)
-						detailCards.forEach { (appInfo, sourceInfo) ->
-							val (appName, pkg, versionJump) = appInfo
-							val (sourceName, sourceIcon) = sourceInfo
-							Surface(
-								modifier = Modifier.weight(1f),
-								shape = RoundedCornerShape(14.dp),
-								color = MaterialTheme.colorScheme.surfaceContainerLow,
-								shadowElevation = 1.dp
+			AnimatedVisibility(
+				visible = isExpanded,
+				enter = expandVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + fadeIn(),
+				exit = shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + fadeOut()
+			) {
+				AnimatedContent(
+					targetState = displayMode,
+					transitionSpec = {
+						(fadeIn(animationSpec = tween(220, delayMillis = 50)) +
+						 scaleIn(initialScale = 0.94f, animationSpec = tween(220, delayMillis = 50)))
+							.togetherWith(fadeOut(animationSpec = tween(150)))
+							.using(SizeTransform(clip = false))
+					},
+					label = "PreviewModeAnimation"
+				) { mode ->
+					if (mode == 0) {
+						// 1-Spalten Detail-Ansicht (exaktes 1:1 Spiegelbild von UpdateCard)
+						Surface(
+							modifier = Modifier.fillMaxWidth(),
+							shape = RoundedCornerShape(20.dp),
+							color = MaterialTheme.colorScheme.surfaceContainerLow
+						) {
+							Column(
+								modifier = Modifier
+									.fillMaxWidth()
+									.padding(14.dp),
+								verticalArrangement = Arrangement.spacedBy(10.dp)
 							) {
-								Column(
-									modifier = Modifier
-										.fillMaxWidth()
-										.padding(8.dp),
-									verticalArrangement = Arrangement.spacedBy(6.dp)
+								Row(
+									verticalAlignment = Alignment.Top,
+									horizontalArrangement = Arrangement.spacedBy(12.dp),
+									modifier = Modifier.fillMaxWidth()
 								) {
-									Row(
-										verticalAlignment = CenterVertically,
-										horizontalArrangement = Arrangement.spacedBy(6.dp)
+									Box(
+										modifier = Modifier
+											.size(52.dp)
+											.clip(RoundedCornerShape(14.dp))
+											.background(MaterialTheme.colorScheme.surfaceContainer),
+										contentAlignment = Alignment.Center
 									) {
-										Box(
-											modifier = Modifier
-												.size(28.dp)
-												.clip(RoundedCornerShape(8.dp))
-												.background(MaterialTheme.colorScheme.surfaceContainerHigh),
-											contentAlignment = Alignment.Center
-										) {
-											Icon(
-												painter = painterResource(R.drawable.ic_system),
-												contentDescription = null,
-												tint = MaterialTheme.colorScheme.primary,
-												modifier = Modifier.size(16.dp)
-											)
-										}
-										Column(modifier = Modifier.weight(1f)) {
-											Text(
-												text = appName,
-												style = MaterialTheme.typography.labelMedium.copy(
-													fontSize = 11.sp,
-													lineHeight = 13.sp
-												),
-												fontWeight = FontWeight.SemiBold,
-												color = MaterialTheme.colorScheme.onSurface,
-												maxLines = 2,
-												overflow = TextOverflow.Ellipsis
-											)
-											Text(
-												text = pkg,
-												style = MaterialTheme.typography.labelSmall.copy(
-													fontSize = 8.sp,
-													lineHeight = 10.sp
-												),
-												color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-												maxLines = 1,
-												overflow = TextOverflow.Ellipsis
-											)
-										}
-									}
-
-									Surface(
-										shape = RoundedCornerShape(6.dp),
-										color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f)
-									) {
-										Text(
-											text = versionJump,
-											style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-											fontWeight = FontWeight.SemiBold,
-											color = MaterialTheme.colorScheme.onPrimaryContainer,
-											modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-											maxLines = 1,
-											overflow = TextOverflow.Ellipsis
+										Icon(
+											painter = painterResource(R.drawable.ic_system),
+											contentDescription = null,
+											tint = MaterialTheme.colorScheme.primary,
+											modifier = Modifier.size(28.dp)
 										)
 									}
-
-									Row(
-										modifier = Modifier.fillMaxWidth(),
-										verticalAlignment = CenterVertically,
-										horizontalArrangement = Arrangement.SpaceBetween
+									Column(
+										modifier = Modifier.weight(1f),
+										verticalArrangement = Arrangement.spacedBy(2.dp)
 									) {
 										Row(
-											verticalAlignment = CenterVertically,
-											horizontalArrangement = Arrangement.spacedBy(3.dp),
-											modifier = Modifier.weight(1f, fill = false)
+											modifier = Modifier.fillMaxWidth(),
+											horizontalArrangement = Arrangement.SpaceBetween,
+											verticalAlignment = Alignment.CenterVertically
 										) {
-											Icon(
-												painter = painterResource(sourceIcon),
-												contentDescription = null,
-												tint = MaterialTheme.colorScheme.onSurfaceVariant,
-												modifier = Modifier.size(11.dp)
+											Text(
+												text = "System parental controls",
+												style = MaterialTheme.typography.titleMedium,
+												fontWeight = FontWeight.Bold,
+												color = MaterialTheme.colorScheme.onSurface,
+												maxLines = 1,
+												overflow = TextOverflow.Ellipsis,
+												modifier = Modifier.weight(1f, fill = false)
 											)
 											Text(
-												text = sourceName,
-												style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.5.sp),
+												text = "26.2 MB",
+												style = MaterialTheme.typography.labelSmall,
+												color = MaterialTheme.colorScheme.onSurfaceVariant
+											)
+										}
+										Row(
+											verticalAlignment = Alignment.CenterVertically,
+											horizontalArrangement = Arrangement.spacedBy(6.dp)
+										) {
+											Text(
+												text = "1.0.966003905",
+												style = MaterialTheme.typography.labelSmall,
 												color = MaterialTheme.colorScheme.onSurfaceVariant,
 												maxLines = 1,
 												overflow = TextOverflow.Ellipsis
 											)
+											Icon(
+												imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
+												contentDescription = null,
+												tint = MaterialTheme.colorScheme.primary,
+												modifier = Modifier.size(12.dp)
+											)
+											Text(
+												text = "1.0.1007282986",
+												style = MaterialTheme.typography.labelSmall,
+												fontWeight = FontWeight.Bold,
+												color = MaterialTheme.colorScheme.primary,
+												maxLines = 1,
+												overflow = TextOverflow.Ellipsis
+											)
 										}
-										Surface(
-											shape = RoundedCornerShape(6.dp),
-											color = MaterialTheme.colorScheme.secondaryContainer
+										Row(
+											verticalAlignment = Alignment.CenterVertically,
+											horizontalArrangement = Arrangement.spacedBy(6.dp),
+											modifier = Modifier.padding(top = 2.dp)
 										) {
-											Row(
-												modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-												verticalAlignment = CenterVertically,
-												horizontalArrangement = Arrangement.spacedBy(3.dp)
+											Surface(
+												shape = RoundedCornerShape(4.dp),
+												color = MaterialTheme.colorScheme.surfaceContainer
 											) {
-												Icon(
-													painter = painterResource(R.drawable.ic_install),
-													contentDescription = null,
-													modifier = Modifier.size(9.dp),
-													tint = MaterialTheme.colorScheme.onSecondaryContainer
-												)
-												Text(
-													text = stringResource(R.string.update_action),
-													style = MaterialTheme.typography.labelSmall.copy(
-														fontSize = 8.5.sp,
-														fontWeight = FontWeight.SemiBold
-													),
-													color = MaterialTheme.colorScheme.onSecondaryContainer
-												)
+												Row(
+													modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+													verticalAlignment = Alignment.CenterVertically,
+													horizontalArrangement = Arrangement.spacedBy(4.dp)
+												) {
+													Icon(
+														painter = painterResource(R.drawable.ic_play),
+														contentDescription = null,
+														tint = MaterialTheme.colorScheme.onSurfaceVariant,
+														modifier = Modifier.size(11.dp)
+													)
+													Text(
+														text = "Google Play",
+														style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+														color = MaterialTheme.colorScheme.onSurfaceVariant
+													)
+												}
 											}
+											Surface(
+												shape = RoundedCornerShape(4.dp),
+												color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f)
+											) {
+												Row(
+													modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+													verticalAlignment = Alignment.CenterVertically,
+													horizontalArrangement = Arrangement.spacedBy(3.dp)
+												) {
+													Icon(
+														imageVector = Icons.Default.Layers,
+														contentDescription = null,
+														tint = MaterialTheme.colorScheme.onPrimaryContainer,
+														modifier = Modifier.size(11.dp)
+													)
+													Text(
+														text = "+1",
+														style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
+														color = MaterialTheme.colorScheme.onPrimaryContainer
+													)
+												}
+											}
+										}
+									}
+								}
+
+								Surface(
+									shape = RoundedCornerShape(10.dp),
+									color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.6f),
+									modifier = Modifier.fillMaxWidth()
+								) {
+									Row(
+										modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+										verticalAlignment = Alignment.CenterVertically,
+										horizontalArrangement = Arrangement.spacedBy(6.dp)
+									) {
+										Icon(
+											imageVector = Icons.Filled.Info,
+											contentDescription = null,
+											tint = MaterialTheme.colorScheme.primary,
+											modifier = Modifier.size(13.dp)
+										)
+										Text(
+											text = "• First version",
+											style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp),
+											color = MaterialTheme.colorScheme.onSurfaceVariant,
+											maxLines = 1,
+											overflow = TextOverflow.Ellipsis
+										)
+									}
+								}
+
+								Row(
+									modifier = Modifier.fillMaxWidth(),
+									horizontalArrangement = Arrangement.SpaceBetween,
+									verticalAlignment = Alignment.CenterVertically
+								) {
+									Text(
+										text = stringResource(R.string.updates_detail_view),
+										style = MaterialTheme.typography.labelMedium,
+										color = MaterialTheme.colorScheme.onSurfaceVariant
+									)
+									Surface(
+										shape = RoundedCornerShape(10.dp),
+										color = MaterialTheme.colorScheme.primary
+									) {
+										Row(
+											modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+											verticalAlignment = Alignment.CenterVertically,
+											horizontalArrangement = Arrangement.spacedBy(6.dp)
+										) {
+											Icon(
+												painter = painterResource(R.drawable.ic_install),
+												contentDescription = null,
+												tint = MaterialTheme.colorScheme.onPrimary,
+												modifier = Modifier.size(14.dp)
+											)
+											Text(
+												text = stringResource(R.string.update_action),
+												style = MaterialTheme.typography.labelMedium,
+												fontWeight = FontWeight.Bold,
+												color = MaterialTheme.colorScheme.onPrimary
+											)
 										}
 									}
 								}
 							}
 						}
-					}
-				} else {
-					// Compact View Preview: 4 miniature tiles side-by-side
-					Row(
-						modifier = Modifier.fillMaxWidth(),
-						horizontalArrangement = Arrangement.spacedBy(6.dp)
-					) {
-						val compactSamples = listOf(
-							Triple("Maps", "→ 11.124", "Play" to R.drawable.ic_play),
-							Triple("Firefox", "→ 129.0", "Mirror" to R.drawable.ic_apkmirror),
-							Triple("Spotify", "→ 8.9.60", "Play" to R.drawable.ic_play),
-							Triple("Telegram", "→ 10.14", "Mirror" to R.drawable.ic_apkmirror)
-						)
-						compactSamples.forEach { (name, versionJump, sourceInfo) ->
-							val (sourceName, sourceIcon) = sourceInfo
-							Surface(
-								modifier = Modifier.weight(1f),
-								shape = RoundedCornerShape(12.dp),
-								color = MaterialTheme.colorScheme.surfaceContainerLow,
-								shadowElevation = 1.dp
+					} else {
+						// 1-Spalten Kompakt-Ansicht (exaktes 1:1 Spiegelbild von CompactUpdatesGrid)
+						Surface(
+							modifier = Modifier.fillMaxWidth(),
+							shape = RoundedCornerShape(14.dp),
+							color = MaterialTheme.colorScheme.surfaceContainerLow
+						) {
+							Row(
+								modifier = Modifier
+									.fillMaxWidth()
+									.padding(horizontal = 14.dp, vertical = 10.dp),
+								verticalAlignment = Alignment.CenterVertically,
+								horizontalArrangement = Arrangement.spacedBy(12.dp)
 							) {
-								Column(
+								Box(
 									modifier = Modifier
-										.fillMaxWidth()
-										.padding(start = 5.dp, end = 5.dp, top = 12.dp, bottom = 7.dp),
-									verticalArrangement = Arrangement.spacedBy(4.dp)
+										.size(42.dp)
+										.clip(RoundedCornerShape(12.dp))
+										.background(MaterialTheme.colorScheme.surfaceContainer),
+									contentAlignment = Alignment.Center
 								) {
-									Box(
-										modifier = Modifier
-											.fillMaxWidth()
-											.padding(bottom = 8.dp),
-										contentAlignment = Alignment.Center
-									) {
-										Box(
-											modifier = Modifier
-												.size(24.dp)
-												.clip(RoundedCornerShape(7.dp))
-												.background(MaterialTheme.colorScheme.surfaceContainerHigh),
-											contentAlignment = Alignment.Center
-										) {
-											Icon(
-												painter = painterResource(R.drawable.ic_system),
-												contentDescription = null,
-												tint = MaterialTheme.colorScheme.primary,
-												modifier = Modifier.size(14.dp)
-											)
-										}
-									}
+									Icon(
+										painter = painterResource(R.drawable.ic_system),
+										contentDescription = null,
+										tint = MaterialTheme.colorScheme.primary,
+										modifier = Modifier.size(22.dp)
+									)
+								}
+								Column(
+									modifier = Modifier.weight(1f),
+									verticalArrangement = Arrangement.spacedBy(2.dp)
+								) {
 									Text(
-										text = name,
-										style = MaterialTheme.typography.labelSmall.copy(
-											fontSize = 10.sp,
-											fontWeight = FontWeight.SemiBold
-										),
+										text = "System parental controls",
+										style = MaterialTheme.typography.bodyMedium,
+										fontWeight = FontWeight.Bold,
 										color = MaterialTheme.colorScheme.onSurface,
 										maxLines = 1,
 										overflow = TextOverflow.Ellipsis
 									)
-									Text(
-										text = versionJump,
-										style = MaterialTheme.typography.labelSmall.copy(
-											fontSize = 8.5.sp,
-											fontWeight = FontWeight.SemiBold
-										),
-										color = MaterialTheme.colorScheme.primary,
-										maxLines = 1,
-										overflow = TextOverflow.Ellipsis
-									)
 									Row(
-										modifier = Modifier.fillMaxWidth(),
-										verticalAlignment = CenterVertically,
-										horizontalArrangement = Arrangement.spacedBy(2.dp)
+										verticalAlignment = Alignment.CenterVertically,
+										horizontalArrangement = Arrangement.spacedBy(4.dp)
 									) {
-										Icon(
-											painter = painterResource(sourceIcon),
-											contentDescription = null,
-											tint = MaterialTheme.colorScheme.onSurfaceVariant,
-											modifier = Modifier.size(9.dp)
-										)
 										Text(
-											text = sourceName,
-											style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+											text = "1.0.966003905",
+											style = MaterialTheme.typography.labelSmall,
 											color = MaterialTheme.colorScheme.onSurfaceVariant,
 											maxLines = 1,
 											overflow = TextOverflow.Ellipsis
+										)
+										Icon(
+											imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
+											contentDescription = null,
+											tint = MaterialTheme.colorScheme.primary,
+											modifier = Modifier.size(10.dp)
+										)
+										Text(
+											text = "1.0.1007282986",
+											style = MaterialTheme.typography.labelSmall,
+											fontWeight = FontWeight.Bold,
+											color = MaterialTheme.colorScheme.primary,
+											maxLines = 1,
+											overflow = TextOverflow.Ellipsis
+										)
+									}
+								}
+								Surface(
+									shape = RoundedCornerShape(10.dp),
+									color = MaterialTheme.colorScheme.primary
+								) {
+									Row(
+										modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+										verticalAlignment = Alignment.CenterVertically,
+										horizontalArrangement = Arrangement.spacedBy(4.dp)
+									) {
+										Icon(
+											painter = painterResource(R.drawable.ic_install),
+											contentDescription = null,
+											tint = MaterialTheme.colorScheme.onPrimary,
+											modifier = Modifier.size(13.dp)
+										)
+										Text(
+											text = stringResource(R.string.update_action),
+											style = MaterialTheme.typography.labelSmall,
+											fontWeight = FontWeight.Bold,
+											color = MaterialTheme.colorScheme.onPrimary
 										)
 									}
 								}
@@ -2502,6 +3093,7 @@ private fun HiddenAppsBottomSheet(
 							Text(stringResource(R.string.hidden_apps_unselect_all))
 						}
 					}
+
 
 					LazyColumn(
 						modifier = Modifier
@@ -2663,6 +3255,7 @@ private fun HiddenAppsBottomSheet(
 					}
 				}
 
+
 				LazyColumn(
 					modifier = Modifier
 						.fillMaxWidth()
@@ -2746,172 +3339,171 @@ private fun HiddenAppsBottomSheet(
 	}
 }
 
+
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun IgnoredVersionsSection(
+private fun IgnoredVersionsBottomSheet(
 	entries: List<IgnoredVersionEntry>,
 	onUnignore: (Int) -> Unit,
-	onClearAll: () -> Unit
-) = Surface(
-	modifier = Modifier.fillMaxWidth(),
-	shape = RoundedCornerShape(16.dp),
-	color = MaterialTheme.colorScheme.surfaceContainerHigh,
-	border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+	onClearAll: () -> Unit,
+	onDismiss: () -> Unit
 ) {
-	Column(
-		modifier = Modifier
-			.fillMaxWidth()
-			.padding(10.dp),
-		verticalArrangement = Arrangement.spacedBy(6.dp)
+	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+	ModalBottomSheet(
+		onDismissRequest = onDismiss,
+		sheetState = sheetState,
+		containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+		dragHandle = { BottomSheetDefaults.DragHandle() }
 	) {
-		Row(
-			modifier = Modifier.fillMaxWidth(),
-			verticalAlignment = CenterVertically,
-			horizontalArrangement = Arrangement.spacedBy(8.dp)
+		Column(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(horizontal = 20.dp)
+				.padding(bottom = 32.dp)
+				.verticalScroll(rememberScrollState()),
+			verticalArrangement = Arrangement.spacedBy(14.dp)
 		) {
-			Box(
-				modifier = Modifier
-					.size(28.dp)
-					.clip(RoundedCornerShape(8.dp))
-					.background(MaterialTheme.colorScheme.secondaryContainer),
-				contentAlignment = Alignment.Center
-			) {
-				Icon(
-					painter = painterResource(R.drawable.ic_download),
-					contentDescription = null,
-					tint = MaterialTheme.colorScheme.onSecondaryContainer,
-					modifier = Modifier.size(16.dp)
-				)
-			}
-			Column(modifier = Modifier.weight(1f)) {
-				Text(
-					text = stringResource(R.string.settings_ignored_versions_title),
-					style = MaterialTheme.typography.bodyMedium,
-					fontWeight = FontWeight.SemiBold,
-					color = MaterialTheme.colorScheme.onSurface,
-					maxLines = 1,
-					overflow = TextOverflow.Ellipsis
-				)
-				Text(
-					text = stringResource(R.string.settings_ignored_versions_explanation),
-					style = MaterialTheme.typography.labelSmall,
-					color = MaterialTheme.colorScheme.onSurfaceVariant
-				)
-			}
-			Surface(
-				shape = CircleShape,
-				color = MaterialTheme.colorScheme.secondaryContainer
-			) {
-				Text(
-					text = entries.size.toString(),
-					style = MaterialTheme.typography.labelSmall,
-					fontWeight = FontWeight.SemiBold,
-					color = MaterialTheme.colorScheme.onSecondaryContainer,
-					modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-				)
-			}
-		}
-
-		if (entries.isEmpty()) {
-			Surface(
+			Row(
 				modifier = Modifier.fillMaxWidth(),
-				shape = RoundedCornerShape(12.dp),
-				color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.55f)
+				verticalAlignment = CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(10.dp)
 			) {
-				Text(
-					text = stringResource(R.string.settings_ignored_versions_empty),
-					style = MaterialTheme.typography.bodySmall,
-					color = MaterialTheme.colorScheme.onSurfaceVariant,
-					modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)
-				)
+				Box(
+					modifier = Modifier
+						.size(36.dp)
+						.clip(RoundedCornerShape(10.dp))
+						.background(MaterialTheme.colorScheme.secondaryContainer),
+					contentAlignment = Alignment.Center
+				) {
+					Icon(
+						painter = painterResource(R.drawable.ic_download),
+						contentDescription = null,
+						tint = MaterialTheme.colorScheme.onSecondaryContainer,
+						modifier = Modifier.size(20.dp)
+					)
+				}
+				Column(modifier = Modifier.weight(1f)) {
+					Text(
+						text = stringResource(R.string.settings_ignored_versions_title),
+						style = MaterialTheme.typography.titleMedium,
+						fontWeight = FontWeight.Bold,
+						color = MaterialTheme.colorScheme.onSurface
+					)
+					Text(
+						text = if (entries.isEmpty()) stringResource(R.string.settings_ignored_versions_empty)
+						else stringResource(R.string.settings_ignored_versions_count, entries.size),
+						style = MaterialTheme.typography.bodySmall,
+						color = MaterialTheme.colorScheme.onSurfaceVariant
+					)
+				}
 			}
-		} else {
-			Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-				entries.forEach { entry ->
-					Surface(
-						modifier = Modifier.fillMaxWidth(),
-						shape = RoundedCornerShape(12.dp),
-						color = MaterialTheme.colorScheme.surfaceContainerHighest
-					) {
-						Row(
-							modifier = Modifier
-								.fillMaxWidth()
-								.padding(horizontal = 10.dp, vertical = 6.dp),
-							verticalAlignment = CenterVertically,
-							horizontalArrangement = Arrangement.spacedBy(8.dp)
+
+			Text(
+				text = stringResource(R.string.settings_ignored_versions_explanation),
+				style = MaterialTheme.typography.bodySmall,
+				color = MaterialTheme.colorScheme.onSurfaceVariant
+			)
+
+			if (entries.isEmpty()) {
+				Surface(
+					modifier = Modifier.fillMaxWidth(),
+					shape = RoundedCornerShape(16.dp),
+					color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.55f)
+				) {
+					Text(
+						text = stringResource(R.string.settings_ignored_versions_empty),
+						style = MaterialTheme.typography.bodyMedium,
+						color = MaterialTheme.colorScheme.onSurfaceVariant,
+						modifier = Modifier.padding(16.dp)
+					)
+				}
+			} else {
+				Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+					entries.forEach { entry ->
+						Surface(
+							modifier = Modifier.fillMaxWidth(),
+							shape = RoundedCornerShape(14.dp),
+							color = MaterialTheme.colorScheme.surfaceContainerHighest
 						) {
-							if (entry.packageName.isNotBlank()) {
-								Box(
-									modifier = Modifier
-										.size(28.dp)
-										.clip(RoundedCornerShape(8.dp))
-										.background(MaterialTheme.colorScheme.surfaceContainer),
-									contentAlignment = Alignment.Center
-								) {
-									LoadingImageApp(entry.packageName, Modifier.requiredSize(36.dp))
+							Row(
+								modifier = Modifier
+									.fillMaxWidth()
+									.padding(horizontal = 12.dp, vertical = 10.dp),
+								verticalAlignment = CenterVertically,
+								horizontalArrangement = Arrangement.spacedBy(10.dp)
+							) {
+								if (entry.packageName.isNotBlank()) {
+									Box(
+										modifier = Modifier
+											.size(32.dp)
+											.clip(RoundedCornerShape(8.dp))
+											.background(MaterialTheme.colorScheme.surfaceContainer),
+										contentAlignment = Alignment.Center
+									) {
+										LoadingImageApp(entry.packageName, Modifier.requiredSize(40.dp))
+									}
 								}
-							}
-							Column(modifier = Modifier.weight(1f)) {
-								Text(
-									text = entry.appName.ifBlank { entry.packageName.ifBlank { "ID #${entry.id}" } },
-									style = MaterialTheme.typography.bodyMedium,
-									fontWeight = FontWeight.SemiBold,
-									color = MaterialTheme.colorScheme.onSurface,
-									maxLines = 1,
-									overflow = TextOverflow.Ellipsis
-								)
-								val subtitleParts = buildList {
-									if (entry.version.isNotBlank()) add(entry.version)
-									if (entry.versionCode > 0L) add("(${entry.versionCode})")
-									if (entry.sourceName.isNotBlank()) add("• ${entry.sourceName}")
-								}
-								if (subtitleParts.isNotEmpty()) {
+								Column(modifier = Modifier.weight(1f)) {
 									Text(
-										text = subtitleParts.joinToString(" "),
-										style = MaterialTheme.typography.labelSmall,
-										color = MaterialTheme.colorScheme.onSurfaceVariant,
+										text = entry.appName.ifBlank { entry.packageName.ifBlank { "ID #${entry.id}" } },
+										style = MaterialTheme.typography.bodyMedium,
+										fontWeight = FontWeight.SemiBold,
+										color = MaterialTheme.colorScheme.onSurface,
 										maxLines = 1,
 										overflow = TextOverflow.Ellipsis
 									)
+									val subtitleParts = buildList {
+										if (entry.version.isNotBlank()) add(entry.version)
+										if (entry.versionCode > 0L) add("(${entry.versionCode})")
+										if (entry.sourceName.isNotBlank()) add("• ${entry.sourceName}")
+									}
+									if (subtitleParts.isNotEmpty()) {
+										Text(
+											text = subtitleParts.joinToString(" "),
+											style = MaterialTheme.typography.labelSmall,
+											color = MaterialTheme.colorScheme.onSurfaceVariant,
+											maxLines = 1,
+											overflow = TextOverflow.Ellipsis
+										)
+									}
 								}
-							}
-							TextButton(
-								onClick = { onUnignore(entry.id) },
-								contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-							) {
-								Icon(
-									imageVector = Icons.Default.Refresh,
-									contentDescription = null,
-									modifier = Modifier.size(14.dp)
-								)
-								Spacer(modifier = Modifier.width(4.dp))
-								Text(
-									text = stringResource(R.string.action_unignore_version),
-									style = MaterialTheme.typography.labelSmall,
-									fontWeight = FontWeight.SemiBold
-								)
+								FilledTonalButton(
+									onClick = { onUnignore(entry.id) },
+									contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+									shape = CircleShape
+								) {
+									Icon(
+										imageVector = Icons.Default.Refresh,
+										contentDescription = null,
+										modifier = Modifier.size(14.dp)
+									)
+									Spacer(modifier = Modifier.width(4.dp))
+									Text(
+										text = stringResource(R.string.action_unignore_version),
+										style = MaterialTheme.typography.labelSmall,
+										fontWeight = FontWeight.SemiBold
+									)
+								}
 							}
 						}
 					}
-				}
 
-				OutlinedButton(
-					onClick = onClearAll,
-					modifier = Modifier
-						.fillMaxWidth()
-						.heightIn(min = 36.dp),
-					contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-					shape = CircleShape
-				) {
-					Icon(
-						imageVector = Icons.Default.Delete,
-						contentDescription = null,
-						modifier = Modifier.size(16.dp)
-					)
-					Spacer(modifier = Modifier.width(6.dp))
-					Text(
-						text = stringResource(R.string.action_clear_ignored_versions),
-						style = MaterialTheme.typography.labelMedium
-					)
+					OutlinedButton(
+						onClick = onClearAll,
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(top = 4.dp),
+						shape = CircleShape
+					) {
+						Icon(
+							imageVector = Icons.Default.Delete,
+							contentDescription = null,
+							modifier = Modifier.size(16.dp)
+						)
+						Spacer(modifier = Modifier.width(6.dp))
+						Text(stringResource(R.string.action_clear_ignored_versions))
+					}
 				}
 			}
 		}
@@ -2987,3 +3579,523 @@ internal fun performHeartbeatHaptic(
 }
 
 
+
+@Composable
+private fun PermissionSettingItem(
+	title: String,
+	subtitle: String,
+	iconRes: Int,
+	isGranted: Boolean,
+	statusText: String,
+	onClick: () -> Unit
+) {
+	Row(
+		modifier = Modifier
+			.fillMaxWidth()
+			.heightIn(min = 48.dp)
+			.clip(RoundedCornerShape(12.dp))
+			.clickable(onClick = onClick)
+			.padding(horizontal = 4.dp, vertical = 6.dp),
+		verticalAlignment = CenterVertically,
+		horizontalArrangement = Arrangement.spacedBy(10.dp)
+	) {
+		Box(
+			modifier = Modifier
+				.size(32.dp)
+				.clip(RoundedCornerShape(10.dp))
+				.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+			contentAlignment = Alignment.Center
+		) {
+			Icon(
+				painter = painterResource(iconRes),
+				contentDescription = null,
+				tint = MaterialTheme.colorScheme.primary,
+				modifier = Modifier.size(18.dp)
+			)
+		}
+		Column(modifier = Modifier.weight(1f)) {
+			Text(
+				text = title,
+				style = MaterialTheme.typography.bodyMedium,
+				fontWeight = FontWeight.Medium,
+				color = MaterialTheme.colorScheme.onSurface,
+				maxLines = 1,
+				overflow = TextOverflow.Ellipsis
+			)
+			Text(
+				text = subtitle,
+				style = MaterialTheme.typography.labelSmall,
+				color = MaterialTheme.colorScheme.onSurfaceVariant,
+				maxLines = 1,
+				overflow = TextOverflow.Ellipsis
+			)
+		}
+		val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+		val badgeBg = if (isGranted) {
+			if (isDark) Color(0xFF1B3820) else Color(0xFFE8F5E9)
+		} else {
+			if (isDark) Color(0xFF3E1A1A) else Color(0xFFFFEBEE)
+		}
+		val badgeColor = if (isGranted) {
+			if (isDark) Color(0xFF81C784) else Color(0xFF2E7D32)
+		} else {
+			if (isDark) Color(0xFFFF8A80) else Color(0xFFC62828)
+		}
+		Surface(
+			shape = CircleShape,
+			color = badgeBg
+		) {
+			Row(
+				modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+				verticalAlignment = CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(4.dp)
+			) {
+				Icon(
+					imageVector = if (isGranted) Icons.Default.Check else Icons.Default.Close,
+					contentDescription = null,
+					tint = badgeColor,
+					modifier = Modifier.size(11.dp)
+				)
+				Text(
+					text = statusText,
+					style = MaterialTheme.typography.labelSmall,
+					fontWeight = FontWeight.SemiBold,
+					color = badgeColor
+				)
+			}
+		}
+		Icon(
+			imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
+			contentDescription = null,
+			tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+			modifier = Modifier.size(16.dp)
+		)
+	}
+}
+
+private data class SetupWarningItem(
+	val id: String,
+	val title: String,
+	val subtitle: String,
+	val shortName: String,
+	val actionText: String,
+	val onClick: () -> Unit
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BackgroundCheckIntervalBottomSheet(
+	selectedHours: Int,
+	onSelectHours: (Int) -> Unit,
+	onDismiss: () -> Unit
+) {
+	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+	val intervalOptions = listOf(
+		BackgroundCheckInterval.HOURS_6 to ("6h" to R.string.settings_interval_6h),
+		BackgroundCheckInterval.HOURS_12 to ("12h" to R.string.settings_interval_12h),
+		BackgroundCheckInterval.HOURS_24 to ("24h" to R.string.settings_interval_24h),
+		BackgroundCheckInterval.HOURS_48 to ("48h" to R.string.settings_interval_48h),
+		BackgroundCheckInterval.DAYS_7 to ("7d" to R.string.settings_interval_7d)
+	)
+
+	ModalBottomSheet(
+		onDismissRequest = onDismiss,
+		sheetState = sheetState,
+		containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+		contentColor = MaterialTheme.colorScheme.onSurface,
+		dragHandle = {
+			Box(
+				modifier = Modifier
+					.padding(vertical = 12.dp)
+					.width(36.dp)
+					.height(4.dp)
+					.clip(CircleShape)
+					.background(MaterialTheme.colorScheme.outlineVariant)
+			)
+		}
+	) {
+		Column(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(horizontal = 24.dp)
+				.padding(bottom = 32.dp),
+			verticalArrangement = Arrangement.spacedBy(16.dp)
+		) {
+			Row(
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(12.dp)
+			) {
+				Box(
+					modifier = Modifier
+						.size(40.dp)
+						.clip(RoundedCornerShape(12.dp))
+						.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+					contentAlignment = Alignment.Center
+				) {
+					Icon(
+						painter = painterResource(R.drawable.ic_refresh),
+						contentDescription = null,
+						tint = MaterialTheme.colorScheme.primary,
+						modifier = Modifier.size(22.dp)
+					)
+				}
+				Column {
+					Text(
+						text = stringResource(R.string.settings_background_interval_title),
+						style = MaterialTheme.typography.titleMedium,
+						fontWeight = FontWeight.Bold
+					)
+					Text(
+						text = stringResource(R.string.settings_background_checks),
+						style = MaterialTheme.typography.bodySmall,
+						color = MaterialTheme.colorScheme.onSurfaceVariant
+					)
+				}
+			}
+
+			Column(
+				modifier = Modifier.fillMaxWidth(),
+				verticalArrangement = Arrangement.spacedBy(8.dp)
+			) {
+				intervalOptions.forEach { (interval, meta) ->
+					val isSelected = interval.hours == selectedHours
+					Surface(
+						modifier = Modifier
+							.fillMaxWidth()
+							.clip(RoundedCornerShape(16.dp))
+							.clickable {
+								onSelectHours(interval.hours)
+								onDismiss()
+							},
+						shape = RoundedCornerShape(16.dp),
+						color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer,
+						border = if (isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
+					) {
+						Row(
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(horizontal = 16.dp, vertical = 14.dp),
+							verticalAlignment = Alignment.CenterVertically,
+							horizontalArrangement = Arrangement.SpaceBetween
+						) {
+							Row(
+								verticalAlignment = Alignment.CenterVertically,
+								horizontalArrangement = Arrangement.spacedBy(12.dp)
+							) {
+								Surface(
+									shape = RoundedCornerShape(8.dp),
+									color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh
+								) {
+									Text(
+										text = meta.first,
+										modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+										style = MaterialTheme.typography.labelMedium,
+										fontWeight = FontWeight.Bold,
+										color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+									)
+								}
+								Text(
+									text = stringResource(meta.second),
+									style = MaterialTheme.typography.bodyMedium,
+									fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+									color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+								)
+							}
+							if (isSelected) {
+								Icon(
+									imageVector = Icons.Default.Check,
+									contentDescription = null,
+									tint = MaterialTheme.colorScheme.primary,
+									modifier = Modifier.size(20.dp)
+								)
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ApkMirrorSettingsBottomSheet(
+	directEnabled: Boolean,
+	onDirectChanged: (Boolean) -> Unit,
+	onDismiss: () -> Unit
+) {
+	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+	ModalBottomSheet(
+		onDismissRequest = onDismiss,
+		sheetState = sheetState,
+		containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+		contentColor = MaterialTheme.colorScheme.onSurface,
+		dragHandle = {
+			Box(
+				modifier = Modifier
+					.padding(vertical = 12.dp)
+					.width(36.dp)
+					.height(4.dp)
+					.clip(CircleShape)
+					.background(MaterialTheme.colorScheme.outlineVariant)
+			)
+		}
+	) {
+		Column(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(horizontal = 24.dp)
+				.padding(bottom = 32.dp),
+			verticalArrangement = Arrangement.spacedBy(16.dp)
+		) {
+			Row(
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(12.dp)
+			) {
+				Box(
+					modifier = Modifier
+						.size(40.dp)
+						.clip(RoundedCornerShape(12.dp))
+						.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+					contentAlignment = Alignment.Center
+				) {
+					Icon(
+						painter = painterResource(R.drawable.ic_apkmirror),
+						contentDescription = null,
+						tint = MaterialTheme.colorScheme.primary,
+						modifier = Modifier.size(22.dp)
+					)
+				}
+				Column {
+					Text(
+						text = stringResource(R.string.source_apkmirror),
+						style = MaterialTheme.typography.titleMedium,
+						fontWeight = FontWeight.Bold
+					)
+					Text(
+						text = stringResource(R.string.settings_apkmirror_direct_downloads),
+						style = MaterialTheme.typography.bodySmall,
+						color = MaterialTheme.colorScheme.onSurfaceVariant
+					)
+				}
+			}
+
+			Surface(
+				modifier = Modifier.fillMaxWidth(),
+				shape = RoundedCornerShape(16.dp),
+				color = MaterialTheme.colorScheme.surfaceContainer
+			) {
+				Row(
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(horizontal = 16.dp, vertical = 14.dp),
+					verticalAlignment = Alignment.CenterVertically,
+					horizontalArrangement = Arrangement.spacedBy(12.dp)
+				) {
+					Column(modifier = Modifier.weight(1f)) {
+						Text(
+							text = stringResource(R.string.settings_apkmirror_direct_downloads),
+							style = MaterialTheme.typography.bodyMedium,
+							fontWeight = FontWeight.SemiBold
+						)
+						Text(
+							text = stringResource(R.string.settings_apkmirror_direct_downloads_desc),
+							style = MaterialTheme.typography.bodySmall,
+							color = MaterialTheme.colorScheme.onSurfaceVariant
+						)
+					}
+					Switch(
+						checked = directEnabled,
+						onCheckedChange = onDirectChanged
+					)
+				}
+			}
+
+			FilledTonalButton(
+				onClick = onDismiss,
+				modifier = Modifier.fillMaxWidth(),
+				shape = RoundedCornerShape(14.dp)
+			) {
+				Text(text = stringResource(R.string.shizuku_setup_close))
+			}
+		}
+	}
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun WifiDownloadBottomSheet(
+	wifiOnly: Boolean,
+	onWifiOnlyChanged: (Boolean) -> Unit,
+	chargingOnly: Boolean,
+	onChargingOnlyChanged: (Boolean) -> Unit,
+	bgCheckWifiOnly: Boolean,
+	onBgCheckWifiOnlyChanged: (Boolean) -> Unit,
+	onDismiss: () -> Unit
+) {
+	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+	ModalBottomSheet(
+		onDismissRequest = onDismiss,
+		sheetState = sheetState,
+		containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+		contentColor = MaterialTheme.colorScheme.onSurface,
+		dragHandle = {
+			Box(
+				modifier = Modifier
+					.padding(vertical = 12.dp)
+					.width(36.dp)
+					.height(4.dp)
+					.clip(CircleShape)
+					.background(MaterialTheme.colorScheme.outlineVariant)
+			)
+		}
+	) {
+		Column(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(horizontal = 24.dp)
+				.padding(bottom = 32.dp),
+			verticalArrangement = Arrangement.spacedBy(16.dp)
+		) {
+			Row(
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(12.dp)
+			) {
+				Box(
+					modifier = Modifier
+						.size(40.dp)
+						.clip(RoundedCornerShape(12.dp))
+						.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+					contentAlignment = Alignment.Center
+				) {
+					Icon(
+						painter = painterResource(R.drawable.ic_wifi),
+						contentDescription = null,
+						tint = MaterialTheme.colorScheme.primary,
+						modifier = Modifier.size(22.dp)
+					)
+				}
+				Column {
+					Text(
+						text = stringResource(R.string.settings_wifi_dialog_title),
+						style = MaterialTheme.typography.titleMedium,
+						fontWeight = FontWeight.Bold
+					)
+					Text(
+						text = stringResource(R.string.settings_wifi_dialog_desc),
+						style = MaterialTheme.typography.bodySmall,
+						color = MaterialTheme.colorScheme.onSurfaceVariant
+					)
+				}
+			}
+
+			Surface(
+				modifier = Modifier.fillMaxWidth(),
+				shape = RoundedCornerShape(16.dp),
+				color = MaterialTheme.colorScheme.surfaceContainer
+			) {
+				Column(modifier = Modifier.fillMaxWidth()) {
+					// 1. Updates nur über WLAN laden
+					Row(
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(horizontal = 16.dp, vertical = 14.dp),
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(12.dp)
+					) {
+						Column(modifier = Modifier.weight(1f)) {
+							Text(
+								text = stringResource(R.string.settings_download_wifi_only),
+								style = MaterialTheme.typography.bodyMedium,
+								fontWeight = FontWeight.SemiBold
+							)
+							Text(
+								text = stringResource(R.string.settings_download_wifi_only_desc),
+								style = MaterialTheme.typography.bodySmall,
+								color = MaterialTheme.colorScheme.onSurfaceVariant
+							)
+						}
+						Switch(
+							checked = wifiOnly,
+							onCheckedChange = onWifiOnlyChanged
+						)
+					}
+
+					HorizontalDivider(
+						modifier = Modifier.padding(horizontal = 16.dp),
+						thickness = 0.5.dp,
+						color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+					)
+
+					// 2. Nur beim Laden
+					Row(
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(horizontal = 16.dp, vertical = 14.dp),
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(12.dp)
+					) {
+						Column(modifier = Modifier.weight(1f)) {
+							Text(
+								text = stringResource(R.string.settings_auto_install_charging_only),
+								style = MaterialTheme.typography.bodyMedium,
+								fontWeight = FontWeight.SemiBold
+							)
+							Text(
+								text = stringResource(R.string.settings_download_charging_only_desc),
+								style = MaterialTheme.typography.bodySmall,
+								color = MaterialTheme.colorScheme.onSurfaceVariant
+							)
+						}
+						Switch(
+							checked = chargingOnly,
+							onCheckedChange = onChargingOnlyChanged
+						)
+					}
+
+					HorizontalDivider(
+						modifier = Modifier.padding(horizontal = 16.dp),
+						thickness = 0.5.dp,
+						color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+					)
+
+					// 3. Hintergrundprüfungen nur über WLAN
+					Row(
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(horizontal = 16.dp, vertical = 14.dp),
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(12.dp)
+					) {
+						Column(modifier = Modifier.weight(1f)) {
+							Text(
+								text = stringResource(R.string.settings_bg_check_wifi_only),
+								style = MaterialTheme.typography.bodyMedium,
+								fontWeight = FontWeight.SemiBold
+							)
+							Text(
+								text = stringResource(R.string.settings_bg_check_wifi_only_desc),
+								style = MaterialTheme.typography.bodySmall,
+								color = MaterialTheme.colorScheme.onSurfaceVariant
+							)
+						}
+						Switch(
+							checked = bgCheckWifiOnly,
+							onCheckedChange = onBgCheckWifiOnlyChanged
+						)
+					}
+				}
+			}
+
+			FilledTonalButton(
+				onClick = onDismiss,
+				modifier = Modifier.fillMaxWidth(),
+				shape = RoundedCornerShape(14.dp)
+			) {
+				Text(text = stringResource(R.string.shizuku_setup_close))
+			}
+		}
+	}
+}

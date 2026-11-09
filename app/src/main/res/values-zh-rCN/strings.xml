@@ -1,13 +1,10 @@
 <resources>
 
     <string name="app_disabled">已停用</string>
-    <string name="installed_short">已安装：</string>
-    <string name="available_short">新版本：</string>
     <string name="tab_apps">应用</string>
     <string name="tab_updates">更新</string>
     <string name="tab_settings">设置</string>
     <string name="something_went_wrong">"出现错误\n\uD83E\uDD26"</string>
-    <string name="ignore_version">忽略此版本</string>
     <string name="ignore_cd">忽略应用</string>
     <string name="unignore_cd">取消忽略</string>
     <string name="refresh_updates">检查更新</string>
@@ -20,8 +17,6 @@
     <string name="updates_last_checked_days">上次检查：%1$d 天前</string>
     <string name="install_cd">安装应用</string>
     <string name="install_all">全部更新</string>
-    <string name="installed_version">当前版本</string>
-    <string name="available_version">可用版本</string>
     <string name="update_action">更新</string>
     <string name="installing_update">正在安装更新…</string>
     <string name="queued_update">已排队…</string>
@@ -31,9 +26,7 @@
     <string name="updates_empty_message">目前没有待处理的应用更新。</string>
     <string name="updates_error_title">无法加载更新</string>
     <string name="updates_error_message">请检查网络连接后重试。</string>
-    <string name="updates_source_error">%1$s 检查失败 (%2$s)。显示 %3$s 的结果。</string>
     <string name="updates_partial_empty_title">更新检查未全部完成</string>
-    <string name="updates_partial_empty_message">%1$s 检查失败 (%2$s)。%3$s 未报告更新。</string>
     <string name="apps_error_message">下拉可重新加载已安装应用列表。</string>
     <string name="app_cd">应用图标</string>
     <string name="install_success">%1$s 安装成功。</string>
@@ -100,8 +93,6 @@
     <string name="shizuku_setup_recheck">重新检查状态</string>
     <string name="shizuku_setup_rechecked_feedback">已检查并更新实时状态</string>
     <string name="shizuku_setup_close">关闭</string>
-    <string name="settings_sources">更新源</string>
-    <string name="settings_ui">界面</string>
     <string name="updates_display_mode">更新显示方式</string>
     <string name="updates_detail_view">详细</string>
     <string name="updates_compact_view">紧凑</string>
@@ -112,7 +103,6 @@
     <string name="settings_interval_24h">每 24 小时（每天一次）</string>
     <string name="settings_interval_48h">每 48 小时（每两天一次）</string>
     <string name="settings_interval_7d">每周一次（每 7 天）</string>
-    <string name="settings_options">选项</string>
     <string name="settings_show_system_apps">显示系统应用</string>
     <string name="settings_show_system_apps_desc">显示系统应用并将其纳入更新检查。</string>
     <string name="settings_ignored_versions_title">已跳过的版本</string>
@@ -124,10 +114,7 @@
     <string name="settings_ignored_version_restore">恢复</string>
     <string name="action_unignore_version">恢复</string>
     <string name="action_clear_ignored_versions">恢复所有已跳过的版本</string>
-    <string name="settings_backup_section">备份与恢复</string>
     <string name="settings_backup_description">备份设置与关联的仓库映射</string>
-    <string name="settings_backup_export">导出配置</string>
-    <string name="settings_backup_import">导入配置</string>
     <string name="action_export_backup">导出</string>
     <string name="action_import_backup">导入</string>
     <string name="updates_empty_source_filter_message">该更新源下未找到任何更新。</string>
@@ -135,10 +122,6 @@
     <string name="backup_import_success">配置已成功恢复。</string>
     <string name="backup_import_error">无法解析备份文件。</string>
     <string name="source_play">Google Play 商店</string>
-    <string name="settings_source_github_desc">检查开源及已映射应用的 GitHub 发布版本</string>
-    <string name="settings_source_gitlab_desc">检查已映射仓库的 GitLab 发布版本</string>
-    <string name="github_token_title">GitHub API 令牌</string>
-    <string name="github_token_desc">可选的个人访问令牌（PAT），可将速率限制从每小时 60 次提升至 5,000 次</string>
     <string name="github_token_dialog_title">GitHub 个人访问令牌</string>
     <string name="github_token_dialog_desc">输入仅具有公开仓库读取权限的个人访问令牌，以避免 GitHub API 速率限制 (HTTP 403)。</string>
     <string name="github_token_dialog_hint">ghp_xxxxxxxxxxxx</string>
@@ -146,7 +129,6 @@
     <string name="github_token_dialog_save">保存</string>
     <string name="github_token_status_set">已配置令牌</string>
     <string name="github_token_status_not_set">未配置令牌（限制 60 次/小时）</string>
-    <string name="action_link_repo">关联仓库</string>
     <string name="repo_menu_linked">已关联仓库</string>
     <string name="repo_menu_link">关联仓库</string>
     <string name="repo_view_on_github">在 GitHub 上查看</string>
@@ -172,22 +154,14 @@
     <string name="theme_system">跟随系统</string>
     <string name="theme_dark">深色</string>
     <string name="theme_light">浅色</string>
-    <string name="about_github_title">GitHub – ApkUp</string>
-    <string name="about_github">获取源码、反馈问题或提交功能建议。</string>
     <string name="about_copyright">版权所有 &#169; 2026 DurchEins &#8226; GPL-3.0</string>
     <string name="about_tribute">由 DurchEins 倾注心血全面重构。 ♥</string>
     <string name="about_original_project">基于 rumboalla 的开源项目构建 (GPL-3.0)</string>
-    <string name="copy_to_clipboard">复制到剪贴板</string>
     <string name="changelog_title">更新日志</string>
-    <string name="changelog_menu_item">更新日志 / 版本说明</string>
     <string name="changelog_menu_subtitle">查看此版本的重点改进与新特性</string>
     <string name="changelog_button_dismiss">我知道了</string>
 
     <!-- Self-Updater -->
-    <string name="self_update_card_title">检查 ApkUp 更新</string>
-    <string name="self_update_card_subtitle">直接查找并安装最新的 ApkUp 发行版</string>
-    <string name="self_update_checking">正在检查 ApkUp 更新…</string>
-    <string name="self_update_latest">ApkUp 已是最新版本 (%1$s)。</string>
     <string name="self_update_dialog_title">发现 ApkUp 新版本</string>
     <string name="self_update_dialog_version">新版本 %1$s</string>
     <string name="self_update_dialog_button_update">立即更新</string>
@@ -199,11 +173,8 @@
     <!-- Settings Sections -->
     <string name="settings_section_appearance">外观与布局</string>
     <string name="settings_section_sources">更新源与扫描</string>
-    <string name="settings_section_install_permissions">安装与权限</string>
     <string name="settings_section_app_management">应用管理</string>
     <string name="settings_preview_title">实时预览</string>
-    <string name="settings_preview_sample_app">示例应用</string>
-    <string name="settings_preview_update_action">更新</string>
 
     <string name="permission_unknown_apps_title">安装未知应用</string>
     <string name="permission_unknown_apps_subtitle_granted">权限已开启 – 允许直接安装 APK</string>
@@ -245,5 +216,36 @@
     <!-- Obtainium Import / Export -->
     <string name="action_export_obtainium">Obtainium Export</string>
     <string name="backup_obtainium_import_success">Imported app repository mappings from Obtainium.</string>
-    <string name="backup_obtainium_export_success">Obtainium export created successfully.</string>
+    <string name="backup_obtainium_export_success">Obtainium 导出文件创建成功。</string>
+
+    <!-- Autonomous Shizuku Background Updates & Wiki Bento -->
+    <string name="settings_auto_install_title">自主后台自动更新</string>
+    <string name="settings_auto_install_desc">通过 Shizuku 在后台自动下载并静默安装应用更新</string>
+    <string name="settings_auto_install_wifi_only">仅限 Wi-Fi</string>
+    <string name="settings_auto_install_charging_only">仅充电时</string>
+    <string name="about_github_bento_short_subtitle">源码与发布</string>
+    <string name="about_wiki_bento_title">帮助与 Wiki</string>
+    <string name="about_wiki_bento_subtitle">指南与常见问题</string>
+    <string name="notification_auto_update_complete_title">应用已自动更新</string>
+    <string name="notification_auto_update_partial_title">后台更新已完成</string>
+    <plurals name="notification_auto_update_complete_desc">
+        <item quantity="one">已通过 Shizuku 静默更新 %1$d 个应用。</item>
+        <item quantity="other">已通过 Shizuku 静默更新 %1$d 个应用。</item>
+    </plurals>
+    <string name="notification_auto_update_partial_desc">已更新 %1$d 个 • %2$d 个待手动安装</string>
+    <string name="notification_auto_update_updated_list">已更新：%1$s</string>
+    <string name="notification_auto_update_manual_ready_list">待安装：%1$s</string>
+    <string name="apps_recent_filter_hint">显示设备上最近 14 天内的所有应用更新（包含在 ApkUp 之外安装的更新）。</string>
+    <string name="apps_open_apkup_history">ApkUp 记录</string>
+    <string name="update_history_title">更新历史记录</string>
+    <string name="update_history_subtitle">由 ApkUp 安装的应用更新</string>
+    <string name="update_history_clear">清空</string>
+    <string name="update_history_empty_title">暂无更新记录</string>
+    <string name="update_history_empty_desc">当 ApkUp 手动或通过 Shizuku 自动更新应用后，记录将显示在此处并提供旧版本链接。</string>
+    <string name="update_history_mode_auto_shizuku">自动 · Shizuku</string>
+    <string name="update_history_mode_manual_shizuku">手动 · Shizuku</string>
+    <string name="update_history_mode_manual">手动</string>
+    <string name="update_history_previous_version_action">获取上一版本 (%1$s)</string>
+    <string name="update_history_older_versions_action">查看历史版本</string>
+    <string name="updates_recent_history_pill">更新记录 (%1$d)</string>
 </resources>
