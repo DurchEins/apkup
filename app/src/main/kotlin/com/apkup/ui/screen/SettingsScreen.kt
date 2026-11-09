@@ -413,6 +413,40 @@ fun Settings(
 			NotificationManagerCompat.from(context).areNotificationsEnabled()
 		}
 
+		val openBatterySettings: () -> Unit = remember(context) {
+			{
+				runCatching {
+					val intent = Intent("android.settings.VIEW_ADVANCED_POWER_USAGE_DETAIL").apply {
+						data = "package:${context.packageName}".toUri()
+						addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+					}
+					context.startActivity(intent)
+				}.recoverCatching {
+					val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+						data = "package:${context.packageName}".toUri()
+						addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+					}
+					context.startActivity(intent)
+				}.recoverCatching {
+					val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
+						addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+					}
+					context.startActivity(intent)
+				}.recoverCatching {
+					val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+						data = "package:${context.packageName}".toUri()
+						addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+					}
+					context.startActivity(intent)
+				}.recoverCatching {
+					context.startActivity(Intent(Settings.ACTION_SETTINGS).apply {
+						addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+					})
+				}
+				Unit
+			}
+		}
+
 		val badger = koinInject<Badger>()
 		val activeIssues = remember(isBatteryIgnoring, areNotificationsEnabled, hasInstallPermission, shizukuEnabled, shizukuStatus.isBinderRunning) {
 			val list = mutableListOf<SetupWarningItem>()
@@ -480,28 +514,7 @@ fun Settings(
 						subtitle = context.getString(R.string.warning_battery_subtitle),
 						shortName = context.getString(R.string.settings_battery_optimization),
 						actionText = context.getString(R.string.warning_action_exempt),
-						onClick = {
-							runCatching {
-								val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-									data = "package:${context.packageName}".toUri()
-									addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-								}
-								context.startActivity(intent)
-							}.onFailure {
-								runCatching {
-									val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
-										addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-									}
-									context.startActivity(intent)
-								}.onFailure {
-									runCatching {
-										context.startActivity(Intent(Settings.ACTION_SETTINGS).apply {
-											addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-										})
-									}
-								}
-							}
-						}
+						onClick = openBatterySettings
 					)
 				)
 			}
@@ -1098,28 +1111,7 @@ fun Settings(
 										if (isBatteryIgnoring) R.string.settings_status_exempted
 										else R.string.settings_status_optimized
 									),
-									onClick = {
-										runCatching {
-											val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-												data = "package:${context.packageName}".toUri()
-												addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-											}
-											context.startActivity(intent)
-										}.onFailure {
-											runCatching {
-												val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
-													addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-												}
-												context.startActivity(intent)
-											}.onFailure {
-												runCatching {
-													context.startActivity(Intent(Settings.ACTION_SETTINGS).apply {
-														addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-													})
-												}
-											}
-										}
-									}
+									onClick = openBatterySettings
 								)
 
 								// 2. Benachrichtigungen
