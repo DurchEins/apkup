@@ -1,0 +1,9 @@
+ApkUp ist ein moderner, datenschutzfreundlicher Open-Source-App-Updater für Android, entwickelt mit Jetpack Compose und Material 3 Expressive Design. Er findet, verwaltet und installiert App-Updates über mehrere Quellen hinweg – komplett werbefrei und ohne Tracking.
+
+Hauptfunktionen:
+* Update-Quellen: Prüfe Updates über Google Play Store, APKMirror (mit direktem In-App-Download und .apkm Split-Bundle-Entpackung), IzzyOnDroid (F-Droid Index V2), GitHub und GitLab (inklusive selbst gehosteter Instanzen und Untergruppen).
+* Autonome Shizuku-Hintergrund-Updates & Verlauf: Automatische, geräuschlose Hintergrund-Installationen über Shizuku mit konfigurierbaren Regeln für WLAN und Laden, zusammenfassenden Benachrichtigungen und einem Update-Verlauf samt Rollback-Links zu Vorgängerversionen.
+* 24-Stunden Smart-Cache: Heruntergeladene APKs bleiben 24 Stunden lokal gespeichert, sodass abgebrochene oder verschobene Installationen ohne erneuten Download fortgesetzt werden können.
+* Obtainium-Kompatibilität & Backup: Nahtloser Import und Export von App-Konfigurationen im Obtainium-Format sowie vollständige Datensicherung aller Einstellungen als JSON-Datei.
+* Signaturschutz & granulare Filter: Warnung vor Zertifikatskonflikten, Überspringen einzelner Builds, dauerhaftes Ausblenden von Apps und Daten-Sparmodus für Downloads nur über WLAN.
+* Modernes Android-Erlebnis: Optimiert für Android 10.0 (API 29) bis Android 17 mit Dynamic Color (Material You), schwebender Kapsel-Navigation, integriertem Selbst-Updater und Unterstützung für 9 Sprachen.
