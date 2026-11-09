@@ -298,7 +298,11 @@ fun UpdatesScreenSuccess(
 	sourceErrors: Map<String, String> = emptyMap(),
 	lastCheckedAtMillis: Long? = null,
 	onOpenHistory: (() -> Unit)? = null
-) = Column(Modifier.fillMaxSize()) {
+) = Column(
+	modifier = Modifier
+		.fillMaxSize()
+		.background(MaterialTheme.colorScheme.background)
+) {
 	val context = LocalContext.current
 	val handler = LocalUriHandler.current
 	val prefs = koinInject<Prefs>()

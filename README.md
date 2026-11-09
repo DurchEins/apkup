@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.41.19--Beta%20(174)-38BDF8?style=flat" alt="Version" /></a>
+  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.41.20--Beta%20(175)-38BDF8?style=flat" alt="Version" /></a>
   <img src="https://img.shields.io/badge/Android-10.0%2B%20(API%2029%2B)-3DDC84?style=flat&logo=android" alt="Android" />
   <img src="https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat" alt="License: GPL v3" />
   <img src="https://img.shields.io/badge/Shizuku-Supported-00897B?style=flat" alt="Shizuku" />

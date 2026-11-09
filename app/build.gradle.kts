@@ -23,8 +23,8 @@ android {
         applicationId = "com.apkup" + System.getenv("BUILD_TAG").orEmpty()
         minSdk = 29
         targetSdk = 37
-        versionCode = if (buildNumber.isEmpty()) 174 else buildNumber.toInt()
-        versionName = if (buildNumber.isEmpty()) "1.41.19-Beta (174)" else "1.41.19-$buildNumber"
+        versionCode = if (buildNumber.isEmpty()) 175 else buildNumber.toInt()
+        versionName = if (buildNumber.isEmpty()) "1.41.20-Beta (175)" else "1.41.20-$buildNumber"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -38,7 +38,8 @@ android {
                     props.load(FileInputStream(propFile))
                     val ksPath = props.getProperty("keystore.file")
                     if (!ksPath.isNullOrBlank()) {
-                        storeFile = file(ksPath)
+                        val ksFile = File(ksPath)
+                        storeFile = if (ksFile.isAbsolute) ksFile else rootProject.file(ksPath)
                         storePassword = props.getProperty("keystore.password")
                         keyAlias = props.getProperty("keystore.keyalias")
                         keyPassword = props.getProperty("keystore.keypassword")
@@ -84,6 +85,11 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+    }
+
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
     }
 
     testOptions {

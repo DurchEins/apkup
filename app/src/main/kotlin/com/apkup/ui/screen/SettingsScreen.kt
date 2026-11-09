@@ -199,7 +199,11 @@ fun SettingsScreen(
 	appsViewModel: AppsViewModel = koinViewModel(),
 	updatesViewModel: UpdatesViewModel = koinViewModel(),
 	mainViewModel: MainViewModel = koinViewModel()
-) = Column {
+) = Column(
+	modifier = Modifier
+		.fillMaxSize()
+		.background(MaterialTheme.colorScheme.background)
+) {
 	SettingsTopBar()
 	Settings(viewModel, appsViewModel, updatesViewModel, mainViewModel)
 }

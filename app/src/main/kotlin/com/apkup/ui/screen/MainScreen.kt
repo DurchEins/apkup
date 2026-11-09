@@ -177,11 +177,6 @@ fun MainScreen(
 	val showChangelogSheet by mainViewModel.showChangelogSheet.collectAsStateWithLifecycle()
 	val selfUpdateState by mainViewModel.selfUpdateState.collectAsStateWithLifecycle()
 
-	// Tier 2 Predictive Back: From secondary tabs (Apps / Setup), back press returns to primary Updates tab
-	BackHandler(enabled = currentDestinationRoute != null && currentDestinationRoute != Screen.Updates.route) {
-		mainViewModel.navigateTo(navController, Screen.Updates.route)
-	}
-
 	LaunchedEffect(Unit) {
 		mainViewModel.checkChangelogPrompt(context, currentVersionCode)
 		mainViewModel.initializeOnStart(appsViewModel, updatesViewModel, isColdStart)
@@ -240,6 +235,11 @@ fun MainScreen(
 					}
 				) {
 					NavHost(navController, PaddingValues(0.dp), mainViewModel, appsViewModel, updatesViewModel, settingsViewModel)
+				}
+
+				// Tier 2 Predictive Back: From secondary tabs (Apps / Setup), back press returns cleanly to primary Updates tab
+				BackHandler(enabled = currentDestinationRoute != null && currentDestinationRoute != Screen.Updates.route) {
+					mainViewModel.navigateTo(navController, Screen.Updates.route)
 				}
 
 				ApkUpSnackbarHost(
@@ -583,12 +583,36 @@ fun NavHost(
 	navController = navController,
 	startDestination = mainViewModel.getLastRoute(),
 	modifier = Modifier.padding(padding),
-	enterTransition = { fadeIn(animationSpec = tween(150)) },
-	exitTransition = { fadeOut(animationSpec = tween(150)) },
-	popEnterTransition = { fadeIn(animationSpec = tween(150)) },
-	popExitTransition = { fadeOut(animationSpec = tween(150)) }
+	enterTransition = { fadeIn(animationSpec = tween(180)) },
+	exitTransition = { fadeOut(animationSpec = tween(180)) },
+	popEnterTransition = { fadeIn(animationSpec = tween(180)) },
+	popExitTransition = { fadeOut(animationSpec = tween(180)) }
 ) {
-	composable(Screen.Apps.route) { AppsScreen(appsViewModel, updatesViewModel) }
-	composable(Screen.Updates.route) { UpdatesScreen(updatesViewModel, appsViewModel) }
-	composable(Screen.Settings.route) { SettingsScreen(settingsViewModel, appsViewModel, updatesViewModel, mainViewModel) }
+	composable(Screen.Apps.route) {
+		Box(
+			modifier = Modifier
+				.fillMaxSize()
+				.background(MaterialTheme.colorScheme.background)
+		) {
+			AppsScreen(appsViewModel, updatesViewModel)
+		}
+	}
+	composable(Screen.Updates.route) {
+		Box(
+			modifier = Modifier
+				.fillMaxSize()
+				.background(MaterialTheme.colorScheme.background)
+		) {
+			UpdatesScreen(updatesViewModel, appsViewModel)
+		}
+	}
+	composable(Screen.Settings.route) {
+		Box(
+			modifier = Modifier
+				.fillMaxSize()
+				.background(MaterialTheme.colorScheme.background)
+		) {
+			SettingsScreen(settingsViewModel, appsViewModel, updatesViewModel, mainViewModel)
+		}
+	}
 }

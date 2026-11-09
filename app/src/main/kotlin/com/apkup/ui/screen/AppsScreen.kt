@@ -162,7 +162,11 @@ fun AppsScreenSuccess(
 	viewModel: AppsViewModel,
 	updatesViewModel: UpdatesViewModel,
 	state: AppsUiState.Success
-) = Column(Modifier.fillMaxSize()) {
+) = Column(
+	modifier = Modifier
+		.fillMaxSize()
+		.background(MaterialTheme.colorScheme.background)
+) {
 	val context = LocalContext.current
 	val searchQuery by viewModel.searchQuery().collectAsStateWithLifecycle()
 	val quickFilter by viewModel.quickFilter().collectAsStateWithLifecycle()
