@@ -101,11 +101,11 @@
 </p>
 
 <p align="center">
-  <img src=".github/assets/screenshots/setup%202.png" width="260" alt="Settings & Sources" />
+  <img src=".github/assets/screenshots/setup%202.png" width="260" alt="Shizuku, Automation & Permissions" />
   &nbsp;&nbsp;
-  <img src=".github/assets/screenshots/setup%203.png" width="260" alt="Shizuku & App Management" />
+  <img src=".github/assets/screenshots/setup%203.png" width="260" alt="Update History & Rollback Logs" />
   &nbsp;&nbsp;
-  <img src=".github/assets/screenshots/setup%204.png" width="260" alt="About ApkUp" />
+  <img src=".github/assets/screenshots/setup%204.png" width="260" alt="About ApkUp & Backup Export" />
 </p>
 
 ---
