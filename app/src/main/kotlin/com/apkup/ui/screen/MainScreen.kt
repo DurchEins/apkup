@@ -581,7 +581,7 @@ fun NavHost(
 	settingsViewModel: SettingsViewModel
 ) = NavHost(
 	navController = navController,
-	startDestination = mainViewModel.getLastRoute(),
+	startDestination = Screen.Updates.route,
 	modifier = Modifier.padding(padding),
 	enterTransition = { fadeIn(animationSpec = tween(180)) },
 	exitTransition = { fadeOut(animationSpec = tween(180)) },
