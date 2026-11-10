@@ -2,7 +2,7 @@
 
 **Last Updated:** November 10, 2026
 
-ApkUp is an open-source, client-side Android application developed by Nico (DurchEins). This Privacy Policy explains how ApkUp handles data and respects user privacy.
+ApkUp is an open-source, client-side Android application developed by DurchEins. This Privacy Policy explains how ApkUp handles data and respects user privacy.
 
 ---
 
@@ -42,5 +42,5 @@ https://github.com/DurchEins/apkup
 
 ### 5. Contact
 If you have any questions or concerns regarding this Privacy Policy, please contact:
-- **Email:** apkup.app@gmail.com
+- **Email:** 16086512+DurchEins@users.noreply.github.com
 - **Issue Tracker:** https://github.com/DurchEins/apkup/issues
