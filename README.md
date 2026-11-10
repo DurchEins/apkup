@@ -89,27 +89,27 @@
 ## 📸 Screenshots
 
 <p align="center">
-  <img src=".github/assets/screenshots/updates%201.png" width="260" alt="Updates Screen" />
+  <img src=".github/assets/screenshots/01_en_updates.png" width="260" alt="Updates Screen" />
   &nbsp;&nbsp;
-  <img src=".github/assets/screenshots/updates%202.png" width="260" alt="Update Details Sheet" />
+  <img src=".github/assets/screenshots/02_en_update_details.png" width="260" alt="Update Details Sheet" />
   &nbsp;&nbsp;
-  <img src=".github/assets/screenshots/apps%201.png" width="260" alt="Installed Apps List" />
+  <img src=".github/assets/screenshots/03_en_apps_list.png" width="260" alt="Installed Apps List" />
 </p>
 
 <p align="center">
-  <img src=".github/assets/screenshots/apps%202.png" width="260" alt="Apps Search & Grid" />
+  <img src=".github/assets/screenshots/04_en_apps_grid.png" width="260" alt="Apps Search & Grid" />
   &nbsp;&nbsp;
-  <img src=".github/assets/screenshots/apps%203.png" width="260" alt="App Details & Context Actions" />
+  <img src=".github/assets/screenshots/05_en_apps_menu.png" width="260" alt="App Details & Context Actions" />
   &nbsp;&nbsp;
-  <img src=".github/assets/screenshots/setup%201.png" width="260" alt="Settings & Appearance" />
+  <img src=".github/assets/screenshots/06_en_settings_sources.png" width="260" alt="Settings & Sources" />
 </p>
 
 <p align="center">
-  <img src=".github/assets/screenshots/setup%202.png" width="260" alt="Shizuku, Automation & Permissions" />
+  <img src=".github/assets/screenshots/07_en_settings_about.png" width="260" alt="About ApkUp & Backup" />
   &nbsp;&nbsp;
-  <img src=".github/assets/screenshots/setup%203.png" width="260" alt="Update History & Rollback Logs" />
+  <img src=".github/assets/screenshots/08_en_update_history.png" width="260" alt="Update History & Rollback Logs" />
   &nbsp;&nbsp;
-  <img src=".github/assets/screenshots/setup%204.png" width="260" alt="About ApkUp & Backup Export" />
+  <img src=".github/assets/screenshots/09_en_whats_new.png" width="260" alt="What's New & Changelog" />
 </p>
 
 ---
