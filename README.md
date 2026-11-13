@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <a href="#-features">Features</a> • <a href="#-requirements">Requirements</a> • <a href="#-tech-stack">Tech Stack</a> • <a href="#-screenshots">Screenshots</a> • <a href="#-troubleshooting--wiki">Wiki</a> • <a href="#-license--credits">License</a>
+  <a href="#-features">Features</a> • <a href="#-requirements">Requirements</a> • <a href="#-tech-stack">Tech Stack</a> • <a href="#-screenshots">Screenshots</a> • <a href="#-downloads--stores">Downloads</a> • <a href="#-troubleshooting--wiki">Wiki</a> • <a href="#-license--credits">License</a>
 </p>
 
 ---
@@ -42,7 +42,7 @@
 * **⚡ Uninterrupted Background Downloads, 24h Cache & Autonomous Shizuku Installs:**
   * **Autonomous Background Updates:** Optional zero-touch background pipeline powered by Shizuku and Android `WorkManager` that automatically downloads and silently installs discovered updates with configurable **Wi-Fi only** and **While charging** guards.
   * **Consolidated Summary Notifications & Update History:** Clean post-update summary notification plus a persistent in-app **Update History** sheet (accessible anytime from the *Updates* top bar or the *Recently Updated* filter in *Apps*) recording version transitions (`old → new`), update source, install mode (*Auto · Shizuku* vs. *Manual*), and a one-tap **Previous Version** link to simplify rollbacks if an upstream release introduces issues.
-  * **Foreground Download Service:** Interactive downloads and batch updates (*Update All*) continue reliably in the background and across screen locks, complete with live progress notifications and instant cancellation.
+  * **Foreground Download Service:** Interactive downloads, multi-select batch installs (long-press any update card), and *Update All* continue reliably in the background and across screen locks, complete with live progress notifications and instant cancellation.
   * **24-Hour Smart Cache & Instant Resume:** Downloaded APKs are preserved locally for up to 24 hours. Dismissed installations can be resumed instantly with "Install" without re-downloading.
   * **Direct Permission Setup & Battery Navigation:** Deep-links directly to Android's app battery usage page (Optimized vs. Unrestricted) and guided in-app resolution for missing notification and battery exemptions.
   * **Reliable Native Fallback:** Seamless fallback to Android's `PackageInstaller` session API with Android 14+ Background Activity Launch (BAL) notification support and robust session abandonment.
@@ -110,6 +110,26 @@
   <img src=".github/assets/screenshots/08_en_update_history.png" width="260" alt="Update History & Rollback Logs" />
   &nbsp;&nbsp;
   <img src=".github/assets/screenshots/09_en_whats_new.png" width="260" alt="What's New & Changelog" />
+</p>
+
+---
+
+## 📲 Downloads & Stores
+
+Get the latest release of ApkUp from your preferred platform:
+
+<p align="center">
+  <a href="https://github.com/DurchEins/apkup/releases/latest">
+    <img src="https://img.shields.io/badge/GitHub-Releases-181717?style=for-the-badge&logo=github&logoColor=white" alt="Download on GitHub" />
+  </a>
+  &nbsp;&nbsp;
+  <a href="https://apkpure.com/apkup/com.apkup">
+    <img src="https://img.shields.io/badge/APKPure-Available-24C270?style=for-the-badge&logo=android&logoColor=white" alt="Get on APKPure" />
+  </a>
+  &nbsp;&nbsp;
+  <a href="https://www.amazon.com/gp/product/B0HR5TXL8R">
+    <img src="https://img.shields.io/badge/Amazon_Appstore-Available-FF9900?style=for-the-badge&logo=amazon&logoColor=black" alt="Get on Amazon Appstore" />
+  </a>
 </p>
 
 ---
