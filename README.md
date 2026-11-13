@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <a href="#-features">Features</a> • <a href="#-requirements">Requirements</a> • <a href="#-tech-stack">Tech Stack</a> • <a href="#-screenshots">Screenshots</a> • <a href="#-downloads--stores">Downloads</a> • <a href="#-troubleshooting--wiki">Wiki</a> • <a href="#-license--credits">License</a>
+  <a href="#-features">Features</a> • <a href="#-requirements">Requirements</a> • <a href="#-tech-stack">Tech Stack</a> • <a href="#-screenshots">Screenshots</a> • <a href="#-downloads">Downloads</a> • <a href="#-troubleshooting--wiki">Wiki</a> • <a href="#-license--credits">License</a>
 </p>
 
 ---
@@ -114,22 +114,14 @@
 
 ---
 
-## 📲 Downloads & Stores
+## 📲 Downloads
 
 Get the latest release of ApkUp from your preferred platform:
 
 <p align="center">
-  <a href="https://github.com/DurchEins/apkup/releases/latest">
-    <img src="https://img.shields.io/badge/GitHub-Releases-181717?style=for-the-badge&logo=github&logoColor=white" alt="Download on GitHub" />
-  </a>
-  &nbsp;&nbsp;
-  <a href="https://apkpure.com/apkup/com.apkup">
-    <img src="https://img.shields.io/badge/APKPure-Available-24C270?style=for-the-badge&logo=android&logoColor=white" alt="Get on APKPure" />
-  </a>
-  &nbsp;&nbsp;
-  <a href="https://www.amazon.com/gp/product/B0HR5TXL8R">
-    <img src="https://img.shields.io/badge/Amazon_Appstore-Available-FF9900?style=for-the-badge&logo=amazon&logoColor=black" alt="Get on Amazon Appstore" />
-  </a>
+  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/GitHub-Direct%20APK%20(Recommended)-181717?style=flat&logo=github" alt="GitHub Releases" /></a>&nbsp;&nbsp;
+  <a href="https://apkpure.com/apkup/com.apkup"><img src="https://img.shields.io/badge/APKPure-Available-24C270?style=flat&logo=android&logoColor=white" alt="APKPure" /></a>&nbsp;&nbsp;
+  <a href="https://www.amazon.com/gp/product/B0HR5TXL8R"><img src="https://img.shields.io/badge/Amazon%20Appstore-Available-FF9900?style=flat&logo=amazon&logoColor=black" alt="Amazon Appstore" /></a>
 </p>
 
 ---
