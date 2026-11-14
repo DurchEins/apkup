@@ -5,14 +5,14 @@
 </p>
 
 <p align="center">
-  <b>A modern open-source Android application for discovering, managing, and autonomously installing app updates across multiple sources (Google Play, APKMirror, IzzyOnDroid / F-Droid Index V2, GitHub & GitLab) featuring Material 3 Expressive design, unattended Shizuku background updates, and a clean Google Pixel aesthetic.</b>
+  <b>A modern open-source Android application for discovering, managing, and autonomously installing app updates across multiple sources (Google Play, APKMirror, IzzyOnDroid, Custom F-Droid Index V2, GitHub, GitLab &amp; Codeberg/Forgejo) featuring Material 3 Expressive design, Shizuku &amp; optional Root background updates, Watchlist tracking, APK export, and a clean Google Pixel aesthetic.</b>
 </p>
 
 <p align="center">
-  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.41.25--Beta%20(180)-38BDF8?style=flat" alt="Version" /></a>
+  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.43.0--Beta%20(191)-A855F7?style=flat-square" alt="Version" /></a>
   <img src="https://img.shields.io/badge/Android-10.0%2B%20(API%2029%2B)-3DDC84?style=flat&logo=android" alt="Android" />
   <img src="https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat" alt="License: GPL v3" />
-  <img src="https://img.shields.io/badge/Shizuku-Supported-00897B?style=flat" alt="Shizuku" />
+  <img src="https://img.shields.io/badge/Shizuku%20%26%20Root-Supported-00897B?style=flat" alt="Shizuku & Root" />
   <img src="https://img.shields.io/badge/Privacy-No%20Ads%20%7C%20No%20Tracking-brightgreen?style=flat" alt="Privacy" />
 </p>
 
@@ -26,25 +26,29 @@
 
 * **🚀 Robust Update Sources & Self-Updater:**
   * **Google Play Store:** Direct store query with accurate delta version recognition and automatic HTTP 429 rate-limit recovery.
-  * **APKMirror In-App Downloads:** Direct in-app downloading and installation (including `.apkm` split-bundle extraction) with intelligent rate-limiting and automatic Cloudflare browser fallback.
-  * **IzzyOnDroid (F-Droid Index V2):** Modern F-Droid Index V2 specification support with ETag pre-flight checks and SHA-256 certificate validation, making update checks virtually instantaneous while drastically saving bandwidth.
-  * **GitHub & GitLab:** Built-in recognition for popular FOSS projects plus custom repository bindings (`owner/repo`, self-hosted GitLab, and multi-level subgroup paths).
-  * **Obtainium Interoperability:** Seamlessly import app repository configurations from Obtainium backup files and export your custom bindings back into Obtainium-compatible JSON format.
+  * **APKMirror In-App Downloads:** Direct in-app downloading and installation (including `.apkm` split-bundle extraction) with intelligent concurrency throttling, transient retries, and automatic 10-minute per-app Cloudflare browser fallback.
+  * **IzzyOnDroid & Custom F-Droid Repositories (Index V2):** Full F-Droid Index V2 specification support (with automatic legacy `index-v1.jar` fallback) for IzzyOnDroid plus custom third-party F-Droid repositories with ready-to-use presets (*Official F-Droid*, *NewPipe*, *Guardian Project*, etc.) and SHA-256 fingerprint validation.
+  * **GitHub, GitLab & Codeberg / Forgejo:** Built-in recognition for popular FOSS projects plus 3-way repository bindings (`owner/repo`, self-hosted GitLab/Forgejo instances, multi-level subgroups, token verification sheets, optional asset regex filtering, and FOSS flavor preference).
+  * **Watch Uninstalled Apps:** Track releases for apps that are not yet installed via the **`+`** button in *Apps* and the *Watched* filter — discovered releases appear directly in *Updates* ready for one-tap installation or APK export.
+  * **Obtainium Interoperability with Preview:** Seamlessly import app configurations, custom F-Droid repositories, and watchlist candidates from Obtainium JSON exports via an interactive preview sheet, and export your setup back into Obtainium-compatible format.
   * **ApkUp Self-Updater:** Automatic release checks and direct in-app updating without relying on external app stores.
 * **🎨 Material 3 Expressive Design:**
-  * Pixel-inspired UI optimized for Android 15, 16, and 17 styling with a floating capsule navigation dock and tactile haptic feedback.
+  * Pixel-inspired UI optimized for Android 15, 16, and 17 styling with a floating capsule navigation dock, collapsible scroll headers, and unified modal bottom sheets across Settings and Repository Linking.
   * Comprehensive **Dynamic Color (Material You)** support with dark, light, and system themes.
+  * Instant search bars and flexible sorting across both **Updates** (*Name A–Z / Z–A, Source, Newest Release Date*) and **Apps** (*Name A–Z / Z–A, Source, Recently Updated*).
   * Monthly-grouped in-app changelog with semantic release tags, expandable month accordions, and visual highlight banners.
   * **Compact Source Scan:** Space-saving update source icons with real-time status checkmarks and dynamic accordion scan expansion.
   * **Tiered Predictive Back Navigation:** Context-aware back gesture handling that dismisses active searches, smoothly navigates back from secondary tabs to Updates, and supports fluid swipe-to-minimize.
   * Multiple display modes for the update list (*Compact Grid Tiles* vs. *Detailed List*).
   * Auto-resizing typography ensuring multi-digit version numbers always display cleanly on a single line.
-* **⚡ Uninterrupted Background Downloads, 24h Cache & Autonomous Shizuku Installs:**
-  * **Autonomous Background Updates:** Optional zero-touch background pipeline powered by Shizuku and Android `WorkManager` that automatically downloads and silently installs discovered updates with configurable **Wi-Fi only** and **While charging** guards.
-  * **Consolidated Summary Notifications & Update History:** Clean post-update summary notification plus a persistent in-app **Update History** sheet (accessible anytime from the *Updates* top bar or the *Recently Updated* filter in *Apps*) recording version transitions (`old → new`), update source, install mode (*Auto · Shizuku* vs. *Manual*), and a one-tap **Previous Version** link to simplify rollbacks if an upstream release introduces issues.
+* **⚡ Uninterrupted Background Downloads, APK Export, 24h Cache & Autonomous Installs:**
+  * **Autonomous Background Updates (Shizuku & Optional Root `su`):** Optional zero-touch background pipeline powered by Shizuku and Android `WorkManager` — plus an optional Root (`su`) installer fallback with live availability check on rooted devices — with configurable **Wi-Fi only** and **While charging** guards.
+  * **Save APK & Split `.apks` Bundles:** Export single `.apk` installers or bundled `.apks` split packages directly into `Download/ApkUp/` (or any custom SAF folder configured in Setup) without installing.
+  * **Batch Overall Progress, Transfer Speed & ETA:** *Update All*, multi-select batches, the active queue sheet, and system notifications show overall completion percentage, live speed, and estimated time remaining.
+  * **Consolidated Summary Notifications & Update History:** Clean post-update summary notification plus a persistent in-app **Update History** sheet (accessible anytime from the *Updates* top bar or the *Recently Updated* filter in *Apps*) recording version transitions (`old → new`), update source, install mode (*Auto · Shizuku*, *Auto · Root*, vs. *Manual*), and a one-tap **Previous Version** link to simplify rollbacks if an upstream release introduces issues.
   * **Foreground Download Service:** Interactive downloads, multi-select batch installs (long-press any update card), and *Update All* continue reliably in the background and across screen locks, complete with live progress notifications and instant cancellation.
   * **24-Hour Smart Cache & Instant Resume:** Downloaded APKs are preserved locally for up to 24 hours. Dismissed installations can be resumed instantly with "Install" without re-downloading.
-  * **Direct Permission Setup & Battery Navigation:** Deep-links directly to Android's app battery usage page (Optimized vs. Unrestricted) and guided in-app resolution for missing notification and battery exemptions.
+  * **Direct Permission Setup, Battery Navigation & Diagnostic Log:** Deep-links directly to Android's app battery usage page, provides guided in-app setup sheets for Shizuku and Root (`su`), and lets you save or share a sanitized **Diagnostic & Update Log** (`.txt`) from Advanced Settings.
   * **Reliable Native Fallback:** Seamless fallback to Android's `PackageInstaller` session API with Android 14+ Background Activity Launch (BAL) notification support and robust session abandonment.
 * **📶 Network Data Saver:**
   * **Wi-Fi Only Mode:** Restrict downloads to unmetered Wi-Fi connections with an active mobile data safety prompt.
@@ -120,6 +124,7 @@ Get the latest release of ApkUp from your preferred platform:
 
 <p align="center">
   <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/GitHub-Direct%20APK%20(Recommended)-181717?style=flat&logo=github" alt="GitHub Releases" /></a>&nbsp;&nbsp;
+  <a href="https://gitlab.com/DurchEins1/apkup/-/releases"><img src="https://img.shields.io/badge/GitLab-Releases-FC6D26?style=flat&logo=gitlab&logoColor=white" alt="GitLab Releases" /></a>&nbsp;&nbsp;
   <a href="https://apkpure.com/apkup/com.apkup"><img src="https://img.shields.io/badge/APKPure-Available-24C270?style=flat&logo=android&logoColor=white" alt="APKPure" /></a>&nbsp;&nbsp;
   <a href="https://www.amazon.com/gp/product/B0HR5TXL8R"><img src="https://img.shields.io/badge/Amazon%20Appstore-Available-FF9900?style=flat&logo=amazon&logoColor=black" alt="Amazon Appstore" /></a>
 </p>
@@ -131,8 +136,8 @@ Get the latest release of ApkUp from your preferred platform:
 Need help configuring sources or resolving connection errors? Visit the official **[ApkUp Wiki](https://github.com/DurchEins/apkup/wiki)** for step-by-step guides:
 
 * [Troubleshooting Source Errors](https://github.com/DurchEins/apkup/wiki/Troubleshooting-Source-Errors)
-* [Configuring GitHub & GitLab Personal Access Tokens](https://github.com/DurchEins/apkup/wiki/Configuring-GitHub-&-GitLab-Tokens)
-* [Setting up Shizuku for Silent Updates](https://github.com/DurchEins/apkup/wiki/Setting-up-Shizuku)
+* [Configuring GitHub, GitLab & Codeberg Personal Access Tokens](https://github.com/DurchEins/apkup/wiki/Configuring-GitHub-&-GitLab-Tokens)
+* [Setting up Shizuku & Optional Root (`su`) for Silent Updates](https://github.com/DurchEins/apkup/wiki/Setting-up-Shizuku)
 * [Obtainium Migration & Sync Guide](https://github.com/DurchEins/apkup/wiki/Obtainium-Migration-&-Sync-Guide)
 * [F-Droid & Index V2 Repositories](https://github.com/DurchEins/apkup/wiki/F-Droid-&-Index-V2-Repositories)
 
