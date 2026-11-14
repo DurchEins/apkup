@@ -1,36 +1,40 @@
 # Privacy Policy for ApkUp
 
-**Last Updated:** November 10, 2026
+**Last Updated:** November 13, 2026
 
 ApkUp is an open-source, client-side Android application developed by DurchEins. This Privacy Policy explains how ApkUp handles data and respects user privacy.
 
 ---
 
-### 1. No Collection of Personal Data
+### 1. No Developer Backend, Analytics, or Ads
 ApkUp is designed with a strict **Privacy by Design** philosophy:
-- **No Personal Information:** We do not collect, transmit, process, or sell names, email addresses, phone numbers, location data, or unique device identifiers (IMEI, Android ID, Advertising ID).
-- **No User Accounts:** ApkUp does not require registration, login, or user profiles.
+- **No Developer Servers:** There is no ApkUp backend, proxy server, or developer database logging user queries or IP addresses.
+- **No User Accounts Required:** ApkUp does not require registration, login, or user profiles.
 - **No Analytics or Telemetry:** ApkUp contains zero analytics SDKs, crash trackers, or behavioral telemetry (no Google Firebase, no Crashlytics, no Sentry, no Mixpanel).
 - **No Advertisements:** ApkUp is completely free of ads, tracking banners, and ad networks.
+- **No Hardware Identifiers:** ApkUp never collects or transmits IMEI numbers, hardware serial numbers, MAC addresses, or Advertising IDs.
 
 ---
 
-### 2. Network Activity & External Services
-ApkUp functions as an update manager and sideloading companion. All network communication is initiated locally from the user's device and connects directly via encrypted HTTPS to public developer distribution channels:
-- **Public Version Checking:** Queries public release endpoints on GitHub (`api.github.com`), GitLab (`gitlab.com`), F-Droid, or APKMirror to compare version codes of installed apps.
-- **Direct Downloads:** Downloads public APK installation packages directly from developer-hosted releases to the device's local storage.
-- **No Intermediary Servers:** There is no ApkUp backend, proxy server, or database logging user queries or IP addresses.
+### 2. Explicit Source Consent & Network Activity
+On first launch, ApkUp presents a **Choose Update Sources** consent dialog. No external network checks are performed until you choose which sources to enable, and you can toggle any source on or off at any time in Settings:
+
+- **F-Droid & IzzyOnDroid (Signed Repository Indexes):** Downloads signed repository index archives (`index-v1.jar` / `entry.json`) via HTTPS from `f-droid.org`, `apt.izzysoft.de`, or custom HTTPS F-Droid mirrors you add, and compares versions locally on your device. Your list of installed apps is **not** transmitted to F-Droid or IzzyOnDroid.
+- **GitHub, GitLab & Codeberg / Forgejo:** Queries public release endpoints (`api.github.com`, `gitlab.com`, `codeberg.org`, or user-configured self-hosted GitLab/Forgejo hosts) via HTTPS solely for installed or user-watched apps mapped to open-source repositories. Optional Personal Access Tokens are sent strictly to their respective host and never forwarded across cross-host redirects.
+- **APKMirror:** Queries `www.apkmirror.com` via HTTPS (API and/or public RSS/Atom feeds) to check version numbers and resolve APK download links for tracked packages.
+- **Google Play Store (Anonymous Compatibility Check):** When enabled, ApkUp requests an anonymous session token from the community Aurora Dispenser (`auroraoss.com`) and queries `android.clients.google.com` via HTTPS using installed package IDs and a minimized device compatibility profile (CPU ABI, Android SDK version, screen density, and normalized language code) to retrieve compatible update metadata. No personal Google account is used.
 
 ---
 
-### 3. Device Permissions & Local Data
+### 3. Device Permissions & Encrypted Local Storage
 ApkUp requests only standard Android permissions necessary for its core functionality:
-- `INTERNET` & `ACCESS_NETWORK_STATE`: Required to query public repository release feeds and download APK files.
-- `REQUEST_INSTALL_PACKAGES`: Required to hand over downloaded APK files to the Android system installer or Shizuku service.
-- `POST_NOTIFICATIONS`: Optional permission to notify users when background update checks discover new releases.
-- `QUERY_ALL_PACKAGES`: Required locally on the device to read package names and installed version numbers of applications the user wishes to track. This information never leaves the device.
+- `INTERNET` & `ACCESS_NETWORK_STATE`: Required to query enabled update sources and download APK files over HTTPS.
+- `REQUEST_INSTALL_PACKAGES`: Required to hand over verified APK packages to the Android system `PackageInstaller` or optional Shizuku service.
+- `POST_NOTIFICATIONS`: Optional permission to notify you about available updates and download progress.
+- `QUERY_ALL_PACKAGES`: Required locally on the device to inspect installed package names, version codes, and signing certificates so ApkUp can detect updates and block signature-mismatched packages before installation.
+- `FOREGROUND_SERVICE` & `FOREGROUND_SERVICE_DATA_SYNC`: Used by AndroidX `WorkManager` to run user-initiated update downloads reliably.
 
-All preferences, ignore lists, and cached update timestamps are stored exclusively in private local app storage (`SharedPreferences` / local SQLite database) on the user's device.
+All local settings, repository bindings, and optional API tokens are stored exclusively in private app storage encrypted at rest via **Google Tink (AES-256-GCM)** backed by the Android Keystore. Cloud backups and device-to-device data extraction are disabled (`android:allowBackup="false"`). Downloaded APK files are stored inside ApkUp's private internal cache directory (and automatically purged after installation or expiration) unless you explicitly use "Save APK" to export a copy to your chosen download folder. Any local diagnostic log (`AppJournal` + process logcat) stays strictly offline on your device, strips access tokens, and is only saved or shared when explicitly triggered by you.
 
 ---
 
@@ -41,6 +45,6 @@ https://github.com/DurchEins/apkup
 ---
 
 ### 5. Contact
-If you have any questions or concerns regarding this Privacy Policy, please contact:
-- **Email:** 16086512+DurchEins@users.noreply.github.com
+If you have any questions or concerns regarding this Privacy Policy, please reach out via GitHub:
 - **Issue Tracker:** https://github.com/DurchEins/apkup/issues
+- **Security Advisories (Confidential):** https://github.com/DurchEins/apkup/security/advisories/new

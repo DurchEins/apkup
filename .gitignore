@@ -39,6 +39,9 @@ captures/
 *.keystore
 *.p12
 *.key
+*.pem
+*.pk8
+*.der
 
 # External native build folder
 .externalNativeBuild
@@ -59,6 +62,8 @@ desktop.ini
 
 # Internal AI / Assistant Artifacts
 AGENTS.md
+.agents/
+.kotlin/
 .artifacts/
 walkthrough.md
 next_milestones_architecture_plan.md
@@ -67,6 +72,3 @@ chat_history_export.md
 design-plans/
 redesign/
 DESIGN.md
-*.apk
-
-

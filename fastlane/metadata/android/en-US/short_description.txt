@@ -1,1 +1,1 @@
-Modern Material 3 app updater for Play, APKMirror, F-Droid, GitHub & Shizuku
+Modern Material 3 updater: Play, APKMirror, F-Droid, GitHub, Codeberg & Shizuku

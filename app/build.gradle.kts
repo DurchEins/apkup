@@ -2,7 +2,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.io.FileInputStream
 import java.util.Properties
 
-
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
@@ -18,61 +17,109 @@ android {
     namespace = "com.apkup"
     compileSdk = 37
 
-    val buildNumber = System.getenv("BUILD_NUMBER").orEmpty()
+    val buildNumber = System.getenv("BUILD_NUMBER").orEmpty().trim()
+    val parsedBuildNumber = buildNumber.takeIf { it.isNotEmpty() }?.let { raw ->
+        raw.toIntOrNull()?.takeIf { it > 0 }
+            ?: throw GradleException("BUILD_NUMBER must be a positive integer, got: '$raw'")
+    }
+
     defaultConfig {
-        applicationId = "com.apkup" + System.getenv("BUILD_TAG").orEmpty()
+        applicationId = "com.apkup" + System.getenv("BUILD_TAG").orEmpty().trim()
         minSdk = 29
         targetSdk = 37
-        versionCode = if (buildNumber.isEmpty()) 180 else buildNumber.toInt()
-        versionName = if (buildNumber.isEmpty()) "1.41.25-Beta (180)" else "1.41.25-$buildNumber"
+        versionCode = parsedBuildNumber ?: 192
+        versionName = if (parsedBuildNumber == null) "1.43.0-Beta (192)" else "1.43.0-$parsedBuildNumber"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
         create("release") {
             var configured = false
-            try {
-                val propFile = file("../local.properties")
-                if (propFile.exists()) {
-                    val props = Properties()
-                    props.load(FileInputStream(propFile))
-                    val ksPath = props.getProperty("keystore.file")
-                    if (!ksPath.isNullOrBlank()) {
-                        val ksFile = File(ksPath)
-                        val resolvedFile = when {
-                            ksFile.isAbsolute && ksFile.exists() -> ksFile
-                            rootProject.file(ksPath).exists() -> rootProject.file(ksPath)
-                            file(ksPath).exists() -> file(ksPath)
-                            rootProject.file("app/$ksPath").exists() -> rootProject.file("app/$ksPath")
-                            else -> null
-                        }
-                        if (resolvedFile != null && resolvedFile.exists()) {
-                            storeFile = resolvedFile
-                            storePassword = props.getProperty("keystore.password")
-                            keyAlias = props.getProperty("keystore.keyalias")
-                            keyPassword = props.getProperty("keystore.keypassword")
-                            configured = true
-                        } else {
-                            println("Keystore file '$ksPath' does not exist at expected paths. Falling back to debug signing config.")
+
+            // 1. Prefer environment variables (used in CI; immune to Properties backslash corruption)
+            val envKsPath = System.getenv("ANDROID_KEYSTORE_PATH")?.trim().orEmpty()
+            if (envKsPath.isNotEmpty()) {
+                val envKsFile = File(envKsPath)
+                val envStorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD").orEmpty()
+                val envKeyAlias = System.getenv("ANDROID_KEY_ALIAS")?.trim().orEmpty()
+                val envKeyPassword = System.getenv("ANDROID_KEY_PASSWORD").orEmpty()
+                if (envKsFile.isFile && envStorePassword.isNotEmpty() && envKeyAlias.isNotEmpty() && envKeyPassword.isNotEmpty()) {
+                    storeFile = envKsFile
+                    storePassword = envStorePassword
+                    keyAlias = envKeyAlias
+                    keyPassword = envKeyPassword
+                    configured = true
+                } else {
+                    throw GradleException(
+                        "ANDROID_KEYSTORE_PATH was set ('$envKsPath'), but keystore file or credentials are incomplete/missing."
+                    )
+                }
+            }
+
+            // 2. Fallback to root local.properties for local developer builds
+            if (!configured) {
+                try {
+                    val propFile = rootProject.file("local.properties")
+                    if (propFile.isFile) {
+                        val props = Properties()
+                        FileInputStream(propFile).use { props.load(it) }
+                        val ksPath = props.getProperty("keystore.file")?.trim()
+                        if (!ksPath.isNullOrEmpty()) {
+                            val ksFile = File(ksPath)
+                            val resolvedFile = when {
+                                ksFile.isAbsolute && ksFile.isFile -> ksFile
+                                rootProject.file(ksPath).isFile -> rootProject.file(ksPath)
+                                file(ksPath).isFile -> file(ksPath)
+                                rootProject.file("app/$ksPath").isFile -> rootProject.file("app/$ksPath")
+                                else -> null
+                            }
+                            val ksPass = props.getProperty("keystore.password")
+                            val ksAlias = props.getProperty("keystore.keyalias")?.trim()
+                            val keyPass = props.getProperty("keystore.keypassword")
+                            if (resolvedFile != null && !ksPass.isNullOrEmpty() && !ksAlias.isNullOrEmpty() && !keyPass.isNullOrEmpty()) {
+                                storeFile = resolvedFile
+                                storePassword = ksPass
+                                keyAlias = ksAlias
+                                keyPassword = keyPass
+                                configured = true
+                            } else {
+                                println("Keystore configuration in local.properties is incomplete or missing file '$ksPath'.")
+                            }
                         }
                     }
+                } catch (e: Exception) {
+                    println("Warning: Failed to read keystore configuration from local.properties: ${e.message}")
+                    configured = false
                 }
-            } catch (_: Exception) {
-                configured = false
             }
+
             if (!configured) {
-                val config = signingConfigs.getByName("debug")
-                storeFile = config.storeFile
-                storePassword = config.storePassword
-                keyAlias = config.keyAlias
-                keyPassword = config.keyPassword
-                println("Release keystore not specified in local.properties. Falling back to debug signing config.")
+                val isCi = System.getenv("CI").equals("true", ignoreCase = true)
+                val isReleaseTaskRequested = gradle.startParameter.taskNames.any {
+                    it.contains("Release", ignoreCase = true)
+                }
+                if (isCi && isReleaseTaskRequested) {
+                    throw GradleException(
+                        "CRITICAL: Release signing keystore is not configured in CI! Refusing to sign release build with debug keystore."
+                    )
+                }
+                val debugConfig = signingConfigs.getByName("debug")
+                storeFile = debugConfig.storeFile
+                storePassword = debugConfig.storePassword
+                keyAlias = debugConfig.keyAlias
+                keyPassword = debugConfig.keyPassword
+                println("Local dev notice: Release keystore not configured; falling back to debug signing config.")
             }
+            enableV2Signing = true
             enableV3Signing = true
         }
     }
 
     buildTypes {
+        getByName("debug") {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
         getByName("release") {
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
@@ -85,7 +132,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-
 
     buildFeatures {
         compose = true
@@ -111,14 +157,22 @@ android {
     }
 
     lint {
-        abortOnError = false
-        checkReleaseBuilds = false
+        abortOnError = true
+        checkReleaseBuilds = true
         checkTestSources = false
-        warning.addAll(arrayOf("ExtraTranslation", "MissingTranslation", "MissingQuantity"))
+        lintConfig = file("lint.xml")
     }
 }
 
 dependencies {
+    constraints {
+        implementation("com.google.protobuf:protobuf-javalite:4.31.1") {
+            because("Enforce floor >= 4.28.2 on transitive protobuf from gplayapi to mitigate CVE-2024-7254")
+        }
+        implementation("com.google.protobuf:protobuf-java:4.31.1") {
+            because("Enforce floor >= 4.28.2 if protobuf-java is ever pulled transitively")
+        }
+    }
 
     val composeBom = platform("androidx.compose:compose-bom:2026.09.00")
     implementation(composeBom)
@@ -131,13 +185,12 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.11.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.11.0")
     implementation("androidx.navigation:navigation-compose:2.10.2")
-    implementation("androidx.navigation:navigation-runtime-ktx:2.10.2")
     implementation("androidx.work:work-runtime-ktx:2.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
-    implementation("com.github.rumboalla.KryptoPrefs:kryptoprefs-gson:0.4.3")
-    implementation("com.github.rumboalla.KryptoPrefs:kryptoprefs:0.4.3")
+    implementation("com.google.crypto.tink:tink-android:1.24.0")
     implementation("com.auroraoss:gplayapi:3.5.8")
-    implementation("com.google.code.gson:gson:2.13.2")
+    implementation("com.google.code.gson:gson:2.15.0")
+    implementation("org.jsoup:jsoup:1.22.1")
     implementation("com.squareup.okhttp3:okhttp:5.5.1")
     implementation("com.squareup.retrofit2:converter-gson:3.0.0")
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
@@ -147,7 +200,9 @@ dependencies {
     implementation("io.insert-koin:koin-androidx-compose:4.2.2")
     implementation("dev.rikka.shizuku:api:13.1.5")
     implementation("dev.rikka.shizuku:provider:13.1.5")
+
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
 
     androidTestImplementation(composeBom)
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
@@ -156,21 +211,4 @@ dependencies {
 
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     debugImplementation("androidx.compose.ui:ui-tooling")
-
-}
-
-androidComponents {
-    onVariants { variant ->
-        variant.outputs.forEach { _ ->
-            tasks.configureEach {
-                if (name == "package${variant.name.replaceFirstChar { it.uppercase() }}") {
-                    doLast {
-                        outputs.files.files
-                            .flatMap { it.walkTopDown().filter { f -> f.extension == "apk" }.toList() }
-                            .forEach { apk -> runCatching { apk.copyTo(File(apk.parentFile, "${android.defaultConfig.applicationId}-${variant.buildType}.apk"), true) }.getOrNull() }
-                    }
-                }
-            }
-        }
-    }
 }

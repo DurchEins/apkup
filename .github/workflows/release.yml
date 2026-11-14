@@ -1,93 +1,136 @@
 name: Build & Publish Release
 
 on:
-  push:
-    tags:
-      - 'v*'
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Optional Git tag to publish as a GitHub Release (leave empty to build artifact only)'
+        required: false
+        default: ''
+        type: string
+      prerelease:
+        description: 'Mark GitHub Release as pre-release (keep false for regular manual/Beta-named full releases)'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
 
 jobs:
-  build-and-release:
+  build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-
+      contents: read
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
 
-      - name: Setup Java 17
-        uses: actions/setup-java@v4
+      - name: Setup Java 25
+        uses: actions/setup-java@3aefacd397f35941915934358bbd83f05f77890f # v4.4.0
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '25'
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v4
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@017a9effdb900e5b5b2fddfb590a105619dca3c3 # v4.4.2
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Configure Keystore (if Secrets exist)
+      - name: Stage Release Keystore (Fail-Closed)
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          if [ -n "$KEYSTORE_BASE64" ]; then
-            echo "$KEYSTORE_BASE64" | base64 --decode > release.keystore
-            cp release.keystore app/release.keystore
-            echo "keystore.file=release.keystore" >> local.properties
-            echo "keystore.password=$KEYSTORE_PASSWORD" >> local.properties
-            echo "keystore.keyalias=$KEY_ALIAS" >> local.properties
-            echo "keystore.keypassword=$KEY_PASSWORD" >> local.properties
-            echo "Keystore successfully configured."
-          else
-            echo "No KEYSTORE_BASE64 secret provided. Gradle will fall back to debug signing."
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
+            echo "::error::Missing release signing secrets (KEYSTORE_BASE64 / KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD). Refusing to build debug-signed release APK."
+            exit 1
+          fi
+          KS_PATH="${RUNNER_TEMP}/release.keystore"
+          umask 077
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$KS_PATH"
+          chmod 600 "$KS_PATH"
+          echo "ANDROID_KEYSTORE_PATH=$KS_PATH" >> "$GITHUB_ENV"
+
+      - name: Run Lint, Unit Tests and Assemble Signed Release
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew lintRelease testDebugUnitTest assembleRelease --stacktrace
+
+      - name: Shred Staged Keystore
+        if: always()
+        run: |
+          KS_PATH="${RUNNER_TEMP}/release.keystore"
+          if [ -f "$KS_PATH" ]; then
+            shred -u "$KS_PATH" 2>/dev/null || rm -f "$KS_PATH"
           fi
 
-      - name: Run Unit Tests and Assemble Release
-        run: ./gradlew testDebugUnitTest assembleRelease --stacktrace
-
-      - name: Prepare Release Artifacts
-        id: prepare_artifacts
+      - name: Verify APK Signature & Prepare Release Assets
+        env:
+          INPUT_TAG: ${{ inputs.tag_name }}
         run: |
           mkdir -p release_assets
-          # Find generated release APK
-          APK_FILE=$(find app/build/outputs/apk/release -name "*.apk" | head -n 1)
-          if [ -f "$APK_FILE" ]; then
-            TAG_OR_RUN="${GITHUB_REF_NAME:-run-${GITHUB_RUN_NUMBER}}"
-            TARGET_APK="release_assets/ApkUp-${TAG_OR_RUN}.apk"
-            cp "$APK_FILE" "$TARGET_APK"
-            echo "apk_path=$TARGET_APK" >> $GITHUB_OUTPUT
-          else
-            echo "Error: No APK file found in app/build/outputs/apk/release"
+          APK_FILE="app/build/outputs/apk/release/app-release.apk"
+          if [ ! -f "$APK_FILE" ]; then
+            echo "::error::Expected signed APK not found at $APK_FILE"
             exit 1
           fi
 
-      - name: Generate Changelog Notes
-        id: changelog
-        run: |
-          CHANGELOG_FILE=$(ls -v fastlane/metadata/android/en-US/changelogs/*.txt 2>/dev/null | tail -n 1)
-          if [ -n "$CHANGELOG_FILE" ] && [ -f "$CHANGELOG_FILE" ]; then
-            echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
-            cat "$CHANGELOG_FILE" >> $GITHUB_ENV
-            echo "EOF" >> $GITHUB_ENV
-          else
-            echo "RELEASE_NOTES=ApkUp Release" >> $GITHUB_ENV
+          APKSIGNER_BIN=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -n 1)
+          if [ -n "$APKSIGNER_BIN" ]; then
+            "$APKSIGNER_BIN" verify --verbose "$APK_FILE"
           fi
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
+          RAW_LABEL="${INPUT_TAG:-run-${GITHUB_RUN_NUMBER}}"
+          SAFE_LABEL=$(printf '%s' "$RAW_LABEL" | tr -cd 'A-Za-z0-9._-')
+          TARGET_APK="release_assets/ApkUp-${SAFE_LABEL}.apk"
+          cp "$APK_FILE" "$TARGET_APK"
+          (cd release_assets && sha256sum "$(basename "$TARGET_APK")" > "$(basename "$TARGET_APK").sha256")
+
+          CHANGELOG_FILE=$(ls -v fastlane/metadata/android/en-US/changelogs/*.txt 2>/dev/null | tail -n 1)
+          if [ -n "$CHANGELOG_FILE" ] && [ -f "$CHANGELOG_FILE" ]; then
+            cp "$CHANGELOG_FILE" release_assets/RELEASE_NOTES.md
+          else
+            printf 'ApkUp Release %s\n' "$SAFE_LABEL" > release_assets/RELEASE_NOTES.md
+          fi
+
+      - name: Upload Release Assets Artifact
+        uses: actions/upload-artifact@b4217b94994d6736294711e54911f37cfb19a48d # v4.6.2
         with:
-          files: release_assets/*.apk
-          body: ${{ env.RELEASE_NOTES }}
+          name: apkup-release-assets
+          path: release_assets/*
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    if: ${{ inputs.tag_name != '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download Release Assets Artifact
+        uses: actions/download-artifact@fa0a91b85d4f404e311e046e160be15b3bd27c9d # v4.4.2
+        with:
+          name: apkup-release-assets
+          path: release_assets
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@c062e08bd532505e96ef6a113978c694680075b0 # v2.2.1
+        with:
+          tag_name: ${{ inputs.tag_name }}
+          body_path: release_assets/RELEASE_NOTES.md
+          files: |
+            release_assets/*.apk
+            release_assets/*.apk.sha256
           draft: false
-          prerelease: true
+          prerelease: ${{ inputs.prerelease }}

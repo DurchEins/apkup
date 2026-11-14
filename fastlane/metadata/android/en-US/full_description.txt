@@ -1,9 +1,10 @@
 ApkUp is a modern, privacy-first open-source Android app updater built with Jetpack Compose and Material 3 Expressive design. It discovers, manages, and installs updates across multiple sources without ads or tracking.
 
 Key Features:
-* Multi-Source Discovery: Check updates across Google Play Store, APKMirror (with direct in-app downloads and .apkm split-bundle extraction), IzzyOnDroid (F-Droid Index V2), GitHub, and GitLab (including self-hosted instances and subgroups).
-* Autonomous Shizuku Background Updates & History: Automatically download and silently install updates in the background via Shizuku with Wi-Fi-only and charging-only guards, consolidated summary notifications, and an in-app Update History sheet with direct links to previous versions for easy rollbacks.
-* 24-Hour Smart APK Cache: Downloaded packages stay ready locally for 24 hours so cancelled or deferred updates can be installed instantly without re-downloading.
-* Obtainium Interoperability & Full Backup: Import and export Obtainium repository mappings directly, or back up your entire ApkUp configuration as a single JSON file.
-* Signature Protection & Granular Filters: Pre-install certificate mismatch warnings, per-version skipping, permanently hidden apps, and Wi-Fi data saver mode.
-* Modern Android Experience: Supports Android 10.0 (API 29) through Android 17 with Dynamic Color (Material You), a floating navigation dock, built-in self-updater, and 9 languages (English, German, Spanish, French, Portuguese, Italian, Russian, Simplified Chinese, and Japanese).
+* Multi-Source Discovery: Check updates across Google Play Store, APKMirror (with direct in-app downloads and .apkm split-bundle extraction), IzzyOnDroid, custom F-Droid repositories (Index V2 with presets), GitHub, GitLab, and Codeberg / self-hosted Forgejo.
+* Watch Uninstalled Apps: Track releases for apps that are not yet installed via your Watchlist and install newly discovered versions directly from Updates.
+* Search, Sorting & Save APK: Filter and sort both Updates and Apps (including newest release date), and export single APKs or split .apks bundles into Downloads or a custom SAF folder.
+* Autonomous Background Updates (Shizuku & Optional Root): Silently install updates in the background via Shizuku or an optional Root (su) fallback with Wi-Fi and charging guards, batch overall ETA progress, and an Update History sheet with rollback links.
+* Obtainium Sync, Backup & Diagnostics: Interactive Obtainium JSON import preview and export, full JSON settings backup, and an offline sanitized diagnostic log export.
+* Signature Protection & Granular Filters: Pre-install certificate verification, FOSS flavor and asset regex filtering, per-version skipping, hidden apps, and Wi-Fi-only data saver mode.
+* Modern Android Experience: Supports Android 10.0 (API 29) through Android 17 with Dynamic Color (Material You), collapsible headers, a built-in self-updater, and 9 languages.

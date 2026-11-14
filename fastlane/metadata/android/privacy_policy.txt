@@ -1,8 +1,9 @@
 Privacy Policy for ApkUp (https://github.com/DurchEins/apkup)
 
 ApkUp is an open-source, client-side Android utility licensed under GNU GPLv3.
-- No Personal Data Collected: ApkUp does not collect, track, store, or share any personal information, device identifiers, or user data.
+- No Developer Backend or Personal Data Collection: ApkUp operates without any developer servers and never collects names, email addresses, location data, IMEIs, or Advertising IDs.
 - No Analytics & No Ads: Zero tracking SDKs, zero telemetry, and zero advertisements.
-- Network Usage: Network requests connect strictly from the user's device via direct HTTPS to public developer release feeds (GitHub, GitLab, F-Droid) to check version numbers and download public APK files. No intermediary servers exist.
-- Contact: apkup.app@gmail.com
+- Explicit Source Consent & HTTPS Networking: Only after explicit user selection on first launch does ApkUp connect via HTTPS to user-enabled update sources (signed F-Droid / IzzyOnDroid indexes, GitHub, GitLab, Codeberg/Forgejo, APKMirror, or anonymous Google Play compatibility checks via Aurora Dispenser). Diagnostic logs strip tokens and are only saved or shared manually by the user.
+- Encrypted Local Storage: Settings and optional tokens are encrypted locally via Google Tink (AES-256-GCM) in Android Keystore with cloud backups disabled.
+- Contact & Issue Tracker: https://github.com/DurchEins/apkup/issues
 Full Privacy Policy: https://github.com/DurchEins/apkup/blob/main/PRIVACY.md

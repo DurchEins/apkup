@@ -1,6 +1,12 @@
 pluginManagement {
     repositories {
-        google()
+        google {
+            mavenContent {
+                includeGroupAndSubgroups("androidx")
+                includeGroupAndSubgroups("com.android")
+                includeGroupAndSubgroups("com.google")
+            }
+        }
         mavenCentral()
         gradlePluginPortal()
     }
@@ -9,14 +15,24 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        google()
+        google {
+            mavenContent {
+                includeGroupAndSubgroups("androidx")
+                includeGroupAndSubgroups("com.android")
+                includeGroupAndSubgroups("com.google")
+            }
+        }
+        exclusiveContent {
+            forRepository {
+                maven("https://gitlab.com/api/v4/projects/18497829/packages/maven")
+            }
+            filter {
+                includeGroup("com.auroraoss")
+            }
+        }
         mavenCentral()
-        maven("https://jitpack.io")
-        maven("https://gitlab.com/api/v4/projects/18497829/packages/maven")
     }
 }
 
-rootProject.name = "apkupdater"
+rootProject.name = "apkup"
 include(":app")
-
-

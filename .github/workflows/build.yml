@@ -6,27 +6,32 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-    - name: Setup Java 21
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'zulu'
-        java-version: '21'
+      - name: Setup Java 25
+        uses: actions/setup-java@3aefacd397f35941915934358bbd83f05f77890f # v4.4.0
+        with:
+          distribution: 'zulu'
+          java-version: '25'
 
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v4
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@017a9effdb900e5b5b2fddfb590a105619dca3c3 # v4.4.2
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
 
-    - name: Run Unit Tests and Assemble Debug
-      run: ./gradlew testDebugUnitTest assembleDebug --stacktrace
+      - name: Run Lint, Unit Tests and Assemble Debug
+        run: ./gradlew lintDebug testDebugUnitTest assembleDebug --stacktrace
