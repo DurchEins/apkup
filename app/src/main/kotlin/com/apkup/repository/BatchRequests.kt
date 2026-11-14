@@ -76,7 +76,10 @@ internal suspend fun <Input, Output> requestConcurrentBatches(
 				val response = try {
 					try {
 						request(batches[index])
-					} catch (timeout: java.net.SocketTimeoutException) {
+					} catch (ioEx: java.io.IOException) {
+						if (ioEx is java.net.UnknownHostException || stopSchedulingAfterFailure(ioEx)) {
+							throw ioEx
+						}
 						delay(1500L)
 						request(batches[index])
 					}

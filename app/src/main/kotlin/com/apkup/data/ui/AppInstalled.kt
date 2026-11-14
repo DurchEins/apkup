@@ -20,7 +20,8 @@ data class AppInstalled(
 	val enabled: Boolean = true,
 	val isSystemApp: Boolean = false,
 	val lastUpdateTime: Long = 0L,
-	val installerPackageName: String = ""
+	val installerPackageName: String = "",
+	val isWatchedOnly: Boolean = false
 ) {
 	val installOrigin: InstallOrigin
 		get() = resolveInstallOrigin(installerPackageName, isSystemApp)
@@ -46,7 +47,8 @@ internal fun hasPotentialSignatureConflict(
 	installOrigin: InstallOrigin,
 	updateSource: Source
 ): Boolean = when (installOrigin) {
-	InstallOrigin.FDROID, InstallOrigin.REVANCED -> true
+	InstallOrigin.FDROID, InstallOrigin.REVANCED -> updateSource != IzzyOnDroidSource && updateSource != FDroidSource && updateSource != CustomFDroidSource && updateSource != ApkMirrorSource
+	InstallOrigin.PLAY_STORE -> updateSource == GitHubSource || updateSource == GitLabSource || updateSource == CodebergSource
 	InstallOrigin.SIDELOAD -> updateSource == PlaySource
 	else -> false
 }

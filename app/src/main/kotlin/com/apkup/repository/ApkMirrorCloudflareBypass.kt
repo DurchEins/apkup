@@ -7,45 +7,29 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import com.apkup.util.WebKitCookieJar
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Interface allowing headless/background resolution of Cloudflare challenges for APKMirror.
- * Extracted as interface to ensure 100% testability on JVM without Android runtime stubs.
+ * Interface for sandboxed APKMirror page DOM capture when OkHttp receives an HTTP error,
+ * falling back cleanly to the user's visible browser whenever an interactive gate is present.
  */
 interface ApkMirrorCloudflareBypass {
-    /**
-     * Attempts to resolve a Cloudflare Managed Challenge for [url] by executing its JavaScript
-     * in an Android Chromium WebView, acquiring and saving the `cf_clearance` cookie and rendered HTML.
-     *
-     * @param url Target URL currently guarded by Cloudflare.
-     * @param timeoutMs Maximum time to wait for challenge resolution.
-     * @return True if challenge was solved (or cookie acquired), false on timeout or error.
-     */
     suspend fun solve(url: String, timeoutMs: Long = 15000L): Boolean
-
-    /**
-     * Returns the fully rendered HTML DOM captured from the WebView for [url], if available.
-     * This avoids redundant and blocked re-fetches by OkHttp when the browser has already loaded the page.
-     */
     fun getResolvedHtml(url: String): String? = null
-
-    /**
-     * Returns any direct CDN download URL intercepted during WebView redirect navigation.
-     */
     fun getInterceptedDownloadUrl(): String? = null
-
-    /**
-     * Returns the system WebView User-Agent string to ensure OkHttp matches the exact TLS
-     * and browser identity that solved the challenge.
-     */
     fun getUserAgent(): String
 }
 
@@ -55,10 +39,23 @@ class AndroidApkMirrorCloudflareBypass(
 
     companion object {
         private const val TAG = "ApkMirrorBypass"
+        private const val MAX_HTML_CACHE_ENTRIES = 4
+        private const val MAX_CAPTURED_HTML_CHARS = 2 * 1024 * 1024
         private const val FALLBACK_USER_AGENT =
             "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36"
+
+        internal fun extractCookieValue(rawCookies: String?, cookieName: String): String? {
+            if (rawCookies.isNullOrBlank()) return null
+            return rawCookies.split(";")
+                .map { it.trim() }
+                .firstOrNull { it.startsWith("$cookieName=") }
+                ?.substringAfter('=')
+                ?.trim()
+                ?.takeIf { it.isNotEmpty() }
+        }
     }
 
+    private val solveMutex = Mutex()
     private val htmlMap = ConcurrentHashMap<String, String>()
     @Volatile private var interceptedUrl: String? = null
 
@@ -70,138 +67,183 @@ class AndroidApkMirrorCloudflareBypass(
 
     override fun getUserAgent(): String = defaultUserAgent
 
-    override fun getResolvedHtml(url: String): String? = htmlMap[url]
+    override fun getResolvedHtml(url: String): String? = htmlMap.remove(url)
 
     override fun getInterceptedDownloadUrl(): String? = interceptedUrl
 
-    override suspend fun solve(url: String, timeoutMs: Long): Boolean = withContext(Dispatchers.Main) {
-        val completable = CompletableDeferred<Boolean>()
-        var webView: WebView? = null
-        interceptedUrl = null
+    private fun storeBoundedHtml(key: String, html: String) {
+        if (html.isBlank()) return
+        if (htmlMap.size >= MAX_HTML_CACHE_ENTRIES) {
+            htmlMap.clear()
+        }
+        htmlMap[key] = if (html.length > MAX_CAPTURED_HTML_CHARS) {
+            html.substring(0, MAX_CAPTURED_HTML_CHARS)
+        } else {
+            html
+        }
+    }
 
-        try {
-            Log.i(TAG, "Initializing headless WebView to solve Cloudflare challenge for $url")
-            val cookieManager = CookieManager.getInstance()
-            cookieManager.setAcceptCookie(true)
+    override suspend fun solve(url: String, timeoutMs: Long): Boolean = solveMutex.withLock {
+        val parsedInitialUrl = url.toHttpUrlOrNull()
+        if (parsedInitialUrl == null || !WebKitCookieJar.isTrustedApkMirrorHttpUrl(parsedInitialUrl)) {
+            Log.w(TAG, "Rejected untrusted or non-HTTPS URL in WebView sandbox: $url")
+            return@withLock false
+        }
 
-            webView = WebView(context).apply {
-                layout(0, 0, 1080, 1920)
-                settings.apply {
-                    javaScriptEnabled = true
-                    domStorageEnabled = true
-                    allowFileAccess = false
-                    allowContentAccess = false
-                    userAgentString = defaultUserAgent
-                    useWideViewPort = true
-                    loadWithOverviewMode = true
-                }
-                cookieManager.setAcceptThirdPartyCookies(this, true)
+        withContext(Dispatchers.Main) {
+            val completable = CompletableDeferred<Boolean>()
+            var webView: WebView? = null
+            interceptedUrl = null
+            htmlMap.clear()
 
-                webViewClient = object : WebViewClient() {
-                    override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                        val targetUrl = request?.url?.toString() ?: return false
-                        val host = request.url?.host.orEmpty().lowercase()
-                        val isApkMirrorDomain = host == "apkmirror.com" ||
-                            host.endsWith(".apkmirror.com") ||
-                            host == "apkmirror.net" ||
-                            host.endsWith(".apkmirror.net")
+            try {
+                val cookieManager = CookieManager.getInstance()
+                cookieManager.setAcceptCookie(true)
+                val initialClearance = extractCookieValue(cookieManager.getCookie(url), "cf_clearance")
 
-                        if (isApkMirrorDomain && (
-                            host == "download.apkmirror.com" ||
-                            host == "s.apkmirror.com" ||
-                            targetUrl.contains(".apk", ignoreCase = true) ||
-                            targetUrl.contains(".apkm", ignoreCase = true) ||
-                            targetUrl.contains("/wp-content/themes/responsive-mobile/download.php", ignoreCase = true)
-                        )) {
-                            Log.i(TAG, "Intercepted direct download URL in WebView navigation: $targetUrl")
-                            interceptedUrl = targetUrl
-                            cookieManager.flush()
-                            if (!completable.isCompleted) {
-                                completable.complete(true)
-                            }
-                            return true
-                        }
-                        return false
+                webView = WebView(context).apply {
+                    layout(0, 0, 1080, 1920)
+                    settings.apply {
+                        javaScriptEnabled = true
+                        domStorageEnabled = true
+                        allowFileAccess = false
+                        allowContentAccess = false
+                        mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
+                        userAgentString = defaultUserAgent
+                        useWideViewPort = true
+                        loadWithOverviewMode = true
                     }
+                    cookieManager.setAcceptThirdPartyCookies(this, false)
 
-                    override fun onPageFinished(view: WebView?, finishedUrl: String?) {
-                        super.onPageFinished(view, finishedUrl)
-                        val target = finishedUrl ?: url
-                        val cookies = cookieManager.getCookie(target).orEmpty()
-                        val title = view?.title.orEmpty()
-                        val hasCfClearance = cookies.contains("cf_clearance")
-                        val isKnownChallenge = title.contains("Just a moment", ignoreCase = true) ||
-                            title.contains("Cloudflare", ignoreCase = true) ||
-                            title.contains("Attention Required", ignoreCase = true) ||
-                            title.contains("Nur einen Moment", ignoreCase = true) ||
-                            title.contains("Einen Moment", ignoreCase = true) ||
-                            title.contains("Un instant", ignoreCase = true) ||
-                            title.contains("Momentito", ignoreCase = true) ||
-                            title.contains("Un momento", ignoreCase = true) ||
-                            title.contains("Security Check", ignoreCase = true) ||
-                            title.contains("Turnstile", ignoreCase = true)
+                    webViewClient = object : WebViewClient() {
+                        override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                            val reqUri = request?.url ?: return true
+                            val scheme = reqUri.scheme.orEmpty().lowercase(Locale.ROOT)
+                            val host = reqUri.host.orEmpty().lowercase(Locale.ROOT)
 
-                        // Cloudflare challenge pages never include "APKMirror" in their document title.
-                        // Real APKMirror content pages always end with "- APKMirror".
-                        val isApkMirrorContentPage = title.contains("APKMirror", ignoreCase = true)
-
-                        if (hasCfClearance || (!isKnownChallenge && isApkMirrorContentPage)) {
-                            view?.evaluateJavascript("(function() { return document.documentElement.outerHTML; })();") { rawHtml ->
-                                if (!rawHtml.isNullOrBlank() && rawHtml != "null") {
-                                    val unescaped = runCatching {
-                                        org.json.JSONTokener(rawHtml).nextValue().toString()
-                                    }.getOrDefault(rawHtml)
-                                    htmlMap[url] = unescaped
-                                    htmlMap[target] = unescaped
+                            // Strictly block all non-HTTPS schemes and off-domain navigations (HIGH-07)
+                            if (scheme != "https" || !WebKitCookieJar.isTrustedApkMirrorHost(host)) {
+                                Log.w(TAG, "Blocked off-domain or non-HTTPS WebView navigation: $scheme://$host")
+                                if (!completable.isCompleted && request.isForMainFrame) {
+                                    completable.complete(false)
                                 }
-                                Log.i(
-                                    TAG,
-                                    "Cloudflare challenge passed (clearance=$hasCfClearance, title=$title, url=$target, htmlLen=${htmlMap[target]?.length ?: 0})"
-                                )
+                                return true
+                            }
+
+                            val targetUrl = reqUri.toString()
+                            if (
+                                host == "download.apkmirror.com" ||
+                                host == "s.apkmirror.com" ||
+                                targetUrl.contains(".apk", ignoreCase = true) ||
+                                targetUrl.contains(".apkm", ignoreCase = true) ||
+                                targetUrl.contains("/wp-content/themes/responsive-mobile/download.php", ignoreCase = true)
+                            ) {
+                                interceptedUrl = targetUrl
                                 cookieManager.flush()
                                 if (!completable.isCompleted) {
                                     completable.complete(true)
                                 }
+                                return true
+                            }
+                            return false
+                        }
+
+                        override fun onPageFinished(view: WebView?, finishedUrl: String?) {
+                            super.onPageFinished(view, finishedUrl)
+                            val target = finishedUrl ?: url
+                            val parsedTarget = target.toHttpUrlOrNull()
+                            if (parsedTarget == null || !WebKitCookieJar.isTrustedApkMirrorHttpUrl(parsedTarget)) {
+                                if (!completable.isCompleted) completable.complete(false)
+                                return
+                            }
+
+                            val title = view?.title.orEmpty()
+                            val isInteractiveGate = title.contains("Just a moment", ignoreCase = true) ||
+                                title.contains("Cloudflare", ignoreCase = true) ||
+                                title.contains("Attention Required", ignoreCase = true) ||
+                                title.contains("Security Check", ignoreCase = true) ||
+                                title.contains("Turnstile", ignoreCase = true)
+
+                            if (isInteractiveGate) {
+                                // Never attempt to solve or wait out an interactive anti-bot/CAPTCHA gate;
+                                // abort immediately so ApkMirrorResolver hands off to the user's visible browser.
+                                if (!completable.isCompleted) {
+                                    completable.complete(false)
+                                }
+                                return
+                            }
+
+                            val isApkMirrorContentPage = title.contains("APKMirror", ignoreCase = true)
+                            if (isApkMirrorContentPage) {
+                                captureDomAndComplete(view, url, target, cookieManager, completable)
                             }
                         }
                     }
+
+                    loadUrl(url, mapOf("Accept-Language" to "en-US,en;q=0.9,de;q=0.8"))
                 }
 
-                loadUrl(url, mapOf("Accept-Language" to "en-US,en;q=0.9,de;q=0.8"))
-            }
-
-            // Periodic cookie poll every 400ms in case the challenge finishes via AJAX without triggering onPageFinished
-            val result = withTimeoutOrNull(timeoutMs) {
-                val poller = launch {
-                    while (isActive) {
-                        delay(400)
-                        val cookies = cookieManager.getCookie(url).orEmpty()
-                        if (cookies.contains("cf_clearance")) {
-                            Log.i(TAG, "cf_clearance cookie detected via periodic poll")
-                            cookieManager.flush()
-                            completable.complete(true)
-                            break
+                val result = withTimeoutOrNull(timeoutMs) {
+                    val poller = launch {
+                        while (isActive && !completable.isCompleted) {
+                            delay(400)
+                            val currentClearance = extractCookieValue(cookieManager.getCookie(url), "cf_clearance")
+                            if (currentClearance != null && currentClearance != initialClearance) {
+                                val activeView = webView
+                                val activeTitle = activeView?.title.orEmpty()
+                                if (activeTitle.contains("APKMirror", ignoreCase = true)) {
+                                    captureDomAndComplete(activeView, url, url, cookieManager, completable)
+                                    break
+                                }
+                            }
                         }
                     }
-                }
-                try {
-                    completable.await()
-                } finally {
-                    poller.cancel()
-                }
-            } ?: false
+                    try {
+                        completable.await()
+                    } finally {
+                        poller.cancel()
+                    }
+                } ?: false
 
-            if (!result) {
-                Log.w(TAG, "WebView Cloudflare bypass timed out after ${timeoutMs}ms for $url")
+                result
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (error: Throwable) {
+                Log.w(TAG, "WebView sandbox aborted for $url (${error.javaClass.simpleName})")
+                false
+            } finally {
+                runCatching {
+                    webView?.stopLoading()
+                    webView?.loadUrl("about:blank")
+                    webView?.removeAllViews()
+                    webView?.destroy()
+                }
             }
-            result
-        } catch (error: Throwable) {
-            Log.e(TAG, "Error while executing WebView Cloudflare bypass for $url", error)
-            false
-        } finally {
-            runCatching {
-                webView?.stopLoading()
-                webView?.destroy()
+        }
+    }
+
+    private fun captureDomAndComplete(
+        view: WebView?,
+        initialUrl: String,
+        targetUrl: String,
+        cookieManager: CookieManager,
+        completable: CompletableDeferred<Boolean>
+    ) {
+        if (view == null) {
+            if (!completable.isCompleted) completable.complete(false)
+            return
+        }
+        view.evaluateJavascript("(function() { return document.documentElement.outerHTML; })();") { rawHtml ->
+            if (!rawHtml.isNullOrBlank() && rawHtml != "null") {
+                val unescaped = runCatching {
+                    org.json.JSONTokener(rawHtml).nextValue().toString()
+                }.getOrDefault(rawHtml)
+                storeBoundedHtml(initialUrl, unescaped)
+                storeBoundedHtml(targetUrl, unescaped)
+            }
+            cookieManager.flush()
+            if (!completable.isCompleted) {
+                completable.complete(true)
             }
         }
     }

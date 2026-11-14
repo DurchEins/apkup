@@ -1,5 +1,7 @@
 package com.apkup.data.obtainium
 
+import com.apkup.data.repomapping.RepoBinding
+import com.apkup.data.ui.CustomFDroidRepo
 import com.google.gson.annotations.SerializedName
 
 /**
@@ -38,18 +40,42 @@ data class ObtainiumAppEntry(
  */
 data class ObtainiumExportContainer(
     @SerializedName("apps")
-    val apps: List<ObtainiumAppEntry> = emptyList(),
+    val apps: List<ObtainiumAppEntry>? = emptyList(),
 
     @SerializedName("settings")
     val settings: Any? = null
 )
 
 /**
- * Result details returned after an Obtainium import operation.
+ * Result details returned after an Obtainium import operation (`F-03`).
  */
 data class ObtainiumImportResult(
     val totalEntries: Int = 0,
     val importedBindingsCount: Int = 0,
     val skippedCount: Int = 0,
-    val importedPackages: List<String> = emptyList()
+    val importedPackages: List<String> = emptyList(),
+    val detectedFDroidCount: Int = 0,
+    val detectedIzzyCount: Int = 0,
+    val unsupportedDomains: List<String> = emptyList()
 )
+
+data class ObtainiumWatchedCandidate(
+    val packageName: String,
+    val appName: String,
+    val repoUrl: String,
+    val binding: RepoBinding
+)
+
+data class ObtainiumImportPreview(
+    val totalEntries: Int = 0,
+    val matchedInstalledBindings: Map<String, RepoBinding> = emptyMap(),
+    val matchedInstalledNames: Map<String, String> = emptyMap(),
+    val uninstalledCandidateApps: List<ObtainiumWatchedCandidate> = emptyList(),
+    val detectedFDroidRepos: List<CustomFDroidRepo> = emptyList(),
+    val skippedEntriesCount: Int = 0
+) {
+    val hasAnyImportableData: Boolean
+        get() = matchedInstalledBindings.isNotEmpty() ||
+            uninstalledCandidateApps.isNotEmpty() ||
+            detectedFDroidRepos.isNotEmpty()
+}

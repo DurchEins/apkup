@@ -10,43 +10,46 @@ import com.apkup.data.ui.AppInstalled
 import com.apkup.prefs.Prefs
 import com.apkup.transform.toAppInstalled
 import kotlinx.coroutines.CancellationException
-
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class AppsRepository(
-	private val context: Context,
-	private val prefs: Prefs
+    private val context: Context,
+    private val prefs: Prefs
 ) {
 
-	suspend fun getApps(includeSystem: Boolean = prefs.showSystemApps.get()): Result<List<AppInstalled>> = try {
-		val startedAt = SystemClock.elapsedRealtime()
-		val ignoredPackages = ignoredApps()
-		val showSystemApps = prefs.showSystemApps.get()
-		val apps = context.packageManager
-			.getInstalledPackages(PackageManager.MATCH_ALL or PackageManager.GET_SIGNING_CERTIFICATES)
-			.asSequence()
-			.filter { includeSystemApp(it.applicationInfo?.flags ?: 0, includeSystem) }
-			.map { it.toAppInstalled(context, ignoredPackages) }
-			.sortedWith(compareBy<AppInstalled> { it.ignored }.thenBy { it.name })
-			.toList()
-		if (BuildConfig.DEBUG) {
-			Log.d(
-				"AppsRepository",
-				"Read ${apps.size} installed app(s) in ${SystemClock.elapsedRealtime() - startedAt} ms"
-			)
-		}
-		Result.success(apps)
-	} catch (cancellation: CancellationException) {
-		throw cancellation
-	} catch (exception: Exception) {
-		Log.e("AppsRepository", "Could not read installed apps (${exception.javaClass.simpleName})")
-		Result.failure(exception)
-	}
+    suspend fun getApps(includeSystem: Boolean = prefs.showSystemApps.get()): Result<List<AppInstalled>> =
+        withContext(Dispatchers.IO) {
+            try {
+                val startedAt = SystemClock.elapsedRealtime()
+                val ignoredPackages = ignoredApps()
+                val apps = context.packageManager
+                    .getInstalledPackages(PackageManager.MATCH_ALL or PackageManager.GET_SIGNING_CERTIFICATES)
+                    .asSequence()
+                    .filter { includeSystemApp(it.applicationInfo?.flags ?: 0, includeSystem) }
+                    .map { it.toAppInstalled(context, ignoredPackages) }
+                    .sortedWith(compareBy<AppInstalled> { it.ignored }.thenBy { it.name })
+                    .toList()
+                if (BuildConfig.DEBUG) {
+                    Log.d(
+                        "AppsRepository",
+                        "Read ${apps.size} installed app(s) in ${SystemClock.elapsedRealtime() - startedAt} ms"
+                    )
+                }
+                Result.success(apps)
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (exception: Exception) {
+                Log.e("AppsRepository", "Could not read installed apps (${exception.javaClass.simpleName})")
+                Result.failure(exception)
+            }
+        }
 
-	private fun ignoredApps() = if (prefs.ignoreAppsFilterActive.get()) prefs.ignoredApps.get() else emptyList()
+    private fun ignoredApps() = if (prefs.ignoreAppsFilterActive.get()) prefs.ignoredApps.get() else emptyList()
 }
 
 internal fun Int.isSystemAppFlags(): Boolean =
-	this and (ApplicationInfo.FLAG_SYSTEM or ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
+    this and (ApplicationInfo.FLAG_SYSTEM or ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
 
 internal fun includeSystemApp(flags: Int, showSystemApps: Boolean): Boolean =
-	showSystemApps || !flags.isSystemAppFlags()
+    showSystemApps || !flags.isSystemAppFlags()

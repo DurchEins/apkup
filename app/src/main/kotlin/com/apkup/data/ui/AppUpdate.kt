@@ -47,6 +47,7 @@ internal fun isVerifiableVersionUpgrade(
 	installedVersionCode: Long,
 	availableVersionCode: Long
 ): Boolean {
+	if (installedVersionCode == -1L) return availableVersionCode > 0L && normalizeVersionString(availableVersion).isNotEmpty()
 	if (availableVersionCode <= 0L || installedVersionCode <= 0L) return false
 	if (availableVersionCode <= installedVersionCode) return false
 	val normalizedAvailable = normalizeVersionString(availableVersion)
@@ -64,6 +65,8 @@ fun AppUpdate.isMeaningfulVersionUpgrade(): Boolean = isVerifiableVersionUpgrade
 	installedVersionCode = oldVersionCode,
 	availableVersionCode = versionCode
 )
+
+fun AppUpdate.isWatchedApp(): Boolean = oldVersionCode < 0L
 
 internal fun cleanChangelogText(raw: String?): String {
 	if (raw.isNullOrBlank()) return ""

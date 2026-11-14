@@ -4,20 +4,23 @@ import android.content.Context
 import android.os.Build
 import android.os.SystemClock
 import android.util.Log
-import com.apkup.BuildConfig
-import com.apkup.data.fdroid.FDroidV2Entry
-import com.apkup.data.fdroid.FDroidV2Index
-import com.apkup.data.fdroid.toIzzyIndexResponse
+import com.apkup.R
+import com.apkup.data.fdroid.FDroidIndexEngine
+import com.apkup.data.fdroid.FDroidRepoConfig
 import com.apkup.data.izzy.IzzyIndexResponse
 import com.apkup.data.izzy.IzzyPackageInfo
 import com.apkup.data.ui.AppInstalled
 import com.apkup.data.ui.AppUpdate
+import com.apkup.data.ui.FDroidSource
 import com.apkup.data.ui.IzzyOnDroidSource
 import com.apkup.data.ui.Link
+import com.apkup.data.ui.Source
 import com.apkup.data.ui.SourceUpdateResult
+import com.apkup.data.ui.canonicalizeAbi
 import com.apkup.data.ui.isMeaningfulVersionUpgrade
 import com.apkup.data.ui.isVerifiableVersionUpgrade
 import com.apkup.prefs.Prefs
+import com.apkup.util.ApkIntegrityVerifier
 import com.google.gson.Gson
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -33,191 +36,376 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
+import java.io.InputStream
 import java.io.InputStreamReader
+import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 import java.util.zip.ZipInputStream
 
+/**
+ * Multi-Repository F-Droid V2/V1 Update Engine (`F-02`, `F-23b`, `CRIT-02`, `HIGH-12`).
+ *
+ * Supports IzzyOnDroid (default enabled), Official F-Droid, microG, Guardian Project, and
+ * user-defined custom F-Droid repositories with mandatory `entry.jar` / `index-v1.jar` X.509
+ * signature verification, anti-rollback timestamp protection, streaming `JsonReader` parsing,
+ * 5-minute TTL, and mandatory per-APK SHA-256 verification.
+ */
 class IzzyOnDroidRepository(
     private val context: Context? = null,
     private val okHttpClient: OkHttpClient,
     private val gson: Gson,
     private val prefs: Prefs? = null,
     private val repoMappingManager: RepoMappingManager? = null,
-    private val cacheDirectory: File? = null
+    private val cacheDirectory: File? = null,
+    private val repoBaseUrl: String? = null,
+    private val targetSource: Source? = null,
+    private val repoDisplayName: String = "",
+    private val repoFingerprint: String = "",
+    private val onTofuFingerprintVerified: ((String) -> Unit)? = null
 ) {
     companion object {
+        const val ENTRY_JAR_URL = "https://apt.izzysoft.de/fdroid/repo/entry.jar"
         const val ENTRY_JSON_URL = "https://apt.izzysoft.de/fdroid/repo/entry.json"
         const val INDEX_V2_JSON_URL = "https://apt.izzysoft.de/fdroid/repo/index-v2.json"
         const val INDEX_JAR_URL = "https://apt.izzysoft.de/fdroid/repo/index-v1.jar"
         const val REPO_BASE_URL = "https://apt.izzysoft.de/fdroid/repo/"
         internal const val EMPTY_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        internal const val IN_MEMORY_CACHE_TTL_MS = 5L * 60L * 1_000L // 5 minutes (HIGH-12)
+        private const val MAX_INDEX_DOWNLOAD_BYTES = 256L * 1024L * 1024L // 256 MB hard cap
         private const val BATCH_NOTIFY_SIZE = 25
     }
 
-    private val mutex = Mutex()
-    private var inMemoryIndex: IzzyIndexResponse? = null
-    private var inMemoryIndexTimestamp: Long = 0L
+    private data class CachedRepoIndex(
+        val index: IzzyIndexResponse,
+        val fetchedAtMillis: Long,
+        val coveredPackages: Set<String>?
+    )
 
-    private fun getCacheDir(): File {
+    private val mutex = Mutex()
+    private val inMemoryRepoCache = ConcurrentHashMap<String, CachedRepoIndex>()
+
+    private val pinnedTofuFingerprints = ConcurrentHashMap<String, String>()
+
+    fun invalidateMemoryCache() {
+        inMemoryRepoCache.clear()
+    }
+
+    private fun getRootCacheDir(): File {
         val dir = cacheDirectory
-            ?: context?.cacheDir?.let { File(it, "izzy_cache") }
-            ?: File(System.getProperty("java.io.tmpdir") ?: ".", "izzy_cache")
+            ?: context?.cacheDir?.let { File(it, "fdroid_cache") }
+            ?: File(System.getProperty("java.io.tmpdir") ?: ".", "fdroid_cache")
         if (!dir.exists()) {
             dir.mkdirs()
         }
         return dir
     }
 
-    private fun getIndexV2JsonCacheFile(): File {
-        val file = File(getCacheDir(), "index-v2.json")
-        file.parentFile?.mkdirs()
-        return file
+    private fun getRepoCacheDir(repoId: String): File {
+        val safeId = repoId.replace(Regex("[^A-Za-z0-9._-]"), "_").ifBlank { "default" }
+        val dir = if (cacheDirectory != null && (repoId == FDroidRepoConfig.ID_IZZYONDROID || repoBaseUrl != null)) {
+            cacheDirectory
+        } else {
+            File(getRootCacheDir(), safeId)
+        }
+        if (!dir.exists()) dir.mkdirs()
+        return dir
     }
 
-    private fun getIndexJsonCacheFile(): File {
-        val file = File(getCacheDir(), "index-v1.json")
-        file.parentFile?.mkdirs()
-        return file
+    private fun resolveSourceForRepo(repo: FDroidRepoConfig): Source = targetSource ?: when (repo.id) {
+        FDroidRepoConfig.ID_IZZYONDROID -> IzzyOnDroidSource
+        FDroidRepoConfig.ID_FDROID_OFFICIAL -> FDroidSource
+        else -> Source(repo.name.ifBlank { "F-Droid" }, R.drawable.ic_izzy)
     }
 
-    private fun getMetaCacheFile(): File {
-        val file = File(getCacheDir(), "index.meta")
-        file.parentFile?.mkdirs()
-        return file
+    internal fun resolveActiveRepos(): List<FDroidRepoConfig> {
+        if (repoBaseUrl != null) {
+            val cleanUrl = FDroidRepoConfig.normalizeRepoBaseUrl(repoBaseUrl)
+                ?: throw SecurityException("Only valid HTTPS F-Droid repository URLs are allowed")
+            val presetMatch = FDroidRepoConfig.defaultPresets().firstOrNull {
+                it.normalizedUrl.equals(cleanUrl, ignoreCase = true)
+            }
+            val normExplicitFp = FDroidRepoConfig.normalizeFingerprint(repoFingerprint)
+            val singleId = presetMatch?.id
+                ?: ("custom_" + cleanUrl.lowercase(Locale.ROOT).hashCode().toUInt().toString(16))
+            val pinnedForRepo = pinnedTofuFingerprints[singleId].orEmpty()
+            val effectiveFp = when {
+                presetMatch != null -> {
+                    if (normExplicitFp.isNotEmpty() && !FDroidRepoConfig.isValidSha256Fingerprint(normExplicitFp)) {
+                        throw SecurityException("Invalid SHA-256 fingerprint for F-Droid repository")
+                    }
+                    presetMatch.normalizedFingerprint
+                }
+                normExplicitFp.isEmpty() -> pinnedForRepo
+                FDroidRepoConfig.isValidSha256Fingerprint(normExplicitFp) -> normExplicitFp
+                else -> throw SecurityException("Invalid SHA-256 fingerprint for custom F-Droid repository")
+            }
+            return listOf(
+                FDroidRepoConfig(
+                    id = singleId,
+                    name = repoDisplayName.ifBlank { presetMatch?.name ?: cleanUrl },
+                    url = cleanUrl,
+                    fingerprint = effectiveFp,
+                    enabled = true,
+                    isBuiltIn = presetMatch != null,
+                    isTofuPinned = presetMatch == null && normExplicitFp.isEmpty() && pinnedForRepo.isNotEmpty()
+                )
+            )
+        }
+        if (prefs != null) {
+            if (!prefs.useIzzyOnDroid.get()) {
+                return emptyList()
+            }
+            return prefs.readFDroidReposSafe().filter { it.enabled }
+        }
+        return listOf(FDroidRepoConfig.defaultPresets().first())
     }
 
     fun updates(
         apps: List<AppInstalled>,
-        onBatchSuccess: suspend (List<String>) -> Unit = {}
-    ): Flow<SourceUpdateResult<AppUpdate>> = flow {
-        val startedAt = SystemClock.elapsedRealtime()
-        val index = getOrFetchIndex()
-
-        repoMappingManager?.let { manager ->
-            index.apps.forEach { appInfo ->
-                val sourceUrl = appInfo.source
-                if (!sourceUrl.isNullOrBlank()) {
-                    manager.registerHarvestedRepo(appInfo.packageName, sourceUrl)
-                }
+        onBatchSuccess: suspend (List<String>) -> Unit = {},
+        onHarvestComplete: (() -> Unit)? = null
+    ): Flow<SourceUpdateResult<AppUpdate>> {
+        var harvestNotified = false
+        fun notifyHarvestOnce() {
+            if (!harvestNotified) {
+                harvestNotified = true
+                onHarvestComplete?.invoke()
             }
         }
 
-        val appsMap = index.apps.associateBy { it.packageName }
-        val updates = mutableListOf<AppUpdate>()
+        return flow {
+            val startedAt = SystemClock.elapsedRealtime()
+            val enabledRepos = resolveActiveRepos()
 
-        apps.chunked(BATCH_NOTIFY_SIZE).forEach { batch ->
-            for (app in batch) {
-                val packageList = index.packages[app.packageName].orEmpty()
-                if (packageList.isNotEmpty()) {
-                    val latestRepoPkg = packageList.maxByOrNull { it.versionCode } ?: packageList.first()
-                    if (app.versionCode >= latestRepoPkg.versionCode) {
-                        Log.d(
-                            "IzzyOnDroidRepository",
-                            "Package ${app.packageName} found in Izzy, but current version ${app.versionCode} >= repo version ${latestRepoPkg.versionCode}"
-                        )
-                    } else {
-                        val installedSigner = normalizeSha256(app.signatureSha256)
-                        val repoSigner = normalizeSha256(latestRepoPkg.signer)
-                        val signatureMatches = isSignatureMatching(app.signatureSha256, latestRepoPkg.signer)
-                        if (!signatureMatches) {
-                            Log.w(
-                                "IzzyOnDroidRepository",
-                                "Package ${app.packageName} update available in Izzy, but signature mismatch! Local: $installedSigner vs Repo: $repoSigner"
-                            )
+            if (enabledRepos.isEmpty() || apps.isEmpty()) {
+                notifyHarvestOnce()
+                emit(SourceUpdateResult(emptyList(), successfulRequests = 0, failedRequests = 0))
+                return@flow
+            }
+
+            val installedPackageSet = apps.map { it.packageName }.filter { it.isNotBlank() }.toSet()
+            val repoIndexes = ArrayList<Pair<FDroidRepoConfig, IzzyIndexResponse>>(enabledRepos.size)
+            val repoFailures = ArrayList<String>()
+            var succeededRepos = 0
+
+            for (repoConfig in enabledRepos) {
+                try {
+                    val idx = getOrFetchRepoIndex(repoConfig, installedPackageSet)
+                    repoIndexes.add(repoConfig to idx)
+                    succeededRepos++
+
+                    // Signature-gated passive harvesting restricted to installed apps & trusted hosts (F-04a)
+                    repoMappingManager?.let { manager ->
+                        val appsMap = idx.apps.associateBy { it.packageName }
+                        for (installedApp in apps) {
+                            if (installedApp.isWatchedOnly || installedApp.versionCode < 0L) continue
+                            val appInfo = appsMap[installedApp.packageName] ?: continue
+                            val sourceUrl = appInfo.source?.takeIf { it.isNotBlank() } ?: continue
+                            val packageList = idx.packages[installedApp.packageName].orEmpty()
+                            val repoSigners = packageList.map { normalizeSha256(it.signer) }
+                                .filter { it.isNotEmpty() && it != EMPTY_SHA256 }
+                            val installedSigner = normalizeSha256(installedApp.signatureSha256)
+                            val parsedBinding = manager.parseRepoUrl(sourceUrl)
+
+                            if (repoSigners.isNotEmpty() && installedSigner.isNotEmpty() && installedSigner != EMPTY_SHA256) {
+                                if (packageList.any { isSignatureMatching(installedApp.signatureSha256, it.signer) }) {
+                                    manager.registerHarvestedRepo(installedApp.packageName, sourceUrl)
+                                    if (parsedBinding != null && manager.isSignatureIncompatible(installedApp.packageName, parsedBinding, installedSigner)) {
+                                        manager.clearSignatureIncompatible(installedApp.packageName)
+                                    }
+                                } else {
+                                    manager.removeHarvestedRepo(installedApp.packageName)
+                                    if (parsedBinding != null) {
+                                        manager.markSignatureIncompatible(installedApp.packageName, parsedBinding, installedSigner)
+                                    }
+                                }
+                            }
                         }
                     }
+                } catch (ce: CancellationException) {
+                    throw ce
+                } catch (error: Throwable) {
+                    Log.e("IzzyOnDroidRepository", "Failed to fetch F-Droid repo '${repoConfig.name}': ${error.message}")
+                    val summary = when (error) {
+                        is SecurityException -> "${repoConfig.name}: signature verification failed"
+                        is java.net.SocketTimeoutException -> "${repoConfig.name}: timeout"
+                        is java.net.UnknownHostException -> "${repoConfig.name}: DNS lookup failed"
+                        is IOException -> "${repoConfig.name}: network error"
+                        else -> "${repoConfig.name}: ${error.javaClass.simpleName}"
+                    }
+                    repoFailures.add(summary)
                 }
+            }
+            notifyHarvestOnce()
 
-                val candidate = findBestPackage(app, packageList)
-                if (candidate != null) {
-                    Log.i(
-                        "IzzyOnDroidRepository",
-                        "Valid Izzy update found for ${app.packageName}: v${candidate.versionName} (${candidate.versionCode})"
+            if (repoIndexes.isEmpty() && repoFailures.isNotEmpty()) {
+                emit(
+                    SourceUpdateResult(
+                        updates = emptyList(),
+                        successfulRequests = 0,
+                        failedRequests = repoFailures.size,
+                        failureSummary = repoFailures.first()
                     )
-                    val appInfo = appsMap[app.packageName]
-                    val displayName = appInfo?.name?.takeIf { it.isNotBlank() } ?: app.name
-                    val whatsNew = appInfo?.summary.orEmpty()
-                    val downloadUrl = "$REPO_BASE_URL${candidate.apkName}"
-                    val update = AppUpdate(
-                        name = displayName,
-                        packageName = app.packageName,
-                        version = candidate.versionName,
-                        oldVersion = app.version,
-                        versionCode = candidate.versionCode,
-                        oldVersionCode = app.versionCode,
-                        source = IzzyOnDroidSource,
-                        link = Link.Url(link = downloadUrl, size = candidate.size),
-                        whatsNew = whatsNew,
-                        totalSize = candidate.size,
-                        installOrigin = app.installOrigin,
-                        installerPackageName = app.installerPackageName
-                    )
-                    if (update.isMeaningfulVersionUpgrade()) {
-                        updates.add(update)
+                )
+                return@flow
+            }
+
+            val updates = mutableListOf<AppUpdate>()
+
+            apps.chunked(BATCH_NOTIFY_SIZE).forEach { batch ->
+                for (app in batch) {
+                    val perRepoCandidates = ArrayList<AppUpdate>(repoIndexes.size)
+                    for ((repoConfig, index) in repoIndexes) {
+                        val packageList = index.packages[app.packageName].orEmpty()
+                        if (packageList.isEmpty()) continue
+
+                        val candidate = findBestPackage(
+                            app = app,
+                            packages = packageList,
+                            requireApkHash = true
+                        ) ?: continue
+
+                        val normalizedApkSha256 = ApkIntegrityVerifier.normalizeSha256Hex(candidate.hash)
+                            ?: continue
+                        val safeApkRelPath = candidate.apkName.trim().removePrefix("/")
+                        if (safeApkRelPath.isEmpty() || safeApkRelPath.contains("..")) continue
+
+                        val baseUrl = repoConfig.normalizedUrl.trimEnd('/')
+                        val downloadUrl = "$baseUrl/$safeApkRelPath"
+                        if (!downloadUrl.startsWith("https://", ignoreCase = true)) continue
+
+                        val appInfo = index.apps.firstOrNull { it.packageName == app.packageName }
+                        val displayName = appInfo?.name?.takeIf { it.isNotBlank() } ?: app.name
+                        val whatsNew = appInfo?.summary.orEmpty()
+
+                        val update = AppUpdate(
+                            name = displayName,
+                            packageName = app.packageName,
+                            version = candidate.versionName,
+                            oldVersion = app.version,
+                            versionCode = candidate.versionCode,
+                            oldVersionCode = app.versionCode,
+                            source = resolveSourceForRepo(repoConfig),
+                            link = Link.Url(
+                                link = downloadUrl,
+                                size = candidate.size,
+                                expectedSha256 = normalizedApkSha256
+                            ),
+                            whatsNew = whatsNew,
+                            totalSize = candidate.size,
+                            installOrigin = app.installOrigin,
+                            installerPackageName = app.installerPackageName
+                        )
+                        if (update.isMeaningfulVersionUpgrade()) {
+                            perRepoCandidates.add(update)
+                        }
+                    }
+
+                    if (perRepoCandidates.isNotEmpty()) {
+                        val sorted = perRepoCandidates.sortedByDescending { it.versionCode }
+                        val best = sorted.first()
+                        val merged = if (sorted.size > 1) {
+                            best.copy(alternativeUpdates = sorted)
+                        } else {
+                            best
+                        }
+                        updates.add(merged)
                     }
                 }
+                onBatchSuccess(batch.map { it.packageName })
             }
-            onBatchSuccess(batch.map { it.packageName })
-        }
 
-        Log.i("IzzyOnDroidRepository", "Found ${updates.size} eligible updates matching package & certificate SHA-256")
+            Log.i(
+                "IzzyOnDroidRepository",
+                "Found ${updates.size} verified F-Droid/Izzy update(s) across ${repoIndexes.size} repo(s) in ${SystemClock.elapsedRealtime() - startedAt} ms"
+            )
 
-        emit(
-            SourceUpdateResult(
-                updates = updates,
-                successfulRequests = apps.size,
-                failedRequests = 0,
-                failureSummary = null
+            emit(
+                SourceUpdateResult(
+                    updates = updates,
+                    successfulRequests = succeededRepos.coerceAtLeast(if (repoFailures.isEmpty()) 1 else 0),
+                    failedRequests = repoFailures.size,
+                    failureSummary = if (repoFailures.isNotEmpty() && updates.isEmpty()) repoFailures.first() else null
+                )
             )
-        )
-    }.catch { error ->
-        if (error is CancellationException) throw error
-        Log.e("IzzyOnDroidRepository", "IzzyOnDroid update check failed", error)
-        val failureSummary = when (error) {
-            is java.net.SocketTimeoutException -> "timeout"
-            is java.net.UnknownHostException -> "DNS lookup failed"
-            is IOException -> error.message ?: "network error"
-            else -> "processing error (${error.javaClass.simpleName})"
+        }.catch { error ->
+            if (error is CancellationException) throw error
+            notifyHarvestOnce()
+            Log.e("IzzyOnDroidRepository", "F-Droid/IzzyOnDroid update check failed", error)
+            val failureSummary = when (error) {
+                is SecurityException -> "signature verification failed"
+                is java.net.SocketTimeoutException -> "timeout"
+                is java.net.UnknownHostException -> "DNS lookup failed"
+                is IOException -> "network error"
+                else -> "processing error (${error.javaClass.simpleName})"
+            }
+            emit(
+                SourceUpdateResult(
+                    updates = emptyList(),
+                    successfulRequests = 0,
+                    failedRequests = 1,
+                    failureSummary = failureSummary
+                )
+            )
         }
-        emit(
-            SourceUpdateResult(
-                updates = emptyList(),
-                successfulRequests = 0,
-                failedRequests = 1,
-                failureSummary = failureSummary
-            )
-        )
     }
 
-    internal suspend fun getOrFetchIndex(): IzzyIndexResponse = mutex.withLock {
+    internal suspend fun getOrFetchRepoIndex(
+        repo: FDroidRepoConfig = FDroidRepoConfig.defaultPresets().first(),
+        installedPackages: Set<String>? = null
+    ): IzzyIndexResponse = mutex.withLock {
         withContext(Dispatchers.IO) {
-            inMemoryIndex?.let { return@withContext it }
-
-            // 1. Try F-Droid Index V2 (modern entry.json + index-v2.json)
-            try {
-                val v2Result = fetchOrGetV2Index()
-                if (v2Result != null) {
-                    inMemoryIndex = v2Result
-                    inMemoryIndexTimestamp = System.currentTimeMillis()
-                    return@withContext v2Result
-                }
-            } catch (v2Error: Throwable) {
-                if (v2Error is CancellationException) throw v2Error
-                Log.w("IzzyOnDroidRepository", "F-Droid V2 fetch failed, trying V1 fallback: ${v2Error.message}")
+            val now = System.currentTimeMillis()
+            val mem = inMemoryRepoCache[repo.id]
+            if (mem != null &&
+                now - mem.fetchedAtMillis <= IN_MEMORY_CACHE_TTL_MS &&
+                (mem.coveredPackages == null || (installedPackages != null && mem.coveredPackages.containsAll(installedPackages)))
+            ) {
+                return@withContext mem.index
             }
 
-            // 2. Fallback to F-Droid Index V1 (index-v1.jar)
+            val tofuFp = pinnedTofuFingerprints[repo.id]
+            val effectiveRepo = if (repo.normalizedFingerprint.isEmpty() && !tofuFp.isNullOrEmpty()) {
+                repo.copy(fingerprint = tofuFp, isTofuPinned = true)
+            } else {
+                repo
+            }
+
+            // 1. Try F-Droid Index V2 (`entry.jar` cryptographic signature + `index-v2.json` SHA-256)
+            var securityAbort: SecurityException? = null
             try {
-                val v1Result = fetchOrGetV1Index()
-                inMemoryIndex = v1Result
-                inMemoryIndexTimestamp = System.currentTimeMillis()
+                val v2Result = fetchOrGetVerifiedV2Index(effectiveRepo, installedPackages)
+                if (v2Result != null) {
+                    inMemoryRepoCache[effectiveRepo.id] = CachedRepoIndex(v2Result, System.currentTimeMillis(), installedPackages)
+                    return@withContext v2Result
+                }
+            } catch (ce: CancellationException) {
+                throw ce
+            } catch (sec: SecurityException) {
+                // Fail-Closed: NEVER fall back to V1 or stale disk cache on a cryptographic signature / rollback attack!
+                securityAbort = sec
+            } catch (v2Error: Throwable) {
+                Log.w("IzzyOnDroidRepository", "F-Droid V2 fetch failed for ${effectiveRepo.name}, trying V1 signed JAR: ${v2Error.javaClass.simpleName}")
+            }
+
+            if (securityAbort != null) {
+                throw securityAbort
+            }
+
+            // 2. Fallback to F-Droid Index V1 (`index-v1.jar` cryptographic signature)
+            try {
+                val v1Result = fetchOrGetVerifiedV1Index(effectiveRepo, installedPackages)
+                inMemoryRepoCache[effectiveRepo.id] = CachedRepoIndex(v1Result, System.currentTimeMillis(), installedPackages)
                 return@withContext v1Result
+            } catch (ce: CancellationException) {
+                throw ce
+            } catch (sec: SecurityException) {
+                throw sec
             } catch (v1Error: Throwable) {
-                if (v1Error is CancellationException) throw v1Error
-                val cached = loadFromDiskCache()
+                val cached = loadFromDiskCache(effectiveRepo, installedPackages)
                 if (cached != null) {
-                    Log.w("IzzyOnDroidRepository", "Network error (${v1Error.message}): Falling back to cached disk index.")
-                    inMemoryIndex = cached
-                    inMemoryIndexTimestamp = System.currentTimeMillis()
+                    Log.w("IzzyOnDroidRepository", "Network error for ${effectiveRepo.name}; using previously verified disk index.")
+                    inMemoryRepoCache[effectiveRepo.id] = CachedRepoIndex(cached, System.currentTimeMillis(), installedPackages)
                     return@withContext cached
                 }
                 throw v1Error
@@ -225,99 +413,98 @@ class IzzyOnDroidRepository(
         }
     }
 
-    private fun fetchOrGetV2Index(): IzzyIndexResponse? {
-        val targetV2File = getIndexV2JsonCacheFile()
-        val hasValidLocalFile = targetV2File.exists() && targetV2File.length() > 0L
-        val cachedOnDisk = if (hasValidLocalFile) loadFromDiskCacheV2() else null
-        val meta = if (hasValidLocalFile && cachedOnDisk != null) loadMetadata() else IndexMetadata()
+    private fun fetchOrGetVerifiedV2Index(
+        repo: FDroidRepoConfig,
+        installedPackages: Set<String>?
+    ): IzzyIndexResponse? {
+        val repoDir = getRepoCacheDir(repo.id)
+        val targetV2File = File(repoDir, "index-v2.json")
+        val meta = loadMetadata(repoDir)
+        val hasValidLocalFile = targetV2File.isFile && targetV2File.length() > 0L
 
-        val requestBuilder = Request.Builder().url(ENTRY_JSON_URL)
-        if (meta.format == "v2" && !meta.etag.isNullOrBlank()) {
+        val baseUrl = repo.normalizedUrl.trimEnd('/')
+        val entryJarUrl = "$baseUrl/entry.jar"
+
+        val requestBuilder = Request.Builder().url(entryJarUrl)
+        if (meta.format == "v2" && hasValidLocalFile && !meta.etag.isNullOrBlank()) {
             requestBuilder.header("If-None-Match", meta.etag)
         }
-        if (meta.format == "v2" && !meta.lastModified.isNullOrBlank()) {
+        if (meta.format == "v2" && hasValidLocalFile && !meta.lastModified.isNullOrBlank()) {
             requestBuilder.header("If-Modified-Since", meta.lastModified)
         }
 
         okHttpClient.newCall(requestBuilder.build()).execute().use { response ->
-            if (response.code == 304) {
-                if (cachedOnDisk != null && targetV2File.exists() && targetV2File.length() > 0L) {
-                    Log.i("IzzyOnDroidRepository", "F-Droid V2 entry unchanged: HTTP 304")
-                    Log.i("IzzyOnDroidRepository", "Parsed ${cachedOnDisk.apps.size} apps from IzzyOnDroid V2 index")
-                    return cachedOnDisk
-                } else {
-                    Log.w("IzzyOnDroidRepository", "Server returned HTTP 304 for entry.json but local index-v2.json is missing. Forcing fresh download.")
-                    return fetchFreshV2Index()
-                }
+            if (response.code == 304 && hasValidLocalFile && !meta.indexSha256.isNullOrBlank()) {
+                return FDroidIndexEngine.streamParseV2IndexFile(targetV2File, installedPackages, gson)
             }
-
-            if (response.isSuccessful) {
-                val newEtag = response.header("ETag")
-                val newLastModified = response.header("Last-Modified")
-                val entry = runCatching {
-                    gson.fromJson(response.body.charStream(), FDroidV2Entry::class.java)
-                }.getOrNull() ?: return null
-
-                val expectedSha = entry.index?.sha256.orEmpty()
-                val indexUrl = if (!entry.index?.name.isNullOrBlank()) {
-                    val rel = entry.index.name.removePrefix("/")
-                    "$REPO_BASE_URL$rel"
-                } else {
-                    INDEX_V2_JSON_URL
-                }
-
-                if (cachedOnDisk != null && expectedSha.isNotBlank() && expectedSha.equals(meta.indexSha256, ignoreCase = true)) {
-                    Log.i("IzzyOnDroidRepository", "F-Droid V2 index unchanged (matching SHA-256: $expectedSha)")
-                    saveMetadata(IndexMetadata(newEtag, newLastModified, expectedSha, "v2"))
-                    return cachedOnDisk
-                }
-
-                return downloadAndSaveV2Index(indexUrl, expectedSha, newEtag, newLastModified)
-            }
-
             if (response.code == 404 || response.code == 403) {
-                Log.w("IzzyOnDroidRepository", "F-Droid V2 entry.json not available (HTTP ${response.code}). Falling back to V1.")
                 return null
             }
-
-            if (cachedOnDisk != null && targetV2File.exists() && targetV2File.length() > 0L) {
-                Log.w("IzzyOnDroidRepository", "HTTP ${response.code} fetching entry.json: Falling back to cached V2 disk index.")
-                return cachedOnDisk
+            if (!response.isSuccessful) {
+                throw IOException("HTTP ${response.code} fetching entry.jar for ${repo.name}")
             }
 
-            return null
-        }
-    }
-
-    private fun fetchFreshV2Index(): IzzyIndexResponse? {
-        val entryRequest = Request.Builder().url(ENTRY_JSON_URL).build()
-        okHttpClient.newCall(entryRequest).execute().use { response ->
-            if (!response.isSuccessful) return null
             val newEtag = response.header("ETag")
             val newLastModified = response.header("Last-Modified")
-            val entry = runCatching {
-                gson.fromJson(response.body.charStream(), FDroidV2Entry::class.java)
-            }.getOrNull() ?: return null
 
-            val expectedSha = entry.index?.sha256.orEmpty()
-            val indexUrl = if (!entry.index?.name.isNullOrBlank()) {
-                val rel = entry.index.name.removePrefix("/")
-                "$REPO_BASE_URL$rel"
-            } else {
-                INDEX_V2_JSON_URL
+            val verifiedJar = FDroidIndexEngine.verifyAndExtractEntryJson(
+                jarStream = response.body.byteStream(),
+                expectedCertSha256 = repo.normalizedFingerprint,
+                gson = gson,
+                allowUnpinnedCert = (repoBaseUrl != null || !repo.isBuiltIn) && repo.normalizedFingerprint.isEmpty(),
+                tempDir = repoDir
+            )
+            val verifiedEntry = verifiedJar.payload
+            val verifiedSignerFp = verifiedJar.signerSha256Fingerprint
+
+            enforceAntiRollbackTimestamp(repo, verifiedEntry.timestamp)
+
+            val indexRef = verifiedEntry.index
+                ?: throw SecurityException("Verified entry.json for ${repo.name} is missing 'index' reference")
+            val expectedIndexSha = ApkIntegrityVerifier.normalizeSha256Hex(indexRef.sha256)
+                ?: throw SecurityException("Verified entry.json for ${repo.name} has invalid SHA-256 for index-v2.json")
+
+            val relPath = indexRef.name.trim().removePrefix("/").ifBlank { "index-v2.json" }
+            if (relPath.contains("..")) {
+                throw SecurityException("Invalid index path in entry.json: $relPath")
             }
-            return downloadAndSaveV2Index(indexUrl, expectedSha, newEtag, newLastModified)
+            val indexUrl = "$baseUrl/$relPath"
+
+            if (hasValidLocalFile && expectedIndexSha.equals(meta.indexSha256, ignoreCase = true)) {
+                val diskSha = ApkIntegrityVerifier.computeFileSha256(targetV2File)
+                if (diskSha.equals(expectedIndexSha, ignoreCase = true)) {
+                    saveMetadata(repoDir, IndexMetadata(newEtag, newLastModified, expectedIndexSha, "v2"))
+                    val parsedDisk = FDroidIndexEngine.streamParseV2IndexFile(targetV2File, installedPackages, gson)
+                    recordTofuPinIfUnpinned(repo, verifiedSignerFp)
+                    return parsedDisk
+                }
+            }
+
+            val parsed = downloadVerifyAndParseV2Index(
+                repo = repo,
+                repoDir = repoDir,
+                url = indexUrl,
+                expectedSha256 = expectedIndexSha,
+                entryEtag = newEtag,
+                entryLastModified = newLastModified,
+                installedPackages = installedPackages
+            )
+            recordTofuPinIfUnpinned(repo, verifiedSignerFp)
+            return parsed
         }
     }
 
-    private fun downloadAndSaveV2Index(
+    private fun downloadVerifyAndParseV2Index(
+        repo: FDroidRepoConfig,
+        repoDir: File,
         url: String,
         expectedSha256: String,
         entryEtag: String?,
-        entryLastModified: String?
+        entryLastModified: String?,
+        installedPackages: Set<String>?
     ): IzzyIndexResponse {
-        val targetFile = getIndexV2JsonCacheFile()
-        val tempFile = File(getCacheDir(), "index-v2.json.tmp")
+        val targetFile = File(repoDir, "index-v2.json")
+        val tempFile = File(repoDir, "index-v2.json.tmp")
         tempFile.parentFile?.mkdirs()
         if (tempFile.exists()) tempFile.delete()
 
@@ -325,19 +512,28 @@ class IzzyOnDroidRepository(
             val req = Request.Builder().url(url).build()
             okHttpClient.newCall(req).execute().use { indexResponse ->
                 if (!indexResponse.isSuccessful) {
-                    throw IOException("HTTP ${indexResponse.code} when downloading index-v2.json from $url")
+                    throw IOException("HTTP ${indexResponse.code} downloading index-v2.json for ${repo.name}")
                 }
+                var totalBytes = 0L
+                val buffer = ByteArray(16_384)
                 FileOutputStream(tempFile).use { out ->
-                    indexResponse.body.byteStream().copyTo(out)
+                    indexResponse.body.byteStream().use { input ->
+                        var r = input.read(buffer)
+                        while (r != -1) {
+                            totalBytes += r
+                            if (totalBytes > MAX_INDEX_DOWNLOAD_BYTES) {
+                                throw IOException("index-v2.json exceeds maximum size cap ($MAX_INDEX_DOWNLOAD_BYTES bytes)")
+                            }
+                            out.write(buffer, 0, r)
+                            r = input.read(buffer)
+                        }
+                    }
+                    out.flush()
                 }
             }
 
-            if (expectedSha256.isNotBlank()) {
-                val actualSha256 = calculateFileSha256(tempFile)
-                if (!actualSha256.equals(expectedSha256.trim(), ignoreCase = true)) {
-                    throw IOException("Index SHA-256 mismatch for index-v2.json (expected: $expectedSha256, actual: $actualSha256)")
-                }
-            }
+            // Mandatory cryptographic SHA-256 verification against signed entry.json!
+            ApkIntegrityVerifier.verifyFileSha256(tempFile, expectedSha256)
 
             if (targetFile.exists()) targetFile.delete()
             if (!tempFile.renameTo(targetFile)) {
@@ -345,98 +541,95 @@ class IzzyOnDroidRepository(
                 tempFile.delete()
             }
 
-            val sizeKb = targetFile.length() / 1024
-            Log.i("IzzyOnDroidRepository", "Successfully downloaded index-v2.json ($sizeKb KB)")
-
-            val parsed = FileInputStream(targetFile).use { fileIn ->
-                InputStreamReader(fileIn, Charsets.UTF_8).use { reader ->
-                    val v2 = gson.fromJson(reader, FDroidV2Index::class.java)
-                        ?: throw IOException("Empty or invalid index-v2.json")
-                    v2.toIzzyIndexResponse()
-                }
-            }
-            saveMetadata(IndexMetadata(entryEtag, entryLastModified, expectedSha256, "v2"))
-            Log.i("IzzyOnDroidRepository", "Parsed ${parsed.apps.size} apps from IzzyOnDroid V2 index")
+            val parsed = FDroidIndexEngine.streamParseV2IndexFile(targetFile, installedPackages, gson)
+            parsed.repo?.timestamp?.takeIf { it > 0L }?.let { enforceAntiRollbackTimestamp(repo, it) }
+            saveMetadata(repoDir, IndexMetadata(entryEtag, entryLastModified, expectedSha256, "v2"))
             return parsed
         } finally {
             if (tempFile.exists()) tempFile.delete()
         }
     }
 
-    private fun fetchOrGetV1Index(): IzzyIndexResponse {
-        val targetFile = getIndexJsonCacheFile()
-        val hasValidLocalFile = targetFile.exists() && targetFile.length() > 0L
-        val cachedOnDisk = if (hasValidLocalFile) loadFromDiskCacheV1() else null
-        val meta = if (hasValidLocalFile && cachedOnDisk != null) loadMetadata() else IndexMetadata()
+    private fun fetchOrGetVerifiedV1Index(
+        repo: FDroidRepoConfig,
+        installedPackages: Set<String>?
+    ): IzzyIndexResponse {
+        val repoDir = getRepoCacheDir(repo.id)
+        val targetFile = File(repoDir, "index-v1.json")
+        val meta = loadMetadata(repoDir)
+        val hasValidLocalFile = targetFile.isFile && targetFile.length() > 0L
 
-        Log.i("IzzyOnDroidRepository", "Checking IzzyOnDroid V1 repository (ETag: ${meta.etag ?: "none"})")
+        val baseUrl = repo.normalizedUrl.trimEnd('/')
+        val jarUrl = "$baseUrl/index-v1.jar"
 
-        val requestBuilder = Request.Builder().url(INDEX_JAR_URL)
-        if (meta.format == "v1" && !meta.etag.isNullOrBlank()) {
+        val requestBuilder = Request.Builder().url(jarUrl)
+        if (meta.format == "v1" && hasValidLocalFile && !meta.etag.isNullOrBlank()) {
             requestBuilder.header("If-None-Match", meta.etag)
         }
-        if (meta.format == "v1" && !meta.lastModified.isNullOrBlank()) {
+        if (meta.format == "v1" && hasValidLocalFile && !meta.lastModified.isNullOrBlank()) {
             requestBuilder.header("If-Modified-Since", meta.lastModified)
         }
 
         okHttpClient.newCall(requestBuilder.build()).execute().use { response ->
-            if (response.code == 304) {
-                if (cachedOnDisk != null && targetFile.exists() && targetFile.length() > 0L) {
-                    Log.i("IzzyOnDroidRepository", "V1 index unchanged: HTTP 304")
-                    Log.i("IzzyOnDroidRepository", "Parsed ${cachedOnDisk.apps.size} apps from IzzyOnDroid V1 index")
-                    return cachedOnDisk
-                } else {
-                    Log.w("IzzyOnDroidRepository", "Server returned HTTP 304 but local index-v1.json is missing or corrupt. Forcing fresh download.")
-                    return fetchFreshIndex()
-                }
+            if (response.code == 304 && hasValidLocalFile) {
+                return FDroidIndexEngine.streamParseV1IndexFile(targetFile, installedPackages, gson)
+            }
+            if (!response.isSuccessful) {
+                throw IOException("HTTP ${response.code} fetching index-v1.jar for ${repo.name}")
             }
 
-            if (response.isSuccessful) {
-                Log.i("IzzyOnDroidRepository", "Downloaded index-v1.jar: HTTP 200")
-                val newEtag = response.header("ETag")
-                val newLastModified = response.header("Last-Modified")
+            val newEtag = response.header("ETag")
+            val newLastModified = response.header("Last-Modified")
 
-                val parsed = parseZipStreamAndSave(response.body.byteStream())
-                saveMetadata(IndexMetadata(newEtag, newLastModified, null, "v1"))
-                Log.i("IzzyOnDroidRepository", "Parsed ${parsed.apps.size} apps from IzzyOnDroid V1 index")
-                return parsed
-            }
+            val verifiedSignerFp = FDroidIndexEngine.verifyAndExtractV1IndexJarToFile(
+                jarStream = response.body.byteStream(),
+                expectedCertSha256 = repo.normalizedFingerprint,
+                targetFile = targetFile,
+                allowUnpinnedCert = (repoBaseUrl != null || !repo.isBuiltIn) && repo.normalizedFingerprint.isEmpty()
+            )
 
-            if (cachedOnDisk != null && targetFile.exists() && targetFile.length() > 0L) {
-                Log.w("IzzyOnDroidRepository", "HTTP ${response.code}: Falling back to cached disk index.")
-                Log.i("IzzyOnDroidRepository", "Parsed ${cachedOnDisk.apps.size} apps from IzzyOnDroid index")
-                return cachedOnDisk
-            }
-
-            throw IOException("HTTP ${response.code} when fetching IzzyOnDroid index")
+            val parsed = FDroidIndexEngine.streamParseV1IndexFile(targetFile, installedPackages, gson)
+            parsed.repo?.timestamp?.takeIf { it > 0L }?.let { enforceAntiRollbackTimestamp(repo, it) }
+            val sha = ApkIntegrityVerifier.computeFileSha256(targetFile)
+            saveMetadata(repoDir, IndexMetadata(newEtag, newLastModified, sha, "v1"))
+            recordTofuPinIfUnpinned(repo, verifiedSignerFp)
+            return parsed
         }
     }
 
-    private fun fetchFreshIndex(): IzzyIndexResponse {
-        val request = Request.Builder().url(INDEX_JAR_URL).build()
-        okHttpClient.newCall(request).execute().use { response ->
-            if (response.isSuccessful) {
-                Log.i("IzzyOnDroidRepository", "Downloaded index-v1.jar: HTTP 200")
-                val newEtag = response.header("ETag")
-                val newLastModified = response.header("Last-Modified")
-
-                val parsed = parseZipStreamAndSave(response.body.byteStream())
-                saveMetadata(IndexMetadata(newEtag, newLastModified, null, "v1"))
-                Log.i("IzzyOnDroidRepository", "Parsed ${parsed.apps.size} apps from IzzyOnDroid index")
-                return parsed
-            }
-            throw IOException("HTTP ${response.code} when fetching fresh IzzyOnDroid index")
+    private fun recordTofuPinIfUnpinned(repo: FDroidRepoConfig, verifiedSignerFp: String) {
+        if (repo.normalizedFingerprint.isNotEmpty()) return
+        val cleanFp = FDroidRepoConfig.normalizeFingerprint(verifiedSignerFp)
+        if (!FDroidRepoConfig.isValidSha256Fingerprint(cleanFp)) return
+        pinnedTofuFingerprints[repo.id] = cleanFp
+        if (!repo.isBuiltIn) {
+            prefs?.pinFDroidRepoTofu(repo.id, cleanFp)
         }
+        onTofuFingerprintVerified?.invoke(cleanFp)
     }
 
-    internal fun parseZipStreamAndSave(inputStream: java.io.InputStream): IzzyIndexResponse {
-        val targetFile = getIndexJsonCacheFile()
-        val cacheDir = getCacheDir()
-        val tempFile = File(cacheDir, "index-v1.json.tmp")
+    private fun enforceAntiRollbackTimestamp(repo: FDroidRepoConfig, candidateTimestamp: Long) {
+        if (candidateTimestamp <= 0L) return
+        val p = prefs ?: return
+        val previous = p.getFDroidRepoTimestamp(repo.id)
+        if (previous > 0L && candidateTimestamp < previous) {
+            throw SecurityException(
+                "Blocked F-Droid replay/rollback attack for ${repo.name}: timestamp $candidateTimestamp < $previous"
+            )
+        }
+        p.recordFDroidRepoTimestamp(repo.id, candidateTimestamp)
+    }
+
+    /**
+     * Kept for unit-test atomic extraction verification (`IzzyOnDroidTest`).
+     * Production network paths use [FDroidIndexEngine.verifyAndExtractV1IndexJarToFile].
+     */
+    internal fun parseZipStreamAndSave(inputStream: InputStream): IzzyIndexResponse {
+        val repoDir = getRepoCacheDir(FDroidRepoConfig.ID_IZZYONDROID)
+        val targetFile = File(repoDir, "index-v1.json")
+        val tempFile = File(repoDir, "index-v1.json.tmp")
         tempFile.parentFile?.mkdirs()
-        if (tempFile.exists()) {
-            tempFile.delete()
-        }
+        if (tempFile.exists()) tempFile.delete()
 
         try {
             ZipInputStream(inputStream).use { zipIn ->
@@ -444,24 +637,24 @@ class IzzyOnDroidRepository(
                 while (entry != null) {
                     if (entry.name == "index-v1.json") {
                         FileOutputStream(tempFile).use { out ->
-                            val buffer = ByteArray(16384)
+                            val buffer = ByteArray(16_384)
                             var bytesRead: Int
+                            var total = 0L
                             while (zipIn.read(buffer).also { bytesRead = it } != -1) {
+                                total += bytesRead
+                                if (total > MAX_INDEX_DOWNLOAD_BYTES) {
+                                    throw IOException("index-v1.json exceeds maximum size cap")
+                                }
                                 out.write(buffer, 0, bytesRead)
                             }
                         }
 
                         targetFile.parentFile?.mkdirs()
-                        if (targetFile.exists()) {
-                            targetFile.delete()
-                        }
+                        if (targetFile.exists()) targetFile.delete()
                         if (!tempFile.renameTo(targetFile)) {
                             tempFile.copyTo(targetFile, overwrite = true)
                             tempFile.delete()
                         }
-
-                        val sizeKb = targetFile.length() / 1024
-                        Log.i("IzzyOnDroidRepository", "Successfully extracted index-v1.json ($sizeKb KB)")
 
                         return FileInputStream(targetFile).use { fileIn ->
                             InputStreamReader(fileIn, Charsets.UTF_8).use { reader ->
@@ -475,37 +668,47 @@ class IzzyOnDroidRepository(
             }
             throw IOException("index-v1.json not found inside index-v1.jar")
         } finally {
-            if (tempFile.exists()) {
-                tempFile.delete()
-            }
+            if (tempFile.exists()) tempFile.delete()
         }
     }
 
-    private fun loadFromDiskCacheV2(): IzzyIndexResponse? = runCatching {
-        val file = getIndexV2JsonCacheFile()
-        if (!file.exists() || file.length() <= 0L) return null
-        FileInputStream(file).use { input ->
-            InputStreamReader(input, Charsets.UTF_8).use { reader ->
-                val v2 = gson.fromJson(reader, FDroidV2Index::class.java)
-                v2?.toIzzyIndexResponse()
+    private fun loadFromDiskCache(
+        repo: FDroidRepoConfig,
+        installedPackages: Set<String>?
+    ): IzzyIndexResponse? {
+        val repoDir = getRepoCacheDir(repo.id)
+        val meta = loadMetadata(repoDir)
+        val v2File = File(repoDir, "index-v2.json")
+        if (v2File.isFile && v2File.length() > 0L) {
+            if (!meta.indexSha256.isNullOrBlank()) {
+                val verified = runCatching {
+                    ApkIntegrityVerifier.verifyFileSha256(v2File, meta.indexSha256)
+                    FDroidIndexEngine.streamParseV2IndexFile(v2File, installedPackages, gson)
+                }.getOrNull()
+                if (verified != null) return verified
+            } else if (cacheDirectory != null) {
+                val seeded = runCatching {
+                    FDroidIndexEngine.streamParseV2IndexFile(v2File, installedPackages, gson)
+                }.getOrNull()
+                if (seeded != null) return seeded
             }
         }
-    }.getOrNull()
-
-    private fun loadFromDiskCacheV1(): IzzyIndexResponse? = runCatching {
-        val file = getIndexJsonCacheFile()
-        if (!file.exists() || file.length() <= 0L) return null
-        FileInputStream(file).use { input ->
-            InputStreamReader(input, Charsets.UTF_8).use { reader ->
-                gson.fromJson(reader, IzzyIndexResponse::class.java)
+        val v1File = File(repoDir, "index-v1.json")
+        if (v1File.isFile && v1File.length() > 0L) {
+            if (!meta.indexSha256.isNullOrBlank()) {
+                val verified = runCatching {
+                    ApkIntegrityVerifier.verifyFileSha256(v1File, meta.indexSha256)
+                    FDroidIndexEngine.streamParseV1IndexFile(v1File, installedPackages, gson)
+                }.getOrNull()
+                if (verified != null) return verified
+            } else if (cacheDirectory != null) {
+                val seeded = runCatching {
+                    FDroidIndexEngine.streamParseV1IndexFile(v1File, installedPackages, gson)
+                }.getOrNull()
+                if (seeded != null) return seeded
             }
         }
-    }.getOrNull()
-
-    private fun loadFromDiskCache(): IzzyIndexResponse? {
-        val v2 = loadFromDiskCacheV2()
-        if (v2 != null) return v2
-        return loadFromDiskCacheV1()
+        return null
     }
 
     internal data class IndexMetadata(
@@ -515,8 +718,8 @@ class IzzyOnDroidRepository(
         val format: String = "v2"
     )
 
-    private fun loadMetadata(): IndexMetadata = runCatching {
-        val file = getMetaCacheFile()
+    private fun loadMetadata(repoDir: File): IndexMetadata = runCatching {
+        val file = File(repoDir, "index.meta")
         if (!file.exists()) return IndexMetadata()
         val lines = file.readLines()
         IndexMetadata(
@@ -527,11 +730,13 @@ class IzzyOnDroidRepository(
         )
     }.getOrDefault(IndexMetadata())
 
-    private fun saveMetadata(metadata: IndexMetadata) {
+    private fun saveMetadata(repoDir: File, metadata: IndexMetadata) {
         runCatching {
-            val file = getMetaCacheFile()
+            val file = File(repoDir, "index.meta")
             file.parentFile?.mkdirs()
-            file.writeText("${metadata.etag.orEmpty()}\n${metadata.lastModified.orEmpty()}\n${metadata.indexSha256.orEmpty()}\n${metadata.format}")
+            file.writeText(
+                "${metadata.etag.orEmpty()}\n${metadata.lastModified.orEmpty()}\n${metadata.indexSha256.orEmpty()}\n${metadata.format}"
+            )
         }
     }
 
@@ -539,12 +744,15 @@ class IzzyOnDroidRepository(
         app: AppInstalled,
         packages: List<IzzyPackageInfo>,
         supportedAbis: Array<String> = Build.SUPPORTED_ABIS ?: emptyArray(),
-        currentSdk: Int = Build.VERSION.SDK_INT
+        currentSdk: Int = Build.VERSION.SDK_INT,
+        requireApkHash: Boolean = false
     ): IzzyPackageInfo? {
+        val isWatched = app.isWatchedOnly || app.versionCode < 0L
         val compatible = packages.filter { pkg ->
             pkg.versionCode > app.versionCode &&
                 isVerifiableVersionUpgrade(app.version, pkg.versionName, app.versionCode, pkg.versionCode) &&
-                isSignatureMatching(app.signatureSha256, pkg.signer) &&
+                (isWatched || isSignatureMatching(app.signatureSha256, pkg.signer)) &&
+                (!requireApkHash || ApkIntegrityVerifier.normalizeSha256Hex(pkg.hash) != null) &&
                 isAbiCompatible(pkg.nativecode, supportedAbis) &&
                 isSdkCompatible(pkg.minSdkVersion, currentSdk)
         }
@@ -552,13 +760,20 @@ class IzzyOnDroidRepository(
     }
 
     fun normalizeSha256(hash: String?): String =
-        hash.orEmpty().replace(":", "").replace(" ", "").trim().lowercase()
+        hash.orEmpty().replace(":", "").replace(" ", "").trim().lowercase(Locale.ROOT)
 
     internal fun isSignatureMatching(installedSha256: String?, izzySigner: String?): Boolean {
         val installedSigner = normalizeSha256(installedSha256)
         val repoSigner = normalizeSha256(izzySigner)
         if (installedSigner == EMPTY_SHA256 || repoSigner == EMPTY_SHA256) return false
-        return installedSigner.isNotEmpty() && installedSigner == repoSigner
+        if (repoSigner.isEmpty() || installedSigner.isEmpty()) return false
+        // Support comma-separated multi-signer SHA-256 sets from Extensions.getSignatureSha256()
+        val installedSet = installedSigner.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+        return if (installedSet.size <= 1) {
+            installedSigner == repoSigner
+        } else {
+            repoSigner in installedSet
+        }
     }
 
     internal fun isAbiCompatible(
@@ -567,7 +782,11 @@ class IzzyOnDroidRepository(
     ): Boolean {
         if (nativeCode.isNullOrEmpty()) return true
         if (supportedAbis.isEmpty()) return true
-        return nativeCode.any { it in supportedAbis }
+        val canonicalSupported = supportedAbis.mapNotNull { canonicalizeAbi(it) ?: it.lowercase(Locale.ROOT) }.toSet()
+        return nativeCode.any { raw ->
+            val canon = canonicalizeAbi(raw) ?: raw.lowercase(Locale.ROOT)
+            canon in canonicalSupported
+        }
     }
 
     internal fun isSdkCompatible(
@@ -576,18 +795,5 @@ class IzzyOnDroidRepository(
     ): Boolean {
         if (minSdkVersion <= 0) return true
         return currentSdk >= minSdkVersion
-    }
-
-    private fun calculateFileSha256(file: File): String {
-        val digest = java.security.MessageDigest.getInstance("SHA-256")
-        file.inputStream().use { input ->
-            val buffer = ByteArray(8192)
-            var read = input.read(buffer)
-            while (read != -1) {
-                digest.update(buffer, 0, read)
-                read = input.read(buffer)
-            }
-        }
-        return digest.digest().joinToString("") { "%02x".format(it) }
     }
 }

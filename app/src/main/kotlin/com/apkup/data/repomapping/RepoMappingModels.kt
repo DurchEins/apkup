@@ -1,40 +1,95 @@
 package com.apkup.data.repomapping
 
 import android.os.Build
+import com.apkup.repository.RepoMappingManager
+import java.util.Locale
 
 data class RepoBinding(
-    val type: String = "github", // "github" or "gitlab"
+    val type: String = "github", // "github", "gitlab", or "codeberg"
     val repo: String = "",       // e.g. "TeamNewPipe/NewPipe" or "videolan/vlc-android"
-    val host: String? = null     // for custom GitLab instances, e.g. "gitlab.com"
+    val host: String? = null,    // for custom GitLab/Forgejo instances, e.g. "gitlab.com", "codeberg.org"
+    val assetFilter: String? = null,      // optional flavor substring filter, e.g. "k9mail" vs "thunderbird"
+    val assetFilterRegex: String? = null  // optional regex to match a specific APK flavor/name
 ) {
+    @Suppress("SENSELESS_COMPARISON")
     val isGitHub: Boolean
-        get() = type.equals("github", ignoreCase = true)
+        get() = (type as String?)?.equals("github", ignoreCase = true) == true
 
+    @Suppress("SENSELESS_COMPARISON")
     val isGitLab: Boolean
-        get() = type.equals("gitlab", ignoreCase = true)
+        get() = (type as String?)?.equals("gitlab", ignoreCase = true) == true
+
+    @Suppress("SENSELESS_COMPARISON")
+    val isCodeberg: Boolean
+        get() = (type as String?)?.let {
+            it.equals("codeberg", ignoreCase = true) ||
+                it.equals("forgejo", ignoreCase = true) ||
+                it.equals("gitea", ignoreCase = true)
+        } == true
 
     val resolvedHost: String
-        get() = host?.takeIf { it.isNotBlank() } ?: if (isGitLab) "gitlab.com" else "github.com"
+        get() = host?.takeIf { it.isNotBlank() } ?: when {
+            isGitLab -> "gitlab.com"
+            isCodeberg -> "codeberg.org"
+            else -> "github.com"
+        }
 
+    @Suppress("SENSELESS_COMPARISON")
     val webUrl: String
-        get() = "https://$resolvedHost/${repo.trim()}"
+        get() = "https://$resolvedHost/${(repo as String?).orEmpty().trim()}"
+
+    @Suppress("SENSELESS_COMPARISON")
+    fun canonicalKey(): String =
+        "${(type as String?).orEmpty().trim().lowercase(Locale.ROOT)}:${resolvedHost.trim().lowercase(Locale.ROOT)}/${(repo as String?).orEmpty().trim().lowercase(Locale.ROOT)}"
+}
+
+object RepoUrlParser {
+    fun parseRepoUrl(
+        input: String,
+        hintSource: String? = null,
+        allowLanHosts: Boolean = false
+    ): RepoBinding? = RepoMappingManager.parseRepoUrlStatic(
+        input = input,
+        allowLanHosts = allowLanHosts,
+        hintSource = hintSource
+    )
 }
 
 data class GitHubReleaseDto(
     val tag_name: String = "",
     val name: String = "",
     val body: String = "",
+    val published_at: String = "",
     val draft: Boolean = false,
     val prerelease: Boolean = false,
     val assets: List<GitHubAssetDto> = emptyList()
-)
+) {
+    @Suppress("SENSELESS_COMPARISON")
+    val safeTagName: String get() = (tag_name as String?).orEmpty()
+
+    @Suppress("SENSELESS_COMPARISON")
+    val safeName: String get() = (name as String?).orEmpty()
+
+    @Suppress("SENSELESS_COMPARISON")
+    val safeBody: String get() = (body as String?).orEmpty()
+
+    @Suppress("SENSELESS_COMPARISON")
+    val safeAssets: List<GitHubAssetDto> get() = (assets as List<GitHubAssetDto>?).orEmpty()
+}
 
 data class GitHubAssetDto(
     val name: String = "",
     val size: Long = 0L,
     val browser_download_url: String = "",
-    val content_type: String = ""
-)
+    val content_type: String = "",
+    val digest: String? = null
+) {
+    @Suppress("SENSELESS_COMPARISON")
+    val safeName: String get() = (name as String?).orEmpty()
+
+    @Suppress("SENSELESS_COMPARISON")
+    val safeDownloadUrl: String get() = (browser_download_url as String?).orEmpty()
+}
 
 data class GitLabReleaseDto(
     val tag_name: String = "",
@@ -42,7 +97,20 @@ data class GitLabReleaseDto(
     val description: String = "",
     val released_at: String = "",
     val assets: GitLabAssetsDto = GitLabAssetsDto()
-)
+) {
+    @Suppress("SENSELESS_COMPARISON")
+    val safeTagName: String get() = (tag_name as String?).orEmpty()
+
+    @Suppress("SENSELESS_COMPARISON")
+    val safeName: String get() = (name as String?).orEmpty()
+
+    @Suppress("SENSELESS_COMPARISON")
+    val safeDescription: String get() = (description as String?).orEmpty()
+
+    @Suppress("SENSELESS_COMPARISON")
+    val safeLinks: List<GitLabLinkDto>
+        get() = ((assets as GitLabAssetsDto?)?.links as List<GitLabLinkDto>?).orEmpty()
+}
 
 data class GitLabAssetsDto(
     val count: Int = 0,
@@ -55,9 +123,20 @@ data class GitLabLinkDto(
     val url: String = "",
     val direct_asset_url: String = "",
     val link_type: String = ""
-)
+) {
+    @Suppress("SENSELESS_COMPARISON")
+    val safeName: String get() = (name as String?).orEmpty()
+
+    @Suppress("SENSELESS_COMPARISON")
+    val safeUrl: String get() = (url as String?).orEmpty()
+
+    @Suppress("SENSELESS_COMPARISON")
+    val safeDirectAssetUrl: String get() = (direct_asset_url as String?).orEmpty()
+}
 
 object ReleaseAssetFilter {
+
+    const val MAX_REGEX_LENGTH = 256
 
     private val KNOWN_INCOMPATIBLE_ABIS = mapOf(
         "x86" to setOf("x86", "i386", "i686"),
@@ -66,56 +145,109 @@ object ReleaseAssetFilter {
         "arm64-v8a" to setOf("arm64-v8a", "arm64", "aarch64")
     )
 
+    fun isValidRegex(pattern: String): Boolean {
+        val trimmed = pattern.trim()
+        if (trimmed.isEmpty()) return true
+        if (trimmed.length > MAX_REGEX_LENGTH) return false
+        return runCatching { Regex(trimmed, RegexOption.IGNORE_CASE) }.isSuccess
+    }
+
     fun <T> findBestApk(
         assets: List<T>,
         getFilename: (T) -> String,
-        supportedAbis: Array<String> = Build.SUPPORTED_ABIS ?: emptyArray()
+        supportedAbis: Array<String> = Build.SUPPORTED_ABIS ?: emptyArray(),
+        requiredSubstring: String? = null,
+        assetFilterRegex: String? = null,
+        preferFossFlavor: Boolean = false
     ): T? {
-        val apkAssets = assets.filter { getFilename(it).endsWith(".apk", ignoreCase = true) }
+        val requiredLower = requiredSubstring?.trim()?.lowercase(Locale.ROOT)?.takeIf { it.isNotEmpty() }
+        val compiledRegex = assetFilterRegex
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?.let { pattern ->
+                if (pattern.length > MAX_REGEX_LENGTH) return null
+                runCatching { Regex(pattern, RegexOption.IGNORE_CASE) }.getOrNull() ?: return null
+            }
+
+        val apkAssets = assets.filter { asset ->
+            val fname = getFilename(asset)
+            fname.endsWith(".apk", ignoreCase = true) &&
+                (requiredLower == null || fname.lowercase(Locale.ROOT).contains(requiredLower)) &&
+                (compiledRegex == null || compiledRegex.containsMatchIn(fname))
+        }
         if (apkAssets.isEmpty()) return null
 
-        val deviceSupportedAbis = supportedAbis.map { it.lowercase() }
+        val deviceSupportedAbis = supportedAbis.map { it.lowercase(Locale.ROOT) }
         val primaryAbi = deviceSupportedAbis.firstOrNull() ?: "arm64-v8a"
 
         val scored = apkAssets.mapNotNull { asset ->
-            val filename = getFilename(asset).lowercase()
+            val filename = getFilename(asset).lowercase(Locale.ROOT)
 
-            // Exclude common non-installable APK types (debug, unaligned, sources)
-            if (filename.endsWith("-unaligned.apk") || filename.endsWith("-sources.apk")) {
+            // Exclude non-installable or debug APK types (F-09)
+            if (filename.endsWith("-unaligned.apk") ||
+                filename.endsWith("-sources.apk") ||
+                filename.endsWith("-debug.apk") ||
+                filename.endsWith("_debug.apk") ||
+                filename.contains("-debug-")
+            ) {
                 return@mapNotNull null
             }
 
             var detectedAbi: String? = null
             for ((canonicalAbi, aliases) in KNOWN_INCOMPATIBLE_ABIS) {
                 if (aliases.any { alias ->
-                    filename.contains(Regex("[._-]${Regex.escape(alias)}[._-]|^${Regex.escape(alias)}[._-]|[._-]${Regex.escape(alias)}\\.apk$"))
-                }) {
+                        filename.contains(
+                            Regex(
+                                "[._-]${Regex.escape(alias)}[._-]|^${Regex.escape(alias)}[._-]|[._-]${Regex.escape(alias)}\\.apk$"
+                            )
+                        )
+                    }
+                ) {
                     detectedAbi = canonicalAbi
                     break
                 }
             }
 
-            if (detectedAbi != null) {
-                // If this APK is for an ABI not supported by this device, discard
+            val baseScore = if (detectedAbi != null) {
                 if (detectedAbi !in deviceSupportedAbis) {
                     return@mapNotNull null
                 }
-                // Determine priority
-                val score = if (detectedAbi == primaryAbi) 100 else 80
-                Pair(asset, score)
+                if (detectedAbi == primaryAbi) 100 else 80
             } else {
-                // Universal or un-suffixed APK
                 val isExplicitUniversal = filename.contains("universal")
-                val score = if (isExplicitUniversal) 60 else 50
-                Pair(asset, score)
+                if (isExplicitUniversal) 60 else 50
             }
+
+            val flavorAdjustment = computeFlavorAdjustment(filename, preferFossFlavor)
+            Pair(asset, baseScore + flavorAdjustment)
         }
 
         return scored.maxByOrNull { it.second }?.first
     }
 
+    private fun computeFlavorAdjustment(lowercaseFilename: String, preferFossFlavor: Boolean): Int {
+        var adjustment = 0
+        if (hasFlavorToken(lowercaseFilename, "debug")) adjustment -= 60
+        if (hasFlavorToken(lowercaseFilename, "huawei")) adjustment -= 25
+
+        if (preferFossFlavor) {
+            if (listOf("foss", "libre", "fdroid", "nogms").any { hasFlavorToken(lowercaseFilename, it) }) {
+                adjustment += 15
+            }
+            if (listOf("gplay", "gms", "playstore", "proprietary").any { hasFlavorToken(lowercaseFilename, it) }) {
+                adjustment -= 30
+            }
+        }
+        return adjustment
+    }
+
+    private fun hasFlavorToken(lowercaseFilename: String, token: String): Boolean {
+        val escaped = Regex.escape(token)
+        return lowercaseFilename.contains(Regex("(^|[._-])$escaped([._-]|\\.apk$)"))
+    }
+
     data class ParsedSemVer(
-        val segments: List<Int>,
+        val segments: List<Long>,
         val preRelease: String?
     )
 
@@ -129,26 +261,29 @@ object ReleaseAssetFilter {
     }
 
     fun parseSemVer(versionStr: String): ParsedSemVer {
-        val clean = cleanVersionString(versionStr)
-        val baseAndPre = clean.split("-", limit = 2)
+        // Strip SemVer 2.0 Section 10 build metadata (+...) before comparing precedence
+        val withoutBuildMeta = cleanVersionString(versionStr).substringBefore('+').trim()
+        val baseAndPre = withoutBuildMeta.split("-", limit = 2)
         val segments = baseAndPre[0].split(".")
-            .mapNotNull { it.takeWhile { ch -> ch.isDigit() }.toIntOrNull() }
+            .mapNotNull { it.takeWhile { ch -> ch.isDigit() }.toLongOrNull() }
         val preRelease = baseAndPre.getOrNull(1)?.trim()?.takeIf { it.isNotEmpty() }
         return ParsedSemVer(segments, preRelease)
     }
 
     fun isNewer(currentVersion: String, candidateTag: String): Boolean {
+        if (currentVersion.isBlank()) return cleanVersionString(candidateTag).isNotBlank()
         val current = parseSemVer(currentVersion)
         val candidate = parseSemVer(candidateTag)
+        if (candidate.segments.isEmpty()) return false
 
         val maxLen = maxOf(current.segments.size, candidate.segments.size)
         for (i in 0 until maxLen) {
-            val c = current.segments.getOrElse(i) { 0 }
-            val n = candidate.segments.getOrElse(i) { 0 }
+            val c = current.segments.getOrElse(i) { 0L }
+            val n = candidate.segments.getOrElse(i) { 0L }
             if (n != c) return n > c
         }
 
-        // A final release is newer than a pre-release with same numeric segments
+        // A final release is newer than a pre-release with same numeric segments (SemVer 2.0 Section 11.3)
         if (current.preRelease != null && candidate.preRelease == null) return true
         if (current.preRelease == null && candidate.preRelease != null) return false
 
@@ -160,21 +295,27 @@ object ReleaseAssetFilter {
     }
 
     internal fun comparePreRelease(candidate: String, current: String): Int {
-        val candTokens = candidate.split('.', '-', '_')
-        val currTokens = current.split('.', '-', '_')
+        val candTokens = candidate.split('.', '-', '_').filter { it.isNotEmpty() }
+        val currTokens = current.split('.', '-', '_').filter { it.isNotEmpty() }
         val maxTokens = maxOf(candTokens.size, currTokens.size)
         for (i in 0 until maxTokens) {
+            // SemVer 2.0 Section 11.4.4: larger set of pre-release fields has higher precedence
             val cTok = candTokens.getOrNull(i) ?: return -1
             val curTok = currTokens.getOrNull(i) ?: return 1
-            val cNum = cTok.toIntOrNull()
-            val curNum = curTok.toIntOrNull()
+            val cNum = cTok.toLongOrNull()
+            val curNum = curTok.toLongOrNull()
             if (cNum != null && curNum != null) {
                 if (cNum != curNum) return cNum.compareTo(curNum)
+            } else if (cNum != null && curNum == null) {
+                // SemVer 2.0 Section 11.4.1: Numeric identifiers always have lower precedence than non-numeric
+                return -1
+            } else if (cNum == null && curNum != null) {
+                return 1
             } else {
-                val cNumEmbedded = Regex("\\d+").find(cTok)?.value?.toIntOrNull()
-                val curNumEmbedded = Regex("\\d+").find(curTok)?.value?.toIntOrNull()
-                val cType = cTok.replace(Regex("\\d+"), "").lowercase()
-                val curType = curTok.replace(Regex("\\d+"), "").lowercase()
+                val cNumEmbedded = Regex("\\d+").find(cTok)?.value?.toLongOrNull()
+                val curNumEmbedded = Regex("\\d+").find(curTok)?.value?.toLongOrNull()
+                val cType = cTok.replace(Regex("\\d+"), "").lowercase(Locale.ROOT)
+                val curType = curTok.replace(Regex("\\d+"), "").lowercase(Locale.ROOT)
                 if (cType != curType) {
                     val cmp = cType.compareTo(curType)
                     if (cmp != 0) return cmp

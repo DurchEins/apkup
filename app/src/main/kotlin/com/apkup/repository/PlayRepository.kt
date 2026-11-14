@@ -153,7 +153,7 @@ class PlayRepository(
         val properties = deviceProperties
         return readStoredAuthData()
             .withDeviceInfoProvider(properties)
-            .withGermanPlayStoreLocale()
+            .withActivePlayStoreLocale()
     }
 
     /**
@@ -206,7 +206,7 @@ class PlayRepository(
         }
         val authData = receivedAuthData
             .withDeviceInfoProvider(properties)
-            .withGermanPlayStoreLocale()
+            .withActivePlayStoreLocale()
         if (!authData.hasRequiredPlaySession()) {
             Log.e(
                 "PlayRepository",
@@ -221,7 +221,7 @@ class PlayRepository(
         saveAuthData(authData)
         val savedAuthData = readStoredAuthData()
             .withDeviceInfoProvider(properties)
-            .withGermanPlayStoreLocale()
+            .withActivePlayStoreLocale()
         if (!savedAuthData.hasRequiredPlaySession()) {
             Log.e("PlayRepository", "Saved Play session is missing required fields.")
             throw IllegalStateException("Saved Play session is incomplete.")
@@ -360,15 +360,15 @@ class PlayRepository(
                 batchSize = PLAY_DETAILS_BATCH_SIZE,
                 concurrency = PLAY_DETAILS_REQUEST_CONCURRENCY,
                 request = { packageBatch ->
-                    requestWithUnauthorizedRetry(
+                    requestWithUnauthorizedRetrySuspend(
                         initialAuth = auth(),
                         responseCode = { playHttpClient.responseCodeForCurrentThread() },
-                        refreshAuth = {
+                        refreshAuth = { failedAuth ->
                             val code = playHttpClient.responseCodeForCurrentThread()
                             if (code == 429) {
-                                Thread.sleep(1500L)
+                                kotlinx.coroutines.delay(1500L)
                             }
-                            refreshAuthIfNeededBlocking(authBlocking())
+                            refreshAuthIfNeeded(failedAuth)
                         },
                         request = { currentAuth ->
                             try {
@@ -603,6 +603,20 @@ internal fun <Auth, Result> requestWithUnauthorizedRetry(
     request(refreshAuth())
 }
 
+internal suspend fun <Auth, Result> requestWithUnauthorizedRetrySuspend(
+    initialAuth: Auth,
+    responseCode: () -> Int,
+    refreshAuth: suspend (failedAuth: Auth) -> Auth,
+    request: suspend (Auth) -> Result
+): Result = try {
+    request(initialAuth)
+} catch (cancellation: CancellationException) {
+    throw cancellation
+} catch (exception: Exception) {
+    if (!shouldRefreshPlayAuth(responseCode())) throw exception
+    request(refreshAuth(initialAuth))
+}
+
 internal fun shouldRefreshPlayAuth(responseCode: Int): Boolean =
     responseCode == 401 || responseCode == 403 || responseCode == 429
 
@@ -788,8 +802,34 @@ internal fun describeStoredAuthJsonFailure(exception: JsonParseException): Strin
     }
 }
 
-internal fun AuthData.withGermanPlayStoreLocale(): AuthData =
-    copy(locale = Locale.forLanguageTag("de-DE"))
+/**
+ * Normalizes the Google Play session locale to the active device/app [Locale] (`F-15`),
+ * ensuring country fallback when a language-only locale is configured.
+ */
+internal fun AuthData.withActivePlayStoreLocale(locale: Locale = Locale.getDefault()): AuthData {
+    val resolvedLocale = when {
+        locale.language.isBlank() -> Locale.US
+        locale.country.isNotBlank() -> locale
+        else -> Locale.Builder()
+            .setLanguage(locale.language)
+            .setRegion(defaultCountryForLanguage(locale.language))
+            .build()
+    }
+    return copy(locale = resolvedLocale)
+}
+
+private fun defaultCountryForLanguage(language: String): String = when (language.lowercase(Locale.ROOT)) {
+    "de" -> "DE"
+    "en" -> "US"
+    "es" -> "ES"
+    "fr" -> "FR"
+    "pt" -> "BR"
+    "it" -> "IT"
+    "ru" -> "RU"
+    "zh" -> "CN"
+    "ja" -> "JP"
+    else -> "US"
+}
 
 fun App.toAppUpdate(
     getInstallFiles: (App) -> List<PlayFile>,

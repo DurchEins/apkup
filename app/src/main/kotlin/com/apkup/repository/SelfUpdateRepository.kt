@@ -2,73 +2,150 @@ package com.apkup.repository
 
 import android.util.Log
 import com.apkup.BuildConfig
+import com.apkup.data.selfupdate.GitHubAsset
 import com.apkup.data.selfupdate.GitHubRelease
 import com.apkup.data.selfupdate.SelfUpdateInfo
+import com.apkup.util.ApkIntegrityVerifier
 import com.google.gson.Gson
+import com.google.gson.JsonElement
+import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.IOException
+import java.util.Locale
 
 class SelfUpdateRepository(
     private val okHttpClient: OkHttpClient,
-    private val gson: Gson
+    private val gson: Gson,
+    private val releasesEndpointUrl: String = GITHUB_RELEASES_LIST_URL
 ) {
     companion object {
-        const val GITHUB_LATEST_RELEASE_URL =
-            "https://api.github.com/repos/DurchEins/apkup/releases/latest"
+        const val GITHUB_RELEASES_LIST_URL =
+            "https://api.github.com/repos/DurchEins/apkup/releases?per_page=10"
+        private const val MAX_SHA256_SIDECAR_BYTES = 4096
+        private val ALLOWED_SELF_UPDATE_HOSTS = setOf(
+            "github.com",
+            "objects.githubusercontent.com",
+            "release-assets.githubusercontent.com"
+        )
     }
 
     suspend fun checkForUpdate(
         currentVersionName: String = BuildConfig.VERSION_NAME
     ): Result<SelfUpdateInfo?> = withContext(Dispatchers.IO) {
-        runCatching {
+        try {
             val request = Request.Builder()
-                .url(GITHUB_LATEST_RELEASE_URL)
-                .header("Accept", "application/vnd.github.v3+json")
-                .header("User-Agent", "ApkUp-SelfUpdater")
+                .url(releasesEndpointUrl)
+                .header("Accept", "application/vnd.github+json")
+                .header("User-Agent", "ApkUp/${BuildConfig.VERSION_NAME}")
                 .build()
 
             okHttpClient.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
                     throw IOException("HTTP ${response.code} when checking GitHub releases")
                 }
-                val body = response.body
-                val release = gson.fromJson(body.charStream(), GitHubRelease::class.java)
-                    ?: throw IOException("Could not parse GitHub release JSON")
+                val releases = parseReleasesPayload(response.body.charStream().readText())
+                val bestCandidate = selectNewestEligibleRelease(releases, currentVersionName)
+                    ?: return@withContext Result.success(null)
 
-                val candidateTag = release.tag_name.ifBlank { release.name }
-                if (candidateTag.isBlank()) {
-                    return@runCatching null
-                }
+                val (release, candidateTag, apkAsset) = bestCandidate
+                val sha256 = resolveAssetSha256(release, apkAsset)
 
-                if (!isNewerVersion(currentVersionName, candidateTag)) {
-                    if (BuildConfig.DEBUG) {
-                        Log.d(
-                            "SelfUpdateRepository",
-                            "Current version $currentVersionName is up to date against candidate $candidateTag"
-                        )
-                    }
-                    return@runCatching null
-                }
-
-                val apkAsset = release.assets.firstOrNull {
-                    it.name.endsWith(".apk", ignoreCase = true)
-                } ?: run {
-                    Log.w("SelfUpdateRepository", "Newer release $candidateTag found, but no APK asset attached.")
-                    return@runCatching null
-                }
-
-                SelfUpdateInfo(
-                    versionName = candidateTag.trim().removePrefix("v").removePrefix("V"),
-                    tagName = candidateTag,
-                    releaseNotes = release.body,
-                    downloadUrl = apkAsset.browser_download_url,
-                    apkSize = apkAsset.size
+                Result.success(
+                    SelfUpdateInfo(
+                        versionName = candidateTag.trim().removePrefix("v").removePrefix("V"),
+                        tagName = candidateTag,
+                        releaseNotes = release.safeBody,
+                        downloadUrl = apkAsset.safeDownloadUrl,
+                        apkSize = apkAsset.size,
+                        expectedSha256 = sha256
+                    )
                 )
             }
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (t: Throwable) {
+            Result.failure(t)
         }
+    }
+
+    internal fun parseReleasesPayload(rawJson: String): List<GitHubRelease> {
+        val element: JsonElement = gson.fromJson(rawJson, JsonElement::class.java)
+            ?: throw IOException("Could not parse GitHub release JSON")
+        return when {
+            element.isJsonArray -> {
+                val listType = object : TypeToken<List<GitHubRelease>>() {}.type
+                gson.fromJson<List<GitHubRelease>>(element, listType).orEmpty()
+            }
+            element.isJsonObject -> {
+                listOfNotNull(gson.fromJson(element, GitHubRelease::class.java))
+            }
+            else -> emptyList()
+        }
+    }
+
+    internal fun selectNewestEligibleRelease(
+        releases: List<GitHubRelease>,
+        currentVersionName: String
+    ): Triple<GitHubRelease, String, GitHubAsset>? {
+        var best: Triple<GitHubRelease, String, GitHubAsset>? = null
+
+        for (release in releases) {
+            if (release.draft) continue
+            val candidateTag = release.safeTagName.ifBlank { release.safeName }
+            if (candidateTag.isBlank()) continue
+            if (!isNewerVersion(currentVersionName, candidateTag)) continue
+
+            val apkAsset = release.safeAssets.firstOrNull { asset ->
+                val lower = asset.safeName.lowercase(Locale.ROOT)
+                lower.endsWith(".apk") &&
+                    !lower.endsWith("-debug.apk") &&
+                    !lower.endsWith("-unaligned.apk") &&
+                    isTrustedDownloadUrl(asset.safeDownloadUrl)
+            } ?: continue
+
+            val currentBest = best
+            if (currentBest == null || isNewerVersion(currentBest.second, candidateTag)) {
+                best = Triple(release, candidateTag, apkAsset)
+            }
+        }
+        return best
+    }
+
+    internal fun isTrustedDownloadUrl(url: String): Boolean {
+        if (!url.startsWith("https://", ignoreCase = true)) return false
+        val host = runCatching { java.net.URI.create(url).host?.lowercase(Locale.ROOT) }.getOrNull() ?: return false
+        return host in ALLOWED_SELF_UPDATE_HOSTS
+    }
+
+    private fun resolveAssetSha256(release: GitHubRelease, apkAsset: GitHubAsset): String? {
+        ApkIntegrityVerifier.normalizeSha256Hex(apkAsset.digest)?.let { return it }
+
+        val sidecar = release.safeAssets.firstOrNull { asset ->
+            asset.safeName.equals("${apkAsset.safeName}.sha256", ignoreCase = true) ||
+                asset.safeName.endsWith(".sha256", ignoreCase = true)
+        } ?: return null
+
+        if (!isTrustedDownloadUrl(sidecar.safeDownloadUrl)) return null
+        return runCatching {
+            val req = Request.Builder()
+                .url(sidecar.safeDownloadUrl)
+                .header("User-Agent", "ApkUp/${BuildConfig.VERSION_NAME}")
+                .build()
+            okHttpClient.newCall(req).execute().use { resp ->
+                if (!resp.isSuccessful) return@use null
+                val snippet = resp.body.byteStream().use { input ->
+                    val bytes = ByteArray(MAX_SHA256_SIDECAR_BYTES)
+                    val n = input.read(bytes)
+                    if (n <= 0) "" else String(bytes, 0, n, Charsets.UTF_8)
+                }
+                val token = Regex("\\b([0-9a-fA-F]{64})\\b").find(snippet)?.groupValues?.getOrNull(1)
+                ApkIntegrityVerifier.normalizeSha256Hex(token)
+            }
+        }.getOrNull()
     }
 
     internal data class ParsedVersion(
@@ -83,6 +160,7 @@ class SelfUpdateRepository(
         val buildNum = Regex("\\((\\d+)\\)").find(versionStr)?.groupValues?.getOrNull(1)?.toIntOrNull() ?: 0
         val clean = versionStr
             .substringBefore("(")
+            .substringBefore("+")
             .trim()
             .removePrefix("ApkUp-")
             .removePrefix("apkup-")
@@ -125,8 +203,8 @@ class SelfUpdateRepository(
     private fun comparePreRelease(candidate: String, current: String): Int {
         val cNum = Regex("\\d+").find(candidate)?.value?.toIntOrNull() ?: 0
         val curNum = Regex("\\d+").find(current)?.value?.toIntOrNull() ?: 0
-        val cType = candidate.replace(Regex("\\d+"), "").lowercase()
-        val curType = current.replace(Regex("\\d+"), "").lowercase()
+        val cType = candidate.replace(Regex("\\d+"), "").lowercase(Locale.ROOT)
+        val curType = current.replace(Regex("\\d+"), "").lowercase(Locale.ROOT)
         if (cType != curType) {
             return cType.compareTo(curType)
         }
