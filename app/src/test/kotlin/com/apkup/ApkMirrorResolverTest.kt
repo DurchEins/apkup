@@ -1,18 +1,17 @@
 package com.apkup
 
-import android.content.SharedPreferences
 import com.apkup.data.ui.ApkMirrorSource
 import com.apkup.data.ui.AppUpdate
 import com.apkup.data.ui.GitHubSource
 import com.apkup.data.ui.Link
 import com.apkup.data.ui.PlaySource
+import com.apkup.prefs.InMemoryPrefsBackend
 import com.apkup.prefs.Prefs
 import com.apkup.repository.ApkMirrorResolutionResult
 import com.apkup.repository.ApkMirrorResolver
 import com.apkup.util.ApkmExtractor
 import com.apkup.viewmodel.SettingsViewModel
 import com.apkup.viewmodel.partitionInstallQueueCandidates
-import com.kryptoprefs.preferences.KryptoPrefs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -561,7 +560,7 @@ class ApkMirrorResolverTest {
 
     @Test
     fun testDirectApkMirrorDownloadsPreferenceDefaultsToTrueAndPersists() {
-        val storage = TestKryptoPrefs()
+        val storage = InMemoryPrefsBackend()
         val firstRunPrefs = Prefs(storage)
 
         // Must default to true (R2)
@@ -578,7 +577,7 @@ class ApkMirrorResolverTest {
 
     @Test
     fun testSettingsViewModelExposesPreferenceGetterAndSetter() {
-        val storage = TestKryptoPrefs()
+        val storage = InMemoryPrefsBackend()
         val prefs = Prefs(storage)
         val viewModel = SettingsViewModel(prefs = prefs)
 
@@ -640,29 +639,6 @@ class ApkMirrorResolverTest {
             }
         }
         return baos.toByteArray()
-    }
-
-    private class TestKryptoPrefs : KryptoPrefs {
-        private val values = mutableMapOf<String, Any>()
-
-        override fun putString(key: String, value: String?): KryptoPrefs = put(key, value)
-        override fun putBoolean(key: String, value: Boolean?): KryptoPrefs = put(key, value)
-        override fun putInt(key: String, value: Int?): KryptoPrefs = put(key, value)
-        override fun putLong(key: String, value: Long?): KryptoPrefs = put(key, value)
-
-        override fun getString(key: String, defaultValue: String?): String? = values[key] as? String ?: defaultValue
-        override fun getBoolean(key: String, defaultValue: Boolean): Boolean = values[key] as? Boolean ?: defaultValue
-        override fun getInt(key: String, defaultValue: Int): Int = values[key] as? Int ?: defaultValue
-        override fun getLong(key: String, defaultValue: Long): Long = values[key] as? Long ?: defaultValue
-        override fun remove(key: String): KryptoPrefs = apply { values.remove(key) }
-        override fun contains(key: String): Boolean = values.containsKey(key)
-        override fun clear() = values.clear()
-        override fun name(): String = "unit-test"
-        override fun sharedPreferences(): SharedPreferences = error("Not used by these preference tests")
-
-        private fun put(key: String, value: Any?): KryptoPrefs = apply {
-            if (value == null) values.remove(key) else values[key] = value
-        }
     }
 
     private object ApkMirrorTestFixtures {
@@ -794,5 +770,38 @@ class ApkMirrorResolverTest {
             </body>
             </html>
         """
+    }
+
+    @Test
+    fun testApkMirrorBatchConcurrencyCappedAtSix() {
+        assertEquals(6, com.apkup.repository.APKMIRROR_REQUEST_CONCURRENCY)
+    }
+
+    @Test
+    fun testPerAppCloudflareCooldownIsIsolatedAndExpiresAfterTenMinutes() = runBlocking {
+        var now = 1_000_000L
+        val variantA = "https://www.apkmirror.com/apk/vendor-a/app-a/variant-a/"
+        val variantB = "https://www.apkmirror.com/apk/vendor-b/app-b/variant-b/"
+        val resolver = ApkMirrorResolver(
+            client = OkHttpClient.Builder().build(),
+            minDelayMs = 0L,
+            clock = { now },
+            delayFn = { },
+            cloudflareCooldownMs = ApkMirrorResolver.DEFAULT_CLOUDFLARE_COOLDOWN_MS
+        )
+
+        resolver.recordCloudflareBlocked(variantUrl = variantA, packageName = "com.example.appa")
+
+        // App A is blocked, App B stays unaffected
+        assertTrue(resolver.isAppInCooldown(variantUrl = variantA, packageName = "com.example.appa"))
+        assertFalse(resolver.isAppInCooldown(variantUrl = variantB, packageName = "com.example.appb"))
+
+        // Advance time by 9m 59s -> still active
+        now += ApkMirrorResolver.DEFAULT_CLOUDFLARE_COOLDOWN_MS - 1_000L
+        assertTrue(resolver.isAppInCooldown(variantUrl = variantA, packageName = "com.example.appa"))
+
+        // Advance past 10 minutes -> cooldown expires automatically
+        now += 1_000L
+        assertFalse(resolver.isAppInCooldown(variantUrl = variantA, packageName = "com.example.appa"))
     }
 }

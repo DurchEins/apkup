@@ -142,9 +142,9 @@ class UpdateProcessingTest {
     }
 
     @Test
-    fun apkMirrorKeepsAtMostTwoRequestsAtOnce() = runBlocking {
+    fun apkMirrorKeepsAtMostSixRequestsAtOnce() = runBlocking {
         assertEquals(25, APKMIRROR_REQUEST_BATCH_SIZE)
-        assertEquals(8, APKMIRROR_REQUEST_CONCURRENCY)
+        assertEquals(6, APKMIRROR_REQUEST_CONCURRENCY)
         assertEquals(19, (462 + APKMIRROR_REQUEST_BATCH_SIZE - 1) / APKMIRROR_REQUEST_BATCH_SIZE)
 
         val active = AtomicInteger(0)

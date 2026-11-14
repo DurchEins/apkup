@@ -280,4 +280,171 @@ class UpdatesUiStateTest {
         val serverErrorUrl = com.apkup.ui.screen.resolveWikiUrlForSourceError("IzzyOnDroid", "HTTP 502 Bad Gateway")
         assertTrue(serverErrorUrl.endsWith("#44-server-error--not-found-http-404--500--502--503"))
     }
+
+    @Test
+    fun filterAndSortUpdatesSupportsSearchAndSortOrders() {
+        val alpha = AppUpdate(
+            name = "Zebra App",
+            packageName = "org.example.zebra",
+            version = "2.0",
+            oldVersion = "1.0",
+            versionCode = 2,
+            oldVersionCode = 1,
+            source = PlaySource,
+            updatedOn = "10. Nov. 2026"
+        )
+        val beta = AppUpdate(
+            name = "Alpha Reader",
+            packageName = "io.github.reader",
+            version = "3.0",
+            oldVersion = "2.0",
+            versionCode = 3,
+            oldVersionCode = 2,
+            source = com.apkup.data.ui.GitHubSource,
+            updatedOn = "2026-11-13T18:00:00Z"
+        )
+        val gamma = AppUpdate(
+            name = "Mid Tool",
+            packageName = "org.apkmirror.tool",
+            version = "1.5",
+            oldVersion = "1.0",
+            versionCode = 15,
+            oldVersionCode = 10,
+            source = com.apkup.data.ui.ApkMirrorSource,
+            updatedOn = "Nov 12, 2026"
+        )
+        val all = listOf(alpha, beta, gamma)
+
+        assertEquals(
+            listOf("Alpha Reader", "Mid Tool", "Zebra App"),
+            com.apkup.ui.screen.filterAndSortUpdates(all, null, "", com.apkup.ui.screen.UpdatesSortOrder.NAME_ASC).map { it.name }
+        )
+        assertEquals(
+            listOf("Zebra App", "Mid Tool", "Alpha Reader"),
+            com.apkup.ui.screen.filterAndSortUpdates(all, null, "", com.apkup.ui.screen.UpdatesSortOrder.NAME_DESC).map { it.name }
+        )
+        assertEquals(
+            listOf("Mid Tool", "Alpha Reader", "Zebra App"),
+            com.apkup.ui.screen.filterAndSortUpdates(all, null, "", com.apkup.ui.screen.UpdatesSortOrder.SOURCE).map { it.name }
+        )
+        assertEquals(
+            listOf("Alpha Reader", "Mid Tool", "Zebra App"),
+            com.apkup.ui.screen.filterAndSortUpdates(all, null, "", com.apkup.ui.screen.UpdatesSortOrder.RELEASE_DATE).map { it.name }
+        )
+        assertEquals(
+            listOf("Zebra App"),
+            com.apkup.ui.screen.filterAndSortUpdates(all, null, "zebra", com.apkup.ui.screen.UpdatesSortOrder.NAME_ASC).map { it.name }
+        )
+        assertEquals(
+            listOf("Mid Tool"),
+            com.apkup.ui.screen.filterAndSortUpdates(all, null, "apkmirror.tool", com.apkup.ui.screen.UpdatesSortOrder.NAME_ASC).map { it.name }
+        )
+        assertEquals(
+            listOf("Zebra App"),
+            com.apkup.ui.screen.filterAndSortUpdates(all, PlaySource.name, "", com.apkup.ui.screen.UpdatesSortOrder.NAME_DESC).map { it.name }
+        )
+        val betaWithPlayAlt = beta.copy(
+            alternativeUpdates = listOf(beta.copy(source = PlaySource, updatedOn = "2026-11-11"))
+        )
+        assertEquals(
+            listOf("Zebra App", "Alpha Reader"),
+            com.apkup.ui.screen.filterAndSortUpdates(
+                listOf(alpha, betaWithPlayAlt, gamma),
+                PlaySource.name,
+                "",
+                com.apkup.ui.screen.UpdatesSortOrder.NAME_DESC
+            ).map { it.name }
+        )
+        assertEquals(
+            listOf("Alpha Reader"),
+            com.apkup.ui.screen.filterAndSortUpdates(
+                listOf(alpha, betaWithPlayAlt, gamma),
+                PlaySource.name,
+                "alpha",
+                com.apkup.ui.screen.UpdatesSortOrder.RELEASE_DATE
+            ).map { it.name }
+        )
+    }
+
+    @Test
+    fun `filterAndSortInstalledApps supports search quick filter and all sort orders`() {
+        val playNew = com.apkup.data.ui.AppInstalled(
+            name = "Alpha Notes",
+            packageName = "com.example.alpha",
+            version = "2.0",
+            versionCode = 20,
+            lastUpdateTime = 3_000L,
+            installerPackageName = "com.android.vending"
+        )
+        val sideloadOld = com.apkup.data.ui.AppInstalled(
+            name = "Zebra Utility",
+            packageName = "org.example.zebra",
+            version = "1.0",
+            versionCode = 10,
+            lastUpdateTime = 1_000L,
+            installerPackageName = "com.apkup"
+        )
+        val fdroidMid = com.apkup.data.ui.AppInstalled(
+            name = "Beta Reader",
+            packageName = "org.fdroid.beta",
+            version = "1.5",
+            versionCode = 15,
+            lastUpdateTime = 2_000L,
+            installerPackageName = "org.fdroid.fdroid"
+        )
+        val apps = listOf(sideloadOld, playNew, fdroidMid)
+
+        assertEquals(
+            listOf("Alpha Notes", "Beta Reader", "Zebra Utility"),
+            com.apkup.data.ui.filterAndSortInstalledApps(
+                apps, "", com.apkup.data.ui.AppsQuickFilter.ALL, com.apkup.data.ui.AppsSortOrder.NAME_ASC
+            ).map { it.name }
+        )
+        assertEquals(
+            listOf("Zebra Utility", "Beta Reader", "Alpha Notes"),
+            com.apkup.data.ui.filterAndSortInstalledApps(
+                apps, "", com.apkup.data.ui.AppsQuickFilter.ALL, com.apkup.data.ui.AppsSortOrder.NAME_DESC
+            ).map { it.name }
+        )
+        assertEquals(
+            listOf("Alpha Notes", "Beta Reader", "Zebra Utility"),
+            com.apkup.data.ui.filterAndSortInstalledApps(
+                apps, "", com.apkup.data.ui.AppsQuickFilter.ALL, com.apkup.data.ui.AppsSortOrder.SOURCE
+            ).map { it.name }
+        )
+        assertEquals(
+            listOf("Alpha Notes", "Beta Reader", "Zebra Utility"),
+            com.apkup.data.ui.filterAndSortInstalledApps(
+                apps, "", com.apkup.data.ui.AppsQuickFilter.ALL, com.apkup.data.ui.AppsSortOrder.LAST_UPDATED
+            ).map { it.name }
+        )
+        assertEquals(
+            listOf("Beta Reader"),
+            com.apkup.data.ui.filterAndSortInstalledApps(
+                apps, "fdroid.beta", com.apkup.data.ui.AppsQuickFilter.ALL, com.apkup.data.ui.AppsSortOrder.NAME_DESC
+            ).map { it.name }
+        )
+    }
+
+    @Test
+    fun `source error banner excludes failed F-Droid repos from surviving sources`() {
+        val bannerDe = com.apkup.ui.screen.formatSourceErrorBanner(
+            sourceErrors = mapOf("F-Droid / IzzyOnDroid" to "Network error"),
+            activeSources = listOf("APKMirror", "Google Play", "IzzyOnDroid", "NewPipe Repo", "My Custom Repo", "GitHub"),
+            isGerman = true,
+            fdroidRepoNames = setOf("IzzyOnDroid", "NewPipe Repo", "My Custom Repo")
+        )
+        assertTrue(bannerDe.contains("F-Droid / IzzyOnDroid-Prüfung fehlgeschlagen"))
+        assertTrue(bannerDe.contains("APKMirror & Google Play & GitHub-Ergebnisse werden angezeigt."))
+        assertTrue(!bannerDe.contains("IzzyOnDroid-Ergebnisse"))
+        assertTrue(!bannerDe.contains("NewPipe Repo"))
+        assertTrue(!bannerDe.contains("My Custom Repo"))
+
+        val partialEmpty = com.apkup.ui.screen.formatPartialEmptyMessage(
+            sourceErrors = mapOf("F-Droid / IzzyOnDroid" to "Network error"),
+            activeSources = listOf("IzzyOnDroid", "F-Droid"),
+            isGerman = true
+        )
+        assertTrue(partialEmpty.contains("Keine erreichbare Quelle hat Updates gemeldet."))
+    }
 }

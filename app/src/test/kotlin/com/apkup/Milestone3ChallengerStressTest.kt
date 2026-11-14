@@ -3,7 +3,6 @@ package com.apkup
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
-import com.apkup.service.DownloadInstallService
 import com.apkup.service.DownloadTaskState
 import com.apkup.util.AppLifecycleTracker
 import com.apkup.util.DownloadNotificationManager
@@ -297,7 +296,7 @@ class Milestone3ChallengerStressTest {
     fun `SessionInstaller notification cancel action matches exact expected format`() {
         val id = 42
         val expectedAction = "${SessionInstaller.INSTALL_CANCEL_ACTION}.$id"
-        assertEquals("com.apkup.installCancelAction.42", expectedAction)
+        assertEquals("com.apkup.action.PACKAGE_INSTALL_CANCEL.42", expectedAction)
         assertEquals(8042, SessionInstaller.NOTIFICATION_ID_CONFIRM_BASE + id)
     }
 

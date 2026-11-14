@@ -2,14 +2,22 @@ package com.apkup.ui.screen
 
 import android.Manifest
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -31,19 +39,25 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.History
@@ -52,6 +66,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -70,6 +86,8 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.minimumInteractiveComponentSize
@@ -82,6 +100,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -89,8 +108,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.UriHandler
@@ -98,24 +122,30 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.apkup.R
+import com.apkup.ui.component.CollapsibleScrollHeader
+import com.apkup.ui.component.rememberCollapsibleHeaderState
 import com.apkup.data.ui.ApkMirrorSource
 import com.apkup.data.ui.AppUpdate
 import com.apkup.data.ui.cleanChangelogText
+import com.apkup.data.ui.FDroidSource
 import com.apkup.data.ui.GitHubSource
+import com.apkup.data.ui.CodebergSource
+import com.apkup.data.ui.CustomFDroidSource
 import com.apkup.data.ui.GitLabSource
+import com.apkup.data.ui.isWatchedApp
 import com.apkup.data.ui.InstallOrigin
 import com.apkup.data.ui.IzzyOnDroidSource
+import com.apkup.data.ui.Link
 import com.apkup.data.ui.PlaySource
 import com.apkup.data.ui.Source
 import com.apkup.data.ui.hasPotentialSignatureConflict
-import com.apkup.prefs.Prefs
-import com.apkup.service.DownloadInstallService
 import com.apkup.service.DownloadTaskState
 import com.apkup.ui.component.AppEmptyState
 import com.apkup.ui.component.CompactUpdateCardLayout
@@ -127,12 +157,15 @@ import com.apkup.ui.component.NormalUpdateCardLayout
 import com.apkup.ui.component.RefreshIcon
 import com.apkup.ui.component.UpdateHistoryBottomSheet
 import com.apkup.ui.component.shimmering
+import com.apkup.util.BatchProgressCalculator
+import com.apkup.util.BatchProgressSummary
+import com.apkup.util.BatchProgressUnits
 import com.apkup.ui.component.toUpdateCardContent
 import com.apkup.ui.component.updateGridColumnCount
 import com.apkup.util.getAppName
 import com.apkup.viewmodel.AppsViewModel
 import com.apkup.viewmodel.UpdatesViewModel
-import org.koin.compose.koinInject
+import com.apkup.viewmodel.partitionInstallQueueCandidates
 import org.koin.compose.viewmodel.koinViewModel
 import java.util.Locale
 
@@ -175,77 +208,295 @@ fun UpdatesScreen(
 	}
 }
 
+enum class UpdatesSortOrder {
+	NAME_ASC,
+	NAME_DESC,
+	SOURCE,
+	RELEASE_DATE
+}
+
+private val RELEASE_DATE_FORMATTERS = listOf(
+	java.time.format.DateTimeFormatter.ISO_LOCAL_DATE,
+	java.time.format.DateTimeFormatter.ofPattern("MMM d, yyyy", java.util.Locale.ENGLISH),
+	java.time.format.DateTimeFormatter.ofPattern("MMMM d, yyyy", java.util.Locale.ENGLISH),
+	java.time.format.DateTimeFormatter.ofPattern("d MMM yyyy", java.util.Locale.ENGLISH),
+	java.time.format.DateTimeFormatter.ofPattern("d. MMM yyyy", java.util.Locale.GERMAN),
+	java.time.format.DateTimeFormatter.ofPattern("d. MMMM yyyy", java.util.Locale.GERMAN),
+	java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy", java.util.Locale.GERMAN)
+)
+
+private val RELEASE_DATE_TIME_FORMATTERS = listOf(
+	java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME,
+	java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss", java.util.Locale.US)
+)
+
+internal fun parseReleaseDateMillis(raw: String): Long {
+	val trimmed = raw.trim()
+	if (trimmed.isEmpty()) return 0L
+	trimmed.toLongOrNull()?.let { numeric ->
+		return if (numeric > 1_000_000_000_000L) numeric else numeric * 1_000L
+	}
+	runCatching { return java.time.Instant.parse(trimmed).toEpochMilli() }
+	runCatching { return java.time.OffsetDateTime.parse(trimmed).toInstant().toEpochMilli() }
+	for (formatter in RELEASE_DATE_TIME_FORMATTERS) {
+		runCatching {
+			return java.time.LocalDateTime.parse(trimmed, formatter)
+				.atZone(java.time.ZoneOffset.UTC)
+				.toInstant()
+				.toEpochMilli()
+		}
+	}
+	for (formatter in RELEASE_DATE_FORMATTERS) {
+		runCatching {
+			return java.time.LocalDate.parse(trimmed, formatter)
+				.atStartOfDay(java.time.ZoneOffset.UTC)
+				.toInstant()
+				.toEpochMilli()
+		}
+	}
+	return 0L
+}
+
+internal fun effectiveReleaseDateMillis(update: AppUpdate): Long =
+	parseReleaseDateMillis(update.updatedOn).takeIf { it > 0L }
+		?: update.alternativeUpdates.maxOfOrNull { parseReleaseDateMillis(it.updatedOn) }
+		?: 0L
+
+internal fun filterAndSortUpdates(
+	updates: List<AppUpdate>,
+	selectedSourceFilter: String?,
+	searchQuery: String,
+	sortOrder: UpdatesSortOrder
+): List<AppUpdate> {
+	val bySource = if (selectedSourceFilter == null) {
+		updates
+	} else {
+		updates.mapNotNull { update ->
+			if (update.source.name == selectedSourceFilter) {
+				update
+			} else {
+				val alt = update.alternativeUpdates.firstOrNull { it.source.name == selectedSourceFilter }
+				alt?.copy(alternativeUpdates = update.alternativeUpdates)
+			}
+		}
+	}
+
+	val cleanQuery = searchQuery.trim()
+	val byQuery = if (cleanQuery.isEmpty()) {
+		bySource
+	} else {
+		bySource.filter {
+			it.name.contains(cleanQuery, ignoreCase = true) ||
+				it.packageName.contains(cleanQuery, ignoreCase = true)
+		}
+	}
+
+	fun sortName(update: AppUpdate): String =
+		update.name.trim().ifEmpty { update.packageName }.lowercase()
+
+	return when (sortOrder) {
+		UpdatesSortOrder.NAME_ASC -> byQuery.sortedWith(
+			compareBy<AppUpdate> { sortName(it) }
+				.thenBy { it.packageName.lowercase() }
+		)
+		UpdatesSortOrder.NAME_DESC -> byQuery.sortedWith(
+			compareByDescending<AppUpdate> { sortName(it) }
+				.thenByDescending { it.packageName.lowercase() }
+		)
+		UpdatesSortOrder.SOURCE -> byQuery.sortedWith(
+			compareBy<AppUpdate> { it.source.name.lowercase() }
+				.thenBy { sortName(it) }
+		)
+		UpdatesSortOrder.RELEASE_DATE -> byQuery.sortedWith(
+			compareByDescending<AppUpdate> { effectiveReleaseDateMillis(it) }
+				.thenBy { sortName(it) }
+		)
+	}
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UpdatesTopBar(
 	viewModel: UpdatesViewModel,
 	updatesCount: Int? = null,
 	hasInstallableUpdates: Boolean = false,
-	onOpenHistory: (() -> Unit)? = null
-) = TopAppBar(
-	title = {
-		Row(
-			verticalAlignment = Alignment.CenterVertically,
-			horizontalArrangement = Arrangement.spacedBy(8.dp)
-		) {
-			Text(
-				text = stringResource(R.string.tab_updates),
-				style = MaterialTheme.typography.headlineMedium,
-				fontWeight = FontWeight.Bold
-			)
-			if (updatesCount != null && updatesCount > 0) {
-				Surface(
-					shape = CircleShape,
-					color = MaterialTheme.colorScheme.primaryContainer
-				) {
-					Text(
-						text = updatesCount.toString(),
-						modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-						style = MaterialTheme.typography.labelMedium,
-						fontWeight = FontWeight.SemiBold,
-						color = MaterialTheme.colorScheme.onPrimaryContainer
+	onOpenHistory: (() -> Unit)? = null,
+	selectedCount: Int = 0,
+	allSelectableSelected: Boolean = false,
+	onClearSelection: (() -> Unit)? = null,
+	onToggleSelectAll: (() -> Unit)? = null,
+	searchExpanded: Boolean = false,
+	onToggleSearch: (() -> Unit)? = null,
+	sortOrder: UpdatesSortOrder = UpdatesSortOrder.NAME_ASC,
+	onSortOrderChange: ((UpdatesSortOrder) -> Unit)? = null
+) {
+	if (selectedCount > 0) {
+		TopAppBar(
+			title = {
+				Text(
+					text = stringResource(R.string.updates_selected_count, selectedCount),
+					style = MaterialTheme.typography.titleLarge,
+					fontWeight = FontWeight.Bold,
+					maxLines = 1,
+					overflow = TextOverflow.Ellipsis
+				)
+			},
+			colors = TopAppBarDefaults.topAppBarColors(
+				containerColor = MaterialTheme.colorScheme.surfaceContainer,
+				scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+			),
+			navigationIcon = {
+				IconButton(onClick = { onClearSelection?.invoke() }) {
+					Icon(
+						imageVector = Icons.Filled.Close,
+						contentDescription = stringResource(R.string.updates_clear_selection)
+					)
+				}
+			},
+			actions = {
+				if (onToggleSelectAll != null) {
+					TextButton(onClick = onToggleSelectAll) {
+						Text(
+							text = stringResource(
+								if (allSelectableSelected) R.string.updates_deselect_all else R.string.updates_select_all
+							),
+							style = MaterialTheme.typography.labelLarge,
+							fontWeight = FontWeight.SemiBold
+						)
+					}
+				}
+			},
+			windowInsets = WindowInsets(0)
+		)
+		return
+	}
+
+	TopAppBar(
+		title = {
+			Row(
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(8.dp)
+			) {
+				Text(
+					text = stringResource(R.string.tab_updates),
+					style = MaterialTheme.typography.headlineMedium,
+					fontWeight = FontWeight.Bold,
+					maxLines = 1,
+					softWrap = false,
+					overflow = TextOverflow.Ellipsis,
+					modifier = Modifier.weight(1f, fill = false)
+				)
+				if (updatesCount != null && updatesCount > 0) {
+					Surface(
+						shape = CircleShape,
+						color = MaterialTheme.colorScheme.primaryContainer
+					) {
+						Text(
+							text = updatesCount.toString(),
+							modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+							style = MaterialTheme.typography.labelMedium,
+							fontWeight = FontWeight.SemiBold,
+							color = MaterialTheme.colorScheme.onPrimaryContainer
+						)
+					}
+				}
+			}
+		},
+		colors = TopAppBarDefaults.topAppBarColors(
+			containerColor = MaterialTheme.colorScheme.background,
+			scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+		),
+		actions = {
+			if (onToggleSearch != null) {
+				IconButton(onClick = onToggleSearch) {
+					Icon(
+						imageVector = if (searchExpanded) Icons.Filled.Clear else Icons.Filled.Search,
+						contentDescription = stringResource(R.string.updates_search_placeholder)
 					)
 				}
 			}
-		}
-	},
-	colors = TopAppBarDefaults.topAppBarColors(
-		containerColor = MaterialTheme.colorScheme.background,
-		scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
-	),
-	actions = {
-		if (onOpenHistory != null) {
-			IconButton(onClick = onOpenHistory) {
+			if (onSortOrderChange != null) {
+				var sortMenuExpanded by remember { mutableStateOf(false) }
+				Box {
+					IconButton(onClick = { sortMenuExpanded = true }) {
+						Icon(
+							imageVector = Icons.AutoMirrored.Rounded.Sort,
+							contentDescription = stringResource(R.string.updates_sort_action),
+							tint = if (sortOrder != UpdatesSortOrder.NAME_ASC) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+						)
+					}
+					DropdownMenu(
+						expanded = sortMenuExpanded,
+						onDismissRequest = { sortMenuExpanded = false },
+						shape = RoundedCornerShape(18.dp),
+						containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+					) {
+						listOf(
+							UpdatesSortOrder.NAME_ASC to R.string.updates_sort_name,
+							UpdatesSortOrder.NAME_DESC to R.string.updates_sort_name_desc,
+							UpdatesSortOrder.SOURCE to R.string.updates_sort_source,
+							UpdatesSortOrder.RELEASE_DATE to R.string.updates_sort_release_date
+						).forEach { (option, labelRes) ->
+							DropdownMenuItem(
+								text = {
+									Text(
+										text = stringResource(labelRes),
+										fontWeight = if (sortOrder == option) FontWeight.SemiBold else FontWeight.Normal,
+										color = if (sortOrder == option) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+									)
+								},
+								trailingIcon = {
+									if (sortOrder == option) {
+										Icon(
+											imageVector = Icons.Filled.Check,
+											contentDescription = null,
+											tint = MaterialTheme.colorScheme.primary,
+											modifier = Modifier.size(18.dp)
+										)
+									}
+								},
+								onClick = {
+									onSortOrderChange(option)
+									sortMenuExpanded = false
+								}
+							)
+						}
+					}
+				}
+			}
+			if (onOpenHistory != null) {
+				IconButton(onClick = onOpenHistory) {
+					Icon(
+						imageVector = Icons.Rounded.History,
+						contentDescription = stringResource(R.string.update_history_title)
+					)
+				}
+			}
+			IconButton(onClick = { viewModel.refresh() }) {
+				RefreshIcon(stringResource(R.string.refresh_updates))
+			}
+		},
+		windowInsets = WindowInsets(0),
+		navigationIcon = {
+			Box(
+				modifier = Modifier
+					.minimumInteractiveComponentSize()
+					.padding(start = 8.dp, end = 4.dp)
+					.size(36.dp)
+					.clip(RoundedCornerShape(12.dp))
+					.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+				contentAlignment = Alignment.Center
+			) {
 				Icon(
-					imageVector = Icons.Rounded.History,
-					contentDescription = stringResource(R.string.update_history_title)
+					imageVector = Icons.Rounded.Update,
+					contentDescription = stringResource(R.string.tab_updates),
+					tint = MaterialTheme.colorScheme.primary,
+					modifier = Modifier.size(20.dp)
 				)
 			}
 		}
-		IconButton(onClick = { viewModel.refresh() }) {
-			RefreshIcon(stringResource(R.string.refresh_updates))
-		}
-	},
-	windowInsets = WindowInsets(0),
-	navigationIcon = {
-		Box(
-			modifier = Modifier
-				.minimumInteractiveComponentSize()
-				.padding(start = 8.dp, end = 4.dp)
-				.size(36.dp)
-				.clip(RoundedCornerShape(12.dp))
-				.background(MaterialTheme.colorScheme.surfaceContainerHigh),
-			contentAlignment = Alignment.Center
-		) {
-			Icon(
-				imageVector = Icons.Rounded.Update,
-				contentDescription = stringResource(R.string.tab_updates),
-				tint = MaterialTheme.colorScheme.primary,
-				modifier = Modifier.size(20.dp)
-			)
-		}
-	}
-)
+	)
+}
 
 @Composable
 fun UpdatesScreenLoading(
@@ -253,10 +504,9 @@ fun UpdatesScreenLoading(
 	onOpenHistory: (() -> Unit)? = null
 ) = Column(Modifier.fillMaxSize()) {
 	val view = LocalView.current
-	val prefs = koinInject<Prefs>()
 	val initialSource = when {
-		prefs.useApkMirror.get() -> stringResource(R.string.source_apkmirror)
-		prefs.usePlay.get() -> stringResource(R.string.source_play)
+		viewModel.isUseApkMirrorEnabled() -> stringResource(R.string.source_apkmirror)
+		viewModel.isUsePlayEnabled() -> stringResource(R.string.source_play)
 		else -> null
 	}
 	DisposableEffect(Unit) {
@@ -280,7 +530,7 @@ fun UpdatesScreenError(
 		message = stringResource(R.string.updates_error_message),
 		icon = Icons.Filled.Info,
 		actionLabel = stringResource(R.string.error_banner_wiki_help),
-		onAction = { handler.openUri(resolveWikiUrlForSourceError(null)) },
+		onAction = { runCatching { handler.openUri(resolveWikiUrlForSourceError(null)) } },
 		modifier = Modifier.weight(1f)
 	)
 }
@@ -305,8 +555,7 @@ fun UpdatesScreenSuccess(
 ) {
 	val context = LocalContext.current
 	val handler = LocalUriHandler.current
-	val prefs = koinInject<Prefs>()
-	val displayMode = prefs.updatesDisplayMode.get()
+	val displayMode = viewModel.getUpdatesDisplayMode()
 	val view = LocalView.current
 	DisposableEffect(isChecking) {
 		view.keepScreenOn = isChecking
@@ -328,14 +577,19 @@ fun UpdatesScreenSuccess(
 		}
 	}
 
-	val activeTasksMap by DownloadInstallService.activeTasksFlow.collectAsStateWithLifecycle()
-	val completedTasks by DownloadInstallService.completedTasksFlow.collectAsStateWithLifecycle()
+	val activeTasksMap by viewModel.activeTasksFlow.collectAsStateWithLifecycle()
+	val completedTasks by viewModel.completedTasksFlow.collectAsStateWithLifecycle()
+	val batchProgress by viewModel.batchProgressFlow.collectAsStateWithLifecycle()
 	val readyUpdateIds by viewModel.readyUpdateIds.collectAsStateWithLifecycle()
 	val activeTasks = remember(activeTasksMap) { activeTasksMap.values.toList() }
 	var showQueueSheet by rememberSaveable { mutableStateOf(false) }
 	val showMobileDataDialog by viewModel.showMobileDataDialog.collectAsStateWithLifecycle()
+	val showBatteryPromptDialog by viewModel.showBatteryPromptDialog.collectAsStateWithLifecycle()
 
 	var selectedSourceFilter by rememberSaveable { mutableStateOf<String?>(null) }
+	var searchExpanded by rememberSaveable { mutableStateOf(false) }
+	var searchQuery by rememberSaveable { mutableStateOf("") }
+	var sortOrder by rememberSaveable { mutableStateOf(UpdatesSortOrder.NAME_ASC) }
 
 	val sourceCounts = remember(updates) {
 		val map = linkedMapOf<Source, Int>()
@@ -354,78 +608,221 @@ fun UpdatesScreenSuccess(
 		}
 	}
 
-	val displayedUpdates = remember(updates, selectedSourceFilter) {
-		if (selectedSourceFilter == null) {
-			updates
-		} else {
-			updates.mapNotNull { update ->
-				if (update.source.name == selectedSourceFilter) {
-					update
-				} else {
-					val alt = update.alternativeUpdates.firstOrNull { it.source.name == selectedSourceFilter }
-					alt?.copy(alternativeUpdates = update.alternativeUpdates)
-				}
-			}
-		}
+	val displayedUpdates = remember(updates, selectedSourceFilter, searchQuery, sortOrder) {
+		filterAndSortUpdates(
+			updates = updates,
+			selectedSourceFilter = selectedSourceFilter,
+			searchQuery = searchQuery,
+			sortOrder = sortOrder
+		)
 	}
 
-	val activeSources = buildList {
-		if (prefs.useApkMirror.get()) add("APKMirror")
-		if (prefs.usePlay.get()) add("Google Play")
-		if (prefs.useIzzyOnDroid.get()) add("IzzyOnDroid")
-		if (prefs.useGitHub.get()) add("GitHub")
-		if (prefs.useGitLab.get()) add("GitLab")
-	}
+	val activeSources = viewModel.getActiveSourceNames()
+	val fdroidRepoNames = viewModel.getEnabledFDroidRepoNames().toSet()
 	val localeLanguage = LocalConfiguration.current.locales[0]?.language.orEmpty()
 	val isGerman = localeLanguage.startsWith("de", ignoreCase = true)
-	val directMirror = prefs.directApkMirrorDownloads.get()
+	val directMirror = viewModel.isDirectApkMirrorEnabled()
 	val hasInstallable = displayedUpdates.any {
 		it.isDirectInstallable(directMirror) || it.alternativeUpdates.any { alt -> alt.isDirectInstallable(directMirror) }
 	}
 
-	val historyEntries by prefs.updateHistoryFlow.collectAsStateWithLifecycle()
+	val historyEntries by viewModel.updateHistoryFlow.collectAsStateWithLifecycle()
+	var pendingWatchedApkMirrorConfirm by remember {
+		mutableStateOf<Pair<List<AppUpdate>, () -> Unit>?>(null)
+	}
+
+	val requestInstallSingle: (AppUpdate) -> Unit = { target ->
+		val execute = {
+			requestNotificationPermissionIfNeeded()
+			viewModel.install(target, handler)
+		}
+		if (target.isWatchedApp() && target.source == ApkMirrorSource) {
+			pendingWatchedApkMirrorConfirm = listOf(target) to execute
+		} else {
+			execute()
+		}
+	}
+
+	val requestSaveApkSingle: (AppUpdate) -> Unit = { target ->
+		val execute = {
+			viewModel.saveApk(target, handler)
+		}
+		if (target.isWatchedApp() && target.source == ApkMirrorSource) {
+			pendingWatchedApkMirrorConfirm = listOf(target) to execute
+		} else {
+			execute()
+		}
+	}
+
+	var selectedUpdateIds by rememberSaveable(
+		stateSaver = listSaver(
+			save = { it.toList() },
+			restore = { it.toSet() }
+		)
+	) { mutableStateOf(emptySet<Int>()) }
+
+	val selectableUpdates = remember(displayedUpdates, activeTasksMap) {
+		displayedUpdates.filter { update ->
+			val liveTask = activeTasksMap[update.id]
+				?: activeTasksMap.values.firstOrNull { it.packageName == update.packageName }
+			val effInstalling = liveTask?.let { it.isInstalling || !it.isQueued } ?: update.isInstalling
+			val effQueued = liveTask?.isQueued ?: update.isQueued
+			!effInstalling && !effQueued
+		}
+	}
+	val selectableIds = remember(selectableUpdates) { selectableUpdates.map { it.id }.toSet() }
+
+	LaunchedEffect(selectableIds) {
+		if (selectedUpdateIds.isNotEmpty()) {
+			val filtered = selectedUpdateIds.intersect(selectableIds)
+			if (filtered != selectedUpdateIds) {
+				selectedUpdateIds = filtered
+			}
+		}
+	}
+
+	val isSelectionMode = selectedUpdateIds.isNotEmpty()
+	val allSelectableSelected = selectableIds.isNotEmpty() && selectableIds.all { it in selectedUpdateIds }
+	val selectedUpdates = remember(displayedUpdates, selectedUpdateIds) {
+		displayedUpdates.filter { it.id in selectedUpdateIds }
+	}
+
+	BackHandler(enabled = isSelectionMode) {
+		selectedUpdateIds = emptySet()
+	}
+
+	BackHandler(enabled = !isSelectionMode && (searchExpanded || searchQuery.isNotBlank())) {
+		searchQuery = ""
+		searchExpanded = false
+	}
+
+	val toggleSelection: (Int) -> Unit = { updateId ->
+		if (updateId in selectableIds) {
+			selectedUpdateIds = if (updateId in selectedUpdateIds) {
+				selectedUpdateIds - updateId
+			} else {
+				selectedUpdateIds + updateId
+			}
+		}
+	}
+
+	val collapsibleHeaderState = rememberCollapsibleHeaderState(
+		pinned = isSelectionMode ||
+			searchExpanded ||
+			searchQuery.isNotBlank() ||
+			activeTasks.isNotEmpty() ||
+			isChecking ||
+			displayedUpdates.isEmpty()
+	)
 
 	UpdatesTopBar(
 		viewModel = viewModel,
 		updatesCount = displayedUpdates.size,
 		hasInstallableUpdates = hasInstallable,
-		onOpenHistory = onOpenHistory
+		onOpenHistory = onOpenHistory,
+		selectedCount = selectedUpdateIds.size,
+		allSelectableSelected = allSelectableSelected,
+		onClearSelection = { selectedUpdateIds = emptySet() },
+		onToggleSelectAll = {
+			selectedUpdateIds = if (allSelectableSelected) emptySet() else selectableIds
+		},
+		searchExpanded = searchExpanded,
+		onToggleSearch = if (updates.isNotEmpty()) {
+			{
+				if (searchExpanded) {
+					searchQuery = ""
+					searchExpanded = false
+				} else {
+					searchExpanded = true
+				}
+			}
+		} else null,
+		sortOrder = sortOrder,
+		onSortOrderChange = if (updates.isNotEmpty()) {
+			{ newOrder -> sortOrder = newOrder }
+		} else null
 	)
 
-	if ((updates.isNotEmpty() && !isChecking) || activeTasks.isNotEmpty()) {
-		UpdatesHeroBanner(
-			updatesCount = displayedUpdates.size,
-			hasInstallable = hasInstallable,
-			activeTasks = activeTasks,
-			completedCount = completedTasks.size,
-			onInstallAll = {
-				requestNotificationPermissionIfNeeded()
-				viewModel.installAll()
-			},
-			onOpenQueue = { showQueueSheet = true }
+	AnimatedVisibility(
+		visible = !isSelectionMode && (searchExpanded || searchQuery.isNotBlank()),
+		enter = expandVertically() + fadeIn(),
+		exit = shrinkVertically() + fadeOut()
+	) {
+		DockedUpdatesSearchBar(
+			query = searchQuery,
+			onQueryChange = { searchQuery = it },
+			onClear = {
+				if (searchQuery.isNotBlank()) {
+					searchQuery = ""
+				} else {
+					searchExpanded = false
+				}
+			}
 		)
 	}
 
-	if (updates.isNotEmpty() && sourceCounts.isNotEmpty()) {
-		UpdatesSourceFilterRow(
-			totalCount = updates.size,
-			sourceCounts = sourceCounts,
-			selectedSource = selectedSourceFilter,
-			onSelectSource = { selectedSourceFilter = it }
-		)
-	}
+	CollapsibleScrollHeader(state = collapsibleHeaderState) {
+		Column(modifier = Modifier.fillMaxWidth()) {
+			if ((updates.isNotEmpty() && !isChecking) || activeTasks.isNotEmpty() || isSelectionMode) {
+				UpdatesHeroBanner(
+					updatesCount = displayedUpdates.size,
+					hasInstallable = hasInstallable,
+					activeTasks = activeTasks,
+					completedCount = completedTasks.size,
+					batchProgress = batchProgress,
+					selectedCount = selectedUpdateIds.size,
+					onInstallAll = {
+						val (directQueue, _) = partitionInstallQueueCandidates(displayedUpdates, directMirror)
+						val riskyWatched = directQueue.filter { it.isWatchedApp() && it.source == ApkMirrorSource }
+						val execute: () -> Unit = {
+							requestNotificationPermissionIfNeeded()
+							viewModel.installAll(displayedUpdates)
+						}
+						if (riskyWatched.isNotEmpty()) {
+							pendingWatchedApkMirrorConfirm = riskyWatched to execute
+						} else {
+							execute()
+						}
+					},
+					onInstallSelected = {
+						val toInstall = selectedUpdates
+						val (directQueue, _) = partitionInstallQueueCandidates(toInstall, directMirror)
+						val riskyWatched = directQueue.filter { it.isWatchedApp() && it.source == ApkMirrorSource }
+						val execute: () -> Unit = {
+							requestNotificationPermissionIfNeeded()
+							selectedUpdateIds = emptySet()
+							viewModel.installSelected(toInstall)
+						}
+						if (riskyWatched.isNotEmpty()) {
+							pendingWatchedApkMirrorConfirm = riskyWatched to execute
+						} else {
+							execute()
+						}
+					},
+					onOpenQueue = { showQueueSheet = true }
+				)
+			}
 
-	if (isChecking) {
-		UpdateCheckProgressBar(checkedApps, totalApps, activeSourceName, activeSources, sourceCounts)
-	} else if (updates.isEmpty() && ((lastCheckedAtMillis != null && lastCheckedAtMillis > 0L) || historyEntries.isNotEmpty())) {
-		LastCheckedStatusBanner(
-			lastCheckedAtMillis = lastCheckedAtMillis,
-			historyCount = historyEntries.size,
-			onOpenHistory = onOpenHistory
-		)
-	}
+			if (updates.isNotEmpty() && sourceCounts.isNotEmpty()) {
+				UpdatesSourceFilterRow(
+					totalCount = updates.size,
+					sourceCounts = sourceCounts,
+					selectedSource = selectedSourceFilter,
+					onSelectSource = { selectedSourceFilter = it }
+				)
+			}
 
-	if (hasSourceErrors && updates.isNotEmpty()) {
+			if (isChecking) {
+				UpdateCheckProgressBar(checkedApps, totalApps, activeSourceName, activeSources, sourceCounts)
+			} else if (updates.isEmpty() && ((lastCheckedAtMillis != null && lastCheckedAtMillis > 0L) || historyEntries.isNotEmpty())) {
+				LastCheckedStatusBanner(
+					lastCheckedAtMillis = lastCheckedAtMillis,
+					historyCount = historyEntries.size,
+					onOpenHistory = onOpenHistory
+				)
+			}
+
+			if (hasSourceErrors && updates.isNotEmpty()) {
 		val errorEntries = remember(sourceErrors) { sourceErrors.entries.toList() }
 		if (errorEntries.size <= 1) {
 			val singleEntry = errorEntries.firstOrNull()
@@ -433,10 +830,11 @@ fun UpdatesScreenSuccess(
 			val bannerText = formatSourceErrorBanner(
 				sourceErrors = sourceErrors,
 				activeSources = activeSources,
-				isGerman = isGerman
+				isGerman = isGerman,
+				fdroidRepoNames = fdroidRepoNames
 			)
 			Surface(
-				onClick = { handler.openUri(wikiUrl) },
+				onClick = { runCatching { handler.openUri(wikiUrl) } },
 				color = MaterialTheme.colorScheme.errorContainer,
 				shape = RoundedCornerShape(24.dp),
 				modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
@@ -483,10 +881,11 @@ fun UpdatesScreenSuccess(
 				val singleBannerText = formatSourceErrorBanner(
 					sourceErrors = mapOf(entry.key to entry.value),
 					activeSources = activeSources,
-					isGerman = isGerman
+					isGerman = isGerman,
+					fdroidRepoNames = fdroidRepoNames
 				)
 				Surface(
-					onClick = { handler.openUri(wikiUrl) },
+					onClick = { runCatching { handler.openUri(wikiUrl) } },
 					color = MaterialTheme.colorScheme.errorContainer,
 					shape = RoundedCornerShape(24.dp),
 					modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
@@ -542,6 +941,8 @@ fun UpdatesScreenSuccess(
 			}
 		}
 	}
+		}
+	}
 
 	when {
 		isChecking && updates.isEmpty() -> UpdatesLoadingList(Modifier.weight(1f))
@@ -550,13 +951,14 @@ fun UpdatesScreenSuccess(
 			message = formatPartialEmptyMessage(
 				sourceErrors = sourceErrors,
 				activeSources = activeSources,
-				isGerman = isGerman
+				isGerman = isGerman,
+				fdroidRepoNames = fdroidRepoNames
 			),
 			icon = Icons.Filled.Info,
 			actionLabel = stringResource(R.string.error_banner_wiki_help),
 			onAction = {
 				val firstEntry = sourceErrors.entries.firstOrNull()
-				handler.openUri(resolveWikiUrlForSourceError(firstEntry?.key, firstEntry?.value))
+				runCatching { handler.openUri(resolveWikiUrlForSourceError(firstEntry?.key, firstEntry?.value)) }
 			},
 			modifier = Modifier.weight(1f)
 		)
@@ -567,29 +969,47 @@ fun UpdatesScreenSuccess(
 			modifier = Modifier.weight(1f)
 		)
 		displayedUpdates.isEmpty() -> UpdatesMessage(
-			title = stringResource(R.string.updates_empty_title),
-			message = stringResource(R.string.updates_empty_source_filter_message),
+			title = stringResource(
+				if (searchQuery.isNotBlank()) R.string.updates_search_empty_title else R.string.updates_empty_title
+			),
+			message = stringResource(
+				if (searchQuery.isNotBlank()) R.string.updates_search_empty_message else R.string.updates_empty_source_filter_message
+			),
 			modifier = Modifier.weight(1f)
 		)
 		displayMode == 1 -> CompactUpdatesGrid(
 			viewModel = viewModel,
 			appsViewModel = appsViewModel,
 			updates = displayedUpdates,
+			scrollResetKey = Triple(sortOrder, selectedSourceFilter, searchQuery.trim()),
 			activeTasksMap = activeTasksMap,
 			readyUpdateIds = readyUpdateIds,
 			handler = handler,
-			modifier = Modifier.weight(1f),
-			onBeforeInstall = requestNotificationPermissionIfNeeded
+			modifier = Modifier
+				.weight(1f)
+				.nestedScroll(collapsibleHeaderState.nestedScrollConnection),
+			onRequestInstall = requestInstallSingle,
+			onRequestSaveApk = requestSaveApkSingle,
+			isSelectionMode = isSelectionMode,
+			selectedUpdateIds = selectedUpdateIds,
+			onToggleSelection = toggleSelection
 		)
 		else -> UpdatesList(
 			viewModel = viewModel,
 			appsViewModel = appsViewModel,
 			updates = displayedUpdates,
+			scrollResetKey = Triple(sortOrder, selectedSourceFilter, searchQuery.trim()),
 			activeTasksMap = activeTasksMap,
 			readyUpdateIds = readyUpdateIds,
 			handler = handler,
-			modifier = Modifier.weight(1f),
-			onBeforeInstall = requestNotificationPermissionIfNeeded
+			modifier = Modifier
+				.weight(1f)
+				.nestedScroll(collapsibleHeaderState.nestedScrollConnection),
+			onRequestInstall = requestInstallSingle,
+			onRequestSaveApk = requestSaveApkSingle,
+			isSelectionMode = isSelectionMode,
+			selectedUpdateIds = selectedUpdateIds,
+			onToggleSelection = toggleSelection
 		)
 	}
 
@@ -597,6 +1017,7 @@ fun UpdatesScreenSuccess(
 		ActiveQueueBottomSheet(
 			activeTasks = activeTasks,
 			completedTasks = completedTasks,
+			batchProgress = batchProgress,
 			onCancelTask = { id -> viewModel.cancelInstall(id) },
 			onCancelAll = {
 				viewModel.cancelAllInstalls()
@@ -634,6 +1055,136 @@ fun UpdatesScreenSuccess(
 			}
 		)
 	}
+
+	if (showBatteryPromptDialog) {
+		androidx.compose.material3.AlertDialog(
+			onDismissRequest = { viewModel.dismissBatteryPromptDialog() },
+			title = {
+				Text(
+					text = stringResource(R.string.dialog_battery_title),
+					style = MaterialTheme.typography.titleLarge,
+					fontWeight = FontWeight.Bold
+				)
+			},
+			text = {
+				Text(
+					text = stringResource(R.string.dialog_battery_message),
+					style = MaterialTheme.typography.bodyMedium
+				)
+			},
+			confirmButton = {
+				Button(onClick = { viewModel.confirmBatteryDownload() }) {
+					Text(text = stringResource(R.string.dialog_battery_confirm))
+				}
+			},
+			dismissButton = {
+				TextButton(onClick = { viewModel.dismissBatteryPromptDialog() }) {
+					Text(text = stringResource(R.string.action_cancel))
+				}
+			}
+		)
+	}
+
+	pendingWatchedApkMirrorConfirm?.let { (riskyUpdates, confirmAction) ->
+		val appNames = riskyUpdates.joinToString(", ") { candidate ->
+			candidate.name.ifBlank { candidate.packageName }
+		}
+		androidx.compose.material3.AlertDialog(
+			onDismissRequest = { pendingWatchedApkMirrorConfirm = null },
+			icon = {
+				Icon(
+					imageVector = Icons.Filled.Warning,
+					contentDescription = null,
+					tint = MaterialTheme.colorScheme.error
+				)
+			},
+			title = {
+				Text(
+					text = stringResource(R.string.apkmirror_watched_first_install_title),
+					style = MaterialTheme.typography.titleLarge,
+					fontWeight = FontWeight.Bold
+				)
+			},
+			text = {
+				Text(
+					text = stringResource(R.string.apkmirror_watched_first_install_message, appNames),
+					style = MaterialTheme.typography.bodyMedium
+				)
+			},
+			confirmButton = {
+				Button(
+					onClick = {
+						pendingWatchedApkMirrorConfirm = null
+						confirmAction()
+					}
+				) {
+					Text(text = stringResource(R.string.apkmirror_watched_first_install_confirm))
+				}
+			},
+			dismissButton = {
+				TextButton(onClick = { pendingWatchedApkMirrorConfirm = null }) {
+					Text(text = stringResource(R.string.action_cancel))
+				}
+			}
+		)
+	}
+}
+
+@Composable
+private fun DockedUpdatesSearchBar(
+	query: String,
+	onQueryChange: (String) -> Unit,
+	onClear: () -> Unit
+) {
+	val focusManager = LocalFocusManager.current
+	TextField(
+		value = query,
+		onValueChange = onQueryChange,
+		modifier = Modifier
+			.fillMaxWidth()
+			.padding(horizontal = 14.dp, vertical = 4.dp)
+			.height(54.dp)
+			.clip(CircleShape),
+		placeholder = {
+			Text(
+				text = stringResource(R.string.updates_search_placeholder),
+				style = MaterialTheme.typography.bodyMedium
+			)
+		},
+		leadingIcon = {
+			Icon(
+				imageVector = Icons.Filled.Search,
+				contentDescription = null,
+				tint = MaterialTheme.colorScheme.primary
+			)
+		},
+		trailingIcon = {
+			if (query.isNotBlank()) {
+				IconButton(onClick = {
+					onClear()
+					focusManager.clearFocus()
+				}) {
+					Icon(
+						imageVector = Icons.Filled.Clear,
+						contentDescription = null,
+						tint = MaterialTheme.colorScheme.onSurfaceVariant
+					)
+				}
+			}
+		},
+		singleLine = true,
+		textStyle = MaterialTheme.typography.bodyMedium,
+		keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+		keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
+		shape = CircleShape,
+		colors = TextFieldDefaults.colors(
+			focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+			unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+			focusedIndicatorColor = Color.Transparent,
+			unfocusedIndicatorColor = Color.Transparent,
+			disabledIndicatorColor = Color.Transparent
+		)
+	)
 }
 
 @Composable
@@ -642,19 +1193,103 @@ private fun UpdatesHeroBanner(
 	hasInstallable: Boolean,
 	activeTasks: List<DownloadTaskState> = emptyList(),
 	completedCount: Int = 0,
+	batchProgress: BatchProgressSummary? = null,
+	selectedCount: Int = 0,
 	onInstallAll: () -> Unit,
+	onInstallSelected: () -> Unit = {},
 	onOpenQueue: () -> Unit = {}
 ) {
 	val context = LocalContext.current
+	val resources = LocalResources.current
 	val shape = RoundedCornerShape(24.dp)
+	if (selectedCount > 0) {
+		Surface(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(horizontal = 12.dp, vertical = 4.dp),
+			shape = shape,
+			color = MaterialTheme.colorScheme.secondaryContainer,
+			shadowElevation = 0.dp
+		) {
+			Row(
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(horizontal = 16.dp, vertical = 12.dp),
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.SpaceBetween
+			) {
+				Row(
+					verticalAlignment = Alignment.CenterVertically,
+					horizontalArrangement = Arrangement.spacedBy(12.dp),
+					modifier = Modifier.weight(1f, fill = false)
+				) {
+					Surface(
+						shape = CircleShape,
+						color = MaterialTheme.colorScheme.primary,
+						modifier = Modifier.size(40.dp)
+					) {
+						Box(contentAlignment = Alignment.Center) {
+							Icon(
+								imageVector = Icons.Filled.Check,
+								contentDescription = null,
+								tint = MaterialTheme.colorScheme.onPrimary,
+								modifier = Modifier.size(20.dp)
+							)
+						}
+					}
+					Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+						Text(
+							text = stringResource(R.string.updates_selected_count, selectedCount),
+							style = MaterialTheme.typography.titleMedium,
+							fontWeight = FontWeight.Bold,
+							color = MaterialTheme.colorScheme.onSecondaryContainer,
+							maxLines = 1,
+							overflow = TextOverflow.Ellipsis
+						)
+						Text(
+							text = stringResource(R.string.updates_install_selected_subtitle),
+							style = MaterialTheme.typography.labelSmall,
+							color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.78f),
+							maxLines = 1,
+							overflow = TextOverflow.Ellipsis
+						)
+					}
+				}
+				Spacer(Modifier.width(8.dp))
+				Button(
+					onClick = onInstallSelected,
+					shape = CircleShape,
+					colors = ButtonDefaults.buttonColors(
+						containerColor = MaterialTheme.colorScheme.primary,
+						contentColor = MaterialTheme.colorScheme.onPrimary
+					),
+					contentPadding = PaddingValues(start = 14.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+				) {
+					Icon(
+						painter = painterResource(R.drawable.ic_install),
+						contentDescription = null,
+						modifier = Modifier.size(16.dp)
+					)
+					Spacer(Modifier.width(6.dp))
+					Text(
+						text = stringResource(R.string.updates_install_selected, selectedCount),
+						style = MaterialTheme.typography.labelMedium,
+						fontWeight = FontWeight.Bold
+					)
+				}
+			}
+		}
+		return
+	}
 	if (activeTasks.isNotEmpty()) {
 		val currentTask = activeTasks.firstOrNull { !it.isQueued || it.isInstalling } ?: activeTasks.first()
 		val currentAppName = currentTask.appName.ifBlank {
 			context.getAppName(currentTask.packageName).ifBlank { currentTask.packageName }
 		}
-		val totalInRun = (completedCount + activeTasks.size).coerceAtLeast(1)
-		val currentStep = (completedCount + 1).coerceAtMost(totalInRun)
+		val totalInRun = (batchProgress?.totalCount ?: (completedCount + activeTasks.size)).coerceAtLeast(1)
+		val currentStep = (batchProgress?.currentStep ?: (completedCount + 1)).coerceAtMost(totalInRun)
 		val liveSubtitle = when {
+			currentTask.isInstalling && currentTask.isSaveOnly -> "$currentAppName • ${stringResource(R.string.queue_status_saving)}"
 			currentTask.isInstalling -> "$currentAppName • ${stringResource(R.string.queue_status_installing)}"
 			currentTask.isResolvingLink && currentTask.progress == 0L ->
 				"$currentAppName • ${stringResource(R.string.queue_status_resolving_apkmirror)}"
@@ -666,6 +1301,36 @@ private fun UpdatesHeroBanner(
 				"$currentAppName • ${formatSizeMegabytes(currentTask.progress)}"
 			}
 			else -> stringResource(R.string.queue_banner_subtitle_tap, currentAppName)
+		}
+		val batchMetaLine = remember(resources, batchProgress, totalInRun) {
+			if (batchProgress == null) {
+				null
+			} else {
+				val parts = mutableListOf<String>()
+				batchProgress.overallPercent?.let { pct ->
+					if (totalInRun > 1) {
+						parts += resources.getString(R.string.queue_overall_percent, pct)
+					}
+				}
+				if (batchProgress.totalKnownBytes > 0L && totalInRun > 1) {
+					parts += "${formatSizeMegabytes(batchProgress.transferredBytes)} / ${formatSizeMegabytes(batchProgress.totalKnownBytes)}"
+				}
+				val progressUnits = BatchProgressUnits(
+					secondsShort = resources.getString(R.string.unit_seconds_short),
+					minutesShort = resources.getString(R.string.unit_minutes_short),
+					hoursShort = resources.getString(R.string.unit_hours_short),
+					bytesPerSec = resources.getString(R.string.unit_bytes_per_sec),
+					kilobytesPerSec = resources.getString(R.string.unit_kb_per_sec),
+					megabytesPerSec = resources.getString(R.string.unit_mb_per_sec)
+				)
+				if (batchProgress.speedBytesPerSec > 0L) {
+					parts += BatchProgressCalculator.formatSpeed(batchProgress.speedBytesPerSec, progressUnits)
+				}
+				batchProgress.etaSeconds?.let { eta ->
+					parts += BatchProgressCalculator.formatEta(eta, progressUnits)
+				}
+				parts.takeIf { it.isNotEmpty() }?.joinToString(" · ")
+			}
 		}
 		Surface(
 			onClick = onOpenQueue,
@@ -706,8 +1371,13 @@ private fun UpdatesHeroBanner(
 							}
 						}
 						Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+							val allSaveOnly = activeTasks.isNotEmpty() && activeTasks.all { it.isSaveOnly }
 							Text(
-								text = stringResource(R.string.queue_banner_title, currentStep, totalInRun),
+								text = stringResource(
+									if (allSaveOnly) R.string.queue_banner_title_saving else R.string.queue_banner_title,
+									currentStep,
+									totalInRun
+								),
 								style = MaterialTheme.typography.titleSmall,
 								fontWeight = FontWeight.Bold,
 								color = MaterialTheme.colorScheme.onSurface,
@@ -721,6 +1391,16 @@ private fun UpdatesHeroBanner(
 								maxLines = 1,
 								overflow = TextOverflow.Ellipsis
 							)
+							if (batchMetaLine != null) {
+								Text(
+									text = batchMetaLine,
+									style = MaterialTheme.typography.labelSmall,
+									fontWeight = FontWeight.Medium,
+									color = MaterialTheme.colorScheme.primary,
+									maxLines = 1,
+									overflow = TextOverflow.Ellipsis
+								)
+							}
 						}
 					}
 					Spacer(Modifier.width(8.dp))
@@ -754,9 +1434,16 @@ private fun UpdatesHeroBanner(
 						}
 					}
 				}
-				if (!currentTask.isInstalling && currentTask.total > 0L && currentTask.progress > 0L) {
+				val bannerFraction = when {
+					totalInRun > 1 && batchProgress?.overallPercent != null ->
+						(batchProgress.overallPercent / 100f).coerceIn(0f, 1f)
+					!currentTask.isInstalling && currentTask.total > 0L && currentTask.progress > 0L ->
+						(currentTask.progress.toFloat() / currentTask.total).coerceIn(0f, 1f)
+					else -> null
+				}
+				if (bannerFraction != null) {
 					LinearProgressIndicator(
-						progress = { (currentTask.progress.toFloat() / currentTask.total).coerceIn(0f, 1f) },
+						progress = { bannerFraction },
 						modifier = Modifier
 							.fillMaxWidth()
 							.height(5.dp)
@@ -861,24 +1548,15 @@ private fun UpdatesHeroBanner(
 private fun ActiveQueueBottomSheet(
 	activeTasks: List<DownloadTaskState>,
 	completedTasks: List<DownloadTaskState>,
+	batchProgress: BatchProgressSummary? = null,
 	onCancelTask: (Int) -> Unit,
 	onCancelAll: () -> Unit,
 	onDismiss: () -> Unit
 ) {
 	val context = LocalContext.current
 	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-	val liveActiveMap by DownloadInstallService.activeTasksFlow.collectAsStateWithLifecycle()
-	val liveCompleted by DownloadInstallService.completedTasksFlow.collectAsStateWithLifecycle()
-	val currentActiveTasks = if (liveActiveMap.isNotEmpty() || activeTasks.isEmpty()) {
-		liveActiveMap.values.toList()
-	} else {
-		activeTasks
-	}
-	val currentCompletedTasks = if (liveCompleted.isNotEmpty() || completedTasks.isEmpty()) {
-		liveCompleted
-	} else {
-		completedTasks
-	}
+	val currentActiveTasks = activeTasks
+	val currentCompletedTasks = completedTasks
 
 	LaunchedEffect(currentActiveTasks.size, currentCompletedTasks.size) {
 		if (currentActiveTasks.isEmpty() && currentCompletedTasks.isEmpty()) {
@@ -947,6 +1625,96 @@ private fun ActiveQueueBottomSheet(
 				}
 			}
 
+			batchProgress?.let { summary ->
+				Surface(
+					modifier = Modifier.fillMaxWidth(),
+					shape = RoundedCornerShape(16.dp),
+					color = MaterialTheme.colorScheme.surfaceContainerHigh,
+					border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+				) {
+					Column(
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(horizontal = 14.dp, vertical = 10.dp),
+						verticalArrangement = Arrangement.spacedBy(6.dp)
+					) {
+						Row(
+							modifier = Modifier.fillMaxWidth(),
+							horizontalArrangement = Arrangement.SpaceBetween,
+							verticalAlignment = Alignment.CenterVertically
+						) {
+							val allSaveOnly = currentActiveTasks.isNotEmpty() && currentActiveTasks.all { it.isSaveOnly }
+							Text(
+								text = stringResource(
+									if (allSaveOnly) R.string.queue_banner_title_saving else R.string.queue_banner_title,
+									summary.currentStep,
+									summary.totalCount
+								),
+								style = MaterialTheme.typography.labelLarge,
+								fontWeight = FontWeight.Bold,
+								color = MaterialTheme.colorScheme.onSurface
+							)
+							summary.overallPercent?.let { pct ->
+								Text(
+									text = "$pct%",
+									style = MaterialTheme.typography.labelLarge,
+									fontWeight = FontWeight.Bold,
+									color = MaterialTheme.colorScheme.primary
+								)
+							}
+						}
+						val progressUnits = BatchProgressUnits(
+							secondsShort = stringResource(R.string.unit_seconds_short),
+							minutesShort = stringResource(R.string.unit_minutes_short),
+							hoursShort = stringResource(R.string.unit_hours_short),
+							bytesPerSec = stringResource(R.string.unit_bytes_per_sec),
+							kilobytesPerSec = stringResource(R.string.unit_kb_per_sec),
+							megabytesPerSec = stringResource(R.string.unit_mb_per_sec)
+						)
+						val metaParts = buildList {
+							if (summary.totalKnownBytes > 0L) {
+								add("${formatSizeMegabytes(summary.transferredBytes)} / ${formatSizeMegabytes(summary.totalKnownBytes)}")
+							}
+							if (summary.speedBytesPerSec > 0L) {
+								add(BatchProgressCalculator.formatSpeed(summary.speedBytesPerSec, progressUnits))
+							}
+							summary.etaSeconds?.let { eta ->
+								add(BatchProgressCalculator.formatEta(eta, progressUnits))
+							}
+						}
+						if (metaParts.isNotEmpty()) {
+							Text(
+								text = metaParts.joinToString(" · "),
+								style = MaterialTheme.typography.labelSmall,
+								color = MaterialTheme.colorScheme.onSurfaceVariant,
+								maxLines = 1,
+								overflow = TextOverflow.Ellipsis
+							)
+						}
+						if (summary.overallPercent != null) {
+							LinearProgressIndicator(
+								progress = { (summary.overallPercent / 100f).coerceIn(0f, 1f) },
+								modifier = Modifier
+									.fillMaxWidth()
+									.height(5.dp)
+									.clip(RoundedCornerShape(3.dp)),
+								color = MaterialTheme.colorScheme.primary,
+								trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+							)
+						} else {
+							LinearProgressIndicator(
+								modifier = Modifier
+									.fillMaxWidth()
+									.height(5.dp)
+									.clip(RoundedCornerShape(3.dp)),
+								color = MaterialTheme.colorScheme.primary,
+								trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+							)
+						}
+					}
+				}
+			}
+
 			LazyColumn(
 				modifier = Modifier
 					.fillMaxWidth()
@@ -958,6 +1726,7 @@ private fun ActiveQueueBottomSheet(
 						context.getAppName(task.packageName).ifBlank { task.packageName }
 					}
 					val statusLabel = when {
+						task.isInstalling && task.isSaveOnly -> stringResource(R.string.queue_status_saving)
 						task.isInstalling -> stringResource(R.string.queue_status_installing)
 						task.isResolvingLink && task.progress == 0L -> stringResource(R.string.queue_status_resolving_apkmirror)
 						task.isQueued && task.progress == 0L -> stringResource(R.string.queue_status_waiting)
@@ -1484,19 +2253,34 @@ private fun UpdatesList(
 	viewModel: UpdatesViewModel,
 	appsViewModel: AppsViewModel = koinViewModel(),
 	updates: List<AppUpdate>,
+	scrollResetKey: Any = Unit,
 	activeTasksMap: Map<Int, DownloadTaskState> = emptyMap(),
 	readyUpdateIds: Set<Int> = emptySet(),
 	handler: UriHandler,
 	modifier: Modifier,
-	onBeforeInstall: () -> Unit = {}
+	onRequestInstall: (AppUpdate) -> Unit,
+	onRequestSaveApk: (AppUpdate) -> Unit,
+	isSelectionMode: Boolean = false,
+	selectedUpdateIds: Set<Int> = emptySet(),
+	onToggleSelection: (Int) -> Unit = {}
 ) {
 	var selectedPackageName by remember { mutableStateOf<String?>(null) }
 	val selectedUpdate = updates.find { it.packageName == selectedPackageName }
+	val haptic = LocalHapticFeedback.current
+	val gridState = rememberLazyGridState()
+	var lastScrollResetKey by remember { mutableStateOf(scrollResetKey) }
+	LaunchedEffect(scrollResetKey) {
+		if (lastScrollResetKey != scrollResetKey) {
+			lastScrollResetKey = scrollResetKey
+			gridState.scrollToItem(0)
+		}
+	}
 
 	BoxWithConstraints(modifier) {
 		val columns = updateGridColumnCount(maxWidth.value, compact = false)
 		LazyVerticalGrid(
 			columns = GridCells.Fixed(columns),
+			state = gridState,
 			modifier = Modifier.fillMaxSize(),
 			contentPadding = PaddingValues(
 				start = NormalUpdateCardLayout.gridHorizontalPaddingDp.dp,
@@ -1511,14 +2295,33 @@ private fun UpdatesList(
 				val liveTask = activeTasksMap[update.id]
 					?: activeTasksMap.values.firstOrNull { it.packageName == update.packageName }
 				val isCachedReady = update.id in readyUpdateIds || update.alternativeUpdates.any { it.id in readyUpdateIds }
+				val effInstalling = liveTask?.let { it.isInstalling || !it.isQueued } ?: update.isInstalling
+				val effQueued = liveTask?.isQueued ?: update.isQueued
+				val isSelectable = !effInstalling && !effQueued
+				val isSelected = update.id in selectedUpdateIds
 				UpdateCard(
 					update = update,
 					liveTask = liveTask,
 					isCachedReady = isCachedReady,
-					onSelect = { selectedPackageName = update.packageName },
+					isSelectionMode = isSelectionMode,
+					isSelected = isSelected,
+					isSelectable = isSelectable,
+					modifier = Modifier.animateItem(),
+					onSelect = {
+						if (isSelectionMode) {
+							if (isSelectable) onToggleSelection(update.id)
+						} else {
+							selectedPackageName = update.packageName
+						}
+					},
+					onLongPress = {
+						if (isSelectable) {
+							haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+							onToggleSelection(update.id)
+						}
+					},
 					onInstall = {
-						onBeforeInstall()
-						viewModel.install(update, handler)
+						onRequestInstall(update)
 					}
 				)
 			}
@@ -1528,15 +2331,18 @@ private fun UpdatesList(
 	selectedUpdate?.let { update ->
 		UpdateDetailsSheet(
 			update = update,
+			activeTasksMap = activeTasksMap,
 			isCachedReady = update.id in readyUpdateIds || update.alternativeUpdates.any { it.id in readyUpdateIds },
 			readyUpdateIds = readyUpdateIds,
 			onDismiss = { selectedPackageName = null },
 			onInstallVariant = { chosen ->
-				onBeforeInstall()
-				viewModel.install(chosen, handler)
+				onRequestInstall(chosen)
 				if (chosen.isBrowserOnlyUpdate) {
 					selectedPackageName = null
 				}
+			},
+			onSaveApkVariant = { chosen ->
+				onRequestSaveApk(chosen)
 			},
 			onIgnoreVersion = { versionId ->
 				viewModel.ignoreVersion(versionId)
@@ -1551,13 +2357,18 @@ private fun UpdatesList(
 	}
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun UpdateCard(
 	update: AppUpdate,
 	liveTask: DownloadTaskState? = null,
 	isCachedReady: Boolean = false,
+	isSelectionMode: Boolean = false,
+	isSelected: Boolean = false,
+	isSelectable: Boolean = true,
+	modifier: Modifier = Modifier,
 	onSelect: () -> Unit,
+	onLongPress: () -> Unit = {},
 	onInstall: () -> Unit
 ) {
 	val context = LocalContext.current
@@ -1573,12 +2384,21 @@ private fun UpdateCard(
 
 	val cardShape = RoundedCornerShape(20.dp)
 	Surface(
-		onClick = onSelect,
-		modifier = Modifier
+		modifier = modifier
 			.fillMaxWidth()
+			.clip(cardShape)
+			.combinedClickable(
+				onClick = onSelect,
+				onLongClick = onLongPress
+			)
 			.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
 		shape = cardShape,
-		color = MaterialTheme.colorScheme.surfaceContainerLow
+		color = if (isSelected) {
+			MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f)
+		} else {
+			MaterialTheme.colorScheme.surfaceContainerLow
+		},
+		border = if (isSelected) BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else null
 	) {
 		Column(
 			modifier = Modifier
@@ -1592,17 +2412,47 @@ private fun UpdateCard(
 				horizontalArrangement = Arrangement.spacedBy(12.dp),
 				modifier = Modifier.fillMaxWidth()
 			) {
-				Box(
-					modifier = Modifier
-						.size(52.dp)
-						.clip(RoundedCornerShape(14.dp))
-						.background(MaterialTheme.colorScheme.surfaceContainer),
-					contentAlignment = Alignment.Center
-				) {
-					LoadingImageApp(
-						card.packageName,
-						Modifier.fillMaxSize()
-					)
+				Box(modifier = Modifier.size(52.dp)) {
+					Box(
+						modifier = Modifier
+							.fillMaxSize()
+							.clip(RoundedCornerShape(14.dp))
+							.background(MaterialTheme.colorScheme.surfaceContainer),
+						contentAlignment = Alignment.Center
+					) {
+						LoadingImageApp(
+							card.packageName,
+							Modifier.fillMaxSize()
+						)
+					}
+					if (isSelected) {
+						Surface(
+							shape = CircleShape,
+							color = MaterialTheme.colorScheme.primary,
+							border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.surface),
+							modifier = Modifier
+								.align(Alignment.BottomEnd)
+								.size(20.dp)
+						) {
+							Box(contentAlignment = Alignment.Center) {
+								Icon(
+									imageVector = Icons.Filled.Check,
+									contentDescription = null,
+									tint = MaterialTheme.colorScheme.onPrimary,
+									modifier = Modifier.size(12.dp)
+								)
+							}
+						}
+					} else if (isSelectionMode && isSelectable) {
+						Box(
+							modifier = Modifier
+								.align(Alignment.BottomEnd)
+								.size(20.dp)
+								.clip(CircleShape)
+								.background(MaterialTheme.colorScheme.surfaceContainerHigh)
+								.border(1.5.dp, MaterialTheme.colorScheme.outline, CircleShape)
+						)
+					}
 				}
 				Column(
 					modifier = Modifier.weight(1f),
@@ -1630,32 +2480,60 @@ private fun UpdateCard(
 							)
 						}
 					}
-					// Row 1: Versions
-					Row(
-						verticalAlignment = Alignment.CenterVertically,
-						horizontalArrangement = Arrangement.spacedBy(6.dp)
-					) {
-						Text(
-							text = card.installedVersion.ifBlank { "—" },
-							style = MaterialTheme.typography.labelSmall,
-							color = MaterialTheme.colorScheme.onSurfaceVariant,
-							maxLines = 1,
-							overflow = TextOverflow.Ellipsis
-						)
-						Icon(
-							imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
-							contentDescription = null,
-							tint = MaterialTheme.colorScheme.primary,
-							modifier = Modifier.size(12.dp)
-						)
-						Text(
-							text = card.availableVersion.ifBlank { "—" },
-							style = MaterialTheme.typography.labelSmall,
-							fontWeight = FontWeight.Bold,
-							color = MaterialTheme.colorScheme.primary,
-							maxLines = 1,
-							overflow = TextOverflow.Ellipsis
-						)
+					// Row 1: Versions (or "Beobachtet · Neu" for uninstalled watched apps)
+					if (update.isWatchedApp()) {
+						Row(
+							verticalAlignment = Alignment.CenterVertically,
+							horizontalArrangement = Arrangement.spacedBy(6.dp)
+						) {
+							Surface(
+								shape = RoundedCornerShape(6.dp),
+								color = MaterialTheme.colorScheme.secondaryContainer
+							) {
+								Text(
+									text = stringResource(R.string.updates_watched_new_badge),
+									style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.SemiBold),
+									color = MaterialTheme.colorScheme.onSecondaryContainer,
+									modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+									maxLines = 1
+								)
+							}
+							Text(
+								text = card.availableVersion.ifBlank { "—" },
+								style = MaterialTheme.typography.labelSmall,
+								fontWeight = FontWeight.Bold,
+								color = MaterialTheme.colorScheme.primary,
+								maxLines = 1,
+								overflow = TextOverflow.Ellipsis
+							)
+						}
+					} else {
+						Row(
+							verticalAlignment = Alignment.CenterVertically,
+							horizontalArrangement = Arrangement.spacedBy(6.dp)
+						) {
+							Text(
+								text = card.installedVersion.ifBlank { "—" },
+								style = MaterialTheme.typography.labelSmall,
+								color = MaterialTheme.colorScheme.onSurfaceVariant,
+								maxLines = 1,
+								overflow = TextOverflow.Ellipsis
+							)
+							Icon(
+								imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
+								contentDescription = null,
+								tint = MaterialTheme.colorScheme.primary,
+								modifier = Modifier.size(12.dp)
+							)
+							Text(
+								text = card.availableVersion.ifBlank { "—" },
+								style = MaterialTheme.typography.labelSmall,
+								fontWeight = FontWeight.Bold,
+								color = MaterialTheme.colorScheme.primary,
+								maxLines = 1,
+								overflow = TextOverflow.Ellipsis
+							)
+						}
 					}
 					// Row 2: Source Badge & Multi-Source Indicator Badge
 					Row(
@@ -1750,9 +2628,11 @@ private fun UpdateCard(
 				}
 			}
 
-			// Progress bar if downloading/installing
+			// Progress bar if downloading/installing/saving
 			if (effInstalling || effQueued) {
+				val isSaveOnlyTask = liveTask?.isSaveOnly == true
 				val cardProgressLabel = when {
+					liveTask?.isInstalling == true && isSaveOnlyTask -> stringResource(R.string.queue_status_saving)
 					liveTask?.isInstalling == true -> stringResource(R.string.queue_status_installing)
 					liveTask?.isResolvingLink == true && effProgress == 0L -> stringResource(R.string.queue_status_resolving_apkmirror)
 					effQueued && !effInstalling -> stringResource(R.string.queued_update)
@@ -1761,6 +2641,7 @@ private fun UpdateCard(
 						"${stringResource(R.string.downloading_update_percent, pct)} (${formatSizeMegabytes(effProgress)} / ${formatSizeMegabytes(effTotal)})"
 					}
 					effProgress > 0L -> "${stringResource(R.string.queue_status_downloading)} (${formatSizeMegabytes(effProgress)})"
+					isSaveOnlyTask -> stringResource(R.string.queue_status_saving)
 					else -> stringResource(R.string.installing_update)
 				}
 				Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
@@ -1780,43 +2661,51 @@ private fun UpdateCard(
 				}
 			}
 
-			// Bottom Actions: Details link & Install Button
-			Row(
-				modifier = Modifier.fillMaxWidth(),
-				verticalAlignment = Alignment.CenterVertically,
-				horizontalArrangement = Arrangement.SpaceBetween
-			) {
-				TextButton(
-					onClick = onSelect,
-					contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)
+			// Bottom Actions: Details link & Install Button (hidden in selection mode)
+			if (!isSelectionMode) {
+				Row(
+					modifier = Modifier.fillMaxWidth(),
+					verticalAlignment = Alignment.CenterVertically,
+					horizontalArrangement = Arrangement.SpaceBetween
 				) {
-					Text(
-						text = stringResource(R.string.updates_detail_view),
-						style = MaterialTheme.typography.labelMedium,
-						color = MaterialTheme.colorScheme.onSurfaceVariant
-					)
-				}
-				if (card.canInstall && !effQueued && !effInstalling) {
-					Button(
-						onClick = onInstall,
-						shape = RoundedCornerShape(10.dp),
-						contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
-						colors = ButtonDefaults.buttonColors(
-							containerColor = MaterialTheme.colorScheme.primary,
-							contentColor = MaterialTheme.colorScheme.onPrimary
-						)
+					TextButton(
+						onClick = onSelect,
+						contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)
 					) {
-						Icon(
-							painter = painterResource(R.drawable.ic_install),
-							contentDescription = null,
-							modifier = Modifier.size(15.dp)
-						)
-						Spacer(Modifier.width(6.dp))
 						Text(
-							text = stringResource(if (isCachedReady) R.string.install_cached_action else R.string.update_action),
+							text = stringResource(R.string.updates_detail_view),
 							style = MaterialTheme.typography.labelMedium,
-							fontWeight = FontWeight.Bold
+							color = MaterialTheme.colorScheme.onSurfaceVariant
 						)
+					}
+					if (card.canInstall && !effQueued && !effInstalling) {
+						Button(
+							onClick = onInstall,
+							shape = RoundedCornerShape(10.dp),
+							contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+							colors = ButtonDefaults.buttonColors(
+								containerColor = MaterialTheme.colorScheme.primary,
+								contentColor = MaterialTheme.colorScheme.onPrimary
+							)
+						) {
+							Icon(
+								painter = painterResource(R.drawable.ic_install),
+								contentDescription = null,
+								modifier = Modifier.size(15.dp)
+							)
+							Spacer(Modifier.width(6.dp))
+							Text(
+								text = stringResource(
+									when {
+										isCachedReady -> R.string.install_cached_action
+										update.isWatchedApp() -> R.string.install_action
+										else -> R.string.update_action
+									}
+								),
+								style = MaterialTheme.typography.labelMedium,
+								fontWeight = FontWeight.Bold
+							)
+						}
 					}
 				}
 			}
@@ -1824,25 +2713,40 @@ private fun UpdateCard(
 	}
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun CompactUpdatesGrid(
 	viewModel: UpdatesViewModel,
 	appsViewModel: AppsViewModel = koinViewModel(),
 	updates: List<AppUpdate>,
+	scrollResetKey: Any = Unit,
 	activeTasksMap: Map<Int, DownloadTaskState> = emptyMap(),
 	readyUpdateIds: Set<Int> = emptySet(),
 	handler: UriHandler,
 	modifier: Modifier,
-	onBeforeInstall: () -> Unit = {}
+	onRequestInstall: (AppUpdate) -> Unit,
+	onRequestSaveApk: (AppUpdate) -> Unit,
+	isSelectionMode: Boolean = false,
+	selectedUpdateIds: Set<Int> = emptySet(),
+	onToggleSelection: (Int) -> Unit = {}
 ) {
 	var selectedPackageName by remember { mutableStateOf<String?>(null) }
 	val selectedUpdate = updates.find { it.packageName == selectedPackageName }
+	val haptic = LocalHapticFeedback.current
+	val gridState = rememberLazyGridState()
+	var lastScrollResetKey by remember { mutableStateOf(scrollResetKey) }
+	LaunchedEffect(scrollResetKey) {
+		if (lastScrollResetKey != scrollResetKey) {
+			lastScrollResetKey = scrollResetKey
+			gridState.scrollToItem(0)
+		}
+	}
 
 	BoxWithConstraints(modifier) {
 		val columns = updateGridColumnCount(maxWidth.value, compact = true)
 		LazyVerticalGrid(
 			columns = GridCells.Fixed(columns),
+			state = gridState,
 			modifier = Modifier.fillMaxSize(),
 			contentPadding = PaddingValues(
 				start = CompactUpdateCardLayout.gridHorizontalPaddingDp.dp,
@@ -1865,15 +2769,38 @@ private fun CompactUpdatesGrid(
 				val effQueued = liveTask?.isQueued ?: update.isQueued
 				val effProgress = liveTask?.progress ?: update.progress
 				val effTotal = liveTask?.total?.takeIf { it > 0L } ?: update.total
+				val isSelectable = !effInstalling && !effQueued
+				val isSelected = update.id in selectedUpdateIds
 				val isCachedReady = update.id in readyUpdateIds || update.alternativeUpdates.any { it.id in readyUpdateIds }
 				val cardShape = RoundedCornerShape(14.dp)
 				Surface(
-					onClick = { selectedPackageName = update.packageName },
 					modifier = Modifier
 						.fillMaxWidth()
+						.animateItem()
+						.clip(cardShape)
+						.combinedClickable(
+							onClick = {
+								if (isSelectionMode) {
+									if (isSelectable) onToggleSelection(update.id)
+								} else {
+									selectedPackageName = update.packageName
+								}
+							},
+							onLongClick = {
+								if (isSelectable) {
+									haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+									onToggleSelection(update.id)
+								}
+							}
+						)
 						.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
 					shape = cardShape,
-					color = MaterialTheme.colorScheme.surfaceContainerLow
+					color = if (isSelected) {
+						MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f)
+					} else {
+						MaterialTheme.colorScheme.surfaceContainerLow
+					},
+					border = if (isSelected) BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else null
 				) {
 					Row(
 						modifier = Modifier
@@ -1883,17 +2810,47 @@ private fun CompactUpdatesGrid(
 						horizontalArrangement = Arrangement.spacedBy(12.dp)
 					) {
 						// 42dp app icon
-						Box(
-							modifier = Modifier
-								.size(42.dp)
-								.clip(RoundedCornerShape(12.dp))
-								.background(MaterialTheme.colorScheme.surfaceContainer),
-							contentAlignment = Alignment.Center
-						) {
-							LoadingImageApp(
-								card.packageName,
-								Modifier.fillMaxSize()
-						)
+						Box(modifier = Modifier.size(42.dp)) {
+							Box(
+								modifier = Modifier
+									.fillMaxSize()
+									.clip(RoundedCornerShape(12.dp))
+									.background(MaterialTheme.colorScheme.surfaceContainer),
+								contentAlignment = Alignment.Center
+							) {
+								LoadingImageApp(
+									card.packageName,
+									Modifier.fillMaxSize()
+								)
+							}
+							if (isSelected) {
+								Surface(
+									shape = CircleShape,
+									color = MaterialTheme.colorScheme.primary,
+									border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.surface),
+									modifier = Modifier
+										.align(Alignment.BottomEnd)
+										.size(18.dp)
+								) {
+									Box(contentAlignment = Alignment.Center) {
+										Icon(
+											imageVector = Icons.Filled.Check,
+											contentDescription = null,
+											tint = MaterialTheme.colorScheme.onPrimary,
+											modifier = Modifier.size(11.dp)
+										)
+									}
+								}
+							} else if (isSelectionMode && isSelectable) {
+								Box(
+									modifier = Modifier
+										.align(Alignment.BottomEnd)
+										.size(18.dp)
+										.clip(CircleShape)
+										.background(MaterialTheme.colorScheme.surfaceContainerHigh)
+										.border(1.5.dp, MaterialTheme.colorScheme.outline, CircleShape)
+								)
+							}
 						}
 
 						// Main Text (Title, versions, source)
@@ -1928,34 +2885,63 @@ private fun CompactUpdatesGrid(
 								verticalAlignment = Alignment.CenterVertically,
 								horizontalArrangement = Arrangement.spacedBy(4.dp)
 							) {
-								Text(
-									text = card.installedVersion.ifBlank { "—" },
-									style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-									color = MaterialTheme.colorScheme.onSurfaceVariant,
-									maxLines = 1,
-									overflow = TextOverflow.Ellipsis,
-									modifier = Modifier.weight(1f, fill = false)
-								)
-								Text(
-									text = "→",
-									style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-									color = MaterialTheme.colorScheme.primary,
-									fontWeight = FontWeight.Bold
-								)
-								Text(
-									text = card.availableVersion.ifBlank { "—" },
-									style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-									fontWeight = FontWeight.Bold,
-									color = MaterialTheme.colorScheme.primary,
-									maxLines = 1,
-									overflow = TextOverflow.Ellipsis,
-									modifier = Modifier.weight(1f, fill = false)
-								)
-								Text(
-									text = "•",
-									style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-									color = MaterialTheme.colorScheme.outline
-								)
+								if (update.isWatchedApp()) {
+									Surface(
+										shape = RoundedCornerShape(5.dp),
+										color = MaterialTheme.colorScheme.secondaryContainer
+									) {
+										Text(
+											text = stringResource(R.string.updates_watched_new_badge),
+											style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.5.sp, fontWeight = FontWeight.SemiBold),
+											color = MaterialTheme.colorScheme.onSecondaryContainer,
+											modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
+											maxLines = 1
+										)
+									}
+									Text(
+										text = card.availableVersion.ifBlank { "—" },
+										style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+										fontWeight = FontWeight.Bold,
+										color = MaterialTheme.colorScheme.primary,
+										maxLines = 1,
+										overflow = TextOverflow.Ellipsis,
+										modifier = Modifier.weight(1f, fill = false)
+									)
+									Text(
+										text = "•",
+										style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+										color = MaterialTheme.colorScheme.outline
+									)
+								} else {
+									Text(
+										text = card.installedVersion.ifBlank { "—" },
+										style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+										color = MaterialTheme.colorScheme.onSurfaceVariant,
+										maxLines = 1,
+										overflow = TextOverflow.Ellipsis,
+										modifier = Modifier.weight(1f, fill = false)
+									)
+									Text(
+										text = "→",
+										style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+										color = MaterialTheme.colorScheme.primary,
+										fontWeight = FontWeight.Bold
+									)
+									Text(
+										text = card.availableVersion.ifBlank { "—" },
+										style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+										fontWeight = FontWeight.Bold,
+										color = MaterialTheme.colorScheme.primary,
+										maxLines = 1,
+										overflow = TextOverflow.Ellipsis,
+										modifier = Modifier.weight(1f, fill = false)
+									)
+									Text(
+										text = "•",
+										style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+										color = MaterialTheme.colorScheme.outline
+									)
+								}
 								val resolvedSourceLabel = sourceName(card.source)
 								Row(
 									verticalAlignment = Alignment.CenterVertically,
@@ -1993,7 +2979,9 @@ private fun CompactUpdatesGrid(
 							}
 
 							if (effInstalling || effQueued) {
+								val isSaveOnlyTask = liveTask?.isSaveOnly == true
 								val compactLabel = when {
+									liveTask?.isInstalling == true && isSaveOnlyTask -> stringResource(R.string.queue_status_saving)
 									liveTask?.isInstalling == true -> stringResource(R.string.queue_status_installing)
 									liveTask?.isResolvingLink == true && effProgress == 0L -> stringResource(R.string.queue_status_resolving_apkmirror)
 									effQueued && !effInstalling -> stringResource(R.string.queued_update)
@@ -2001,6 +2989,7 @@ private fun CompactUpdatesGrid(
 										val pct = ((effProgress * 100) / effTotal).toInt().coerceIn(0, 100)
 										"$pct%"
 									}
+									isSaveOnlyTask -> stringResource(R.string.queue_status_saving)
 									else -> stringResource(R.string.installing_update)
 								}
 								Row(
@@ -2024,12 +3013,11 @@ private fun CompactUpdatesGrid(
 							}
 						}
 
-						// Right Action: Fast download button
-						if (card.canInstall && !effQueued && !effInstalling) {
+						// Right Action: Fast download button (hidden in selection mode)
+						if (!isSelectionMode && card.canInstall && !effQueued && !effInstalling) {
 							IconButton(
 								onClick = {
-									onBeforeInstall()
-									viewModel.install(update, handler)
+									onRequestInstall(update)
 								},
 								modifier = Modifier
 									.size(36.dp)
@@ -2052,15 +3040,18 @@ private fun CompactUpdatesGrid(
 	selectedUpdate?.let { update ->
 		UpdateDetailsSheet(
 			update = update,
+			activeTasksMap = activeTasksMap,
 			isCachedReady = update.id in readyUpdateIds || update.alternativeUpdates.any { it.id in readyUpdateIds },
 			readyUpdateIds = readyUpdateIds,
 			onDismiss = { selectedPackageName = null },
 			onInstallVariant = { chosen ->
-				onBeforeInstall()
-				viewModel.install(chosen, handler)
+				onRequestInstall(chosen)
 				if (chosen.isBrowserOnlyUpdate) {
 					selectedPackageName = null
 				}
+			},
+			onSaveApkVariant = { chosen ->
+				onRequestSaveApk(chosen)
 			},
 			onIgnoreVersion = { versionId ->
 				viewModel.ignoreVersion(versionId)
@@ -2079,19 +3070,20 @@ private fun CompactUpdatesGrid(
 @Composable
 private fun UpdateDetailsSheet(
 	update: AppUpdate,
+	activeTasksMap: Map<Int, DownloadTaskState> = emptyMap(),
 	isCachedReady: Boolean = false,
 	readyUpdateIds: Set<Int> = emptySet(),
 	onDismiss: () -> Unit,
 	onInstallVariant: (AppUpdate) -> Unit,
+	onSaveApkVariant: (AppUpdate) -> Unit = {},
 	onIgnoreVersion: (Int) -> Unit,
 	onIgnoreAppPermanently: (String) -> Unit
 ) {
 	val context = LocalContext.current
 	val handler = LocalUriHandler.current
 	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-	val liveActiveMap by DownloadInstallService.activeTasksFlow.collectAsStateWithLifecycle()
-	val liveTask = liveActiveMap[update.id]
-		?: liveActiveMap.values.firstOrNull { it.packageName == update.packageName }
+	val liveTask = activeTasksMap[update.id]
+		?: activeTasksMap.values.firstOrNull { it.packageName == update.packageName }
 
 	val sourceVariants = remember(update.packageName, update.alternativeUpdates.size) {
 		update.alternativeUpdates.takeIf { it.size > 1 } ?: listOf(update)
@@ -2163,7 +3155,11 @@ private fun UpdateDetailsSheet(
 						color = MaterialTheme.colorScheme.primaryContainer
 					) {
 						Text(
-							text = "${card.installedVersion.ifBlank { "—" }} → ${card.availableVersion.ifBlank { "—" }}",
+							text = if (activeVariant.isWatchedApp()) {
+								"${stringResource(R.string.updates_watched_new_badge)} · ${card.availableVersion.ifBlank { "—" }}"
+							} else {
+								"${card.installedVersion.ifBlank { "—" }} → ${card.availableVersion.ifBlank { "—" }}"
+							},
 							modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
 							style = MaterialTheme.typography.labelMedium,
 							fontWeight = FontWeight.SemiBold,
@@ -2311,7 +3307,7 @@ private fun UpdateDetailsSheet(
 
 			if (showSignatureWarning) {
 				Surface(
-					onClick = { handler.openUri(resolveWikiUrlForSourceError("signature")) },
+					onClick = { runCatching { handler.openUri(resolveWikiUrlForSourceError("signature")) } },
 					shape = RoundedCornerShape(16.dp),
 					color = MaterialTheme.colorScheme.tertiaryContainer
 				) {
@@ -2380,11 +3376,15 @@ private fun UpdateDetailsSheet(
 				}
 			}
 
+			val isSaveOnlyTask = liveTask?.isSaveOnly == true
 			if (isUpdateBusy) {
 				val detailStatusText = when {
+					liveTask?.isInstalling == true && isSaveOnlyTask -> stringResource(R.string.queue_status_saving)
 					liveTask?.isInstalling == true -> stringResource(R.string.queue_status_installing)
 					liveTask?.isResolvingLink == true && effProgress == 0L -> stringResource(R.string.queue_status_resolving_apkmirror)
 					effQueued && !effInstalling -> stringResource(R.string.queued_update)
+					effProgress > 0L -> stringResource(R.string.queue_status_downloading)
+					isSaveOnlyTask -> stringResource(R.string.queue_status_saving)
 					else -> stringResource(R.string.installing_update)
 				}
 				Surface(
@@ -2447,12 +3447,36 @@ private fun UpdateDetailsSheet(
 				Spacer(Modifier.width(8.dp))
 				Text(
 					text = when {
-						effQueued && !effInstalling -> stringResource(R.string.queued_update)
-						effInstalling -> stringResource(R.string.installing_update)
+						!isSaveOnlyTask && effQueued && !effInstalling -> stringResource(R.string.queued_update)
+						!isSaveOnlyTask && effInstalling -> stringResource(R.string.installing_update)
 						isVariantCachedReady -> stringResource(R.string.install_cached_action)
+						activeVariant.isWatchedApp() -> stringResource(R.string.install_action)
 						else -> stringResource(R.string.update_action)
 					}
 				)
+			}
+
+			if (activeVariant.link !is Link.Empty) {
+				FilledTonalButton(
+					onClick = { onSaveApkVariant(activeVariant) },
+					enabled = !isUpdateBusy,
+					shape = CircleShape,
+					modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+				) {
+					Icon(
+						painter = painterResource(R.drawable.ic_download),
+						contentDescription = null,
+						modifier = Modifier.size(18.dp)
+					)
+					Spacer(Modifier.width(8.dp))
+					Text(
+						text = when {
+							isSaveOnlyTask && effQueued && !effInstalling -> stringResource(R.string.queued_update)
+							isSaveOnlyTask && effInstalling -> stringResource(R.string.queue_status_saving)
+							else -> stringResource(R.string.action_save_apk)
+						}
+					)
+				}
 			}
 
 			OutlinedButton(
@@ -2551,13 +3575,16 @@ private fun sourceName(source: Source): String = when (source) {
 	ApkMirrorSource -> stringResource(R.string.source_apkmirror)
 	PlaySource -> stringResource(R.string.source_play)
 	IzzyOnDroidSource -> stringResource(R.string.source_izzyondroid)
+	FDroidSource -> stringResource(R.string.source_fdroid)
 	GitHubSource -> stringResource(R.string.source_github)
 	GitLabSource -> stringResource(R.string.source_gitlab)
+	CodebergSource -> stringResource(R.string.source_codeberg)
+	CustomFDroidSource -> stringResource(R.string.source_custom_fdroid)
 	else -> source.name
 }
 
 internal fun resolveWikiUrlForSourceError(sourceName: String?, reason: String? = null): String {
-	val base = "https://github.com/DurchEins/apkup/wiki/Update-Sources,-Repository-Linking-&-Signature-Protection"
+	val base = "https://github.com/DurchEins/apkup/wiki/Troubleshooting-Source-Errors"
 	val lowerSource = sourceName?.lowercase().orEmpty()
 	val lowerReason = reason?.lowercase().orEmpty()
 
@@ -2601,8 +3628,10 @@ internal fun resolveWikiUrlForSourceError(sourceName: String?, reason: String? =
 			"$base#310-common-error-github-updates-are-temporarily-not-found-http-403-rate-limit"
 		lowerSource.contains("gitlab") ->
 			"$base#25-three-tier-repository-resolution-for-github--gitlab"
-		lowerSource.contains("izzy") ->
-			"$base#25-three-tier-repository-resolution-for-github--gitlab"
+		lowerSource.contains("codeberg") || lowerSource.contains("forgejo") ->
+			"https://github.com/DurchEins/apkup/wiki/Configuring-GitHub-&-GitLab-Tokens"
+		lowerSource.contains("fdroid") || lowerSource.contains("f-droid") || lowerSource.contains("izzy") ->
+			"https://github.com/DurchEins/apkup/wiki/F-Droid-&-Index-V2-Repositories"
 		else ->
 			"$base#-part-4-common-error-messages--self-help-troubleshooting"
 	}
@@ -2626,10 +3655,38 @@ internal fun localizeFailureReason(rawReason: String, isGerman: Boolean): String
 	}
 }
 
+internal fun filterSurvivingSources(
+	activeSources: List<String>,
+	errorKeys: Set<String>,
+	fdroidRepoNames: Set<String> = emptySet()
+): List<String> {
+	val hasFDroidError = errorKeys.any { it.equals("F-Droid / IzzyOnDroid", ignoreCase = true) }
+	val hasCustomFDroidError = errorKeys.any { it.equals("Custom F-Droid", ignoreCase = true) }
+	val builtInFDroidNames = com.apkup.data.fdroid.FDroidRepoConfig.defaultPresets().map { it.name }
+	return activeSources.filter { sourceName ->
+		if (errorKeys.any { it.equals(sourceName, ignoreCase = true) }) return@filter false
+		if (hasFDroidError && (
+			sourceName.equals("IzzyOnDroid", ignoreCase = true) ||
+				sourceName.equals("F-Droid", ignoreCase = true) ||
+				sourceName.equals("F-Droid / IzzyOnDroid", ignoreCase = true) ||
+				builtInFDroidNames.any { it.equals(sourceName, ignoreCase = true) } ||
+				fdroidRepoNames.any { it.equals(sourceName, ignoreCase = true) }
+			)
+		) {
+			return@filter false
+		}
+		if (hasCustomFDroidError && sourceName.equals("Custom F-Droid", ignoreCase = true)) {
+			return@filter false
+		}
+		true
+	}
+}
+
 internal fun formatSourceErrorBanner(
 	sourceErrors: Map<String, String>,
 	activeSources: List<String> = listOf("APKMirror", "Google Play"),
-	isGerman: Boolean = true
+	isGerman: Boolean = true,
+	fdroidRepoNames: Set<String> = emptySet()
 ): String {
 	if (sourceErrors.isEmpty()) {
 		return if (isGerman) {
@@ -2643,7 +3700,7 @@ internal fun formatSourceErrorBanner(
 		val reason = localizeFailureReason(rawReason, isGerman)
 		if (isGerman) "$source-Prüfung fehlgeschlagen ($reason)" else "$source check failed ($reason)"
 	}
-	val survivingSources = activeSources.filter { it !in sourceErrors.keys }
+	val survivingSources = filterSurvivingSources(activeSources, sourceErrors.keys, fdroidRepoNames)
 	val survivingText = when {
 		survivingSources.isNotEmpty() -> {
 			val names = survivingSources.joinToString(" & ")
@@ -2660,7 +3717,8 @@ internal fun formatSourceErrorBanner(
 internal fun formatPartialEmptyMessage(
 	sourceErrors: Map<String, String>,
 	activeSources: List<String> = listOf("APKMirror", "Google Play"),
-	isGerman: Boolean = true
+	isGerman: Boolean = true,
+	fdroidRepoNames: Set<String> = emptySet()
 ): String {
 	if (sourceErrors.isEmpty()) {
 		return if (isGerman) {
@@ -2674,7 +3732,7 @@ internal fun formatPartialEmptyMessage(
 		val reason = localizeFailureReason(rawReason, isGerman)
 		if (isGerman) "$source-Prüfung fehlgeschlagen ($reason)" else "$source check failed ($reason)"
 	}
-	val survivingSources = activeSources.filter { it !in sourceErrors.keys }
+	val survivingSources = filterSurvivingSources(activeSources, sourceErrors.keys, fdroidRepoNames)
 	val survivingText = if (survivingSources.isNotEmpty()) {
 		val names = survivingSources.joinToString(" & ")
 		if (isGerman) "$names hat keine Updates gemeldet." else "$names reported no updates."

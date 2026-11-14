@@ -33,12 +33,13 @@ class DownloadServiceLifecycleTest {
             content.contains("android.permission.FOREGROUND_SERVICE_DATA_SYNC\"")
         )
         assertTrue(
-            "Manifest must declare DownloadInstallService with foregroundServiceType dataSync",
-            content.contains("android:name=\".service.DownloadInstallService\"") &&
+            "Manifest must declare WorkManager SystemForegroundService with foregroundServiceType dataSync",
+            content.contains("android:name=\"androidx.work.impl.foreground.SystemForegroundService\"") &&
             content.contains("android:foregroundServiceType=\"dataSync\"")
         )
         assertTrue(
-            "DownloadInstallService must be exported=false",
+            "Manifest must declare DownloadCancelReceiver as exported=false",
+            content.contains("android:name=\".worker.DownloadCancelReceiver\"") &&
             content.contains("android:exported=\"false\"")
         )
     }

@@ -20,26 +20,25 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.apkup.R
 
-
 @Composable
 fun IgnoreIcon(ignored: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) =
-	CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
-		IconButton(
-			onClick = onClick,
-			modifier = modifier
-		) {
-			Icon(
-				painter = painterResource(if (ignored) R.drawable.ic_visible_off else R.drawable.ic_visible),
-				contentDescription = stringResource(if (ignored) R.string.unignore_cd else R.string.ignore_cd),
-				tint = if (ignored) {
-					MaterialTheme.colorScheme.primary
-				} else {
-					MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
-				},
-				modifier = Modifier.size(18.dp)
-			)
-		}
-	}
+    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+        IconButton(
+            onClick = onClick,
+            modifier = modifier
+        ) {
+            Icon(
+                painter = painterResource(if (ignored) R.drawable.ic_visible_off else R.drawable.ic_visible),
+                contentDescription = stringResource(R.string.app_action_toggle_ignore),
+                tint = if (ignored) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                },
+                modifier = Modifier.size(18.dp)
+            )
+        }
+    }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

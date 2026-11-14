@@ -43,8 +43,8 @@ class SessionInstallerBalTest {
 
     @Test
     fun `SessionInstaller declares required BAL and notification constants`() {
-        assertEquals("installAction", SessionInstaller.INSTALL_ACTION)
-        assertEquals("com.apkup.installCancelAction", SessionInstaller.INSTALL_CANCEL_ACTION)
+        assertEquals("com.apkup.action.PACKAGE_INSTALL_STATUS", SessionInstaller.INSTALL_ACTION)
+        assertEquals("com.apkup.action.PACKAGE_INSTALL_CANCEL", SessionInstaller.INSTALL_CANCEL_ACTION)
         assertEquals(8000, SessionInstaller.NOTIFICATION_ID_CONFIRM_BASE)
         assertEquals("apkup_install_confirm_channel", SessionInstaller.CONFIRM_NOTIFICATION_CHANNEL_ID)
     }

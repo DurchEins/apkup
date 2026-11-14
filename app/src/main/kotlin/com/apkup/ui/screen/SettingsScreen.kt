@@ -1,5 +1,6 @@
 package com.apkup.ui.screen
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -7,8 +8,15 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import android.provider.Settings
+import android.webkit.CookieManager
+import android.webkit.WebResourceRequest
+import android.webkit.WebSettings
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
+import java.io.File
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
@@ -27,18 +35,13 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Switch
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Layers
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -67,6 +70,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -81,8 +85,10 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
@@ -90,7 +96,6 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
@@ -147,17 +152,23 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import android.os.PowerManager
 import androidx.core.app.NotificationManagerCompat
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
@@ -170,6 +181,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.roundToInt
 import com.apkup.BuildConfig
+import com.apkup.data.fdroid.FDroidRepoConfig
+import com.apkup.data.obtainium.ObtainiumImportPreview
+import com.apkup.data.ui.AppsUiState
 import com.apkup.R
 import com.apkup.data.selfupdate.SelfUpdateState
 import com.apkup.data.ui.AppInstalled
@@ -183,15 +197,20 @@ import com.apkup.ui.component.AutoResizeText
 import com.apkup.ui.component.SwitchSetting
 import com.apkup.ui.component.SplitSwitchSetting
 import com.apkup.ui.component.NavigationSettingItem
+import com.apkup.repository.ApkMirrorCloudflareBypass
+import com.apkup.util.AppJournal
+import com.apkup.util.DownloadStorageManager
 import com.apkup.util.SessionInstaller
+import com.apkup.util.WebKitCookieJar
 import com.apkup.viewmodel.AppsViewModel
 import com.apkup.viewmodel.MainViewModel
 import com.apkup.viewmodel.SettingsViewModel
 import com.apkup.viewmodel.TokenValidationResult
 import com.apkup.viewmodel.UpdatesViewModel
-import com.apkup.prefs.Prefs
 import com.apkup.ui.component.ChangelogBottomSheet
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -245,21 +264,30 @@ fun Settings(
 		lifecycleOwner.lifecycle.addObserver(observer)
 		onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
 	}
-	val prefs = koinInject<Prefs>()
 	val ignoredVersions = viewModel.ignoredVersions().collectAsStateWithLifecycle().value
 	val ignoredApps = viewModel.ignoredApps().collectAsStateWithLifecycle().value
 	val shizukuEnabled = viewModel.shizukuEnabled().collectAsStateWithLifecycle().value
+	val rootEnabled = viewModel.rootEnabled().collectAsStateWithLifecycle().value
+	val rootAvailable = viewModel.rootAvailable().collectAsStateWithLifecycle().value
+	val customDownloadFolderUri = viewModel.customDownloadFolderUri().collectAsStateWithLifecycle().value
 	val shizukuStatus = viewModel.shizukuSetupStatus().collectAsStateWithLifecycle().value
 	val showShizukuSheet = viewModel.showShizukuSetupSheet().collectAsStateWithLifecycle().value
+	val fdroidRepos = viewModel.fdroidReposFlow.collectAsStateWithLifecycle().value
 	var showHiddenAppsSheet by remember { mutableStateOf(false) }
 	var showIgnoredVersionsSheet by remember { mutableStateOf(false) }
 	var showChangelogSheet by remember { mutableStateOf(false) }
 	var showIntervalSheet by remember { mutableStateOf(false) }
 	var showApkMirrorSheet by remember { mutableStateOf(false) }
+	var showFDroidReposSheet by remember { mutableStateOf(false) }
 	var showWifiDownloadSheet by remember { mutableStateOf(false) }
 	var showGitHubTokenDialog by remember { mutableStateOf(false) }
 	var showGitLabTokenDialog by remember { mutableStateOf(false) }
+	var showCodebergTokenDialog by remember { mutableStateOf(false) }
+	var showRootSetupSheet by rememberSaveable { mutableStateOf(false) }
+	var obtainiumImportPreview by remember { mutableStateOf<ObtainiumImportPreview?>(null) }
 	var isAdvancedExpanded by rememberSaveable { mutableStateOf(false) }
+	var includeLogcatInDiagnostics by rememberSaveable { mutableStateOf(false) }
+	var isSharingDiagnosticLog by remember { mutableStateOf(false) }
 
 	var easterEggActiveUntil by remember { mutableLongStateOf(0L) }
 	val isEasterEggActive = easterEggActiveUntil > System.currentTimeMillis()
@@ -286,13 +314,18 @@ fun Settings(
 		ActivityResultContracts.CreateDocument("application/json")
 	) { uri ->
 		if (uri != null) {
-			val success = runCatching {
-				val json = viewModel.exportBackupJson()
-				context.contentResolver.openOutputStream(uri)?.use { stream ->
-					stream.write(json.toByteArray(Charsets.UTF_8))
-				} ?: throw IllegalStateException("Unable to open output stream")
-			}.isSuccess
-			viewModel.notifyBackupExported(success)
+			coroutineScope.launch(Dispatchers.IO) {
+				val success = runCatching {
+					val json = viewModel.exportBackupJson()
+					context.contentResolver.openOutputStream(uri, "wt")?.use { stream ->
+						stream.write(json.toByteArray(Charsets.UTF_8))
+						stream.flush()
+					} ?: throw IllegalStateException("Unable to open output stream")
+				}.isSuccess
+				withContext(Dispatchers.Main) {
+					viewModel.notifyBackupExported(success)
+				}
+			}
 		}
 	}
 
@@ -300,14 +333,97 @@ fun Settings(
 		ActivityResultContracts.CreateDocument("application/json")
 	) { uri ->
 		if (uri != null) {
-			val success = runCatching {
-				val appNames = (appsViewModel.state().value as? com.apkup.data.ui.AppsUiState.Success)?.apps?.associate { it.packageName to it.name }.orEmpty()
-				val json = viewModel.exportObtainiumJson(appNames)
-				context.contentResolver.openOutputStream(uri)?.use { stream ->
-					stream.write(json.toByteArray(Charsets.UTF_8))
-				} ?: throw IllegalStateException("Unable to open output stream")
-			}.isSuccess
-			viewModel.notifyObtainiumExported(success)
+			coroutineScope.launch(Dispatchers.IO) {
+				val success = runCatching {
+					val appNames = (appsViewModel.state().value as? AppsUiState.Success)
+						?.apps?.associate { it.packageName to it.name }.orEmpty()
+					val json = viewModel.exportObtainiumJson(appNames)
+					context.contentResolver.openOutputStream(uri, "wt")?.use { stream ->
+						stream.write(json.toByteArray(Charsets.UTF_8))
+						stream.flush()
+					} ?: throw IllegalStateException("Unable to open output stream")
+				}.isSuccess
+				withContext(Dispatchers.Main) {
+					viewModel.notifyObtainiumExported(success)
+				}
+			}
+		}
+	}
+
+	val importObtainiumLauncher = rememberLauncherForActivityResult(
+		ActivityResultContracts.OpenDocument()
+	) { uri ->
+		if (uri != null) {
+			coroutineScope.launch(Dispatchers.IO) {
+				val rawJson = runCatching {
+					context.contentResolver.openInputStream(uri)?.use { stream ->
+						val maxBytes = SettingsViewModel.MAX_BACKUP_JSON_CHARS
+						val out = java.io.ByteArrayOutputStream()
+						val buf = ByteArray(8192)
+						var total = 0
+						while (true) {
+							val read = stream.read(buf)
+							if (read == -1) break
+							total += read
+							if (total > maxBytes) {
+								throw IllegalArgumentException("Obtainium file exceeds maximum allowed size")
+							}
+							out.write(buf, 0, read)
+						}
+						out.toString(Charsets.UTF_8.name())
+					}
+				}.getOrNull()
+				withContext(Dispatchers.Main) {
+					if (rawJson.isNullOrBlank()) {
+						viewModel.notifyObtainiumImportInvalid()
+					} else {
+						val installedPkgs = (appsViewModel.state().value as? AppsUiState.Success)?.apps
+							?.filterNot { it.isWatchedOnly }
+							?.mapTo(HashSet()) { it.packageName }
+							.orEmpty()
+						val preview = viewModel.parseObtainiumImportPreview(rawJson, installedPkgs)
+						if (preview == null) {
+							viewModel.notifyObtainiumImportInvalid()
+						} else {
+							obtainiumImportPreview = preview
+						}
+					}
+				}
+			}
+		}
+	}
+
+	val exportDiagnosticLogLauncher = rememberLauncherForActivityResult(
+		ActivityResultContracts.CreateDocument("text/plain")
+	) { uri ->
+		if (uri != null) {
+			coroutineScope.launch(Dispatchers.IO) {
+				val success = runCatching {
+					val report = viewModel.buildDiagnosticLogReport(includeLogcat = includeLogcatInDiagnostics)
+					context.contentResolver.openOutputStream(uri, "wt")?.use { stream ->
+						stream.write(report.toByteArray(Charsets.UTF_8))
+						stream.flush()
+					} ?: throw IllegalStateException("Unable to open output stream")
+				}.isSuccess
+				withContext(Dispatchers.Main) {
+					viewModel.notifyDiagnosticLogExported(success)
+				}
+			}
+		}
+	}
+
+	val pickDownloadFolderLauncher = rememberLauncherForActivityResult(
+		ActivityResultContracts.OpenDocumentTree()
+	) { uri ->
+		if (uri != null) {
+			runCatching {
+				context.contentResolver.takePersistableUriPermission(
+					uri,
+					Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+				)
+			}
+			viewModel.setCustomDownloadFolderUri(uri.toString())
+			configRefreshKey++
 		}
 	}
 
@@ -315,18 +431,37 @@ fun Settings(
 		ActivityResultContracts.OpenDocument()
 	) { uri ->
 		if (uri != null) {
-			val rawJson = runCatching {
-				context.contentResolver.openInputStream(uri)?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }
-			}.getOrNull()
-			if (!rawJson.isNullOrBlank()) {
-				val imported = viewModel.importBackupJson(rawJson)
-				if (imported) {
-					configRefreshKey++
-					appsViewModel.refresh(false)
-					updatesViewModel.syncIgnoredFromPrefs()
+			coroutineScope.launch(Dispatchers.IO) {
+				val rawJson = runCatching {
+					context.contentResolver.openInputStream(uri)?.use { stream ->
+						val maxBytes = SettingsViewModel.MAX_BACKUP_JSON_CHARS
+						val out = java.io.ByteArrayOutputStream()
+						val buf = ByteArray(8192)
+						var total = 0
+						while (true) {
+							val read = stream.read(buf)
+							if (read == -1) break
+							total += read
+							if (total > maxBytes) {
+								throw IllegalArgumentException("Backup file exceeds maximum allowed size")
+							}
+							out.write(buf, 0, read)
+						}
+						out.toString(Charsets.UTF_8.name())
+					}
+				}.getOrNull()
+				withContext(Dispatchers.Main) {
+					if (!rawJson.isNullOrBlank()) {
+						val imported = viewModel.importBackupJson(rawJson)
+						if (imported) {
+							configRefreshKey++
+							appsViewModel.refresh(false)
+							updatesViewModel.syncIgnoredFromPrefs()
+						}
+					} else {
+						viewModel.notifyBackupExported(false)
+					}
 				}
-			} else {
-				viewModel.notifyBackupExported(false)
 			}
 		}
 	}
@@ -448,16 +583,17 @@ fun Settings(
 		}
 
 		val badger = koinInject<Badger>()
-		val activeIssues = remember(isBatteryIgnoring, areNotificationsEnabled, hasInstallPermission, shizukuEnabled, shizukuStatus.isBinderRunning) {
+		val resources = LocalResources.current
+		val activeIssues = remember(resources, isBatteryIgnoring, areNotificationsEnabled, hasInstallPermission, shizukuEnabled, shizukuStatus.isBinderRunning) {
 			val list = mutableListOf<SetupWarningItem>()
 			if (!hasInstallPermission) {
 				list.add(
 					SetupWarningItem(
 						id = "install",
-						title = context.getString(R.string.warning_install_title),
-						subtitle = context.getString(R.string.warning_install_subtitle),
-						shortName = context.getString(R.string.settings_install_unknown_apps),
-						actionText = context.getString(R.string.warning_action_allow),
+						title = resources.getString(R.string.warning_install_title),
+						subtitle = resources.getString(R.string.warning_install_subtitle),
+						shortName = resources.getString(R.string.settings_install_unknown_apps),
+						actionText = resources.getString(R.string.warning_action_allow),
 						onClick = {
 							runCatching {
 								val intent = Intent(
@@ -482,10 +618,10 @@ fun Settings(
 				list.add(
 					SetupWarningItem(
 						id = "notifications",
-						title = context.getString(R.string.warning_notifications_title),
-						subtitle = context.getString(R.string.warning_notifications_subtitle),
-						shortName = context.getString(R.string.settings_notifications),
-						actionText = context.getString(R.string.warning_action_enable),
+						title = resources.getString(R.string.warning_notifications_title),
+						subtitle = resources.getString(R.string.warning_notifications_subtitle),
+						shortName = resources.getString(R.string.settings_notifications),
+						actionText = resources.getString(R.string.warning_action_enable),
 						onClick = {
 							runCatching {
 								val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
@@ -510,10 +646,10 @@ fun Settings(
 				list.add(
 					SetupWarningItem(
 						id = "battery",
-						title = context.getString(R.string.warning_battery_title),
-						subtitle = context.getString(R.string.warning_battery_subtitle),
-						shortName = context.getString(R.string.settings_battery_optimization),
-						actionText = context.getString(R.string.warning_action_exempt),
+						title = resources.getString(R.string.warning_battery_title),
+						subtitle = resources.getString(R.string.warning_battery_subtitle),
+						shortName = resources.getString(R.string.settings_battery_optimization),
+						actionText = resources.getString(R.string.warning_action_exempt),
 						onClick = openBatterySettings
 					)
 				)
@@ -522,10 +658,10 @@ fun Settings(
 				list.add(
 					SetupWarningItem(
 						id = "shizuku",
-						title = context.getString(R.string.warning_shizuku_title),
-						subtitle = context.getString(R.string.warning_shizuku_subtitle),
+						title = resources.getString(R.string.warning_shizuku_title),
+						subtitle = resources.getString(R.string.warning_shizuku_subtitle),
 						shortName = "Shizuku",
-						actionText = context.getString(R.string.warning_action_check),
+						actionText = resources.getString(R.string.warning_action_check),
 						onClick = { viewModel.openShizukuSetupSheet() }
 					)
 				)
@@ -669,7 +805,7 @@ fun Settings(
 		}
 
 		// Sektion 2: Update-Quellen
-		item(key = "section_sources_$configRefreshKey") {
+		item(key = "section_sources_${configRefreshKey}_${fdroidRepos.hashCode()}") {
 			SettingsSection(stringResource(R.string.settings_section_sources)) {
 				val directApkMirrorEnabled = remember(configRefreshKey) { viewModel.getDirectApkMirrorDownloads() }
 				SwitchSetting(
@@ -681,7 +817,11 @@ fun Settings(
 					text = stringResource(R.string.source_apkmirror),
 					icon = R.drawable.ic_apkmirror,
 					subtitle = if (viewModel.getUseApkMirror()) {
-						if (directApkMirrorEnabled) stringResource(R.string.settings_apkmirror_direct_downloads) else null
+						if (directApkMirrorEnabled) {
+							stringResource(R.string.settings_apkmirror_direct_active)
+						} else {
+							stringResource(R.string.settings_apkmirror_direct_inactive)
+						}
 					} else null,
 					onClick = { showApkMirrorSheet = true }
 				)
@@ -691,11 +831,21 @@ fun Settings(
 					stringResource(R.string.source_play),
 					R.drawable.ic_play
 				)
-				SwitchSetting(
-					{ viewModel.getUseIzzyOnDroid() },
-					{ viewModel.setUseIzzyOnDroid(it) },
-					stringResource(R.string.source_izzyondroid),
-					R.drawable.ic_izzy
+				val enabledFDroidCount = fdroidRepos.count { it.enabled }
+				SplitSwitchSetting(
+					getValue = { viewModel.getUseIzzyOnDroid() },
+					setValue = { enabled ->
+						viewModel.setUseIzzyOnDroid(enabled)
+						configRefreshKey++
+					},
+					text = stringResource(R.string.source_izzyondroid),
+					icon = R.drawable.ic_izzy,
+					subtitle = if (viewModel.getUseIzzyOnDroid()) {
+						stringResource(R.string.fdroid_repos_enabled_subtitle, enabledFDroidCount)
+					} else {
+						stringResource(R.string.fdroid_repos_tap_to_manage)
+					},
+					onClick = { showFDroidReposSheet = true }
 				)
 				val currentGitHubToken = remember(configRefreshKey) { viewModel.getGitHubToken() }
 				SwitchSetting(
@@ -729,6 +879,22 @@ fun Settings(
 					},
 					onClick = { showGitLabTokenDialog = true }
 				)
+				val currentCodebergToken = remember(configRefreshKey) { viewModel.getCodebergToken() }
+				SwitchSetting(
+					getValue = { viewModel.getUseCodeberg() },
+					setValue = {
+						viewModel.setUseCodeberg(it)
+						configRefreshKey++
+					},
+					text = stringResource(R.string.source_codeberg),
+					icon = R.drawable.ic_codeberg,
+					subtitle = if (currentCodebergToken.isNotEmpty()) {
+						stringResource(R.string.codeberg_token_status_set)
+					} else {
+						stringResource(R.string.settings_source_codeberg_desc)
+					},
+					onClick = { showCodebergTokenDialog = true }
+				)
 			}
 		}
 
@@ -754,6 +920,11 @@ fun Settings(
 				SwitchSetting(
 					getValue = { bgChecksEnabled },
 					setValue = { enabled ->
+						if (enabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+							if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) {
+								runCatching { launcher.launch(Manifest.permission.POST_NOTIFICATIONS) }
+							}
+						}
 						viewModel.setBackgroundChecksEnabled(enabled, launcher)
 						bgChecksEnabled = viewModel.getBackgroundChecksEnabled()
 					},
@@ -766,16 +937,44 @@ fun Settings(
 		}
 
 		// Sektion 4: Installation & Automatisierung
-		item(key = "section_install_automation_${configRefreshKey}_${shizukuEnabled}_$hasInstallPermission") {
+		item(key = "section_install_automation_${configRefreshKey}_${shizukuEnabled}_${rootEnabled}_$hasInstallPermission") {
 			SettingsSection(stringResource(R.string.settings_section_install_automation)) {
+				val shizukuAutoActive = remember(configRefreshKey, shizukuEnabled) {
+					shizukuEnabled && viewModel.getAutoInstallUpdates()
+				}
+				val shizukuSubtitle = when {
+					shizukuAutoActive -> stringResource(R.string.settings_shizuku_summary_auto)
+					shizukuEnabled -> stringResource(R.string.settings_shizuku_summary_silent)
+					else -> stringResource(R.string.settings_shizuku_summary_inactive)
+				}
 				// 2. Shizuku-Installer
 				SwitchSetting(
 					getValue = { viewModel.getUseShizukuInstaller() },
 					setValue = { viewModel.setUseShizukuInstaller(it) },
 					text = stringResource(R.string.settings_shizuku_installer),
-					icon = R.drawable.ic_root,
-					subtitle = stringResource(R.string.settings_shizuku_installer_subtitle),
+					icon = R.drawable.ic_shizuku,
+					subtitle = shizukuSubtitle,
 					onClick = { viewModel.openShizukuSetupSheet() }
+				)
+
+				// 2b. Root-Installer (su Fallback neben Shizuku oder standalone)
+				SwitchSetting(
+					getValue = { rootEnabled },
+					setValue = {
+						viewModel.setUseRootInstaller(it)
+						configRefreshKey++
+					},
+					text = stringResource(R.string.settings_root_installer),
+					icon = R.drawable.ic_root,
+					subtitle = when {
+						rootEnabled && rootAvailable == false -> stringResource(R.string.settings_root_installer_status_missing)
+						rootEnabled -> stringResource(R.string.settings_root_installer_subtitle_active)
+						else -> stringResource(R.string.settings_root_installer_subtitle)
+					},
+					onClick = {
+						viewModel.refreshRootStatus()
+						showRootSetupSheet = true
+					}
 				)
 
 				// Conditional Shizuku Warning Card if enabled but not running
@@ -817,9 +1016,9 @@ fun Settings(
 					}
 				}
 
-				// 3. Wenn Shizuku aktiv: Autonome Updates & Schutzregeln
-				if (shizukuEnabled) {
-					val autoInstallEnabled = remember(configRefreshKey, shizukuEnabled) { viewModel.getAutoInstallUpdates() }
+				// 3. Wenn Shizuku oder Root aktiv: Autonome Updates & Schutzregeln
+				if (shizukuEnabled || rootEnabled) {
+					val autoInstallEnabled = remember(configRefreshKey, shizukuEnabled, rootEnabled) { viewModel.getAutoInstallUpdates() }
 					val autoInstallWifiOnly = remember(configRefreshKey) { viewModel.getAutoInstallWifiOnly() }
 					val autoInstallChargingOnly = remember(configRefreshKey) { viewModel.getAutoInstallChargingOnly() }
 					Surface(
@@ -945,6 +1144,7 @@ fun Settings(
 					subtitle = when {
 						downloadWifiOnly && downloadChargingOnly -> stringResource(R.string.settings_wifi_active_charging_desc)
 						downloadWifiOnly -> stringResource(R.string.settings_download_wifi_only_desc)
+						downloadChargingOnly -> stringResource(R.string.settings_charging_only_active_desc)
 						else -> stringResource(R.string.settings_wifi_all_networks_desc)
 					},
 					onClick = { showWifiDownloadSheet = true }
@@ -1184,6 +1384,72 @@ fun Settings(
 								color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
 							)
 
+							// 2b. Speicherort für manuell gespeicherte APKs
+							Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+								Text(
+									text = stringResource(R.string.settings_section_apk_download_folder),
+									style = MaterialTheme.typography.labelLarge,
+									fontWeight = FontWeight.Bold,
+									color = MaterialTheme.colorScheme.primary
+								)
+								Text(
+									text = DownloadStorageManager.resolveSafFolderDisplayName(customDownloadFolderUri),
+									style = MaterialTheme.typography.bodySmall,
+									fontWeight = FontWeight.Medium,
+									color = MaterialTheme.colorScheme.onSurface
+								)
+								Text(
+									text = stringResource(R.string.settings_apk_download_folder_desc),
+									style = MaterialTheme.typography.bodySmall,
+									color = MaterialTheme.colorScheme.onSurfaceVariant
+								)
+								Row(
+									modifier = Modifier
+										.fillMaxWidth()
+										.padding(top = 4.dp),
+									horizontalArrangement = Arrangement.spacedBy(10.dp),
+									verticalAlignment = CenterVertically
+								) {
+									FilledTonalButton(
+										onClick = { pickDownloadFolderLauncher.launch(null) },
+										modifier = Modifier.weight(1f),
+										shape = CircleShape
+									) {
+										Icon(
+											painter = painterResource(R.drawable.ic_download),
+											contentDescription = null,
+											modifier = Modifier.size(16.dp)
+										)
+										Spacer(modifier = Modifier.width(6.dp))
+										Text(
+											text = stringResource(R.string.action_choose_folder),
+											maxLines = 1,
+											overflow = TextOverflow.Ellipsis
+										)
+									}
+									if (customDownloadFolderUri.isNotBlank()) {
+										OutlinedButton(
+											onClick = {
+												viewModel.setCustomDownloadFolderUri("")
+												configRefreshKey++
+											},
+											modifier = Modifier.weight(1f),
+											shape = CircleShape
+										) {
+											Text(
+												text = stringResource(R.string.action_reset_default_folder),
+												maxLines = 1,
+												overflow = TextOverflow.Ellipsis
+											)
+										}
+									}
+								}
+							}
+
+							HorizontalDivider(
+								color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+							)
+
 							// 3. Datensicherung & Export
 							Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
 								Text(
@@ -1239,24 +1505,179 @@ fun Settings(
 										)
 									}
 								}
-								OutlinedButton(
-									onClick = { exportObtainiumLauncher.launch("apkup-obtainium-export.json") },
+								Row(
 									modifier = Modifier
 										.fillMaxWidth()
 										.padding(top = 4.dp),
-									shape = CircleShape
+									horizontalArrangement = Arrangement.spacedBy(10.dp),
+									verticalAlignment = CenterVertically
 								) {
-									Icon(
-										imageVector = Icons.Default.Share,
-										contentDescription = null,
-										modifier = Modifier.size(16.dp)
+									OutlinedButton(
+										onClick = { exportObtainiumLauncher.launch("apkup-obtainium-export.json") },
+										modifier = Modifier.weight(1f),
+										shape = CircleShape
+									) {
+										Icon(
+											imageVector = Icons.Default.Share,
+											contentDescription = null,
+											modifier = Modifier.size(16.dp)
+										)
+										Spacer(modifier = Modifier.width(6.dp))
+										Text(
+											text = stringResource(R.string.action_export_obtainium),
+											maxLines = 1,
+											overflow = TextOverflow.Ellipsis
+										)
+									}
+									FilledTonalButton(
+										onClick = { importObtainiumLauncher.launch(arrayOf("application/json", "text/plain", "*/*")) },
+										modifier = Modifier.weight(1f),
+										shape = CircleShape
+									) {
+										Icon(
+											painter = painterResource(R.drawable.ic_download),
+											contentDescription = null,
+											modifier = Modifier.size(16.dp)
+										)
+										Spacer(modifier = Modifier.width(6.dp))
+										Text(
+											text = stringResource(R.string.action_import_obtainium),
+											maxLines = 1,
+											overflow = TextOverflow.Ellipsis
+										)
+									}
+								}
+							}
+
+							HorizontalDivider(
+								color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+							)
+
+							// 4. Diagnose- & Update-Protokoll
+							Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+								Text(
+									text = stringResource(R.string.settings_section_diagnostics),
+									style = MaterialTheme.typography.labelLarge,
+									fontWeight = FontWeight.Bold,
+									color = MaterialTheme.colorScheme.primary
+								)
+								Text(
+									text = stringResource(R.string.settings_diagnostics_description),
+									style = MaterialTheme.typography.bodySmall,
+									color = MaterialTheme.colorScheme.onSurfaceVariant
+								)
+								Row(
+									modifier = Modifier
+										.fillMaxWidth()
+										.clip(RoundedCornerShape(12.dp))
+										.clickable { includeLogcatInDiagnostics = !includeLogcatInDiagnostics }
+										.padding(vertical = 2.dp),
+									verticalAlignment = CenterVertically,
+									horizontalArrangement = Arrangement.spacedBy(8.dp)
+								) {
+									Checkbox(
+										checked = includeLogcatInDiagnostics,
+										onCheckedChange = { includeLogcatInDiagnostics = it }
 									)
-									Spacer(modifier = Modifier.width(6.dp))
 									Text(
-										text = stringResource(R.string.action_export_obtainium),
-										maxLines = 1,
-										overflow = TextOverflow.Ellipsis
+										text = stringResource(R.string.settings_diagnostics_include_logcat),
+										style = MaterialTheme.typography.bodySmall,
+										color = MaterialTheme.colorScheme.onSurface
 									)
+								}
+								Row(
+									modifier = Modifier
+										.fillMaxWidth()
+										.padding(top = 4.dp),
+									horizontalArrangement = Arrangement.spacedBy(10.dp),
+									verticalAlignment = CenterVertically
+								) {
+									OutlinedButton(
+										onClick = { exportDiagnosticLogLauncher.launch("apkup-diagnostic-log.txt") },
+										modifier = Modifier.weight(1f),
+										shape = CircleShape,
+										contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)
+									) {
+										Icon(
+											painter = painterResource(R.drawable.ic_download),
+											contentDescription = null,
+											modifier = Modifier.size(16.dp)
+										)
+										Spacer(modifier = Modifier.width(6.dp))
+										Text(
+											text = stringResource(R.string.action_save_diagnostic_log),
+											maxLines = 1,
+											overflow = TextOverflow.Ellipsis
+										)
+									}
+									FilledTonalButton(
+										onClick = {
+											if (!isSharingDiagnosticLog) {
+												isSharingDiagnosticLog = true
+												coroutineScope.launch {
+													val shareResult = withContext(Dispatchers.IO) {
+														runCatching {
+															val report = viewModel.buildDiagnosticLogReport(
+																includeLogcat = includeLogcatInDiagnostics
+															)
+															AppJournal.cleanupDiagnosticLogShareFiles(context)
+															val dir = File(
+																context.cacheDir,
+																AppJournal.DIAGNOSTIC_LOGS_CACHE_DIR
+															).apply { mkdirs() }
+															val file = File(dir, "apkup-diagnostic-log-${System.currentTimeMillis()}.txt")
+															file.writeText(report, Charsets.UTF_8)
+															FileProvider.getUriForFile(
+																context,
+																"${context.packageName}.fileprovider",
+																file
+															)
+														}
+													}
+													isSharingDiagnosticLog = false
+													shareResult.onSuccess { contentUri ->
+														runCatching {
+															val shareIntent = Intent(Intent.ACTION_SEND).apply {
+																type = "text/plain"
+																putExtra(Intent.EXTRA_STREAM, contentUri)
+																putExtra(
+																	Intent.EXTRA_SUBJECT,
+																	resources.getString(R.string.diagnostic_log_share_subject)
+																)
+																addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+															}
+															context.startActivity(
+																Intent.createChooser(
+																	shareIntent,
+																	resources.getString(R.string.action_share_diagnostic_log)
+																)
+															)
+														}.onFailure {
+															viewModel.notifyDiagnosticLogExported(false)
+														}
+													}.onFailure {
+														viewModel.notifyDiagnosticLogExported(false)
+													}
+												}
+											}
+										},
+										enabled = !isSharingDiagnosticLog,
+										modifier = Modifier.weight(1f),
+										shape = CircleShape,
+										contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)
+									) {
+										Icon(
+											imageVector = Icons.Default.Share,
+											contentDescription = null,
+											modifier = Modifier.size(16.dp)
+										)
+										Spacer(modifier = Modifier.width(6.dp))
+										Text(
+											text = stringResource(R.string.action_share_diagnostic_log),
+											maxLines = 1,
+											overflow = TextOverflow.Ellipsis
+										)
+									}
 								}
 							}
 						}
@@ -1630,7 +2051,7 @@ fun Settings(
 						horizontalArrangement = Arrangement.spacedBy(8.dp)
 					) {
 						Surface(
-							onClick = { handler.openUri("https://github.com/DurchEins/apkup") },
+							onClick = { runCatching { handler.openUri("https://github.com/DurchEins/apkup") } },
 							modifier = Modifier
 								.weight(1f)
 								.fillMaxHeight(),
@@ -1689,7 +2110,7 @@ fun Settings(
 						}
 
 						Surface(
-							onClick = { handler.openUri("https://github.com/DurchEins/apkup/wiki") },
+							onClick = { runCatching { handler.openUri("https://github.com/DurchEins/apkup/wiki") } },
 							modifier = Modifier
 								.weight(1f)
 								.fillMaxHeight(),
@@ -1753,7 +2174,7 @@ fun Settings(
 						modifier = Modifier
 							.fillMaxWidth()
 							.clip(RoundedCornerShape(10.dp))
-							.clickable { handler.openUri("https://github.com/rumboalla/apkupdater") }
+							.clickable { runCatching { handler.openUri("https://github.com/rumboalla/apkupdater") } }
 							.padding(horizontal = 8.dp, vertical = 6.dp),
 						verticalAlignment = CenterVertically,
 						horizontalArrangement = Arrangement.Center
@@ -1889,6 +2310,21 @@ fun Settings(
 		)
 	}
 
+	if (showRootSetupSheet) {
+		RootSetupBottomSheet(
+			rootEnabled = rootEnabled,
+			rootAvailable = rootAvailable,
+			onRecheck = {
+				viewModel.refreshRootStatus()
+			},
+			onToggleRoot = { enable ->
+				viewModel.setUseRootInstaller(enable)
+				configRefreshKey++
+			},
+			onDismiss = { showRootSetupSheet = false }
+		)
+	}
+
 	if (showIntervalSheet) {
 		BackgroundCheckIntervalBottomSheet(
 			selectedHours = viewModel.getBackgroundCheckIntervalHours(),
@@ -1907,7 +2343,35 @@ fun Settings(
 				viewModel.setDirectApkMirrorDownloads(it)
 				configRefreshKey++
 			},
+			initialApiUser = viewModel.getApkMirrorCustomApiUser(),
+			initialApiKey = viewModel.getApkMirrorCustomApiKey(),
+			onSaveCredentials = { user, key ->
+				viewModel.setApkMirrorCustomCredentials(user, key)
+				configRefreshKey++
+			},
 			onDismiss = { showApkMirrorSheet = false }
+		)
+	}
+
+	if (showFDroidReposSheet) {
+		FDroidReposBottomSheet(
+			repos = fdroidRepos,
+			onToggleRepo = { repoId, enabled ->
+				viewModel.setFDroidRepoEnabled(repoId, enabled)
+				configRefreshKey++
+			},
+			onAddCustomRepo = { rawUrl, explicitName, explicitFingerprint ->
+				val res = viewModel.addFDroidRepoConfig(rawUrl, explicitName, explicitFingerprint)
+				if (res.isSuccess) {
+					configRefreshKey++
+				}
+				res
+			},
+			onRemoveCustomRepo = { repoId ->
+				viewModel.removeFDroidRepoConfig(repoId)
+				configRefreshKey++
+			},
+			onDismiss = { showFDroidReposSheet = false }
 		)
 	}
 
@@ -1936,20 +2400,27 @@ fun Settings(
 		ChangelogBottomSheet(
 			onDismiss = {
 				showChangelogSheet = false
-				prefs.lastSeenVersionCode.put(BuildConfig.VERSION_CODE.toLong())
+				mainViewModel.dismissChangelogSheet(BuildConfig.VERSION_CODE.toLong())
 			}
 		)
 	}
 
 	if (showGitHubTokenDialog) {
-		ApiTokenDialog(
-			title = stringResource(R.string.github_token_dialog_title),
+		val initialGitHubToken = viewModel.getGitHubToken()
+		ApiTokenBottomSheet(
+			iconRes = R.drawable.ic_github,
+			title = stringResource(R.string.source_github),
+			statusSubtitle = if (initialGitHubToken.isNotEmpty()) {
+				stringResource(R.string.github_token_status_set)
+			} else {
+				stringResource(R.string.settings_source_github_desc)
+			},
 			description = stringResource(R.string.github_token_dialog_desc),
 			placeholder = stringResource(R.string.github_token_dialog_hint),
-			initialToken = viewModel.getGitHubToken(),
+			initialToken = initialGitHubToken,
 			createTokenUrl = "https://github.com/settings/tokens/new?description=ApkUp&scopes=",
 			createTokenButtonText = stringResource(R.string.token_action_generate_github),
-			guideUrl = "https://github.com/DurchEins/apkup/wiki",
+			guideUrl = "https://github.com/DurchEins/apkup/wiki/Configuring-GitHub-&-GitLab-Tokens",
 			onDismiss = { showGitHubTokenDialog = false },
 			onVerifyToken = { raw -> viewModel.validateGitHubToken(raw) },
 			onVerifiedMessage = { msg -> viewModel.notifyTextSnack(msg) },
@@ -1961,14 +2432,21 @@ fun Settings(
 	}
 
 	if (showGitLabTokenDialog) {
-		ApiTokenDialog(
-			title = stringResource(R.string.gitlab_token_dialog_title),
+		val initialGitLabToken = viewModel.getGitLabToken()
+		ApiTokenBottomSheet(
+			iconRes = R.drawable.ic_gitlab,
+			title = stringResource(R.string.source_gitlab),
+			statusSubtitle = if (initialGitLabToken.isNotEmpty()) {
+				stringResource(R.string.gitlab_token_status_set)
+			} else {
+				stringResource(R.string.settings_source_gitlab_desc)
+			},
 			description = stringResource(R.string.gitlab_token_dialog_desc),
 			placeholder = stringResource(R.string.gitlab_token_dialog_hint),
-			initialToken = viewModel.getGitLabToken(),
+			initialToken = initialGitLabToken,
 			createTokenUrl = "https://gitlab.com/-/user_settings/personal_access_tokens?name=ApkUp&scopes=read_api",
 			createTokenButtonText = stringResource(R.string.token_action_generate_gitlab),
-			guideUrl = "https://github.com/DurchEins/apkup/wiki",
+			guideUrl = "https://github.com/DurchEins/apkup/wiki/Configuring-GitHub-&-GitLab-Tokens",
 			onDismiss = { showGitLabTokenDialog = false },
 			onVerifyToken = { raw -> viewModel.validateGitLabToken(raw) },
 			onVerifiedMessage = { msg -> viewModel.notifyTextSnack(msg) },
@@ -1978,12 +2456,61 @@ fun Settings(
 			}
 		)
 	}
+
+	if (showCodebergTokenDialog) {
+		val initialCodebergToken = viewModel.getCodebergToken()
+		ApiTokenBottomSheet(
+			iconRes = R.drawable.ic_codeberg,
+			title = stringResource(R.string.source_codeberg),
+			statusSubtitle = if (initialCodebergToken.isNotEmpty()) {
+				stringResource(R.string.codeberg_token_status_set)
+			} else {
+				stringResource(R.string.settings_source_codeberg_desc)
+			},
+			description = stringResource(R.string.codeberg_token_dialog_desc),
+			placeholder = stringResource(R.string.codeberg_token_dialog_hint),
+			initialToken = initialCodebergToken,
+			createTokenUrl = "https://codeberg.org/user/settings/applications",
+			createTokenButtonText = stringResource(R.string.token_action_generate_codeberg),
+			guideUrl = "https://github.com/DurchEins/apkup/wiki/Configuring-GitHub-&-GitLab-Tokens",
+			onDismiss = { showCodebergTokenDialog = false },
+			onVerifyToken = { raw -> viewModel.validateCodebergToken(raw) },
+			onVerifiedMessage = { msg -> viewModel.notifyTextSnack(msg) },
+			onSaveToken = { token ->
+				viewModel.setCodebergToken(token)
+				configRefreshKey++
+			}
+		)
+	}
+
+	obtainiumImportPreview?.let { preview ->
+		ObtainiumImportBottomSheet(
+			preview = preview,
+			onDismiss = { obtainiumImportPreview = null },
+			onConfirmImport = { importMappings, importFDroidRepos, selectedWatchedPackages ->
+				viewModel.applyObtainiumImport(
+					preview = preview,
+					importInstalledMappings = importMappings,
+					importFDroidRepos = importFDroidRepos,
+					selectedWatchedPackages = selectedWatchedPackages
+				)
+				if (selectedWatchedPackages.isNotEmpty()) {
+					appsViewModel.refresh(false)
+				}
+				configRefreshKey++
+				obtainiumImportPreview = null
+			}
+		)
+	}
 }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ApiTokenDialog(
+private fun ApiTokenBottomSheet(
+	iconRes: Int,
 	title: String,
+	statusSubtitle: String,
 	description: String,
 	placeholder: String,
 	initialToken: String,
@@ -1995,9 +2522,10 @@ private fun ApiTokenDialog(
 	onVerifiedMessage: ((String) -> Unit)? = null,
 	onSaveToken: (String) -> Unit
 ) {
-	val context = LocalContext.current
+	val resources = LocalResources.current
 	val uriHandler = LocalUriHandler.current
 	val coroutineScope = rememberCoroutineScope()
+	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 	var tokenText by remember { mutableStateOf(initialToken) }
 	var isTokenVisible by remember { mutableStateOf(false) }
 	var isVerifying by remember { mutableStateOf(false) }
@@ -2010,126 +2538,173 @@ private fun ApiTokenDialog(
 		return when (result) {
 			is TokenValidationResult.Valid -> {
 				if (!result.rateLimitRemaining.isNullOrBlank() && !result.rateLimitTotal.isNullOrBlank()) {
-					context.getString(
+					resources.getString(
 						R.string.token_validation_valid_with_limit,
 						result.username,
 						result.rateLimitRemaining,
 						result.rateLimitTotal
 					)
 				} else {
-					context.getString(R.string.token_validation_valid_user, result.username)
+					resources.getString(R.string.token_validation_valid_user, result.username)
 				}
 			}
 			is TokenValidationResult.Invalid -> {
-				context.getString(R.string.token_validation_invalid, result.httpCode)
+				resources.getString(R.string.token_validation_invalid, result.httpCode)
 			}
 			is TokenValidationResult.Error -> {
-				context.getString(R.string.token_validation_error, result.message)
+				resources.getString(R.string.token_validation_error, result.message)
 			}
 		}
 	}
 
-	AlertDialog(
-		onDismissRequest = {
-			if (!isSaving) onDismiss()
-		},
-		shape = RoundedCornerShape(28.dp),
-		containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-		title = { Text(title) },
-		text = {
-			Column(
-				modifier = Modifier.verticalScroll(rememberScrollState()),
-				verticalArrangement = Arrangement.spacedBy(10.dp)
+	ModalBottomSheet(
+		onDismissRequest = { if (!isSaving) onDismiss() },
+		sheetState = sheetState,
+		containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+		contentColor = MaterialTheme.colorScheme.onSurface,
+		dragHandle = {
+			Box(
+				modifier = Modifier
+					.padding(vertical = 12.dp)
+					.width(36.dp)
+					.height(4.dp)
+					.clip(CircleShape)
+					.background(MaterialTheme.colorScheme.outlineVariant)
+			)
+		}
+	) {
+		Column(
+			modifier = Modifier
+				.fillMaxWidth()
+				.verticalScroll(rememberScrollState())
+				.navigationBarsPadding()
+				.imePadding()
+				.padding(horizontal = 24.dp)
+				.padding(bottom = 28.dp),
+			verticalArrangement = Arrangement.spacedBy(14.dp)
+		) {
+			Row(
+				verticalAlignment = CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(12.dp)
 			) {
-				Text(
-					text = description,
-					style = MaterialTheme.typography.bodyMedium,
-					color = MaterialTheme.colorScheme.onSurfaceVariant
-				)
+				Box(
+					modifier = Modifier
+						.size(40.dp)
+						.clip(RoundedCornerShape(12.dp))
+						.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+					contentAlignment = Alignment.Center
+				) {
+					Icon(
+						painter = painterResource(iconRes),
+						contentDescription = null,
+						tint = MaterialTheme.colorScheme.primary,
+						modifier = Modifier.size(22.dp)
+					)
+				}
+				Column {
+					Text(
+						text = title,
+						style = MaterialTheme.typography.titleMedium,
+						fontWeight = FontWeight.Bold
+					)
+					Text(
+						text = statusSubtitle,
+						style = MaterialTheme.typography.bodySmall,
+						color = MaterialTheme.colorScheme.onSurfaceVariant
+					)
+				}
+			}
 
-				if (!createTokenUrl.isNullOrBlank() || !guideUrl.isNullOrBlank()) {
-					Surface(
-						shape = RoundedCornerShape(14.dp),
-						color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.6f),
-						modifier = Modifier.fillMaxWidth()
+			Text(
+				text = description,
+				style = MaterialTheme.typography.bodyMedium,
+				color = MaterialTheme.colorScheme.onSurfaceVariant
+			)
+
+			if (!createTokenUrl.isNullOrBlank() || !guideUrl.isNullOrBlank()) {
+				Surface(
+					shape = RoundedCornerShape(16.dp),
+					color = MaterialTheme.colorScheme.surfaceContainer,
+					modifier = Modifier.fillMaxWidth()
+				) {
+					Column(
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(14.dp),
+						verticalArrangement = Arrangement.spacedBy(8.dp)
 					) {
-						Column(
+						Row(
 							modifier = Modifier
 								.fillMaxWidth()
-								.padding(10.dp),
-							verticalArrangement = Arrangement.spacedBy(8.dp)
+								.clickable { isGuideExpanded = !isGuideExpanded },
+							horizontalArrangement = Arrangement.SpaceBetween,
+							verticalAlignment = CenterVertically
 						) {
 							Row(
-								modifier = Modifier
-									.fillMaxWidth()
-									.clickable { isGuideExpanded = !isGuideExpanded },
-								horizontalArrangement = Arrangement.SpaceBetween,
-								verticalAlignment = CenterVertically
+								verticalAlignment = CenterVertically,
+								horizontalArrangement = Arrangement.spacedBy(8.dp)
 							) {
-								Row(
-									verticalAlignment = CenterVertically,
-									horizontalArrangement = Arrangement.spacedBy(6.dp)
-								) {
-									Icon(
-										imageVector = Icons.Default.Info,
-										contentDescription = null,
-										tint = MaterialTheme.colorScheme.primary,
-										modifier = Modifier.size(16.dp)
-									)
-									Text(
-										text = stringResource(R.string.token_guide_header),
-										style = MaterialTheme.typography.labelMedium,
-										fontWeight = FontWeight.SemiBold,
-										color = MaterialTheme.colorScheme.onSurface
-									)
-								}
 								Icon(
-									imageVector = if (isGuideExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+									imageVector = Icons.Default.Info,
 									contentDescription = null,
 									tint = MaterialTheme.colorScheme.primary,
 									modifier = Modifier.size(18.dp)
 								)
+								Text(
+									text = stringResource(R.string.token_guide_header),
+									style = MaterialTheme.typography.labelLarge,
+									fontWeight = FontWeight.SemiBold,
+									color = MaterialTheme.colorScheme.onSurface
+								)
 							}
+							Icon(
+								imageVector = if (isGuideExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+								contentDescription = null,
+								tint = MaterialTheme.colorScheme.primary,
+								modifier = Modifier.size(18.dp)
+							)
+						}
 
-							AnimatedVisibility(visible = isGuideExpanded) {
-								Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-									Text(
-										text = stringResource(R.string.token_guide_hint),
-										style = MaterialTheme.typography.bodySmall,
-										color = MaterialTheme.colorScheme.onSurfaceVariant
-									)
-									Row(
-										modifier = Modifier.fillMaxWidth(),
-										horizontalArrangement = Arrangement.spacedBy(8.dp)
-									) {
-										if (!createTokenUrl.isNullOrBlank() && !createTokenButtonText.isNullOrBlank()) {
-											FilledTonalButton(
-												onClick = { uriHandler.openUri(createTokenUrl) },
-												modifier = Modifier.weight(1f),
-												contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)
-											) {
-												Text(
-													text = createTokenButtonText,
-													style = MaterialTheme.typography.labelSmall,
-													fontWeight = FontWeight.SemiBold,
-													maxLines = 1,
-													overflow = TextOverflow.Ellipsis
-												)
-											}
+						AnimatedVisibility(visible = isGuideExpanded) {
+							Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+								Text(
+									text = stringResource(R.string.token_guide_hint),
+									style = MaterialTheme.typography.bodySmall,
+									color = MaterialTheme.colorScheme.onSurfaceVariant
+								)
+								Row(
+									modifier = Modifier.fillMaxWidth(),
+									horizontalArrangement = Arrangement.spacedBy(8.dp)
+								) {
+									if (!createTokenUrl.isNullOrBlank() && !createTokenButtonText.isNullOrBlank()) {
+										FilledTonalButton(
+											onClick = { runCatching { uriHandler.openUri(createTokenUrl) } },
+											modifier = Modifier.weight(1f),
+											shape = RoundedCornerShape(14.dp),
+											contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp)
+										) {
+											Text(
+												text = createTokenButtonText,
+												style = MaterialTheme.typography.labelSmall,
+												fontWeight = FontWeight.SemiBold,
+												maxLines = 1,
+												overflow = TextOverflow.Ellipsis
+											)
 										}
-										if (!guideUrl.isNullOrBlank()) {
-											OutlinedButton(
-												onClick = { uriHandler.openUri(guideUrl) },
-												modifier = Modifier.weight(1f),
-												contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)
-											) {
-												Text(
-													text = stringResource(R.string.token_action_guide_wiki),
-													style = MaterialTheme.typography.labelSmall,
-													maxLines = 1,
-													overflow = TextOverflow.Ellipsis
-												)
-											}
+									}
+									if (!guideUrl.isNullOrBlank()) {
+										OutlinedButton(
+											onClick = { runCatching { uriHandler.openUri(guideUrl) } },
+											modifier = Modifier.weight(1f),
+											shape = RoundedCornerShape(14.dp),
+											contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp)
+										) {
+											Text(
+												text = stringResource(R.string.token_action_guide_wiki),
+												style = MaterialTheme.typography.labelSmall,
+												maxLines = 1,
+												overflow = TextOverflow.Ellipsis
+											)
 										}
 									}
 								}
@@ -2137,280 +2712,215 @@ private fun ApiTokenDialog(
 						}
 					}
 				}
-
-				OutlinedTextField(
-					value = tokenText,
-					onValueChange = {
-						tokenText = it
-						if (it.trim() != validatedTokenValue) {
-							validationResult = null
-						}
-					},
-					label = { Text("Token") },
-					placeholder = { Text(placeholder) },
-					singleLine = true,
-					visualTransformation = if (isTokenVisible) {
-						androidx.compose.ui.text.input.VisualTransformation.None
-					} else {
-						androidx.compose.ui.text.input.PasswordVisualTransformation()
-					},
-					trailingIcon = {
-						androidx.compose.material3.IconButton(onClick = { isTokenVisible = !isTokenVisible }) {
-							Icon(
-								painter = painterResource(
-									if (isTokenVisible) R.drawable.ic_visible_off else R.drawable.ic_visible
-								),
-								contentDescription = stringResource(R.string.token_toggle_visibility)
-							)
-						}
-					},
-					modifier = Modifier.fillMaxWidth()
-				)
-
-				if (onVerifyToken != null) {
-					OutlinedButton(
-						onClick = {
-							val trimmed = tokenText.trim()
-							if (trimmed.isNotEmpty() && !isVerifying && !isSaving) {
-								isVerifying = true
-								coroutineScope.launch {
-									val res = onVerifyToken(trimmed)
-									validationResult = res
-									validatedTokenValue = trimmed
-									isVerifying = false
-								}
-							}
-						},
-						enabled = tokenText.isNotBlank() && !isVerifying && !isSaving,
-						modifier = Modifier.fillMaxWidth(),
-						shape = CircleShape
-					) {
-						if (isVerifying) {
-							CircularProgressIndicator(
-								modifier = Modifier.size(16.dp),
-								strokeWidth = 2.dp
-							)
-							Spacer(modifier = Modifier.width(8.dp))
-							Text(stringResource(R.string.token_validation_checking))
-						} else {
-							Icon(
-								imageVector = Icons.Default.Check,
-								contentDescription = null,
-								modifier = Modifier.size(16.dp)
-							)
-							Spacer(modifier = Modifier.width(6.dp))
-							Text(stringResource(R.string.token_dialog_verify_button))
-						}
-					}
-				}
-
-				val currentResult = validationResult
-				if (currentResult != null) {
-					val bannerBg = when (currentResult) {
-						is TokenValidationResult.Valid -> MaterialTheme.colorScheme.primaryContainer
-						is TokenValidationResult.Invalid -> MaterialTheme.colorScheme.errorContainer
-						is TokenValidationResult.Error -> MaterialTheme.colorScheme.surfaceContainerHighest
-					}
-					val bannerFg = when (currentResult) {
-						is TokenValidationResult.Valid -> MaterialTheme.colorScheme.onPrimaryContainer
-						is TokenValidationResult.Invalid -> MaterialTheme.colorScheme.onErrorContainer
-						is TokenValidationResult.Error -> MaterialTheme.colorScheme.onSurfaceVariant
-					}
-					val bannerIcon = when (currentResult) {
-						is TokenValidationResult.Valid -> Icons.Default.Check
-						is TokenValidationResult.Invalid -> Icons.Default.Warning
-						is TokenValidationResult.Error -> Icons.Default.Info
-					}
-					Surface(
-						modifier = Modifier.fillMaxWidth(),
-						shape = RoundedCornerShape(14.dp),
-						color = bannerBg
-					) {
-						Row(
-							modifier = Modifier
-								.fillMaxWidth()
-								.padding(horizontal = 12.dp, vertical = 10.dp),
-							verticalAlignment = CenterVertically,
-							horizontalArrangement = Arrangement.spacedBy(8.dp)
-						) {
-							Icon(
-								imageVector = bannerIcon,
-								contentDescription = null,
-								tint = bannerFg,
-								modifier = Modifier.size(18.dp)
-							)
-							Text(
-								text = formatValidationMessage(currentResult),
-								style = MaterialTheme.typography.bodySmall,
-								fontWeight = FontWeight.Medium,
-								color = bannerFg
-							)
-						}
-					}
-				}
 			}
-		},
-		confirmButton = {
-			Button(
-				onClick = {
-					val trimmed = tokenText.trim()
-					if (trimmed.isEmpty() || onVerifyToken == null) {
-						onSaveToken(trimmed)
-						onDismiss()
-					} else if (validatedTokenValue == trimmed && validationResult != null) {
-						// Token wurde im Dialog bereits für exakt diesen Wert geprüft -> direkt speichern
-						onSaveToken(trimmed)
-						validationResult?.let { res ->
-							onVerifiedMessage?.invoke(formatValidationMessage(res))
-						}
-						onDismiss()
-					} else if (!isSaving && !isVerifying) {
-						isSaving = true
-						coroutineScope.launch {
-							val res = onVerifyToken(trimmed)
-							validationResult = res
-							validatedTokenValue = trimmed
-							isSaving = false
-							when (res) {
-								is TokenValidationResult.Valid,
-								is TokenValidationResult.Error -> {
-									onSaveToken(trimmed)
-									onVerifiedMessage?.invoke(formatValidationMessage(res))
-									onDismiss()
-								}
-								is TokenValidationResult.Invalid -> {
-									// Bei ungültigem Token bleibt der Dialog beim ersten Klick geöffnet,
-									// damit der Nutzer die Fehlermeldung sofort sieht und korrigieren kann.
-								}
-							}
-						}
-					}
-				},
-				enabled = !isSaving && !isVerifying,
-				shape = CircleShape
+
+			Surface(
+				shape = RoundedCornerShape(16.dp),
+				color = MaterialTheme.colorScheme.surfaceContainer,
+				modifier = Modifier.fillMaxWidth()
 			) {
-				if (isSaving) {
-					CircularProgressIndicator(
-						modifier = Modifier.size(16.dp),
-						strokeWidth = 2.dp,
-						color = MaterialTheme.colorScheme.onPrimary
-					)
-					Spacer(modifier = Modifier.width(8.dp))
-					Text(stringResource(R.string.token_validation_checking))
-				} else {
-					Text(stringResource(R.string.github_token_dialog_save))
-				}
-			}
-		},
-		dismissButton = {
-			Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-				if (initialToken.isNotEmpty()) {
-					TextButton(
-						onClick = {
-							onSaveToken("")
-							onDismiss()
+				Column(
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(14.dp),
+					verticalArrangement = Arrangement.spacedBy(10.dp)
+				) {
+					OutlinedTextField(
+						value = tokenText,
+						onValueChange = {
+							tokenText = it
+							if (it.trim() != validatedTokenValue) {
+								validationResult = null
+							}
 						},
-						enabled = !isSaving && !isVerifying
-					) {
-						Text(
-							stringResource(R.string.github_token_dialog_clear),
-							color = MaterialTheme.colorScheme.error
-						)
+						label = { Text(stringResource(R.string.token_input_label)) },
+						placeholder = { Text(placeholder) },
+						singleLine = true,
+						keyboardOptions = KeyboardOptions(
+							keyboardType = KeyboardType.Password,
+							autoCorrectEnabled = false
+						),
+						visualTransformation = if (isTokenVisible) {
+							androidx.compose.ui.text.input.VisualTransformation.None
+						} else {
+							androidx.compose.ui.text.input.PasswordVisualTransformation()
+						},
+						trailingIcon = {
+							androidx.compose.material3.IconButton(onClick = { isTokenVisible = !isTokenVisible }) {
+								Icon(
+									painter = painterResource(
+										if (isTokenVisible) R.drawable.ic_visible_off else R.drawable.ic_visible
+									),
+									contentDescription = stringResource(R.string.token_toggle_visibility)
+								)
+							}
+						},
+						modifier = Modifier.fillMaxWidth()
+					)
+
+					if (onVerifyToken != null) {
+						OutlinedButton(
+							onClick = {
+								val trimmed = tokenText.trim()
+								if (trimmed.isNotEmpty() && !isVerifying && !isSaving) {
+									isVerifying = true
+									coroutineScope.launch {
+										val res = onVerifyToken(trimmed)
+										validationResult = res
+										validatedTokenValue = trimmed
+										isVerifying = false
+									}
+								}
+							},
+							enabled = tokenText.isNotBlank() && !isVerifying && !isSaving,
+							modifier = Modifier.fillMaxWidth(),
+							shape = RoundedCornerShape(14.dp)
+						) {
+							if (isVerifying) {
+								CircularProgressIndicator(
+									modifier = Modifier.size(16.dp),
+									strokeWidth = 2.dp
+								)
+								Spacer(modifier = Modifier.width(8.dp))
+								Text(stringResource(R.string.token_validation_checking))
+							} else {
+								Icon(
+									imageVector = Icons.Default.Check,
+									contentDescription = null,
+									modifier = Modifier.size(16.dp)
+								)
+								Spacer(modifier = Modifier.width(6.dp))
+								Text(stringResource(R.string.token_dialog_verify_button))
+							}
+						}
+					}
+
+					val currentResult = validationResult
+					if (currentResult != null) {
+						val bannerBg = when (currentResult) {
+							is TokenValidationResult.Valid -> MaterialTheme.colorScheme.primaryContainer
+							is TokenValidationResult.Invalid -> MaterialTheme.colorScheme.errorContainer
+							is TokenValidationResult.Error -> MaterialTheme.colorScheme.surfaceContainerHighest
+						}
+						val bannerFg = when (currentResult) {
+							is TokenValidationResult.Valid -> MaterialTheme.colorScheme.onPrimaryContainer
+							is TokenValidationResult.Invalid -> MaterialTheme.colorScheme.onErrorContainer
+							is TokenValidationResult.Error -> MaterialTheme.colorScheme.onSurfaceVariant
+						}
+						val bannerIcon = when (currentResult) {
+							is TokenValidationResult.Valid -> Icons.Default.Check
+							is TokenValidationResult.Invalid -> Icons.Default.Warning
+							is TokenValidationResult.Error -> Icons.Default.Info
+						}
+						Surface(
+							modifier = Modifier.fillMaxWidth(),
+							shape = RoundedCornerShape(14.dp),
+							color = bannerBg
+						) {
+							Row(
+								modifier = Modifier
+									.fillMaxWidth()
+									.padding(horizontal = 12.dp, vertical = 10.dp),
+								verticalAlignment = CenterVertically,
+								horizontalArrangement = Arrangement.spacedBy(8.dp)
+							) {
+								Icon(
+									imageVector = bannerIcon,
+									contentDescription = null,
+									tint = bannerFg,
+									modifier = Modifier.size(18.dp)
+								)
+								Text(
+									text = formatValidationMessage(currentResult),
+									style = MaterialTheme.typography.bodySmall,
+									fontWeight = FontWeight.Medium,
+									color = bannerFg
+								)
+							}
+						}
 					}
 				}
-				TextButton(
+			}
+
+			Row(
+				modifier = Modifier.fillMaxWidth(),
+				horizontalArrangement = Arrangement.spacedBy(10.dp)
+			) {
+				FilledTonalButton(
 					onClick = onDismiss,
-					enabled = !isSaving && !isVerifying
+					enabled = !isSaving && !isVerifying,
+					modifier = Modifier.weight(1f),
+					shape = RoundedCornerShape(14.dp)
 				) {
 					Text(stringResource(android.R.string.cancel))
 				}
-			}
-		}
-	)
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun BackgroundCheckIntervalSelector(
-	selectedHours: Int,
-	enabled: Boolean,
-	onSelectHours: (Int) -> Unit
-) {
-	val intervalOptions = listOf(
-		BackgroundCheckInterval.HOURS_6 to ("6h" to R.string.settings_interval_6h),
-		BackgroundCheckInterval.HOURS_12 to ("12h" to R.string.settings_interval_12h),
-		BackgroundCheckInterval.HOURS_24 to ("24h" to R.string.settings_interval_24h),
-		BackgroundCheckInterval.HOURS_48 to ("48h" to R.string.settings_interval_48h),
-		BackgroundCheckInterval.DAYS_7 to ("7d" to R.string.settings_interval_7d)
-	)
-
-	Surface(
-		modifier = Modifier
-			.fillMaxWidth()
-			.padding(top = 2.dp),
-		shape = RoundedCornerShape(14.dp),
-		color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = if (enabled) 0.75f else 0.4f)
-	) {
-		Column(
-			modifier = Modifier
-				.fillMaxWidth()
-				.padding(horizontal = 10.dp, vertical = 8.dp),
-			verticalArrangement = Arrangement.spacedBy(6.dp)
-		) {
-			val activeOption = intervalOptions.firstOrNull { it.first.hours == selectedHours }
-			val activeLabel = activeOption?.let { stringResource(it.second.second) } ?: ""
-			Row(
-				modifier = Modifier.fillMaxWidth(),
-				verticalAlignment = CenterVertically,
-				horizontalArrangement = Arrangement.SpaceBetween
-			) {
-				Text(
-					text = stringResource(R.string.settings_background_interval_title),
-					style = MaterialTheme.typography.labelMedium,
-					fontWeight = FontWeight.SemiBold,
-					color = if (enabled) {
-						MaterialTheme.colorScheme.onSurface
+				Button(
+					onClick = {
+						val trimmed = tokenText.trim()
+						if (trimmed.isEmpty() || onVerifyToken == null) {
+							onSaveToken(trimmed)
+							onDismiss()
+						} else if (validatedTokenValue == trimmed && validationResult != null) {
+							onSaveToken(trimmed)
+							validationResult?.let { res ->
+								onVerifiedMessage?.invoke(formatValidationMessage(res))
+							}
+							onDismiss()
+						} else if (!isSaving && !isVerifying) {
+							isSaving = true
+							coroutineScope.launch {
+								val res = onVerifyToken(trimmed)
+								validationResult = res
+								validatedTokenValue = trimmed
+								isSaving = false
+								when (res) {
+									is TokenValidationResult.Valid,
+									is TokenValidationResult.Error -> {
+										onSaveToken(trimmed)
+										onVerifiedMessage?.invoke(formatValidationMessage(res))
+										onDismiss()
+									}
+									is TokenValidationResult.Invalid -> {
+										// Bei ungültigem Token bleibt das Sheet geöffnet zur Korrektur.
+									}
+								}
+							}
+						}
+					},
+					enabled = !isSaving && !isVerifying,
+					modifier = Modifier.weight(1f),
+					shape = RoundedCornerShape(14.dp)
+				) {
+					if (isSaving) {
+						CircularProgressIndicator(
+							modifier = Modifier.size(16.dp),
+							strokeWidth = 2.dp,
+							color = MaterialTheme.colorScheme.onPrimary
+						)
+						Spacer(modifier = Modifier.width(8.dp))
+						Text(
+							text = stringResource(R.string.token_validation_checking),
+							maxLines = 1,
+							overflow = TextOverflow.Ellipsis
+						)
 					} else {
-						MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+						Text(stringResource(R.string.github_token_dialog_save))
 					}
-				)
-				if (activeLabel.isNotBlank()) {
-					Text(
-						text = activeLabel,
-						style = MaterialTheme.typography.labelSmall,
-						color = MaterialTheme.colorScheme.primary,
-						maxLines = 1,
-						overflow = TextOverflow.Ellipsis
-					)
 				}
 			}
 
-			Row(
-				modifier = Modifier
-					.fillMaxWidth()
-					.horizontalScroll(rememberScrollState()),
-				horizontalArrangement = Arrangement.spacedBy(6.dp),
-				verticalAlignment = CenterVertically
-			) {
-				intervalOptions.forEach { (interval, chipInfo) ->
-					val (shortLabel, _) = chipInfo
-					val isSelected = selectedHours == interval.hours
-					FilterChip(
-						selected = isSelected,
-						onClick = { onSelectHours(interval.hours) },
-						enabled = enabled,
-						label = {
-							Text(
-								text = shortLabel,
-								style = MaterialTheme.typography.labelMedium,
-								fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-							)
-						},
-						shape = CircleShape,
-						colors = FilterChipDefaults.filterChipColors(
-							selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-							selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-						)
+			if (initialToken.isNotEmpty()) {
+				TextButton(
+					onClick = {
+						onSaveToken("")
+						onDismiss()
+					},
+					enabled = !isSaving && !isVerifying,
+					modifier = Modifier.fillMaxWidth()
+				) {
+					Text(
+						text = stringResource(R.string.github_token_dialog_clear),
+						color = MaterialTheme.colorScheme.error
 					)
 				}
 			}
@@ -2465,7 +2975,7 @@ private fun ShizukuSetupBottomSheet(
 					contentAlignment = Alignment.Center
 				) {
 					Icon(
-						painter = painterResource(R.drawable.ic_root),
+						painter = painterResource(R.drawable.ic_shizuku),
 						contentDescription = null,
 						tint = MaterialTheme.colorScheme.onPrimaryContainer,
 						modifier = Modifier.size(24.dp)
@@ -2575,6 +3085,231 @@ private fun ShizukuSetupBottomSheet(
 					},
 					modifier = Modifier.weight(1f).heightIn(min = 48.dp),
 					shape = CircleShape
+				) {
+					Icon(
+						imageVector = if (showRecheckedFeedback) Icons.Default.Check else Icons.Default.Refresh,
+						contentDescription = null,
+						modifier = Modifier.size(18.dp)
+					)
+					Spacer(modifier = Modifier.width(6.dp))
+					Text(
+						text = stringResource(
+							if (showRecheckedFeedback) R.string.shizuku_setup_rechecked_feedback else R.string.shizuku_setup_recheck
+						)
+					)
+				}
+				TextButton(
+					onClick = onDismiss,
+					modifier = Modifier.heightIn(min = 48.dp)
+				) {
+					Text(text = stringResource(R.string.shizuku_setup_close))
+				}
+			}
+		}
+	}
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RootSetupBottomSheet(
+	rootEnabled: Boolean,
+	rootAvailable: Boolean?,
+	onRecheck: () -> Unit,
+	onToggleRoot: (Boolean) -> Unit,
+	onDismiss: () -> Unit
+) {
+	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+	var recheckPulseCount by remember { mutableIntStateOf(0) }
+	var showRecheckedFeedback by remember { mutableStateOf(false) }
+
+	LaunchedEffect(recheckPulseCount) {
+		if (recheckPulseCount > 0) {
+			showRecheckedFeedback = true
+			delay(1600L)
+			showRecheckedFeedback = false
+		}
+	}
+
+	val statusTitle = when (rootAvailable) {
+		true -> stringResource(R.string.root_setup_status_granted)
+		false -> stringResource(R.string.root_setup_status_denied)
+		null -> stringResource(R.string.root_setup_status_checking)
+	}
+	val statusDesc = when (rootAvailable) {
+		true -> stringResource(R.string.root_setup_status_desc_granted)
+		false -> stringResource(R.string.root_setup_status_desc_denied)
+		null -> stringResource(R.string.root_setup_status_desc_checking)
+	}
+
+	ModalBottomSheet(
+		onDismissRequest = onDismiss,
+		sheetState = sheetState,
+		shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+		containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+	) {
+		Column(
+			modifier = Modifier
+				.fillMaxWidth()
+				.verticalScroll(rememberScrollState())
+				.padding(start = 24.dp, end = 24.dp, bottom = 28.dp),
+			verticalArrangement = Arrangement.spacedBy(14.dp)
+		) {
+			Row(
+				verticalAlignment = CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(14.dp)
+			) {
+				Box(
+					modifier = Modifier
+						.size(48.dp)
+						.clip(RoundedCornerShape(14.dp))
+						.background(MaterialTheme.colorScheme.primaryContainer),
+					contentAlignment = Alignment.Center
+				) {
+					Icon(
+						painter = painterResource(R.drawable.ic_root),
+						contentDescription = null,
+						tint = MaterialTheme.colorScheme.onPrimaryContainer,
+						modifier = Modifier.size(24.dp)
+					)
+				}
+				Column(modifier = Modifier.weight(1f)) {
+					Text(
+						text = stringResource(R.string.settings_root_installer),
+						style = MaterialTheme.typography.titleLarge,
+						fontWeight = FontWeight.Bold
+					)
+					Text(
+						text = stringResource(R.string.root_setup_sheet_desc),
+						style = MaterialTheme.typography.bodySmall,
+						color = MaterialTheme.colorScheme.onSurfaceVariant
+					)
+				}
+			}
+
+			val isGranted = rootAvailable == true
+			Surface(
+				modifier = Modifier.fillMaxWidth(),
+				shape = RoundedCornerShape(20.dp),
+				color = when (rootAvailable) {
+					true -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f)
+					false -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.45f)
+					null -> MaterialTheme.colorScheme.surfaceContainerHigh
+				}
+			) {
+				Row(
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(14.dp),
+					verticalAlignment = Alignment.Top,
+					horizontalArrangement = Arrangement.spacedBy(12.dp)
+				) {
+					Box(
+						modifier = Modifier
+							.size(30.dp)
+							.clip(CircleShape)
+							.background(
+								when (rootAvailable) {
+									true -> Color(0xFF2E7D32)
+									false -> MaterialTheme.colorScheme.error
+									null -> MaterialTheme.colorScheme.surfaceContainerHighest
+								}
+							),
+						contentAlignment = Alignment.Center
+					) {
+						Icon(
+							imageVector = when (rootAvailable) {
+								true -> Icons.Default.Check
+								false -> Icons.Default.Close
+								null -> Icons.Default.Refresh
+							},
+							contentDescription = null,
+							tint = if (rootAvailable == null) MaterialTheme.colorScheme.onSurfaceVariant else Color.White,
+							modifier = Modifier.size(18.dp)
+						)
+					}
+					Column(
+						modifier = Modifier.weight(1f),
+						verticalArrangement = Arrangement.spacedBy(4.dp)
+					) {
+						Text(
+							text = stringResource(R.string.root_setup_status_title),
+							style = MaterialTheme.typography.labelMedium,
+							color = MaterialTheme.colorScheme.onSurfaceVariant
+						)
+						Text(
+							text = statusTitle,
+							style = MaterialTheme.typography.titleSmall,
+							fontWeight = FontWeight.Bold,
+							color = MaterialTheme.colorScheme.onSurface
+						)
+						Text(
+							text = statusDesc,
+							style = MaterialTheme.typography.bodySmall,
+							color = MaterialTheme.colorScheme.onSurfaceVariant
+						)
+					}
+				}
+			}
+
+			if (!isGranted) {
+				Surface(
+					modifier = Modifier.fillMaxWidth(),
+					shape = RoundedCornerShape(18.dp),
+					color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.75f)
+				) {
+					Row(
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(horizontal = 14.dp, vertical = 12.dp),
+						verticalAlignment = Alignment.Top,
+						horizontalArrangement = Arrangement.spacedBy(10.dp)
+					) {
+						Icon(
+							imageVector = Icons.Default.Info,
+							contentDescription = null,
+							tint = MaterialTheme.colorScheme.onTertiaryContainer,
+							modifier = Modifier
+								.padding(top = 2.dp)
+								.size(20.dp)
+						)
+						Text(
+							text = stringResource(R.string.root_setup_fallback_note),
+							style = MaterialTheme.typography.bodySmall,
+							fontWeight = FontWeight.Medium,
+							color = MaterialTheme.colorScheme.onTertiaryContainer
+						)
+					}
+				}
+			}
+
+			if (isGranted || rootEnabled) {
+				Button(
+					onClick = { onToggleRoot(!rootEnabled) },
+					shape = CircleShape,
+					modifier = Modifier
+						.fillMaxWidth()
+						.heightIn(min = 48.dp)
+				) {
+					Text(
+						text = stringResource(
+							if (rootEnabled) R.string.root_setup_btn_disable else R.string.root_setup_btn_enable
+						)
+					)
+				}
+			}
+
+			Row(
+				modifier = Modifier.fillMaxWidth(),
+				horizontalArrangement = Arrangement.SpaceBetween,
+				verticalAlignment = CenterVertically
+			) {
+				OutlinedButton(
+					onClick = {
+						onRecheck()
+						recheckPulseCount++
+					},
+					shape = CircleShape,
+					modifier = Modifier.heightIn(min = 48.dp)
 				) {
 					Icon(
 						imageVector = if (showRecheckedFeedback) Icons.Default.Check else Icons.Default.Refresh,
@@ -3143,6 +3878,12 @@ private fun HiddenAppsBottomSheet(
 					}
 				}
 
+				Text(
+					text = stringResource(R.string.hidden_apps_explanation),
+					style = MaterialTheme.typography.bodySmall,
+					color = MaterialTheme.colorScheme.onSurfaceVariant
+				)
+
 				if (ignoredPackages.isNotEmpty()) {
 					Row(
 						modifier = Modifier.fillMaxWidth(),
@@ -3272,7 +4013,7 @@ private fun HiddenAppsBottomSheet(
 					horizontalArrangement = Arrangement.spacedBy(8.dp)
 				) {
 					TextButton(onClick = { isAddingMore = false }) {
-						Text("\u2190 Zur\u00FCck")
+						Text(stringResource(R.string.action_back))
 					}
 					Text(
 						text = stringResource(R.string.hidden_apps_hide_more),
@@ -3888,9 +4629,18 @@ private fun BackgroundCheckIntervalBottomSheet(
 private fun ApkMirrorSettingsBottomSheet(
 	directEnabled: Boolean,
 	onDirectChanged: (Boolean) -> Unit,
+	initialApiUser: String = "",
+	initialApiKey: String = "",
+	onSaveCredentials: (String, String) -> Unit = { _, _ -> },
 	onDismiss: () -> Unit
 ) {
 	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+	val cloudflareBypass: ApkMirrorCloudflareBypass = koinInject()
+	var apiUser by remember(initialApiUser) { mutableStateOf(initialApiUser) }
+	var apiKey by remember(initialApiKey) { mutableStateOf(initialApiKey) }
+	var isKeyVisible by remember { mutableStateOf(false) }
+	var showWebViewVerifyDialog by remember { mutableStateOf(false) }
+	val credentialsChanged = apiUser.trim() != initialApiUser || apiKey.trim() != initialApiKey
 
 	ModalBottomSheet(
 		onDismissRequest = onDismiss,
@@ -3911,6 +4661,7 @@ private fun ApkMirrorSettingsBottomSheet(
 		Column(
 			modifier = Modifier
 				.fillMaxWidth()
+				.verticalScroll(rememberScrollState())
 				.padding(horizontal = 24.dp)
 				.padding(bottom = 32.dp),
 			verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -3978,6 +4729,453 @@ private fun ApkMirrorSettingsBottomSheet(
 				}
 			}
 
+			Surface(
+				modifier = Modifier.fillMaxWidth(),
+				shape = RoundedCornerShape(16.dp),
+				color = MaterialTheme.colorScheme.surfaceContainer
+			) {
+				Column(
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(horizontal = 16.dp, vertical = 14.dp),
+					verticalArrangement = Arrangement.spacedBy(10.dp)
+				) {
+					Text(
+						text = stringResource(R.string.apkmirror_webview_verify_title),
+						style = MaterialTheme.typography.bodyMedium,
+						fontWeight = FontWeight.SemiBold
+					)
+					Text(
+						text = stringResource(R.string.apkmirror_webview_verify_desc),
+						style = MaterialTheme.typography.bodySmall,
+						color = MaterialTheme.colorScheme.onSurfaceVariant
+					)
+					OutlinedButton(
+						onClick = { showWebViewVerifyDialog = true },
+						modifier = Modifier.fillMaxWidth(),
+						shape = RoundedCornerShape(12.dp)
+					) {
+						Text(stringResource(R.string.apkmirror_webview_verify_btn))
+					}
+				}
+			}
+
+			Surface(
+				modifier = Modifier.fillMaxWidth(),
+				shape = RoundedCornerShape(16.dp),
+				color = MaterialTheme.colorScheme.surfaceContainer
+			) {
+				Column(
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(horizontal = 16.dp, vertical = 14.dp),
+					verticalArrangement = Arrangement.spacedBy(10.dp)
+				) {
+					Text(
+						text = stringResource(R.string.apkmirror_api_section_title),
+						style = MaterialTheme.typography.bodyMedium,
+						fontWeight = FontWeight.SemiBold
+					)
+					Text(
+						text = stringResource(R.string.apkmirror_api_section_desc),
+						style = MaterialTheme.typography.bodySmall,
+						color = MaterialTheme.colorScheme.onSurfaceVariant
+					)
+					OutlinedTextField(
+						value = apiUser,
+						onValueChange = { apiUser = it },
+						label = { Text(stringResource(R.string.apkmirror_api_user_label)) },
+						singleLine = true,
+						modifier = Modifier.fillMaxWidth()
+					)
+					OutlinedTextField(
+						value = apiKey,
+						onValueChange = { apiKey = it },
+						label = { Text(stringResource(R.string.apkmirror_api_key_label)) },
+						singleLine = true,
+						keyboardOptions = KeyboardOptions(
+							keyboardType = KeyboardType.Password,
+							autoCorrectEnabled = false
+						),
+						visualTransformation = if (isKeyVisible) {
+							androidx.compose.ui.text.input.VisualTransformation.None
+						} else {
+							androidx.compose.ui.text.input.PasswordVisualTransformation()
+						},
+						trailingIcon = {
+							androidx.compose.material3.IconButton(onClick = { isKeyVisible = !isKeyVisible }) {
+								Icon(
+									painter = painterResource(
+										if (isKeyVisible) R.drawable.ic_visible_off else R.drawable.ic_visible
+									),
+									contentDescription = stringResource(R.string.token_toggle_visibility)
+								)
+							}
+						},
+						modifier = Modifier.fillMaxWidth()
+					)
+					Row(
+						modifier = Modifier.fillMaxWidth(),
+						horizontalArrangement = Arrangement.spacedBy(8.dp)
+					) {
+						if (initialApiUser.isNotBlank() || initialApiKey.isNotBlank()) {
+							OutlinedButton(
+								onClick = {
+									apiUser = ""
+									apiKey = ""
+									onSaveCredentials("", "")
+								},
+								modifier = Modifier.weight(1f),
+								shape = RoundedCornerShape(12.dp)
+							) {
+								Text(stringResource(R.string.github_token_dialog_clear))
+							}
+						}
+						Button(
+							onClick = { onSaveCredentials(apiUser.trim(), apiKey.trim()) },
+							enabled = credentialsChanged,
+							modifier = Modifier.weight(1f),
+							shape = RoundedCornerShape(12.dp)
+						) {
+							Text(stringResource(R.string.github_token_dialog_save))
+						}
+					}
+				}
+			}
+
+			FilledTonalButton(
+				onClick = {
+					if (credentialsChanged) {
+						onSaveCredentials(apiUser.trim(), apiKey.trim())
+					}
+					onDismiss()
+				},
+				modifier = Modifier.fillMaxWidth(),
+				shape = RoundedCornerShape(14.dp)
+			) {
+				Text(text = stringResource(R.string.shizuku_setup_close))
+			}
+		}
+	}
+
+	if (showWebViewVerifyDialog) {
+		ApkMirrorWebViewVerificationDialog(
+			userAgent = cloudflareBypass.getUserAgent(),
+			onDismiss = { showWebViewVerifyDialog = false }
+		)
+	}
+}
+
+@Composable
+private fun ApkMirrorWebViewVerificationDialog(
+	userAgent: String,
+	onDismiss: () -> Unit
+) {
+	var webViewRef by remember { mutableStateOf<WebView?>(null) }
+
+	DisposableEffect(Unit) {
+		onDispose {
+			runCatching { CookieManager.getInstance().flush() }
+			runCatching {
+				webViewRef?.stopLoading()
+				webViewRef?.loadUrl("about:blank")
+				webViewRef?.removeAllViews()
+				webViewRef?.destroy()
+			}
+			webViewRef = null
+		}
+	}
+
+	Dialog(
+		onDismissRequest = onDismiss,
+		properties = DialogProperties(usePlatformDefaultWidth = false)
+	) {
+		Surface(
+			modifier = Modifier
+				.fillMaxWidth(0.95f)
+				.fillMaxHeight(0.85f),
+			shape = RoundedCornerShape(24.dp),
+			color = MaterialTheme.colorScheme.surfaceContainerLow
+		) {
+			Column(modifier = Modifier.fillMaxSize()) {
+				Row(
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(horizontal = 16.dp, vertical = 12.dp),
+					verticalAlignment = Alignment.CenterVertically,
+					horizontalArrangement = Arrangement.SpaceBetween
+				) {
+					Text(
+						text = stringResource(R.string.apkmirror_webview_dialog_title),
+						style = MaterialTheme.typography.titleMedium,
+						fontWeight = FontWeight.Bold
+					)
+					FilledTonalButton(
+						onClick = {
+							runCatching { CookieManager.getInstance().flush() }
+							onDismiss()
+						},
+						shape = CircleShape
+					) {
+						Text(stringResource(R.string.apkmirror_webview_dialog_done))
+					}
+				}
+				HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+				AndroidView(
+					factory = { ctx ->
+						WebView(ctx).apply {
+							val cookieManager = CookieManager.getInstance()
+							cookieManager.setAcceptCookie(true)
+							cookieManager.setAcceptThirdPartyCookies(this, false)
+							settings.apply {
+								javaScriptEnabled = true
+								domStorageEnabled = true
+								allowFileAccess = false
+								allowContentAccess = false
+								mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
+								userAgentString = userAgent
+								useWideViewPort = true
+								loadWithOverviewMode = true
+							}
+							webViewClient = object : WebViewClient() {
+								override fun shouldOverrideUrlLoading(
+									view: WebView?,
+									request: WebResourceRequest?
+								): Boolean {
+									val uri = request?.url ?: return true
+									val scheme = uri.scheme.orEmpty().lowercase()
+									val host = uri.host.orEmpty().lowercase()
+									if (request.isForMainFrame && (scheme != "https" || !WebKitCookieJar.isTrustedApkMirrorHost(host))) {
+										return true
+									}
+									return false
+								}
+
+								override fun onPageFinished(view: WebView?, url: String?) {
+									super.onPageFinished(view, url)
+									runCatching { cookieManager.flush() }
+								}
+							}
+							loadUrl("https://www.apkmirror.com/")
+							webViewRef = this
+						}
+					},
+					modifier = Modifier
+						.fillMaxWidth()
+						.weight(1f)
+				)
+			}
+		}
+	}
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FDroidReposBottomSheet(
+	repos: List<FDroidRepoConfig>,
+	onToggleRepo: (String, Boolean) -> Unit,
+	onAddCustomRepo: (rawUrl: String, explicitName: String, explicitFingerprint: String) -> Result<FDroidRepoConfig>,
+	onRemoveCustomRepo: (String) -> Unit,
+	onDismiss: () -> Unit
+) {
+	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+	var showAddDialog by remember { mutableStateOf(false) }
+
+	ModalBottomSheet(
+		onDismissRequest = onDismiss,
+		sheetState = sheetState,
+		containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+		contentColor = MaterialTheme.colorScheme.onSurface,
+		dragHandle = {
+			Box(
+				modifier = Modifier
+					.padding(vertical = 12.dp)
+					.width(36.dp)
+					.height(4.dp)
+					.clip(CircleShape)
+					.background(MaterialTheme.colorScheme.outlineVariant)
+			)
+		}
+	) {
+		Column(
+			modifier = Modifier
+				.fillMaxWidth()
+				.verticalScroll(rememberScrollState())
+				.padding(horizontal = 24.dp)
+				.padding(bottom = 32.dp),
+			verticalArrangement = Arrangement.spacedBy(14.dp)
+		) {
+			Row(
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(12.dp)
+			) {
+				Box(
+					modifier = Modifier
+						.size(40.dp)
+						.clip(RoundedCornerShape(12.dp))
+						.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+					contentAlignment = Alignment.Center
+				) {
+					Icon(
+						painter = painterResource(R.drawable.ic_izzy),
+						contentDescription = null,
+						tint = MaterialTheme.colorScheme.primary,
+						modifier = Modifier.size(22.dp)
+					)
+				}
+				Column(modifier = Modifier.weight(1f)) {
+					Text(
+						text = stringResource(R.string.fdroid_repos_sheet_title),
+						style = MaterialTheme.typography.titleMedium,
+						fontWeight = FontWeight.Bold
+					)
+					Text(
+						text = stringResource(R.string.fdroid_repos_sheet_desc),
+						style = MaterialTheme.typography.bodySmall,
+						color = MaterialTheme.colorScheme.onSurfaceVariant
+					)
+				}
+			}
+
+			Column(
+				modifier = Modifier.fillMaxWidth(),
+				verticalArrangement = Arrangement.spacedBy(8.dp)
+			) {
+				repos.forEach { repo ->
+					Surface(
+						modifier = Modifier.fillMaxWidth(),
+						shape = RoundedCornerShape(16.dp),
+						color = MaterialTheme.colorScheme.surfaceContainer
+					) {
+						Row(
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(horizontal = 16.dp, vertical = 12.dp),
+							verticalAlignment = Alignment.CenterVertically,
+							horizontalArrangement = Arrangement.spacedBy(10.dp)
+						) {
+							Column(modifier = Modifier.weight(1f)) {
+								Text(
+									text = repo.name,
+									style = MaterialTheme.typography.bodyMedium,
+									fontWeight = FontWeight.SemiBold,
+									maxLines = 1,
+									overflow = TextOverflow.Ellipsis
+								)
+								Text(
+									text = repo.normalizedUrl,
+									style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+									color = MaterialTheme.colorScheme.onSurfaceVariant,
+									maxLines = 1,
+									overflow = TextOverflow.Ellipsis
+								)
+								if (repo.normalizedFingerprint.isBlank()) {
+									Spacer(modifier = Modifier.height(4.dp))
+									Surface(
+										shape = CircleShape,
+										color = MaterialTheme.colorScheme.tertiaryContainer
+									) {
+										Row(
+											modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+											verticalAlignment = Alignment.CenterVertically,
+											horizontalArrangement = Arrangement.spacedBy(4.dp)
+										) {
+											Icon(
+												imageVector = Icons.Filled.Warning,
+												contentDescription = null,
+												tint = MaterialTheme.colorScheme.onTertiaryContainer,
+												modifier = Modifier.size(12.dp)
+											)
+											Text(
+												text = stringResource(R.string.custom_fdroid_unpinned_badge),
+												style = MaterialTheme.typography.labelSmall,
+												fontWeight = FontWeight.SemiBold,
+												color = MaterialTheme.colorScheme.onTertiaryContainer
+											)
+										}
+									}
+									Text(
+										text = stringResource(R.string.custom_fdroid_unpinned_hint),
+										style = MaterialTheme.typography.labelSmall,
+										color = MaterialTheme.colorScheme.onSurfaceVariant
+									)
+								} else if (repo.isTofuPinned) {
+									Spacer(modifier = Modifier.height(4.dp))
+									Surface(
+										shape = CircleShape,
+										color = MaterialTheme.colorScheme.secondaryContainer
+									) {
+										Row(
+											modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+											verticalAlignment = Alignment.CenterVertically,
+											horizontalArrangement = Arrangement.spacedBy(4.dp)
+										) {
+											Icon(
+												imageVector = Icons.Filled.Info,
+												contentDescription = null,
+												tint = MaterialTheme.colorScheme.onSecondaryContainer,
+												modifier = Modifier.size(12.dp)
+											)
+											Text(
+												text = stringResource(R.string.custom_fdroid_tofu_pinned_badge),
+												style = MaterialTheme.typography.labelSmall,
+												fontWeight = FontWeight.SemiBold,
+												color = MaterialTheme.colorScheme.onSecondaryContainer
+											)
+										}
+									}
+									Text(
+										text = stringResource(
+											R.string.custom_fdroid_tofu_pinned_hint,
+											repo.normalizedFingerprint.take(16)
+										),
+										style = MaterialTheme.typography.labelSmall,
+										color = MaterialTheme.colorScheme.onSurfaceVariant
+									)
+								} else if (repo.normalizedFingerprint.length >= 16) {
+									val shortFp = repo.normalizedFingerprint.take(8) + "…" + repo.normalizedFingerprint.takeLast(8)
+									Text(
+										text = "SHA-256: $shortFp",
+										style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+										color = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
+										maxLines = 1
+									)
+								}
+							}
+							if (!repo.isBuiltIn) {
+								androidx.compose.material3.IconButton(
+									onClick = { onRemoveCustomRepo(repo.id) }
+								) {
+									Icon(
+										imageVector = Icons.Default.Delete,
+										contentDescription = stringResource(R.string.fdroid_repo_delete_cd),
+										tint = MaterialTheme.colorScheme.error
+									)
+								}
+							}
+							Switch(
+								checked = repo.enabled,
+								onCheckedChange = { enabled -> onToggleRepo(repo.id, enabled) }
+							)
+						}
+					}
+				}
+			}
+
+			OutlinedButton(
+				onClick = { showAddDialog = true },
+				modifier = Modifier.fillMaxWidth(),
+				shape = RoundedCornerShape(14.dp)
+			) {
+				Icon(
+					imageVector = Icons.Default.Add,
+					contentDescription = null,
+					modifier = Modifier.size(18.dp)
+				)
+				Spacer(Modifier.width(8.dp))
+				Text(text = stringResource(R.string.fdroid_repo_add_button))
+			}
+
 			FilledTonalButton(
 				onClick = onDismiss,
 				modifier = Modifier.fillMaxWidth(),
@@ -3986,6 +5184,85 @@ private fun ApkMirrorSettingsBottomSheet(
 				Text(text = stringResource(R.string.shizuku_setup_close))
 			}
 		}
+	}
+
+	if (showAddDialog) {
+		var rawUrl by remember { mutableStateOf("") }
+		var customName by remember { mutableStateOf("") }
+		var customFingerprint by remember { mutableStateOf("") }
+		var errorMessage by remember { mutableStateOf<String?>(null) }
+
+		AlertDialog(
+			onDismissRequest = { showAddDialog = false },
+			shape = RoundedCornerShape(28.dp),
+			containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+			title = { Text(stringResource(R.string.fdroid_repo_add_title)) },
+			text = {
+				Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+					Text(
+						text = stringResource(R.string.fdroid_repo_add_desc),
+						style = MaterialTheme.typography.bodySmall,
+						color = MaterialTheme.colorScheme.onSurfaceVariant
+					)
+					OutlinedTextField(
+						value = rawUrl,
+						onValueChange = {
+							rawUrl = it
+							errorMessage = null
+						},
+						label = { Text(stringResource(R.string.fdroid_repo_url_label)) },
+						placeholder = { Text(stringResource(R.string.fdroid_repo_url_hint)) },
+						singleLine = true,
+						modifier = Modifier.fillMaxWidth()
+					)
+					OutlinedTextField(
+						value = customName,
+						onValueChange = { customName = it },
+						label = { Text(stringResource(R.string.fdroid_repo_name_label)) },
+						singleLine = true,
+						modifier = Modifier.fillMaxWidth()
+					)
+					OutlinedTextField(
+						value = customFingerprint,
+						onValueChange = {
+							customFingerprint = it
+							errorMessage = null
+						},
+						label = { Text(stringResource(R.string.fdroid_repo_fingerprint_label)) },
+						singleLine = true,
+						modifier = Modifier.fillMaxWidth()
+					)
+					errorMessage?.let { err ->
+						Text(
+							text = err,
+							style = MaterialTheme.typography.bodySmall,
+							color = MaterialTheme.colorScheme.error
+						)
+					}
+				}
+			},
+			confirmButton = {
+				Button(
+					onClick = {
+						val res = onAddCustomRepo(rawUrl, customName, customFingerprint)
+						if (res.isSuccess) {
+							showAddDialog = false
+						} else {
+							errorMessage = res.exceptionOrNull()?.message
+						}
+					},
+					enabled = rawUrl.isNotBlank(),
+					shape = CircleShape
+				) {
+					Text(stringResource(R.string.github_token_dialog_save))
+				}
+			},
+			dismissButton = {
+				TextButton(onClick = { showAddDialog = false }) {
+					Text(stringResource(R.string.action_cancel))
+				}
+			}
+		)
 	}
 }
 
@@ -4161,6 +5438,227 @@ private fun WifiDownloadBottomSheet(
 				shape = RoundedCornerShape(14.dp)
 			) {
 				Text(text = stringResource(R.string.shizuku_setup_close))
+			}
+		}
+	}
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ObtainiumImportBottomSheet(
+	preview: ObtainiumImportPreview,
+	onDismiss: () -> Unit,
+	onConfirmImport: (importMappings: Boolean, importFDroidRepos: Boolean, selectedWatchedPackages: Set<String>) -> Unit
+) {
+	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+	var importMappings by remember { mutableStateOf(preview.matchedInstalledBindings.isNotEmpty()) }
+	var importFDroidRepos by remember { mutableStateOf(preview.detectedFDroidRepos.isNotEmpty()) }
+	val selectedWatched = remember(preview) {
+		mutableStateMapOf<String, Boolean>().apply {
+			preview.uninstalledCandidateApps.forEach { put(it.packageName, false) }
+		}
+	}
+
+	ModalBottomSheet(
+		onDismissRequest = onDismiss,
+		sheetState = sheetState,
+		containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+		contentColor = MaterialTheme.colorScheme.onSurface,
+		dragHandle = {
+			Box(
+				modifier = Modifier
+					.padding(vertical = 12.dp)
+					.width(36.dp)
+					.height(4.dp)
+					.clip(CircleShape)
+					.background(MaterialTheme.colorScheme.outlineVariant)
+			)
+		}
+	) {
+		Column(
+			modifier = Modifier
+				.fillMaxWidth()
+				.verticalScroll(rememberScrollState())
+				.navigationBarsPadding()
+				.imePadding()
+				.padding(horizontal = 24.dp)
+				.padding(bottom = 28.dp),
+			verticalArrangement = Arrangement.spacedBy(12.dp)
+		) {
+			Text(
+				text = stringResource(R.string.obtainium_import_title),
+				style = MaterialTheme.typography.titleMedium,
+				fontWeight = FontWeight.Bold
+			)
+			Text(
+				text = stringResource(R.string.obtainium_import_subtitle, preview.totalEntries),
+				style = MaterialTheme.typography.bodySmall,
+				color = MaterialTheme.colorScheme.onSurfaceVariant
+			)
+
+			if (!preview.hasAnyImportableData) {
+				Surface(
+					modifier = Modifier.fillMaxWidth(),
+					shape = RoundedCornerShape(14.dp),
+					color = MaterialTheme.colorScheme.surfaceContainer
+				) {
+					Text(
+						text = stringResource(R.string.obtainium_import_nothing),
+						style = MaterialTheme.typography.bodyMedium,
+						modifier = Modifier.padding(14.dp)
+					)
+				}
+			} else {
+				if (preview.matchedInstalledBindings.isNotEmpty()) {
+					Surface(
+						modifier = Modifier.fillMaxWidth(),
+						shape = RoundedCornerShape(14.dp),
+						color = MaterialTheme.colorScheme.surfaceContainer
+					) {
+						Row(
+							modifier = Modifier
+								.fillMaxWidth()
+								.clickable { importMappings = !importMappings }
+								.padding(horizontal = 12.dp, vertical = 10.dp),
+							verticalAlignment = Alignment.CenterVertically,
+							horizontalArrangement = Arrangement.spacedBy(8.dp)
+						) {
+							Checkbox(checked = importMappings, onCheckedChange = { importMappings = it })
+							Column(modifier = Modifier.weight(1f)) {
+								Text(
+									text = stringResource(R.string.obtainium_import_section_mappings, preview.matchedInstalledBindings.size),
+									style = MaterialTheme.typography.bodyMedium,
+									fontWeight = FontWeight.SemiBold
+								)
+								val sampleNames = preview.matchedInstalledBindings.keys.take(4).joinToString(", ") { pkg ->
+									preview.matchedInstalledNames[pkg] ?: pkg
+								}
+								Text(
+									text = sampleNames,
+									style = MaterialTheme.typography.bodySmall,
+									color = MaterialTheme.colorScheme.onSurfaceVariant,
+									maxLines = 2,
+									overflow = TextOverflow.Ellipsis
+								)
+							}
+						}
+					}
+				}
+
+				if (preview.detectedFDroidRepos.isNotEmpty()) {
+					Surface(
+						modifier = Modifier.fillMaxWidth(),
+						shape = RoundedCornerShape(14.dp),
+						color = MaterialTheme.colorScheme.surfaceContainer
+					) {
+						Row(
+							modifier = Modifier
+								.fillMaxWidth()
+								.clickable { importFDroidRepos = !importFDroidRepos }
+								.padding(horizontal = 12.dp, vertical = 10.dp),
+							verticalAlignment = Alignment.CenterVertically,
+							horizontalArrangement = Arrangement.spacedBy(8.dp)
+						) {
+							Checkbox(checked = importFDroidRepos, onCheckedChange = { importFDroidRepos = it })
+							Column(modifier = Modifier.weight(1f)) {
+								Text(
+									text = stringResource(R.string.obtainium_import_section_fdroid, preview.detectedFDroidRepos.size),
+									style = MaterialTheme.typography.bodyMedium,
+									fontWeight = FontWeight.SemiBold
+								)
+								Text(
+									text = preview.detectedFDroidRepos.joinToString(", ") { it.name },
+									style = MaterialTheme.typography.bodySmall,
+									color = MaterialTheme.colorScheme.onSurfaceVariant,
+									maxLines = 2,
+									overflow = TextOverflow.Ellipsis
+								)
+							}
+						}
+					}
+				}
+
+				if (preview.uninstalledCandidateApps.isNotEmpty()) {
+					Surface(
+						modifier = Modifier.fillMaxWidth(),
+						shape = RoundedCornerShape(14.dp),
+						color = MaterialTheme.colorScheme.surfaceContainer
+					) {
+						Column(
+							modifier = Modifier.padding(12.dp),
+							verticalArrangement = Arrangement.spacedBy(6.dp)
+						) {
+							Text(
+								text = stringResource(R.string.obtainium_import_section_watched, preview.uninstalledCandidateApps.size),
+								style = MaterialTheme.typography.bodyMedium,
+								fontWeight = FontWeight.SemiBold
+							)
+							Text(
+								text = stringResource(R.string.obtainium_import_watched_desc),
+								style = MaterialTheme.typography.bodySmall,
+								color = MaterialTheme.colorScheme.onSurfaceVariant
+							)
+							preview.uninstalledCandidateApps.forEach { candidate ->
+								val checked = selectedWatched[candidate.packageName] == true
+								Row(
+									modifier = Modifier
+										.fillMaxWidth()
+										.clickable { selectedWatched[candidate.packageName] = !checked }
+										.padding(vertical = 2.dp),
+									verticalAlignment = Alignment.CenterVertically,
+									horizontalArrangement = Arrangement.spacedBy(8.dp)
+								) {
+									Checkbox(
+										checked = checked,
+										onCheckedChange = { selectedWatched[candidate.packageName] = it }
+									)
+									Column(modifier = Modifier.weight(1f)) {
+										Text(
+											text = candidate.appName,
+											style = MaterialTheme.typography.bodySmall,
+											fontWeight = FontWeight.SemiBold,
+											maxLines = 1,
+											overflow = TextOverflow.Ellipsis
+										)
+										Text(
+											text = candidate.packageName,
+											style = MaterialTheme.typography.labelSmall,
+											color = MaterialTheme.colorScheme.onSurfaceVariant,
+											maxLines = 1,
+											overflow = TextOverflow.Ellipsis
+										)
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			val chosenWatchedSet = selectedWatched.filterValues { it }.keys
+			val hasSelection = (importMappings && preview.matchedInstalledBindings.isNotEmpty()) ||
+				(importFDroidRepos && preview.detectedFDroidRepos.isNotEmpty()) ||
+				chosenWatchedSet.isNotEmpty()
+
+			Row(
+				modifier = Modifier.fillMaxWidth(),
+				horizontalArrangement = Arrangement.spacedBy(10.dp)
+			) {
+				FilledTonalButton(
+					onClick = onDismiss,
+					modifier = Modifier.weight(1f),
+					shape = CircleShape
+				) {
+					Text(text = stringResource(android.R.string.cancel))
+				}
+				Button(
+					onClick = { onConfirmImport(importMappings, importFDroidRepos, chosenWatchedSet) },
+					enabled = hasSelection,
+					modifier = Modifier.weight(1f),
+					shape = CircleShape
+				) {
+					Text(text = stringResource(R.string.obtainium_import_btn_apply))
+				}
 			}
 		}
 	}

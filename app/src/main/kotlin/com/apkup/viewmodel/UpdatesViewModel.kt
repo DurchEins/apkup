@@ -1,76 +1,60 @@
 package com.apkup.viewmodel
 
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.util.Log
+import android.os.BatteryManager
+import androidx.compose.ui.platform.UriHandler
 import androidx.lifecycle.viewModelScope
-import com.apkup.service.DownloadInstallService
 import com.apkup.R
-import com.apkup.prefs.Prefs
+import com.apkup.data.repomapping.RepoBinding
 import com.apkup.data.snack.TextSnack
-import com.apkup.data.ui.AppInstallProgress
+import com.apkup.data.ui.ApkMirrorSource
 import com.apkup.data.ui.AppInstallStatus
 import com.apkup.data.ui.AppInstalled
 import com.apkup.data.ui.AppUpdate
 import com.apkup.data.ui.IgnoredVersionEntry
+import com.apkup.data.ui.InstallFailureReason
 import com.apkup.data.ui.Link
 import com.apkup.data.ui.UpdateCheckResult
+import com.apkup.data.ui.UpdateHistoryEntry
 import com.apkup.data.ui.UpdateInstallMode
 import com.apkup.data.ui.UpdatesUiState
 import com.apkup.data.ui.mergeRetainedUpdatesDuringCheck
 import com.apkup.data.ui.removeId
 import com.apkup.data.ui.removePackageName
-import com.apkup.data.ui.setIsInstalling
-import com.apkup.data.ui.setIsQueued
 import com.apkup.data.ui.setProgress
 import com.apkup.data.ui.toUpdatesUiState
 import com.apkup.data.ui.updateCheckLoadingState
-import com.apkup.repository.ApkMirrorResolutionResult
+import com.apkup.prefs.Prefs
 import com.apkup.repository.ApkMirrorResolver
 import com.apkup.repository.UpdatesRepository
-import com.apkup.util.ApkmExtractor
+import com.apkup.service.DownloadTaskState
+import com.apkup.util.AppJournal
 import com.apkup.util.Badger
+import com.apkup.util.BatchProgressSummary
 import com.apkup.util.DownloadStorageManager
 import com.apkup.util.Downloader
 import com.apkup.util.InstallLog
-import com.apkup.util.InstallPart
 import com.apkup.util.SessionInstaller
 import com.apkup.util.SnackBar
 import com.apkup.util.Stringer
 import com.apkup.util.UpdatesNotification
 import com.apkup.util.buildUpdateHistoryEntry
 import com.apkup.util.launchWithMutex
-import com.aurora.gplayapi.data.models.PlayFile
-import kotlinx.coroutines.CancellationException
+import com.apkup.worker.DownloadCoordinator
 import kotlinx.coroutines.Dispatchers
-import androidx.compose.ui.platform.UriHandler
-import com.apkup.data.ui.ApkMirrorSource
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.sync.withPermit
 import java.io.File
-import java.io.IOException
-import java.util.concurrent.ConcurrentHashMap
-
-class ApkMirrorCloudflareException(val fallbackUrl: String) : IOException("Cloudflare challenge encountered on APKMirror")
-class ApkMirrorResolutionException(val fallbackUrl: String, cause: Throwable? = null) : IOException("Failed to resolve direct APKMirror download link", cause)
-
-data class DownloadedPackage(
-	val id: Int,
-	val packageName: String,
-	val appName: String,
-	val stagingDir: File,
-	val files: List<File>
-)
 
 class UpdatesViewModel(
 	private val updatesRepository: UpdatesRepository,
@@ -81,79 +65,113 @@ class UpdatesViewModel(
 	private val snackBar: SnackBar,
 	private val stringer: Stringer,
 	private val installLog: InstallLog,
-	private val context: Context? = null,
+	context: Context? = null,
 	private val apkMirrorResolver: ApkMirrorResolver? = null,
-	private val updatesNotification: UpdatesNotification? = null
+	private val updatesNotification: UpdatesNotification? = null,
+	private val downloadCoordinator: DownloadCoordinator? = null
 ) : InstallViewModel(downloader, installer, snackBar, stringer, installLog, prefs) {
 
-	private val mutex = Mutex()
-	private val installQueueMutex = Mutex()
-	private val downloadSemaphore = Semaphore(3)
-	private val activeDownloadJobs = ConcurrentHashMap<Int, Job>()
-	private val installChannel = Channel<DownloadedPackage>(Channel.UNLIMITED)
-	private var installProcessorJob: Job? = null
+	private val appContext: Context? = context?.applicationContext ?: context
+	private val scanMutex = Mutex()
+	private val uiStateMutex = Mutex()
 	private var updateCheckJob: Job? = null
+
+	@Volatile
 	private var rawLatestUpdates: List<AppUpdate> = emptyList()
+
+	@Volatile
 	private var retainedUpdatesDuringCheck: List<AppUpdate> = emptyList()
+
 	private val state = MutableStateFlow<UpdatesUiState>(UpdatesUiState.Loading)
+
 	private val _showInstallPermissionDialog = MutableStateFlow(false)
 	val showInstallPermissionDialog: StateFlow<Boolean> = _showInstallPermissionDialog.asStateFlow()
+
 	private val _showMobileDataDialog = MutableStateFlow(false)
 	val showMobileDataDialog: StateFlow<Boolean> = _showMobileDataDialog.asStateFlow()
+
+	private val _showBatteryPromptDialog = MutableStateFlow(false)
+	val showBatteryPromptDialog: StateFlow<Boolean> = _showBatteryPromptDialog.asStateFlow()
+
 	private val _readyUpdateIds = MutableStateFlow<Set<Int>>(emptySet())
 	val readyUpdateIds: StateFlow<Set<Int>> = _readyUpdateIds.asStateFlow()
+
+	private val emptyActiveTasks = MutableStateFlow<Map<Int, DownloadTaskState>>(emptyMap())
+	val activeTasksFlow: StateFlow<Map<Int, DownloadTaskState>> =
+		downloadCoordinator?.activeTasksFlow ?: emptyActiveTasks.asStateFlow()
+
+	private val emptyCompletedTasks = MutableStateFlow<List<DownloadTaskState>>(emptyList())
+	val completedTasksFlow: StateFlow<List<DownloadTaskState>> =
+		downloadCoordinator?.completedTasksFlow ?: emptyCompletedTasks.asStateFlow()
+
+	private val emptyBatchProgress = MutableStateFlow<BatchProgressSummary?>(null)
+	val batchProgressFlow: StateFlow<BatchProgressSummary?> =
+		downloadCoordinator?.batchProgressFlow ?: emptyBatchProgress.asStateFlow()
+
+	val updateHistoryFlow: StateFlow<List<UpdateHistoryEntry>> = prefs.updateHistoryFlow
+
 	private var pendingMobileDataInstallAction: (() -> Unit)? = null
+	private var pendingBatteryInstallAction: (() -> Unit)? = null
+
 	@Volatile
 	private var isAppInForeground: Boolean = true
 
 	private fun getCacheDir(): File =
-		context?.let { DownloadStorageManager.getDownloadDir(it) } ?: File(System.getProperty("java.io.tmpdir") ?: ".", "apkup_cache")
+		appContext?.let { DownloadStorageManager.getDownloadDir(it) }
+			?: File(System.getProperty("java.io.tmpdir") ?: ".", "apkup_cache")
 
 	init {
 		downloader.cleanupOrphanStagingFiles(getCacheDir())
 		subscribeToInstallStatus()
 		subscribeToInstallProgress { progress ->
 			viewModelScope.launch(Dispatchers.IO) {
-				mutex.withLock {
-					if (context == null || DownloadInstallService.activeTasksFlow.value.containsKey(progress.id)) {
+				uiStateMutex.withLock {
+					if (downloadCoordinator == null || activeTasksFlow.value.containsKey(progress.id)) {
 						state.value = successState(state.value.mutableUpdates().setProgress(progress))
 					}
 				}
 			}
 		}
-		viewModelScope.launch(Dispatchers.IO) {
-			DownloadInstallService.activeTasksFlow.collect { activeMap ->
-				mutex.withLock {
-					val currentList = state.value.mutableUpdates()
-					var modified = false
-					currentList.forEachIndexed { index, appUpdate ->
-						val task = activeMap[appUpdate.id]
-							?: activeMap.values.firstOrNull { it.packageName == appUpdate.packageName }
-						if (task != null) {
-							val updated = appUpdate.copy(
-								isInstalling = task.isInstalling || !task.isQueued,
-								isQueued = task.isQueued,
-								progress = task.progress,
-								total = if (task.total > 0) task.total else appUpdate.total
-							)
-							if (currentList[index] != updated) {
-								currentList[index] = updated
+		if (downloadCoordinator != null) {
+			viewModelScope.launch(Dispatchers.Main.immediate) {
+				downloadCoordinator.safFallbackEvents.collect { labelOrLocation ->
+					notifySafFallbackUsed(labelOrLocation)
+				}
+			}
+			viewModelScope.launch(Dispatchers.IO) {
+				downloadCoordinator.activeTasksFlow.collect { activeMap ->
+					uiStateMutex.withLock {
+						val currentList = state.value.mutableUpdates()
+						var modified = false
+						currentList.forEachIndexed { index, appUpdate ->
+							val task = activeMap[appUpdate.id]
+								?: activeMap.values.firstOrNull { it.packageName == appUpdate.packageName }
+							if (task != null) {
+								val updated = appUpdate.copy(
+									isInstalling = task.isInstalling || !task.isQueued,
+									isQueued = task.isQueued,
+									progress = task.progress,
+									total = if (task.total > 0) task.total else appUpdate.total
+								)
+								if (currentList[index] != updated) {
+									currentList[index] = updated
+									modified = true
+								}
+							} else if (appUpdate.isInstalling || appUpdate.isQueued || appUpdate.progress > 0L) {
+								val reset = appUpdate.copy(
+									isInstalling = false,
+									isQueued = false,
+									progress = 0L
+								)
+								currentList[index] = reset
 								modified = true
 							}
-						} else if (context != null && (appUpdate.isInstalling || appUpdate.isQueued || appUpdate.progress > 0L)) {
-							val reset = appUpdate.copy(
-								isInstalling = false,
-								isQueued = false,
-								progress = 0L
-							)
-							currentList[index] = reset
-							modified = true
 						}
+						if (modified) {
+							state.value = successState(currentList)
+						}
+						refreshReadyUpdateIds()
 					}
-					if (modified) {
-						state.value = successState(currentList)
-					}
-					refreshReadyUpdateIds()
 				}
 			}
 		}
@@ -171,8 +189,51 @@ class UpdatesViewModel(
 		}
 	}
 
+	fun clearUpdateHistory() = prefs.clearUpdateHistory()
+
+	fun clearCompletedDownloadTasks() {
+		downloadCoordinator?.clearCompletedTasks()
+	}
+
+	fun getUpdatesSortOrder(): String = prefs.updatesSortOrder.get()
+
+	fun setUpdatesSortOrder(orderName: String) = prefs.updatesSortOrder.put(orderName)
+
+	fun getCustomRepoBinding(packageName: String): RepoBinding? =
+		prefs.readCustomRepoBindingsSafe()[packageName]
+
+	fun getUpdatesDisplayMode(): Int = prefs.updatesDisplayMode.get()
+
+	fun isDirectApkMirrorEnabled(): Boolean = prefs.directApkMirrorDownloads.get()
+
+	fun isUseApkMirrorEnabled(): Boolean = prefs.useApkMirror.get()
+
+	fun isUsePlayEnabled(): Boolean = prefs.usePlay.get()
+
+	fun getEnabledFDroidRepoNames(): List<String> = buildList {
+		if (prefs.useIzzyOnDroid.get()) {
+			prefs.getFDroidRepos().filter { it.enabled }.forEach { add(it.name) }
+		}
+	}
+
+	fun getActiveSourceNames(): List<String> = buildList {
+		if (prefs.useApkMirror.get()) add("APKMirror")
+		if (prefs.usePlay.get()) add("Google Play")
+		if (prefs.useIzzyOnDroid.get()) {
+			val enabledFDroidRepos = prefs.getFDroidRepos().filter { it.enabled }
+			enabledFDroidRepos.forEach { add(it.name) }
+		}
+		if (prefs.useGitHub.get()) add("GitHub")
+		if (prefs.useGitLab.get()) add("GitLab")
+		if (prefs.useCodeberg.get()) add("Codeberg")
+		if (prefs.useCustomFDroidRepos.get()) {
+			val customRepos = prefs.readCustomFDroidReposSafe().filter { it.enabled }
+			customRepos.forEach { add(it.name) }
+		}
+	}
+
 	fun canProceedWithInstall(): Boolean =
-		installer.isShizukuReady() || installer.canRequestPackageInstalls()
+		installer.isSilentInstallerReady() || installer.canRequestPackageInstalls()
 
 	fun triggerInstallPermissionPrompt() {
 		_showInstallPermissionDialog.value = true
@@ -200,7 +261,7 @@ class UpdatesViewModel(
 	}
 
 	private fun isUnmeteredWifiConnected(): Boolean {
-		val ctx = context ?: return true
+		val ctx = appContext ?: return true
 		return runCatching {
 			val cm = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return true
 			val network = cm.activeNetwork ?: return false
@@ -211,8 +272,43 @@ class UpdatesViewModel(
 		}.getOrDefault(true)
 	}
 
+	private fun isDeviceCharging(): Boolean {
+		val ctx = appContext ?: return true
+		return runCatching {
+			val intent = ctx.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED)) ?: return true
+			val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
+			val plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0)
+			status == BatteryManager.BATTERY_STATUS_CHARGING ||
+				status == BatteryManager.BATTERY_STATUS_FULL ||
+				plugged != 0
+		}.getOrDefault(true)
+	}
+
 	private fun shouldPromptForMobileData(): Boolean =
 		prefs.downloadWifiOnly.get() && !isUnmeteredWifiConnected()
+
+	private fun shouldPromptForBattery(): Boolean =
+		prefs.downloadChargingOnly.get() && !isDeviceCharging()
+
+	private fun runWithDownloadGuards(isCachedReady: Boolean, onProceed: () -> Unit) {
+		if (!isCachedReady && shouldPromptForMobileData()) {
+			pendingMobileDataInstallAction = {
+				checkBatteryGuardOrProceed(isCachedReady, onProceed)
+			}
+			_showMobileDataDialog.value = true
+			return
+		}
+		checkBatteryGuardOrProceed(isCachedReady, onProceed)
+	}
+
+	private fun checkBatteryGuardOrProceed(isCachedReady: Boolean, onProceed: () -> Unit) {
+		if (!isCachedReady && shouldPromptForBattery()) {
+			pendingBatteryInstallAction = onProceed
+			_showBatteryPromptDialog.value = true
+			return
+		}
+		onProceed()
+	}
 
 	fun confirmMobileDataDownload() {
 		val action = pendingMobileDataInstallAction
@@ -224,6 +320,18 @@ class UpdatesViewModel(
 	fun dismissMobileDataDialog() {
 		pendingMobileDataInstallAction = null
 		_showMobileDataDialog.value = false
+	}
+
+	fun confirmBatteryDownload() {
+		val action = pendingBatteryInstallAction
+		pendingBatteryInstallAction = null
+		_showBatteryPromptDialog.value = false
+		action?.invoke()
+	}
+
+	fun dismissBatteryPromptDialog() {
+		pendingBatteryInstallAction = null
+		_showBatteryPromptDialog.value = false
 	}
 
 	fun state(): StateFlow<UpdatesUiState> = state
@@ -264,7 +372,7 @@ class UpdatesViewModel(
 		if (cached != null) {
 			val (timestampMillis, cachedResult) = cached
 			return viewModelScope.launch(Dispatchers.IO) {
-				mutex.withLock {
+				uiStateMutex.withLock {
 					rawLatestUpdates = cachedResult.updates
 					retainedUpdatesDuringCheck = cachedResult.updates
 					setSuccess(
@@ -315,12 +423,14 @@ class UpdatesViewModel(
 			retainedUpdatesDuringCheck = rawLatestUpdates.ifEmpty { state.value.updates() }
 		}
 		return viewModelScope.launch(Dispatchers.IO) {
-			mutex.withLock {
+			scanMutex.withLock {
 				if (retainedUpdatesDuringCheck.isEmpty()) {
 					badger.changeUpdatesBadge("")
 				}
-				updatesRepository.updates(installedAppsSnapshot).collect {
-					setSuccess(it)
+				updatesRepository.updates(installedAppsSnapshot).collect { checkResult ->
+					uiStateMutex.withLock {
+						setSuccess(checkResult)
+					}
 				}
 			}
 		}.also { updateCheckJob = it }
@@ -339,26 +449,84 @@ class UpdatesViewModel(
 	override fun isApkMirrorBlocked(): Boolean =
 		apkMirrorResolver?.isCloudflareBlocked() ?: false
 
+	override fun isApkMirrorBlocked(update: AppUpdate): Boolean =
+		apkMirrorResolver?.isAppInCooldown(
+			variantUrl = (update.link as? Link.Url)?.link,
+			packageName = update.packageName
+		) ?: false
+
 	override fun install(update: AppUpdate, uriHandler: UriHandler) {
-		val isDirectApkMirror = update.source == ApkMirrorSource && prefs.directApkMirrorDownloads.get() && !isApkMirrorBlocked()
+		val inCooldown = isApkMirrorBlocked(update)
+		val isDirectApkMirror = update.source == ApkMirrorSource && prefs.directApkMirrorDownloads.get() && !inCooldown
+		if (update.source == ApkMirrorSource && prefs.directApkMirrorDownloads.get() && inCooldown) {
+			AppJournal.record("ApkMirror", "Cooldown active on tap for ${update.packageName}; opening browser fallback")
+		}
 		val isDirectDownload = update.source != ApkMirrorSource || isDirectApkMirror
 		val isCachedReady = downloader.hasReadyCachedApk(getCacheDir(), update.id, update.versionCode)
 		if (isDirectDownload && !canProceedWithInstall()) {
 			triggerInstallPermissionPrompt()
 			return
 		}
-		if (isDirectDownload && !isCachedReady && shouldPromptForMobileData()) {
-			pendingMobileDataInstallAction = { super.install(update, uriHandler) }
-			_showMobileDataDialog.value = true
+		if (isDirectDownload) {
+			runWithDownloadGuards(isCachedReady = isCachedReady) {
+				super.install(update, uriHandler)
+			}
 			return
 		}
 		super.install(update, uriHandler)
 	}
 
-	fun installAll() = viewModelScope.launch(Dispatchers.IO) {
-		val currentUpdates = state.value.updates()
+	fun saveApk(update: AppUpdate, uriHandler: UriHandler) {
+		val inCooldown = isApkMirrorBlocked(update)
+		val isDirectApkMirror = update.source == ApkMirrorSource && prefs.directApkMirrorDownloads.get() && !inCooldown
+		if (update.source == ApkMirrorSource && (!prefs.directApkMirrorDownloads.get() || inCooldown)) {
+			val url = (update.link as? Link.Url)?.link.orEmpty()
+			if (url.isNotBlank()) {
+				if (prefs.directApkMirrorDownloads.get() && inCooldown) {
+					snackBar.snackBar(
+						viewModelScope,
+						TextSnack(stringer.get(R.string.apkmirror_cooldown_browser_fallback, update.name))
+					)
+				}
+				runCatching { uriHandler.openUri(url) }
+			}
+			return
+		}
+		if (update.link is Link.Empty) return
+		val isDirectDownload = update.source != ApkMirrorSource || isDirectApkMirror
+		val isCachedReady = downloader.hasReadyCachedApk(getCacheDir(), update.id, update.versionCode)
+		if (isDirectDownload) {
+			runWithDownloadGuards(isCachedReady = isCachedReady) {
+				saveApkDirect(update)
+			}
+			return
+		}
+		saveApkDirect(update)
+	}
+
+	private fun saveApkDirect(update: AppUpdate) {
+		downloadCoordinator?.enqueue(update, saveOnly = true)
+	}
+
+	/**
+	 * Enqueues direct-installable updates (`F-19`: when [targetUpdates] is supplied by a filtered view,
+	 * only those filtered updates are queued instead of all unfiltered updates).
+	 */
+	fun installAll(targetUpdates: List<AppUpdate>? = null) = viewModelScope.launch(Dispatchers.IO) {
+		installBatch(targetUpdates ?: state.value.updates())
+	}
+
+	fun installSelected(selectedUpdates: List<AppUpdate>) = viewModelScope.launch(Dispatchers.IO) {
+		if (selectedUpdates.isEmpty()) return@launch
+		installBatch(selectedUpdates)
+	}
+
+	private suspend fun installBatch(candidates: List<AppUpdate>) {
 		val directMirror = prefs.directApkMirrorDownloads.get()
-		val (directInstallable, browserOnly) = partitionInstallQueueCandidates(currentUpdates, directMirror)
+		val (rawDirect, rawBrowser) = partitionInstallQueueCandidates(candidates, directMirror)
+		val cooldownSkipped = rawDirect.filter { it.source == ApkMirrorSource && isApkMirrorBlocked(it) }
+		val directInstallable = if (cooldownSkipped.isEmpty()) rawDirect else rawDirect.filterNot { it in cooldownSkipped }
+		val browserOnly = rawBrowser + cooldownSkipped
 		if (directInstallable.isEmpty()) {
 			if (browserOnly.isNotEmpty()) {
 				snackBar.snackBar(
@@ -366,51 +534,42 @@ class UpdatesViewModel(
 					TextSnack(stringer.get(R.string.install_all_browser_only_hint))
 				)
 			}
-			return@launch
+			return
 		}
 		if (!canProceedWithInstall()) {
 			triggerInstallPermissionPrompt()
-			return@launch
+			return
 		}
-		if (shouldPromptForMobileData()) {
-			pendingMobileDataInstallAction = {
-				viewModelScope.launch(Dispatchers.IO) {
-					if (browserOnly.isNotEmpty()) {
-						snackBar.snackBar(
-							viewModelScope,
-							TextSnack(stringer.get(R.string.install_all_skipped_browser_hint, browserOnly.size))
-						)
-					}
-					enqueueInstallations(directInstallable)
+
+		val allCachedReady = directInstallable.all { candidate ->
+			downloader.hasReadyCachedApk(getCacheDir(), candidate.id, candidate.versionCode)
+		}
+
+		runWithDownloadGuards(isCachedReady = allCachedReady) {
+			viewModelScope.launch(Dispatchers.IO) {
+				if (browserOnly.isNotEmpty()) {
+					snackBar.snackBar(
+						viewModelScope,
+						TextSnack(stringer.get(R.string.install_all_skipped_browser_hint, browserOnly.size))
+					)
 				}
+				enqueueInstallations(directInstallable)
 			}
-			_showMobileDataDialog.value = true
-			return@launch
 		}
-
-		if (browserOnly.isNotEmpty()) {
-			snackBar.snackBar(
-				viewModelScope,
-				TextSnack(stringer.get(R.string.install_all_skipped_browser_hint, browserOnly.size))
-			)
-		}
-
-		enqueueInstallations(directInstallable)
 	}
 
 	private suspend fun enqueueInstallations(candidates: List<AppUpdate>) {
-		val newlyQueued = mutex.withLock {
+		val newlyQueued = uiStateMutex.withLock {
 			val queued = mutableListOf<AppUpdate>()
 			val current = state.value.mutableUpdates()
-			val alreadyActive = activeDownloadJobs.keys
-			val serviceActiveMap = DownloadInstallService.activeTasksFlow.value
+			val serviceActiveMap = activeTasksFlow.value
 			candidates.forEach { candidate ->
 				val idx = current.indexOfFirst { it.id == candidate.id || it.packageName == candidate.packageName }
 				if (idx != -1) {
 					val inState = current[idx]
 					val isSameId = inState.id == candidate.id
 					val isCachedReady = candidate.id in readyUpdateIds.value || inState.id in readyUpdateIds.value
-					val isCurrentlyActive = if (context != null) {
+					val isCurrentlyActive = if (downloadCoordinator != null) {
 						if (isCachedReady && candidates.size == 1) {
 							false
 						} else {
@@ -421,8 +580,7 @@ class UpdatesViewModel(
 						if (isCachedReady && candidates.size == 1) {
 							false
 						} else {
-							inState.isInstalling || (inState.isQueued && isSameId) ||
-								candidate.id in alreadyActive || inState.id in alreadyActive
+							inState.isInstalling || (inState.isQueued && isSameId)
 						}
 					}
 					if (!isCurrentlyActive) {
@@ -451,302 +609,20 @@ class UpdatesViewModel(
 			queued
 		}
 		if (newlyQueued.isNotEmpty()) {
-			val ctx = context
-			if (ctx != null) {
-				DownloadInstallService.startDownloads(ctx, newlyQueued)
-			} else {
-				ensureInstallProcessorStarted()
-				newlyQueued.forEach { update ->
-					startDownload(update)
-				}
-			}
+			downloadCoordinator?.enqueueBatch(newlyQueued)
 		}
 	}
 
-	private fun startDownload(update: AppUpdate) {
-		val job = viewModelScope.launch(Dispatchers.IO) {
-			val stagingDir = File(getCacheDir(), "download_staging_${update.id}").apply { mkdirs() }
-			try {
-				downloadSemaphore.withPermit {
-					val shouldProceed = mutex.withLock {
-						val current = state.value.mutableUpdates()
-						val exists = current.any { it.id == update.id }
-						if (exists) {
-							state.value = successState(
-								current.setIsQueued(update.id, false).setIsInstalling(update.id, true)
-							)
-						}
-						exists
-					}
-					if (!shouldProceed) {
-						stagingDir.deleteRecursively()
-						return@withPermit
-					}
-
-					installLog.beginInstall(update.id)
-					installLog.emitProgress(AppInstallProgress(update.id, 0L))
-
-					val cachedFiles = downloader.getReadyStagingFiles(getCacheDir(), update.id, update.versionCode)
-					val files = if (cachedFiles != null && cachedFiles.isNotEmpty()) {
-						cachedFiles
-					} else {
-						val downloaded = downloadUpdateFiles(update, stagingDir) { currentBytes, totalBytes ->
-							installLog.emitProgress(AppInstallProgress(update.id, currentBytes, totalBytes))
-						}
-						if (downloaded.isEmpty()) {
-							throw IOException("No files downloaded for ${update.packageName}")
-						}
-						downloader.markStagingReady(stagingDir, update.versionCode)
-						downloaded
-					}
-
-					ensureInstallProcessorStarted()
-					installChannel.send(
-						DownloadedPackage(
-							id = update.id,
-							packageName = update.packageName,
-							appName = update.name,
-							stagingDir = stagingDir,
-							files = files
-						)
-					)
-				}
-			} catch (cancellation: CancellationException) {
-				runCatching { stagingDir.deleteRecursively() }
-				installLog.emitProgress(AppInstallProgress(update.id, 0L))
-				cancelInstall(update.id)
-				throw cancellation
-			} catch (cf: ApkMirrorCloudflareException) {
-				Log.w("UpdatesViewModel", "Cloudflare security challenge for ${update.packageName}; launching browser fallback.")
-				runCatching { stagingDir.deleteRecursively() }
-				installLog.emitProgress(AppInstallProgress(update.id, 0L))
-				cancelInstall(update.id).join()
-				snackBar.snackBar(
-					viewModelScope,
-					TextSnack(stringer.get(R.string.apkmirror_challenge_fallback))
-				)
-				val fallbackUrl = cf.fallbackUrl.ifBlank { (update.link as? Link.Url)?.link.orEmpty() }
-				if (fallbackUrl.isNotBlank()) {
-					context?.let { ctx ->
-						runCatching {
-							val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(fallbackUrl)).apply {
-								addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-							}
-							ctx.startActivity(intent)
-						}
-					}
-				}
-			} catch (failed: ApkMirrorResolutionException) {
-				Log.w("UpdatesViewModel", "APKMirror link resolution failed for ${update.packageName}; launching browser fallback.")
-				runCatching { stagingDir.deleteRecursively() }
-				installLog.emitProgress(AppInstallProgress(update.id, 0L))
-				cancelInstall(update.id).join()
-				snackBar.snackBar(
-					viewModelScope,
-					TextSnack(stringer.get(R.string.apkmirror_resolution_failed_fallback))
-				)
-				val fallbackUrl = failed.fallbackUrl.ifBlank { (update.link as? Link.Url)?.link.orEmpty() }
-				if (fallbackUrl.isNotBlank()) {
-					context?.let { ctx ->
-						runCatching {
-							val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(fallbackUrl)).apply {
-								addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-							}
-							ctx.startActivity(intent)
-						}
-					}
-				}
-			} catch (error: Throwable) {
-				Log.e("UpdatesViewModel", "Download failed for ${update.packageName}", error)
-				runCatching { stagingDir.deleteRecursively() }
-				installLog.emitProgress(AppInstallProgress(update.id, 0L))
-				if (!installLog.emitStatus(AppInstallStatus(false, update.id, snack = true))) {
-					cancelInstall(update.id).join()
-				}
-			} finally {
-				activeDownloadJobs.remove(update.id)
-			}
-		}
-		activeDownloadJobs[update.id] = job
-	}
-
-	private fun ensureInstallProcessorStarted() {
-		if (installProcessorJob?.isActive == true) return
-		installProcessorJob = viewModelScope.launch(Dispatchers.IO) {
-			for (pkg in installChannel) {
-				installQueueMutex.withLock {
-					val stillPresent = mutex.withLock {
-						state.value.updates().any { it.id == pkg.id }
-					}
-					if (!stillPresent) {
-						runCatching { pkg.stagingDir.deleteRecursively() }
-					} else {
-						mutex.withLock {
-							val current = state.value.mutableUpdates()
-							if (current.any { it.id == pkg.id }) {
-								state.value = successState(
-									current.setIsQueued(pkg.id, false).setIsInstalling(pkg.id, true)
-								)
-							}
-						}
-
-						try {
-							val parts = pkg.files.map { file ->
-								InstallPart(file.name, file.length()) { file.inputStream() }
-							}
-							installer.installParts(pkg.id, pkg.packageName, parts)
-						} catch (cancellation: CancellationException) {
-							Log.i("UpdatesViewModel", "Installation cancelled for ${pkg.packageName} (${pkg.id})")
-							installLog.emitProgress(AppInstallProgress(pkg.id, 0L))
-							cancelInstall(pkg.id)
-						} catch (error: Throwable) {
-							Log.e("UpdatesViewModel", "Installation failed for ${pkg.packageName}", error)
-							installLog.emitProgress(AppInstallProgress(pkg.id, 0L))
-							if (!installLog.emitStatus(AppInstallStatus(false, pkg.id, snack = true))) {
-								cancelInstall(pkg.id).join()
-							}
-						} finally {
-							runCatching { pkg.stagingDir.deleteRecursively() }
-						}
-					}
-				}
-			}
-		}
-	}
-
-	private suspend fun downloadUpdateFiles(
-		update: AppUpdate,
-		stagingDir: File,
-		onProgress: (currentBytes: Long, totalBytes: Long) -> Unit
-	): List<File> = when (val link = update.link) {
-		Link.Empty -> {
-			Log.e("UpdatesViewModel", "downloadUpdateFiles: Empty link for ${update.packageName}")
-			throw IOException("Unsupported empty download link for ${update.packageName}")
-		}
-		is Link.Play -> {
-			val playFiles = link.getInstallFiles()
-			if (playFiles.isEmpty()) {
-				throw IOException("Play Store returned no installable APK files for ${update.packageName}")
-			}
-			val sortedFiles = playFiles.sortedWith(
-				compareByDescending<PlayFile> { it.type == PlayFile.Type.BASE }
-					.thenBy { it.name }
-			)
-			val totalBytes = sortedFiles.sumOf { it.size }
-			var downloadedBytes = 0L
-			onProgress(0L, totalBytes)
-
-			val callTag = "update_${update.id}"
-			sortedFiles.mapIndexed { index, playFile ->
-				val partName = when {
-					playFile.type == PlayFile.Type.BASE -> "base.apk"
-					playFile.name.endsWith(".apk") -> playFile.name
-					playFile.name.isNotBlank() -> "${playFile.name}.apk"
-					else -> "split_$index.apk"
-				}
-				val targetFile = File(stagingDir, partName)
-				val success = downloader.downloadToFile(playFile.url, targetFile, callTag) { chunk ->
-					downloadedBytes += chunk
-					onProgress(downloadedBytes, totalBytes)
-				}
-				if (!success || targetFile.length() <= 0L) {
-					throw IOException("Failed to download Play split ${playFile.name} for ${update.packageName}")
-				}
-				targetFile
-			}
-		}
-		is Link.Url -> {
-			if (link.link.isBlank()) {
-				throw IOException("Blank download URL for ${update.packageName}")
-			}
-
-			val callTag = "update_${update.id}"
-			if (update.source == ApkMirrorSource) {
-				val resolver = apkMirrorResolver ?: throw IOException("ApkMirrorResolver not initialized")
-				when (val resolution = resolver.resolveDirectDownload(link.link, callTag)) {
-					is ApkMirrorResolutionResult.CloudflareBlocked -> {
-						throw ApkMirrorCloudflareException(resolution.fallbackUrl)
-					}
-					is ApkMirrorResolutionResult.Failed -> {
-						throw ApkMirrorResolutionException(link.link, resolution.error)
-					}
-					is ApkMirrorResolutionResult.Success -> {
-						val directUrl = resolution.directUrl
-						val isApkmHint = resolution.isApkm || resolution.filename.endsWith(".apkm", ignoreCase = true)
-						val tempPayload = File(stagingDir, if (isApkmHint) "bundle.apkm" else "download.bin")
-
-						var downloadedBytes = 0L
-						var totalBytes = link.size.takeIf { it > 0 } ?: 0L
-						onProgress(0L, totalBytes)
-
-						val success = downloader.downloadToFile(
-							url = directUrl,
-							targetFile = tempPayload,
-							callTag = callTag,
-							onContentLength = { cl ->
-								if (cl > 0L) {
-									totalBytes = cl
-								}
-							},
-							onBytesRead = { chunk ->
-								downloadedBytes += chunk
-								onProgress(downloadedBytes, totalBytes)
-							}
-						)
-
-						if (!success || tempPayload.length() <= 0L) {
-							throw IOException("Failed to download APKMirror payload for ${update.packageName}")
-						}
-
-						if (ApkmExtractor.isApkmArchive(tempPayload)) {
-							val extractedFiles = ApkmExtractor.extractApkm(tempPayload, stagingDir)
-							tempPayload.delete()
-							extractedFiles
-						} else {
-							val baseApk = File(stagingDir, "base.apk")
-							if (tempPayload != baseApk) {
-								if (baseApk.exists()) baseApk.delete()
-								tempPayload.renameTo(baseApk)
-							}
-							listOf(baseApk)
-						}
-					}
-				}
-			} else {
-				var totalBytes = link.size
-				var downloadedBytes = 0L
-				onProgress(0L, totalBytes)
-				val targetFile = File(stagingDir, "base.apk")
-				val success = downloader.downloadToFile(
-					url = link.link,
-					targetFile = targetFile,
-					callTag = callTag,
-					onContentLength = { cl ->
-						if (cl > 0L) {
-							totalBytes = cl
-						}
-					},
-					onBytesRead = { chunk ->
-						downloadedBytes += chunk
-						onProgress(downloadedBytes, totalBytes)
-					}
-				)
-				if (!success || targetFile.length() <= 0L) {
-					throw IOException("Failed to download URL APK for ${update.packageName}")
-				}
-				listOf(targetFile)
-			}
-		}
-	}
-
-	fun ignoreVersion(id: Int) = viewModelScope.launchWithMutex(mutex, Dispatchers.IO) {
+	fun ignoreVersion(id: Int) = viewModelScope.launchWithMutex(uiStateMutex, Dispatchers.IO) {
 		val targetUpdate = state.value.updates().find { it.id == id }
 			?: rawLatestUpdates.find { it.id == id }
 		val ignored = prefs.ignoredVersions.get().toMutableList()
 		val entries = prefs.readIgnoredVersionEntriesSafe().toMutableList()
-		if (ignored.contains(id)) {
+		if (ignored.contains(id) || (targetUpdate != null && entries.any { it.matchesUpdate(targetUpdate.packageName, targetUpdate.versionCode, targetUpdate.version, id) })) {
 			ignored.remove(id)
-			entries.removeAll { it.id == id }
+			entries.removeAll { entry ->
+				entry.id == id || (targetUpdate != null && entry.matchesUpdate(targetUpdate.packageName, targetUpdate.versionCode, targetUpdate.version, id))
+			}
 		} else {
 			ignored.add(id)
 			if (targetUpdate != null && entries.none { it.id == id }) {
@@ -773,12 +649,8 @@ class UpdatesViewModel(
 		)
 	}
 
-	fun ignoreAppPermanently(packageName: String) = viewModelScope.launchWithMutex(mutex, Dispatchers.IO) {
-		val ignoredApps = prefs.ignoredApps.get().toMutableList()
-		if (!ignoredApps.contains(packageName)) {
-			ignoredApps.add(packageName)
-			prefs.ignoredApps.put(ignoredApps)
-		}
+	fun ignoreAppPermanently(packageName: String) = viewModelScope.launchWithMutex(uiStateMutex, Dispatchers.IO) {
+		prefs.addIgnoredApp(packageName)
 		rawLatestUpdates = rawLatestUpdates.filterNot { it.packageName == packageName }
 		val updatedList = state.value.mutableUpdates().removePackageName(packageName)
 		setSuccess(
@@ -799,7 +671,7 @@ class UpdatesViewModel(
 		)
 	}
 
-	fun syncIgnoredFromPrefs() = viewModelScope.launchWithMutex(mutex, Dispatchers.IO) {
+	fun syncIgnoredFromPrefs() = viewModelScope.launchWithMutex(uiStateMutex, Dispatchers.IO) {
 		val ignoredPackages = prefs.ignoredApps.get().toSet()
 		val baseUpdates = if (rawLatestUpdates.isNotEmpty()) {
 			rawLatestUpdates
@@ -815,34 +687,81 @@ class UpdatesViewModel(
 		)
 	}
 
-	override fun onInstallFailed(id: Int): Job = if (context != null) {
-		viewModelScope.launchWithMutex(mutex, Dispatchers.IO) {
-			val stagingDir = File(getCacheDir(), "download_staging_$id")
-			if (!File(stagingDir, Downloader.READY_MARKER_FILE).exists()) {
-				runCatching { stagingDir.deleteRecursively() }
-			}
-			state.value = successState(
-				state.value.mutableUpdates().map { update ->
-					if (update.id == id || update.alternativeUpdates.any { alt -> alt.id == id }) {
-						update.copy(isQueued = false, isInstalling = false, progress = 0L)
-					} else {
-						update
-					}
+	override fun onInstallFailed(status: AppInstallStatus): Job {
+		if (status.failureReason == InstallFailureReason.SIGNATURE_MISMATCH) {
+			AppJournal.record("Install", "Signature mismatch pruned candidate (updateId=${status.id})")
+			return viewModelScope.launchWithMutex(uiStateMutex, Dispatchers.IO) {
+				val id = status.id
+				downloadCoordinator?.cancelTask(id)
+				runCatching {
+					File(getCacheDir(), "download_staging_$id").deleteRecursively()
 				}
-			)
-			refreshReadyUpdateIds()
+				rawLatestUpdates = pruneSignatureMismatchedCandidate(rawLatestUpdates, id)
+				val updatedList = pruneSignatureMismatchedCandidate(state.value.mutableUpdates(), id)
+				setSuccess(
+					updates = updatedList,
+					hasSourceErrors = state.value.hasSourceErrors(),
+					sourceErrors = state.value.sourceErrors(),
+					lastCheckedAtMillis = state.value.lastCheckedAtMillis()
+				)
+				updatesRepository.saveSnapshotToCache(
+					result = UpdateCheckResult(
+						updates = updatedList,
+						successfulRequests = 1,
+						failedRequests = if (state.value.hasSourceErrors()) 1 else 0,
+						totalApps = state.value.totalApps(),
+						sourceErrors = state.value.sourceErrors()
+					),
+					timestampMillis = state.value.lastCheckedAtMillis() ?: System.currentTimeMillis()
+				)
+				installer.finish(id)
+				refreshReadyUpdateIds()
+			}
 		}
-	} else {
-		cancelInstall(id)
+		return onInstallFailed(status.id)
 	}
 
-	public override fun cancelInstall(id: Int) = viewModelScope.launchWithMutex(mutex, Dispatchers.IO) {
-		context?.let { ctx -> DownloadInstallService.cancelDownload(ctx, id) }
+	private fun hasVerifiedCachedApk(stagingDir: File): Boolean =
+		File(stagingDir, Downloader.READY_MARKER_FILE).exists() &&
+			stagingDir.listFiles()?.any { it.isFile && it.length() > 0L && it.name.endsWith(".apk", ignoreCase = true) } == true
+
+	/**
+	 * Notifies the user when saving to a custom SAF folder failed and ApkUp fell back to `Download/ApkUp/`.
+	 * Collected from `downloadCoordinator.safFallbackEvents` (which emits the app label) or called directly with a location.
+	 */
+	fun notifySafFallbackUsed(displayLocation: String = "") {
+		val clean = displayLocation.trim()
+		val msg = when {
+			clean.isEmpty() -> stringer.get(R.string.download_saf_fallback_snack)
+			'/' in clean || '\\' in clean -> stringer.get(R.string.download_saf_fallback_snack_named, clean)
+			else -> "$clean: ${stringer.get(R.string.download_saf_fallback_snack)}"
+		}
+		snackBar.snackBar(viewModelScope, TextSnack(msg))
+	}
+
+	override fun onInstallFailed(id: Int): Job = viewModelScope.launchWithMutex(uiStateMutex, Dispatchers.IO) {
+		val stagingDir = File(getCacheDir(), "download_staging_$id")
+		if (!hasVerifiedCachedApk(stagingDir)) {
+			runCatching { stagingDir.deleteRecursively() }
+		}
+		state.value = successState(
+			state.value.mutableUpdates().map { update ->
+				if (update.id == id || update.alternativeUpdates.any { alt -> alt.id == id }) {
+					update.copy(isQueued = false, isInstalling = false, progress = 0L)
+				} else {
+					update
+				}
+			}
+		)
+		refreshReadyUpdateIds()
+	}
+
+	public override fun cancelInstall(id: Int) = viewModelScope.launchWithMutex(uiStateMutex, Dispatchers.IO) {
+		downloadCoordinator?.cancelTask(id)
 		apkMirrorResolver?.cancelResolution("update_$id")
 		downloader.cancel("update_$id")
-		activeDownloadJobs.remove(id)?.cancel()
 		val stagingDir = File(getCacheDir(), "download_staging_$id")
-		if (!File(stagingDir, Downloader.READY_MARKER_FILE).exists()) {
+		if (!hasVerifiedCachedApk(stagingDir)) {
 			runCatching { stagingDir.deleteRecursively() }
 		}
 		state.value = successState(
@@ -858,16 +777,15 @@ class UpdatesViewModel(
 		refreshReadyUpdateIds()
 	}
 
-	fun cancelAllInstalls() = viewModelScope.launchWithMutex(mutex, Dispatchers.IO) {
-		context?.let { ctx -> DownloadInstallService.cancelAllDownloads(ctx) }
+	fun cancelAllInstalls() = viewModelScope.launchWithMutex(uiStateMutex, Dispatchers.IO) {
+		downloadCoordinator?.cancelAll()
 		val current = state.value.mutableUpdates()
 		val resetList = current.map { update ->
 			if (update.isInstalling || update.isQueued || update.progress > 0L) {
 				apkMirrorResolver?.cancelResolution("update_${update.id}")
 				downloader.cancel("update_${update.id}")
-				activeDownloadJobs.remove(update.id)?.cancel()
 				val stagingDir = File(getCacheDir(), "download_staging_${update.id}")
-				if (!File(stagingDir, Downloader.READY_MARKER_FILE).exists()) {
+				if (!hasVerifiedCachedApk(stagingDir)) {
 					runCatching { stagingDir.deleteRecursively() }
 				}
 				installer.finish(update.id)
@@ -880,8 +798,7 @@ class UpdatesViewModel(
 		refreshReadyUpdateIds()
 	}
 
-	override fun finishInstall(id: Int) = viewModelScope.launchWithMutex(mutex, Dispatchers.IO) {
-		activeDownloadJobs.remove(id)
+	override fun finishInstall(id: Int) = viewModelScope.launchWithMutex(uiStateMutex, Dispatchers.IO) {
 		runCatching {
 			File(getCacheDir(), "download_staging_$id").deleteRecursively()
 		}
@@ -924,11 +841,11 @@ class UpdatesViewModel(
 				}
 			}
 			matchedUpdate?.let { app ->
-				if (log.success) {
-					val mode = if (installer.isShizukuReady()) {
-						UpdateInstallMode.MANUAL_SHIZUKU
-					} else {
-						UpdateInstallMode.MANUAL
+				if (log.success && downloadCoordinator == null) {
+					val mode = when {
+						installer.isShizukuReady() -> UpdateInstallMode.MANUAL_SHIZUKU
+						installer.isRootReady() -> UpdateInstallMode.MANUAL_ROOT
+						else -> UpdateInstallMode.MANUAL
 					}
 					val binding = prefs.readCustomRepoBindingsSafe()[app.packageName]
 					prefs.recordUpdateHistory(
@@ -939,7 +856,11 @@ class UpdatesViewModel(
 						)
 					)
 				}
-				val message = if (log.success) R.string.install_success else R.string.install_failure
+				val message = when {
+					log.success -> R.string.install_success
+					log.failureReason == InstallFailureReason.SIGNATURE_MISMATCH -> R.string.install_failure_signature_mismatch
+					else -> R.string.install_failure
+				}
 				snackBar.snackBar(viewModelScope, TextSnack(stringer.get(message, app.name)))
 			}
 		}
@@ -949,9 +870,13 @@ class UpdatesViewModel(
 		val isVersionsFilterActive = prefs.ignoreVersionsFilterActive.get()
 		val isAppsFilterActive = prefs.ignoreAppsFilterActive.get()
 		val ignoredSet = if (isVersionsFilterActive) ignoredVersions.toSet() else emptySet()
+		val ignoredEntries = if (isVersionsFilterActive) prefs.readIgnoredVersionEntriesSafe() else emptyList()
 		val ignoredPackages = if (isAppsFilterActive) prefs.ignoredApps.get().toSet() else emptySet()
 		return filter { update ->
-			update.id !in ignoredSet && update.packageName !in ignoredPackages
+			val matchesEntry = ignoredEntries.any { entry ->
+				entry.matchesUpdate(update.packageName, update.versionCode, update.version, update.id)
+			}
+			update.id !in ignoredSet && !matchesEntry && update.packageName !in ignoredPackages
 		}
 	}
 
@@ -1090,4 +1015,33 @@ internal fun partitionInstallQueueCandidates(
 		}
 	}
 	return direct to browserOnly
+}
+
+internal fun pruneSignatureMismatchedCandidate(
+	updates: List<AppUpdate>,
+	failedId: Int
+): List<AppUpdate> = updates.mapNotNull { update ->
+	val matchesPrimary = update.id == failedId
+	val matchesAlternative = update.alternativeUpdates.any { it.id == failedId }
+	if (!matchesPrimary && !matchesAlternative) {
+		update
+	} else {
+		val remainingAlternatives = update.alternativeUpdates.filterNot { it.id == failedId }
+		if (!matchesPrimary) {
+			update.copy(
+				isQueued = false,
+				isInstalling = false,
+				progress = 0L,
+				alternativeUpdates = if (remainingAlternatives.size > 1) remainingAlternatives else emptyList()
+			)
+		} else {
+			val nextPrimary = remainingAlternatives.firstOrNull { it.id != failedId } ?: return@mapNotNull null
+			nextPrimary.copy(
+				isQueued = false,
+				isInstalling = false,
+				progress = 0L,
+				alternativeUpdates = if (remainingAlternatives.size > 1) remainingAlternatives else emptyList()
+			)
+		}
+	}
 }

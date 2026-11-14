@@ -1,5 +1,6 @@
 package com.apkup.ui.component
 
+import android.graphics.drawable.Drawable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,9 +14,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import android.graphics.drawable.Drawable
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
+import coil3.size.Size
 import com.apkup.R
 import com.apkup.util.getAppIcon
 import kotlinx.coroutines.Dispatchers
@@ -34,7 +35,7 @@ private fun BaseLoadingImage(
         .clip(RoundedCornerShape(8.dp))
         .background(color),
     contentScale = ContentScale.Fit,
-    error = painterResource(R.drawable.ic_root),
+    error = painterResource(R.drawable.ic_empty),
     placeholder = painterResource(R.drawable.ic_empty)
 )
 
@@ -48,6 +49,9 @@ fun LoadingImageApp(
     val icon = produceState<Drawable?>(initialValue = null, packageName) {
         value = withContext(Dispatchers.IO) { context.getAppIcon(packageName) }
     }.value
-    val request = ImageRequest.Builder(context).data(icon).build()
+    val request = ImageRequest.Builder(context)
+        .data(icon)
+        .size(Size(192, 192))
+        .build()
     BaseLoadingImage(request, modifier, color)
 }

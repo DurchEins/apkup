@@ -175,5 +175,66 @@ class GitHubGitLabTest {
         assertNotNull(newPipe)
         assertEquals("TeamNewPipe/NewPipe", newPipe?.repo)
         assertEquals("github", newPipe?.type)
+
+        val keepass = list.find { it.`package` == "com.kunzisoft.keepass.free" }
+        assertNotNull(keepass)
+        assertEquals(".*-free\\.apk$", keepass?.assetFilterRegex)
+    }
+
+    @Test
+    fun testAssetFilterRegexSelectsMatchingFlavor() {
+        val assets = listOf(
+            GitHubAssetDto(name = "KeePassDX-4.0.0-pro.apk", browser_download_url = "https://example.com/pro.apk", size = 1000),
+            GitHubAssetDto(name = "KeePassDX-4.0.0-libre.apk", browser_download_url = "https://example.com/libre.apk", size = 1000),
+            GitHubAssetDto(name = "KeePassDX-4.0.0-free.apk", browser_download_url = "https://example.com/free.apk", size = 1000)
+        )
+
+        val matched = ReleaseAssetFilter.findBestApk(
+            assets = assets,
+            getFilename = { it.name },
+            supportedAbis = arrayOf("arm64-v8a"),
+            assetFilterRegex = ".*-free\\.apk$"
+        )
+        assertEquals("KeePassDX-4.0.0-free.apk", matched?.name)
+
+        // When strict regex matches nothing, returns null instead of falling back to wrong flavor
+        val missing = ReleaseAssetFilter.findBestApk(
+            assets = assets,
+            getFilename = { it.name },
+            supportedAbis = arrayOf("arm64-v8a"),
+            assetFilterRegex = ".*-fdroid\\.apk$"
+        )
+        assertNull(missing)
+    }
+
+    @Test
+    fun testFlavorHeuristicPrefersFossAndPenalizesDebugAndHuawei() {
+        val assets = listOf(
+            GitHubAssetDto(name = "App-1.0-arm64-v8a-debug.apk", browser_download_url = "https://example.com/debug.apk", size = 1000),
+            GitHubAssetDto(name = "App-1.0-arm64-v8a-gplay.apk", browser_download_url = "https://example.com/gplay.apk", size = 1000),
+            GitHubAssetDto(name = "App-1.0-arm64-v8a-huawei.apk", browser_download_url = "https://example.com/huawei.apk", size = 1000),
+            GitHubAssetDto(name = "App-1.0-arm64-v8a-foss.apk", browser_download_url = "https://example.com/foss.apk", size = 1000)
+        )
+
+        val foss = ReleaseAssetFilter.findBestApk(
+            assets = assets,
+            getFilename = { it.name },
+            supportedAbis = arrayOf("arm64-v8a"),
+            preferFossFlavor = true
+        )
+        assertEquals("App-1.0-arm64-v8a-foss.apk", foss?.name)
+
+        // Even with preferFossFlavor = false, debug & huawei should be penalized against normal APKs
+        val releaseOnly = ReleaseAssetFilter.findBestApk(
+            assets = listOf(
+                GitHubAssetDto(name = "App-1.0-arm64-v8a-debug.apk", browser_download_url = "https://example.com/debug.apk", size = 1000),
+                GitHubAssetDto(name = "App-1.0-arm64-v8a-huawei.apk", browser_download_url = "https://example.com/huawei.apk", size = 1000),
+                GitHubAssetDto(name = "App-1.0-arm64-v8a.apk", browser_download_url = "https://example.com/release.apk", size = 1000)
+            ),
+            getFilename = { it.name },
+            supportedAbis = arrayOf("arm64-v8a"),
+            preferFossFlavor = false
+        )
+        assertEquals("App-1.0-arm64-v8a.apk", releaseOnly?.name)
     }
 }

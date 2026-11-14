@@ -1,6 +1,5 @@
 package com.apkup
 
-import android.content.SharedPreferences
 import androidx.work.NetworkType
 import com.apkup.data.ui.AppUpdate
 import com.apkup.data.ui.CachedAppUpdateDto
@@ -8,6 +7,7 @@ import com.apkup.data.ui.CachedUpdateSnapshot
 import com.apkup.data.ui.GitHubSource
 import com.apkup.data.ui.Link
 import com.apkup.data.ui.UpdateInstallMode
+import com.apkup.prefs.InMemoryPrefsBackend
 import com.apkup.prefs.Prefs
 import com.apkup.repository.ApkMirrorResolver
 import com.apkup.util.AutoUpdateNotifier
@@ -19,7 +19,6 @@ import com.apkup.util.ShizukuBridge
 import com.apkup.util.formatAutoUpdateSummary
 import com.apkup.worker.ShizukuAutoUpdateRunner
 import com.apkup.worker.ShizukuAutoUpdateWorker
-import com.kryptoprefs.preferences.KryptoPrefs
 import kotlinx.coroutines.runBlocking
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -100,7 +99,7 @@ class ShizukuAutoUpdateTest {
     fun `runner deletes staging on silent success, preserves 24h ready cache on failure, and prunes snapshot`() = runBlocking {
         val tempDir = Files.createTempDirectory("apkup_auto_update_test").toFile()
         try {
-            val prefs = Prefs(LocalTestPrefs()).apply {
+            val prefs = Prefs(InMemoryPrefsBackend()).apply {
                 useShizukuInstaller.put(true)
                 autoInstallUpdates.put(true)
                 cachedUpdateSnapshot.put(
@@ -185,7 +184,7 @@ class ShizukuAutoUpdateTest {
             assertTrue(downloader.hasReadyCachedApk(tempDir, 102, 30L))
 
             // Snapshot pruned org.one while keeping org.two
-            val remainingPackages = prefs.readCachedSnapshotSafe().updates.map { it.packageName }
+            val remainingPackages = prefs.readCachedSnapshotSafe().updates.orEmpty().map { it.packageName }
             assertEquals(listOf("org.two"), remainingPackages)
 
             // Summary notification recorded partial outcome
@@ -208,7 +207,7 @@ class ShizukuAutoUpdateTest {
     fun `runner falls back to standard notification without downloading when Shizuku is unavailable`() = runBlocking {
         val tempDir = Files.createTempDirectory("apkup_auto_skip_test").toFile()
         try {
-            val prefs = Prefs(LocalTestPrefs()).apply {
+            val prefs = Prefs(InMemoryPrefsBackend()).apply {
                 useShizukuInstaller.put(true)
                 autoInstallUpdates.put(true)
             }
@@ -288,26 +287,6 @@ class ShizukuAutoUpdateTest {
         override fun executeShizukuInstall(id: Int, packageName: String, parts: List<InstallPart>): Boolean {
             parts.forEach { part -> part.openStream()?.use { it.readBytes() } }
             return installHandler(packageName)
-        }
-    }
-
-    private class LocalTestPrefs : KryptoPrefs {
-        private val values = mutableMapOf<String, Any>()
-        override fun putString(key: String, value: String?): KryptoPrefs = put(key, value)
-        override fun putBoolean(key: String, value: Boolean?): KryptoPrefs = put(key, value)
-        override fun putInt(key: String, value: Int?): KryptoPrefs = put(key, value)
-        override fun putLong(key: String, value: Long?): KryptoPrefs = put(key, value)
-        override fun getString(key: String, defaultValue: String?): String? = values[key] as? String ?: defaultValue
-        override fun getBoolean(key: String, defaultValue: Boolean): Boolean = values[key] as? Boolean ?: defaultValue
-        override fun getInt(key: String, defaultValue: Int): Int = values[key] as? Int ?: defaultValue
-        override fun getLong(key: String, defaultValue: Long): Long = values[key] as? Long ?: defaultValue
-        override fun remove(key: String): KryptoPrefs = apply { values.remove(key) }
-        override fun contains(key: String): Boolean = values.containsKey(key)
-        override fun clear() = values.clear()
-        override fun name(): String = "auto-update-test"
-        override fun sharedPreferences(): SharedPreferences = error("Unused")
-        private fun put(key: String, value: Any?): KryptoPrefs = apply {
-            if (value == null) values.remove(key) else values[key] = value
         }
     }
 }

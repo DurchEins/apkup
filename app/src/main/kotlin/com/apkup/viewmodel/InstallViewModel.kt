@@ -32,22 +32,25 @@ abstract class InstallViewModel(
 
     open fun isApkMirrorBlocked(): Boolean = false
 
+    open fun isApkMirrorBlocked(update: AppUpdate): Boolean = isApkMirrorBlocked()
+
     open fun install(update: AppUpdate, uriHandler: UriHandler) {
         when (update.source) {
             ApkMirrorSource -> {
                 val url = (update.link as? Link.Url)?.link.orEmpty()
                 val directEnabled = prefs?.directApkMirrorDownloads?.get() ?: false
-                if (directEnabled && !isApkMirrorBlocked()) {
+                val blocked = isApkMirrorBlocked(update)
+                if (directEnabled && !blocked) {
                     downloadAndInstall(update)
                 } else {
-                    if (directEnabled && isApkMirrorBlocked()) {
+                    if (directEnabled && blocked) {
                         snackBar.snackBar(
                             viewModelScope,
-                            TextSnack(stringer.get(R.string.apkmirror_challenge_fallback))
+                            TextSnack(stringer.get(R.string.apkmirror_cooldown_browser_fallback, update.name))
                         )
                     }
                     if (url.isNotBlank()) {
-                        uriHandler.openUri(url)
+                        runCatching { uriHandler.openUri(url) }
                     }
                 }
             }
@@ -61,9 +64,11 @@ abstract class InstallViewModel(
             finishInstall(it.id).join()
         } else {
             installLog.emitProgress(AppInstallProgress(it.id, 0L))
-            onInstallFailed(it.id).join()
+            onInstallFailed(it).join()
         }
     }.launchIn(viewModelScope)
+
+    protected open fun onInstallFailed(status: AppInstallStatus): Job = onInstallFailed(status.id)
 
     protected open fun onInstallFailed(id: Int): Job = cancelInstall(id)
 

@@ -50,17 +50,21 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.apkup.R
 import com.apkup.data.ui.ApkMirrorSource
+import com.apkup.data.ui.CodebergSource
+import com.apkup.data.ui.CustomFDroidSource
+import com.apkup.data.ui.FDroidSource
 import com.apkup.data.ui.GitHubSource
 import com.apkup.data.ui.GitLabSource
 import com.apkup.data.ui.IzzyOnDroidSource
 import com.apkup.data.ui.PlaySource
 import com.apkup.data.ui.UpdateHistoryEntry
 import com.apkup.data.ui.UpdateInstallMode
-import com.apkup.prefs.Prefs
 import com.apkup.repository.RepoMappingManager
 import com.apkup.util.effectivePreviousVersionUrl
 import com.apkup.util.getAppName
+import com.apkup.viewmodel.UpdatesViewModel
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import java.text.DateFormat
 import java.util.Date
 
@@ -68,10 +72,10 @@ import java.util.Date
 @Composable
 fun UpdateHistoryBottomSheet(
     onDismiss: () -> Unit,
-    prefs: Prefs = koinInject(),
+    updatesViewModel: UpdatesViewModel = koinViewModel(),
     repoMappingManager: RepoMappingManager = koinInject()
 ) {
-    val entries by prefs.updateHistoryFlow.collectAsStateWithLifecycle()
+    val entries by updatesViewModel.updateHistoryFlow.collectAsStateWithLifecycle()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
@@ -151,7 +155,7 @@ fun UpdateHistoryBottomSheet(
 
                 if (entries.isNotEmpty()) {
                     TextButton(
-                        onClick = { prefs.clearUpdateHistory() },
+                        onClick = { updatesViewModel.clearUpdateHistory() },
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
                     ) {
                         Icon(
@@ -232,7 +236,7 @@ fun UpdateHistoryBottomSheet(
                         }
                         val prevUrl = remember(entry) {
                             val binding = repoMappingManager.getBinding(entry.packageName)
-                                ?: prefs.readCustomRepoBindingsSafe()[entry.packageName]
+                                ?: updatesViewModel.getCustomRepoBinding(entry.packageName)
                             entry.effectivePreviousVersionUrl(binding)
                         }
                         UpdateHistoryCard(
@@ -275,6 +279,16 @@ private fun UpdateHistoryCard(
         )
         UpdateInstallMode.MANUAL_SHIZUKU -> Triple(
             stringResource(R.string.update_history_mode_manual_shizuku),
+            MaterialTheme.colorScheme.secondaryContainer,
+            MaterialTheme.colorScheme.onSecondaryContainer
+        )
+        UpdateInstallMode.AUTO_ROOT -> Triple(
+            stringResource(R.string.update_history_mode_auto_root),
+            MaterialTheme.colorScheme.tertiaryContainer,
+            MaterialTheme.colorScheme.onTertiaryContainer
+        )
+        UpdateInstallMode.MANUAL_ROOT -> Triple(
+            stringResource(R.string.update_history_mode_manual_root),
             MaterialTheme.colorScheme.secondaryContainer,
             MaterialTheme.colorScheme.onSecondaryContainer
         )
@@ -472,9 +486,15 @@ private fun resolveHistorySourceDisplay(sourceName: String): Pair<String, Int?> 
         stringResource(R.string.source_play) to R.drawable.ic_play
     sourceName.equals(IzzyOnDroidSource.name, ignoreCase = true) ->
         stringResource(R.string.source_izzyondroid) to R.drawable.ic_izzy
+    sourceName.equals(FDroidSource.name, ignoreCase = true) ->
+        stringResource(R.string.source_fdroid) to R.drawable.ic_izzy
     sourceName.equals(GitHubSource.name, ignoreCase = true) ->
         stringResource(R.string.source_github) to R.drawable.ic_github
     sourceName.equals(GitLabSource.name, ignoreCase = true) ->
         stringResource(R.string.source_gitlab) to R.drawable.ic_gitlab
+    sourceName.equals(CodebergSource.name, ignoreCase = true) ->
+        stringResource(R.string.source_codeberg) to R.drawable.ic_codeberg
+    sourceName.equals(CustomFDroidSource.name, ignoreCase = true) ->
+        stringResource(R.string.source_custom_fdroid) to R.drawable.ic_izzy
     else -> sourceName to null
 }

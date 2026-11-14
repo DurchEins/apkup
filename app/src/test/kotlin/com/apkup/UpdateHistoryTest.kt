@@ -1,6 +1,5 @@
 package com.apkup
 
-import android.content.SharedPreferences
 import com.apkup.data.repomapping.RepoBinding
 import com.apkup.data.ui.ApkMirrorSource
 import com.apkup.data.ui.GitHubSource
@@ -9,9 +8,9 @@ import com.apkup.data.ui.IzzyOnDroidSource
 import com.apkup.data.ui.PlaySource
 import com.apkup.data.ui.UpdateHistoryEntry
 import com.apkup.data.ui.UpdateInstallMode
+import com.apkup.prefs.InMemoryPrefsBackend
 import com.apkup.prefs.Prefs
 import com.apkup.util.resolvePreviousVersionUrl
-import com.kryptoprefs.preferences.KryptoPrefs
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -78,7 +77,7 @@ class UpdateHistoryTest {
 
     @Test
     fun `Prefs recordUpdateHistory deduplicates within window, caps at max entries, and clears cleanly`() {
-        val prefs = Prefs(InMemoryPrefs())
+        val prefs = Prefs(InMemoryPrefsBackend())
         val baseTime = 1_760_000_000_000L
 
         val first = UpdateHistoryEntry(
@@ -119,25 +118,5 @@ class UpdateHistoryTest {
         prefs.clearUpdateHistory()
         assertTrue(prefs.readUpdateHistorySafe().isEmpty())
         assertTrue(prefs.updateHistoryFlow.value.isEmpty())
-    }
-
-    private class InMemoryPrefs : KryptoPrefs {
-        private val map = mutableMapOf<String, Any>()
-        override fun putString(key: String, value: String?): KryptoPrefs = put(key, value)
-        override fun putBoolean(key: String, value: Boolean?): KryptoPrefs = put(key, value)
-        override fun putInt(key: String, value: Int?): KryptoPrefs = put(key, value)
-        override fun putLong(key: String, value: Long?): KryptoPrefs = put(key, value)
-        override fun getString(key: String, defaultValue: String?): String? = map[key] as? String ?: defaultValue
-        override fun getBoolean(key: String, defaultValue: Boolean): Boolean = map[key] as? Boolean ?: defaultValue
-        override fun getInt(key: String, defaultValue: Int): Int = map[key] as? Int ?: defaultValue
-        override fun getLong(key: String, defaultValue: Long): Long = map[key] as? Long ?: defaultValue
-        override fun remove(key: String): KryptoPrefs = apply { map.remove(key) }
-        override fun contains(key: String): Boolean = map.containsKey(key)
-        override fun clear() = map.clear()
-        override fun name(): String = "history-test"
-        override fun sharedPreferences(): SharedPreferences = error("Unused in unit test")
-        private fun put(key: String, value: Any?): KryptoPrefs = apply {
-            if (value == null) map.remove(key) else map[key] = value
-        }
     }
 }

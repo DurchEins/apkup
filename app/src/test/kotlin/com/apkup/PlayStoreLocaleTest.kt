@@ -1,6 +1,6 @@
 package com.apkup
 
-import com.apkup.repository.withGermanPlayStoreLocale
+import com.apkup.repository.withActivePlayStoreLocale
 import com.apkup.repository.withDeviceInfoProvider
 import com.apkup.repository.hasRequiredPlaySession
 import com.apkup.repository.describePlayFailure
@@ -30,7 +30,7 @@ class PlayStoreLocaleTest {
     @Test
     fun bulkAppDetailsRequestUsesGermanLocaleAndReportsHttpFailure() {
         val client = CapturingPlayHttpClient(PlayResponse(isSuccessful = false, code = 500, errorString = "test"))
-        val authData = testAuthData().withGermanPlayStoreLocale()
+        val authData = testAuthData().withActivePlayStoreLocale(Locale.GERMANY)
 
         val result = runCatching {
             AppDetailsHelper(authData).using(client).getAppByPackageName(listOf("example.app"))
@@ -48,7 +48,7 @@ class PlayStoreLocaleTest {
             PlayResponse(isSuccessful = true, code = 200, responseBytes = byteArrayOf())
         )
 
-        val details = AppDetailsHelper(testAuthData().withGermanPlayStoreLocale())
+        val details = AppDetailsHelper(testAuthData().withActivePlayStoreLocale(Locale.GERMANY))
             .using(client)
             .getAppByPackageName(listOf("example.app"))
 
@@ -69,7 +69,7 @@ class PlayStoreLocaleTest {
                     """{"authToken":"test-token","gsfId":"test-device","unexpected":"ignored"}""",
                     Gson()
                 ).withDeviceInfoProvider(testAuthData().deviceInfoProvider!!.properties)
-                    .withGermanPlayStoreLocale(),
+                    .withActivePlayStoreLocale(Locale.GERMANY),
                 responseCode = { client.responseCode.value },
                 refreshAuth = {
                     refreshCount++
@@ -113,7 +113,7 @@ class PlayStoreLocaleTest {
             """{"authToken":"test-token","gsfId":"test-device"}""",
             Gson()
         ).withDeviceInfoProvider(testAuthData().deviceInfoProvider!!.properties)
-            .withGermanPlayStoreLocale()
+            .withActivePlayStoreLocale(Locale.GERMANY)
 
         assertEquals("", authData.email)
         assertEquals("test-token", authData.authToken)
@@ -130,7 +130,7 @@ class PlayStoreLocaleTest {
         )
         val normalized = oldGsonSession
             .withDeviceInfoProvider(testAuthData().deviceInfoProvider!!.properties)
-            .withGermanPlayStoreLocale()
+            .withActivePlayStoreLocale(Locale.GERMANY)
 
         assertEquals("", normalized.email)
         assertEquals("test-token", normalized.authToken)
@@ -180,11 +180,11 @@ class PlayStoreLocaleTest {
         val responseSession = parseAuthData(
             """{"authToken":"test-token","gsfId":"test-device","unexpected":"ignored"}""",
             gson
-        ).withDeviceInfoProvider(properties).withGermanPlayStoreLocale()
+        ).withDeviceInfoProvider(properties).withActivePlayStoreLocale(Locale.GERMANY)
         val persisted = responseSession.withoutDeviceInfoProvider()
         val restored = gson.fromJson(gson.toJson(persisted), AuthData::class.java)
             .withDeviceInfoProvider(properties)
-            .withGermanPlayStoreLocale()
+            .withActivePlayStoreLocale(Locale.GERMANY)
         val client = CapturingPlayHttpClient(
             PlayResponse(isSuccessful = true, code = 200, responseBytes = byteArrayOf())
         )

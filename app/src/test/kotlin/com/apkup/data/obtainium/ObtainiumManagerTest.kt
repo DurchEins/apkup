@@ -156,4 +156,125 @@ class ObtainiumManagerTest {
         assertEquals("NewPipe", newPipe.name)
         assertEquals("TeamNewPipe", newPipe.author)
     }
+
+    @Test
+    fun convertUrlToBindingSupportsCodebergAndSkipsFDroidRepos() {
+        val cb = ObtainiumManager.convertUrlToBinding("https://codeberg.org/freeyourgadget/Gadgetbridge/releases")
+        assertNotNull(cb)
+        assertEquals("codeberg", cb!!.type)
+        assertEquals("freeyourgadget/Gadgetbridge", cb.repo)
+        assertEquals("codeberg.org", cb.resolvedHost)
+
+        val forgejo = ObtainiumManager.convertUrlToBinding(
+            url = "https://git.disroot.org/org/app",
+            overrideSource = "Codeberg"
+        )
+        assertNotNull(forgejo)
+        assertEquals("codeberg", forgejo!!.type)
+        assertEquals("org/app", forgejo.repo)
+        assertEquals("git.disroot.org", forgejo.resolvedHost)
+
+        // F-Droid repo URLs should not become GitHub bindings
+        assertNull(ObtainiumManager.convertUrlToBinding("https://f-droid.org/repo", "FDroidThirdPartyRepo"))
+        assertNull(ObtainiumManager.convertUrlToBinding("fdroidrepo://apt.izzysoft.de/fdroid/repo?fingerprint=ABCD"))
+    }
+
+    @Test
+    fun buildImportPreviewSeparatesMappingsFDroidReposAndUninstalledWatchedApps() {
+        val validFp64 = "626c860f384a98b5626c860f384a98b5626c860f384a98b5626c860f384a98b5"
+        val rawJson = """
+            {
+              "apps": [
+                {
+                  "id": "org.schabi.newpipe",
+                  "url": "https://github.com/TeamNewPipe/NewPipe",
+                  "name": "NewPipe"
+                },
+                {
+                  "id": "nodomain.freeyourgadget.gadgetbridge",
+                  "url": "https://codeberg.org/Freeyourgadget/Gadgetbridge",
+                  "name": "Gadgetbridge",
+                  "overrideSource": "Codeberg"
+                },
+                {
+                  "id": "fdroid.repo.custom",
+                  "url": "fdroidrepo://repo.example.org/android/fdroid/repo?fingerprint=${validFp64.uppercase()}",
+                  "name": "Custom Repo",
+                  "overrideSource": "FDroidThirdPartyRepo"
+                }
+              ]
+            }
+        """.trimIndent()
+
+        val preview = ObtainiumManager.buildImportPreview(
+            rawJson = rawJson,
+            installedPackageNames = setOf("org.schabi.newpipe")
+        )
+
+        assertEquals(3, preview.totalEntries)
+        assertEquals(1, preview.matchedInstalledBindings.size)
+        assertTrue(preview.matchedInstalledBindings.containsKey("org.schabi.newpipe"))
+        assertEquals(1, preview.uninstalledCandidateApps.size)
+        assertEquals("nodomain.freeyourgadget.gadgetbridge", preview.uninstalledCandidateApps.first().packageName)
+        assertTrue(preview.uninstalledCandidateApps.first().binding.isCodeberg)
+        assertEquals(1, preview.detectedFDroidRepos.size)
+        assertEquals("https://repo.example.org/android/fdroid/repo", preview.detectedFDroidRepos.first().baseUrl)
+        assertEquals(validFp64, preview.detectedFDroidRepos.first().fingerprint)
+    }
+
+    @Test
+    fun gitRepoNamedRepoIsNotMisclassifiedAsFDroidAndShortFingerprintsAreRejected() {
+        val gitRepoNamedRepo = ObtainiumAppEntry(
+            id = "org.example.gitrepo",
+            url = "https://github.com/myorg/repo",
+            name = "MyOrg Repo"
+        )
+        assertNull(ObtainiumManager.parseFDroidRepoFromEntry(gitRepoNamedRepo))
+
+        val preview = ObtainiumManager.buildImportPreview(
+            rawJson = """[{"id":"org.example.gitrepo","url":"https://github.com/myorg/repo","name":"MyOrg Repo"}]""",
+            installedPackageNames = setOf("org.example.gitrepo")
+        )
+        assertTrue(preview.detectedFDroidRepos.isEmpty())
+        val binding = preview.matchedInstalledBindings["org.example.gitrepo"]
+        assertNotNull(binding)
+        assertTrue(binding!!.isGitHub)
+        assertEquals("myorg/repo", binding.repo)
+
+        val shortFpEntry = ObtainiumAppEntry(
+            id = "fdroid.repo.shortfp",
+            url = "fdroidrepo://repo.example.org/fdroid/repo?fingerprint=626C860F384A98B5",
+            name = "Short FP",
+            overrideSource = "FDroidThirdPartyRepo"
+        )
+        val parsedShort = ObtainiumManager.parseFDroidRepoFromEntry(shortFpEntry)
+        assertNotNull(parsedShort)
+        assertEquals("", parsedShort!!.fingerprint)
+    }
+
+    @Test
+    fun exportObtainiumPreservesAssetFilterRegexInAdditionalSettings() {
+        val bindings = mapOf(
+            "org.example.filtered" to RepoBinding(
+                type = "github",
+                repo = "owner/app",
+                assetFilterRegex = "arm64.*\\.apk$"
+            ),
+            "org.example.plain" to RepoBinding(
+                type = "codeberg",
+                repo = "owner/plain"
+            )
+        )
+        val exported = ObtainiumManager.exportObtainium(bindings)
+        val entries = ObtainiumManager.parseObtainiumApps(exported)
+        val filtered = entries.first { it.id == "org.example.filtered" }
+        assertNotNull(filtered.additionalSettings)
+
+        val reimported = ObtainiumManager.buildImportPreview(
+            rawJson = exported,
+            installedPackageNames = setOf("org.example.filtered", "org.example.plain")
+        )
+        assertEquals("arm64.*\\.apk$", reimported.matchedInstalledBindings["org.example.filtered"]?.assetFilterRegex)
+        assertNull(reimported.matchedInstalledBindings["org.example.plain"]?.assetFilterRegex)
+    }
 }

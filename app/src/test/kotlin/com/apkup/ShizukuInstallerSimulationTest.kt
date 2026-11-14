@@ -1,8 +1,8 @@
 package com.apkup
 
-import android.content.SharedPreferences
 import com.apkup.data.ui.ApkMirrorSource
 import com.apkup.data.ui.BackgroundCheckInterval
+import com.apkup.prefs.InMemoryPrefsBackend
 import com.apkup.prefs.Prefs
 import com.apkup.repository.UpdateCheckProgressTracker
 import com.apkup.ui.component.UpdateCardContent
@@ -11,7 +11,6 @@ import com.apkup.util.InstallPart
 import com.apkup.util.SessionInstaller
 import com.apkup.util.ShizukuBridge
 import com.apkup.worker.resolvePeriodicIntervalHours
-import com.kryptoprefs.preferences.KryptoPrefs
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -107,7 +106,7 @@ class ShizukuInstallerSimulationTest {
         )
         var fallbackInvoked = false
         val fallbackNotices = mutableListOf<Int>()
-        val prefs = Prefs(InMemoryKryptoPrefs()).apply {
+        val prefs = Prefs(InMemoryPrefsBackend()).apply {
             useShizukuInstaller.put(true)
         }
         val installer = createSimulatedInstaller(
@@ -141,7 +140,7 @@ class ShizukuInstallerSimulationTest {
         )
         var fallbackInvoked = false
         val fallbackNotices = mutableListOf<Int>()
-        val prefs = Prefs(InMemoryKryptoPrefs()).apply {
+        val prefs = Prefs(InMemoryPrefsBackend()).apply {
             useShizukuInstaller.put(true)
         }
         val installer = createSimulatedInstaller(
@@ -176,7 +175,7 @@ class ShizukuInstallerSimulationTest {
         )
         var fallbackInvoked = false
         val fallbackNotices = mutableListOf<Int>()
-        val prefs = Prefs(InMemoryKryptoPrefs()).apply {
+        val prefs = Prefs(InMemoryPrefsBackend()).apply {
             useShizukuInstaller.put(true)
         }
         val installer = createSimulatedInstaller(
@@ -211,7 +210,7 @@ class ShizukuInstallerSimulationTest {
         )
         var fallbackInvoked = false
         val fallbackNotices = mutableListOf<Int>()
-        val prefs = Prefs(InMemoryKryptoPrefs()).apply {
+        val prefs = Prefs(InMemoryPrefsBackend()).apply {
             useShizukuInstaller.put(true)
         }
         val installer = createSimulatedInstaller(
@@ -247,7 +246,7 @@ class ShizukuInstallerSimulationTest {
         )
         var fallbackInvoked = false
         val fallbackNotices = mutableListOf<Int>()
-        val prefs = Prefs(InMemoryKryptoPrefs()).apply {
+        val prefs = Prefs(InMemoryPrefsBackend()).apply {
             useShizukuInstaller.put(true)
         }
         val deniedInstaller = createSimulatedInstaller(
@@ -334,7 +333,7 @@ class ShizukuInstallerSimulationTest {
 
     private fun createSimulatedInstaller(
         bridge: FakeShizukuBridge,
-        prefs: Prefs = Prefs(InMemoryKryptoPrefs()),
+        prefs: Prefs = Prefs(InMemoryPrefsBackend()),
         fallbackRunner: suspend (Int, String, List<InstallPart>) -> Boolean = { _, _, _ -> true },
         onFallbackNotice: (Int) -> Unit = {}
     ): SessionInstaller = SessionInstaller(
@@ -401,26 +400,6 @@ class ShizukuInstallerSimulationTest {
 
         fun dispatchBinderChanged() {
             binderListener?.invoke()
-        }
-    }
-
-    private class InMemoryKryptoPrefs : KryptoPrefs {
-        private val values = mutableMapOf<String, Any>()
-        override fun putString(key: String, value: String?): KryptoPrefs = put(key, value)
-        override fun putBoolean(key: String, value: Boolean?): KryptoPrefs = put(key, value)
-        override fun putInt(key: String, value: Int?): KryptoPrefs = put(key, value)
-        override fun putLong(key: String, value: Long?): KryptoPrefs = put(key, value)
-        override fun getString(key: String, defaultValue: String?): String? = values[key] as? String ?: defaultValue
-        override fun getBoolean(key: String, defaultValue: Boolean): Boolean = values[key] as? Boolean ?: defaultValue
-        override fun getInt(key: String, defaultValue: Int): Int = values[key] as? Int ?: defaultValue
-        override fun getLong(key: String, defaultValue: Long): Long = values[key] as? Long ?: defaultValue
-        override fun remove(key: String): KryptoPrefs = apply { values.remove(key) }
-        override fun contains(key: String): Boolean = values.containsKey(key)
-        override fun clear() = values.clear()
-        override fun name(): String = "sim-test"
-        override fun sharedPreferences(): SharedPreferences = error("Unused")
-        private fun put(key: String, value: Any?): KryptoPrefs = apply {
-            if (value == null) values.remove(key) else values[key] = value
         }
     }
 }

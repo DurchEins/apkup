@@ -1,27 +1,17 @@
 package com.apkup
 
-import com.apkup.data.ui.resolveStartRoute
+import com.apkup.data.ui.Screen
 import com.apkup.ui.screen.formatCapsuleBadge
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class NavigationRouteTest {
 
-    private val routes = setOf("apps", "updates", "settings")
-
     @Test
-    fun validSavedRouteIsPreserved() {
-        assertEquals("apps", resolveStartRoute("apps", routes))
-    }
-
-    @Test
-    fun removedSearchRouteFallsBackToUpdates() {
-        assertEquals("updates", resolveStartRoute("search", routes))
-    }
-
-    @Test
-    fun unknownSavedRouteFallsBackToUpdates() {
-        assertEquals("updates", resolveStartRoute("unknown", routes))
+    fun startDestinationAlwaysResolvesToUpdatesRoute() {
+        assertEquals("updates", Screen.Updates.route)
+        assertEquals("apps", Screen.Apps.route)
+        assertEquals("settings", Screen.Settings.route)
     }
 
     @Test

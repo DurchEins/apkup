@@ -5,8 +5,7 @@
     <string name="tab_settings">Setup</string>
     <string name="app_disabled">Deaktiviert</string>
     <string name="something_went_wrong">"Etwas ist schiefgelaufen\n\uD83E\uDD26"</string>
-    <string name="ignore_cd">Ignorieren</string>
-    <string name="unignore_cd">Überprüfen</string>
+    <string name="action_back">← Zurück</string>
     <string name="refresh_updates">Suche nach Updates</string>
     <string name="updates_checking">Suche nach Updates…</string>
     <string name="updates_checking_apps">%1$d von %2$d Apps über alle aktiven Quellen geprüft</string>
@@ -15,7 +14,6 @@
     <string name="updates_last_checked_minutes">Zuletzt geprüft: vor %1$d Min.</string>
     <string name="updates_last_checked_hours">Zuletzt geprüft: vor %1$d Std.</string>
     <string name="updates_last_checked_days">Zuletzt geprüft: vor %1$d Tg.</string>
-    <string name="install_cd">Installieren</string>
     <string name="install_all">Alle aktualisieren</string>
     <string name="update_action">Update starten</string>
     <string name="install_cached_action">Installieren</string>
@@ -32,6 +30,20 @@
     <string name="app_cd">App-Icon</string>
     <string name="install_success">%1$s installiert.</string>
     <string name="install_failure">%1$s wurde nicht installiert.</string>
+    <string name="install_failure_signature_mismatch">%1$s konnte wegen eines abweichenden Signaturschlüssels (andere Installationsquelle) nicht aktualisiert werden.</string>
+    <string name="install_error_signature_mismatch">Sicherheitswarnung: APK-Signatur stimmt nicht mit der installierten App überein. Installation blockiert.</string>
+    <string name="install_error_hash_mismatch">Sicherheitswarnung: SHA-256-Prüfsumme der heruntergeladenen APK stimmt nicht überein. Installation blockiert.</string>
+    <string name="install_error_downgrade_blocked">Versions-Downgrade erkannt und zum Schutz deiner App-Daten blockiert.</string>
+    <string name="install_error_integrity_failed">APK-Paketprüfung fehlgeschlagen (beschädigtes oder abweichendes Paket).</string>
+
+    <!-- Onboarding Source Consent -->
+    <string name="onboarding_consent_title">Update-Quellen auswählen</string>
+    <string name="onboarding_consent_desc">Wähle aus, welche externen Quellen ApkUp abfragen darf, um deine installierten Apps auf Updates zu prüfen. Du kannst dies jederzeit in den Einstellungen ändern.</string>
+    <string name="onboarding_consent_play_desc">Anonyme Google-Play-Prüfung (sendet Paket-IDs &amp; Kompatibilitätsprofil)</string>
+    <string name="onboarding_consent_apkmirror_desc">Prüft APKMirror auf neue Paketversionen</string>
+    <string name="onboarding_consent_fdroid_desc">Signierte F-Droid- &amp; IzzyOnDroid-Paketindizes</string>
+    <string name="onboarding_consent_git_desc">Prüft Releases verknüpfter Open-Source-Repositories</string>
+    <string name="onboarding_consent_confirm">Speichern &amp; Starten</string>
 
     <!-- Update Details Sheet and Origin -->
     <string name="whats_new_title">Was ist neu?</string>
@@ -67,7 +79,6 @@
 
     <!-- Settings -->
     <string name="settings_shizuku_installer">Shizuku für Hintergrundinstallationen nutzen</string>
-    <string name="settings_shizuku_installer_subtitle">Ermöglicht automatische Updates ohne System-Dialoge. Erfordert laufenden Shizuku-Dienst.</string>
     <string name="shizuku_fallback_not_running">Shizuku-Dienst nicht erreichbar – Standard-Installer wird verwendet.</string>
     <string name="shizuku_fallback_no_permission">Shizuku-Berechtigung verweigert – Standard-Installer wird verwendet.</string>
     <string name="shizuku_setup_title">Shizuku einrichten</string>
@@ -107,16 +118,11 @@
     <string name="settings_show_system_apps">System-Apps anzeigen &amp; einbinden</string>
     <string name="settings_advanced_subtitle">App-Verwaltung, Berechtigungen &amp; Datensicherung</string>
     <string name="settings_download_charging_only_desc">Updates nur herunterladen, wenn das Gerät geladen wird</string>
-    <string name="token_guide_toggle_show">Anleitung anzeigen</string>
-    <string name="token_guide_toggle_hide">Anleitung ausblenden</string>
+    <string name="settings_charging_only_active_desc">Aktiv beim Laden (alle Netzwerke)</string>
     <string name="settings_show_system_apps_desc">Zeigt System-Apps in der Übersicht an und bezieht sie in die Updatesuche ein.</string>
     <string name="settings_ignored_versions_title">Übersprungene Einzel-Updates</string>
-    <string name="settings_ignored_versions_description">Verwalte einzelne Update-Versionen, die du zuvor übersprungen hast.</string>
     <string name="settings_ignored_versions_empty">Aktuell sind keine einzelnen Versionen übersprungen.</string>
     <string name="settings_ignored_versions_count">%1$d Version(en) übersprungen</string>
-    <string name="settings_ignored_versions_manage">Übersprungene Versionen verwalten</string>
-    <string name="settings_ignored_versions_clear_all">Alle wieder freigeben</string>
-    <string name="settings_ignored_version_restore">Freigeben</string>
     <string name="action_unignore_version">Freigeben</string>
     <string name="action_clear_ignored_versions">Alle übersprungenen Versionen freigeben</string>
     <string name="settings_advanced_section">Erweiterte Einstellungen</string>
@@ -130,26 +136,36 @@
     <string name="settings_apkmirror_direct_downloads">Direkte APKMirror-Downloads</string>
     <string name="settings_apkmirror_direct_downloads_desc">APKMirror-Updates direkt in der App herunterladen und installieren</string>
     <string name="apkmirror_challenge_fallback">APKMirror-Sicherheitsprüfung erkannt. Öffne im Browser…</string>
+    <string name="apkmirror_cooldown_browser_fallback">APKMirror-Abklingzeit für %1$s aktiv – öffne im Browser.</string>
     <string name="apkmirror_resolution_failed_fallback">APKMirror-Downloadlink konnte nicht aufgelöst werden. Öffne im Browser…</string>
+    <string name="apkmirror_api_section_title">Eigener APKMirror-API-Schlüssel (Optional)</string>
+    <string name="apkmirror_api_section_desc">Optionale eigene Zugangsdaten für die APKMirror-API. Bleibt das Feld leer, nutzt ApkUp automatisch den integrierten Fallback.</string>
+    <string name="apkmirror_api_user_label">API-Benutzername</string>
+    <string name="apkmirror_api_key_label">API-Schlüssel</string>
     <string name="source_play">Google Play Store</string>
-    <string name="source_github" translatable="false">GitHub</string>
-    <string name="source_gitlab" translatable="false">GitLab</string>
-        <string name="settings_source_github_desc">GitHub-Releases für zugeordnete und Open-Source-Apps prüfen</string>
+    <string name="fdroid_repos_enabled_subtitle">%1$d Repository(s) aktiv • Tippen zum Verwalten</string>
+    <string name="fdroid_repos_tap_to_manage">Tippen, um F-Droid- &amp; IzzyOnDroid-Repositories zu verwalten</string>
+    <string name="fdroid_repos_sheet_title">F-Droid- &amp; IzzyOnDroid-Repositories</string>
+    <string name="fdroid_repos_sheet_desc">Alle Repository-Indizes werden kryptografisch über JAR-Signaturzertifikate (index-v1.jar) und APK-SHA-256-Prüfsummen verifiziert.</string>
+    <string name="fdroid_repo_delete_cd">Repository entfernen</string>
+    <string name="fdroid_repo_add_button">Eigenes Repository hinzufügen</string>
+    <string name="fdroid_repo_add_title">F-Droid-Repository hinzufügen</string>
+    <string name="fdroid_repo_add_desc">Füge eine HTTPS- oder fdroidrepo://-Repository-URL (inkl. ?fingerprint=…) ein. Der SHA-256-Fingerprint unten ist optional und wird beim ersten verifizierten Abruf per TOFU gespeichert.</string>
+    <string name="fdroid_repo_url_label">HTTPS-Repository-URL</string>
+    <string name="fdroid_repo_name_label">Anzeigename (optional)</string>
+    <string name="fdroid_repo_fingerprint_label">SHA-256-Fingerprint (optional)</string>
+    <string name="settings_source_github_desc">GitHub-Releases für zugeordnete und Open-Source-Apps prüfen</string>
     <string name="settings_source_gitlab_desc">GitLab-Releases für zugeordnete Repositories prüfen</string>
-    <string name="github_token_title">GitHub API-Token</string>
-    <string name="gitlab_token_title">GitLab API-Token</string>
     <string name="github_token_dialog_title">GitHub Personal Access Token</string>
     <string name="github_token_dialog_desc">Gib ein Personal Access Token (nur Lesezugriff auf öffentliche Repos erforderlich) ein, um GitHub-Rate-Limits (HTTP 403) zu vermeiden.</string>
     <string name="github_token_dialog_hint">ghp_xxxxxxxxxxxx</string>
     <string name="github_token_dialog_clear">Token entfernen</string>
     <string name="github_token_dialog_save">Speichern</string>
     <string name="github_token_status_set">Token konfiguriert</string>
-    <string name="github_token_status_not_set">Kein Token hinterlegt (Limit: 60 Anfragen/h)</string>
     <string name="gitlab_token_dialog_title">GitLab Personal Access Token</string>
-    <string name="gitlab_token_dialog_desc">Gib ein Personal Access Token (read_api) ein, um Rate-Limits zu erhöhen oder auf geschützte GitLab-Releases zuzugreifen.</string>
+    <string name="gitlab_token_dialog_desc">Gib ein Personal Access Token (read_api) für gitlab.com ein. Aus Sicherheitsgründen wird dieses Token niemals an eigene Self-Hosted-Domains gesendet.</string>
     <string name="gitlab_token_dialog_hint">glpat-xxxxxxxxxxxx</string>
     <string name="gitlab_token_status_set">Token konfiguriert</string>
-    <string name="gitlab_token_status_not_set">Kein Token hinterlegt (optional)</string>
     <string name="token_toggle_visibility">Token ein-/ausblenden</string>
     <string name="token_dialog_verify_button">Token prüfen</string>
     <string name="token_validation_checking">Token wird geprüft…</string>
@@ -192,8 +208,12 @@
     <string name="link_repo_platform">Plattform</string>
     <string name="link_repo_input_label">Repository</string>
     <string name="link_repo_input_hint">owner/repo oder vollständige URL</string>
+    <string name="link_repo_invalid_format">Bitte gültige HTTPS-Repository-URL oder \'owner/repo\' eingeben</string>
     <string name="link_repo_host_label">Eigener GitLab-Host</string>
     <string name="link_repo_host_hint">gitlab.com (oder eigene Domain)</string>
+    <string name="link_repo_regex_label">Asset-Filter (Regex, optional)</string>
+    <string name="link_repo_regex_hint">z. B. .*-foss\\.apk$</string>
+    <string name="link_repo_regex_invalid">Ungültiger regulärer Ausdruck</string>
     <string name="link_repo_btn_test">Testen</string>
     <string name="link_repo_btn_save">Speichern</string>
     <string name="link_repo_btn_unlink">Trennen</string>
@@ -233,16 +253,9 @@
     <string name="settings_section_backup_restore">Datensicherung &amp; Export</string>
     <string name="settings_preview_title">Live-Vorschau</string>
 
-    <string name="permission_unknown_apps_title">Unbekannte Apps installieren</string>
-    <string name="permission_unknown_apps_subtitle_granted">Berechtigung aktiv – direkte APK-Installation möglich</string>
-    <string name="permission_unknown_apps_subtitle_missing">Erforderlich für manuelle APK-Installationen ohne Shizuku</string>
-    <string name="permission_status_granted">Erteilt</string>
-    <string name="permission_status_missing">Nicht erteilt</string>
-
     <string name="hidden_apps_title">Dauerhaft ausgeblendete Apps</string>
     <string name="hidden_apps_explanation">Diese Apps werden komplett ignoriert. Sie erscheinen weder in deiner App-Liste noch bei zukünftigen Update-Prüfungen.</string>
     <string name="hidden_apps_badge_count">%1$d Apps</string>
-    <string name="hidden_apps_manage">Ausgeblendete Apps verwalten</string>
     <string name="hidden_apps_empty">Aktuell sind keine Apps ausgeblendet.</string>
     <string name="hidden_apps_count">%1$d App(s) ausgeblendet</string>
     <string name="hidden_apps_select_all">Alle auswählen</string>
@@ -256,7 +269,6 @@
     <!-- Notifications -->
     <string name="notification_channel_name">Updates</string>
     <string name="notification_channel_description">Kanal für Update-Benachrichtigungen.</string>
-    <string name="notification_channel_id" translatable="false">updateChannel</string>
     <string name="notification_update_title">Updates</string>
     <plurals name="notification_update_description">
         <item quantity="zero">Keine Updates gefunden.</item>
@@ -270,7 +282,7 @@
     <string name="permission_install_unknown_apps_button">In Einstellungen aktivieren</string>
     <string name="permission_install_unknown_apps_later">Später</string>
 
-    <!-- Foreground Download & Install Service -->
+    <!-- Foreground Download & Install Worker -->
     <string name="notification_channel_downloads">Downloads &amp; Installationen</string>
     <string name="notification_channel_downloads_desc">Zeigt den Fortschritt aktiver Paket-Downloads und Installationen an.</string>
     <string name="action_cancel">Abbrechen</string>
@@ -294,18 +306,22 @@
     <string name="notification_check_title_source">Suche nach Updates (%1$s)…</string>
     <string name="notification_check_progress_text">%1$d von %2$d Apps geprüft</string>
 
-    <!-- Wi-Fi Only Data Saver -->
+    <!-- WLAN- & Lade-Schutz -->
     <string name="settings_download_wifi_only">Updates nur über WLAN laden</string>
     <string name="settings_download_wifi_only_desc">Spart mobiles Datenvolumen bei App-Downloads</string>
     <string name="dialog_mobile_data_title">Über mobile Daten herunterladen?</string>
     <string name="dialog_mobile_data_message">Du hast „Updates nur über WLAN laden“ aktiviert und bist aktuell nicht mit einem WLAN verbunden. Möchtest du trotzdem über mobile Daten herunterladen?</string>
     <string name="dialog_mobile_data_confirm">Trotzdem laden</string>
+    <string name="dialog_battery_title">Im Akkubetrieb herunterladen?</string>
+    <string name="dialog_battery_message">Du hast „Nur beim Laden“ für Downloads aktiviert und dein Gerät wird aktuell nicht geladen. Trotzdem herunterladen?</string>
+    <string name="dialog_battery_confirm">Trotzdem laden</string>
     <string name="error_banner_wiki_help">Wiki-Hilfe ↗</string>
     <string name="downloading_update_percent">Lädt herunter… %1$d%%</string>
 
     <!-- Obtainium Import / Export -->
     <string name="action_export_obtainium">Obtainium-Export</string>
     <string name="backup_obtainium_import_success">%1$d von %2$d Apps erfolgreich aus Obtainium importiert.</string>
+    <string name="backup_obtainium_skipped_domains">%1$d nicht unterstützte Einträge übersprungen (%2$s)</string>
     <string name="backup_obtainium_export_success">Obtainium-Exportdatei erfolgreich erstellt.</string>
 
     <!-- Autonomous Shizuku Background Updates & Wiki Bento -->
@@ -344,10 +360,9 @@
     <string name="settings_status_optimized">Eingeschränkt</string>
     <string name="settings_status_disabled">Deaktiviert</string>
     <string name="settings_status_blocked">Gesperrt</string>
-    <string name="settings_wifi_shizuku_hint">Greift automatisch, sobald Shizuku eingerichtet und aktiv ist.</string>
 
     <!-- Setup Warning Card Strings -->
-    <string name="setup_warnings_multiple_title">%d Einstellungen erfordern Aufmerksamkeit</string>
+    <string name="setup_warnings_multiple_title">%1$d Einstellungen erfordern Aufmerksamkeit</string>
     <string name="setup_warning_action_resolve">Beheben</string>
     <string name="warning_install_title">Installation unbekannter Apps gesperrt</string>
     <string name="warning_install_subtitle">Direkte APK-Installation ist nicht möglich</string>
@@ -365,7 +380,6 @@
     <!-- WLAN- & Download-Einstellungen Dialog -->
     <string name="settings_wifi_dialog_title">WLAN- &amp; Download-Einstellungen</string>
     <string name="settings_wifi_dialog_desc">Lege fest, welche Netzwerkverbindungen für Downloads und automatische Hintergrundprüfungen genutzt werden dürfen.</string>
-    <string name="settings_download_wifi_only_active">Aktiv (Downloads nur über WLAN)</string>
     <string name="settings_wifi_active_charging_desc">Aktiv im WLAN und beim Laden</string>
     <string name="settings_wifi_all_networks_desc">Downloads über alle Netzwerke erlaubt</string>
     <string name="settings_bg_check_wifi_only">Hintergrundprüfungen nur über WLAN</string>
@@ -384,20 +398,11 @@
     <string name="updates_recent_history_pill">Update-Verlauf (%1$d)</string>
 
     <!-- Split Settings & Compact App Management -->
-    <string name="settings_apkmirror_dialog_title">APKMirror-Optionen</string>
-    <string name="settings_apkmirror_dialog_desc">Lege fest, wie ApkUp Downloads von APKMirror handhabt.</string>
     <string name="settings_apkmirror_direct_active">Direkte Downloads aktiv</string>
     <string name="settings_apkmirror_direct_inactive">Browser-Weiterleitung</string>
-    <string name="settings_shizuku_dialog_title">Hintergrund-Installationen</string>
     <string name="settings_shizuku_summary_auto">Autonome Updates aktiv</string>
     <string name="settings_shizuku_summary_silent">Stille Updates via Shizuku</string>
     <string name="settings_shizuku_summary_inactive">Erfordert laufenden Shizuku-Dienst</string>
-    <string name="settings_interval_dialog_title">Prüfintervall auswählen</string>
-    <string name="settings_interval_summary_6h">Alle 6 Stunden</string>
-    <string name="settings_interval_summary_12h">Alle 12 Stunden</string>
-    <string name="settings_interval_summary_24h">Alle 24 Stunden (1x täglich)</string>
-    <string name="settings_interval_summary_48h">Alle 48 Stunden (alle 2 Tage)</string>
-    <string name="settings_interval_summary_7d">Alle 7 Tage (wöchentlich)</string>
     <string name="hidden_apps_none">Keine Apps ausgeblendet</string>
     <plurals name="updates_banner_title_count">
         <item quantity="one">%1$d Update verfügbar</item>
@@ -406,13 +411,144 @@
     <string name="update_sources_multiple_count_singular">+%1$d Quelle</string>
     <string name="update_sources_multiple_count_plural">+%1$d Quellen</string>
     <string name="apps_filter_sideload">GitHub / Sideload</string>
-    <string name="apps_sort_count_label">%1$d Apps sortiert (A–Z)</string>
+    <string name="apps_sort_count_label">%1$d Apps · %2$s</string>
+    <string name="apps_sort_action">Apps sortieren</string>
+    <string name="apps_sort_name_asc">Name (A–Z)</string>
+    <string name="apps_sort_name_desc">Name (Z–A)</string>
+    <string name="apps_sort_source">Installationsquelle</string>
+    <string name="apps_sort_recent">Zuletzt aktualisiert</string>
     <string name="apps_launch_action">App starten</string>
     <string name="apps_context_details">In App-Info öffnen</string>
     <string name="apps_context_store">Im Store öffnen</string>
-    <string name="apps_context_link_repo">Repository verknüpfen</string>
     <string name="apps_context_ignore">App ignorieren</string>
     <string name="apps_context_unignore">App einbeziehen</string>
     <string name="apps_view_list">Listenansicht</string>
     <string name="apps_view_grid">Rasteransicht</string>
+    <string name="updates_selected_count">%1$d ausgewählt</string>
+    <string name="updates_install_selected">Installieren (%1$d)</string>
+    <string name="updates_install_selected_subtitle">Karten antippen zum Anpassen</string>
+    <string name="updates_select_all">Alle auswählen</string>
+    <string name="updates_deselect_all">Keine</string>
+    <string name="updates_clear_selection">Auswahl beenden</string>
+    <string name="updates_search_placeholder">Updates oder Paket-ID suchen…</string>
+    <string name="updates_search_empty_title">Keine passenden Updates</string>
+    <string name="updates_search_empty_message">Versuche einen anderen Suchbegriff oder Quellenfilter.</string>
+    <string name="updates_sort_action">Updates sortieren</string>
+    <string name="updates_sort_name">Name (A–Z)</string>
+    <string name="updates_sort_name_desc">Name (Z–A)</string>
+    <string name="updates_sort_source">Quelle</string>
+    <string name="updates_sort_release_date">Neueste (Release-Datum)</string>
+    <string name="settings_section_diagnostics">Diagnose- &amp; Update-Protokoll</string>
+    <string name="settings_diagnostics_description">Speichert oder teilt die letzten Update-Checks, Fehler und Systemlogs ohne Passwörter.</string>
+    <string name="action_save_diagnostic_log">Speichern (.txt)</string>
+    <string name="action_share_diagnostic_log">Teilen</string>
+    <string name="diagnostic_log_export_success">Diagnose-Protokoll erfolgreich gespeichert.</string>
+    <string name="diagnostic_log_export_error">Diagnose-Protokoll konnte nicht exportiert werden.</string>
+    <string name="action_save_apk">APK speichern</string>
+    <string name="apk_save_success">Gespeichert unter %1$s</string>
+    <string name="apk_save_error">APK-Datei konnte nicht gespeichert werden.</string>
+    <string name="queue_status_saving">Speichere APK…</string>
+    <string name="queue_overall_percent">Gesamt %1$d%%</string>
+    <string name="notification_saving_named">Speichere %1$s…</string>
+    <string name="settings_root_installer">Root-Installer (su)</string>
+    <string name="settings_root_installer_subtitle">Stummer Fallback neben Shizuku auf Root-Geräten</string>
+    <string name="settings_root_installer_subtitle_active">Aktiv · Stille Installation per su, falls Shizuku aus ist</string>
+    <string name="settings_root_installer_status_missing">Root-Zugriff derzeit nicht verfügbar (antippen zum Prüfen)</string>
+    <string name="root_installer_enabled_ok">Root-Zugriff (su) geprüft und aktiviert.</string>
+    <string name="root_installer_unavailable">Kein Root-Zugriff (su) auf diesem Gerät verfügbar.</string>
+    <string name="update_history_mode_auto_root">Auto (Root)</string>
+    <string name="update_history_mode_manual_root">Manuell (Root)</string>
+    <string name="settings_section_apk_download_folder">Ordner für gespeicherte APKs</string>
+    <string name="settings_apk_download_folder_desc">„APK speichern“ legt .apk- oder Split-.apks-Pakete hier ab.</string>
+    <string name="action_choose_folder">Ordner wählen</string>
+    <string name="action_reset_default_folder">Standard</string>
+    <string name="source_custom_fdroid">Eigene F-Droid-Repos</string>
+    <string name="settings_source_codeberg_desc">Codeberg &amp; eigene Forgejo-Instanzen</string>
+    <string name="codeberg_token_status_set">API-Token hinterlegt · Höheres Limit &amp; private Repos</string>
+    <string name="codeberg_token_dialog_desc">Füge ein persönliches Access-Token ein (für öffentliche Repos ohne besondere Rechte), um das API-Limit auf Codeberg zu erhöhen oder private Repos zu prüfen.</string>
+    <string name="codeberg_token_dialog_hint">Codeberg Access-Token</string>
+    <string name="token_action_generate_codeberg">Token auf Codeberg erstellen</string>
+    <string name="link_repo_host_hint_codeberg">codeberg.org (oder eigener Forgejo-Server)</string>
+    <string name="repo_view_on_codeberg">Auf Codeberg öffnen</string>
+    <string name="settings_source_custom_fdroid_desc">Zusätzliche F-Droid-Paketquellen (F-Droid.org, GrapheneOS, Mullvad …)</string>
+    <string name="custom_fdroid_sheet_title">Eigene F-Droid-Repositories</string>
+    <string name="custom_fdroid_sheet_subtitle">Konfigurierte Paketquellen: %1$d</string>
+    <string name="custom_fdroid_presets_label">Beliebte Repositories</string>
+    <string name="custom_fdroid_add_title">Repository-URL hinzufügen</string>
+    <string name="custom_fdroid_name_label">Anzeigename</string>
+    <string name="custom_fdroid_name_hint">z. B. Offizielles F-Droid</string>
+    <string name="custom_fdroid_url_label">Repository-URL</string>
+    <string name="custom_fdroid_url_hint">https://f-droid.org/repo</string>
+    <string name="custom_fdroid_fingerprint_label">SHA-256-Fingerabdruck (optional)</string>
+    <string name="custom_fdroid_btn_add">Repository hinzufügen</string>
+    <string name="custom_fdroid_empty">Noch keine eigenen F-Droid-Repositories eingerichtet.</string>
+    <string name="custom_fdroid_invalid_url">Bitte eine gültige HTTPS- oder fdroidrepo-URL angeben (http:// ist nicht erlaubt).</string>
+    <string name="custom_fdroid_disallowed_host">Dieser Repository-Host ist aus Sicherheitsgründen blockiert.</string>
+    <string name="custom_fdroid_invalid_fingerprint">Der SHA-256-Fingerabdruck muss leer sein oder exakt 64 Hex-Zeichen umfassen.</string>
+    <string name="custom_fdroid_unpinned_badge">Ungepinnt (TOFU)</string>
+    <string name="custom_fdroid_unpinned_hint">Kein SHA-256-Fingerabdruck gepinnt — erste Index-Signatur wird beim ersten Abruf per TOFU übernommen</string>
+    <string name="custom_fdroid_tofu_pinned_badge">Gepinnt (TOFU)</string>
+    <string name="custom_fdroid_tofu_pinned_hint">Fingerabdruck beim ersten Abruf per TOFU gespeichert: %1$s…</string>
+    <string name="action_import_obtainium">Obtainium-Import</string>
+    <string name="obtainium_import_success">Obtainium-Konfiguration importiert.</string>
+    <string name="obtainium_import_title">Obtainium-Export importieren</string>
+    <string name="obtainium_import_subtitle">%1$d Einträge in der JSON-Datei gefunden</string>
+    <string name="obtainium_import_section_mappings">Repo-Verknüpfungen für installierte Apps (%1$d)</string>
+    <string name="obtainium_import_section_fdroid">Eigene F-Droid-Repositories (%1$d)</string>
+    <string name="obtainium_import_section_watched">Nicht installierte Apps beobachten (%1$d)</string>
+    <string name="obtainium_import_watched_desc">Ausgewählte Apps erscheinen unter Apps → Beobachtet und zeigen neue Versionen direkt zum Installieren an.</string>
+    <string name="obtainium_import_btn_apply">Auswahl importieren</string>
+    <string name="obtainium_import_nothing">Keine kompatiblen GitHub-, GitLab-, Codeberg- oder F-Droid-Einträge gefunden.</string>
+    <string name="apps_filter_watched">Beobachtet</string>
+    <string name="apps_watched_badge">Beobachtet</string>
+    <string name="apps_watched_not_installed">Nicht installiert · Beobachtet</string>
+    <string name="apps_watch_add_action">App beobachten</string>
+    <string name="apps_watch_remove_action">Beobachtung beenden</string>
+    <string name="apps_watch_removed_snack">%1$s aus Beobachtungsliste entfernt</string>
+    <string name="apps_watch_added_snack">%1$s wird jetzt beobachtet</string>
+    <string name="watch_sheet_title">Nicht installierte App beobachten</string>
+    <string name="watch_sheet_desc">Verfolge neue Versionen einer noch nicht installierten App. Gefundene Releases erscheinen direkt im Updates-Tab zum Installieren oder Speichern.</string>
+    <string name="watch_sheet_pkg_label">Android-Paket-ID</string>
+    <string name="watch_sheet_pkg_hint">z. B. app.revanced.manager.flutter</string>
+    <string name="watch_sheet_name_label">App-Name (optional)</string>
+    <string name="watch_sheet_name_hint">z. B. ReVanced Manager</string>
+    <string name="watch_sheet_repo_label">GitHub- / GitLab- / Codeberg-URL (optional)</string>
+    <string name="watch_sheet_repo_hint">https://codeberg.org/owner/repo</string>
+    <string name="watch_sheet_btn_add">Beobachten</string>
+    <string name="watch_sheet_pkg_invalid">Bitte eine gültige Paket-ID angeben (z. B. com.example.app).</string>
+    <string name="updates_watched_new_badge">Beobachtet · Neu</string>
+    <string name="install_action">Installieren</string>
+    <string name="queue_banner_title_saving">Speichere APK (%1$d von %2$d)</string>
+    <string name="root_setup_sheet_desc">Ermöglicht stille Hintergrundinstallationen über Root-Rechte (su) – als automatischer Fallback, falls Shizuku nach einem Neustart aus ist, oder eigenständig auf gerooteten Geräten.</string>
+    <string name="root_setup_status_title">Root-Zugriff (su)</string>
+    <string name="root_setup_status_checking">Prüfe Superuser-Zugriff (su)…</string>
+    <string name="root_setup_status_granted">Root-Zugriff bestätigt</string>
+    <string name="root_setup_status_denied">Kein Root-Zugriff erkannt</string>
+    <string name="root_setup_status_desc_checking">ApkUp prüft, ob auf diesem Gerät su-Rechte verfügbar sind.</string>
+    <string name="root_setup_status_desc_granted">Stille Hintergrundinstallationen per su sind einsatzbereit (werden genutzt, wenn Shizuku aus oder inaktiv ist).</string>
+    <string name="root_setup_status_desc_denied">Erteile ApkUp in Magisk, KernelSU oder APatch Root-Rechte – oder nutze alternativ Shizuku bzw. den normalen Installer.</string>
+    <string name="root_setup_fallback_note">Hinweis: Root ist komplett optional. Ohne Root funktioniert ApkUp ganz normal über Shizuku (Drahtloses Debugging) oder den System-Installer.</string>
+    <string name="root_setup_btn_enable">Root-Installer aktivieren</string>
+    <string name="root_setup_btn_disable">Root-Installer deaktivieren</string>
+    <string name="backup_import_success_root_disabled">Backup importiert. Der Root-Installer bleibt aus Sicherheitsgründen deaktiviert — bei Bedarf manuell prüfen und aktivieren.</string>
+    <string name="settings_diagnostics_include_logcat">System-/Prozess-Logcat anhängen (kann Geräte-/App-Details enthalten)</string>
+    <string name="diagnostic_log_share_subject">ApkUp-Diagnoseprotokoll</string>
+    <string name="watch_sheet_repo_invalid">Bitte eine gültige GitHub-, GitLab- oder Codeberg-URL bzw. owner/repo angeben.</string>
+    <string name="apkmirror_watched_first_install_title">Erstinstallation — Herausgeber-Signatur lokal noch ungeprüft</string>
+    <string name="apkmirror_watched_first_install_message">%1$s ist lokal noch nicht installiert, daher kann Android den Signaturschlüssel noch nicht mit einer bestehenden Installation vergleichen. APKMirror hostet Drittanbieter-APKs ohne lokales Herausgeber-Key-Pinning. Nur fortfahren, wenn du dieser Quelle vertraust.</string>
+    <string name="apkmirror_watched_first_install_confirm">Trotzdem fortfahren</string>
+    <string name="apkmirror_webview_verify_title">Cloudflare-Prüfung im WebView</string>
+    <string name="apkmirror_webview_verify_desc">Falls direkte APKMirror-Downloads durch eine Sicherheitsprüfung blockiert werden, öffne APKMirror im In-App-WebView, um die Prüfung manuell abzuschließen.</string>
+    <string name="apkmirror_webview_verify_btn">Cloudflare im WebView bestätigen</string>
+    <string name="apkmirror_webview_dialog_title">APKMirror-WebView-Prüfung</string>
+    <string name="apkmirror_webview_dialog_done">Fertig</string>
+    <string name="token_input_label">Token</string>
+    <string name="download_saf_fallback_snack">Eigener Download-Ordner nicht verfügbar — im Standardordner Downloads/ApkUp gespeichert.</string>
+    <string name="download_saf_fallback_snack_named">Eigener Download-Ordner nicht verfügbar — unter %1$s gespeichert.</string>
+    <string name="unit_seconds_short">s</string>
+    <string name="unit_minutes_short">Min.</string>
+    <string name="unit_hours_short">Std.</string>
+    <string name="unit_bytes_per_sec">B/s</string>
+    <string name="unit_kb_per_sec">KB/s</string>
+    <string name="unit_mb_per_sec">MB/s</string>
 </resources>
