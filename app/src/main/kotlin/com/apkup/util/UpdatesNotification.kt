@@ -1,14 +1,11 @@
 package com.apkup.util
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Build
-import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.apkup.R
@@ -71,15 +68,13 @@ interface AutoUpdateNotifier {
 open class UpdatesNotification(private val context: Context) : AutoUpdateNotifier {
 
     companion object {
-        const val UpdateAction = "updateAction"
+        const val UpdateAction = "com.apkup.action.OPEN_UPDATES"
+        const val UPDATE_CHANNEL_ID = "update_notification_channel"
+        private const val CHECK_PROGRESS_CHANNEL_ID = "update_check_progress_channel"
     }
 
     private val notificationManager get() = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-    private val channelId by lazy { context.getString(R.string.notification_channel_id) }
-    private val channelName by lazy { context.getString(R.string.notification_channel_name) }
-    private val updateTitle by lazy { context.getString(R.string.notification_update_title) }
     private val updateId = 42
-    private val checkProgressChannelId = "update_check_progress_channel"
     private val checkProgressId = 43
 
     @SuppressLint("MissingPermission")
@@ -92,7 +87,8 @@ open class UpdatesNotification(private val context: Context) : AutoUpdateNotifie
         createCheckProgressChannel()
 
         val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+            setPackage(context.packageName)
+            flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
             action = UpdateAction
         }
 
@@ -113,7 +109,7 @@ open class UpdatesNotification(private val context: Context) : AutoUpdateNotifie
             context.getString(R.string.updates_checking)
         }
 
-        val builder = NotificationCompat.Builder(context, checkProgressChannelId)
+        val builder = NotificationCompat.Builder(context, CHECK_PROGRESS_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_refresh)
             .setContentTitle(title)
             .setContentText(contentText)
@@ -146,15 +142,18 @@ open class UpdatesNotification(private val context: Context) : AutoUpdateNotifie
 
     @SuppressLint("MissingPermission")
     override fun showUpdateNotification(num: Int) {
-        // Intent for the notification click
+        if (!areNotificationsEnabled()) return
+        createNotificationChannel()
+
         val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+            setPackage(context.packageName)
+            flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
             action = UpdateAction
         }
 
-        val builder = NotificationCompat.Builder(context, channelId)
+        val builder = NotificationCompat.Builder(context, UPDATE_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_install)
-            .setContentTitle(updateTitle)
+            .setContentTitle(context.getString(R.string.notification_update_title))
             .setContentText(context.resources.getQuantityString(R.plurals.notification_update_description, num, num))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(
@@ -167,10 +166,7 @@ open class UpdatesNotification(private val context: Context) : AutoUpdateNotifie
             )
             .setAutoCancel(true)
 
-        createNotificationChannel()
-        if (areNotificationsEnabled()) {
-            NotificationManagerCompat.from(context).notify(updateId, builder.build())
-        }
+        NotificationManagerCompat.from(context).notify(updateId, builder.build())
     }
 
     @SuppressLint("MissingPermission")
@@ -185,6 +181,7 @@ open class UpdatesNotification(private val context: Context) : AutoUpdateNotifie
             showUpdateNotification(manual.size)
             return
         }
+        if (!areNotificationsEnabled()) return
 
         val summary = formatAutoUpdateSummary(
             updatedAppNames = updated,
@@ -213,12 +210,15 @@ open class UpdatesNotification(private val context: Context) : AutoUpdateNotifie
             }
         ) ?: return
 
+        createNotificationChannel()
+
         val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+            setPackage(context.packageName)
+            flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
             action = UpdateAction
         }
 
-        val builder = NotificationCompat.Builder(context, channelId)
+        val builder = NotificationCompat.Builder(context, UPDATE_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_install)
             .setContentTitle(summary.title)
             .setContentText(summary.contentText)
@@ -234,18 +234,7 @@ open class UpdatesNotification(private val context: Context) : AutoUpdateNotifie
             )
             .setAutoCancel(true)
 
-        createNotificationChannel()
-        if (areNotificationsEnabled()) {
-            NotificationManagerCompat.from(context).notify(updateId, builder.build())
-        }
-    }
-
-    fun checkNotificationPermission(launcher: ManagedActivityResultLauncher<String, Boolean>) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (!areNotificationsEnabled()) {
-                launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
-        }
+        NotificationManagerCompat.from(context).notify(updateId, builder.build())
     }
 
     private fun areNotificationsEnabled() = NotificationManagerCompat
@@ -253,7 +242,11 @@ open class UpdatesNotification(private val context: Context) : AutoUpdateNotifie
         .areNotificationsEnabled()
 
     private fun createNotificationChannel() {
-        val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT).apply {
+        val channel = NotificationChannel(
+            UPDATE_CHANNEL_ID,
+            context.getString(R.string.notification_channel_name),
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
             description = context.getString(R.string.notification_channel_description)
         }
         notificationManager.createNotificationChannel(channel)
@@ -261,7 +254,7 @@ open class UpdatesNotification(private val context: Context) : AutoUpdateNotifie
 
     private fun createCheckProgressChannel() {
         val channel = NotificationChannel(
-            checkProgressChannelId,
+            CHECK_PROGRESS_CHANNEL_ID,
             context.getString(R.string.notification_check_channel_name),
             NotificationManager.IMPORTANCE_LOW
         ).apply {
@@ -272,5 +265,4 @@ open class UpdatesNotification(private val context: Context) : AutoUpdateNotifie
         }
         notificationManager.createNotificationChannel(channel)
     }
-
 }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!-- Keep translation completeness warnings visible without blocking builds while community translations evolve -->
+    <issue id="MissingTranslation" severity="warning" />
+    <issue id="ExtraTranslation" severity="warning" />
+    <issue id="MissingQuantity" severity="warning" />
+    <issue id="UnusedQuantity" severity="warning" />
+    <issue id="PluralsCandidate" severity="informational" />
+
+    <!-- ApkUp is distributed outside Google Play and provides an optional user-initiated battery optimization shortcut -->
+    <issue id="BatteryLife" severity="warning" />
+    <issue id="QueryAllPackagesPermission" severity="ignore" />
+</lint>

@@ -2,20 +2,25 @@ package com.apkup.util
 
 import androidx.compose.material3.SnackbarVisuals
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.launch
 
 class SnackBar {
 
-    private val snackBars = MutableSharedFlow<SnackbarVisuals>()
+    private val snackBars = MutableSharedFlow<SnackbarVisuals>(
+        replay = 0,
+        extraBufferCapacity = 16,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
 
     fun flow(): SharedFlow<SnackbarVisuals> = snackBars
 
-    fun snackBar(
-        scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
-        message: SnackbarVisuals
-    ) = scope.launch { snackBars.emit(message) }
+    fun emit(message: SnackbarVisuals): Boolean = snackBars.tryEmit(message)
 
+    @Suppress("UNUSED_PARAMETER")
+    fun snackBar(
+        scope: CoroutineScope? = null,
+        message: SnackbarVisuals
+    ): Boolean = snackBars.tryEmit(message)
 }

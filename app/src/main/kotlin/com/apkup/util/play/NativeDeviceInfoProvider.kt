@@ -1,152 +1,172 @@
 package com.apkup.util.play
 
-import android.app.ActivityManager
 import android.content.Context
 import android.content.ContextWrapper
-import android.content.res.Configuration
 import android.os.Build
-import android.text.TextUtils
 import java.util.Locale
 import java.util.Properties
 
-
+/**
+ * Privacy-preserving anonymous reference device profile for Google Play token dispenser & FDFE
+ * compatibility filtering (`F-07`, `HIGH-11`).
+ *
+ * Replaces the legacy 32-field hardware/ROM/GPU fingerprint (`Build.FINGERPRINT`, `BOOTLOADER`,
+ * `RADIO`, display pixel dimensions, full `systemAvailableFeatures`, `systemSharedLibraryNames`,
+ * and `EglExtensionProvider` GPU strings) with a static Pixel 7a (`lynx`) baseline parameterized
+ * strictly by:
+ * - `Build.SUPPORTED_ABIS` (for correct CPU architecture split selection)
+ * - `Build.VERSION.SDK_INT` / `Build.VERSION.RELEASE` (for `minSdkVersion` compatibility)
+ * - Active `Locale.getDefault()` (for localized Play metadata, `F-15`)
+ */
 class NativeDeviceInfoProvider(context: Context) : ContextWrapper(context) {
 
-    fun getNativeDeviceProperties(): Properties {
-        val properties = Properties().apply {
-            //Build Props
-            setProperty("UserReadableName", "${Build.DEVICE}-default")
-            setProperty("Build.HARDWARE", Build.HARDWARE)
-            setProperty(
-                "Build.RADIO",
-                if (Build.getRadioVersion() != null)
-                    Build.getRadioVersion()
-                else
-                    "unknown"
-            )
-            setProperty("Build.FINGERPRINT", Build.FINGERPRINT)
-            setProperty("Build.BRAND", Build.BRAND)
-            setProperty("Build.DEVICE", Build.DEVICE)
-            setProperty("Build.VERSION.SDK_INT", "${Build.VERSION.SDK_INT}")
-            setProperty("Build.VERSION.RELEASE", Build.VERSION.RELEASE)
-            setProperty("Build.MODEL", Build.MODEL)
-            setProperty("Build.MANUFACTURER", Build.MANUFACTURER)
-            setProperty("Build.PRODUCT", Build.PRODUCT)
-            setProperty("Build.ID", Build.ID)
-            setProperty("Build.BOOTLOADER", Build.BOOTLOADER)
+    companion object {
+        private val BASELINE_FEATURES = listOf(
+            "android.hardware.audio.output",
+            "android.hardware.bluetooth",
+            "android.hardware.bluetooth_le",
+            "android.hardware.camera",
+            "android.hardware.camera.any",
+            "android.hardware.camera.autofocus",
+            "android.hardware.camera.flash",
+            "android.hardware.camera.front",
+            "android.hardware.faketouch",
+            "android.hardware.fingerprint",
+            "android.hardware.location",
+            "android.hardware.location.gps",
+            "android.hardware.location.network",
+            "android.hardware.microphone",
+            "android.hardware.nfc",
+            "android.hardware.ram.normal",
+            "android.hardware.screen.landscape",
+            "android.hardware.screen.portrait",
+            "android.hardware.sensor.accelerometer",
+            "android.hardware.sensor.compass",
+            "android.hardware.sensor.gyroscope",
+            "android.hardware.sensor.light",
+            "android.hardware.sensor.proximity",
+            "android.hardware.telephony",
+            "android.hardware.telephony.gsm",
+            "android.hardware.touchscreen",
+            "android.hardware.touchscreen.multitouch",
+            "android.hardware.touchscreen.multitouch.distinct",
+            "android.hardware.touchscreen.multitouch.jazzhand",
+            "android.hardware.usb.accessory",
+            "android.hardware.usb.host",
+            "android.hardware.vulkan.compute",
+            "android.hardware.vulkan.level",
+            "android.hardware.vulkan.version",
+            "android.hardware.wifi",
+            "android.hardware.wifi.direct",
+            "android.software.activities_on_secondary_displays",
+            "android.software.app_widgets",
+            "android.software.autofill",
+            "android.software.backup",
+            "android.software.companion_device_setup",
+            "android.software.connectionservice",
+            "android.software.cts",
+            "android.software.device_admin",
+            "android.software.home_screen",
+            "android.software.input_methods",
+            "android.software.ManagedUsers",
+            "android.software.picture_in_picture",
+            "android.software.print",
+            "android.software.secure_lock_screen",
+            "android.software.voice_recognizers",
+            "android.software.webview",
+            "com.google.android.feature.GOOGLE_BUILD",
+            "com.google.android.feature.GOOGLE_EXPERIENCE"
+        )
 
-            val config = applicationContext.resources.configuration
-            setProperty("TouchScreen", "${config.touchscreen}")
-            setProperty("Keyboard", "${config.keyboard}")
-            setProperty("Navigation", "${config.navigation}")
-            setProperty("ScreenLayout", "${config.screenLayout and 15}")
-            setProperty("HasHardKeyboard", "${config.keyboard == Configuration.KEYBOARD_QWERTY}")
-            setProperty(
-                "HasFiveWayNavigation",
-                "${config.navigation == Configuration.NAVIGATIONHIDDEN_YES}"
-            )
+        private val BASELINE_SHARED_LIBRARIES = listOf(
+            "android.ext.shared",
+            "android.hidl.base-V1.0-java",
+            "android.hidl.manager-V1.0-java",
+            "android.net.ipsec.ike",
+            "android.test.base",
+            "android.test.mock",
+            "android.test.runner",
+            "androidx.window.extensions",
+            "androidx.window.sidecar",
+            "com.android.future.usb.accessory",
+            "com.android.location.provider",
+            "com.android.media.remotedisplay",
+            "com.android.mediadrm.signer",
+            "com.google.android.gms",
+            "javax.obex",
+            "org.apache.http.legacy"
+        )
 
-            //Display Metrics
-            val metrics = applicationContext.resources.displayMetrics
-            setProperty("Screen.Density", "${metrics.densityDpi}")
-            setProperty("Screen.Width", "${metrics.widthPixels}")
-            setProperty("Screen.Height", "${metrics.heightPixels}")
+        private val BASELINE_GL_EXTENSIONS = listOf(
+            "GL_EXT_debug_marker",
+            "GL_EXT_robustness",
+            "GL_EXT_texture_compression_astc_ldr",
+            "GL_EXT_texture_format_BGRA8888",
+            "GL_OES_compressed_ETC1_RGB8_texture",
+            "GL_OES_depth24",
+            "GL_OES_DEPTH_texture",
+            "GL_OES_EGL_image",
+            "GL_OES_EGL_image_external",
+            "GL_OES_packed_depth_stencil",
+            "GL_OES_rgb8_rgba8",
+            "GL_OES_standard_derivatives",
+            "GL_OES_texture_float",
+            "GL_OES_texture_half_float",
+            "GL_OES_vertex_array_object"
+        )
 
+        fun buildAnonymousProperties(
+            supportedAbis: List<String> = Build.SUPPORTED_ABIS?.toList().orEmpty().ifEmpty { listOf("arm64-v8a", "armeabi-v7a") },
+            sdkInt: Int = Build.VERSION.SDK_INT.takeIf { it > 0 } ?: 35,
+            releaseVersion: String = Build.VERSION.RELEASE?.takeIf { it.isNotBlank() } ?: "15",
+            activeLocale: Locale = Locale.getDefault()
+        ): Properties {
+            val localeCode = activeLocale.toLanguageTag().replace('-', '_').ifBlank { "en_US" }
+            val localesCsv = listOf(localeCode, "en_US").distinct().joinToString(",")
+            return Properties().apply {
+                setProperty("UserReadableName", "Pixel 7a-default")
+                setProperty("Build.HARDWARE", "lynx")
+                setProperty("Build.RADIO", "unknown")
+                setProperty("Build.FINGERPRINT", "google/lynx/lynx:$releaseVersion/AP4A.250105.002/12701944:user/release-keys")
+                setProperty("Build.BRAND", "google")
+                setProperty("Build.DEVICE", "lynx")
+                setProperty("Build.VERSION.SDK_INT", "$sdkInt")
+                setProperty("Build.VERSION.RELEASE", releaseVersion)
+                setProperty("Build.MODEL", "Pixel 7a")
+                setProperty("Build.MANUFACTURER", "Google")
+                setProperty("Build.PRODUCT", "lynx")
+                setProperty("Build.ID", "AP4A.250105.002")
+                setProperty("Build.BOOTLOADER", "lynx-1.0")
 
-            //Supported Platforms
-            setProperty("Platforms", Build.SUPPORTED_ABIS.joinToString(separator = ","))
-            //Supported Features
-            setProperty("Features", getFeatures().joinToString(separator = ","))
-            //Shared Locales
-            setProperty("Locales", getLocales().joinToString(separator = ","))
-            //Shared Libraries
-            setProperty("SharedLibraries", getSharedLibraries().joinToString(separator = ","))
-            //GL Extensions
-            val activityManager =
-                applicationContext.getSystemService(ACTIVITY_SERVICE) as ActivityManager
-            setProperty(
-                "GL.Version",
-                activityManager.deviceConfigurationInfo.reqGlEsVersion.toString()
-            )
-            setProperty(
-                "GL.Extensions",
-                EglExtensionProvider.eglExtensions.joinToString(separator = ",")
-            )
+                // Standardized Pixel 7a screen & input baseline (zero per-device screen pixel fingerprinting)
+                setProperty("TouchScreen", "3")
+                setProperty("Keyboard", "1")
+                setProperty("Navigation", "1")
+                setProperty("ScreenLayout", "2")
+                setProperty("HasHardKeyboard", "false")
+                setProperty("HasFiveWayNavigation", "false")
+                setProperty("Screen.Density", "420")
+                setProperty("Screen.Width", "1080")
+                setProperty("Screen.Height", "2400")
 
-            //Google Related Props
-            setProperty("Client", "android-google")
-            setProperty("GSF.version", "203615037")
-            setProperty("Vending.version", "82201710")
-            setProperty("Vending.versionString", "22.0.17-21 [0] [PR] 332555730")
+                setProperty("Platforms", supportedAbis.joinToString(","))
+                setProperty("Features", BASELINE_FEATURES.joinToString(","))
+                setProperty("Locales", localesCsv)
+                setProperty("SharedLibraries", BASELINE_SHARED_LIBRARIES.joinToString(","))
+                setProperty("GL.Version", "196610")
+                setProperty("GL.Extensions", BASELINE_GL_EXTENSIONS.joinToString(","))
 
-            //MISC
-            setProperty("Roaming", "mobile-notroaming")
-            setProperty("TimeZone", "UTC-10")
-
-            //Telephony (USA 3650 AT&T)
-            setProperty("CellOperator", "310")
-            setProperty("SimOperator", "38")
+                setProperty("Client", "android-google")
+                setProperty("GSF.version", "203615037")
+                setProperty("Vending.version", "82201710")
+                setProperty("Vending.versionString", "22.0.17-21 [0] [PR] 332555730")
+                setProperty("Roaming", "mobile-notroaming")
+                setProperty("TimeZone", "UTC")
+                setProperty("CellOperator", "310")
+                setProperty("SimOperator", "38")
+            }
         }
-
-        if (isHuawei())
-            stripHuaweiProperties(properties)
-
-        return properties
     }
 
-    private fun getFeatures(): List<String> {
-        val featureStringList: MutableList<String> = ArrayList()
-        try {
-            val availableFeatures = applicationContext.packageManager.systemAvailableFeatures
-            for (feature in availableFeatures) {
-                if (feature.name.isNotEmpty()) {
-                    featureStringList.add(feature.name)
-                }
-            }
-        } catch (_: Exception) {}
-        return featureStringList
-    }
-
-    private fun getLocales(): List<String> {
-        val localeList: MutableList<String> = ArrayList()
-        localeList.addAll(listOf(*applicationContext.assets.locales))
-        val locales: MutableList<String> = ArrayList()
-        for (locale in localeList) {
-            if (TextUtils.isEmpty(locale)) {
-                continue
-            }
-            locales.add(locale.replace("-", "_"))
-        }
-        return locales
-    }
-
-    private fun getSharedLibraries(): List<String> {
-        val systemSharedLibraryNames = applicationContext.packageManager.systemSharedLibraryNames
-        val libraries: MutableList<String> = ArrayList()
-        try {
-            if (systemSharedLibraryNames != null) {
-                libraries.addAll(listOf(*systemSharedLibraryNames))
-            }
-        } catch (_: Exception) {}
-        return libraries
-    }
-
-    private fun stripHuaweiProperties(properties: Properties): Properties {
-        //Add Pixel 7a properties
-        properties["Build.HARDWARE"] = "lynx"
-        properties["Build.BOOTLOADER"] = "lynx-1.0-9716681"
-        properties["Build.BRAND"] = "google"
-        properties["Build.DEVICE"] = "lynx"
-        properties["Build.MODEL"] = "Pixel 7a"
-        properties["Build.MANUFACTURER"] = "Google"
-        properties["Build.PRODUCT"] = "lynx"
-        properties["Build.ID"] = "TQ2A.230505.002"
-        return properties
-    }
-}
-
-fun isHuawei(): Boolean {
-    return Build.MANUFACTURER.lowercase(Locale.getDefault()).contains("huawei")
-            || Build.HARDWARE.lowercase(Locale.getDefault()).contains("kirin")
-            || Build.HARDWARE.lowercase(Locale.getDefault()).contains("hi3")
+    fun getNativeDeviceProperties(): Properties = buildAnonymousProperties()
 }

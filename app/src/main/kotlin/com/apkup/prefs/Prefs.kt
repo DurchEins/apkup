@@ -1,146 +1,640 @@
 package com.apkup.prefs
 
+import com.apkup.data.fdroid.FDroidRepoConfig
 import com.apkup.data.repomapping.RepoBinding
 import com.apkup.data.ui.CachedUpdateSnapshot
+import com.apkup.data.ui.CustomFDroidRepo
 import com.apkup.data.ui.IgnoredVersionEntry
-import com.apkup.data.ui.Screen
 import com.apkup.data.ui.UpdateHistoryEntry
-import kotlin.math.abs
+import com.apkup.data.ui.WatchedAppEntry
 import com.aurora.gplayapi.data.models.AuthData
-import com.kryptoprefs.context.KryptoContext
-import com.kryptoprefs.gson.json
-import com.kryptoprefs.preferences.KryptoPrefs
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.lang.reflect.Type
+import kotlin.math.abs
 
+class PrefSlot<T>(
+    private val getter: () -> T,
+    private val setter: (T) -> Unit
+) {
+    fun get(): T = getter()
+    fun put(value: T) = setter(value)
+}
 
 class Prefs(
-	prefs: KryptoPrefs
-): KryptoContext(prefs) {
-	val ignoredApps = json("ignoredApps", emptyList<String>(), true)
-	val showSystemApps = boolean("showSystemApps", defValue = false, backed = true)
-	private val _showSystemAppsFlow = MutableStateFlow(showSystemApps.get())
-	val showSystemAppsFlow: StateFlow<Boolean> = _showSystemAppsFlow.asStateFlow()
+    private val backend: PrefsBackend = InMemoryPrefsBackend(),
+    private val gson: Gson = Gson()
+) {
+    private val lock = Any()
 
-	fun setShowSystemApps(show: Boolean) {
-		showSystemApps.put(show)
-		_showSystemAppsFlow.value = show
-	}
+    private fun booleanSlot(
+        key: String,
+        defValue: Boolean,
+        onChanged: ((Boolean) -> Unit)? = null
+    ): PrefSlot<Boolean> = PrefSlot(
+        getter = { synchronized(lock) { backend.getBoolean(key, defValue) } },
+        setter = { value ->
+            synchronized(lock) { backend.putBoolean(key, value) }
+            onChanged?.invoke(value)
+        }
+    )
 
-	val hasSeenInstallPermissionPrompt = boolean("hasSeenInstallPermissionPrompt", defValue = false, backed = true)
-	val ignoredVersions = json("ignoredVersions", emptyList<Int>(), true)
-	val ignoredVersionEntries = json("ignoredVersionEntries", emptyList<IgnoredVersionEntry>(), true)
-	val ignoreAppsFilterActive = boolean("ignoreAppsFilterActive", defValue = true, backed = true)
-	val ignoreVersionsFilterActive = boolean("ignoreVersionsFilterActive", defValue = true, backed = true)
-	val updatesDisplayMode = int("updatesDisplayMode", defValue = 0, backed = true)
-	val appsViewMode = string("appsViewMode", defValue = "list", backed = true)
-	val useApkMirror = boolean("useApkMirror", defValue = true, backed = true)
-	val directApkMirrorDownloads = boolean("directApkMirrorDownloads", defValue = true, backed = true)
-	val usePlay = boolean("usePlay", defValue = true, backed = true)
-	val useIzzyOnDroid = boolean("useIzzyOnDroid", defValue = true, backed = true)
-	val useGitHub = boolean("useGitHub", defValue = true, backed = true)
-	val useGitLab = boolean("useGitLab", defValue = true, backed = true)
-	val githubToken = string("githubToken", defValue = "", backed = true)
-	val gitlabToken = string("gitlabToken", defValue = "", backed = true)
-	val customRepoBindings = json("customRepoBindings", emptyMap<String, RepoBinding>(), true)
-	val enableBackgroundChecks = boolean("enableAlarm", defValue = true, backed = true)
-	val backgroundCheckIntervalHours = int("backgroundCheckIntervalHours", defValue = 24, backed = true)
-	val theme = int("theme", defValue = 0, backed = true)
-	val lastTab = string("lastTab", defValue = Screen.Updates.route, backed = true)
-	val playAuthData = json("playAuthData", AuthData("", ""), true)
-	val lastPlayCheck = long("lastPlayCheck", 0L, true)
-	val useShizukuInstaller = boolean("useShizukuInstaller", defValue = false, backed = true)
-	val autoInstallUpdates = boolean("autoInstallUpdates", defValue = false, backed = true)
-	val autoInstallWifiOnly = boolean("autoInstallWifiOnly", defValue = true, backed = true)
-	val autoInstallChargingOnly = boolean("autoInstallChargingOnly", defValue = true, backed = true)
-	val downloadWifiOnly = boolean("downloadWifiOnly", defValue = false, backed = true)
-	val downloadChargingOnly = boolean("downloadChargingOnly", defValue = false, backed = true)
-	val backgroundCheckWifiOnly = boolean("backgroundCheckWifiOnly", defValue = false, backed = true)
-	val lastSeenVersionCode = long("last_seen_version_code", 0L, true)
-	val cachedUpdateSnapshot = json("cachedUpdateSnapshot", CachedUpdateSnapshot(), true)
-	private val updateHistoryEntries = json("updateHistoryEntries", emptyList<UpdateHistoryEntry>(), true)
-	private val _updateHistoryFlow = MutableStateFlow(readUpdateHistorySafe())
-	val updateHistoryFlow: StateFlow<List<UpdateHistoryEntry>> = _updateHistoryFlow.asStateFlow()
+    private fun intSlot(
+        key: String,
+        defValue: Int,
+        onChanged: ((Int) -> Unit)? = null
+    ): PrefSlot<Int> = PrefSlot(
+        getter = { synchronized(lock) { backend.getInt(key, defValue) } },
+        setter = { value ->
+            synchronized(lock) { backend.putInt(key, value) }
+            onChanged?.invoke(value)
+        }
+    )
 
-	companion object {
-		const val MAX_UPDATE_HISTORY_ENTRIES = 50
-		private const val DEDUP_WINDOW_MILLIS = 5L * 60L * 1_000L
-	}
+    private fun longSlot(
+        key: String,
+        defValue: Long,
+        onChanged: ((Long) -> Unit)? = null
+    ): PrefSlot<Long> = PrefSlot(
+        getter = { synchronized(lock) { backend.getLong(key, defValue) } },
+        setter = { value ->
+            synchronized(lock) { backend.putLong(key, value) }
+            onChanged?.invoke(value)
+        }
+    )
 
-	@Synchronized
-	fun readUpdateHistorySafe(): List<UpdateHistoryEntry> = runCatching {
-		updateHistoryEntries.get()
-	}.getOrElse {
-		runCatching { updateHistoryEntries.put(emptyList()) }
-		emptyList()
-	}
+    private fun stringSlot(
+        key: String,
+        defValue: String,
+        onChanged: ((String) -> Unit)? = null
+    ): PrefSlot<String> = PrefSlot(
+        getter = { synchronized(lock) { backend.getString(key, defValue) ?: defValue } },
+        setter = { value ->
+            synchronized(lock) { backend.putString(key, value) }
+            onChanged?.invoke(value)
+        }
+    )
 
-	@Synchronized
-	fun recordUpdateHistory(
-		entry: UpdateHistoryEntry,
-		maxEntries: Int = MAX_UPDATE_HISTORY_ENTRIES
-	) {
-		if (entry.packageName.isBlank()) return
-		val current = readUpdateHistorySafe().toMutableList()
-		val duplicateIndex = current.indexOfFirst { existing ->
-			existing.packageName == entry.packageName &&
-				existing.newVersionCode == entry.newVersionCode &&
-				existing.newVersion == entry.newVersion &&
-				abs(existing.installedAtMillis - entry.installedAtMillis) <= DEDUP_WINDOW_MILLIS
-		}
-		if (duplicateIndex != -1) {
-			return
-		}
-		current.add(0, entry)
-		val trimmed = current.take(maxEntries.coerceAtLeast(1))
-		runCatching { updateHistoryEntries.put(trimmed) }
-		_updateHistoryFlow.value = trimmed
-	}
+    private fun <T> jsonSlot(
+        key: String,
+        type: Type,
+        defProvider: () -> T,
+        onChanged: ((T) -> Unit)? = null
+    ): PrefSlot<T> = PrefSlot(
+        getter = {
+            synchronized(lock) {
+                val raw = backend.getString(key, null)
+                if (raw.isNullOrBlank()) {
+                    defProvider()
+                } else {
+                    runCatching {
+                        @Suppress("UNCHECKED_CAST")
+                        (gson.fromJson<T>(raw, type) ?: defProvider())
+                    }.getOrElse {
+                        val fallback = defProvider()
+                        runCatching { backend.putString(key, gson.toJson(fallback, type)) }
+                        fallback
+                    }
+                }
+            }
+        },
+        setter = { value ->
+            synchronized(lock) {
+                backend.putString(key, gson.toJson(value, type))
+            }
+            onChanged?.invoke(value)
+        }
+    )
 
-	@Synchronized
-	fun replaceUpdateHistory(
-		entries: List<UpdateHistoryEntry>,
-		maxEntries: Int = MAX_UPDATE_HISTORY_ENTRIES
-	) {
-		val sanitized = entries
-			.filter { it.packageName.isNotBlank() }
-			.sortedByDescending { it.installedAtMillis }
-			.take(maxEntries.coerceAtLeast(1))
-		runCatching { updateHistoryEntries.put(sanitized) }
-		_updateHistoryFlow.value = sanitized
-	}
+    val ignoredApps: PrefSlot<List<String>> = jsonSlot(
+        key = "ignoredApps",
+        type = object : TypeToken<List<String>>() {}.type,
+        defProvider = { emptyList() },
+        onChanged = { _ignoredAppsFlow.value = it }
+    )
+    private val _ignoredAppsFlow = MutableStateFlow(ignoredApps.get())
+    val ignoredAppsFlow: StateFlow<List<String>> = _ignoredAppsFlow.asStateFlow()
 
-	@Synchronized
-	fun clearUpdateHistory() {
-		runCatching { updateHistoryEntries.put(emptyList()) }
-		_updateHistoryFlow.value = emptyList()
-	}
+    val showSystemApps: PrefSlot<Boolean> = booleanSlot(
+        key = "showSystemApps",
+        defValue = false,
+        onChanged = { _showSystemAppsFlow.value = it }
+    )
+    private val _showSystemAppsFlow = MutableStateFlow(showSystemApps.get())
+    val showSystemAppsFlow: StateFlow<Boolean> = _showSystemAppsFlow.asStateFlow()
 
-	fun readCachedSnapshotSafe(): CachedUpdateSnapshot = runCatching {
-		cachedUpdateSnapshot.get()
-	}.getOrElse {
-		val empty = CachedUpdateSnapshot()
-		runCatching { cachedUpdateSnapshot.put(empty) }
-		empty
-	}
+    fun setShowSystemApps(show: Boolean) {
+        showSystemApps.put(show)
+    }
 
-	fun readIgnoredVersionEntriesSafe(): List<IgnoredVersionEntry> = runCatching {
-		ignoredVersionEntries.get()
-	}.getOrElse {
-		runCatching { ignoredVersionEntries.put(emptyList()) }
-		emptyList()
-	}
+    val hasSeenInstallPermissionPrompt: PrefSlot<Boolean> =
+        booleanSlot("hasSeenInstallPermissionPrompt", defValue = false)
 
-	fun readCustomRepoBindingsSafe(): Map<String, RepoBinding> = runCatching {
-		customRepoBindings.get()
-	}.getOrElse {
-		val empty = emptyMap<String, RepoBinding>()
-		runCatching { customRepoBindings.put(empty) }
-		empty
-	}
+    val hasCompletedOnboarding: PrefSlot<Boolean> = booleanSlot(
+        key = "hasCompletedOnboarding",
+        defValue = false,
+        onChanged = { _hasCompletedOnboardingFlow.value = it }
+    )
+    private val _hasCompletedOnboardingFlow = MutableStateFlow(hasCompletedOnboarding.get())
+    val hasCompletedOnboardingFlow: StateFlow<Boolean> = _hasCompletedOnboardingFlow.asStateFlow()
 
-	fun writeCustomRepoBindings(bindings: Map<String, RepoBinding>) {
-		runCatching { customRepoBindings.put(bindings) }
-	}
+    val ignoredVersions: PrefSlot<List<Int>> = jsonSlot(
+        key = "ignoredVersions",
+        type = object : TypeToken<List<Int>>() {}.type,
+        defProvider = { emptyList() }
+    )
+
+    val ignoredVersionEntries: PrefSlot<List<IgnoredVersionEntry>> = jsonSlot(
+        key = "ignoredVersionEntries",
+        type = object : TypeToken<List<IgnoredVersionEntry>>() {}.type,
+        defProvider = { emptyList() },
+        onChanged = { _ignoredVersionEntriesFlow.value = it }
+    )
+    private val _ignoredVersionEntriesFlow = MutableStateFlow(ignoredVersionEntries.get())
+    val ignoredVersionEntriesFlow: StateFlow<List<IgnoredVersionEntry>> = _ignoredVersionEntriesFlow.asStateFlow()
+
+    val ignoreAppsFilterActive: PrefSlot<Boolean> = booleanSlot("ignoreAppsFilterActive", defValue = true)
+    val ignoreVersionsFilterActive: PrefSlot<Boolean> = booleanSlot("ignoreVersionsFilterActive", defValue = true)
+    val updatesDisplayMode: PrefSlot<Int> = intSlot("updatesDisplayMode", defValue = 0)
+    val appsViewMode: PrefSlot<String> = stringSlot("appsViewMode", defValue = "list")
+    val appsSortOrder: PrefSlot<String> = stringSlot("appsSortOrder", defValue = "NAME_ASC")
+    val updatesSortOrder: PrefSlot<String> = stringSlot("updatesSortOrder", defValue = "NAME_ASC")
+
+    val useApkMirror: PrefSlot<Boolean> = booleanSlot("useApkMirror", defValue = true)
+    val directApkMirrorDownloads: PrefSlot<Boolean> = booleanSlot("directApkMirrorDownloads", defValue = true)
+    val apkMirrorCustomApiUser: PrefSlot<String> = stringSlot("apkMirrorCustomApiUser", defValue = "")
+    val apkMirrorCustomApiKey: PrefSlot<String> = stringSlot("apkMirrorCustomApiKey", defValue = "")
+
+    val usePlay: PrefSlot<Boolean> = booleanSlot("usePlay", defValue = true)
+    val useIzzyOnDroid: PrefSlot<Boolean> = booleanSlot("useIzzyOnDroid", defValue = true)
+    val useGitHub: PrefSlot<Boolean> = booleanSlot("useGitHub", defValue = true)
+    val useGitLab: PrefSlot<Boolean> = booleanSlot("useGitLab", defValue = true)
+    val useCodeberg: PrefSlot<Boolean> = booleanSlot("useCodeberg", defValue = true)
+    val useCustomFDroidRepos: PrefSlot<Boolean> = booleanSlot("useCustomFDroidRepos", defValue = true)
+
+    val customFDroidRepos: PrefSlot<List<CustomFDroidRepo>> = jsonSlot(
+        key = "customFDroidRepos",
+        type = object : TypeToken<List<CustomFDroidRepo>>() {}.type,
+        defProvider = { emptyList() },
+        onChanged = { _customFDroidReposFlow.value = it }
+    )
+    private val _customFDroidReposFlow = MutableStateFlow(readCustomFDroidReposSafe())
+    val customFDroidReposFlow: StateFlow<List<CustomFDroidRepo>> = _customFDroidReposFlow.asStateFlow()
+
+    val watchedApps: PrefSlot<List<WatchedAppEntry>> = jsonSlot(
+        key = "watchedApps",
+        type = object : TypeToken<List<WatchedAppEntry>>() {}.type,
+        defProvider = { emptyList() },
+        onChanged = { _watchedAppsFlow.value = it }
+    )
+    private val _watchedAppsFlow = MutableStateFlow(readWatchedAppsSafe())
+    val watchedAppsFlow: StateFlow<List<WatchedAppEntry>> = _watchedAppsFlow.asStateFlow()
+
+    val incompatibleRepoSignatures: PrefSlot<Map<String, String>> = jsonSlot(
+        key = "incompatibleRepoSignatures",
+        type = object : TypeToken<Map<String, String>>() {}.type,
+        defProvider = { emptyMap() }
+    )
+
+    val fdroidRepos: PrefSlot<List<FDroidRepoConfig>> = jsonSlot(
+        key = "fdroidRepos",
+        type = object : TypeToken<List<FDroidRepoConfig>>() {}.type,
+        defProvider = { FDroidRepoConfig.defaultPresets() },
+        onChanged = { _fdroidReposFlow.value = it }
+    )
+    private val _fdroidReposFlow = MutableStateFlow(readFDroidReposSafe())
+    val fdroidReposFlow: StateFlow<List<FDroidRepoConfig>> = _fdroidReposFlow.asStateFlow()
+
+    val fdroidRepoTimestamps: PrefSlot<Map<String, Long>> = jsonSlot(
+        key = "fdroidRepoTimestamps",
+        type = object : TypeToken<Map<String, Long>>() {}.type,
+        defProvider = { emptyMap() }
+    )
+
+    val githubToken: PrefSlot<String> = stringSlot("githubToken", defValue = "")
+    val gitlabToken: PrefSlot<String> = stringSlot("gitlabToken", defValue = "")
+    val codebergToken: PrefSlot<String> = stringSlot("codebergToken", defValue = "")
+
+    val customRepoBindings: PrefSlot<Map<String, RepoBinding>> = jsonSlot(
+        key = "customRepoBindings",
+        type = object : TypeToken<Map<String, RepoBinding>>() {}.type,
+        defProvider = { emptyMap() },
+        onChanged = { _customRepoBindingsFlow.value = it }
+    )
+    private val _customRepoBindingsFlow = MutableStateFlow(customRepoBindings.get())
+    val customRepoBindingsFlow: StateFlow<Map<String, RepoBinding>> = _customRepoBindingsFlow.asStateFlow()
+
+    val enableBackgroundChecks: PrefSlot<Boolean> = booleanSlot("enableAlarm", defValue = true)
+    val backgroundCheckIntervalHours: PrefSlot<Int> = intSlot("backgroundCheckIntervalHours", defValue = 24)
+    val theme: PrefSlot<Int> = intSlot("theme", defValue = 0)
+    val lastTab: PrefSlot<String> = stringSlot("lastTab", defValue = com.apkup.data.ui.Screen.Updates.route)
+
+    val playAuthData: PrefSlot<AuthData> = jsonSlot(
+        key = "playAuthData",
+        type = object : TypeToken<AuthData>() {}.type,
+        defProvider = { AuthData("", "") }
+    )
+    val lastPlayCheck: PrefSlot<Long> = longSlot("lastPlayCheck", defValue = 0L)
+
+    val useShizukuInstaller: PrefSlot<Boolean> = booleanSlot("useShizukuInstaller", defValue = false)
+    val useRootInstaller: PrefSlot<Boolean> = booleanSlot("useRootInstaller", defValue = false)
+    val customDownloadFolderUri: PrefSlot<String> = stringSlot("customDownloadFolderUri", defValue = "")
+    val autoInstallUpdates: PrefSlot<Boolean> = booleanSlot("autoInstallUpdates", defValue = false)
+    val autoInstallWifiOnly: PrefSlot<Boolean> = booleanSlot("autoInstallWifiOnly", defValue = true)
+    val autoInstallChargingOnly: PrefSlot<Boolean> = booleanSlot("autoInstallChargingOnly", defValue = true)
+    val downloadWifiOnly: PrefSlot<Boolean> = booleanSlot("downloadWifiOnly", defValue = false)
+    val downloadChargingOnly: PrefSlot<Boolean> = booleanSlot("downloadChargingOnly", defValue = false)
+    val backgroundCheckWifiOnly: PrefSlot<Boolean> = booleanSlot("backgroundCheckWifiOnly", defValue = false)
+
+    val lastSeenVersionCode: PrefSlot<Long> = longSlot("last_seen_version_code", defValue = 0L)
+
+    val cachedUpdateSnapshot: PrefSlot<CachedUpdateSnapshot> = jsonSlot(
+        key = "cachedUpdateSnapshot",
+        type = object : TypeToken<CachedUpdateSnapshot>() {}.type,
+        defProvider = { CachedUpdateSnapshot() }
+    )
+
+    private val updateHistoryEntries: PrefSlot<List<UpdateHistoryEntry>> = jsonSlot(
+        key = "updateHistoryEntries",
+        type = object : TypeToken<List<UpdateHistoryEntry>>() {}.type,
+        defProvider = { emptyList() }
+    )
+    private val _updateHistoryFlow = MutableStateFlow(readUpdateHistorySafe())
+    val updateHistoryFlow: StateFlow<List<UpdateHistoryEntry>> = _updateHistoryFlow.asStateFlow()
+
+    companion object {
+        const val MAX_UPDATE_HISTORY_ENTRIES = 50
+        private const val DEDUP_WINDOW_MILLIS = 5L * 60L * 1_000L
+    }
+
+    fun addIgnoredApp(packageName: String) = synchronized(lock) {
+        if (packageName.isBlank()) return@synchronized
+        val updated = (ignoredApps.get() + packageName).distinct()
+        ignoredApps.put(updated)
+    }
+
+    fun removeIgnoredApp(packageName: String) = synchronized(lock) {
+        val updated = ignoredApps.get().filterNot { it == packageName }
+        ignoredApps.put(updated)
+    }
+
+    fun toggleIgnoredApp(packageName: String): Boolean = synchronized(lock) {
+        val current = ignoredApps.get()
+        val nowIgnored = if (packageName in current) {
+            ignoredApps.put(current.filterNot { it == packageName })
+            false
+        } else {
+            ignoredApps.put((current + packageName).distinct())
+            true
+        }
+        nowIgnored
+    }
+
+    fun addIgnoredVersionEntry(entry: IgnoredVersionEntry) = synchronized(lock) {
+        val updatedEntries = ignoredVersionEntries.get()
+            .filterNot { it.packageName == entry.packageName && it.versionCode == entry.versionCode } + entry
+        ignoredVersionEntries.put(updatedEntries)
+    }
+
+    fun removeIgnoredVersionEntry(entry: IgnoredVersionEntry, legacyIdToRemove: Int? = null) = synchronized(lock) {
+        val updatedEntries = ignoredVersionEntries.get().filterNot {
+            it.packageName == entry.packageName &&
+                it.versionCode == entry.versionCode &&
+                it.version == entry.version
+        }
+        ignoredVersionEntries.put(updatedEntries)
+        if (legacyIdToRemove != null) {
+            ignoredVersions.put(ignoredVersions.get().filterNot { it == legacyIdToRemove })
+        }
+    }
+
+    fun clearAllIgnoredVersions() = synchronized(lock) {
+        ignoredVersionEntries.put(emptyList())
+        ignoredVersions.put(emptyList())
+    }
+
+    fun getFDroidRepos(): List<FDroidRepoConfig> = readFDroidReposSafe()
+
+    fun readFDroidReposSafe(): List<FDroidRepoConfig> = synchronized(lock) {
+        val stored = runCatching { fdroidRepos.get() }.getOrDefault(emptyList())
+        val presets = FDroidRepoConfig.defaultPresets()
+        if (stored.isEmpty()) return@synchronized presets
+        val byId = stored.associateBy { it.id }
+        val mergedBuiltIns = presets.map { preset ->
+            val existing = byId[preset.id]
+            if (existing != null) {
+                preset.copy(enabled = existing.enabled)
+            } else {
+                preset
+            }
+        }
+        val customs = stored.filter { !it.isBuiltIn && it.id.isNotBlank() && it.url.isNotBlank() }
+        mergedBuiltIns + customs
+    }
+
+    fun setFDroidRepoEnabled(repoId: String, enabled: Boolean) = synchronized(lock) {
+        val updated = readFDroidReposSafe().map { repo ->
+            if (repo.id == repoId) repo.copy(enabled = enabled) else repo
+        }
+        fdroidRepos.put(updated)
+    }
+
+    fun addCustomFDroidRepo(repo: FDroidRepoConfig): Boolean = synchronized(lock) {
+        val current = readFDroidReposSafe()
+        val matchIdx = current.indexOfFirst { it.normalizedUrl.equals(repo.normalizedUrl, ignoreCase = true) }
+        if (matchIdx >= 0) {
+            val existing = current[matchIdx]
+            if (existing.isBuiltIn) {
+                val updated = current.toMutableList()
+                updated[matchIdx] = existing.copy(enabled = true)
+                fdroidRepos.put(updated)
+                return@synchronized true
+            }
+            return@synchronized false
+        }
+        fdroidRepos.put(
+            current + repo.copy(
+                isBuiltIn = false,
+                enabled = true,
+                isTofuPinned = false
+            )
+        )
+        true
+    }
+
+    fun pinFDroidRepoTofu(repoId: String, fingerprint: String): Boolean = synchronized(lock) {
+        val cleanFp = FDroidRepoConfig.normalizeFingerprint(fingerprint)
+        if (!FDroidRepoConfig.isValidSha256Fingerprint(cleanFp)) return@synchronized false
+        var changed = false
+        val updated = readFDroidReposSafe().map { repo ->
+            if (!repo.isBuiltIn && repo.id == repoId && repo.normalizedFingerprint.isEmpty()) {
+                changed = true
+                repo.copy(fingerprint = cleanFp, isTofuPinned = true)
+            } else {
+                repo
+            }
+        }
+        if (changed) {
+            fdroidRepos.put(updated)
+        }
+        changed
+    }
+
+    @Suppress("SENSELESS_COMPARISON")
+    fun migrateLegacyCustomFDroidRepos() = synchronized(lock) {
+        val legacy = readCustomFDroidReposSafe()
+        val useLegacy = useCustomFDroidRepos.get()
+        if (legacy.isEmpty()) {
+            if (useLegacy) {
+                useCustomFDroidRepos.put(false)
+            }
+            return@synchronized
+        }
+        val current = readFDroidReposSafe().toMutableList()
+        var enableFDroidSource = false
+        for (item in legacy) {
+            val normUrl = FDroidRepoConfig.normalizeRepoBaseUrl(item.baseUrl) ?: continue
+            val cleanFp = FDroidRepoConfig.normalizeFingerprint((item.fingerprint as String?).orEmpty())
+            if (cleanFp.isNotEmpty() && !FDroidRepoConfig.isValidSha256Fingerprint(cleanFp)) continue
+            val itemActive = item.enabled && useLegacy
+            val existingIdx = current.indexOfFirst { it.normalizedUrl.equals(normUrl, ignoreCase = true) }
+            if (existingIdx >= 0) {
+                val existing = current[existingIdx]
+                var updated = if (itemActive && !existing.enabled) existing.copy(enabled = true) else existing
+                if (!updated.isBuiltIn && updated.normalizedFingerprint.isEmpty() && cleanFp.isNotEmpty()) {
+                    updated = updated.copy(fingerprint = cleanFp, isTofuPinned = item.isTofuPinned)
+                }
+                current[existingIdx] = updated
+            } else {
+                val safeId = item.id.ifBlank {
+                    "custom_" + normUrl.lowercase(java.util.Locale.ROOT).hashCode().toUInt().toString(16)
+                }
+                val safeName = item.name.trim().ifBlank { normUrl }
+                current.add(
+                    FDroidRepoConfig(
+                        id = safeId,
+                        name = safeName,
+                        url = normUrl,
+                        fingerprint = cleanFp,
+                        enabled = itemActive,
+                        isBuiltIn = false,
+                        isTofuPinned = item.isTofuPinned && cleanFp.isNotEmpty()
+                    )
+                )
+            }
+            if (itemActive) {
+                enableFDroidSource = true
+            }
+        }
+        fdroidRepos.put(current)
+        if (enableFDroidSource && !useIzzyOnDroid.get()) {
+            useIzzyOnDroid.put(true)
+        }
+        customFDroidRepos.put(emptyList())
+        useCustomFDroidRepos.put(false)
+    }
+
+    fun removeCustomFDroidRepo(repoId: String) = synchronized(lock) {
+        val updated = readFDroidReposSafe().filterNot { !it.isBuiltIn && it.id == repoId }
+        fdroidRepos.put(updated)
+        val timestamps = fdroidRepoTimestamps.get().toMutableMap()
+        if (timestamps.remove(repoId) != null) {
+            fdroidRepoTimestamps.put(timestamps)
+        }
+    }
+
+    fun recordFDroidRepoTimestamp(repoId: String, timestampMillis: Long) = synchronized(lock) {
+        val current = fdroidRepoTimestamps.get().toMutableMap()
+        val prev = current[repoId] ?: 0L
+        if (timestampMillis > prev) {
+            current[repoId] = timestampMillis
+            fdroidRepoTimestamps.put(current)
+        }
+    }
+
+    fun getFDroidRepoTimestamp(repoId: String): Long = synchronized(lock) {
+        fdroidRepoTimestamps.get()[repoId] ?: 0L
+    }
+
+    fun readUpdateHistorySafe(): List<UpdateHistoryEntry> = synchronized(lock) {
+        runCatching { updateHistoryEntries.get() }.getOrElse {
+            runCatching { updateHistoryEntries.put(emptyList()) }
+            emptyList()
+        }
+    }
+
+    fun recordUpdateHistory(
+        entry: UpdateHistoryEntry,
+        maxEntries: Int = MAX_UPDATE_HISTORY_ENTRIES
+    ) = synchronized(lock) {
+        if (entry.packageName.isBlank()) return@synchronized
+        val current = readUpdateHistorySafe().toMutableList()
+        val duplicateIndex = current.indexOfFirst { existing ->
+            existing.packageName == entry.packageName &&
+                existing.newVersionCode == entry.newVersionCode &&
+                existing.newVersion == entry.newVersion &&
+                abs(existing.installedAtMillis - entry.installedAtMillis) <= DEDUP_WINDOW_MILLIS
+        }
+        if (duplicateIndex != -1) {
+            return@synchronized
+        }
+        current.add(0, entry)
+        val trimmed = current.take(maxEntries.coerceAtLeast(1))
+        runCatching { updateHistoryEntries.put(trimmed) }
+        _updateHistoryFlow.value = trimmed
+    }
+
+    fun replaceUpdateHistory(
+        entries: List<UpdateHistoryEntry>,
+        maxEntries: Int = MAX_UPDATE_HISTORY_ENTRIES
+    ) = synchronized(lock) {
+        val sanitized = entries
+            .filter { it.packageName.isNotBlank() }
+            .sortedByDescending { it.installedAtMillis }
+            .take(maxEntries.coerceAtLeast(1))
+        runCatching { updateHistoryEntries.put(sanitized) }
+        _updateHistoryFlow.value = sanitized
+    }
+
+    fun clearUpdateHistory() = synchronized(lock) {
+        runCatching { updateHistoryEntries.put(emptyList()) }
+        _updateHistoryFlow.value = emptyList()
+    }
+
+    fun readCachedSnapshotSafe(): CachedUpdateSnapshot = synchronized(lock) {
+        runCatching { cachedUpdateSnapshot.get() }.getOrElse {
+            val empty = CachedUpdateSnapshot()
+            runCatching { cachedUpdateSnapshot.put(empty) }
+            empty
+        }
+    }
+
+    fun writeCachedSnapshot(snapshot: CachedUpdateSnapshot) = synchronized(lock) {
+        runCatching { cachedUpdateSnapshot.put(snapshot) }
+    }
+
+    fun pruneCachedSnapshotPackages(packageNames: Set<String>) = synchronized(lock) {
+        if (packageNames.isEmpty()) return@synchronized
+        val current = readCachedSnapshotSafe()
+        val updates = current.updates.orEmpty()
+        if (updates.none { it.packageName in packageNames }) return@synchronized
+        val pruned = current.copy(updates = updates.filterNot { it.packageName in packageNames })
+        runCatching { cachedUpdateSnapshot.put(pruned) }
+    }
+
+    fun readIgnoredVersionEntriesSafe(): List<IgnoredVersionEntry> = synchronized(lock) {
+        runCatching { ignoredVersionEntries.get() }.getOrElse {
+            runCatching { ignoredVersionEntries.put(emptyList()) }
+            emptyList()
+        }
+    }
+
+    fun readCustomRepoBindingsSafe(): Map<String, RepoBinding> = synchronized(lock) {
+        runCatching { customRepoBindings.get() }.getOrElse {
+            val empty = emptyMap<String, RepoBinding>()
+            runCatching { customRepoBindings.put(empty) }
+            empty
+        }
+    }
+
+    fun writeCustomRepoBindings(bindings: Map<String, RepoBinding>) = synchronized(lock) {
+        runCatching { customRepoBindings.put(bindings) }
+    }
+
+    fun putCustomRepoBinding(packageName: String, binding: RepoBinding) = synchronized(lock) {
+        val current = readCustomRepoBindingsSafe().toMutableMap()
+        current[packageName] = binding
+        writeCustomRepoBindings(current)
+    }
+
+    fun removeCustomRepoBinding(packageName: String) = synchronized(lock) {
+        val current = readCustomRepoBindingsSafe().toMutableMap()
+        if (current.remove(packageName) != null) {
+            writeCustomRepoBindings(current)
+        }
+    }
+
+    fun readIncompatibleRepoSignaturesSafe(): Map<String, String> = synchronized(lock) {
+        runCatching { incompatibleRepoSignatures.get() }
+            .getOrDefault(emptyMap())
+            .filter { (k, v) -> k.isNotBlank() && v.isNotBlank() }
+    }
+
+    fun writeIncompatibleRepoSignatures(entries: Map<String, String>) = synchronized(lock) {
+        incompatibleRepoSignatures.put(entries.filter { (k, v) -> k.isNotBlank() && v.isNotBlank() })
+    }
+
+    @Suppress("SENSELESS_COMPARISON")
+    fun readCustomFDroidReposSafe(): List<CustomFDroidRepo> = synchronized(lock) {
+        runCatching { customFDroidRepos.get() }
+            .getOrDefault(emptyList())
+            .filter { (it.baseUrl as String?)?.isNotBlank() == true }
+    }
+
+    @Suppress("SENSELESS_COMPARISON")
+    fun writeCustomFDroidRepos(repos: List<CustomFDroidRepo>) = synchronized(lock) {
+        val cleaned = repos
+            .filter { (it.baseUrl as String?)?.isNotBlank() == true }
+            .distinctBy { it.normalizedBaseUrl().lowercase() }
+        customFDroidRepos.put(cleaned)
+    }
+
+    fun pinCustomFDroidRepoTofu(normalizedUrl: String, fingerprint: String): Boolean = synchronized(lock) {
+        val cleanFp = FDroidRepoConfig.normalizeFingerprint(fingerprint)
+        if (!FDroidRepoConfig.isValidSha256Fingerprint(cleanFp)) return@synchronized false
+        val targetNorm = FDroidRepoConfig.normalizeRepoBaseUrl(normalizedUrl) ?: normalizedUrl.trim().trimEnd('/')
+        var changed = false
+        val updated = readCustomFDroidReposSafe().map { repo ->
+            val repoNorm = FDroidRepoConfig.normalizeRepoBaseUrl(repo.normalizedBaseUrl())
+                ?: repo.normalizedBaseUrl().trimEnd('/')
+            if (repoNorm.equals(targetNorm, ignoreCase = true) &&
+                FDroidRepoConfig.normalizeFingerprint((repo.fingerprint as String?).orEmpty()).isEmpty()
+            ) {
+                changed = true
+                repo.copy(fingerprint = cleanFp, isTofuPinned = true)
+            } else {
+                repo
+            }
+        }
+        if (changed) {
+            writeCustomFDroidRepos(updated)
+        }
+        changed
+    }
+
+    fun readWatchedAppsSafe(): List<WatchedAppEntry> = synchronized(lock) {
+        runCatching { watchedApps.get() }
+            .getOrDefault(emptyList())
+            .filter { it.packageName.isNotBlank() }
+    }
+
+    fun writeWatchedApps(entries: List<WatchedAppEntry>) = synchronized(lock) {
+        val cleaned = entries
+            .filter { it.packageName.isNotBlank() }
+            .distinctBy { it.packageName.trim() }
+        watchedApps.put(cleaned)
+    }
+
+    fun addWatchedApp(entry: WatchedAppEntry) = synchronized(lock) {
+        val pkg = entry.packageName.trim()
+        if (pkg.isBlank()) return@synchronized
+        val normalizedEntry = entry.copy(
+            packageName = pkg,
+            appName = entry.appName.trim().ifBlank { pkg }
+        )
+        val updated = readWatchedAppsSafe()
+            .filterNot { it.packageName.equals(pkg, ignoreCase = true) } + normalizedEntry
+        writeWatchedApps(updated)
+    }
+
+    fun removeWatchedApp(packageName: String) = synchronized(lock) {
+        val pkg = packageName.trim()
+        if (pkg.isBlank()) return@synchronized
+        val updated = readWatchedAppsSafe()
+            .filterNot { it.packageName.equals(pkg, ignoreCase = true) }
+        writeWatchedApps(updated)
+    }
 }

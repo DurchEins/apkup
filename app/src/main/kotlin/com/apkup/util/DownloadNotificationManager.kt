@@ -10,8 +10,8 @@ import android.os.Build
 import android.text.format.Formatter
 import androidx.core.app.NotificationCompat
 import com.apkup.R
-import com.apkup.service.DownloadInstallService
 import com.apkup.ui.activity.MainActivity
+import com.apkup.worker.DownloadCancelReceiver
 
 class DownloadNotificationManager(private val context: Context) {
 
@@ -25,14 +25,18 @@ class DownloadNotificationManager(private val context: Context) {
         context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     }
 
+    @Volatile
     private var lastUpdateTime = 0L
+
+    @Volatile
     private var lastPercent = -1
 
     init {
-        createNotificationChannel()
+        runCatching { createNotificationChannel() }
     }
 
     fun createNotificationChannel() {
+        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
@@ -44,13 +48,14 @@ class DownloadNotificationManager(private val context: Context) {
                 enableLights(false)
                 enableVibration(false)
             }
-            notificationManager.createNotificationChannel(channel)
+            nm.createNotificationChannel(channel)
         }
     }
 
     /**
      * Determines whether to throttle a notification update based on elapsed time and progress delta.
      */
+    @Synchronized
     fun shouldThrottle(percent: Int, force: Boolean = false): Boolean {
         if (force) {
             lastUpdateTime = System.currentTimeMillis()
@@ -81,7 +86,9 @@ class DownloadNotificationManager(private val context: Context) {
         activeUpdateId: Int?,
         batchIndex: Int = 1,
         batchTotal: Int = 1,
-        isResolvingLink: Boolean = false
+        isResolvingLink: Boolean = false,
+        batchSummary: BatchProgressSummary? = null,
+        isSaveOnly: Boolean = false
     ): Notification {
         val title = if (batchTotal > 1) {
             context.getString(R.string.notification_batch_title, appName, batchIndex, batchTotal)
@@ -90,13 +97,28 @@ class DownloadNotificationManager(private val context: Context) {
         }
 
         val queueRemaining = (batchTotal - batchIndex).coerceAtLeast(0)
+        val batchPct = batchSummary?.overallPercent
+        val etaText = batchSummary?.etaSeconds?.let { BatchProgressCalculator.formatEta(it) }
 
         val (contentText, percent, indeterminate) = when {
+            isInstalling && isSaveOnly -> {
+                Triple(context.getString(R.string.notification_saving_named, appName), 0, true)
+            }
             isInstalling -> {
                 Triple(context.getString(R.string.notification_installing_named, appName), 0, true)
             }
             isResolvingLink && currentBytes == 0L -> {
                 Triple(context.getString(R.string.queue_status_resolving_apkmirror), 0, true)
+            }
+            batchTotal > 1 && batchPct != null && batchSummary.totalKnownBytes > 0L -> {
+                val currFormatted = Formatter.formatFileSize(context, batchSummary.transferredBytes)
+                val totFormatted = Formatter.formatFileSize(context, batchSummary.totalKnownBytes)
+                val text = if (etaText != null) {
+                    "$currFormatted / $totFormatted · $batchPct% ($etaText)"
+                } else {
+                    "$currFormatted / $totFormatted · $batchPct%"
+                }
+                Triple(text, batchPct, false)
             }
             totalBytes > 0L -> {
                 val pct = ((currentBytes * 100) / totalBytes).toInt().coerceIn(0, 100)
@@ -104,6 +126,8 @@ class DownloadNotificationManager(private val context: Context) {
                 val totFormatted = Formatter.formatFileSize(context, totalBytes)
                 val text = if (queueRemaining > 0) {
                     context.getString(R.string.notification_download_progress_queued, currFormatted, totFormatted, pct, queueRemaining)
+                } else if (etaText != null) {
+                    "${context.getString(R.string.notification_download_progress, currFormatted, totFormatted, pct)} · $etaText"
                 } else {
                     context.getString(R.string.notification_download_progress, currFormatted, totFormatted, pct)
                 }
@@ -117,10 +141,10 @@ class DownloadNotificationManager(private val context: Context) {
             }
         }
 
-        // Tap notification intent -> Brings MainActivity to front
         val tapIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
             action = UpdatesNotification.UpdateAction
+            setPackage(context.packageName)
         }
         val contentPendingIntent = PendingIntent.getActivity(
             context,
@@ -145,13 +169,17 @@ class DownloadNotificationManager(private val context: Context) {
             builder.setProgress(100, percent, false)
         }
 
-        // Cancel action PendingIntent targeting DownloadInstallService (only during download)
         if (!isInstalling && activeUpdateId != null) {
-            val cancelIntent = Intent(context, DownloadInstallService::class.java).apply {
-                action = DownloadInstallService.ACTION_CANCEL_DOWNLOAD
-                putExtra(DownloadInstallService.EXTRA_UPDATE_ID, activeUpdateId)
+            val cancelIntent = Intent(context, DownloadCancelReceiver::class.java).apply {
+                action = if (batchTotal > 1) {
+                    DownloadCancelReceiver.ACTION_CANCEL_ALL
+                } else {
+                    DownloadCancelReceiver.ACTION_CANCEL_DOWNLOAD
+                }
+                putExtra(DownloadCancelReceiver.EXTRA_UPDATE_ID, activeUpdateId)
+                setPackage(context.packageName)
             }
-            val cancelPendingIntent = PendingIntent.getService(
+            val cancelPendingIntent = PendingIntent.getBroadcast(
                 context,
                 activeUpdateId,
                 cancelIntent,
@@ -159,7 +187,7 @@ class DownloadNotificationManager(private val context: Context) {
             )
             builder.addAction(
                 android.R.drawable.ic_menu_close_clear_cancel,
-                context.getString(R.string.action_cancel),
+                context.getString(if (batchTotal > 1) R.string.queue_cancel_all else R.string.action_cancel),
                 cancelPendingIntent
             )
         }
@@ -168,10 +196,10 @@ class DownloadNotificationManager(private val context: Context) {
     }
 
     fun update(notification: Notification) {
-        notificationManager.notify(NOTIFICATION_ID, notification)
+        runCatching { notificationManager.notify(NOTIFICATION_ID, notification) }
     }
 
     fun cancel() {
-        notificationManager.cancel(NOTIFICATION_ID)
+        runCatching { notificationManager.cancel(NOTIFICATION_ID) }
     }
 }

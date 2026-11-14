@@ -3,6 +3,9 @@ package com.apkup.util
 import com.apkup.data.repomapping.RepoBinding
 import com.apkup.data.ui.ApkMirrorSource
 import com.apkup.data.ui.AppUpdate
+import com.apkup.data.ui.CodebergSource
+import com.apkup.data.ui.CustomFDroidSource
+import com.apkup.data.ui.FDroidSource
 import com.apkup.data.ui.GitHubSource
 import com.apkup.data.ui.GitLabSource
 import com.apkup.data.ui.IzzyOnDroidSource
@@ -82,9 +85,35 @@ internal fun resolvePreviousVersionUrl(
             }
         }
 
+        sourceName.equals(CodebergSource.name, ignoreCase = true) -> {
+            val fromBinding = repoBinding?.takeIf { it.isCodeberg && it.repo.isNotBlank() }
+                ?.webUrl
+                ?.trimEnd('/')
+            val fromLink = Regex("^(https?://[^/]+/[^/]+/[^/]+)(?:/releases|/src|/branch|/tag|$)", RegexOption.IGNORE_CASE)
+                .find(trimmedUrl)?.groupValues?.getOrNull(1)
+                ?.trimEnd('/')
+            val projectUrl = fromBinding ?: fromLink
+            if (!projectUrl.isNullOrBlank()) {
+                return "$projectUrl/releases"
+            }
+        }
+
+        sourceName.equals(CustomFDroidSource.name, ignoreCase = true) -> {
+            if (trimmedUrl.startsWith("http", ignoreCase = true)) {
+                return trimmedUrl.substringBeforeLast('/')
+            }
+        }
+
         sourceName.equals(IzzyOnDroidSource.name, ignoreCase = true) -> {
             if (packageName.isNotBlank()) {
                 return "https://apt.izzysoft.de/fdroid/index/apk/${packageName.trim()}"
+            }
+        }
+
+        sourceName.equals(FDroidSource.name, ignoreCase = true) ||
+            trimmedUrl.contains("f-droid.org", ignoreCase = true) -> {
+            if (packageName.isNotBlank()) {
+                return "https://f-droid.org/packages/${packageName.trim()}/"
             }
         }
 

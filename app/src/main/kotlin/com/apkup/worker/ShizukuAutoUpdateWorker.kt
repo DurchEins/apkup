@@ -16,15 +16,24 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.apkup.data.ui.ApkMirrorSource
 import com.apkup.data.ui.AppUpdate
+import com.apkup.data.ui.CodebergSource
+import com.apkup.data.ui.GitHubSource
+import com.apkup.data.ui.GitLabSource
 import com.apkup.data.ui.Link
 import com.apkup.data.ui.UpdateCheckResult
 import com.apkup.data.ui.UpdateInstallMode
+import com.apkup.data.ui.isWatchedApp
 import com.apkup.prefs.Prefs
 import com.apkup.repository.ApkMirrorResolutionResult
 import com.apkup.repository.ApkMirrorResolver
 import com.apkup.repository.RepoMappingManager
 import com.apkup.repository.UpdatesRepository
+import com.apkup.util.ApkIntegrityException
+import com.apkup.util.ApkIntegrityVerifier
+import com.apkup.util.ApkSignatureCheckResult
+import com.apkup.util.ApkSignatureVerifier
 import com.apkup.util.ApkmExtractor
+import com.apkup.util.AppJournal
 import com.apkup.util.AutoUpdateNotifier
 import com.apkup.util.DownloadStorageManager
 import com.apkup.util.Downloader
@@ -53,30 +62,33 @@ internal class ShizukuAutoUpdateRunner(
     private val apkMirrorResolver: ApkMirrorResolver,
     private val installer: SessionInstaller,
     private val notification: AutoUpdateNotifier,
-    private val repoMappingManager: RepoMappingManager? = null
+    private val repoMappingManager: RepoMappingManager? = null,
+    private val context: Context? = null
 ) {
     companion object {
         private const val TAG = "ShizukuAutoUpdateRunner"
     }
 
     suspend fun execute(updates: List<AppUpdate>): AutoUpdateExecutionSummary {
-        if (updates.isEmpty()) {
+        val installableUpdates = updates.filterNot { it.isWatchedApp() }
+        if (installableUpdates.isEmpty()) {
             return AutoUpdateExecutionSummary(
                 updatedPackages = emptyList(),
                 manualRequiredPackages = emptyList(),
-                shizukuWasReady = installer.isShizukuReady()
+                shizukuWasReady = installer.isSilentInstallerReady()
             )
         }
 
-        val autoInstallEnabled = prefs.useShizukuInstaller.get() && prefs.autoInstallUpdates.get()
-        if (!autoInstallEnabled || !installer.isShizukuReady()) {
+        val autoInstallEnabled = (prefs.useShizukuInstaller.get() || prefs.useRootInstaller.get()) &&
+            prefs.autoInstallUpdates.get()
+        if (!autoInstallEnabled || !installer.isSilentInstallerReady()) {
             runCatching {
-                Log.i(TAG, "Silent auto-update skipped (enabled=$autoInstallEnabled, shizukuReady=${installer.isShizukuReady()}); showing standard notification")
+                Log.i(TAG, "Silent auto-update skipped (enabled=$autoInstallEnabled, silentInstallerReady=${installer.isSilentInstallerReady()}); showing standard notification")
             }
-            notification.showUpdateNotification(updates.size)
+            notification.showUpdateNotification(installableUpdates.size)
             return AutoUpdateExecutionSummary(
                 updatedPackages = emptyList(),
-                manualRequiredPackages = updates.map { it.packageName },
+                manualRequiredPackages = installableUpdates.map { it.packageName },
                 shizukuWasReady = false
             )
         }
@@ -88,7 +100,7 @@ internal class ShizukuAutoUpdateRunner(
         val updatedPackages = mutableSetOf<String>()
         val manualRequiredPackages = mutableListOf<String>()
 
-        for (update in updates) {
+        for (update in installableUpdates) {
             val appLabel = update.name.ifBlank { update.packageName }
             val stagingDir = File(storageBaseDir, "download_staging_${update.id}").apply { mkdirs() }
 
@@ -103,29 +115,79 @@ internal class ShizukuAutoUpdateRunner(
 
             try {
                 val cachedFiles = downloader.getReadyStagingFiles(storageBaseDir, update.id, update.versionCode)
-                val readyFiles = if (cachedFiles != null && cachedFiles.isNotEmpty()) {
-                    cachedFiles
-                } else {
+                    ?.takeIf { it.isNotEmpty() }
+                val wasCached = cachedFiles != null
+                val readyFiles = cachedFiles ?: run {
                     val downloaded = downloadUpdateSilently(update, stagingDir)
                     if (downloaded.isEmpty()) {
                         throw IOException("No APK files downloaded for ${update.packageName}")
                     }
-                    downloader.markStagingReady(stagingDir, update.versionCode)
                     downloaded
                 }
 
+                val expectedSha256 = if (readyFiles.size == 1) {
+                    (update.link as? Link.Url)?.expectedSha256
+                } else {
+                    null
+                }
+                ApkIntegrityVerifier.verifyStagedApkFiles(
+                    context = context,
+                    expectedPackageName = update.packageName,
+                    stagedFiles = readyFiles.map { it to expectedSha256 }
+                )
+                if (!wasCached) {
+                    downloader.markStagingReady(stagingDir, update.versionCode)
+                }
+
+                if (context != null) {
+                    val sigCheck = ApkSignatureVerifier.verifyApkFilesAgainstInstalled(
+                        context = context,
+                        packageName = update.packageName,
+                        apkFiles = readyFiles
+                    )
+                    if (sigCheck is ApkSignatureCheckResult.Mismatch) {
+                        runCatching {
+                            Log.w(TAG, "Skipping auto-update for ${update.packageName}: APK signature mismatch")
+                        }
+                        runCatching { stagingDir.deleteRecursively() }
+                        if (update.source == GitHubSource || update.source == GitLabSource || update.source == CodebergSource) {
+                            val binding = repoMappingManager?.getBinding(update.packageName)
+                                ?: (update.link as? Link.Url)?.link?.let { repoMappingManager?.parseRepoUrl(it) }
+                            if (binding != null) {
+                                repoMappingManager?.markSignatureIncompatible(
+                                    update.packageName,
+                                    binding,
+                                    sigCheck.installedSignersSha256.firstOrNull()
+                                )
+                            }
+                        }
+                        continue
+                    }
+                }
+
                 val parts = readyFiles.map { file ->
-                    InstallPart(file.name, file.length()) { file.inputStream() }
+                    InstallPart(
+                        name = file.name,
+                        sizeBytes = file.length(),
+                        expectedSha256 = expectedSha256,
+                        backingFile = file,
+                        openStream = { file.inputStream() }
+                    )
                 }
                 val installed = installer.installPartsSilently(update.id, update.packageName, parts)
                 if (installed) {
                     runCatching { stagingDir.deleteRecursively() }
                     val repoBinding = repoMappingManager?.getBinding(update.packageName)
                         ?: prefs.readCustomRepoBindingsSafe()[update.packageName]
+                    val installMode = if (installer.isShizukuReady()) {
+                        UpdateInstallMode.AUTO_SHIZUKU
+                    } else {
+                        UpdateInstallMode.AUTO_ROOT
+                    }
                     prefs.recordUpdateHistory(
                         buildUpdateHistoryEntry(
                             update = update,
-                            installMode = UpdateInstallMode.AUTO_SHIZUKU,
+                            installMode = installMode,
                             repoBinding = repoBinding
                         )
                     )
@@ -141,6 +203,30 @@ internal class ShizukuAutoUpdateRunner(
                     runCatching { stagingDir.deleteRecursively() }
                 }
                 throw cancellation
+            } catch (integrityErr: ApkIntegrityException) {
+                runCatching {
+                    Log.w(TAG, "Skipping auto-update for ${update.packageName}: APK integrity failed (${integrityErr.reason}): ${integrityErr.message}")
+                }
+                AppJournal.record(
+                    "Security",
+                    "Auto-update APK integrity failed for ${update.packageName} v${update.version} (${update.source.name}, reason=${integrityErr.reason}): ${integrityErr.message.orEmpty()}"
+                )
+                runCatching { stagingDir.deleteRecursively() }
+                if (integrityErr.reason == ApkIntegrityException.Reason.SIGNATURE_MISMATCH) {
+                    val installedSha = context?.let { ApkSignatureVerifier.getInstalledPrimarySha256(it, update.packageName) }
+                    if (update.source == GitHubSource || update.source == GitLabSource || update.source == CodebergSource) {
+                        val binding = repoMappingManager?.getBinding(update.packageName)
+                            ?: (update.link as? Link.Url)?.link?.let { repoMappingManager?.parseRepoUrl(it) }
+                        if (binding != null) {
+                            repoMappingManager?.markSignatureIncompatible(
+                                update.packageName,
+                                binding,
+                                installedSha
+                            )
+                        }
+                    }
+                }
+                continue
             } catch (error: Throwable) {
                 runCatching {
                     Log.w(TAG, "Background auto-update failed for ${update.packageName}: ${error.message}")
@@ -170,13 +256,7 @@ internal class ShizukuAutoUpdateRunner(
     }
 
     private fun pruneUpdatedAppsFromSnapshot(updatedPackages: Set<String>) {
-        runCatching {
-            val current = prefs.readCachedSnapshotSafe()
-            if (current.timestampMillis > 0L) {
-                val filtered = current.updates.filterNot { it.packageName in updatedPackages }
-                prefs.cachedUpdateSnapshot.put(current.copy(updates = filtered))
-            }
-        }
+        prefs.pruneCachedSnapshotPackages(updatedPackages)
     }
 
     private suspend fun downloadUpdateSilently(
@@ -196,11 +276,10 @@ internal class ShizukuAutoUpdateRunner(
                         .thenBy { it.name }
                 )
                 sortedFiles.mapIndexed { index, playFile ->
-                    val partName = when {
-                        playFile.type == PlayFile.Type.BASE -> "base.apk"
-                        playFile.name.endsWith(".apk", ignoreCase = true) -> playFile.name
-                        playFile.name.isNotBlank() -> "${playFile.name}.apk"
-                        else -> "split_$index.apk"
+                    val partName = if (playFile.type == PlayFile.Type.BASE) {
+                        "base.apk"
+                    } else {
+                        ApkIntegrityVerifier.sanitizePartFileName(playFile.name, index.coerceAtLeast(1))
                     }
                     val targetFile = File(stagingDir, partName)
                     val ok = downloader.downloadToFile(playFile.url, targetFile, callTag)
@@ -215,7 +294,7 @@ internal class ShizukuAutoUpdateRunner(
                     throw IOException("Blank download URL for ${update.packageName}")
                 }
                 if (update.source == ApkMirrorSource) {
-                    when (val resolution = apkMirrorResolver.resolveDirectDownload(link.link, callTag)) {
+                    when (val resolution = apkMirrorResolver.resolveDirectDownload(link.link, callTag, update.packageName)) {
                         is ApkMirrorResolutionResult.CloudflareBlocked -> {
                             throw IOException("APKMirror Cloudflare challenge blocked silent download for ${update.packageName}")
                         }
@@ -307,7 +386,7 @@ class ShizukuAutoUpdateWorker(
     private val repoMappingManager: RepoMappingManager by inject()
 
     override suspend fun doWork(): Result {
-        if (!prefs.useShizukuInstaller.get() || !prefs.autoInstallUpdates.get()) {
+        if ((!prefs.useShizukuInstaller.get() && !prefs.useRootInstaller.get()) || !prefs.autoInstallUpdates.get()) {
             return Result.success()
         }
 
@@ -347,7 +426,8 @@ class ShizukuAutoUpdateWorker(
             apkMirrorResolver = apkMirrorResolver,
             installer = installer,
             notification = notification,
-            repoMappingManager = repoMappingManager
+            repoMappingManager = repoMappingManager,
+            context = applicationContext
         )
         runner.execute(notifiableUpdates)
         return Result.success()

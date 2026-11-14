@@ -4,16 +4,30 @@ import android.webkit.CookieManager
 import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
+import java.util.Locale
 
 /**
- * An OkHttp [CookieJar] that synchronizes seamlessly with Android's system [CookieManager].
- * This guarantees that Cloudflare challenge clearance cookies (such as `cf_clearance` or `__cf_bm`)
- * acquired inside a headless Chromium WebView are immediately available to OkHttp background requests,
- * and cookies received in OkHttp responses are persisted back to the system cookie store.
+ * An OkHttp [CookieJar] that synchronizes with Android's system [CookieManager],
+ * strictly scoped to HTTPS APKMirror domains (`apkmirror.com` / `apkmirror.net`) so
+ * WebView clearance cookies are never leaked across cross-host redirects.
  */
 class WebKitCookieJar : CookieJar {
 
+    companion object {
+        fun isTrustedApkMirrorHost(host: String?): Boolean {
+            val clean = host?.trim()?.lowercase(Locale.ROOT) ?: return false
+            return clean == "apkmirror.com" ||
+                clean.endsWith(".apkmirror.com") ||
+                clean == "apkmirror.net" ||
+                clean.endsWith(".apkmirror.net")
+        }
+
+        fun isTrustedApkMirrorHttpUrl(url: HttpUrl): Boolean =
+            url.isHttps && isTrustedApkMirrorHost(url.host)
+    }
+
     override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
+        if (!isTrustedApkMirrorHttpUrl(url)) return
         val manager = runCatching { CookieManager.getInstance() }.getOrNull() ?: return
         val urlString = url.toString()
         for (cookie in cookies) {
@@ -23,6 +37,7 @@ class WebKitCookieJar : CookieJar {
     }
 
     override fun loadForRequest(url: HttpUrl): List<Cookie> {
+        if (!isTrustedApkMirrorHttpUrl(url)) return emptyList()
         val manager = runCatching { CookieManager.getInstance() }.getOrNull() ?: return emptyList()
         val cookieString = runCatching { manager.getCookie(url.toString()) }.getOrNull().orEmpty()
         if (cookieString.isBlank()) return emptyList()

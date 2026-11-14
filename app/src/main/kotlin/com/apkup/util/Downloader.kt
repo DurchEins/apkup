@@ -1,18 +1,21 @@
 package com.apkup.util
 
 import android.util.Log
+import com.apkup.BuildConfig
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import okhttp3.Call
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.io.PushbackInputStream
+import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.zip.GZIPInputStream
@@ -32,17 +35,34 @@ internal fun wrapStreamIfGzip(raw: InputStream): InputStream {
 
 class Downloader(
     private val client: OkHttpClient,
-    private val auroraClient: OkHttpClient
+    private val auroraClient: OkHttpClient,
+    private val apkMirrorClient: OkHttpClient = client
 ) {
     companion object {
         const val READY_CACHE_TTL_MS = 24 * 60 * 60 * 1000L // 24 hours
         const val READY_MARKER_FILE = ".ready"
+        const val MAX_APK_DOWNLOAD_BYTES = 2L * 1024L * 1024L * 1024L // 2 GB cap (HIGH-06)
+        private const val MIN_FREE_DISK_HEADROOM_BYTES = 32L * 1024L * 1024L // 32 MB
 
         fun markStagingReady(stagingDir: File, versionCode: Long) {
             runCatching {
+                val apkFiles = stagingDir.listFiles { file ->
+                    file.isFile && file.extension.equals("apk", ignoreCase = true) && file.length() > 0L
+                }?.sortedBy { it.name }.orEmpty()
+                if (apkFiles.isEmpty()) return@runCatching
+
+                val manifestLines = buildList {
+                    add("$versionCode:${System.currentTimeMillis()}")
+                    for (apk in apkFiles) {
+                        val sha256 = ApkIntegrityVerifier.computeFileSha256(apk)
+                        add("${apk.name}|${apk.length()}|$sha256")
+                    }
+                }
                 val marker = File(stagingDir, READY_MARKER_FILE)
-                marker.writeText("$versionCode:${System.currentTimeMillis()}")
-                Log.i("Downloader", "Marked staging as ready: ${stagingDir.name} (versionCode=$versionCode)")
+                marker.writeText(manifestLines.joinToString("\n"))
+                if (BuildConfig.DEBUG) {
+                    Log.d("Downloader", "Marked staging as ready: ${stagingDir.name} (versionCode=$versionCode, files=${apkFiles.size})")
+                }
             }
         }
 
@@ -60,21 +80,19 @@ class Downloader(
                 val marker = File(stagingDir, READY_MARKER_FILE)
                 if (!marker.exists() || !marker.isFile) return@runCatching null
 
-                val content = marker.readText().trim()
-                val parts = content.split(":")
-                if (parts.isEmpty()) return@runCatching null
+                val lines = marker.readLines().map { it.trim() }.filter { it.isNotEmpty() }
+                if (lines.isEmpty()) return@runCatching null
 
-                val savedVersionCode = parts[0].toLongOrNull() ?: return@runCatching null
+                val headerParts = lines[0].split(":")
+                val savedVersionCode = headerParts.getOrNull(0)?.toLongOrNull() ?: return@runCatching null
                 if (savedVersionCode != versionCode) {
-                    Log.i("Downloader", "Ready staging versionCode mismatch ($savedVersionCode != $versionCode) for $updateId; discarding")
                     stagingDir.deleteRecursively()
                     return@runCatching null
                 }
 
-                val timestamp = parts.getOrNull(1)?.toLongOrNull() ?: marker.lastModified()
+                val timestamp = headerParts.getOrNull(1)?.toLongOrNull() ?: marker.lastModified()
                 val now = System.currentTimeMillis()
                 if (now - timestamp > READY_CACHE_TTL_MS) {
-                    Log.i("Downloader", "Ready staging expired (>24h) for $updateId; discarding")
                     stagingDir.deleteRecursively()
                     return@runCatching null
                 }
@@ -89,6 +107,40 @@ class Downloader(
                 if (apkFiles.isEmpty()) {
                     stagingDir.deleteRecursively()
                     return@runCatching null
+                }
+
+                // Verify recorded file hashes and lengths if present in .ready manifest (CRIT-01 / HIGH-06)
+                if (lines.size > 1) {
+                    val recorded = lines.drop(1).mapNotNull { line ->
+                        val cols = line.split("|")
+                        if (cols.size == 3) {
+                            val name = cols[0]
+                            val len = cols[1].toLongOrNull() ?: return@mapNotNull null
+                            val sha = cols[2].lowercase(Locale.ROOT)
+                            name to (len to sha)
+                        } else null
+                    }.toMap()
+
+                    if (recorded.size != apkFiles.size) {
+                        Log.w("Downloader", "Ready staging file count mismatch for $updateId; purging")
+                        stagingDir.deleteRecursively()
+                        return@runCatching null
+                    }
+
+                    for (apk in apkFiles) {
+                        val expected = recorded[apk.name]
+                        if (expected == null || apk.length() != expected.first) {
+                            Log.w("Downloader", "Ready staging size mismatch for ${apk.name}; purging")
+                            stagingDir.deleteRecursively()
+                            return@runCatching null
+                        }
+                        val actualSha = ApkIntegrityVerifier.computeFileSha256(apk)
+                        if (!actualSha.equals(expected.second, ignoreCase = true)) {
+                            Log.e("Downloader", "Ready staging SHA-256 mismatch for ${apk.name}; purging tampered file")
+                            stagingDir.deleteRecursively()
+                            return@runCatching null
+                        }
+                    }
                 }
 
                 apkFiles
@@ -123,11 +175,6 @@ class Downloader(
         }
     }
 
-    /**
-     * Aborts all active network calls registered under [tag].
-     * Closes underlying sockets immediately.
-     * @return true if at least one call was cancelled.
-     */
     fun cancel(tag: String): Boolean {
         val calls = activeCalls.remove(tag) ?: return false
         var anyCancelled = false
@@ -140,9 +187,6 @@ class Downloader(
         return anyCancelled
     }
 
-    /**
-     * Aborts all active network calls across the application.
-     */
     fun cancelAll() {
         val allCalls = activeCalls.values.flatten()
         activeCalls.clear()
@@ -153,12 +197,18 @@ class Downloader(
 
     fun isCallActive(tag: String): Boolean = activeCalls.containsKey(tag)
 
-    fun downloadStream(url: String, callTag: String? = null): InputStream? = runCatching {
-        val c = when {
-            url.contains("aurora") -> auroraClient
+    private fun selectClientForUrl(url: String): OkHttpClient {
+        val host = url.toHttpUrlOrNull()?.host?.lowercase(Locale.ROOT).orEmpty()
+        return when {
+            WebKitCookieJar.isTrustedApkMirrorHost(host) -> apkMirrorClient
+            url.contains("aurora", ignoreCase = true) -> auroraClient
             else -> client
         }
+    }
+
+    fun downloadStream(url: String, callTag: String? = null): InputStream? = runCatching {
         val request = downloadRequest(url, callTag)
+        val c = selectClientForUrl(url)
         val call = c.newCall(request)
         if (callTag != null) {
             registerCall(callTag, call)
@@ -183,11 +233,11 @@ class Downloader(
                 unregisterCall(callTag, call)
             }
             response.close()
-            Log.e("Downloader", "Download failed with error code: ${response.code}")
+            Log.w("Downloader", "Download failed with HTTP ${response.code}")
             null
         }
     }.getOrElse {
-        Log.e("Downloader", "Download failed (${it.javaClass.simpleName})", it)
+        Log.w("Downloader", "Download stream failed (${it.javaClass.simpleName})")
         null
     }
 
@@ -204,11 +254,8 @@ class Downloader(
         try {
             currentCoroutineContext().ensureActive()
 
-            val c = when {
-                url.contains("aurora") -> auroraClient
-                else -> client
-            }
             val request = downloadRequest(url, callTag)
+            val c = selectClientForUrl(url)
             val newCall = c.newCall(request)
             call = newCall
             if (callTag != null) {
@@ -219,20 +266,38 @@ class Downloader(
             val response = newCall.execute()
             if (!response.isSuccessful) {
                 response.close()
-                Log.e("Downloader", "Download failed with HTTP ${response.code} for $url")
+                Log.w("Downloader", "Download failed with HTTP ${response.code}")
                 return@withContext false
             }
 
             val body = response.body
             val contentLength = body.contentLength()
+            if (contentLength > MAX_APK_DOWNLOAD_BYTES) {
+                response.close()
+                throw SecurityException("Rejected oversized download ($contentLength bytes > $MAX_APK_DOWNLOAD_BYTES)")
+            }
+
+            val parentDir = targetFile.parentFile
+            parentDir?.mkdirs()
+            if (parentDir != null && contentLength > 0L) {
+                val usableSpace = parentDir.usableSpace
+                if (usableSpace > 0L && usableSpace < contentLength + MIN_FREE_DISK_HEADROOM_BYTES) {
+                    response.close()
+                    throw IOException("Insufficient storage space: need $contentLength bytes, available $usableSpace bytes")
+                }
+            }
+
             if (contentLength > 0L) {
                 onContentLength?.invoke(contentLength)
             }
+
+            val contentEncoding = response.header("Content-Encoding").orEmpty()
             val bodyStream = body.byteStream()
             val stream = wrapStreamIfGzip(bodyStream)
-            targetFile.parentFile?.mkdirs()
+            val isGzipStream = stream is GZIPInputStream || contentEncoding.contains("gzip", ignoreCase = true)
 
             try {
+                var totalBytesWritten = 0L
                 stream.use { input ->
                     targetFile.outputStream().use { output ->
                         val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
@@ -240,6 +305,10 @@ class Downloader(
                         while (read >= 0) {
                             currentCoroutineContext().ensureActive()
                             if (read > 0) {
+                                totalBytesWritten += read
+                                if (totalBytesWritten > MAX_APK_DOWNLOAD_BYTES) {
+                                    throw SecurityException("Download exceeded maximum allowed size ($MAX_APK_DOWNLOAD_BYTES bytes)")
+                                }
                                 output.write(buffer, 0, read)
                                 onBytesRead?.invoke(read)
                             }
@@ -247,6 +316,9 @@ class Downloader(
                         }
                         output.flush()
                     }
+                }
+                if (!isGzipStream && contentLength > 0L && totalBytesWritten != contentLength) {
+                    throw IOException("Truncated download: expected $contentLength bytes, received $totalBytesWritten bytes")
                 }
                 downloadCompletedSuccessfully = targetFile.length() > 0L
                 downloadCompletedSuccessfully
@@ -256,46 +328,38 @@ class Downloader(
                 runCatching { response.close() }
             }
         } catch (cancellation: CancellationException) {
-            Log.i("Downloader", "Download cancelled for ${targetFile.name} (tag=$callTag)")
             throw cancellation
         } catch (ioe: IOException) {
             if (call?.isCanceled() == true || ioe.message?.contains("Canceled", ignoreCase = true) == true) {
-                Log.i("Downloader", "OkHttp call cancelled for ${targetFile.name} (tag=$callTag)")
                 throw CancellationException("Download aborted via OkHttp cancellation: ${ioe.message}", ioe)
             }
-            Log.e("Downloader", "Failed to download to file ${targetFile.name} (${ioe.javaClass.simpleName})", ioe)
+            Log.w("Downloader", "Failed to download ${targetFile.name} (${ioe.javaClass.simpleName})")
             false
         } catch (e: Exception) {
-            Log.e("Downloader", "Unexpected failure downloading ${targetFile.name}", e)
+            Log.w("Downloader", "Unexpected failure downloading ${targetFile.name} (${e.javaClass.simpleName})")
             false
         } finally {
             if (callTag != null && call != null) {
                 unregisterCall(callTag, call)
             }
-            // Tier 1 cleanup: Immediate Incomplete File Purge
             if (!downloadCompletedSuccessfully) {
                 runCatching {
                     if (targetFile.exists()) {
-                        val deleted = targetFile.delete()
-                        Log.d("Downloader", "Purged incomplete download file: ${targetFile.name} (deleted=$deleted)")
+                        targetFile.delete()
                     }
                 }
             }
         }
     }
 
-    /**
-     * Tier 3 cleanup: Purges orphaned staging directories leftover from prior crashes or process kills,
-     * while preserving valid ready-to-install packages that are younger than 24 hours.
-     */
     fun cleanupOrphanStagingFiles(cacheDir: File) {
         runCatching {
             val now = System.currentTimeMillis()
             val stagingDirs = cacheDir.listFiles { file ->
                 file.isDirectory && (
                     file.name.startsWith("download_staging_") ||
-                    file.name.startsWith("shizuku_staging_") ||
-                    file.name == "self_update_staging"
+                        file.name.startsWith("shizuku_staging_") ||
+                        file.name == "self_update_staging"
                 )
             } ?: emptyArray()
 
@@ -303,35 +367,38 @@ class Downloader(
                 if (dir.name.startsWith("download_staging_")) {
                     val marker = File(dir, READY_MARKER_FILE)
                     if (marker.exists()) {
-                        val content = marker.readText().trim()
-                        val timestamp = content.split(":").getOrNull(1)?.toLongOrNull() ?: marker.lastModified()
+                        val firstLine = marker.useLines { it.firstOrNull()?.trim().orEmpty() }
+                        val timestamp = firstLine.split(":").getOrNull(1)?.toLongOrNull() ?: marker.lastModified()
                         if (now - timestamp <= READY_CACHE_TTL_MS) {
-                            Log.d("Downloader", "Preserving valid ready-to-install staging dir: ${dir.name}")
                             continue
                         }
                     }
                 }
-                Log.i("Downloader", "Purging orphaned/expired staging directory: ${dir.name}")
                 dir.deleteRecursively()
             }
         }
     }
 
-    private fun downloadRequest(url: String, tag: String? = null): Request {
-        val builder = Request.Builder().url(url)
-        val cookies = runCatching {
-            android.webkit.CookieManager.getInstance().getCookie(url)
-        }.getOrNull()
-        if (!cookies.isNullOrBlank()) {
-            builder.header("Cookie", cookies)
+    internal fun downloadRequest(url: String, tag: String? = null): Request {
+        val parsed = url.toHttpUrlOrNull()
+            ?: throw IOException("Invalid download URL")
+        if (!parsed.isHttps) {
+            throw SecurityException("Rejected non-HTTPS download URL: ${parsed.scheme}://${parsed.host}")
         }
+
+        val isApkMirror = WebKitCookieJar.isTrustedApkMirrorHost(parsed.host)
+        val builder = Request.Builder().url(parsed)
         builder.header(
             "User-Agent",
-            "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36"
+            if (isApkMirror) {
+                "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36"
+            } else {
+                "ApkUp/${BuildConfig.VERSION_NAME}"
+            }
         )
         builder.header("Accept", "*/*")
         builder.header("Accept-Language", "en-US,en;q=0.9,de;q=0.8")
-        if (url.contains("apkmirror.com", ignoreCase = true)) {
+        if (isApkMirror) {
             builder.header("Referer", "https://www.apkmirror.com/")
         }
         if (tag != null) {

@@ -1,10 +1,5 @@
 package com.apkup.util
 
-/**
- * Handles the actual installation of APK files via the Android PackageInstaller API.
- * This class takes downloaded files (single APKs or split/AppBundle APKs) and commits them
- * to an Android installation session.
- */
 import android.annotation.SuppressLint
 import android.app.ActivityOptions
 import android.app.NotificationChannel
@@ -14,28 +9,34 @@ import android.app.PendingIntent.FLAG_MUTABLE
 import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.content.BroadcastReceiver
 import android.content.Context
-import androidx.core.app.NotificationCompat
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageInstaller
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.ParcelFileDescriptor
 import android.os.Process
 import android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES
 import android.util.Log
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.apkup.BuildConfig
 import com.apkup.R
 import com.apkup.data.snack.TextSnack
 import com.apkup.data.ui.AppInstallProgress
 import com.apkup.data.ui.AppInstallStatus
+import com.apkup.data.ui.InstallFailureReason
 import com.apkup.data.ui.ShizukuSetupStatus
+import com.apkup.data.ui.resolveInstallFailureReason
 import com.apkup.prefs.Prefs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
@@ -45,15 +46,19 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import java.util.UUID.randomUUID
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.concurrent.thread
 import kotlin.coroutines.resume
 import kotlin.io.DEFAULT_BUFFER_SIZE
 
 data class InstallPart(
     val name: String,
     val sizeBytes: Long = -1L,
+    val expectedSha256: String? = null,
+    val backingFile: File? = null,
     val openStream: () -> InputStream?
 )
 
@@ -82,7 +87,8 @@ class SessionInstaller internal constructor(
     private val stringer: Stringer? = null,
     private val shizukuBridgeOverride: ShizukuBridge? = null,
     private val packageInstallerFallbackOverride: (suspend (Int, String, List<InstallPart>) -> Boolean)? = null,
-    private val onFallbackNotice: ((Int) -> Unit)? = null
+    private val onFallbackNotice: ((Int) -> Unit)? = null,
+    private val rootInstallerOverride: RootInstaller? = null
 ) {
     constructor(
         context: Context,
@@ -98,30 +104,70 @@ class SessionInstaller internal constructor(
         stringer = stringer,
         shizukuBridgeOverride = null,
         packageInstallerFallbackOverride = null,
-        onFallbackNotice = null
+        onFallbackNotice = null,
+        rootInstallerOverride = null
     )
 
     companion object {
-        const val INSTALL_ACTION = "installAction"
-        const val INSTALL_CANCEL_ACTION = "com.apkup.installCancelAction"
+        const val INSTALL_ACTION = "com.apkup.action.PACKAGE_INSTALL_STATUS"
+        const val INSTALL_CANCEL_ACTION = "com.apkup.action.PACKAGE_INSTALL_CANCEL"
         const val NOTIFICATION_ID_CONFIRM_BASE = 8000
         const val CONFIRM_NOTIFICATION_CHANNEL_ID = "apkup_install_confirm_channel"
         const val SHIZUKU_PERMISSION_REQUEST_CODE = 9401
         const val SHIZUKU_PACKAGE_NAME = "moe.shizuku.privileged.api"
-    }
+        private const val SHIZUKU_CMD_TIMEOUT_SECONDS = 90L
+        private const val MAX_PROCESS_OUTPUT_CHARS = 32_768
 
-    init {
-        runCatching {
-            val installer = context?.packageManager?.packageInstaller ?: return@runCatching
-            installer.mySessions.forEach { installer.abandonSession(it.sessionId) }
+        internal fun buildBackgroundActivityLaunchOptions(): Bundle? {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return null
+            return runCatching {
+                val options = ActivityOptions.makeBasic()
+                if (Build.VERSION.SDK_INT >= 36) {
+                    options.setPendingIntentCreatorBackgroundActivityStartMode(
+                        ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_ALWAYS
+                    )
+                } else if (Build.VERSION.SDK_INT >= 35) {
+                    @Suppress("DEPRECATION")
+                    options.setPendingIntentCreatorBackgroundActivityStartMode(
+                        ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
+                    )
+                } else {
+                    @Suppress("DEPRECATION")
+                    options.setPendingIntentBackgroundActivityStartMode(
+                        ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
+                    )
+                }
+                options.toBundle()
+            }.getOrNull()
         }
     }
 
-    private val scope = CoroutineScope(Dispatchers.IO)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val activeSessions = ConcurrentHashMap<Int, Int>()
 
     private val shizukuBridge: ShizukuBridge by lazy {
         shizukuBridgeOverride ?: AndroidShizukuBridge()
+    }
+
+    private val rootInstaller: RootInstaller by lazy {
+        rootInstallerOverride ?: RootInstaller()
+    }
+
+    /**
+     * Cleans up inactive orphaned PackageInstaller sessions off the main thread without killing
+     * any session currently tracked in `activeSessions` (LOW-01).
+     */
+    fun cleanOrphanedSessions() {
+        val ctx = context ?: return
+        runCatching {
+            val installer = ctx.packageManager.packageInstaller
+            val activeIds = activeSessions.values.toSet()
+            installer.mySessions.forEach { sessionInfo ->
+                if (sessionInfo.sessionId !in activeIds && !sessionInfo.isActive) {
+                    runCatching { installer.abandonSession(sessionInfo.sessionId) }
+                }
+            }
+        }
     }
 
     suspend fun install(id: Int, packageName: String, stream: InputStream) {
@@ -148,6 +194,148 @@ class SessionInstaller internal constructor(
         return installParts(id, packageName, parts)
     }
 
+    /**
+     * Stages parts (if not already file-backed) and executes 100% Fail-Closed `ApkIntegrityVerifier`
+     * BEFORE either Shizuku or PackageInstaller touches the APK (F-01, F-02).
+     *
+     * On `ApkIntegrityException`, immediately deletes staged & `.ready` files and NEVER falls back
+     * between installers.
+     */
+    private fun prepareAndVerifyParts(
+        id: Int,
+        packageName: String,
+        parts: List<InstallPart>,
+        emitProgress: Boolean
+    ): Pair<List<InstallPart>, File?> {
+        val needsVerificationStaging = context != null || parts.any { !it.expectedSha256.isNullOrBlank() }
+        if (!needsVerificationStaging) {
+            return parts to null
+        }
+
+        val allHaveBackingFiles = parts.all { part ->
+            val f = part.backingFile
+            f != null && f.isFile && f.length() > 0L
+        }
+
+        val tempVerifyDir: File?
+        val stagedFiles: List<Pair<File, String?>>
+        val verifiedParts: List<InstallPart>
+
+        if (allHaveBackingFiles) {
+            tempVerifyDir = null
+            stagedFiles = parts.map { it.backingFile!! to it.expectedSha256 }
+            verifiedParts = parts.mapIndexed { index, part ->
+                val f = part.backingFile!!
+                InstallPart(
+                    name = ApkIntegrityVerifier.sanitizePartFileName(part.name, index),
+                    sizeBytes = f.length(),
+                    expectedSha256 = part.expectedSha256,
+                    backingFile = f,
+                    openStream = { f.inputStream() }
+                )
+            }
+        } else {
+            val baseCache = context?.cacheDir
+                ?: File(System.getProperty("java.io.tmpdir") ?: ".", "apkup_verify_cache")
+            tempVerifyDir = File(baseCache, "installer_verify_${id}_${UUID.randomUUID()}").apply { mkdirs() }
+            var totalStaged = 0L
+            try {
+                val created = parts.mapIndexed { index, part ->
+                    val safeName = ApkIntegrityVerifier.sanitizePartFileName(part.name, index)
+                    val outFile = File(tempVerifyDir, safeName)
+                    val rawStream = part.openStream()
+                        ?: throw IOException("Download stream returned null for $packageName (part $safeName)")
+                    wrapStreamIfGzip(rawStream).use { input ->
+                        outFile.outputStream().use { out ->
+                            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                            var read = input.read(buffer)
+                            while (read >= 0) {
+                                out.write(buffer, 0, read)
+                                totalStaged += read
+                                if (emitProgress) {
+                                    installLog.emitProgress(AppInstallProgress(id, totalStaged))
+                                }
+                                read = input.read(buffer)
+                            }
+                            out.flush()
+                        }
+                    }
+                    outFile to part.expectedSha256
+                }
+                stagedFiles = created
+                verifiedParts = created.map { (file, sha) ->
+                    InstallPart(
+                        name = file.name,
+                        sizeBytes = file.length(),
+                        expectedSha256 = sha,
+                        backingFile = file,
+                        openStream = { file.inputStream() }
+                    )
+                }
+            } catch (t: Throwable) {
+                runCatching { tempVerifyDir.deleteRecursively() }
+                throw t
+            }
+        }
+
+        try {
+            ApkIntegrityVerifier.verifyStagedApkFiles(
+                context = context,
+                expectedPackageName = packageName,
+                stagedFiles = stagedFiles
+            )
+        } catch (sec: ApkIntegrityException) {
+            tempVerifyDir?.let { runCatching { it.deleteRecursively() } }
+            // Delete any tampered/mismatched cached staging directory (including .ready marker) immediately (F-01)
+            stagedFiles.forEach { (f, _) ->
+                runCatching {
+                    val parent = f.parentFile
+                    if (parent != null && (parent.name == "download_staging_$id" || parent.name == "shizuku_staging_$id")) {
+                        parent.deleteRecursively()
+                    } else {
+                        f.delete()
+                    }
+                }
+            }
+            context?.let { DownloadStorageManager.deleteStagingDir(it, id) }
+            throw sec
+        } catch (t: Throwable) {
+            tempVerifyDir?.let { runCatching { it.deleteRecursively() } }
+            throw t
+        }
+
+        return verifiedParts to tempVerifyDir
+    }
+
+    private fun handleIntegrityAbort(id: Int, error: ApkIntegrityException, showSnack: Boolean) {
+        Log.e("SessionInstaller", "Blocked unsafe APK installation ($id, reason=${error.reason}): ${error.message}")
+        val failureReason = if (error.reason == ApkIntegrityException.Reason.SIGNATURE_MISMATCH) {
+            InstallFailureReason.SIGNATURE_MISMATCH
+        } else {
+            InstallFailureReason.GENERIC
+        }
+        installLog.emitStatus(
+            AppInstallStatus(
+                success = false,
+                id = id,
+                snack = showSnack && failureReason == InstallFailureReason.SIGNATURE_MISMATCH,
+                failureReason = failureReason
+            )
+        )
+        if (showSnack && failureReason != InstallFailureReason.SIGNATURE_MISMATCH) {
+            val snack = snackBar
+            val str = stringer
+            if (snack != null && str != null) {
+                val msgRes = when (error.reason) {
+                    ApkIntegrityException.Reason.HASH_MISMATCH -> R.string.install_error_hash_mismatch
+                    ApkIntegrityException.Reason.VERSION_DOWNGRADE -> R.string.install_error_downgrade_blocked
+                    else -> R.string.install_error_integrity_failed
+                }
+                snack.snackBar(scope, TextSnack(str.get(msgRes)))
+            }
+        }
+    }
+
     suspend fun installParts(
         id: Int,
         packageName: String,
@@ -155,91 +343,190 @@ class SessionInstaller internal constructor(
     ): Boolean {
         installLog.beginInstall(id)
         if (parts.isEmpty()) {
+            installLog.emitStatus(AppInstallStatus(false, id, snack = true))
             throw IOException("No installation parts provided for $packageName")
         }
 
-        // Strict opt-in check: only attempt Shizuku when explicitly enabled by the user in Settings.
-        if (prefs.useShizukuInstaller.get()) {
-            val shizukuStatus = ensureShizukuReadyAndAuthorized()
-            if (shizukuStatus == ShizukuAvailability.READY) {
-                val shizukuResult = runCatching {
-                    shizukuBridge.executeShizukuInstall(id, packageName, parts)
-                }
-                if (shizukuResult.isSuccess) {
-                    val succeeded = shizukuResult.getOrDefault(false)
-                    installLog.emitStatus(AppInstallStatus(succeeded, id, snack = true))
-                    return succeeded
-                } else {
-                    runCatching {
-                        Log.w(
-                            "SessionInstaller",
-                            "Shizuku installation failed (${shizukuResult.exceptionOrNull()?.message}); falling back to standard PackageInstaller."
-                        )
-                    }
-                    notifyShizukuFallback(R.string.shizuku_fallback_not_running)
-                }
-            } else {
-                val messageRes = when (shizukuStatus) {
-                    ShizukuAvailability.PERMISSION_DENIED -> R.string.shizuku_fallback_no_permission
-                    else -> R.string.shizuku_fallback_not_running
-                }
-                notifyShizukuFallback(messageRes)
-            }
+        val (verifiedParts, tempVerifyDir) = try {
+            prepareAndVerifyParts(id, packageName, parts, emitProgress = false)
+        } catch (sec: ApkIntegrityException) {
+            handleIntegrityAbort(id, sec, showSnack = true)
+            return false
         }
 
-        val fallbackOverride = packageInstallerFallbackOverride
-        if (fallbackOverride != null) {
-            val result = fallbackOverride(id, packageName, parts)
-            installLog.emitStatus(AppInstallStatus(result, id, snack = true))
+        try {
+            var pendingShizukuFallbackRes: Int? = null
+            if (prefs.useShizukuInstaller.get()) {
+                val shizukuStatus = ensureShizukuReadyAndAuthorized()
+                if (shizukuStatus == ShizukuAvailability.READY) {
+                    val shizukuResult = runCatching {
+                        shizukuBridge.executeShizukuInstall(id, packageName, verifiedParts)
+                    }
+                    val failure = shizukuResult.exceptionOrNull()
+                    if (failure is ApkIntegrityException) {
+                        handleIntegrityAbort(id, failure, showSnack = true)
+                        return false
+                    }
+                    if (failure is SecurityException) {
+                        Log.e("SessionInstaller", "Security rejection during Shizuku install; refusing fallback", failure)
+                        installLog.emitStatus(AppInstallStatus(false, id, snack = true))
+                        return false
+                    }
+                    if (shizukuResult.isSuccess) {
+                        val succeeded = shizukuResult.getOrDefault(false)
+                        installLog.emitStatus(AppInstallStatus(succeeded, id, snack = true))
+                        return succeeded
+                    } else {
+                        Log.w("SessionInstaller", "Shizuku installation failed; trying fallback installer")
+                        pendingShizukuFallbackRes = R.string.shizuku_fallback_not_running
+                    }
+                } else {
+                    pendingShizukuFallbackRes = when (shizukuStatus) {
+                        ShizukuAvailability.PERMISSION_DENIED -> R.string.shizuku_fallback_no_permission
+                        else -> R.string.shizuku_fallback_not_running
+                    }
+                }
+            }
+
+            if (prefs.useRootInstaller.get()) {
+                tryRootInstall(id, packageName, verifiedParts, emitSnackOnResult = true)?.let { rootOutcome ->
+                    return rootOutcome
+                }
+            }
+
+            pendingShizukuFallbackRes?.let { notifyShizukuFallback(it) }
+
+            val fallbackOverride = packageInstallerFallbackOverride
+            if (fallbackOverride != null) {
+                val result = fallbackOverride(id, packageName, verifiedParts)
+                installLog.emitStatus(AppInstallStatus(result, id, snack = true))
+                return result
+            }
+            val result = withTimeoutOrNull(120_000L) {
+                installWithPackageInstaller(id, packageName, verifiedParts)
+            } ?: run {
+                finish(id)
+                installLog.emitStatus(AppInstallStatus(false, id, snack = true))
+                false
+            }
             return result
+        } finally {
+            tempVerifyDir?.let { runCatching { it.deleteRecursively() } }
         }
-        return kotlinx.coroutines.withTimeoutOrNull(120_000L) {
-            installWithPackageInstaller(id, packageName, parts)
-        } ?: false
     }
 
-    /**
-     * Executes a strictly silent background installation via Shizuku without triggering
-     * interactive system PackageInstaller prompts, permission dialogs, or UI snackbars.
-     */
     suspend fun installPartsSilently(
         id: Int,
         packageName: String,
         parts: List<InstallPart>
     ): Boolean {
-        if (parts.isEmpty()) {
+        if (parts.isEmpty() || (!prefs.useShizukuInstaller.get() && !prefs.useRootInstaller.get())) {
             return false
         }
-        if (!prefs.useShizukuInstaller.get()) {
-            return false
+
+        val shizukuUsable = if (prefs.useShizukuInstaller.get()) {
+            val binderActive = runCatching { shizukuBridge.pingBinder() }.getOrDefault(false)
+            binderActive && runCatching { shizukuBridge.isPermissionGranted() }.getOrDefault(false)
+        } else {
+            false
         }
-        val binderActive = runCatching { shizukuBridge.pingBinder() }.getOrDefault(false)
-        val permissionGranted = binderActive && runCatching { shizukuBridge.isPermissionGranted() }.getOrDefault(false)
-        if (!binderActive || !permissionGranted) {
-            runCatching {
-                Log.w(
-                    "SessionInstaller",
-                    "Silent Shizuku install skipped for $packageName: binderActive=$binderActive, permissionGranted=$permissionGranted"
-                )
-            }
+        val rootUsable = prefs.useRootInstaller.get() && testRootAvailability()
+        if (!shizukuUsable && !rootUsable) {
             return false
         }
 
         installLog.beginInstall(id)
-        val shizukuResult = runCatching {
-            shizukuBridge.executeShizukuInstall(id, packageName, parts)
+        val (verifiedParts, tempVerifyDir) = try {
+            prepareAndVerifyParts(id, packageName, parts, emitProgress = false)
+        } catch (sec: ApkIntegrityException) {
+            handleIntegrityAbort(id, sec, showSnack = false)
+            return false
+        } catch (e: Exception) {
+            Log.w("SessionInstaller", "Silent pre-install verification failed", e)
+            installLog.emitStatus(AppInstallStatus(false, id, snack = false))
+            return false
         }
-        if (shizukuResult.isFailure) {
-            runCatching {
-                Log.w(
-                    "SessionInstaller",
-                    "Silent Shizuku install failed for $packageName (${shizukuResult.exceptionOrNull()?.message})"
-                )
+
+        try {
+            if (shizukuUsable) {
+                val shizukuResult = runCatching {
+                    shizukuBridge.executeShizukuInstall(id, packageName, verifiedParts)
+                }
+                val shizukuError = shizukuResult.exceptionOrNull()
+                if (shizukuError is ApkIntegrityException) {
+                    handleIntegrityAbort(id, shizukuError, showSnack = false)
+                    return false
+                }
+                if (shizukuError is SecurityException) {
+                    installLog.emitStatus(AppInstallStatus(false, id, snack = false))
+                    return false
+                }
+                if (shizukuResult.isSuccess && shizukuResult.getOrDefault(false)) {
+                    installLog.emitStatus(AppInstallStatus(true, id, snack = false))
+                    return true
+                }
             }
+
+            if (prefs.useRootInstaller.get()) {
+                installLog.beginInstall(id)
+                tryRootInstall(id, packageName, verifiedParts, emitSnackOnResult = false)?.let { rootOutcome ->
+                    return rootOutcome
+                }
+            }
+
+            installLog.emitStatus(AppInstallStatus(false, id, snack = false))
+            return false
+        } finally {
+            tempVerifyDir?.let { runCatching { it.deleteRecursively() } }
         }
-        val succeeded = shizukuResult.getOrDefault(false)
-        installLog.emitStatus(AppInstallStatus(succeeded, id, snack = false))
-        return succeeded
+    }
+
+    private fun tryRootInstall(
+        id: Int,
+        packageName: String,
+        parts: List<InstallPart>,
+        emitSnackOnResult: Boolean
+    ): Boolean? {
+        if (!prefs.useRootInstaller.get()) return null
+        if (!rootInstaller.isRootAvailable()) {
+            runCatching {
+                Log.w("SessionInstaller", "Root installer enabled, but su access is unavailable for $packageName")
+            }
+            return null
+        }
+
+        val preservedInstaller = context?.let { resolvePreservedInstallerPackage(it, packageName) }
+            ?: BuildConfig.APPLICATION_ID
+        val rootResult = rootInstaller.executeRootInstall(
+            packageName = packageName,
+            parts = parts,
+            installerPackageName = preservedInstaller
+        )
+        AppJournal.record(
+            "Root",
+            "Root install for $packageName: success=${rootResult.success}, reason=${rootResult.failureReason ?: "none"}"
+        )
+        if (rootResult.success) {
+            installLog.emitProgress(AppInstallProgress(id, 0L))
+            installLog.emitStatus(AppInstallStatus(true, id, snack = emitSnackOnResult))
+            return true
+        }
+        if (rootResult.failureReason == InstallFailureReason.SIGNATURE_MISMATCH) {
+            installLog.emitProgress(AppInstallProgress(id, 0L))
+            installLog.emitStatus(
+                AppInstallStatus(
+                    success = false,
+                    id = id,
+                    snack = emitSnackOnResult,
+                    failureReason = InstallFailureReason.SIGNATURE_MISMATCH
+                )
+            )
+            return false
+        }
+        runCatching {
+            Log.w("SessionInstaller", "Root installation failed for $packageName: ${rootResult.details}")
+        }
+        return null
     }
 
     private fun notifyShizukuFallback(messageRes: Int) {
@@ -265,6 +552,14 @@ class SessionInstaller internal constructor(
 
     fun isShizukuReady(): Boolean =
         prefs.useShizukuInstaller.get() && getShizukuSetupStatus().isReady
+
+    fun testRootAvailability(): Boolean = rootInstaller.isRootAvailable()
+
+    fun isRootReady(): Boolean =
+        prefs.useRootInstaller.get() && testRootAvailability()
+
+    fun isSilentInstallerReady(): Boolean =
+        isShizukuReady() || isRootReady()
 
     fun canRequestPackageInstalls(): Boolean {
         val ctx = context ?: return true
@@ -376,94 +671,120 @@ class SessionInstaller internal constructor(
         ): Boolean = installWithShizuku(id, packageName, parts)
     }
 
+    /**
+     * Resolves the original `installingPackageName` for `packageName` so Shizuku updates preserve
+     * the app's existing Play Store / F-Droid / Droid-ify install origin (F-12a).
+     */
+    private fun resolvePreservedInstallerPackage(ctx: Context, targetPackageName: String): String {
+        val existing = runCatching {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                ctx.packageManager.getInstallSourceInfo(targetPackageName).installingPackageName
+            } else {
+                @Suppress("DEPRECATION")
+                ctx.packageManager.getInstallerPackageName(targetPackageName)
+            }
+        }.getOrNull()
+
+        return if (ApkIntegrityVerifier.isValidPackageName(existing)) {
+            existing!!
+        } else {
+            ctx.packageName
+        }
+    }
+
     private fun installWithShizuku(
         id: Int,
         packageName: String,
         parts: List<InstallPart>
     ): Boolean {
         val ctx = requireNotNull(context) { "Android Context required for native Shizuku install" }
+        if (!ApkIntegrityVerifier.isValidPackageName(packageName)) {
+            throw SecurityException("Invalid packageName '$packageName' rejected before Shizuku execution")
+        }
         val binder = Shizuku.getBinder() ?: throw IOException("Shizuku binder unavailable")
         val shizukuService = IShizukuService.Stub.asInterface(binder)
             ?: throw IOException("IShizukuService unavailable")
 
-        val tempDir = File(ctx.cacheDir, "shizuku_staging_$id").apply { mkdirs() }
+        val tempDir = File(ctx.cacheDir, "shizuku_staging_${id}_${UUID.randomUUID()}").apply { mkdirs() }
         var sessionId: String? = null
         try {
             var totalBytes = 0L
             val stagedFiles = parts.mapIndexed { index, part ->
-                val rawStream = part.openStream()
-                    ?: throw IOException("Download stream returned null for $packageName (part ${part.name})")
-                val stream = wrapStreamIfGzip(rawStream)
-                val fileName = if (part.name.endsWith(".apk")) part.name else "${part.name}.apk"
-                val partFile = File(tempDir, fileName)
-                stream.use { input ->
-                    partFile.outputStream().use { output ->
-                        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                        var read = input.read(buffer)
-                        while (read >= 0) {
-                            output.write(buffer, 0, read)
-                            totalBytes += read
-                            installLog.emitProgress(AppInstallProgress(id, totalBytes))
-                            read = input.read(buffer)
-                        }
-                        output.flush()
-                    }
-                }
-                if (partFile.length() <= 0L) {
-                    throw IOException("Downloaded empty APK split for $packageName (${part.name})")
-                }
-                partFile
-            }
-
-            // Security verification: inspect staged APK package name before privileged install
-            val baseApk = stagedFiles.firstOrNull { it.name.equals("base.apk", ignoreCase = true) }
-                ?: stagedFiles.firstOrNull { file ->
-                    ctx.packageManager.getPackageArchiveInfo(file.absolutePath, 0)?.packageName != null
-                }
-                ?: stagedFiles.firstOrNull { it.name.endsWith(".apk", ignoreCase = true) }
-
-            if (baseApk != null) {
-                val archiveInfo = ctx.packageManager.getPackageArchiveInfo(baseApk.absolutePath, 0)
-                if (archiveInfo != null) {
-                    if (archiveInfo.packageName != packageName) {
-                        throw SecurityException("Security check failed: Downloaded APK packageName (${archiveInfo.packageName}) does not match expected ($packageName)!")
-                    }
+                val safeFileName = ApkIntegrityVerifier.sanitizePartFileName(part.name, index)
+                val existingBacking = part.backingFile
+                if (existingBacking != null && existingBacking.isFile && existingBacking.length() > 0L) {
+                    totalBytes += existingBacking.length()
+                    installLog.emitProgress(AppInstallProgress(id, totalBytes))
+                    safeFileName to existingBacking
                 } else {
-                    Log.w("SessionInstaller", "Could not parse packageArchiveInfo for ${baseApk.name}; proceeding with caution")
+                    val rawStream = part.openStream()
+                        ?: throw IOException("Download stream returned null for $packageName (part $safeFileName)")
+                    val stream = wrapStreamIfGzip(rawStream)
+                    val partFile = File(tempDir, safeFileName)
+                    stream.use { input ->
+                        partFile.outputStream().use { output ->
+                            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                            var read = input.read(buffer)
+                            while (read >= 0) {
+                                output.write(buffer, 0, read)
+                                totalBytes += read
+                                installLog.emitProgress(AppInstallProgress(id, totalBytes))
+                                read = input.read(buffer)
+                            }
+                            output.flush()
+                        }
+                    }
+                    if (partFile.length() <= 0L) {
+                        throw IOException("Downloaded empty APK split for $packageName ($safeFileName)")
+                    }
+                    safeFileName to partFile
                 }
             }
 
-            val isInstalled = runCatching { ctx.packageManager.getPackageInfo(packageName, 0) }.isSuccess
-            val createArgs = if (isInstalled) {
-                arrayOf("pm", "install-create", "-r", "-p", packageName, "-i", ctx.packageName)
-            } else {
-                arrayOf("pm", "install-create", "-r", "-i", ctx.packageName)
-            }
+            // Re-verify staged files right before privileged shell install (eliminates any TOCTOU window)
+            ApkIntegrityVerifier.verifyStagedApkFiles(
+                context = ctx,
+                expectedPackageName = packageName,
+                stagedFiles = stagedFiles.map { (_, f) -> f to null }
+            )
+
+            // Always bind session to `-p packageName` and preserve original installingPackageName (F-12a, HIGH-01)
+            val installerPkg = resolvePreservedInstallerPackage(ctx, packageName)
+            val createArgs = arrayOf("pm", "install-create", "-r", "-p", packageName, "-i", installerPkg)
             val createOutput = runShizukuCommand(shizukuService, createArgs)
             sessionId = Regex("\\[(\\d+)]").find(createOutput)?.groupValues?.getOrNull(1)
                 ?: throw IOException("Could not parse Shizuku install session ID from: $createOutput")
 
-            stagedFiles.forEach { file ->
+            stagedFiles.forEach { (safeEntryName, file) ->
                 val writeProc = shizukuService.newProcess(
-                    arrayOf("pm", "install-write", "-S", file.length().toString(), sessionId, file.name, "-"),
+                    arrayOf("pm", "install-write", "-S", file.length().toString(), sessionId!!, safeEntryName, "-"),
                     null,
                     null
                 )
                 try {
+                    val stdOutBuf = StringBuilder()
+                    val stdErrBuf = StringBuilder()
+                    val outReader = drainPipeAsync(writeProc.inputStream, stdOutBuf)
+                    val errReader = drainPipeAsync(writeProc.errorStream, stdErrBuf)
+
                     file.inputStream().use { fileIn ->
                         ParcelFileDescriptor.AutoCloseOutputStream(writeProc.outputStream).use { procOut ->
                             fileIn.copyTo(procOut)
                             procOut.flush()
                         }
                     }
-                    val exitCode = writeProc.waitFor()
+                    val exitCode = awaitProcessExitWithTimeout(
+                        timeoutSeconds = SHIZUKU_CMD_TIMEOUT_SECONDS,
+                        destroyFn = { writeProc.destroy() },
+                        waitForFn = { writeProc.waitFor() }
+                    )
+                    outReader.join(2_000L)
+                    errReader.join(2_000L)
+                    if (exitCode == null) {
+                        throw IOException("pm install-write timed out after ${SHIZUKU_CMD_TIMEOUT_SECONDS}s")
+                    }
                     if (exitCode != 0) {
-                        val err = runCatching {
-                            ParcelFileDescriptor.AutoCloseInputStream(writeProc.errorStream)
-                                .bufferedReader()
-                                .use { it.readText() }
-                        }.getOrDefault("")
-                        throw IOException("pm install-write failed ($exitCode): $err")
+                        throw IOException("pm install-write failed ($exitCode): $stdErrBuf $stdOutBuf")
                     }
                 } finally {
                     runCatching { writeProc.destroy() }
@@ -472,7 +793,7 @@ class SessionInstaller internal constructor(
 
             val commitOutput = runShizukuCommand(
                 shizukuService,
-                arrayOf("pm", "install-commit", sessionId)
+                arrayOf("pm", "install-commit", sessionId!!)
             )
             val success = commitOutput.contains("Success", ignoreCase = true)
             if (success) {
@@ -489,26 +810,80 @@ class SessionInstaller internal constructor(
         }
     }
 
+    private fun drainPipeAsync(pfd: ParcelFileDescriptor?, sink: StringBuilder): Thread {
+        return thread(start = true, isDaemon = true, name = "shizuku-pipe-drain") {
+            if (pfd == null) return@thread
+            runCatching {
+                ParcelFileDescriptor.AutoCloseInputStream(pfd).bufferedReader().use { reader ->
+                    val buf = CharArray(2048)
+                    var n = reader.read(buf)
+                    while (n >= 0) {
+                        if (sink.length < MAX_PROCESS_OUTPUT_CHARS) {
+                            val allowed = (MAX_PROCESS_OUTPUT_CHARS - sink.length).coerceAtMost(n)
+                            sink.append(buf, 0, allowed)
+                        }
+                        n = reader.read(buf)
+                    }
+                }
+            }
+        }
+    }
+
     private fun runShizukuCommand(service: IShizukuService, command: Array<String>): String {
         val process = service.newProcess(command, null, null)
         return try {
-            val stdOut = ParcelFileDescriptor.AutoCloseInputStream(process.inputStream)
-                .bufferedReader()
-                .use { it.readText() }
-            val stdErr = ParcelFileDescriptor.AutoCloseInputStream(process.errorStream)
-                .bufferedReader()
-                .use { it.readText() }
-            val exit = process.waitFor()
-            if (exit != 0 && !stdOut.contains("Success", ignoreCase = true)) {
-                throw IOException("Command ${command.joinToString(" ")} failed ($exit): $stdErr $stdOut")
+            runCatching { ParcelFileDescriptor.AutoCloseOutputStream(process.outputStream).close() }
+            val stdOut = StringBuilder()
+            val stdErr = StringBuilder()
+            val outThread = drainPipeAsync(process.inputStream, stdOut)
+            val errThread = drainPipeAsync(process.errorStream, stdErr)
+
+            val exit = awaitProcessExitWithTimeout(
+                timeoutSeconds = SHIZUKU_CMD_TIMEOUT_SECONDS,
+                destroyFn = { process.destroy() },
+                waitForFn = { process.waitFor() }
+            )
+            outThread.join(2_000L)
+            errThread.join(2_000L)
+            if (exit == null) {
+                throw IOException("Shizuku command '${command.firstOrNull()}' timed out after ${SHIZUKU_CMD_TIMEOUT_SECONDS}s")
             }
-            "$stdOut\n$stdErr"
+            val outStr = stdOut.toString()
+            val errStr = stdErr.toString()
+            if (exit != 0 && !outStr.contains("Success", ignoreCase = true)) {
+                throw IOException("Command ${command.firstOrNull()} failed ($exit): $errStr $outStr")
+            }
+            "$outStr\n$errStr"
         } finally {
             runCatching { process.destroy() }
         }
     }
 
-    @SuppressLint("RequestInstallPackagesPolicy", "UnspecifiedRegisterReceiverFlag")
+    private fun awaitProcessExitWithTimeout(
+        timeoutSeconds: Long,
+        destroyFn: () -> Unit,
+        waitForFn: () -> Int
+    ): Int? {
+        val resultHolder = java.util.concurrent.atomic.AtomicInteger(Int.MIN_VALUE)
+        val latch = java.util.concurrent.CountDownLatch(1)
+        thread(start = true, isDaemon = true, name = "shizuku-proc-wait") {
+            try {
+                resultHolder.set(waitForFn())
+            } catch (_: Throwable) {
+            } finally {
+                latch.countDown()
+            }
+        }
+        val completed = latch.await(timeoutSeconds, TimeUnit.SECONDS)
+        if (!completed) {
+            runCatching { destroyFn() }
+            return null
+        }
+        val code = resultHolder.get()
+        return if (code == Int.MIN_VALUE) null else code
+    }
+
+    @SuppressLint("RequestInstallPackagesPolicy")
     private suspend fun installWithPackageInstaller(
         id: Int,
         packageName: String,
@@ -516,7 +891,7 @@ class SessionInstaller internal constructor(
     ): Boolean {
         val ctx = requireNotNull(context) { "Android Context required for PackageInstaller" }
         if (!canRequestPackageInstalls()) {
-            Log.w("SessionInstaller", "Cannot request package installs for $packageName; prompting permission.")
+            Log.w("SessionInstaller", "Cannot request package installs; prompting permission.")
             checkPermission()
             return false
         }
@@ -534,10 +909,10 @@ class SessionInstaller internal constructor(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 setPackageSource(PackageInstaller.PACKAGE_SOURCE_STORE)
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                setRequestUpdateOwnership(true)
-            }
+            // Note: setRequestUpdateOwnership(true) intentionally omitted per user decision F-12b
         }
+
+        val sessionToken = UUID.randomUUID().toString()
 
         return suspendCancellableCoroutine { continuation ->
             val receiverUnregistered = AtomicBoolean(false)
@@ -560,15 +935,35 @@ class SessionInstaller internal constructor(
             }
 
             var createdSessionId: Int? = null
+            val mainHandler = Handler(Looper.getMainLooper())
 
-            fun completeOnce(success: Boolean) {
+            fun completeOnce(
+                success: Boolean,
+                abandonIfFailed: Boolean = false,
+                failureReason: InstallFailureReason? = null
+            ) {
                 if (terminalHandled.compareAndSet(false, true)) {
-                    createdSessionId?.let { sessId -> activeSessions.remove(id, sessId) } ?: activeSessions.remove(id)
+                    val sessId = createdSessionId
+                    if (sessId != null) {
+                        activeSessions.remove(id, sessId)
+                        if (!success && abandonIfFailed) {
+                            runCatching { packageInstaller.abandonSession(sessId) }
+                        }
+                    } else {
+                        activeSessions.remove(id)
+                    }
                     runCatching {
                         val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                         nm.cancel(NOTIFICATION_ID_CONFIRM_BASE + id)
                     }
-                    installLog.emitStatus(AppInstallStatus(success, id, snack = true))
+                    installLog.emitStatus(
+                        AppInstallStatus(
+                            success = success,
+                            id = id,
+                            snack = true,
+                            failureReason = if (success) null else failureReason
+                        )
+                    )
                     safeUnregisterReceiver()
                     safeUnregisterCallback()
                     if (continuation.isActive) {
@@ -579,60 +974,85 @@ class SessionInstaller internal constructor(
 
             receiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context, @SuppressLint("UnsafeIntentLaunch") intent: Intent?) {
-                    if (intent?.action == "$INSTALL_CANCEL_ACTION.$id") {
-                        Log.i("InstallerReceiver", "User dismissed installation prompt for $packageName ($id)")
-                        completeOnce(false)
+                    if (intent == null) return
+                    // Cryptographic per-session token verification (HIGH-02)
+                    val receivedToken = intent.getStringExtra(EXTRA_SESSION_TOKEN)
+                    if (receivedToken != sessionToken) {
+                        Log.w("InstallerReceiver", "Ignored broadcast with invalid or missing session token")
                         return
                     }
 
-                    val status = intent?.extras?.getInt(PackageInstaller.EXTRA_STATUS)
-                    val message = intent?.extras?.getString(PackageInstaller.EXTRA_STATUS_MESSAGE)
-                    Log.i("InstallerReceiver", "PackageInstaller callback for $packageName ($id): status=$status, message=$message")
+                    if (intent.action == "$INSTALL_CANCEL_ACTION.$id") {
+                        completeOnce(success = false, abandonIfFailed = true, failureReason = InstallFailureReason.ABORTED)
+                        return
+                    }
+
+                    // Explicit key presence check — never allow missing EXTRA_STATUS to default to 0 (STATUS_SUCCESS)!
+                    val extras = intent.extras
+                    if (extras == null || !extras.containsKey(PackageInstaller.EXTRA_STATUS)) {
+                        Log.w("InstallerReceiver", "Ignored PackageInstaller callback missing EXTRA_STATUS")
+                        return
+                    }
+
+                    val status = extras.getInt(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE)
+                    val message = extras.getString(PackageInstaller.EXTRA_STATUS_MESSAGE)
                     when (status) {
                         PackageInstaller.STATUS_PENDING_USER_ACTION -> {
                             installLog.currentInstallId = id
                             val confirmIntent = intent.getIntentExtra()
-                            if (confirmIntent != null) {
-                                confirmIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            if (confirmIntent == null) {
+                                Log.e("InstallerReceiver", "STATUS_PENDING_USER_ACTION received with null confirmIntent")
+                                completeOnce(success = false, abandonIfFailed = true)
+                                return
+                            }
 
-                                val isForeground = AppLifecycleTracker.isAppInForeground
-                                if (isForeground) {
-                                    val options = ActivityOptions.makeBasic()
-                                    if (Build.VERSION.SDK_INT >= 35) {
-                                        options.setPendingIntentCreatorBackgroundActivityStartMode(
-                                            ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
-                                        )
-                                    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                                        @Suppress("DEPRECATION")
-                                        options.setPendingIntentBackgroundActivityStartMode(
-                                            ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
-                                        )
-                                    }
-                                    scope.launch(Dispatchers.Main) {
-                                        runCatching {
-                                            (context.applicationContext ?: context).startActivity(confirmIntent, options.toBundle())
-                                        }.onFailure { error ->
-                                            Log.w("InstallerReceiver", "Direct launch failed in foreground ($error); falling back to notification")
-                                            postConfirmationNotification(context, id, packageName, confirmIntent)
+                            // Verify confirmIntent resolves strictly to a system Activity (HIGH-03 defense against FLAG_MUTABLE hijack)
+                            val systemResolved = runCatching {
+                                context.packageManager.resolveActivity(confirmIntent, PackageManager.MATCH_SYSTEM_ONLY)
+                            }.getOrNull()
+                            if (systemResolved == null) {
+                                Log.e("InstallerReceiver", "Blocked non-system EXTRA_INTENT in PackageInstaller callback!")
+                                completeOnce(success = false, abandonIfFailed = true)
+                                return
+                            }
+
+                            confirmIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+                            if (AppLifecycleTracker.isAppInForeground) {
+                                val balBundle = buildBackgroundActivityLaunchOptions()
+                                scope.launch(Dispatchers.Main) {
+                                    runCatching {
+                                        val launchCtx = context.applicationContext ?: context
+                                        if (balBundle != null) {
+                                            launchCtx.startActivity(confirmIntent, balBundle)
+                                        } else {
+                                            launchCtx.startActivity(confirmIntent)
                                         }
-                                    }
-                                } else {
-                                    scope.launch(Dispatchers.Main) {
-                                        postConfirmationNotification(context, id, packageName, confirmIntent)
+                                    }.onFailure { error ->
+                                        Log.w("InstallerReceiver", "Direct foreground launch failed ($error); trying notification")
+                                        if (!postConfirmationNotification(context, id, packageName, confirmIntent, sessionToken)) {
+                                            completeOnce(success = false, abandonIfFailed = true)
+                                        }
                                     }
                                 }
                             } else {
-                                Log.e("InstallerReceiver", "STATUS_PENDING_USER_ACTION received but confirmIntent is null for $packageName ($id)")
-                                completeOnce(false)
+                                scope.launch(Dispatchers.Main) {
+                                    if (!postConfirmationNotification(context, id, packageName, confirmIntent, sessionToken)) {
+                                        completeOnce(success = false, abandonIfFailed = true)
+                                    }
+                                }
                             }
                         }
                         PackageInstaller.STATUS_SUCCESS -> {
-                            Log.i("InstallerReceiver", "SUCCESS for $packageName ($id)")
-                            completeOnce(true)
+                            completeOnce(success = true)
                         }
                         else -> {
-                            Log.e("InstallerReceiver", "FAILURE ($status: $message) for $packageName ($id)")
-                            completeOnce(false)
+                            Log.e("InstallerReceiver", "PackageInstaller failure ($status: $message)")
+                            completeOnce(
+                                success = false,
+                                abandonIfFailed = true,
+                                failureReason = resolveInstallFailureReason(status, message)
+                            )
                         }
                     }
                 }
@@ -645,8 +1065,14 @@ class SessionInstaller internal constructor(
                 override fun onProgressChanged(sessionId: Int, p: Float) {}
                 override fun onFinished(sessionId: Int, success: Boolean) {
                     if (createdSessionId != null && sessionId == createdSessionId) {
-                        Log.i("InstallerReceiver", "PackageInstaller SessionCallback.onFinished for $packageName ($id, session=$sessionId): success=$success")
-                        completeOnce(success)
+                        if (success) {
+                            completeOnce(true)
+                        } else {
+                            mainHandler.postDelayed(
+                                { completeOnce(false, abandonIfFailed = false, failureReason = InstallFailureReason.GENERIC) },
+                                600L
+                            )
+                        }
                     }
                 }
             }
@@ -655,12 +1081,8 @@ class SessionInstaller internal constructor(
                 addAction("$INSTALL_ACTION.$id")
                 addAction("$INSTALL_CANCEL_ACTION.$id")
             }
-            if (Build.VERSION.SDK_INT >= 33) {
-                ctx.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
-            } else {
-                ctx.registerReceiver(receiver, filter)
-            }
-            packageInstaller.registerSessionCallback(callback, Handler(Looper.getMainLooper()))
+            ContextCompat.registerReceiver(ctx, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+            packageInstaller.registerSessionCallback(callback, mainHandler)
 
             var committed = false
 
@@ -680,13 +1102,13 @@ class SessionInstaller internal constructor(
                 var totalBytes = 0L
                 packageInstaller.openSession(sessionId).use { session ->
                     parts.forEachIndexed { index, part ->
+                        val safePartName = ApkIntegrityVerifier.sanitizePartFileName(part.name, index)
                         val rawStream = part.openStream()
-                            ?: throw IOException("Download stream returned null for $packageName (part ${part.name})")
+                            ?: throw IOException("Download stream returned null for $packageName (part $safePartName)")
                         val stream = wrapStreamIfGzip(rawStream)
                         stream.use { input ->
-                            val partName = if (part.name.endsWith(".apk")) part.name else "${part.name}.apk"
                             val partSize = if (part.sizeBytes > 0L && stream !is java.util.zip.GZIPInputStream) part.sizeBytes else -1L
-                            session.openWrite(partName, 0, partSize).use { output ->
+                            session.openWrite(safePartName, 0, partSize).use { output ->
                                 totalBytes += input.copyToAndNotify(output, id, installLog, totalBytes)
                                 session.fsync(output)
                             }
@@ -696,6 +1118,7 @@ class SessionInstaller internal constructor(
                     val broadcastIntent = Intent("$INSTALL_ACTION.$id").apply {
                         setPackage(ctx.packageName)
                         putExtra(EXTRA_APP_ID, id)
+                        putExtra(EXTRA_SESSION_TOKEN, sessionToken)
                     }
                     val pending = PendingIntent.getBroadcast(
                         ctx,
@@ -720,32 +1143,55 @@ class SessionInstaller internal constructor(
         }
     }
 
+    /**
+     * Posts a high-priority install confirmation notification when backgrounded.
+     * Returns `false` immediately if notifications are disabled (`POST_NOTIFICATIONS` denied),
+     * preventing a 120-second silent hang per app (HIGH-16).
+     */
     private fun postConfirmationNotification(
         context: Context,
         id: Int,
         packageName: String,
-        confirmIntent: Intent
-    ) {
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CONFIRM_NOTIFICATION_CHANNEL_ID,
-                context.getString(R.string.notification_install_channel_name),
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = context.getString(R.string.notification_install_channel_desc)
-            }
-            notificationManager.createNotificationChannel(channel)
+        confirmIntent: Intent,
+        sessionToken: String
+    ): Boolean {
+        if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) {
+            Log.w("SessionInstaller", "Notifications disabled while app is in background; failing fast instead of hanging.")
+            return false
         }
 
-        val pendingIntent = PendingIntent.getActivity(
-            context,
-            id,
-            confirmIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channel = NotificationChannel(
+            CONFIRM_NOTIFICATION_CHANNEL_ID,
+            context.getString(R.string.notification_install_channel_name),
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            description = context.getString(R.string.notification_install_channel_desc)
+        }
+        notificationManager.createNotificationChannel(channel)
 
-        val cancelIntent = Intent("$INSTALL_CANCEL_ACTION.$id").setPackage(context.packageName)
+        val balOptions = buildBackgroundActivityLaunchOptions()
+        val pendingIntent = if (balOptions != null) {
+            PendingIntent.getActivity(
+                context,
+                id,
+                confirmIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+                balOptions
+            )
+        } else {
+            PendingIntent.getActivity(
+                context,
+                id,
+                confirmIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+        }
+
+        val cancelIntent = Intent("$INSTALL_CANCEL_ACTION.$id").apply {
+            setPackage(context.packageName)
+            putExtra(EXTRA_SESSION_TOKEN, sessionToken)
+        }
         val deletePendingIntent = PendingIntent.getBroadcast(
             context,
             id,
@@ -770,6 +1216,7 @@ class SessionInstaller internal constructor(
             .build()
 
         notificationManager.notify(NOTIFICATION_ID_CONFIRM_BASE + id, notification)
+        return true
     }
 
     fun finish(id: Int? = null) {
@@ -791,21 +1238,22 @@ class SessionInstaller internal constructor(
     }
 
     fun checkPermission(): Boolean {
-        if (isShizukuReady()) return true
+        if (isSilentInstallerReady()) return true
         val ctx = context ?: return false
         if (!ctx.packageManager.canRequestPackageInstalls()) {
             val uri = "package:${BuildConfig.APPLICATION_ID}".toUri()
-            val intent = Intent(ACTION_MANAGE_UNKNOWN_APP_SOURCES, uri)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            val intent = Intent(ACTION_MANAGE_UNKNOWN_APP_SOURCES, uri).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
             ctx.startActivity(intent, null)
             return false
         }
         return true
     }
-
 }
 
 private const val EXTRA_APP_ID = "appId"
+private const val EXTRA_SESSION_TOKEN = "sessionToken"
 
 private enum class ShizukuAvailability {
     READY,

@@ -1,16 +1,17 @@
 package com.apkup.di
 
-import android.content.Context
 import androidx.work.WorkManager
 import com.apkup.BuildConfig
-import com.apkup.R
 import com.apkup.prefs.Prefs
+import com.apkup.prefs.PrefsBackend
+import com.apkup.prefs.TinkSecurePrefsBackend
 import com.apkup.repository.AndroidApkMirrorCloudflareBypass
 import com.apkup.repository.ApkMirrorCloudflareBypass
 import com.apkup.repository.ApkMirrorRepository
 import com.apkup.repository.ApkMirrorResolver
-import com.apkup.repository.InMemoryCookieJar
 import com.apkup.repository.AppsRepository
+import com.apkup.repository.CodebergRepository
+import com.apkup.repository.CustomFDroidReposRepository
 import com.apkup.repository.GitHubRepository
 import com.apkup.repository.GitLabRepository
 import com.apkup.repository.IzzyOnDroidRepository
@@ -18,8 +19,11 @@ import com.apkup.repository.PlayRepository
 import com.apkup.repository.RepoMappingManager
 import com.apkup.repository.SelfUpdateRepository
 import com.apkup.repository.UpdatesRepository
+import com.apkup.service.ApkMirrorAuthInterceptor
 import com.apkup.service.ApkMirrorService
+import com.apkup.util.AppJournal
 import com.apkup.util.Badger
+import com.apkup.util.DownloadNotificationManager
 import com.apkup.util.Downloader
 import com.apkup.util.InstallLog
 import com.apkup.util.SessionInstaller
@@ -27,48 +31,57 @@ import com.apkup.util.SnackBar
 import com.apkup.util.Stringer
 import com.apkup.util.Themer
 import com.apkup.util.UpdatesNotification
+import com.apkup.util.WebKitCookieJar
 import com.apkup.util.addUserAgentInterceptor
 import com.apkup.util.play.PlayHttpClient
 import com.apkup.viewmodel.AppsViewModel
 import com.apkup.viewmodel.MainViewModel
 import com.apkup.viewmodel.SettingsViewModel
 import com.apkup.viewmodel.UpdatesViewModel
+import com.apkup.worker.DownloadCoordinator
 import com.google.gson.GsonBuilder
-import com.kryptoprefs.preferences.KryptoBuilder
-import com.kryptoprefs.preferences.KryptoPrefs
 import okhttp3.Cache
+import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-
+import java.io.File
+import java.util.concurrent.TimeUnit
 
 val mainModule = module {
 
 	single { GsonBuilder().create() }
 
-	single { Cache(java.io.File(androidContext().cacheDir, "http_cache"), 25L * 1024L * 1024L) }
+	single { Cache(File(androidContext().cacheDir, "http_cache"), 25L * 1024L * 1024L) }
+
+	single<PrefsBackend> { TinkSecurePrefsBackend.create(androidContext()) }
+
+	single { Prefs(get()).apply { migrateLegacyCustomFDroidRepos() } }
 
 	single {
-		val dispatcher = okhttp3.Dispatcher().apply {
+		val dispatcher = Dispatcher().apply {
 			maxRequests = 64
 			maxRequestsPerHost = 16
 		}
 		OkHttpClient.Builder()
 			.dispatcher(dispatcher)
-			.connectTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
-			.readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-			.writeTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
+			.connectTimeout(20, TimeUnit.SECONDS)
+			.readTimeout(30, TimeUnit.SECONDS)
+			.writeTimeout(20, TimeUnit.SECONDS)
 			.cache(get())
-			.addUserAgentInterceptor("APKUpdater-v" + BuildConfig.VERSION_NAME)
+			.addUserAgentInterceptor("ApkUp/${BuildConfig.VERSION_NAME}")
 			.build()
 	}
 
 	single {
+		val apkMirrorApiClient = get<OkHttpClient>().newBuilder()
+			.addInterceptor(ApkMirrorAuthInterceptor(get()))
+			.build()
 		Retrofit.Builder()
-			.client(get())
+			.client(apkMirrorApiClient)
 			.baseUrl("https://www.apkmirror.com")
 			.addConverterFactory(GsonConverterFactory.create(get()))
 			.build()
@@ -76,22 +89,41 @@ val mainModule = module {
 	}
 
 	single {
-		val client = OkHttpClient.Builder().followRedirects(true).cache(get()).build()
-		val auroraClient = OkHttpClient.Builder().followRedirects(true).cache(get()).addUserAgentInterceptor("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36").build()
+		val client = OkHttpClient.Builder()
+			.followRedirects(true)
+			.connectTimeout(20, TimeUnit.SECONDS)
+			.readTimeout(45, TimeUnit.SECONDS)
+			.writeTimeout(20, TimeUnit.SECONDS)
+			.cache(get())
+			.addUserAgentInterceptor("ApkUp/${BuildConfig.VERSION_NAME}")
+			.build()
+		val auroraClient = OkHttpClient.Builder()
+			.followRedirects(true)
+			.connectTimeout(20, TimeUnit.SECONDS)
+			.readTimeout(45, TimeUnit.SECONDS)
+			.writeTimeout(20, TimeUnit.SECONDS)
+			.cache(get())
+			.addUserAgentInterceptor("Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36")
+			.build()
 		Downloader(client, auroraClient)
 	}
 
-	single { ApkMirrorRepository(get(), androidContext().packageManager) }
+	single {
+		val keylessFallbackClient = get<OkHttpClient>().newBuilder()
+			.cookieJar(WebKitCookieJar())
+			.build()
+		ApkMirrorRepository(get(), androidContext().packageManager, keylessFallbackClient)
+	}
 
 	single<ApkMirrorCloudflareBypass> { AndroidApkMirrorCloudflareBypass(androidContext()) }
 
 	single {
 		val apkMirrorOkHttpClient = OkHttpClient.Builder()
 			.followRedirects(true)
-			.cookieJar(com.apkup.util.WebKitCookieJar())
-			.connectTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
-			.readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-			.writeTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
+			.cookieJar(WebKitCookieJar())
+			.connectTimeout(20, TimeUnit.SECONDS)
+			.readTimeout(30, TimeUnit.SECONDS)
+			.writeTimeout(20, TimeUnit.SECONDS)
 			.build()
 		ApkMirrorResolver(
 			client = apkMirrorOkHttpClient,
@@ -100,13 +132,9 @@ val mainModule = module {
 		)
 	}
 
-	single { AppsRepository(get(), get()) }
+	single { AppsRepository(androidContext(), get()) }
 
-	single { PlayRepository(get(), get(), get(), get()) }
-
-	single<KryptoPrefs> { provideSecureKryptoPrefs(get()) }
-
-	single { Prefs(get()) }
+	single { PlayRepository(androidContext(), get(), get(), get()) }
 
 	single { RepoMappingManager(androidContext(), get(), get()) }
 
@@ -116,15 +144,36 @@ val mainModule = module {
 
 	single { GitLabRepository(androidContext(), get(), get(), get(), get()) }
 
+	single { CodebergRepository(androidContext(), get(), get(), get(), get()) }
+
+	single { CustomFDroidReposRepository(androidContext(), get(), get(), get(), get()) }
+
 	single { SelfUpdateRepository(get(), get()) }
 
-	single { UpdatesRepository(get(), get(), get(), get(), get(), get(), get()) }
+	single {
+		UpdatesRepository(
+			appsRepository = get(),
+			apkMirrorRepository = get(),
+			playRepository = get(),
+			izzyOnDroidRepository = get(),
+			gitHubRepository = get(),
+			gitLabRepository = get(),
+			prefs = get(),
+			repoMappingManager = get(),
+			codebergRepository = get(),
+			customFDroidReposRepository = get()
+		)
+	}
 
-	single { UpdatesNotification(get()) }
+	single { UpdatesNotification(androidContext()) }
 
-	single { SessionInstaller(get(), get(), get(), get(), get()) }
+	single { DownloadNotificationManager(androidContext()) }
+
+	single { SessionInstaller(androidContext(), get(), get(), get(), get()) }
 
 	single { SnackBar() }
+
+	single(createdAtStart = true) { AppJournal.registerShared(AppJournal(androidContext().filesDir)) }
 
 	single { Badger() }
 
@@ -136,9 +185,33 @@ val mainModule = module {
 
 	single { PlayHttpClient(get()) }
 
-	viewModel { MainViewModel(get(), get(), WorkManager.getInstance(get()), get(), get(), get(), get()) }
+	single {
+		DownloadCoordinator(
+			context = androidContext(),
+			downloader = get(),
+			installer = get(),
+			installLog = get(),
+			snackBar = get(),
+			stringer = get(),
+			prefs = get(),
+			apkMirrorResolver = get(),
+			repoMappingManager = get(),
+			notificationManager = get()
+		)
+	}
 
-	viewModel { AppsViewModel(get(), get(), get()) }
+	viewModel {
+		MainViewModel(
+			prefs = get(),
+			workManager = WorkManager.getInstance(androidContext()),
+			selfUpdateRepository = get(),
+			downloader = get(),
+			sessionInstaller = get(),
+			snackBar = get()
+		)
+	}
+
+	viewModel { AppsViewModel(get(), get(), get(), get()) }
 
 	viewModel {
 		UpdatesViewModel(
@@ -152,37 +225,25 @@ val mainModule = module {
 			installLog = get(),
 			context = androidContext(),
 			apkMirrorResolver = get(),
-			updatesNotification = get()
+			updatesNotification = get(),
+			downloadCoordinator = get()
 		)
 	}
 
-	viewModel { SettingsViewModel(get(), get(), WorkManager.getInstance(get()), get(), get(), get(), get(), get(), get(), getOrNull()) }
-
-}
-
-private fun provideSecureKryptoPrefs(context: Context): KryptoPrefs {
-	return runCatching {
-		val rawPrefs = context.getSharedPreferences("ApkUp", Context.MODE_PRIVATE)
-		val rawAll = rawPrefs.all
-		// KryptoPrefs hybrid uses Sha512Hash for keys (length >= 60). Unencrypted legacy keys are short human-readable strings.
-		val legacyKeys = rawAll.filterKeys { key -> key.length < 60 }
-
-		val hybridPrefs = KryptoBuilder.hybrid(context, "ApkUp")
-		if (legacyKeys.isNotEmpty()) {
-			val editor = rawPrefs.edit()
-			for ((key, value) in legacyKeys) {
-				when (value) {
-					is String -> hybridPrefs.putString(key, value)
-					is Boolean -> hybridPrefs.putBoolean(key, value)
-					is Int -> hybridPrefs.putInt(key, value)
-					is Long -> hybridPrefs.putLong(key, value)
-				}
-				editor.remove(key)
-			}
-			editor.apply()
-		}
-		hybridPrefs
-	}.getOrElse {
-		KryptoBuilder.nocrypt(context, "ApkUp")
+	viewModel {
+		SettingsViewModel(
+			prefs = get(),
+			notification = get(),
+			workManager = WorkManager.getInstance(androidContext()),
+			themer = get(),
+			sessionInstaller = get(),
+			snackBar = get(),
+			stringer = get(),
+			gson = get(),
+			okHttpClient = get(),
+			repoMappingManager = get(),
+			appJournal = getOrNull()
+		)
 	}
+
 }

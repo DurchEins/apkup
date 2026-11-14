@@ -14,6 +14,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.apkup.data.ui.UpdateCheckResult
+import com.apkup.data.ui.isWatchedApp
 import com.apkup.prefs.Prefs
 import com.apkup.repository.ApkMirrorResolver
 import com.apkup.repository.RepoMappingManager
@@ -22,32 +23,34 @@ import com.apkup.util.DownloadStorageManager
 import com.apkup.util.Downloader
 import com.apkup.util.SessionInstaller
 import com.apkup.util.UpdatesNotification
-import com.apkup.util.millisUntilHour
+import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
-import kotlinx.coroutines.withTimeoutOrNull
-
 
 class UpdatesWorker(
     context: Context,
     workerParams: WorkerParameters
-): CoroutineWorker(context, workerParams), KoinComponent {
+) : CoroutineWorker(context, workerParams), KoinComponent {
 
-    companion object: KoinComponent {
+    companion object : KoinComponent {
         private const val TAG = "UpdatesWorker"
         private val prefs: Prefs by inject()
 
         fun cancel(workManager: WorkManager) = workManager.cancelUniqueWork(TAG)
 
-        fun launch(workManager: WorkManager) {
+        /**
+         * Schedules periodic background update checks (`MED-13`).
+         * @param replaceExisting Pass `false` (`ExistingPeriodicWorkPolicy.KEEP`) on routine app startups
+         * so the existing timer isn't reset; pass `true` (`ExistingPeriodicWorkPolicy.UPDATE`) when the user
+         * explicitly modifies interval or Wi-Fi constraints in Settings.
+         */
+        fun launch(workManager: WorkManager, replaceExisting: Boolean = false) {
             val intervalHours = resolvePeriodicIntervalHours(prefs.backgroundCheckIntervalHours.get())
-            val initialDelayMillis = if (intervalHours >= 24L) {
-                (millisUntilHour(12) + randomDelay()).coerceAtLeast(0L)
-            } else {
-                (intervalHours * 60L * 60L * 1_000L / 2L + randomDelay()).coerceAtLeast(15L * 60L * 1_000L)
-            }
+            val jitterMillis = randomDelayMillis()
+            val initialDelayMillis = (intervalHours * 60L * 60L * 1_000L / 2L + jitterMillis)
+                .coerceAtLeast(15L * 60L * 1_000L)
             val networkType = if (prefs.backgroundCheckWifiOnly.get()) NetworkType.UNMETERED else NetworkType.CONNECTED
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(networkType)
@@ -56,14 +59,19 @@ class UpdatesWorker(
                 .setConstraints(constraints)
                 .setInitialDelay(initialDelayMillis, TimeUnit.MILLISECONDS)
                 .build()
-            workManager.enqueueUniquePeriodicWork(TAG, ExistingPeriodicWorkPolicy.UPDATE, request)
+            val policy = if (replaceExisting) {
+                ExistingPeriodicWorkPolicy.UPDATE
+            } else {
+                ExistingPeriodicWorkPolicy.KEEP
+            }
+            workManager.enqueueUniquePeriodicWork(TAG, policy, request)
         }
 
-        private fun randomDelay() = if (prefs.useApkMirror.get())
-            Random.nextLong(0, 59 * 60 * 1_000)
-        else
-            Random.nextLong(-5 * 60 * 1_000, 5 * 60 * 1_000)
-
+        private fun randomDelayMillis(): Long = if (prefs.useApkMirror.get()) {
+            Random.nextLong(0L, 45L * 60L * 1_000L)
+        } else {
+            Random.nextLong(0L, 10L * 60L * 1_000L)
+        }
     }
 
     private val updatesRepository: UpdatesRepository by inject()
@@ -74,6 +82,9 @@ class UpdatesWorker(
     private val repoMappingManager: RepoMappingManager by inject()
 
     override suspend fun doWork(): Result {
+        if (!prefs.hasCompletedOnboarding.get()) {
+            return Result.success()
+        }
         var finalResult: UpdateCheckResult<com.apkup.data.ui.AppUpdate>? = null
         var lastEmission: UpdateCheckResult<com.apkup.data.ui.AppUpdate>? = null
         withTimeoutOrNull(90_000L) {
@@ -91,7 +102,8 @@ class UpdatesWorker(
             ignoredPackages = if (prefs.ignoreAppsFilterActive.get()) prefs.ignoredApps.get() else emptyList()
         )
         if (notifiableUpdates.isNotEmpty()) {
-            val autoInstallEnabled = prefs.useShizukuInstaller.get() && prefs.autoInstallUpdates.get()
+            val autoInstallEnabled = (prefs.useShizukuInstaller.get() || prefs.useRootInstaller.get()) &&
+                prefs.autoInstallUpdates.get()
             if (autoInstallEnabled) {
                 val wifiOnly = prefs.autoInstallWifiOnly.get()
                 val chargingOnly = prefs.autoInstallChargingOnly.get()
@@ -103,7 +115,8 @@ class UpdatesWorker(
                         apkMirrorResolver = apkMirrorResolver,
                         installer = installer,
                         notification = notification,
-                        repoMappingManager = repoMappingManager
+                        repoMappingManager = repoMappingManager,
+                        context = applicationContext
                     )
                     runner.execute(notifiableUpdates)
                 } else {
@@ -119,7 +132,6 @@ class UpdatesWorker(
         }
         return if (completed.isCompleteFailure && runAttemptCount < 3) Result.retry() else Result.success()
     }
-
 }
 
 internal fun filterNotifiableUpdates(
@@ -131,12 +143,13 @@ internal fun filterNotifiableUpdates(
     val ignoredIdSet = ignoredVersionIds.toSet()
     val ignoredPackageSet = ignoredPackages.toSet()
     return result.updates.filter { update ->
-        com.apkup.data.ui.isVerifiableVersionUpgrade(
-            installedVersion = update.oldVersion,
-            availableVersion = update.version,
-            installedVersionCode = update.oldVersionCode,
-            availableVersionCode = update.versionCode
-        ) &&
+        !update.isWatchedApp() &&
+            com.apkup.data.ui.isVerifiableVersionUpgrade(
+                installedVersion = update.oldVersion,
+                availableVersion = update.version,
+                installedVersionCode = update.oldVersionCode,
+                availableVersionCode = update.versionCode
+            ) &&
             update.id !in ignoredIdSet &&
             update.packageName !in ignoredPackageSet
     }
