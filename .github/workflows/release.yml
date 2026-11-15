@@ -198,3 +198,28 @@ jobs:
           fi
           go install github.com/zapstore/zsp/v2/cmd/zsp@latest
           "$(go env GOPATH)/bin/zsp" publish zapstore.yaml
+
+      - name: Publish to itch.io (Optional)
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+          INPUT_TAG: ${{ inputs.tag_name }}
+        run: |
+          if [ -z "$BUTLER_API_KEY" ]; then
+            echo "BUTLER_API_KEY not set; skipping itch.io publish."
+            exit 0
+          fi
+
+          APK_PATH=$(find release_assets -maxdepth 1 -name '*.apk' | head -n 1)
+          if [ -z "$APK_PATH" ] || [ ! -f "$APK_PATH" ]; then
+            echo "::error::Expected APK not found in release_assets/"
+            exit 1
+          fi
+
+          SAFE_VERSION=$(printf '%s' "$INPUT_TAG" | tr -cd 'A-Za-z0-9._-')
+          SAFE_VERSION="${SAFE_VERSION#v}"
+
+          curl -fsSL -o butler.zip "https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default"
+          unzip -q butler.zip -d "${RUNNER_TEMP}/butler_bin"
+          chmod +x "${RUNNER_TEMP}/butler_bin/butler"
+          "${RUNNER_TEMP}/butler_bin/butler" push "$APK_PATH" "durcheins/apkup:android" --userversion "$SAFE_VERSION"
+          rm -f butler.zip
