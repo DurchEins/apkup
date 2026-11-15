@@ -1,4 +1,0 @@
-- Neu: Suche & Sortierung (inkl. Release-Datum), Multi-Select-Updates & scrollbare Kopfleiste
-- Neu: Codeberg/Forgejo, eigene F-Droid-Repos & Watchlist für nicht installierte Apps
-- Neu: APKs & Split-.apks sichern, Sammel-Restzeit (ETA) & Obtainium-Import-Vorschau
-- Neu: Intelligenter Signaturschutz zwischen Quellen, Root-(su)-Fallback & Diagnose-Protokoll

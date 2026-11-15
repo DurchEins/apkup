@@ -1,0 +1,4 @@
+- New: Instant search & sorting, multi-select updates & collapsible scroll header
+- New: Codeberg/Forgejo, unified F-Droid repos (with V2 diffs) & app watchlist
+- New: Batched GitHub GraphQL checks (with token), save APKs & Obtainium preview
+- New: Cryptographic signature protection, optional Root fallback & cleaner Setup UI

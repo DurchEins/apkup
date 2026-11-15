@@ -1,0 +1,4 @@
+- Neu: Suche & Sortierung, Multi-Select-Updates & dynamische Kopfleiste
+- Neu: Codeberg/Forgejo, einheitliche F-Droid-Quellen (inkl. Diffs) & Watchlist
+- Neu: Batched GitHub-Abfragen (mit Token), APK-Export & Obtainium-Vorschau
+- Neu: Signaturschutz, optionaler Root-Fallback & aufgeräumte Setup-Bereiche

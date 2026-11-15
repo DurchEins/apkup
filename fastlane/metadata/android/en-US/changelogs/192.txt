@@ -1,4 +1,0 @@
-- New: Search & sorting (with release date), multi-select updates & collapsible scroll header
-- New: Codeberg/Forgejo, custom F-Droid repos & watchlist for uninstalled apps
-- New: Save APKs & split .apks, batch ETA progress & interactive Obtainium import preview
-- New: Smart cross-source signature protection, optional Root (su) fallback & diagnostic log
