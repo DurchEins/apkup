@@ -129,10 +129,6 @@
     <string name="backup_export_success">Конфигурация успешно экспортирована.</string>
     <string name="backup_import_success">Конфигурация успешно восстановлена.</string>
     <string name="backup_import_error">Не удалось обработать файл резервной копии.</string>
-    <string name="apkmirror_api_section_title">Пользовательский API-ключ APKMirror (необязательно)</string>
-    <string name="apkmirror_api_section_desc">Необязательные учетные данные для API APKMirror. Если оставить пустым, ApkUp автоматически использует встроенный резервный режим.</string>
-    <string name="apkmirror_api_user_label">Имя пользователя API</string>
-    <string name="apkmirror_api_key_label">Ключ API</string>
     <string name="source_play">Google Play Store</string>
     <string name="fdroid_repos_enabled_subtitle">Активных репозиториев: %1$d • Нажмите для управления</string>
     <string name="fdroid_repos_tap_to_manage">Нажмите для настройки репозиториев F-Droid и IzzyOnDroid</string>
@@ -528,11 +524,6 @@
     <string name="apkmirror_watched_first_install_title">Первая установка — подпись издателя не проверена</string>
     <string name="apkmirror_watched_first_install_message">%1$s ещё не установлено локально, поэтому Android не может сверить ключ подписи с существующей установкой. APKMirror размещает сторонние APK без локальной привязки ключа издателя. Продолжайте только при доверии к источнику.</string>
     <string name="apkmirror_watched_first_install_confirm">Всё равно продолжить</string>
-    <string name="apkmirror_webview_verify_title">Проверка Cloudflare в WebView</string>
-    <string name="apkmirror_webview_verify_desc">Если прямые загрузки с APKMirror заблокированы проверкой безопасности, откройте APKMirror во встроенном WebView, чтобы пройти проверку вручную.</string>
-    <string name="apkmirror_webview_verify_btn">Проверить Cloudflare в WebView</string>
-    <string name="apkmirror_webview_dialog_title">Проверка APKMirror в WebView</string>
-    <string name="apkmirror_webview_dialog_done">Готово</string>
     <string name="token_input_label">Токен</string>
     <string name="download_saf_fallback_snack">Пользовательская папка загрузок недоступна — сохранено в папку Downloads/ApkUp по умолчанию.</string>
     <string name="download_saf_fallback_snack_named">Пользовательская папка загрузок недоступна — сохранено в %1$s.</string>
@@ -542,4 +533,6 @@
     <string name="unit_bytes_per_sec">Б/с</string>
     <string name="unit_kb_per_sec">КБ/с</string>
     <string name="unit_mb_per_sec">МБ/с</string>
+    <string name="apkmirror_cloudflare_auto_hint">Если при загрузке с APKMirror потребуется проверка Cloudflare, ApkUp автоматически откроет её во встроенном WebView.</string>
+    <string name="settings_permissions_all_granted">Все выданы</string>
 </resources>

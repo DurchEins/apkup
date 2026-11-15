@@ -46,7 +46,10 @@ abstract class InstallViewModel(
                     if (directEnabled && blocked) {
                         snackBar.snackBar(
                             viewModelScope,
-                            TextSnack(stringer.get(R.string.apkmirror_cooldown_browser_fallback, update.name))
+                            TextSnack(
+                                message = stringer.get(R.string.apkmirror_cooldown_browser_fallback, update.name),
+                                visualType = com.apkup.data.snack.SnackVisualType.WARNING
+                            )
                         )
                     }
                     if (url.isNotBlank()) {

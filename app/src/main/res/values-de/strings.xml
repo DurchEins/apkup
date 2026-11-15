@@ -138,10 +138,6 @@
     <string name="apkmirror_challenge_fallback">APKMirror-Sicherheitsprüfung erkannt. Öffne im Browser…</string>
     <string name="apkmirror_cooldown_browser_fallback">APKMirror-Abklingzeit für %1$s aktiv – öffne im Browser.</string>
     <string name="apkmirror_resolution_failed_fallback">APKMirror-Downloadlink konnte nicht aufgelöst werden. Öffne im Browser…</string>
-    <string name="apkmirror_api_section_title">Eigener APKMirror-API-Schlüssel (Optional)</string>
-    <string name="apkmirror_api_section_desc">Optionale eigene Zugangsdaten für die APKMirror-API. Bleibt das Feld leer, nutzt ApkUp automatisch den integrierten Fallback.</string>
-    <string name="apkmirror_api_user_label">API-Benutzername</string>
-    <string name="apkmirror_api_key_label">API-Schlüssel</string>
     <string name="source_play">Google Play Store</string>
     <string name="fdroid_repos_enabled_subtitle">%1$d Repository(s) aktiv • Tippen zum Verwalten</string>
     <string name="fdroid_repos_tap_to_manage">Tippen, um F-Droid- &amp; IzzyOnDroid-Repositories zu verwalten</string>
@@ -537,11 +533,8 @@
     <string name="apkmirror_watched_first_install_title">Erstinstallation — Herausgeber-Signatur lokal noch ungeprüft</string>
     <string name="apkmirror_watched_first_install_message">%1$s ist lokal noch nicht installiert, daher kann Android den Signaturschlüssel noch nicht mit einer bestehenden Installation vergleichen. APKMirror hostet Drittanbieter-APKs ohne lokales Herausgeber-Key-Pinning. Nur fortfahren, wenn du dieser Quelle vertraust.</string>
     <string name="apkmirror_watched_first_install_confirm">Trotzdem fortfahren</string>
-    <string name="apkmirror_webview_verify_title">Cloudflare-Prüfung im WebView</string>
-    <string name="apkmirror_webview_verify_desc">Falls direkte APKMirror-Downloads durch eine Sicherheitsprüfung blockiert werden, öffne APKMirror im In-App-WebView, um die Prüfung manuell abzuschließen.</string>
-    <string name="apkmirror_webview_verify_btn">Cloudflare im WebView bestätigen</string>
-    <string name="apkmirror_webview_dialog_title">APKMirror-WebView-Prüfung</string>
-    <string name="apkmirror_webview_dialog_done">Fertig</string>
+    <string name="apkmirror_cloudflare_auto_hint">Falls bei einem APKMirror-Download eine Cloudflare-Sicherheitsprüfung nötig ist, öffnet sich das In-App-WebView automatisch.</string>
+    <string name="settings_permissions_all_granted">Alle erteilt</string>
     <string name="token_input_label">Token</string>
     <string name="download_saf_fallback_snack">Eigener Download-Ordner nicht verfügbar — im Standardordner Downloads/ApkUp gespeichert.</string>
     <string name="download_saf_fallback_snack_named">Eigener Download-Ordner nicht verfügbar — unter %1$s gespeichert.</string>

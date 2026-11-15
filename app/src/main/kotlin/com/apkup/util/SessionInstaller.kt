@@ -331,7 +331,7 @@ class SessionInstaller internal constructor(
                     ApkIntegrityException.Reason.VERSION_DOWNGRADE -> R.string.install_error_downgrade_blocked
                     else -> R.string.install_error_integrity_failed
                 }
-                snack.snackBar(scope, TextSnack(str.get(msgRes)))
+                snack.snackBar(scope, TextSnack(str.get(msgRes), visualType = com.apkup.data.snack.SnackVisualType.ERROR))
             }
         }
     }
@@ -533,7 +533,7 @@ class SessionInstaller internal constructor(
         onFallbackNotice?.invoke(messageRes)
         val snack = snackBar ?: return
         val str = stringer ?: return
-        snack.snackBar(scope, TextSnack(str.get(messageRes)))
+        snack.snackBar(scope, TextSnack(str.get(messageRes), visualType = com.apkup.data.snack.SnackVisualType.WARNING))
     }
 
     fun getShizukuSetupStatus(): ShizukuSetupStatus {

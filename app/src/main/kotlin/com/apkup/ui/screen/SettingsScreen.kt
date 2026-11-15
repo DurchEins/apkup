@@ -8,11 +8,6 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import android.provider.Settings
-import android.webkit.CookieManager
-import android.webkit.WebResourceRequest
-import android.webkit.WebSettings
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
@@ -166,9 +161,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import android.os.PowerManager
 import androidx.core.app.NotificationManagerCompat
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
@@ -197,11 +189,9 @@ import com.apkup.ui.component.AutoResizeText
 import com.apkup.ui.component.SwitchSetting
 import com.apkup.ui.component.SplitSwitchSetting
 import com.apkup.ui.component.NavigationSettingItem
-import com.apkup.repository.ApkMirrorCloudflareBypass
 import com.apkup.util.AppJournal
 import com.apkup.util.DownloadStorageManager
 import com.apkup.util.SessionInstaller
-import com.apkup.util.WebKitCookieJar
 import com.apkup.viewmodel.AppsViewModel
 import com.apkup.viewmodel.MainViewModel
 import com.apkup.viewmodel.SettingsViewModel
@@ -669,12 +659,19 @@ fun Settings(
 			list
 		}
 
+		val allPermissionsGranted = isBatteryIgnoring && areNotificationsEnabled && hasInstallPermission
+		var isPermissionsExpanded by rememberSaveable { mutableStateOf(!allPermissionsGranted) }
+		LaunchedEffect(allPermissionsGranted) {
+			isPermissionsExpanded = !allPermissionsGranted
+		}
+
 		LaunchedEffect(activeIssues.size) {
 			badger.changeSettingsBadge(if (activeIssues.isNotEmpty()) "!" else "")
 		}
 
 		val scrollToPermissions: () -> Unit = {
 			isAdvancedExpanded = true
+			isPermissionsExpanded = true
 			highlightPermissions = true
 			coroutineScope.launch {
 				delay(120)
@@ -1279,104 +1276,162 @@ fun Settings(
 							Column(
 								modifier = Modifier
 									.fillMaxWidth()
-									.clip(RoundedCornerShape(16.dp))
-									.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f * highlightAlpha))
-									.border(
-										width = (1.5 * highlightAlpha).dp,
-										color = MaterialTheme.colorScheme.primary.copy(alpha = 0.65f * highlightAlpha),
-										shape = RoundedCornerShape(16.dp)
+									.then(
+										if (highlightAlpha > 0f) {
+											Modifier
+												.clip(RoundedCornerShape(16.dp))
+												.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f * highlightAlpha))
+												.border(
+													width = (1.5 * highlightAlpha).dp,
+													color = MaterialTheme.colorScheme.primary.copy(alpha = 0.65f * highlightAlpha),
+													shape = RoundedCornerShape(16.dp)
+												)
+										} else {
+											Modifier
+										}
 									)
 									.padding(
 										horizontal = (6 * highlightAlpha).dp,
-										vertical = (6 * highlightAlpha).dp
+										vertical = 2.dp + (4 * highlightAlpha).dp
 									),
 								verticalArrangement = Arrangement.spacedBy(8.dp)
 							) {
-								Text(
-									text = stringResource(R.string.settings_section_system_permissions),
-									style = MaterialTheme.typography.labelLarge,
-									fontWeight = FontWeight.Bold,
-									color = MaterialTheme.colorScheme.primary
-								)
-								// 1. Akku-Optimierung
-								PermissionSettingItem(
-									title = stringResource(R.string.settings_battery_optimization),
-									subtitle = stringResource(
-										if (isBatteryIgnoring) R.string.settings_battery_optimization_exempted
-										else R.string.settings_battery_optimization_optimized
-									),
-									iconRes = R.drawable.ic_battery,
-									isGranted = isBatteryIgnoring,
-									statusText = stringResource(
-										if (isBatteryIgnoring) R.string.settings_status_exempted
-										else R.string.settings_status_optimized
-									),
-									onClick = openBatterySettings
-								)
-
-								// 2. Benachrichtigungen
-								PermissionSettingItem(
-									title = stringResource(R.string.settings_notifications),
-									subtitle = stringResource(
-										if (areNotificationsEnabled) R.string.settings_notifications_enabled
-										else R.string.settings_notifications_disabled
-									),
-									iconRes = R.drawable.ic_notifications,
-									isGranted = areNotificationsEnabled,
-									statusText = stringResource(
-										if (areNotificationsEnabled) R.string.settings_status_active
-										else R.string.settings_status_disabled
-									),
-									onClick = {
-										runCatching {
-											val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-												putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-												addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-											}
-											context.startActivity(intent)
-										}.onFailure {
-											runCatching {
-												val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-													data = "package:${context.packageName}".toUri()
-													addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-												}
-												context.startActivity(intent)
+								Row(
+									modifier = Modifier
+										.fillMaxWidth()
+										.clip(RoundedCornerShape(12.dp))
+										.clickable { isPermissionsExpanded = !isPermissionsExpanded }
+										.padding(horizontal = 4.dp, vertical = 6.dp),
+									verticalAlignment = CenterVertically,
+									horizontalArrangement = Arrangement.spacedBy(8.dp)
+								) {
+									Text(
+										text = stringResource(R.string.settings_section_system_permissions),
+										style = MaterialTheme.typography.labelLarge,
+										fontWeight = FontWeight.Bold,
+										color = MaterialTheme.colorScheme.primary,
+										modifier = Modifier.weight(1f)
+									)
+									if (allPermissionsGranted) {
+										val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+										Surface(
+											shape = CircleShape,
+											color = if (isDark) Color(0xFF1B3820) else Color(0xFFE8F5E9)
+										) {
+											Row(
+												modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+												verticalAlignment = CenterVertically,
+												horizontalArrangement = Arrangement.spacedBy(4.dp)
+											) {
+												Icon(
+													imageVector = Icons.Default.Check,
+													contentDescription = null,
+													tint = if (isDark) Color(0xFF81C784) else Color(0xFF2E7D32),
+													modifier = Modifier.size(13.dp)
+												)
+												Text(
+													text = stringResource(R.string.settings_permissions_all_granted),
+													style = MaterialTheme.typography.labelSmall,
+													fontWeight = FontWeight.SemiBold,
+													color = if (isDark) Color(0xFF81C784) else Color(0xFF2E7D32)
+												)
 											}
 										}
 									}
-								)
+									Icon(
+										imageVector = if (isPermissionsExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+										contentDescription = null,
+										tint = MaterialTheme.colorScheme.onSurfaceVariant,
+										modifier = Modifier.size(20.dp)
+									)
+								}
+								AnimatedVisibility(
+									visible = isPermissionsExpanded,
+									enter = expandVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + fadeIn(),
+									exit = shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + fadeOut()
+								) {
+									Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+										// 1. Akku-Optimierung
+										PermissionSettingItem(
+											title = stringResource(R.string.settings_battery_optimization),
+											subtitle = stringResource(
+												if (isBatteryIgnoring) R.string.settings_battery_optimization_exempted
+												else R.string.settings_battery_optimization_optimized
+											),
+											iconRes = R.drawable.ic_battery,
+											isGranted = isBatteryIgnoring,
+											statusText = stringResource(
+												if (isBatteryIgnoring) R.string.settings_status_exempted
+												else R.string.settings_status_optimized
+											),
+											onClick = openBatterySettings
+										)
 
-								// 3. Unbekannte Apps installieren
-								PermissionSettingItem(
-									title = stringResource(R.string.settings_install_unknown_apps),
-									subtitle = stringResource(
-										if (hasInstallPermission) R.string.settings_install_unknown_apps_allowed
-										else R.string.settings_install_unknown_apps_denied
-									),
-									iconRes = R.drawable.ic_install,
-									isGranted = hasInstallPermission,
-									statusText = stringResource(
-										if (hasInstallPermission) R.string.settings_status_allowed
-										else R.string.settings_status_blocked
-									),
-									onClick = {
-										runCatching {
-											val intent = Intent(
-												Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-												"package:${context.packageName}".toUri()
-											).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
-											context.startActivity(intent)
-										}.onFailure {
-											runCatching {
-												val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-													data = "package:${context.packageName}".toUri()
-													addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+										// 2. Benachrichtigungen
+										PermissionSettingItem(
+											title = stringResource(R.string.settings_notifications),
+											subtitle = stringResource(
+												if (areNotificationsEnabled) R.string.settings_notifications_enabled
+												else R.string.settings_notifications_disabled
+											),
+											iconRes = R.drawable.ic_notifications,
+											isGranted = areNotificationsEnabled,
+											statusText = stringResource(
+												if (areNotificationsEnabled) R.string.settings_status_active
+												else R.string.settings_status_disabled
+											),
+											onClick = {
+												runCatching {
+													val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+														putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+														addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+													}
+													context.startActivity(intent)
+												}.onFailure {
+													runCatching {
+														val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+															data = "package:${context.packageName}".toUri()
+															addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+														}
+														context.startActivity(intent)
+													}
 												}
-												context.startActivity(intent)
 											}
-										}
+										)
+
+										// 3. Unbekannte Apps installieren
+										PermissionSettingItem(
+											title = stringResource(R.string.settings_install_unknown_apps),
+											subtitle = stringResource(
+												if (hasInstallPermission) R.string.settings_install_unknown_apps_allowed
+												else R.string.settings_install_unknown_apps_denied
+											),
+											iconRes = R.drawable.ic_install,
+											isGranted = hasInstallPermission,
+											statusText = stringResource(
+												if (hasInstallPermission) R.string.settings_status_allowed
+												else R.string.settings_status_blocked
+											),
+											onClick = {
+												runCatching {
+													val intent = Intent(
+														Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+														"package:${context.packageName}".toUri()
+													).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+													context.startActivity(intent)
+												}.onFailure {
+													runCatching {
+														val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+															data = "package:${context.packageName}".toUri()
+															addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+														}
+														context.startActivity(intent)
+													}
+												}
+											}
+										)
 									}
-								)
+								}
 							}
 
 							HorizontalDivider(
@@ -2343,12 +2398,6 @@ fun Settings(
 				viewModel.setDirectApkMirrorDownloads(it)
 				configRefreshKey++
 			},
-			initialApiUser = viewModel.getApkMirrorCustomApiUser(),
-			initialApiKey = viewModel.getApkMirrorCustomApiKey(),
-			onSaveCredentials = { user, key ->
-				viewModel.setApkMirrorCustomCredentials(user, key)
-				configRefreshKey++
-			},
 			onDismiss = { showApkMirrorSheet = false }
 		)
 	}
@@ -2423,7 +2472,7 @@ fun Settings(
 			guideUrl = "https://github.com/DurchEins/apkup/wiki/Configuring-GitHub-&-GitLab-Tokens",
 			onDismiss = { showGitHubTokenDialog = false },
 			onVerifyToken = { raw -> viewModel.validateGitHubToken(raw) },
-			onVerifiedMessage = { msg -> viewModel.notifyTextSnack(msg) },
+			onVerifiedMessage = { msg -> viewModel.notifyTextSnack(msg, com.apkup.data.snack.SnackVisualType.SUCCESS) },
 			onSaveToken = { token ->
 				viewModel.setGitHubToken(token)
 				configRefreshKey++
@@ -2449,7 +2498,7 @@ fun Settings(
 			guideUrl = "https://github.com/DurchEins/apkup/wiki/Configuring-GitHub-&-GitLab-Tokens",
 			onDismiss = { showGitLabTokenDialog = false },
 			onVerifyToken = { raw -> viewModel.validateGitLabToken(raw) },
-			onVerifiedMessage = { msg -> viewModel.notifyTextSnack(msg) },
+			onVerifiedMessage = { msg -> viewModel.notifyTextSnack(msg, com.apkup.data.snack.SnackVisualType.SUCCESS) },
 			onSaveToken = { token ->
 				viewModel.setGitLabToken(token)
 				configRefreshKey++
@@ -2475,7 +2524,7 @@ fun Settings(
 			guideUrl = "https://github.com/DurchEins/apkup/wiki/Configuring-GitHub-&-GitLab-Tokens",
 			onDismiss = { showCodebergTokenDialog = false },
 			onVerifyToken = { raw -> viewModel.validateCodebergToken(raw) },
-			onVerifiedMessage = { msg -> viewModel.notifyTextSnack(msg) },
+			onVerifiedMessage = { msg -> viewModel.notifyTextSnack(msg, com.apkup.data.snack.SnackVisualType.SUCCESS) },
 			onSaveToken = { token ->
 				viewModel.setCodebergToken(token)
 				configRefreshKey++
@@ -4629,18 +4678,9 @@ private fun BackgroundCheckIntervalBottomSheet(
 private fun ApkMirrorSettingsBottomSheet(
 	directEnabled: Boolean,
 	onDirectChanged: (Boolean) -> Unit,
-	initialApiUser: String = "",
-	initialApiKey: String = "",
-	onSaveCredentials: (String, String) -> Unit = { _, _ -> },
 	onDismiss: () -> Unit
 ) {
 	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-	val cloudflareBypass: ApkMirrorCloudflareBypass = koinInject()
-	var apiUser by remember(initialApiUser) { mutableStateOf(initialApiUser) }
-	var apiKey by remember(initialApiKey) { mutableStateOf(initialApiKey) }
-	var isKeyVisible by remember { mutableStateOf(false) }
-	var showWebViewVerifyDialog by remember { mutableStateOf(false) }
-	val credentialsChanged = apiUser.trim() != initialApiUser || apiKey.trim() != initialApiKey
 
 	ModalBottomSheet(
 		onDismissRequest = onDismiss,
@@ -4731,239 +4771,37 @@ private fun ApkMirrorSettingsBottomSheet(
 
 			Surface(
 				modifier = Modifier.fillMaxWidth(),
-				shape = RoundedCornerShape(16.dp),
+				shape = RoundedCornerShape(14.dp),
 				color = MaterialTheme.colorScheme.surfaceContainer
 			) {
-				Column(
+				Row(
 					modifier = Modifier
 						.fillMaxWidth()
-						.padding(horizontal = 16.dp, vertical = 14.dp),
-					verticalArrangement = Arrangement.spacedBy(10.dp)
+						.padding(horizontal = 14.dp, vertical = 10.dp),
+					verticalAlignment = CenterVertically,
+					horizontalArrangement = Arrangement.spacedBy(10.dp)
 				) {
-					Text(
-						text = stringResource(R.string.apkmirror_webview_verify_title),
-						style = MaterialTheme.typography.bodyMedium,
-						fontWeight = FontWeight.SemiBold
+					Icon(
+						imageVector = Icons.Default.Info,
+						contentDescription = null,
+						tint = MaterialTheme.colorScheme.primary,
+						modifier = Modifier.size(18.dp)
 					)
 					Text(
-						text = stringResource(R.string.apkmirror_webview_verify_desc),
+						text = stringResource(R.string.apkmirror_cloudflare_auto_hint),
 						style = MaterialTheme.typography.bodySmall,
-						color = MaterialTheme.colorScheme.onSurfaceVariant
+						color = MaterialTheme.colorScheme.onSurfaceVariant,
+						modifier = Modifier.weight(1f)
 					)
-					OutlinedButton(
-						onClick = { showWebViewVerifyDialog = true },
-						modifier = Modifier.fillMaxWidth(),
-						shape = RoundedCornerShape(12.dp)
-					) {
-						Text(stringResource(R.string.apkmirror_webview_verify_btn))
-					}
-				}
-			}
-
-			Surface(
-				modifier = Modifier.fillMaxWidth(),
-				shape = RoundedCornerShape(16.dp),
-				color = MaterialTheme.colorScheme.surfaceContainer
-			) {
-				Column(
-					modifier = Modifier
-						.fillMaxWidth()
-						.padding(horizontal = 16.dp, vertical = 14.dp),
-					verticalArrangement = Arrangement.spacedBy(10.dp)
-				) {
-					Text(
-						text = stringResource(R.string.apkmirror_api_section_title),
-						style = MaterialTheme.typography.bodyMedium,
-						fontWeight = FontWeight.SemiBold
-					)
-					Text(
-						text = stringResource(R.string.apkmirror_api_section_desc),
-						style = MaterialTheme.typography.bodySmall,
-						color = MaterialTheme.colorScheme.onSurfaceVariant
-					)
-					OutlinedTextField(
-						value = apiUser,
-						onValueChange = { apiUser = it },
-						label = { Text(stringResource(R.string.apkmirror_api_user_label)) },
-						singleLine = true,
-						modifier = Modifier.fillMaxWidth()
-					)
-					OutlinedTextField(
-						value = apiKey,
-						onValueChange = { apiKey = it },
-						label = { Text(stringResource(R.string.apkmirror_api_key_label)) },
-						singleLine = true,
-						keyboardOptions = KeyboardOptions(
-							keyboardType = KeyboardType.Password,
-							autoCorrectEnabled = false
-						),
-						visualTransformation = if (isKeyVisible) {
-							androidx.compose.ui.text.input.VisualTransformation.None
-						} else {
-							androidx.compose.ui.text.input.PasswordVisualTransformation()
-						},
-						trailingIcon = {
-							androidx.compose.material3.IconButton(onClick = { isKeyVisible = !isKeyVisible }) {
-								Icon(
-									painter = painterResource(
-										if (isKeyVisible) R.drawable.ic_visible_off else R.drawable.ic_visible
-									),
-									contentDescription = stringResource(R.string.token_toggle_visibility)
-								)
-							}
-						},
-						modifier = Modifier.fillMaxWidth()
-					)
-					Row(
-						modifier = Modifier.fillMaxWidth(),
-						horizontalArrangement = Arrangement.spacedBy(8.dp)
-					) {
-						if (initialApiUser.isNotBlank() || initialApiKey.isNotBlank()) {
-							OutlinedButton(
-								onClick = {
-									apiUser = ""
-									apiKey = ""
-									onSaveCredentials("", "")
-								},
-								modifier = Modifier.weight(1f),
-								shape = RoundedCornerShape(12.dp)
-							) {
-								Text(stringResource(R.string.github_token_dialog_clear))
-							}
-						}
-						Button(
-							onClick = { onSaveCredentials(apiUser.trim(), apiKey.trim()) },
-							enabled = credentialsChanged,
-							modifier = Modifier.weight(1f),
-							shape = RoundedCornerShape(12.dp)
-						) {
-							Text(stringResource(R.string.github_token_dialog_save))
-						}
-					}
 				}
 			}
 
 			FilledTonalButton(
-				onClick = {
-					if (credentialsChanged) {
-						onSaveCredentials(apiUser.trim(), apiKey.trim())
-					}
-					onDismiss()
-				},
+				onClick = onDismiss,
 				modifier = Modifier.fillMaxWidth(),
 				shape = RoundedCornerShape(14.dp)
 			) {
 				Text(text = stringResource(R.string.shizuku_setup_close))
-			}
-		}
-	}
-
-	if (showWebViewVerifyDialog) {
-		ApkMirrorWebViewVerificationDialog(
-			userAgent = cloudflareBypass.getUserAgent(),
-			onDismiss = { showWebViewVerifyDialog = false }
-		)
-	}
-}
-
-@Composable
-private fun ApkMirrorWebViewVerificationDialog(
-	userAgent: String,
-	onDismiss: () -> Unit
-) {
-	var webViewRef by remember { mutableStateOf<WebView?>(null) }
-
-	DisposableEffect(Unit) {
-		onDispose {
-			runCatching { CookieManager.getInstance().flush() }
-			runCatching {
-				webViewRef?.stopLoading()
-				webViewRef?.loadUrl("about:blank")
-				webViewRef?.removeAllViews()
-				webViewRef?.destroy()
-			}
-			webViewRef = null
-		}
-	}
-
-	Dialog(
-		onDismissRequest = onDismiss,
-		properties = DialogProperties(usePlatformDefaultWidth = false)
-	) {
-		Surface(
-			modifier = Modifier
-				.fillMaxWidth(0.95f)
-				.fillMaxHeight(0.85f),
-			shape = RoundedCornerShape(24.dp),
-			color = MaterialTheme.colorScheme.surfaceContainerLow
-		) {
-			Column(modifier = Modifier.fillMaxSize()) {
-				Row(
-					modifier = Modifier
-						.fillMaxWidth()
-						.padding(horizontal = 16.dp, vertical = 12.dp),
-					verticalAlignment = Alignment.CenterVertically,
-					horizontalArrangement = Arrangement.SpaceBetween
-				) {
-					Text(
-						text = stringResource(R.string.apkmirror_webview_dialog_title),
-						style = MaterialTheme.typography.titleMedium,
-						fontWeight = FontWeight.Bold
-					)
-					FilledTonalButton(
-						onClick = {
-							runCatching { CookieManager.getInstance().flush() }
-							onDismiss()
-						},
-						shape = CircleShape
-					) {
-						Text(stringResource(R.string.apkmirror_webview_dialog_done))
-					}
-				}
-				HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-				AndroidView(
-					factory = { ctx ->
-						WebView(ctx).apply {
-							val cookieManager = CookieManager.getInstance()
-							cookieManager.setAcceptCookie(true)
-							cookieManager.setAcceptThirdPartyCookies(this, false)
-							settings.apply {
-								javaScriptEnabled = true
-								domStorageEnabled = true
-								allowFileAccess = false
-								allowContentAccess = false
-								mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
-								userAgentString = userAgent
-								useWideViewPort = true
-								loadWithOverviewMode = true
-							}
-							webViewClient = object : WebViewClient() {
-								override fun shouldOverrideUrlLoading(
-									view: WebView?,
-									request: WebResourceRequest?
-								): Boolean {
-									val uri = request?.url ?: return true
-									val scheme = uri.scheme.orEmpty().lowercase()
-									val host = uri.host.orEmpty().lowercase()
-									if (request.isForMainFrame && (scheme != "https" || !WebKitCookieJar.isTrustedApkMirrorHost(host))) {
-										return true
-									}
-									return false
-								}
-
-								override fun onPageFinished(view: WebView?, url: String?) {
-									super.onPageFinished(view, url)
-									runCatching { cookieManager.flush() }
-								}
-							}
-							loadUrl("https://www.apkmirror.com/")
-							webViewRef = this
-						}
-					},
-					modifier = Modifier
-						.fillMaxWidth()
-						.weight(1f)
-				)
 			}
 		}
 	}

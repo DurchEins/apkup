@@ -129,10 +129,6 @@
     <string name="backup_export_success">Configuración exportada correctamente.</string>
     <string name="backup_import_success">Configuración restaurada correctamente.</string>
     <string name="backup_import_error">No se pudo procesar el archivo de respaldo.</string>
-    <string name="apkmirror_api_section_title">Clave API de APKMirror personalizada (Opcional)</string>
-    <string name="apkmirror_api_section_desc">Credenciales opcionales para la API de APKMirror. Si se deja vacío, ApkUp utiliza su modo alternativo integrado automáticamente.</string>
-    <string name="apkmirror_api_user_label">Usuario de API</string>
-    <string name="apkmirror_api_key_label">Clave de API</string>
     <string name="source_play">Google Play Store</string>
     <string name="fdroid_repos_enabled_subtitle">%1$d repositorio(s) activo(s) • Toca para gestionar</string>
     <string name="fdroid_repos_tap_to_manage">Toca para configurar repositorios de F-Droid e IzzyOnDroid</string>
@@ -525,11 +521,6 @@
     <string name="apkmirror_watched_first_install_title">Primera instalación — Firma del editor sin verificar</string>
     <string name="apkmirror_watched_first_install_message">%1$s aún no está instalada localmente, por lo que Android no puede comparar su clave de firma con una instalación existente. APKMirror aloja APKs de terceros sin fijación local de clave del editor. Continúa solo si confías en esta fuente.</string>
     <string name="apkmirror_watched_first_install_confirm">Continuar de todos modos</string>
-    <string name="apkmirror_webview_verify_title">Verificación de Cloudflare en WebView</string>
-    <string name="apkmirror_webview_verify_desc">Si las descargas directas de APKMirror están bloqueadas por una comprobación de seguridad, abre APKMirror en el WebView integrado para completarla manualmente.</string>
-    <string name="apkmirror_webview_verify_btn">Verificar Cloudflare en WebView</string>
-    <string name="apkmirror_webview_dialog_title">Comprobación WebView de APKMirror</string>
-    <string name="apkmirror_webview_dialog_done">Listo</string>
     <string name="token_input_label">Token</string>
     <string name="download_saf_fallback_snack">Carpeta de descargas personalizada no disponible — guardado en la carpeta predeterminada Downloads/ApkUp.</string>
     <string name="download_saf_fallback_snack_named">Carpeta de descargas personalizada no disponible — guardado en %1$s.</string>
@@ -539,4 +530,6 @@
     <string name="unit_bytes_per_sec">B/s</string>
     <string name="unit_kb_per_sec">KB/s</string>
     <string name="unit_mb_per_sec">MB/s</string>
+    <string name="apkmirror_cloudflare_auto_hint">Si APKMirror muestra una verificación de Cloudflare durante una descarga, ApkUp la abre automáticamente en el WebView integrado.</string>
+    <string name="settings_permissions_all_granted">Todos concedidos</string>
 </resources>

@@ -199,7 +199,10 @@ class MainViewModel(
             if (e is CancellationException) throw e
             Log.e("MainViewModel", "Failed to download/install self update", e)
             _selfUpdateState.value = SelfUpdateState.Idle
-            snackBar?.snackBar(viewModelScope, TextSnack(appCtx.getString(R.string.self_update_error)))
+            snackBar?.snackBar(
+                viewModelScope,
+                TextSnack(appCtx.getString(R.string.self_update_error), visualType = com.apkup.data.snack.SnackVisualType.ERROR)
+            )
         } finally {
             runCatching { stagingDir.deleteRecursively() }
         }

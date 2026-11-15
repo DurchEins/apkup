@@ -129,10 +129,6 @@
     <string name="backup_export_success">配置已成功导出。</string>
     <string name="backup_import_success">配置已成功恢复。</string>
     <string name="backup_import_error">无法解析备份文件。</string>
-    <string name="apkmirror_api_section_title">自定义 APKMirror API 密钥（可选）</string>
-    <string name="apkmirror_api_section_desc">可选的 APKMirror API 用户凭据。留空时，ApkUp 将自动使用内置备用方案。</string>
-    <string name="apkmirror_api_user_label">API 用户名</string>
-    <string name="apkmirror_api_key_label">API 密钥</string>
     <string name="source_play">Google Play 商店</string>
     <string name="fdroid_repos_enabled_subtitle">已启用 %1$d 个软件源 • 点击管理</string>
     <string name="fdroid_repos_tap_to_manage">点击配置 F-Droid 与 IzzyOnDroid 软件源</string>
@@ -522,11 +518,6 @@
     <string name="apkmirror_watched_first_install_title">首次安装 — 发布者签名未验证</string>
     <string name="apkmirror_watched_first_install_message">%1$s 尚未在本地安装，因此 Android 无法将签名密钥与现有安装进行比对。APKMirror 托管第三方 APK 且无本地发布者密钥固定。仅在信任此来源时继续。</string>
     <string name="apkmirror_watched_first_install_confirm">仍然继续</string>
-    <string name="apkmirror_webview_verify_title">Cloudflare WebView 验证</string>
-    <string name="apkmirror_webview_verify_desc">如果 APKMirror 直接下载被安全检查拦截，请在应用内 WebView 中打开 APKMirror 手动完成验证。</string>
-    <string name="apkmirror_webview_verify_btn">在 WebView 中验证 Cloudflare</string>
-    <string name="apkmirror_webview_dialog_title">APKMirror WebView 检查</string>
-    <string name="apkmirror_webview_dialog_done">完成</string>
     <string name="token_input_label">令牌</string>
     <string name="download_saf_fallback_snack">自定义下载文件夹不可用 — 已保存到默认 Downloads/ApkUp 文件夹。</string>
     <string name="download_saf_fallback_snack_named">自定义下载文件夹不可用 — 已保存至 %1$s。</string>
@@ -536,4 +527,6 @@
     <string name="unit_bytes_per_sec">B/s</string>
     <string name="unit_kb_per_sec">KB/s</string>
     <string name="unit_mb_per_sec">MB/s</string>
+    <string name="apkmirror_cloudflare_auto_hint">如果在下载 APKMirror 应用时触发 Cloudflare 安全验证，ApkUp 会自动在应用内 WebView 中打开。</string>
+    <string name="settings_permissions_all_granted">已全部授予</string>
 </resources>

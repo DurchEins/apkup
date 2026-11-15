@@ -418,10 +418,10 @@ class DownloadCoordinator(
                         _safFallbackEvents.tryEmit(update.name.ifBlank { update.packageName })
                     }
                     val msg = runCatching { stringer.get(R.string.apk_save_success, exportResult.displayLocation) }.getOrDefault("")
-                    snackBar.emit(TextSnack(msg))
+                    snackBar.emit(TextSnack(msg, visualType = com.apkup.data.snack.SnackVisualType.SUCCESS))
                 } else {
                     val msg = runCatching { stringer.get(R.string.apk_save_error) }.getOrDefault("")
-                    snackBar.emit(TextSnack(msg))
+                    snackBar.emit(TextSnack(msg, visualType = com.apkup.data.snack.SnackVisualType.ERROR))
                 }
                 installLog.emitProgress(AppInstallProgress(update.id, 0L))
                 knownUpdatesById.remove(update.id)
@@ -496,7 +496,7 @@ class DownloadCoordinator(
             if (!File(stagingDir, Downloader.READY_MARKER_FILE).exists()) {
                 runCatching { stagingDir.deleteRecursively() }
             }
-            snackBar.emit(TextSnack(stringer.get(R.string.apkmirror_challenge_fallback)))
+            snackBar.emit(TextSnack(stringer.get(R.string.apkmirror_challenge_fallback), visualType = com.apkup.data.snack.SnackVisualType.WARNING))
             if (AppLifecycleTracker.isAppInForeground) {
                 appContext.openUrl(challenge.fallbackUrl)
             }
@@ -509,7 +509,7 @@ class DownloadCoordinator(
             if (!File(stagingDir, Downloader.READY_MARKER_FILE).exists()) {
                 runCatching { stagingDir.deleteRecursively() }
             }
-            snackBar.emit(TextSnack(stringer.get(R.string.apkmirror_resolution_failed_fallback)))
+            snackBar.emit(TextSnack(stringer.get(R.string.apkmirror_resolution_failed_fallback), visualType = com.apkup.data.snack.SnackVisualType.WARNING))
             if (AppLifecycleTracker.isAppInForeground) {
                 appContext.openUrl(resolutionErr.fallbackUrl)
             }
@@ -534,7 +534,7 @@ class DownloadCoordinator(
             val wasSaveOnly = saveOnlyTaskIds.remove(update.id) || activeTasks[update.id]?.isSaveOnly == true
             if (wasSaveOnly) {
                 val msg = runCatching { stringer.get(R.string.apk_save_error) }.getOrDefault("")
-                snackBar.emit(TextSnack(msg))
+                snackBar.emit(TextSnack(msg, visualType = com.apkup.data.snack.SnackVisualType.ERROR))
             }
             knownUpdatesById.remove(update.id)
             removeTask(update.id)

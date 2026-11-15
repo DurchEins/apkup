@@ -387,7 +387,10 @@ fun LinkRepoDialog(
                             repoMappingManager.setCustomBinding(packageName, binding)
                             snackBar.snackBar(
                                 coroutineScope,
-                                TextSnack(resources.getString(R.string.link_repo_saved_snack, appName))
+                                TextSnack(
+                                    message = resources.getString(R.string.link_repo_saved_snack, appName),
+                                    visualType = com.apkup.data.snack.SnackVisualType.SUCCESS
+                                )
                             )
                             onDismiss()
                         } else {
@@ -408,7 +411,10 @@ fun LinkRepoDialog(
                         repoMappingManager.setCustomBinding(packageName, null)
                         snackBar.snackBar(
                             coroutineScope,
-                            TextSnack(resources.getString(R.string.link_repo_unlinked_snack, appName))
+                            TextSnack(
+                                message = resources.getString(R.string.link_repo_unlinked_snack, appName),
+                                visualType = com.apkup.data.snack.SnackVisualType.SUCCESS
+                            )
                         )
                         onDismiss()
                     },

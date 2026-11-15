@@ -485,7 +485,7 @@ class UpdatesViewModel(
 				if (prefs.directApkMirrorDownloads.get() && inCooldown) {
 					snackBar.snackBar(
 						viewModelScope,
-						TextSnack(stringer.get(R.string.apkmirror_cooldown_browser_fallback, update.name))
+						TextSnack(stringer.get(R.string.apkmirror_cooldown_browser_fallback, update.name), visualType = com.apkup.data.snack.SnackVisualType.WARNING)
 					)
 				}
 				runCatching { uriHandler.openUri(url) }
@@ -736,7 +736,7 @@ class UpdatesViewModel(
 			'/' in clean || '\\' in clean -> stringer.get(R.string.download_saf_fallback_snack_named, clean)
 			else -> "$clean: ${stringer.get(R.string.download_saf_fallback_snack)}"
 		}
-		snackBar.snackBar(viewModelScope, TextSnack(msg))
+		snackBar.snackBar(viewModelScope, TextSnack(msg, visualType = com.apkup.data.snack.SnackVisualType.WARNING))
 	}
 
 	override fun onInstallFailed(id: Int): Job = viewModelScope.launchWithMutex(uiStateMutex, Dispatchers.IO) {
@@ -861,7 +861,12 @@ class UpdatesViewModel(
 					log.failureReason == InstallFailureReason.SIGNATURE_MISMATCH -> R.string.install_failure_signature_mismatch
 					else -> R.string.install_failure
 				}
-				snackBar.snackBar(viewModelScope, TextSnack(stringer.get(message, app.name)))
+				val visualType = if (log.success) {
+					com.apkup.data.snack.SnackVisualType.SUCCESS
+				} else {
+					com.apkup.data.snack.SnackVisualType.ERROR
+				}
+				snackBar.snackBar(viewModelScope, TextSnack(stringer.get(message, app.name), visualType = visualType))
 			}
 		}
 	}

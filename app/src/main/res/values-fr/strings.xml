@@ -129,10 +129,6 @@
     <string name="backup_export_success">Configuration exportée avec succès.</string>
     <string name="backup_import_success">Configuration restaurée avec succès.</string>
     <string name="backup_import_error">Impossible de lire le fichier de sauvegarde.</string>
-    <string name="apkmirror_api_section_title">Clé API APKMirror personnalisée (Optionnel)</string>
-    <string name="apkmirror_api_section_desc">Identifiants facultatifs pour l\'API APKMirror. Si vide, ApkUp utilise automatiquement sa solution de repli intégrée.</string>
-    <string name="apkmirror_api_user_label">Utilisateur API</string>
-    <string name="apkmirror_api_key_label">Clé API</string>
     <string name="source_play">Google Play Store</string>
     <string name="fdroid_repos_enabled_subtitle">%1$d dépôt(s) actif(s) • Appuyer pour gérer</string>
     <string name="fdroid_repos_tap_to_manage">Appuyer pour configurer les dépôts F-Droid et IzzyOnDroid</string>
@@ -525,11 +521,6 @@
     <string name="apkmirror_watched_first_install_title">Première installation — Signature de l\'éditeur non vérifiée</string>
     <string name="apkmirror_watched_first_install_message">%1$s n\'est pas encore installée localement ; Android ne peut donc pas comparer sa clé de signature à une installation existante. APKMirror héberge des APK tiers sans épinglage local de clé éditeur. Ne continuez que si vous faites confiance à cette source.</string>
     <string name="apkmirror_watched_first_install_confirm">Continuer quand même</string>
-    <string name="apkmirror_webview_verify_title">Vérification Cloudflare dans WebView</string>
-    <string name="apkmirror_webview_verify_desc">Si les téléchargements directs APKMirror sont bloqués par un contrôle de sécurité, ouvrez APKMirror dans la WebView intégrée pour effectuer la vérification manuellement.</string>
-    <string name="apkmirror_webview_verify_btn">Vérifier Cloudflare dans WebView</string>
-    <string name="apkmirror_webview_dialog_title">Vérification WebView APKMirror</string>
-    <string name="apkmirror_webview_dialog_done">Terminé</string>
     <string name="token_input_label">Jeton</string>
     <string name="download_saf_fallback_snack">Dossier de téléchargement personnalisé indisponible — enregistré dans Downloads/ApkUp par défaut.</string>
     <string name="download_saf_fallback_snack_named">Dossier de téléchargement personnalisé indisponible — enregistré dans %1$s.</string>
@@ -539,4 +530,6 @@
     <string name="unit_bytes_per_sec">o/s</string>
     <string name="unit_kb_per_sec">Ko/s</string>
     <string name="unit_mb_per_sec">Mo/s</string>
+    <string name="apkmirror_cloudflare_auto_hint">Si APKMirror déclenche un contrôle Cloudflare lors d\'un téléchargement, ApkUp l\'ouvre automatiquement dans la WebView intégrée.</string>
+    <string name="settings_permissions_all_granted">Toutes accordées</string>
 </resources>

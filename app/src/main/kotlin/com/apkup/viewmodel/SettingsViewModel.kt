@@ -640,9 +640,12 @@ class SettingsViewModel(
 		}
 	}
 
-	fun notifyTextSnack(message: String) {
+	fun notifyTextSnack(
+		message: String,
+		visualType: com.apkup.data.snack.SnackVisualType = com.apkup.data.snack.SnackVisualType.INFO
+	) {
 		val snack = snackBar ?: return
-		snack.snackBar(viewModelScope, TextSnack(message))
+		snack.snackBar(viewModelScope, TextSnack(message, visualType = visualType))
 	}
 
 	fun getDownloadWifiOnly(): Boolean = prefs.downloadWifiOnly.get()
@@ -811,7 +814,7 @@ class SettingsViewModel(
 				} else {
 					baseMessage
 				}
-				notifyTextSnack(finalMessage)
+				notifyTextSnack(finalMessage, com.apkup.data.snack.SnackVisualType.SUCCESS)
 				BackupImportResult(success = true)
 			} else {
 				if (result.unsupportedDomains.isNotEmpty()) {
@@ -822,9 +825,9 @@ class SettingsViewModel(
 					} else {
 						"Skipped ${result.skippedCount} unsupported entries ($domainsText)"
 					}
-					notifyTextSnack(warnFormatted)
+					notifyTextSnack(warnFormatted, com.apkup.data.snack.SnackVisualType.WARNING)
 				} else {
-					notifySnack(R.string.backup_import_error)
+					notifySnack(R.string.backup_import_error, com.apkup.data.snack.SnackVisualType.ERROR)
 				}
 				BackupImportResult(success = false)
 			}
@@ -1061,11 +1064,13 @@ class SettingsViewModel(
 			refreshIgnoredApps()
 			notifySnack(
 				if (requestedRootFromBackup) R.string.backup_import_success_root_disabled
-				else R.string.backup_import_success
+				else R.string.backup_import_success,
+				if (requestedRootFromBackup) com.apkup.data.snack.SnackVisualType.WARNING
+				else com.apkup.data.snack.SnackVisualType.SUCCESS
 			)
 			BackupImportResult(success = true, rootResetForSecurity = requestedRootFromBackup)
 		}.getOrElse {
-			notifySnack(R.string.backup_import_error)
+			notifySnack(R.string.backup_import_error, com.apkup.data.snack.SnackVisualType.ERROR)
 			BackupImportResult(success = false)
 		}
 	}
@@ -1140,20 +1145,26 @@ class SettingsViewModel(
 			}
 		}
 
-		notifySnack(R.string.obtainium_import_success)
+		notifySnack(R.string.obtainium_import_success, com.apkup.data.snack.SnackVisualType.SUCCESS)
 		return Triple(importedMappingsCount, importedReposCount, importedWatchedCount)
 	}
 
 	fun notifyObtainiumImportInvalid() {
-		notifySnack(R.string.backup_import_error)
+		notifySnack(R.string.backup_import_error, com.apkup.data.snack.SnackVisualType.ERROR)
 	}
 
 	fun notifyObtainiumExported(success: Boolean) {
-		notifySnack(if (success) R.string.backup_obtainium_export_success else R.string.backup_import_error)
+		notifySnack(
+			if (success) R.string.backup_obtainium_export_success else R.string.backup_import_error,
+			if (success) com.apkup.data.snack.SnackVisualType.SUCCESS else com.apkup.data.snack.SnackVisualType.ERROR
+		)
 	}
 
 	fun notifyBackupExported(success: Boolean) {
-		notifySnack(if (success) R.string.backup_export_success else R.string.backup_import_error)
+		notifySnack(
+			if (success) R.string.backup_export_success else R.string.backup_import_error,
+			if (success) com.apkup.data.snack.SnackVisualType.SUCCESS else com.apkup.data.snack.SnackVisualType.ERROR
+		)
 	}
 
 	fun buildDiagnosticLogReport(includeLogcat: Boolean = false): String {
@@ -1184,13 +1195,19 @@ class SettingsViewModel(
 	}
 
 	fun notifyDiagnosticLogExported(success: Boolean) {
-		notifySnack(if (success) R.string.diagnostic_log_export_success else R.string.diagnostic_log_export_error)
+		notifySnack(
+			if (success) R.string.diagnostic_log_export_success else R.string.diagnostic_log_export_error,
+			if (success) com.apkup.data.snack.SnackVisualType.SUCCESS else com.apkup.data.snack.SnackVisualType.ERROR
+		)
 	}
 
-	private fun notifySnack(resId: Int) {
+	private fun notifySnack(
+		resId: Int,
+		visualType: com.apkup.data.snack.SnackVisualType = com.apkup.data.snack.SnackVisualType.INFO
+	) {
 		val snack = snackBar ?: return
 		val str = stringer ?: return
-		snack.snackBar(viewModelScope, TextSnack(str.get(resId)))
+		snack.snackBar(viewModelScope, TextSnack(str.get(resId), visualType = visualType))
 	}
 
 }

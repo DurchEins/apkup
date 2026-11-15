@@ -129,10 +129,6 @@
     <string name="backup_export_success">設定をエクスポートしました。</string>
     <string name="backup_import_success">設定を復元しました。</string>
     <string name="backup_import_error">バックアップファイルを処理できませんでした。</string>
-    <string name="apkmirror_api_section_title">カスタム APKMirror API キー（任意）</string>
-    <string name="apkmirror_api_section_desc">APKMirror API 用の任意の認証情報です。空欄の場合、ApkUp は自動的に内蔵フォールバックを使用します。</string>
-    <string name="apkmirror_api_user_label">API ユーザー名</string>
-    <string name="apkmirror_api_key_label">API キー</string>
     <string name="source_play">Google Play ストア</string>
     <string name="fdroid_repos_enabled_subtitle">%1$d 件のリポジトリが有効 • タップして管理</string>
     <string name="fdroid_repos_tap_to_manage">タップして F-Droid &amp; IzzyOnDroid リポジトリを設定</string>
@@ -521,11 +517,6 @@
     <string name="apkmirror_watched_first_install_title">初回インストール — 発行元署名が未検証です</string>
     <string name="apkmirror_watched_first_install_message">%1$s はまだ端末にインストールされていないため、Android は既存の署名鍵と比較できません。APKMirror はローカルの発行元鍵固定なしでサードパーティ APK を配信しています。この提供元を信頼する場合のみ続行してください。</string>
     <string name="apkmirror_watched_first_install_confirm">それでも続行</string>
-    <string name="apkmirror_webview_verify_title">WebView での Cloudflare 認証</string>
-    <string name="apkmirror_webview_verify_desc">APKMirror の直接ダウンロードがセキュリティチェックでブロックされた場合は、アプリ内 WebView で APKMirror を開いて手動で認証を完了してください。</string>
-    <string name="apkmirror_webview_verify_btn">WebView で Cloudflare を確認</string>
-    <string name="apkmirror_webview_dialog_title">APKMirror WebView チェック</string>
-    <string name="apkmirror_webview_dialog_done">完了</string>
     <string name="token_input_label">トークン</string>
     <string name="download_saf_fallback_snack">カスタム保存先フォルダーを使用できないため、既定の Downloads/ApkUp に保存しました。</string>
     <string name="download_saf_fallback_snack_named">カスタム保存先フォルダーを使用できないため、%1$s に保存しました。</string>
@@ -535,4 +526,6 @@
     <string name="unit_bytes_per_sec">B/s</string>
     <string name="unit_kb_per_sec">KB/s</string>
     <string name="unit_mb_per_sec">MB/s</string>
+    <string name="apkmirror_cloudflare_auto_hint">ダウンロード中に APKMirror の Cloudflare セキュリティ確認が必要になった場合、アプリ内 WebView で自動的に開きます。</string>
+    <string name="settings_permissions_all_granted">すべて許可済み</string>
 </resources>

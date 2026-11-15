@@ -16,6 +16,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,7 +38,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -100,6 +103,8 @@ import com.apkup.ui.component.InstallPermissionDialog
 import com.apkup.ui.component.SelfUpdateDialog
 import com.apkup.ui.theme.AppTheme
 import com.apkup.util.Badger
+import com.apkup.data.snack.SnackVisualType
+import com.apkup.data.snack.TextSnack
 import com.apkup.util.SnackBar
 import com.apkup.util.Themer
 import com.apkup.viewmodel.AppsViewModel
@@ -482,17 +487,41 @@ fun ApkUpSnackbarHost(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                val visualType = (snackbarData.visuals as? TextSnack)?.visualType ?: SnackVisualType.INFO
+                val isDark = isSystemInDarkTheme()
+                val (badgeBg, badgeTint, badgeIcon) = when (visualType) {
+                    SnackVisualType.SUCCESS -> Triple(
+                        if (isDark) Color(0xFF1B3820) else Color(0xFFE8F5E9),
+                        if (isDark) Color(0xFF81C784) else Color(0xFF2E7D32),
+                        Icons.Default.Check
+                    )
+                    SnackVisualType.WARNING -> Triple(
+                        MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.75f),
+                        MaterialTheme.colorScheme.tertiary,
+                        Icons.Default.Warning
+                    )
+                    SnackVisualType.ERROR -> Triple(
+                        MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.75f),
+                        MaterialTheme.colorScheme.error,
+                        Icons.Default.Warning
+                    )
+                    SnackVisualType.INFO -> Triple(
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f),
+                        MaterialTheme.colorScheme.primary,
+                        Icons.Default.Info
+                    )
+                }
                 Box(
                     modifier = Modifier
                         .size(32.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f)),
+                        .background(badgeBg),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Info,
+                        imageVector = badgeIcon,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = badgeTint,
                         modifier = Modifier.size(18.dp)
                     )
                 }

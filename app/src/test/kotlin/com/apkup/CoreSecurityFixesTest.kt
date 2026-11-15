@@ -25,6 +25,7 @@ import com.apkup.worker.DownloadCoordinator
 import com.apkup.worker.ShizukuAutoUpdateRunner
 import com.apkup.worker.filterNotifiableUpdates
 import com.google.gson.Gson
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -323,7 +324,7 @@ class CoreSecurityFixesTest {
         // 2. SAF fallback emits app label on safFallbackEvents
         DownloadStorageManager.legacyDownloadsDirOverrideForTest = downloadsFallbackRoot
         try {
-            val eventDeferred = async {
+            val eventDeferred = async(start = CoroutineStart.UNDISPATCHED) {
                 withTimeout(5_000L) {
                     coordinator.safFallbackEvents.first()
                 }

@@ -546,7 +546,7 @@ fun AppsScreenSuccess(
 											viewModel.removeWatchedApp(pkg)
 											snackBar.snackBar(
 												coroutineScope,
-												TextSnack(resources.getString(R.string.apps_watch_removed_snack, app.name.ifBlank { pkg }))
+												TextSnack(resources.getString(R.string.apps_watch_removed_snack, app.name.ifBlank { pkg }), visualType = com.apkup.data.snack.SnackVisualType.SUCCESS)
 											)
 										}
 									)
@@ -597,7 +597,7 @@ fun AppsScreenSuccess(
 												viewModel.removeWatchedApp(pkg)
 												snackBar.snackBar(
 													coroutineScope,
-													TextSnack(resources.getString(R.string.apps_watch_removed_snack, app.name.ifBlank { pkg }))
+													TextSnack(resources.getString(R.string.apps_watch_removed_snack, app.name.ifBlank { pkg }), visualType = com.apkup.data.snack.SnackVisualType.SUCCESS)
 												)
 											}
 										)
@@ -631,7 +631,7 @@ fun AppsScreenSuccess(
 												viewModel.removeWatchedApp(pkg)
 												snackBar.snackBar(
 													coroutineScope,
-													TextSnack(resources.getString(R.string.apps_watch_removed_snack, app.name.ifBlank { pkg }))
+													TextSnack(resources.getString(R.string.apps_watch_removed_snack, app.name.ifBlank { pkg }), visualType = com.apkup.data.snack.SnackVisualType.SUCCESS)
 												)
 											}
 										)
@@ -677,7 +677,7 @@ fun AppsScreenSuccess(
 													viewModel.removeWatchedApp(pkg)
 													snackBar.snackBar(
 														coroutineScope,
-														TextSnack(resources.getString(R.string.apps_watch_removed_snack, app.name.ifBlank { pkg }))
+														TextSnack(resources.getString(R.string.apps_watch_removed_snack, app.name.ifBlank { pkg }), visualType = com.apkup.data.snack.SnackVisualType.SUCCESS)
 													)
 												}
 											)
@@ -756,7 +756,7 @@ fun AppsScreenSuccess(
 				if (result == AppsViewModel.WatchAppAddResult.SUCCESS) {
 					snackBar.snackBar(
 						coroutineScope,
-						TextSnack(resources.getString(R.string.apps_watch_added_snack, name.ifBlank { pkg }))
+						TextSnack(resources.getString(R.string.apps_watch_added_snack, name.ifBlank { pkg }), visualType = com.apkup.data.snack.SnackVisualType.SUCCESS)
 					)
 					showWatchAppSheet = false
 				}
