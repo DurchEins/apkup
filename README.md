@@ -108,6 +108,7 @@ Get the latest release of ApkUp from your preferred platform:
   <a href="https://zapstore.dev/apps/com.apkup"><img src="https://img.shields.io/badge/Zapstore-Available-7C3AED?style=flat&logo=lightning&logoColor=white" alt="Zapstore" /></a>&nbsp;&nbsp;
   <a href="https://gitlab.com/DurchEins1/apkup/-/releases"><img src="https://img.shields.io/badge/GitLab-Releases-FC6D26?style=flat&logo=gitlab&logoColor=white" alt="GitLab Releases" /></a>&nbsp;&nbsp;
   <a href="https://apkpure.com/apkup/com.apkup"><img src="https://img.shields.io/badge/APKPure-Available-24C270?style=flat&logo=android&logoColor=white" alt="APKPure" /></a>&nbsp;&nbsp;
+  <a href="https://durcheins.itch.io/apkup"><img src="https://img.shields.io/badge/itch.io-Available-FA5C5C?style=flat&logo=itchdotio&logoColor=white" alt="itch.io" /></a>&nbsp;&nbsp;
   <a href="https://www.amazon.com/gp/product/B0HR5TXL8R"><img src="https://img.shields.io/badge/Amazon%20Appstore-Available-FF9900?style=flat&logo=amazon&logoColor=black" alt="Amazon Appstore" /></a>
 </p>
 
