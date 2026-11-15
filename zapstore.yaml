@@ -1,0 +1,5 @@
+repository: https://github.com/durcheins/apkup
+icon: ./fastlane/metadata/android/en-US/images/icon.png
+metadata_sources:
+    - fastlane
+    - github

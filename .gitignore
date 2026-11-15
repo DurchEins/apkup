@@ -23,6 +23,8 @@ app/build/
 # Local configuration file (sdk path, keystore secrets, etc)
 local.properties
 local*.properties
+.env
+.env.*
 
 # Log Files
 *.log
