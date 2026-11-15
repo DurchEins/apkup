@@ -7,24 +7,24 @@ description: |
   **ApkUp** is a modern, privacy-first, 100% open-source Android app updater built with **Jetpack Compose** and **Material 3 Expressive** design. Discover, manage, and install updates across multiple independent repositories — completely free of ads, telemetry, or tracking.
 
   ### Multi-Source Update Discovery
-  * **Google Play Store:** Check for updates directly via anonymous session support without needing a Google account on your device.
-  * **APKMirror:** Direct in-app downloads including automatic `.apkm` split-bundle extraction.
-  * **F-Droid & IzzyOnDroid:** Full **F-Droid Index V2** support with built-in presets and custom repository support.
-  * **Git Forges:** Track releases from **GitHub**, **GitLab**, and **Codeberg** / self-hosted **Forgejo** instances (with optional Personal Access Token support for higher rate limits).
-  * **Watchlist for Uninstalled Apps:** Monitor releases for apps you haven't installed yet and install newly discovered versions straight from the Updates tab.
+  * Google Play Store: Check for updates directly via anonymous session support without needing a Google account on your device.
+  * APKMirror: Direct in-app downloads including automatic .apkm split-bundle extraction.
+  * F-Droid & IzzyOnDroid: Full F-Droid Index V2 support with built-in presets and custom repository support.
+  * Git Forges: Track releases from GitHub, GitLab, and Codeberg / self-hosted Forgejo instances (with optional Personal Access Token support for higher rate limits).
+  * Watchlist for Uninstalled Apps: Monitor releases for apps you haven't installed yet and install newly discovered versions straight from the Updates tab.
 
   ### Autonomous Background Installs & History
-  * **Zero-Touch Updates:** Silently install updates in the background using **Shizuku** (no root required) or an optional **Root (`su`)** fallback.
-  * **Smart Guards & Progress:** Configure Wi-Fi-only downloads, charging-only background checks, and track batch installs with live overall ETA progress.
-  * **Update History & Rollback:** Keep track of installed updates with quick rollback links to previous versions.
-  * **Export & Share:** Save single APKs or split `.apks` bundles directly to your Downloads folder or any custom Storage Access Framework (SAF) directory.
+  * Zero-Touch Updates: Silently install updates in the background using Shizuku (no root required) or an optional Root (su) fallback.
+  * Smart Guards & Progress: Configure Wi-Fi-only downloads, charging-only background checks, and track batch installs with live overall ETA progress.
+  * Update History & Rollback: Keep track of installed updates with quick rollback links to previous versions.
+  * Export & Share: Save single APKs or split .apks bundles directly to your Downloads folder or any custom Storage Access Framework (SAF) directory.
 
   ### Security, Privacy & Control
-  * **Pre-Install Signature Verification:** Automatically verifies APK signing certificates before installation to prevent tampered or incompatible packages.
-  * **Granular Filtering:** Filter by FOSS flavors, custom asset regex patterns, per-version skipping, or permanently hidden apps.
-  * **100% Private & Ad-Free:** Licensed under **GPL-3.0**. No analytics, no ads, and offline sanitized diagnostic log exports.
+  * Pre-Install Signature Verification: Automatically verifies APK signing certificates before installation to prevent tampered or incompatible packages.
+  * Granular Filtering: Filter by FOSS flavors, custom asset regex patterns, per-version skipping, or permanently hidden apps.
+  * 100% Private & Ad-Free: Licensed under GPL-3.0. No analytics, no ads, and offline sanitized diagnostic log exports.
 
   ### Migration, Backup & Customization
-  * **Obtainium Sync:** Interactive Obtainium JSON import preview and export for seamless migration.
-  * **Full Settings Backup:** Export and restore your entire ApkUp configuration as JSON.
-  * **Modern Android Experience:** Supports **Android 10.0 (API 29)** through **Android 17** with **Dynamic Color (Material You)**, list/grid views, collapsible headers, a built-in self-updater, and **9 languages**.
+  * Obtainium Sync: Interactive Obtainium JSON import preview and export for seamless migration.
+  * Full Settings Backup: Export and restore your entire ApkUp configuration as JSON.
+  * Modern Android Experience: Supports Android 10.0 (API 29) through Android 17 with Dynamic Color (Material You), list/grid views, collapsible headers, a built-in self-updater, and 9 languages.
