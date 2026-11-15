@@ -45,4 +45,16 @@ class SelfUpdateRepositoryTest {
         assertTrue(repo.isNewerVersion("1.39.3-Beta (148)", "1.39.3-Beta (149)"))
         assertFalse(repo.isNewerVersion("1.39.3-Beta (148)", "1.39.3-Beta"))
     }
+
+    @Test
+    fun `parseVersion and isNewerVersion support non-Beta release formatting`() {
+        val parsed = repo.parseVersion("1.43.1 (193)")
+        assertEquals(1, parsed.major)
+        assertEquals(43, parsed.minor)
+        assertEquals(1, parsed.patch)
+        assertEquals(null, parsed.preRelease)
+        assertEquals(193, parsed.buildNumber)
+        assertTrue(repo.isNewerVersion("1.43.0-Beta (192)", "1.43.1 (193)"))
+        assertTrue(repo.isNewerVersion("1.43.1 (193)", "1.43.2 (194)"))
+    }
 }

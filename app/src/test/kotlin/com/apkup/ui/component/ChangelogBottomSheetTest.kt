@@ -135,7 +135,7 @@ class ChangelogBottomSheetTest {
 
         listOf("1.43_de.md", "1.43_en.md").forEach { fileName ->
             val raw = File(assetDir, fileName).readText(Charsets.UTF_8)
-            val doc = parseChangelogDocument(raw, "1.43.0-Beta (192)")
+            val doc = parseChangelogDocument(raw, "1.43.1 (193)")
             assertEquals("Expected 2 real month sections (November & October) in $fileName", 2, doc.monthSections.size)
             assertTrue("Expected at least 3 November releases in $fileName", doc.monthSections[0].releases.size >= 3)
             assertTrue("Expected at least 7 October releases in $fileName", doc.monthSections[1].releases.size >= 7)
