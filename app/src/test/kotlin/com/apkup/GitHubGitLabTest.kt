@@ -7,9 +7,21 @@ import com.apkup.data.repomapping.GitLabLinkDto
 import com.apkup.data.repomapping.GitLabReleaseDto
 import com.apkup.data.repomapping.ReleaseAssetFilter
 import com.apkup.data.repomapping.RepoBinding
+import com.apkup.data.ui.AppInstalled
+import com.apkup.prefs.InMemoryPrefsBackend
+import com.apkup.prefs.Prefs
+import com.apkup.repository.GitHubRepository
 import com.apkup.repository.KnownRepoEntry
+import com.apkup.repository.RepoMappingManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Protocol
+import okhttp3.Response
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -236,5 +248,105 @@ class GitHubGitLabTest {
             preferFossFlavor = false
         )
         assertEquals("App-1.0-arm64-v8a.apk", releaseOnly?.name)
+    }
+
+    @Test
+    fun testGitHubRepositoryBatchesChecksIntoSingleGraphQlPostWhenTokenConfigured() = runBlocking {
+        val prefs = Prefs(InMemoryPrefsBackend())
+        prefs.githubToken.put("ghp_test_token_123456")
+        val mappingManager = RepoMappingManager(context = null, prefs = prefs, gson = gson)
+        mappingManager.setCustomBinding("com.example.one", RepoBinding(type = "github", repo = "org/app-one"))
+        mappingManager.setCustomBinding("com.example.two", RepoBinding(type = "github", repo = "org/app-two"))
+        mappingManager.setCustomBinding("com.example.missing", RepoBinding(type = "github", repo = "org/gone"))
+
+        var graphQlRequests = 0
+        var restRequests = 0
+        val client = OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                val req = chain.request()
+                val url = req.url.toString()
+                if (url == "https://api.github.com/graphql") {
+                    graphQlRequests++
+                    val bodyJson = """
+                        {
+                          "data": {
+                            "r0": {
+                              "latestRelease": {
+                                "tagName": "v2.0.0",
+                                "name": "v2.0.0",
+                                "description": "Fast release",
+                                "isDraft": false,
+                                "isPrerelease": false,
+                                "publishedAt": "2026-11-14T10:00:00Z",
+                                "releaseAssets": {
+                                  "nodes": [
+                                    { "name": "app-one-universal.apk", "downloadUrl": "https://github.com/org/app-one/releases/download/v2.0.0/app-one-universal.apk", "size": 2048 }
+                                  ]
+                                }
+                              }
+                            },
+                            "r1": {
+                              "latestRelease": {
+                                "tagName": "v3.1.0",
+                                "name": "v3.1.0",
+                                "description": "Another release",
+                                "isDraft": false,
+                                "isPrerelease": false,
+                                "publishedAt": "2026-11-14T11:00:00Z",
+                                "releaseAssets": {
+                                  "nodes": [
+                                    { "name": "app-two-universal.apk", "downloadUrl": "https://objects.githubusercontent.com/app-two-universal.apk", "size": 4096 }
+                                  ]
+                                }
+                              }
+                            },
+                            "r2": null
+                          },
+                          "errors": [
+                            { "type": "NOT_FOUND", "path": ["r2"] }
+                          ]
+                        }
+                    """.trimIndent()
+                    Response.Builder()
+                        .request(req)
+                        .protocol(Protocol.HTTP_1_1)
+                        .code(200)
+                        .message("OK")
+                        .body(bodyJson.toResponseBody("application/json".toMediaType()))
+                        .build()
+                } else {
+                    restRequests++
+                    Response.Builder()
+                        .request(req)
+                        .protocol(Protocol.HTTP_1_1)
+                        .code(404)
+                        .message("Not Found")
+                        .body("{}".toResponseBody("application/json".toMediaType()))
+                        .build()
+                }
+            }
+            .build()
+
+        val repo = GitHubRepository(
+            context = null,
+            okHttpClient = client,
+            gson = gson,
+            prefs = prefs,
+            repoMappingManager = mappingManager
+        )
+
+        val apps = listOf(
+            AppInstalled(name = "One", packageName = "com.example.one", version = "1.0.0", versionCode = 10L),
+            AppInstalled(name = "Two", packageName = "com.example.two", version = "3.0.0", versionCode = 30L),
+            AppInstalled(name = "Gone", packageName = "com.example.missing", version = "1.0.0", versionCode = 5L)
+        )
+
+        val result = repo.updates(apps).first()
+        assertEquals(1, graphQlRequests)
+        assertEquals(0, restRequests)
+        assertEquals(0, result.failedRequests)
+        assertEquals(2, result.updates.size)
+        assertEquals("2.0.0", result.updates.first { it.packageName == "com.example.one" }.version)
+        assertEquals("3.1.0", result.updates.first { it.packageName == "com.example.two" }.version)
     }
 }

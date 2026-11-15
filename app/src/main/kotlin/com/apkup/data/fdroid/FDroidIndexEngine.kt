@@ -5,9 +5,14 @@ import com.apkup.data.izzy.IzzyIndexResponse
 import com.apkup.data.izzy.IzzyPackageInfo
 import com.apkup.data.izzy.IzzyRepoInfo
 import com.google.gson.Gson
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
+import com.google.gson.stream.JsonWriter
+import java.io.BufferedWriter
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
@@ -15,6 +20,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
+import java.io.OutputStreamWriter
 import java.security.MessageDigest
 import java.security.cert.Certificate
 import java.util.Locale
@@ -366,6 +372,175 @@ object FDroidIndexEngine {
                     )
                 }
             }
+        }
+    }
+
+    /**
+     * Streams `index-v2.json` alongside an RFC 7396 JSON Merge Patch [diffFile] into [outputFile].
+     * Untouched entries in `packages` are copied token-by-token via [copyJsonValue] in O(1) memory.
+     */
+    fun streamApplyV2DiffPatch(
+        baseIndexFile: File,
+        diffFile: File,
+        outputFile: File,
+        gson: Gson
+    ) {
+        val diffRootElement = FileInputStream(diffFile).buffered(16_384).use { fin ->
+            InputStreamReader(fin, Charsets.UTF_8).use { reader ->
+                JsonParser.parseReader(reader)
+            }
+        }
+        if (diffRootElement == null || !diffRootElement.isJsonObject) {
+            throw IOException("Invalid F-Droid V2 diff JSON root")
+        }
+        val diffRoot = diffRootElement.asJsonObject
+        outputFile.parentFile?.mkdirs()
+
+        FileInputStream(baseIndexFile).buffered(32_768).use { fin ->
+            InputStreamReader(fin, Charsets.UTF_8).use { isr ->
+                JsonReader(isr).use { reader ->
+                    FileOutputStream(outputFile).use { fout ->
+                        BufferedWriter(OutputStreamWriter(fout, Charsets.UTF_8), 32_768).use { bw ->
+                            JsonWriter(bw).use { writer ->
+                                val handledTopKeys = HashSet<String>()
+                                reader.beginObject()
+                                writer.beginObject()
+                                while (reader.hasNext()) {
+                                    val key = reader.nextName()
+                                    handledTopKeys.add(key)
+                                    val patchVal = diffRoot.get(key)
+                                    when {
+                                        patchVal == null -> {
+                                            writer.name(key)
+                                            copyJsonValue(reader, writer)
+                                        }
+                                        patchVal.isJsonNull -> {
+                                            reader.skipValue()
+                                        }
+                                        key == "packages" && patchVal.isJsonObject && reader.peek() == JsonToken.BEGIN_OBJECT -> {
+                                            val diffPackages = patchVal.asJsonObject
+                                            val handledPackages = HashSet<String>()
+                                            writer.name("packages")
+                                            writer.beginObject()
+                                            reader.beginObject()
+                                            while (reader.hasNext()) {
+                                                val pkgName = reader.nextName()
+                                                handledPackages.add(pkgName)
+                                                val pkgPatch = diffPackages.get(pkgName)
+                                                when {
+                                                    pkgPatch == null -> {
+                                                        writer.name(pkgName)
+                                                        copyJsonValue(reader, writer)
+                                                    }
+                                                    pkgPatch.isJsonNull -> {
+                                                        reader.skipValue()
+                                                    }
+                                                    else -> {
+                                                        val basePkg = JsonParser.parseReader(reader)
+                                                        val mergedPkg = applyJsonMergePatch(basePkg, pkgPatch)
+                                                        if (mergedPkg != null) {
+                                                            writer.name(pkgName)
+                                                            gson.toJson(mergedPkg, writer)
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            reader.endObject()
+                                            for ((pkgName, pkgPatch) in diffPackages.entrySet()) {
+                                                if (pkgName !in handledPackages && !pkgPatch.isJsonNull) {
+                                                    val cleanNew = applyJsonMergePatch(null, pkgPatch)
+                                                    if (cleanNew != null) {
+                                                        writer.name(pkgName)
+                                                        gson.toJson(cleanNew, writer)
+                                                    }
+                                                }
+                                            }
+                                            writer.endObject()
+                                        }
+                                        else -> {
+                                            val baseVal = JsonParser.parseReader(reader)
+                                            val merged = applyJsonMergePatch(baseVal, patchVal)
+                                            if (merged != null) {
+                                                writer.name(key)
+                                                gson.toJson(merged, writer)
+                                            }
+                                        }
+                                    }
+                                }
+                                reader.endObject()
+
+                                for ((key, patchVal) in diffRoot.entrySet()) {
+                                    if (key !in handledTopKeys && !patchVal.isJsonNull) {
+                                        val cleanNew = applyJsonMergePatch(null, patchVal)
+                                        if (cleanNew != null) {
+                                            writer.name(key)
+                                            gson.toJson(cleanNew, writer)
+                                        }
+                                    }
+                                }
+                                writer.endObject()
+                                writer.flush()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    internal fun applyJsonMergePatch(target: JsonElement?, patch: JsonElement): JsonElement? {
+        if (patch.isJsonNull) return null
+        if (!patch.isJsonObject) return patch
+        val patchObj = patch.asJsonObject
+        val result = JsonObject()
+        val targetObj = if (target != null && target.isJsonObject) target.asJsonObject else null
+        if (targetObj != null) {
+            for ((key, value) in targetObj.entrySet()) {
+                if (!patchObj.has(key)) {
+                    result.add(key, value)
+                }
+            }
+        }
+        for ((key, patchValue) in patchObj.entrySet()) {
+            if (patchValue.isJsonNull) continue
+            val existingValue = targetObj?.get(key)
+            val merged = applyJsonMergePatch(existingValue, patchValue)
+            if (merged != null) {
+                result.add(key, merged)
+            }
+        }
+        return result
+    }
+
+    private fun copyJsonValue(reader: JsonReader, writer: JsonWriter) {
+        when (reader.peek()) {
+            JsonToken.BEGIN_OBJECT -> {
+                reader.beginObject()
+                writer.beginObject()
+                while (reader.hasNext()) {
+                    writer.name(reader.nextName())
+                    copyJsonValue(reader, writer)
+                }
+                reader.endObject()
+                writer.endObject()
+            }
+            JsonToken.BEGIN_ARRAY -> {
+                reader.beginArray()
+                writer.beginArray()
+                while (reader.hasNext()) {
+                    copyJsonValue(reader, writer)
+                }
+                reader.endArray()
+                writer.endArray()
+            }
+            JsonToken.STRING -> writer.value(reader.nextString())
+            JsonToken.NUMBER -> writer.jsonValue(reader.nextString())
+            JsonToken.BOOLEAN -> writer.value(reader.nextBoolean())
+            JsonToken.NULL -> {
+                reader.nextNull()
+                writer.nullValue()
+            }
+            else -> reader.skipValue()
         }
     }
 

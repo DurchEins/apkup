@@ -1,5 +1,6 @@
 package com.apkup.repository
 
+import com.apkup.data.fdroid.FDroidIndexEngine
 import com.apkup.data.fdroid.FDroidV2Entry
 import com.apkup.data.fdroid.FDroidV2Index
 import com.apkup.data.fdroid.getPreferredText
@@ -8,8 +9,11 @@ import com.google.gson.Gson
 import com.google.gson.JsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
+import java.nio.file.Files
 import java.util.Locale
 
 class IzzyOnDroidV2Test {
@@ -153,5 +157,116 @@ class IzzyOnDroidV2Test {
         // No German or English in map -> fallback to first available
         val text = mapJson.getPreferredText(Locale.GERMANY)
         assertTrue(text == "Bonjour" || text == "Hola")
+    }
+
+    @Test
+    fun `streamApplyV2DiffPatch applies RFC 7396 updates, deletions, and additions while keeping untouched apps`() {
+        val tempDir = Files.createTempDirectory("fdroid_v2_diff_test").toFile()
+        try {
+            val baseFile = File(tempDir, "base-index-v2.json")
+            val diffFile = File(tempDir, "diff-v2.json")
+            val outputFile = File(tempDir, "patched-index-v2.json")
+
+            baseFile.writeText(
+                """
+                {
+                  "repo": {
+                    "timestamp": 1730761000000,
+                    "version": 20002,
+                    "name": { "en-US": "Test Repo" },
+                    "address": "https://example.org/fdroid/repo"
+                  },
+                  "packages": {
+                    "com.example.keep": {
+                      "metadata": { "name": { "en-US": "Keep App" }, "summary": { "en-US": "Unchanged" } },
+                      "versions": {
+                        "v1": {
+                          "file": { "name": "/keep_1.apk", "sha256": "aaaa", "size": 100 },
+                          "manifest": { "versionName": "1.0", "versionCode": 1 }
+                        }
+                      }
+                    },
+                    "com.example.update": {
+                      "metadata": { "name": { "en-US": "Update App" }, "summary": { "en-US": "Old summary" } },
+                      "versions": {
+                        "v1": {
+                          "file": { "name": "/up_1.apk", "sha256": "bbbb", "size": 100 },
+                          "manifest": { "versionName": "1.0", "versionCode": 1 }
+                        }
+                      }
+                    },
+                    "com.example.remove": {
+                      "metadata": { "name": { "en-US": "Removed App" } },
+                      "versions": {}
+                    }
+                  }
+                }
+                """.trimIndent(),
+                Charsets.UTF_8
+            )
+
+            diffFile.writeText(
+                """
+                {
+                  "repo": {
+                    "timestamp": 1730762000000
+                  },
+                  "packages": {
+                    "com.example.update": {
+                      "metadata": { "summary": { "en-US": "Updated summary" } },
+                      "versions": {
+                        "v1": null,
+                        "v2": {
+                          "file": { "name": "/up_2.apk", "sha256": "cccc", "size": 250 },
+                          "manifest": { "versionName": "2.0", "versionCode": 2 }
+                        }
+                      }
+                    },
+                    "com.example.remove": null,
+                    "com.example.added": {
+                      "metadata": { "name": { "en-US": "Brand New App" }, "obsoleteField": null },
+                      "versions": {
+                        "v3": {
+                          "file": { "name": "/new_3.apk", "sha256": "dddd", "size": 300 },
+                          "manifest": { "versionName": "3.0", "versionCode": 3 }
+                        }
+                      }
+                    }
+                  }
+                }
+                """.trimIndent(),
+                Charsets.UTF_8
+            )
+
+            FDroidIndexEngine.streamApplyV2DiffPatch(
+                baseIndexFile = baseFile,
+                diffFile = diffFile,
+                outputFile = outputFile,
+                gson = gson
+            )
+
+            val parsed = FDroidIndexEngine.streamParseV2IndexFile(outputFile, null, gson, Locale.US)
+            assertEquals(1730762000000L, parsed.repo?.timestamp)
+            assertEquals("Test Repo", parsed.repo?.name)
+
+            assertNotNull(parsed.packages["com.example.keep"])
+            assertEquals(1L, parsed.packages["com.example.keep"]?.first()?.versionCode)
+
+            val updatedAppInfo = parsed.apps.firstOrNull { it.packageName == "com.example.update" }
+            assertEquals("Updated summary", updatedAppInfo?.summary)
+            val updatedVersions = parsed.packages["com.example.update"]
+            assertNotNull(updatedVersions)
+            assertEquals(1, updatedVersions!!.size)
+            assertEquals(2L, updatedVersions.first().versionCode)
+            assertEquals("2.0", updatedVersions.first().versionName)
+
+            assertNull(parsed.packages["com.example.remove"])
+
+            val addedVersions = parsed.packages["com.example.added"]
+            assertNotNull(addedVersions)
+            assertEquals(3L, addedVersions!!.first().versionCode)
+        } finally {
+            tempDir.deleteRecursively()
+        }
     }
 }

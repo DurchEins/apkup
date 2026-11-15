@@ -7,6 +7,7 @@ import android.util.Log
 import com.apkup.R
 import com.apkup.data.fdroid.FDroidIndexEngine
 import com.apkup.data.fdroid.FDroidRepoConfig
+import com.apkup.data.fdroid.FDroidV2IndexFileRef
 import com.apkup.data.izzy.IzzyIndexResponse
 import com.apkup.data.izzy.IzzyPackageInfo
 import com.apkup.data.ui.AppInstalled
@@ -470,13 +471,57 @@ class IzzyOnDroidRepository(
             }
             val indexUrl = "$baseUrl/$relPath"
 
-            if (hasValidLocalFile && expectedIndexSha.equals(meta.indexSha256, ignoreCase = true)) {
+            val matchesServerSha = expectedIndexSha.equals(meta.serverIndexSha256 ?: meta.indexSha256, ignoreCase = true)
+            val matchesTimestamp = verifiedEntry.timestamp > 0L && verifiedEntry.timestamp == meta.timestamp
+            if (hasValidLocalFile && !meta.indexSha256.isNullOrBlank() && (matchesServerSha || matchesTimestamp)) {
                 val diskSha = ApkIntegrityVerifier.computeFileSha256(targetV2File)
-                if (diskSha.equals(expectedIndexSha, ignoreCase = true)) {
-                    saveMetadata(repoDir, IndexMetadata(newEtag, newLastModified, expectedIndexSha, "v2"))
+                if (diskSha.equals(meta.indexSha256, ignoreCase = true)) {
+                    saveMetadata(
+                        repoDir,
+                        IndexMetadata(
+                            etag = newEtag,
+                            lastModified = newLastModified,
+                            indexSha256 = diskSha,
+                            format = "v2",
+                            serverIndexSha256 = expectedIndexSha,
+                            timestamp = verifiedEntry.timestamp.takeIf { it > 0L } ?: meta.timestamp
+                        )
+                    )
                     val parsedDisk = FDroidIndexEngine.streamParseV2IndexFile(targetV2File, installedPackages, gson)
                     recordTofuPinIfUnpinned(repo, verifiedSignerFp)
                     return parsedDisk
+                }
+            }
+
+            // P-18 Part 1: Try incremental F-Droid V2 diff when our local index-v2.json is verified & its timestamp is in entry.diffs
+            val baseTimestamp = meta.timestamp
+            val diffRef = if (hasValidLocalFile &&
+                meta.format == "v2" &&
+                baseTimestamp > 0L &&
+                verifiedEntry.timestamp > baseTimestamp &&
+                !meta.indexSha256.isNullOrBlank()
+            ) {
+                verifiedEntry.diffs?.get(baseTimestamp.toString())
+            } else {
+                null
+            }
+            if (diffRef != null) {
+                val patched = tryApplyVerifiedV2Diff(
+                    repo = repo,
+                    repoDir = repoDir,
+                    baseUrl = baseUrl,
+                    targetV2File = targetV2File,
+                    expectedLocalSha = meta.indexSha256!!,
+                    diffRef = diffRef,
+                    newTimestamp = verifiedEntry.timestamp,
+                    expectedServerIndexSha = expectedIndexSha,
+                    entryEtag = newEtag,
+                    entryLastModified = newLastModified,
+                    installedPackages = installedPackages
+                )
+                if (patched != null) {
+                    recordTofuPinIfUnpinned(repo, verifiedSignerFp)
+                    return patched
                 }
             }
 
@@ -487,10 +532,110 @@ class IzzyOnDroidRepository(
                 expectedSha256 = expectedIndexSha,
                 entryEtag = newEtag,
                 entryLastModified = newLastModified,
+                entryTimestamp = verifiedEntry.timestamp,
                 installedPackages = installedPackages
             )
             recordTofuPinIfUnpinned(repo, verifiedSignerFp)
             return parsed
+        }
+    }
+
+    private fun tryApplyVerifiedV2Diff(
+        repo: FDroidRepoConfig,
+        repoDir: File,
+        baseUrl: String,
+        targetV2File: File,
+        expectedLocalSha: String,
+        diffRef: FDroidV2IndexFileRef,
+        newTimestamp: Long,
+        expectedServerIndexSha: String,
+        entryEtag: String?,
+        entryLastModified: String?,
+        installedPackages: Set<String>?
+    ): IzzyIndexResponse? {
+        val diffRelPath = diffRef.name.trim().removePrefix("/")
+        if (diffRelPath.isEmpty() || diffRelPath.contains("..")) return null
+        val expectedDiffSha = ApkIntegrityVerifier.normalizeSha256Hex(diffRef.sha256) ?: return null
+        val diffUrl = "$baseUrl/$diffRelPath"
+        if (!diffUrl.startsWith("https://", ignoreCase = true)) return null
+
+        val diskSha = ApkIntegrityVerifier.computeFileSha256(targetV2File)
+        if (!diskSha.equals(expectedLocalSha, ignoreCase = true)) {
+            return null
+        }
+
+        val diffTempFile = File(repoDir, "diff-v2.json.tmp")
+        val patchedTempFile = File(repoDir, "index-v2.patched.tmp")
+        if (diffTempFile.exists()) diffTempFile.delete()
+        if (patchedTempFile.exists()) patchedTempFile.delete()
+
+        return try {
+            val req = Request.Builder().url(diffUrl).build()
+            okHttpClient.newCall(req).execute().use { diffResponse ->
+                if (!diffResponse.isSuccessful) {
+                    Log.w("IzzyOnDroidRepository", "HTTP ${diffResponse.code} fetching F-Droid V2 diff for ${repo.name}, falling back to full index")
+                    return null
+                }
+                var totalBytes = 0L
+                val buffer = ByteArray(16_384)
+                FileOutputStream(diffTempFile).use { out ->
+                    diffResponse.body.byteStream().use { input ->
+                        var r = input.read(buffer)
+                        while (r != -1) {
+                            totalBytes += r
+                            if (totalBytes > MAX_INDEX_DOWNLOAD_BYTES) {
+                                throw IOException("F-Droid V2 diff exceeds maximum size cap")
+                            }
+                            out.write(buffer, 0, r)
+                            r = input.read(buffer)
+                        }
+                    }
+                    out.flush()
+                }
+            }
+
+            // Fail-Closed: cryptographic SHA-256 verification of diff payload against signed entry.json
+            ApkIntegrityVerifier.verifyFileSha256(diffTempFile, expectedDiffSha)
+
+            FDroidIndexEngine.streamApplyV2DiffPatch(
+                baseIndexFile = targetV2File,
+                diffFile = diffTempFile,
+                outputFile = patchedTempFile,
+                gson = gson
+            )
+
+            val parsed = FDroidIndexEngine.streamParseV2IndexFile(patchedTempFile, installedPackages, gson)
+            parsed.repo?.timestamp?.takeIf { it > 0L }?.let { enforceAntiRollbackTimestamp(repo, it) }
+
+            val newLocalSha = ApkIntegrityVerifier.computeFileSha256(patchedTempFile)
+            if (targetV2File.exists()) targetV2File.delete()
+            if (!patchedTempFile.renameTo(targetV2File)) {
+                patchedTempFile.copyTo(targetV2File, overwrite = true)
+                patchedTempFile.delete()
+            }
+
+            saveMetadata(
+                repoDir,
+                IndexMetadata(
+                    etag = entryEtag,
+                    lastModified = entryLastModified,
+                    indexSha256 = newLocalSha,
+                    format = "v2",
+                    serverIndexSha256 = expectedServerIndexSha,
+                    timestamp = newTimestamp
+                )
+            )
+            Log.i("IzzyOnDroidRepository", "Applied incremental F-Droid V2 diff (${diffTempFile.length()} bytes) for ${repo.name}")
+            parsed
+        } catch (sec: SecurityException) {
+            throw sec
+        } catch (t: Throwable) {
+            if (t is CancellationException) throw t
+            Log.w("IzzyOnDroidRepository", "F-Droid V2 diff patch failed for ${repo.name}, falling back to full index: ${t.javaClass.simpleName}")
+            null
+        } finally {
+            if (diffTempFile.exists()) diffTempFile.delete()
+            if (patchedTempFile.exists()) patchedTempFile.delete()
         }
     }
 
@@ -501,6 +646,7 @@ class IzzyOnDroidRepository(
         expectedSha256: String,
         entryEtag: String?,
         entryLastModified: String?,
+        entryTimestamp: Long = 0L,
         installedPackages: Set<String>?
     ): IzzyIndexResponse {
         val targetFile = File(repoDir, "index-v2.json")
@@ -542,8 +688,19 @@ class IzzyOnDroidRepository(
             }
 
             val parsed = FDroidIndexEngine.streamParseV2IndexFile(targetFile, installedPackages, gson)
-            parsed.repo?.timestamp?.takeIf { it > 0L }?.let { enforceAntiRollbackTimestamp(repo, it) }
-            saveMetadata(repoDir, IndexMetadata(entryEtag, entryLastModified, expectedSha256, "v2"))
+            val resolvedTs = parsed.repo?.timestamp?.takeIf { it > 0L } ?: entryTimestamp
+            resolvedTs.takeIf { it > 0L }?.let { enforceAntiRollbackTimestamp(repo, it) }
+            saveMetadata(
+                repoDir,
+                IndexMetadata(
+                    etag = entryEtag,
+                    lastModified = entryLastModified,
+                    indexSha256 = expectedSha256,
+                    format = "v2",
+                    serverIndexSha256 = expectedSha256,
+                    timestamp = entryTimestamp.takeIf { it > 0L } ?: resolvedTs
+                )
+            )
             return parsed
         } finally {
             if (tempFile.exists()) tempFile.delete()
@@ -715,18 +872,23 @@ class IzzyOnDroidRepository(
         val etag: String? = null,
         val lastModified: String? = null,
         val indexSha256: String? = null,
-        val format: String = "v2"
+        val format: String = "v2",
+        val serverIndexSha256: String? = null,
+        val timestamp: Long = 0L
     )
 
     private fun loadMetadata(repoDir: File): IndexMetadata = runCatching {
         val file = File(repoDir, "index.meta")
         if (!file.exists()) return IndexMetadata()
         val lines = file.readLines()
+        val indexSha = lines.getOrNull(2)?.takeIf { it.isNotBlank() }
         IndexMetadata(
             etag = lines.getOrNull(0)?.takeIf { it.isNotBlank() },
             lastModified = lines.getOrNull(1)?.takeIf { it.isNotBlank() },
-            indexSha256 = lines.getOrNull(2)?.takeIf { it.isNotBlank() },
-            format = lines.getOrNull(3)?.takeIf { it.isNotBlank() } ?: "v1"
+            indexSha256 = indexSha,
+            format = lines.getOrNull(3)?.takeIf { it.isNotBlank() } ?: "v1",
+            serverIndexSha256 = lines.getOrNull(4)?.takeIf { it.isNotBlank() } ?: indexSha,
+            timestamp = lines.getOrNull(5)?.toLongOrNull() ?: 0L
         )
     }.getOrDefault(IndexMetadata())
 
@@ -735,7 +897,14 @@ class IzzyOnDroidRepository(
             val file = File(repoDir, "index.meta")
             file.parentFile?.mkdirs()
             file.writeText(
-                "${metadata.etag.orEmpty()}\n${metadata.lastModified.orEmpty()}\n${metadata.indexSha256.orEmpty()}\n${metadata.format}"
+                buildString {
+                    append(metadata.etag.orEmpty()).append('\n')
+                    append(metadata.lastModified.orEmpty()).append('\n')
+                    append(metadata.indexSha256.orEmpty()).append('\n')
+                    append(metadata.format).append('\n')
+                    append(metadata.serverIndexSha256.orEmpty()).append('\n')
+                    append(metadata.timestamp.takeIf { it > 0L }?.toString().orEmpty())
+                }
             )
         }
     }
