@@ -101,7 +101,7 @@ jobs:
           SAFE_LABEL=$(printf '%s' "$RAW_LABEL" | tr -cd 'A-Za-z0-9._-')
           VERSION_CODE=$(grep -E 'versionCode\s*=' app/build.gradle.kts | grep -oE '[0-9]+' | tail -n 1 || true)
           if [ -n "$VERSION_CODE" ] && [ -n "$INPUT_TAG" ]; then
-            APK_FILENAME="ApkUp-${SAFE_LABEL}-(${VERSION_CODE}).apk"
+            APK_FILENAME="ApkUp-${SAFE_LABEL}-${VERSION_CODE}.apk"
           else
             APK_FILENAME="ApkUp-${SAFE_LABEL}.apk"
           fi
