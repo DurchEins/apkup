@@ -1,4 +1,5 @@
 name: Build & Publish Release
+run-name: "Release ${{ inputs.tag_name != '' && inputs.tag_name || 'Artifact-Build' }}"
 
 on:
   workflow_dispatch:
@@ -9,10 +10,15 @@ on:
         default: ''
         type: string
       prerelease:
-        description: 'Mark GitHub Release as pre-release (keep false for regular manual/Beta-named full releases)'
+        description: 'Mark GitHub Release as pre-release (keep false for regular stable releases)'
         required: false
         default: false
         type: boolean
+      itch_channel:
+        description: 'itch.io Butler channel (android for stable, android-beta for pre-releases)'
+        required: false
+        default: 'android'
+        type: string
 
 permissions:
   contents: read
@@ -93,16 +99,73 @@ jobs:
 
           RAW_LABEL="${INPUT_TAG:-run-${GITHUB_RUN_NUMBER}}"
           SAFE_LABEL=$(printf '%s' "$RAW_LABEL" | tr -cd 'A-Za-z0-9._-')
-          TARGET_APK="release_assets/ApkUp-${SAFE_LABEL}.apk"
+          VERSION_CODE=$(grep -E 'versionCode\s*=' app/build.gradle.kts | grep -oE '[0-9]+' | tail -n 1 || true)
+          if [ -n "$VERSION_CODE" ] && [ -n "$INPUT_TAG" ]; then
+            APK_FILENAME="ApkUp-${SAFE_LABEL}-(${VERSION_CODE}).apk"
+          else
+            APK_FILENAME="ApkUp-${SAFE_LABEL}.apk"
+          fi
+          TARGET_APK="release_assets/${APK_FILENAME}"
           cp "$APK_FILE" "$TARGET_APK"
           (cd release_assets && sha256sum "$(basename "$TARGET_APK")" > "$(basename "$TARGET_APK").sha256")
+          APK_SHA256=$(awk '{print $1}' "${TARGET_APK}.sha256")
 
           CHANGELOG_FILE=$(ls -v fastlane/metadata/android/en-US/changelogs/*.txt 2>/dev/null | tail -n 1)
           if [ -n "$CHANGELOG_FILE" ] && [ -f "$CHANGELOG_FILE" ]; then
-            cp "$CHANGELOG_FILE" release_assets/RELEASE_NOTES.md
+            CHANGELOG_BODY=$(cat "$CHANGELOG_FILE")
           else
-            printf 'ApkUp Release %s\n' "$SAFE_LABEL" > release_assets/RELEASE_NOTES.md
+            CHANGELOG_BODY="ApkUp Release ${SAFE_LABEL}"
           fi
+
+          CLEAN_VER="${SAFE_LABEL#v}"
+          BADGE_LABEL="Feature_Update"
+          BADGE_COLOR="A855F7"
+          if printf '%s' "$CLEAN_VER" | grep -qE '^[0-9]+\.[0-9]+\.[1-9][0-9]*'; then
+            BADGE_LABEL="Patch_%26_Fix"
+            BADGE_COLOR="38BDF8"
+          elif printf '%s' "$CLEAN_VER" | grep -qE '^[0-9]+\.0\.0'; then
+            BADGE_LABEL="Major_Update"
+            BADGE_COLOR="F59E0B"
+          fi
+
+          cat <<EOF > release_assets/RELEASE_NOTES.md
+          <div align="center">
+
+          ## What's new in ${SAFE_LABEL}${VERSION_CODE:+ (Build ${VERSION_CODE})}
+          ![](https://img.shields.io/badge/Release-${BADGE_LABEL}-${BADGE_COLOR}?style=flat&labelColor=161B22) ${VERSION_CODE:+![](https://img.shields.io/badge/Build-${VERSION_CODE}-38BDF8?style=flat&labelColor=161B22)} [![VirusTotal](https://img.shields.io/badge/VirusTotal-Check_Report-22C55E?style=flat&logo=virustotal&logoColor=white&labelColor=161B22)](https://www.virustotal.com/gui/file/${APK_SHA256}/detection)
+
+          </div>
+
+          ${CHANGELOG_BODY}
+
+          ---
+
+          > [!TIP]
+          > ### 🎉 Available Across Independent Platforms
+          > Download and update ApkUp via **GitHub**, **Zapstore**, **GitLab**, **APKPure**, and **itch.io**:
+          >
+          > <a href="https://zapstore.dev/apps/com.apkup"><img src="https://img.shields.io/badge/Zapstore-Available-7C3AED?style=flat&logo=lightning&logoColor=white" alt="Zapstore" /></a>&nbsp;&nbsp;<a href="https://gitlab.com/DurchEins1/apkup/-/releases"><img src="https://img.shields.io/badge/GitLab-Releases-FC6D26?style=flat&logo=gitlab&logoColor=white" alt="GitLab Releases" /></a>&nbsp;&nbsp;<a href="https://apkpure.com/apkup/com.apkup"><img src="https://img.shields.io/badge/APKPure-Available-24C270?style=flat&logo=android&logoColor=white" alt="APKPure" /></a>&nbsp;&nbsp;<a href="https://durcheins.itch.io/apkup"><img src="https://img.shields.io/badge/itch.io-Available-FA5C5C?style=flat&logo=itchdotio&logoColor=white" alt="itch.io" /></a>
+
+          ---
+
+          ### 💬 Feedback, Bugs & Ideas
+          Found a bug, have an idea, or encountered an issue? Please don't hesitate to open an **[Issue](https://github.com/DurchEins/apkup/issues)** on GitHub or share your feedback so we can make ApkUp even better!
+
+          ---
+
+          <details>
+          <summary><b>📦 Installation & In-App Update Instructions</b></summary>
+          <br>
+
+          Download the attached **_[${APK_FILENAME}](https://github.com/DurchEins/apkup/releases/download/${SAFE_LABEL}/${APK_FILENAME})_** below or update directly via the in-app updater (<kbd>Setup</kbd> ➔ <kbd>About</kbd> ➔ <kbd>Check for updates</kbd>).
+
+          - **Alternative Mirrors:** [Zapstore](https://zapstore.dev/apps/com.apkup) · [GitLab Releases](https://gitlab.com/DurchEins1/apkup/-/releases) · [APKPure](https://apkpure.com/apkup/com.apkup) · [itch.io](https://durcheins.itch.io/apkup)
+          - **SHA-256 Checksum:** \`${APK_SHA256}\`
+          - **Certificate SHA-256:** \`8e9b512371ee965afc7cc91f23490d3a514623b90d483e638bba8a070a2170b4\`
+
+          </details>
+          EOF
+          sed -i 's/^          //' release_assets/RELEASE_NOTES.md
 
       - name: Upload Release Assets Artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -203,6 +266,7 @@ jobs:
         env:
           BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
           INPUT_TAG: ${{ inputs.tag_name }}
+          INPUT_CHANNEL: ${{ inputs.itch_channel }}
         run: |
           if [ -z "$BUTLER_API_KEY" ]; then
             echo "BUTLER_API_KEY not set; skipping itch.io publish."
@@ -217,9 +281,12 @@ jobs:
 
           SAFE_VERSION=$(printf '%s' "$INPUT_TAG" | tr -cd 'A-Za-z0-9._-')
           SAFE_VERSION="${SAFE_VERSION#v}"
+          RAW_CHANNEL="${INPUT_CHANNEL:-android}"
+          SAFE_CHANNEL=$(printf '%s' "$RAW_CHANNEL" | tr -cd 'a-z0-9-')
+          SAFE_CHANNEL="${SAFE_CHANNEL:-android}"
 
           curl -fsSL -o butler.zip "https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default"
           unzip -q butler.zip -d "${RUNNER_TEMP}/butler_bin"
           chmod +x "${RUNNER_TEMP}/butler_bin/butler"
-          "${RUNNER_TEMP}/butler_bin/butler" push "$APK_PATH" "durcheins/apkup:android" --userversion "$SAFE_VERSION"
+          "${RUNNER_TEMP}/butler_bin/butler" push "$APK_PATH" "durcheins/apkup:${SAFE_CHANNEL}" --userversion "$SAFE_VERSION"
           rm -f butler.zip
