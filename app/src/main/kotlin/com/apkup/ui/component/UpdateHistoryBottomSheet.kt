@@ -53,6 +53,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -92,6 +93,7 @@ fun UpdateHistoryBottomSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val rollbackManager = remember(context) { com.apkup.util.RollbackBackupManager(context) }
     var selectedRollbackPair by remember { mutableStateOf<Pair<String, com.apkup.util.RollbackBackupMeta>?>(null) }
@@ -106,9 +108,9 @@ fun UpdateHistoryBottomSheet(
         if (destUri != null && pkg != null) {
             val ok = rollbackManager.exportBackupToUri(pkg, destUri)
             val toastText = if (ok) {
-                context.getString(R.string.apk_save_success, destUri.lastPathSegment ?: "APK")
+                resources.getString(R.string.apk_save_success, destUri.lastPathSegment ?: "APK")
             } else {
-                context.getString(R.string.apk_save_error)
+                resources.getString(R.string.apk_save_error)
             }
             Toast.makeText(context, toastText, Toast.LENGTH_SHORT).show()
         }
@@ -343,12 +345,12 @@ fun UpdateHistoryBottomSheet(
                                     if (res.success) {
                                         Toast.makeText(
                                             context,
-                                            context.getString(R.string.rollback_success_snack, appLabel, meta.versionName),
+                                            resources.getString(R.string.rollback_success_snack, appLabel, meta.versionName),
                                             Toast.LENGTH_SHORT
                                         ).show()
                                         selectedRollbackPair = null
                                     } else {
-                                        rollbackStatusHint = context.getString(R.string.rollback_failed_root_hint)
+                                        rollbackStatusHint = resources.getString(R.string.rollback_failed_root_hint)
                                     }
                                 }
                             },
@@ -364,12 +366,12 @@ fun UpdateHistoryBottomSheet(
                                     if (res.success) {
                                         Toast.makeText(
                                             context,
-                                            context.getString(R.string.rollback_success_snack, appLabel, meta.versionName),
+                                            resources.getString(R.string.rollback_success_snack, appLabel, meta.versionName),
                                             Toast.LENGTH_SHORT
                                         ).show()
                                         selectedRollbackPair = null
                                     } else {
-                                        rollbackStatusHint = context.getString(R.string.rollback_failed_generic)
+                                        rollbackStatusHint = resources.getString(R.string.rollback_failed_generic)
                                     }
                                 }
                             },
@@ -397,12 +399,12 @@ fun UpdateHistoryBottomSheet(
                                     if (res.success) {
                                         Toast.makeText(
                                             context,
-                                            context.getString(R.string.rollback_success_snack, appLabel, meta.versionName),
+                                            resources.getString(R.string.rollback_success_snack, appLabel, meta.versionName),
                                             Toast.LENGTH_SHORT
                                         ).show()
                                         selectedRollbackPair = null
                                     } else {
-                                        rollbackStatusHint = context.getString(R.string.rollback_failed_generic)
+                                        rollbackStatusHint = resources.getString(R.string.rollback_failed_generic)
                                     }
                                 }
                             },
