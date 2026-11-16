@@ -91,7 +91,8 @@ class GitHubRepository(
         if (token.isNotBlank()) {
             val now = System.currentTimeMillis()
             val reposToPrefetch = LinkedHashMap<String, Pair<String, String>>()
-            for ((_, binding) in appBindings) {
+            for ((app, binding) in appBindings) {
+                if (prefs.shouldAllowPreReleases(app.packageName)) continue
                 val slug = binding?.repo?.let(::parseOwnerAndRepo) ?: continue
                 val key = "${slug.first}/${slug.second}"
                 val cached = releaseCache[key]
@@ -134,9 +135,10 @@ class GitHubRepository(
                         continue
                     }
                     try {
-                        val release = fetchLatestRelease(binding.repo)
+                        val allowPreReleases = prefs.shouldAllowPreReleases(app.packageName)
+                        val release = fetchLatestRelease(binding.repo, includePreReleases = allowPreReleases)
                         successfulRequests++
-                        if (release != null && !release.draft) {
+                        if (release != null && !release.draft && (allowPreReleases || !release.prerelease)) {
                             buildAppUpdate(app, binding, release)?.let { update ->
                                 updates.add(update)
                             }
@@ -429,24 +431,30 @@ class GitHubRepository(
         )
     }
 
-    internal suspend fun fetchLatestRelease(repo: String): GitHubReleaseDto? = withContext(Dispatchers.IO) {
+    internal suspend fun fetchLatestRelease(
+        repo: String,
+        includePreReleases: Boolean = false
+    ): GitHubReleaseDto? = withContext(Dispatchers.IO) {
         val (owner, repoName) = parseOwnerAndRepo(repo) ?: return@withContext null
-        val normalizedKey = "$owner/$repoName"
+        val normalizedKey = if (includePreReleases) "$owner/$repoName#pre" else "$owner/$repoName"
 
         val cached = releaseCache[normalizedKey]
         if (cached != null && System.currentTimeMillis() - cached.timestamp < WARM_CACHE_WINDOW_MS) {
             return@withContext cached.release
         }
 
-        val url = HttpUrl.Builder()
+        val urlBuilder = HttpUrl.Builder()
             .scheme("https")
             .host("api.github.com")
             .addPathSegment("repos")
             .addPathSegment(owner)
             .addPathSegment(repoName)
             .addPathSegment("releases")
-            .addPathSegment("latest")
-            .build()
+        val url = if (includePreReleases) {
+            urlBuilder.addQueryParameter("per_page", "5").build()
+        } else {
+            urlBuilder.addPathSegment("latest").build()
+        }
 
         val requestBuilder = Request.Builder()
             .url(url)
@@ -471,6 +479,11 @@ class GitHubRepository(
             if (response.code == 403 || response.code == 429) {
                 val remaining = response.header("x-ratelimit-remaining")
                 Log.w("GitHubRepository", "GitHub rate limit / HTTP ${response.code} for $normalizedKey (remaining=$remaining)")
+                com.apkup.util.SourceHealthTracker.recordError(
+                    sourceName = GitHubSource.name,
+                    message = "HTTP ${response.code} (GitHub API rate limit)",
+                    cooldownDurationMillis = 10 * 60_000L
+                )
                 if (cached != null) return@withContext cached.release
                 throw IOException("HTTP ${response.code} (GitHub API rate limit)")
             }
@@ -488,7 +501,16 @@ class GitHubRepository(
             }
 
             val etag = response.header("ETag")
-            val release = gson.fromJson(response.body.charStream(), GitHubReleaseDto::class.java)
+            val release = if (includePreReleases) {
+                val listType = object : com.google.gson.reflect.TypeToken<List<GitHubReleaseDto>>() {}.type
+                val list: List<GitHubReleaseDto> = runCatching {
+                    gson.fromJson<List<GitHubReleaseDto>>(response.body.charStream(), listType)
+                }.getOrNull().orEmpty()
+                list.firstOrNull { !it.draft && it.safeAssets.any { a -> a.safeName.endsWith(".apk", ignoreCase = true) } }
+                    ?: list.firstOrNull { !it.draft }
+            } else {
+                gson.fromJson(response.body.charStream(), GitHubReleaseDto::class.java)
+            }
             if (release != null) {
                 releaseCache[normalizedKey] = CachedRelease(etag, release, System.currentTimeMillis())
             }

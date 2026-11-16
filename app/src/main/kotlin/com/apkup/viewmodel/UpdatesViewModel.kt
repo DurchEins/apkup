@@ -109,6 +109,7 @@ class UpdatesViewModel(
 		downloadCoordinator?.batchProgressFlow ?: emptyBatchProgress.asStateFlow()
 
 	val updateHistoryFlow: StateFlow<List<UpdateHistoryEntry>> = prefs.updateHistoryFlow
+	val pinnedAppSourcesFlow: StateFlow<Map<String, String>> = prefs.pinnedAppSourcesFlow
 
 	private var pendingMobileDataInstallAction: (() -> Unit)? = null
 	private var pendingBatteryInstallAction: (() -> Unit)? = null
@@ -201,6 +202,51 @@ class UpdatesViewModel(
 
 	fun getCustomRepoBinding(packageName: String): RepoBinding? =
 		prefs.readCustomRepoBindingsSafe()[packageName]
+
+	fun pinAppSource(packageName: String, sourceKey: String?) =
+		prefs.pinAppSource(packageName, sourceKey)
+
+	val appPreReleaseOverridesFlow: StateFlow<Map<String, String>> = prefs.appPreReleaseOverridesFlow
+
+	fun getAppPreReleaseOverride(packageName: String): String =
+		prefs.getAppPreReleaseOverride(packageName)
+
+	fun setAppPreReleaseOverride(packageName: String, mode: String?) =
+		prefs.setAppPreReleaseOverride(packageName, mode)
+
+	fun isRootReady(): Boolean = installer.isRootReady()
+
+	suspend fun executeRollback(
+		packageName: String,
+		backupTarget: File,
+		cleanReinstallWithRoot: Boolean = false
+	): com.apkup.util.RollbackInstallResult =
+		installer.executeRollbackInstall(packageName, backupTarget, cleanReinstallWithRoot)
+
+	fun markWatchedAppSeen(update: AppUpdate) = viewModelScope.launchWithMutex(uiStateMutex, Dispatchers.IO) {
+		prefs.markWatchedAppSeen(update.packageName, update.version, update.versionCode)
+		rawLatestUpdates = rawLatestUpdates.filterNot { it.packageName == update.packageName }
+		val updatedList = state.value.mutableUpdates().removePackageName(update.packageName)
+		setSuccess(
+			updates = updatedList,
+			hasSourceErrors = state.value.hasSourceErrors(),
+			sourceErrors = state.value.sourceErrors(),
+			lastCheckedAtMillis = state.value.lastCheckedAtMillis()
+		)
+		updatesRepository.saveSnapshotToCache(
+			result = UpdateCheckResult(
+				updates = updatedList,
+				successfulRequests = 1,
+				failedRequests = if (state.value.hasSourceErrors()) 1 else 0,
+				totalApps = state.value.totalApps(),
+				sourceErrors = state.value.sourceErrors()
+			),
+			timestampMillis = state.value.lastCheckedAtMillis() ?: System.currentTimeMillis()
+		)
+		val msg = runCatching { stringer.get(R.string.watched_mark_seen_snack, update.version) }
+			.getOrDefault("Marked v${update.version} as seen")
+		snackBar.snackBar(viewModelScope, TextSnack(msg, visualType = com.apkup.data.snack.SnackVisualType.SUCCESS))
+	}
 
 	fun getUpdatesDisplayMode(): Int = prefs.updatesDisplayMode.get()
 

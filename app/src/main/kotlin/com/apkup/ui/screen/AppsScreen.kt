@@ -55,6 +55,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.PushPin
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
@@ -141,6 +142,8 @@ import com.apkup.repository.RepoMappingManager
 import com.apkup.ui.component.AppEmptyState
 import com.apkup.ui.component.CollapsibleScrollHeader
 import com.apkup.ui.component.LinkRepoDialog
+import com.apkup.ui.component.PinAppSourceBottomSheet
+import com.apkup.ui.component.sourcePriorityLabel
 import com.apkup.ui.component.LoadingGrid
 import com.apkup.ui.component.LoadingImageApp
 import com.apkup.ui.component.UpdateHistoryBottomSheet
@@ -183,6 +186,8 @@ fun AppsScreenSuccess(
 ) {
 	val resources = LocalResources.current
 	val searchQuery by viewModel.searchQuery().collectAsStateWithLifecycle()
+	val pinnedAppSources by viewModel.pinnedAppSources().collectAsStateWithLifecycle()
+	var pinTargetApp by remember { mutableStateOf<AppInstalled?>(null) }
 	val quickFilter by viewModel.quickFilter().collectAsStateWithLifecycle()
 	val scopeTab by viewModel.scopeTab().collectAsStateWithLifecycle()
 	val viewMode by viewModel.viewMode().collectAsStateWithLifecycle()
@@ -538,6 +543,8 @@ fun AppsScreenSuccess(
 								Box(modifier = Modifier.animateItem()) {
 									AppListItem(
 										app = app,
+										pinnedSourceKey = pinnedAppSources[app.packageName],
+										onOpenPinSource = { pinTargetApp = app },
 										onIgnore = { pkg ->
 											viewModel.ignore(pkg)
 											updatesViewModel.syncIgnoredFromPrefs()
@@ -589,6 +596,8 @@ fun AppsScreenSuccess(
 									Box(modifier = Modifier.animateItem()) {
 										AppListItem(
 											app = app,
+											pinnedSourceKey = pinnedAppSources[app.packageName],
+											onOpenPinSource = { pinTargetApp = app },
 											onIgnore = { pkg ->
 												viewModel.ignore(pkg)
 												updatesViewModel.syncIgnoredFromPrefs()
@@ -623,6 +632,8 @@ fun AppsScreenSuccess(
 									Box(modifier = Modifier.animateItem()) {
 										AppGridItem(
 											app = app,
+											pinnedSourceKey = pinnedAppSources[app.packageName],
+											onOpenPinSource = { pinTargetApp = app },
 											onIgnore = { pkg ->
 												viewModel.ignore(pkg)
 												updatesViewModel.syncIgnoredFromPrefs()
@@ -669,6 +680,8 @@ fun AppsScreenSuccess(
 										Box(modifier = Modifier.animateItem()) {
 											AppGridItem(
 												app = app,
+												pinnedSourceKey = pinnedAppSources[app.packageName],
+												onOpenPinSource = { pinTargetApp = app },
 												onIgnore = { pkg ->
 													viewModel.ignore(pkg)
 													updatesViewModel.syncIgnoredFromPrefs()
@@ -764,6 +777,21 @@ fun AppsScreenSuccess(
 			}
 		)
 	}
+
+	pinTargetApp?.let { target ->
+		PinAppSourceBottomSheet(
+			appName = target.name.ifBlank { target.packageName },
+			currentPinnedKey = pinnedAppSources[target.packageName],
+			onSelectSourceKey = { selectedKey ->
+				viewModel.pinAppSource(target.packageName, selectedKey)
+			},
+			onDismiss = { pinTargetApp = null },
+			currentPreReleaseOverride = viewModel.getAppPreReleaseOverride(target.packageName),
+			onSelectPreReleaseOverride = { mode ->
+				viewModel.setAppPreReleaseOverride(target.packageName, mode)
+			}
+		)
+	}
 }
 
 // -------------------------------------------------------------
@@ -773,6 +801,8 @@ fun AppsScreenSuccess(
 @Composable
 private fun AppListItem(
 	app: AppInstalled,
+	pinnedSourceKey: String? = null,
+	onOpenPinSource: () -> Unit = {},
 	repoMappingManager: RepoMappingManager = koinInject(),
 	onIgnore: (String) -> Unit,
 	onRemoveWatched: ((String) -> Unit)? = null
@@ -915,6 +945,14 @@ private fun AppListItem(
 							}
 						}
 					}
+					if (pinnedSourceKey != null) {
+						Icon(
+							imageVector = Icons.Rounded.PushPin,
+							contentDescription = stringResource(R.string.pin_source_chip_label),
+							tint = MaterialTheme.colorScheme.primary,
+							modifier = Modifier.size(13.dp)
+						)
+					}
 					if (app.ignored) {
 						Surface(
 							shape = RoundedCornerShape(6.dp),
@@ -996,7 +1034,9 @@ private fun AppListItem(
 							onDismiss = { showMenu = false },
 							app = app,
 							repoBinding = repoBinding,
+							pinnedSourceKey = pinnedSourceKey,
 							onOpenLinkRepoDialog = { showLinkRepoDialog = true },
+							onOpenPinSource = onOpenPinSource,
 							onIgnore = onIgnore,
 							onRemoveWatched = onRemoveWatched
 						)
@@ -1022,6 +1062,8 @@ private fun AppListItem(
 @Composable
 private fun AppGridItem(
 	app: AppInstalled,
+	pinnedSourceKey: String? = null,
+	onOpenPinSource: () -> Unit = {},
 	repoMappingManager: RepoMappingManager = koinInject(),
 	onIgnore: (String) -> Unit,
 	onRemoveWatched: ((String) -> Unit)? = null
@@ -1129,7 +1171,9 @@ private fun AppGridItem(
 							onDismiss = { showMenu = false },
 							app = app,
 							repoBinding = repoBinding,
+							pinnedSourceKey = pinnedSourceKey,
 							onOpenLinkRepoDialog = { showLinkRepoDialog = true },
+							onOpenPinSource = onOpenPinSource,
 							onIgnore = onIgnore,
 							onRemoveWatched = onRemoveWatched
 						)
@@ -1206,6 +1250,14 @@ private fun AppGridItem(
 							tint = MaterialTheme.colorScheme.onSurfaceVariant,
 							modifier = Modifier.size(13.dp)
 						)
+						if (pinnedSourceKey != null) {
+							Icon(
+								imageVector = Icons.Rounded.PushPin,
+								contentDescription = stringResource(R.string.pin_source_chip_label),
+								tint = MaterialTheme.colorScheme.primary,
+								modifier = Modifier.size(12.dp)
+							)
+						}
 					}
 				}
 				if (app.lastUpdateTime > 0L) {
@@ -1243,7 +1295,9 @@ private fun AppItemDropdownMenu(
 	onDismiss: () -> Unit,
 	app: AppInstalled,
 	repoBinding: RepoBinding?,
+	pinnedSourceKey: String? = null,
 	onOpenLinkRepoDialog: () -> Unit,
+	onOpenPinSource: () -> Unit = {},
 	onIgnore: (String) -> Unit,
 	onRemoveWatched: ((String) -> Unit)? = null
 ) {
@@ -1378,6 +1432,36 @@ private fun AppItemDropdownMenu(
 			onClick = {
 				onDismiss()
 				onOpenLinkRepoDialog()
+			}
+		)
+
+		// 3b. Pin Update Source
+		DropdownMenuItem(
+			text = {
+				Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+					Text(stringResource(R.string.pin_source_menu_action))
+					if (pinnedSourceKey != null) {
+						Text(
+							text = stringResource(R.string.pin_source_menu_pinned, sourcePriorityLabel(pinnedSourceKey)),
+							style = MaterialTheme.typography.labelSmall,
+							color = MaterialTheme.colorScheme.primary,
+							maxLines = 1,
+							overflow = TextOverflow.Ellipsis
+						)
+					}
+				}
+			},
+			leadingIcon = {
+				Icon(
+					imageVector = Icons.Rounded.PushPin,
+					contentDescription = null,
+					tint = if (pinnedSourceKey != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+					modifier = Modifier.size(20.dp)
+				)
+			},
+			onClick = {
+				onDismiss()
+				onOpenPinSource()
 			}
 		)
 

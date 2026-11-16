@@ -50,6 +50,9 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.PushPin
+import com.apkup.data.ui.SourcePriorityKeys
+import com.apkup.ui.component.sourcePriorityLabel
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.filled.Check
@@ -2329,11 +2332,14 @@ private fun UpdatesList(
 	}
 
 	selectedUpdate?.let { update ->
+		val pinnedAppSources by viewModel.pinnedAppSourcesFlow.collectAsStateWithLifecycle()
 		UpdateDetailsSheet(
 			update = update,
 			activeTasksMap = activeTasksMap,
 			isCachedReady = update.id in readyUpdateIds || update.alternativeUpdates.any { it.id in readyUpdateIds },
 			readyUpdateIds = readyUpdateIds,
+			pinnedSourceKey = pinnedAppSources[update.packageName],
+			onTogglePinSource = { key -> viewModel.pinAppSource(update.packageName, key) },
 			onDismiss = { selectedPackageName = null },
 			onInstallVariant = { chosen ->
 				onRequestInstall(chosen)
@@ -2345,7 +2351,11 @@ private fun UpdatesList(
 				onRequestSaveApk(chosen)
 			},
 			onIgnoreVersion = { versionId ->
-				viewModel.ignoreVersion(versionId)
+				if (update.isWatchedApp()) {
+					viewModel.markWatchedAppSeen(update)
+				} else {
+					viewModel.ignoreVersion(versionId)
+				}
 				selectedPackageName = null
 			},
 			onIgnoreAppPermanently = { packageName ->
@@ -3038,11 +3048,14 @@ private fun CompactUpdatesGrid(
 	}
 
 	selectedUpdate?.let { update ->
+		val pinnedAppSources by viewModel.pinnedAppSourcesFlow.collectAsStateWithLifecycle()
 		UpdateDetailsSheet(
 			update = update,
 			activeTasksMap = activeTasksMap,
 			isCachedReady = update.id in readyUpdateIds || update.alternativeUpdates.any { it.id in readyUpdateIds },
 			readyUpdateIds = readyUpdateIds,
+			pinnedSourceKey = pinnedAppSources[update.packageName],
+			onTogglePinSource = { key -> viewModel.pinAppSource(update.packageName, key) },
 			onDismiss = { selectedPackageName = null },
 			onInstallVariant = { chosen ->
 				onRequestInstall(chosen)
@@ -3054,7 +3067,11 @@ private fun CompactUpdatesGrid(
 				onRequestSaveApk(chosen)
 			},
 			onIgnoreVersion = { versionId ->
-				viewModel.ignoreVersion(versionId)
+				if (update.isWatchedApp()) {
+					viewModel.markWatchedAppSeen(update)
+				} else {
+					viewModel.ignoreVersion(versionId)
+				}
 				selectedPackageName = null
 			},
 			onIgnoreAppPermanently = { packageName ->
@@ -3073,6 +3090,8 @@ private fun UpdateDetailsSheet(
 	activeTasksMap: Map<Int, DownloadTaskState> = emptyMap(),
 	isCachedReady: Boolean = false,
 	readyUpdateIds: Set<Int> = emptySet(),
+	pinnedSourceKey: String? = null,
+	onTogglePinSource: (String?) -> Unit = {},
 	onDismiss: () -> Unit,
 	onInstallVariant: (AppUpdate) -> Unit,
 	onSaveApkVariant: (AppUpdate) -> Unit = {},
@@ -3235,6 +3254,31 @@ private fun UpdateDetailsSheet(
 					}
 				}
 			}
+
+			val activeSourceKey = SourcePriorityKeys.fromSource(activeVariant.source)
+			val isPinnedToActive = pinnedSourceKey == activeSourceKey
+			FilterChip(
+				selected = isPinnedToActive,
+				onClick = {
+					onTogglePinSource(if (isPinnedToActive) null else activeSourceKey)
+				},
+				label = {
+					Text(
+						text = if (isPinnedToActive) {
+							stringResource(R.string.pin_source_menu_pinned, sourcePriorityLabel(activeSourceKey))
+						} else {
+							stringResource(R.string.pin_source_menu_action)
+						}
+					)
+				},
+				leadingIcon = {
+					Icon(
+						imageVector = Icons.Rounded.PushPin,
+						contentDescription = null,
+						modifier = Modifier.size(16.dp)
+					)
+				}
+			)
 
 			Row(
 				modifier = Modifier.fillMaxWidth(),
@@ -3485,7 +3529,13 @@ private fun UpdateDetailsSheet(
 				shape = CircleShape,
 				modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
 			) {
-				Text(stringResource(R.string.skip_this_version))
+				Text(
+					if (activeVariant.isWatchedApp()) {
+						stringResource(R.string.watched_mark_seen_action)
+					} else {
+						stringResource(R.string.skip_this_version)
+					}
+				)
 			}
 
 			TextButton(

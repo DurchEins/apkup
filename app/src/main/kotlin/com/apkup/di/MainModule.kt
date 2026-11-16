@@ -112,7 +112,7 @@ val mainModule = module {
 		val keylessFallbackClient = get<OkHttpClient>().newBuilder()
 			.cookieJar(WebKitCookieJar())
 			.build()
-		ApkMirrorRepository(get(), androidContext().packageManager, keylessFallbackClient)
+		ApkMirrorRepository(get(), androidContext().packageManager, keylessFallbackClient, get())
 	}
 
 	single<ApkMirrorCloudflareBypass> { AndroidApkMirrorCloudflareBypass(androidContext()) }
@@ -170,6 +170,8 @@ val mainModule = module {
 	single { DownloadNotificationManager(androidContext()) }
 
 	single { SessionInstaller(androidContext(), get(), get(), get(), get()) }
+
+	single { com.apkup.util.RollbackBackupManager(androidContext()) }
 
 	single { SnackBar() }
 

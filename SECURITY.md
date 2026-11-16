@@ -10,9 +10,9 @@ We actively provide security patches for the following versions of ApkUp:
 
 | Version | Supported |
 | --- | --- |
-| 1.43.x (or newer) | :white_check_mark: |
-| 1.41.x-Beta | :white_check_mark: |
-| < 1.41 | :x: |
+| 1.44.x (or newer) | :white_check_mark: |
+| 1.43.x | :white_check_mark: |
+| < 1.43 | :x: |
 
 ## Security Architecture Highlights
 
@@ -42,9 +42,9 @@ Sicherheitsupdates werden aktiv für folgende Versionen von ApkUp bereitgestellt
 
 | Version | Unterstützt |
 | --- | --- |
-| 1.43.x (oder neuer) | :white_check_mark: |
-| 1.41.x-Beta | :white_check_mark: |
-| < 1.41 | :x: |
+| 1.44.x (oder neuer) | :white_check_mark: |
+| 1.43.x | :white_check_mark: |
+| < 1.43 | :x: |
 
 ## Sicherheitsarchitektur im Überblick
 

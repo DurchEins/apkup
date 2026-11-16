@@ -227,6 +227,57 @@ class Prefs(
     private val _customRepoBindingsFlow = MutableStateFlow(customRepoBindings.get())
     val customRepoBindingsFlow: StateFlow<Map<String, RepoBinding>> = _customRepoBindingsFlow.asStateFlow()
 
+    val sourcePriorityOrder: PrefSlot<List<String>> = jsonSlot(
+        key = "sourcePriorityOrder",
+        type = object : TypeToken<List<String>>() {}.type,
+        defProvider = { com.apkup.data.ui.SourcePriorityKeys.DEFAULT_ORDER },
+        onChanged = { _sourcePriorityOrderFlow.value = com.apkup.data.ui.SourcePriorityKeys.normalizeOrder(it) }
+    )
+    private val _sourcePriorityOrderFlow = MutableStateFlow(readSourcePriorityOrderSafe())
+    val sourcePriorityOrderFlow: StateFlow<List<String>> = _sourcePriorityOrderFlow.asStateFlow()
+
+    val pinnedAppSources: PrefSlot<Map<String, String>> = jsonSlot(
+        key = "pinnedAppSources",
+        type = object : TypeToken<Map<String, String>>() {}.type,
+        defProvider = { emptyMap() },
+        onChanged = { _pinnedAppSourcesFlow.value = it }
+    )
+    private val _pinnedAppSourcesFlow = MutableStateFlow(readPinnedAppSourcesSafe())
+    val pinnedAppSourcesFlow: StateFlow<Map<String, String>> = _pinnedAppSourcesFlow.asStateFlow()
+
+    val includePreReleasesGlobal: PrefSlot<Boolean> = booleanSlot("includePreReleasesGlobal", defValue = false)
+
+    val preReleaseChannels: PrefSlot<List<String>> = jsonSlot(
+        key = "preReleaseChannels",
+        type = object : TypeToken<List<String>>() {}.type,
+        defProvider = { com.apkup.data.repomapping.ReleaseAssetFilter.PreReleaseChannel.DEFAULT.toList() }
+    )
+
+    val appPreReleaseOverrides: PrefSlot<Map<String, String>> = jsonSlot(
+        key = "appPreReleaseOverrides",
+        type = object : TypeToken<Map<String, String>>() {}.type,
+        defProvider = { emptyMap() },
+        onChanged = { _appPreReleaseOverridesFlow.value = it }
+    )
+    private val _appPreReleaseOverridesFlow = MutableStateFlow(readAppPreReleaseOverridesSafe())
+    val appPreReleaseOverridesFlow: StateFlow<Map<String, String>> = _appPreReleaseOverridesFlow.asStateFlow()
+
+    val autoUpdateWindowEnabled: PrefSlot<Boolean> = booleanSlot("autoUpdateWindowEnabled", defValue = false)
+    val autoUpdateWindowMode: PrefSlot<String> = stringSlot(
+        "autoUpdateWindowMode",
+        defValue = com.apkup.data.ui.UpdateWindowMode.QUIET_PAUSE
+    )
+    val autoUpdateWindowStartMinutes: PrefSlot<Int> = intSlot("autoUpdateWindowStartMinutes", defValue = 22 * 60)
+    val autoUpdateWindowEndMinutes: PrefSlot<Int> = intSlot("autoUpdateWindowEndMinutes", defValue = 7 * 60)
+
+    val enableRollbackBackups: PrefSlot<Boolean> = booleanSlot("enableRollbackBackups", defValue = true)
+
+    val incompatibleVersionKeys: PrefSlot<List<String>> = jsonSlot(
+        key = "incompatibleVersionKeys",
+        type = object : TypeToken<List<String>>() {}.type,
+        defProvider = { emptyList() }
+    )
+
     val enableBackgroundChecks: PrefSlot<Boolean> = booleanSlot("enableAlarm", defValue = true)
     val backgroundCheckIntervalHours: PrefSlot<Int> = intSlot("backgroundCheckIntervalHours", defValue = 24)
     val theme: PrefSlot<Int> = intSlot("theme", defValue = 0)
@@ -636,5 +687,192 @@ class Prefs(
         val updated = readWatchedAppsSafe()
             .filterNot { it.packageName.equals(pkg, ignoreCase = true) }
         writeWatchedApps(updated)
+    }
+
+    fun readSourcePriorityOrderSafe(): List<String> = synchronized(lock) {
+        val raw = runCatching { sourcePriorityOrder.get() }.getOrNull()
+        com.apkup.data.ui.SourcePriorityKeys.normalizeOrder(raw)
+    }
+
+    fun writeSourcePriorityOrder(order: List<String>) = synchronized(lock) {
+        sourcePriorityOrder.put(com.apkup.data.ui.SourcePriorityKeys.normalizeOrder(order))
+    }
+
+    fun readPinnedAppSourcesSafe(): Map<String, String> = synchronized(lock) {
+        runCatching { pinnedAppSources.get() }
+            .getOrDefault(emptyMap())
+            .filter { (pkg, key) ->
+                pkg.isNotBlank() && key in com.apkup.data.ui.SourcePriorityKeys.DEFAULT_ORDER
+            }
+    }
+
+    fun getPinnedAppSource(packageName: String): String? = synchronized(lock) {
+        val pkg = packageName.trim()
+        if (pkg.isBlank()) return@synchronized null
+        readPinnedAppSourcesSafe()[pkg]
+    }
+
+    fun pinAppSource(packageName: String, sourceKey: String?) = synchronized(lock) {
+        val pkg = packageName.trim()
+        if (pkg.isBlank()) return@synchronized
+        val current = readPinnedAppSourcesSafe().toMutableMap()
+        val normalizedKey = sourceKey?.trim()?.takeIf {
+            it in com.apkup.data.ui.SourcePriorityKeys.DEFAULT_ORDER
+        }
+        if (normalizedKey == null) {
+            current.remove(pkg)
+        } else {
+            current[pkg] = normalizedKey
+        }
+        pinnedAppSources.put(current)
+    }
+
+    fun markWatchedAppSeen(packageName: String, versionName: String, versionCode: Long) = synchronized(lock) {
+        val pkg = packageName.trim()
+        if (pkg.isBlank()) return@synchronized
+        val current = readWatchedAppsSafe()
+        val updated = current.map { entry ->
+            if (entry.packageName.equals(pkg, ignoreCase = true)) {
+                entry.copy(
+                    seenVersion = versionName.trim().ifBlank { entry.seenVersion },
+                    seenVersionCode = maxOf(entry.seenVersionCode, versionCode.coerceAtLeast(0L))
+                )
+            } else {
+                entry
+            }
+        }
+        writeWatchedApps(updated)
+    }
+
+    fun readAppPreReleaseOverridesSafe(): Map<String, String> = synchronized(lock) {
+        runCatching { appPreReleaseOverrides.get() }
+            .getOrDefault(emptyMap())
+            .filter { (pkg, mode) ->
+                pkg.isNotBlank() && (
+                    mode == com.apkup.data.ui.PreReleaseOverride.ALLOW ||
+                        mode == com.apkup.data.ui.PreReleaseOverride.BLOCK
+                    )
+            }
+    }
+
+    fun getAppPreReleaseOverride(packageName: String): String = synchronized(lock) {
+        val pkg = packageName.trim()
+        if (pkg.isBlank()) return@synchronized com.apkup.data.ui.PreReleaseOverride.DEFAULT
+        readAppPreReleaseOverridesSafe()[pkg] ?: com.apkup.data.ui.PreReleaseOverride.DEFAULT
+    }
+
+    fun setAppPreReleaseOverride(packageName: String, overrideMode: String?) = synchronized(lock) {
+        val pkg = packageName.trim()
+        if (pkg.isBlank()) return@synchronized
+        val current = readAppPreReleaseOverridesSafe().toMutableMap()
+        val normalized = overrideMode?.trim().orEmpty()
+        if (normalized == com.apkup.data.ui.PreReleaseOverride.ALLOW ||
+            normalized == com.apkup.data.ui.PreReleaseOverride.BLOCK
+        ) {
+            current[pkg] = normalized
+        } else {
+            current.remove(pkg)
+        }
+        appPreReleaseOverrides.put(current)
+    }
+
+    fun shouldAllowPreReleases(packageName: String): Boolean = synchronized(lock) {
+        val pkg = packageName.trim()
+        if (pkg.isNotBlank()) {
+            when (readAppPreReleaseOverridesSafe()[pkg]) {
+                com.apkup.data.ui.PreReleaseOverride.ALLOW -> return@synchronized true
+                com.apkup.data.ui.PreReleaseOverride.BLOCK -> return@synchronized false
+            }
+        }
+        runCatching { includePreReleasesGlobal.get() }.getOrDefault(false) &&
+            readAllowedPreReleaseChannelsSafe().isNotEmpty()
+    }
+
+    fun readAllowedPreReleaseChannelsSafe(): Set<String> = synchronized(lock) {
+        val valid = com.apkup.data.repomapping.ReleaseAssetFilter.PreReleaseChannel.ALL
+        runCatching { preReleaseChannels.get() }
+            .getOrDefault(com.apkup.data.repomapping.ReleaseAssetFilter.PreReleaseChannel.DEFAULT.toList())
+            .filter { it in valid }
+            .toSet()
+    }
+
+    fun setPreReleaseChannelEnabled(channel: String, enabled: Boolean) = synchronized(lock) {
+        val valid = com.apkup.data.repomapping.ReleaseAssetFilter.PreReleaseChannel.ALL
+        if (channel !in valid) return@synchronized
+        val current = readAllowedPreReleaseChannelsSafe().toMutableSet()
+        if (enabled) current.add(channel) else current.remove(channel)
+        preReleaseChannels.put(current.toList())
+    }
+
+    fun isPreReleaseCandidateAllowed(
+        packageName: String,
+        versionOrTag: String,
+        isPrereleaseFlag: Boolean = false
+    ): Boolean = synchronized(lock) {
+        if (!com.apkup.data.repomapping.ReleaseAssetFilter.isPreReleaseVersion(versionOrTag, isPrereleaseFlag)) {
+            return@synchronized true
+        }
+        val pkg = packageName.trim()
+        if (pkg.isNotBlank()) {
+            when (readAppPreReleaseOverridesSafe()[pkg]) {
+                com.apkup.data.ui.PreReleaseOverride.ALLOW -> return@synchronized true
+                com.apkup.data.ui.PreReleaseOverride.BLOCK -> return@synchronized false
+            }
+        }
+        if (!runCatching { includePreReleasesGlobal.get() }.getOrDefault(false)) {
+            return@synchronized false
+        }
+        return@synchronized com.apkup.data.repomapping.ReleaseAssetFilter.isPreReleaseAllowedByChannels(
+            versionOrTag = versionOrTag,
+            allowedChannels = readAllowedPreReleaseChannelsSafe(),
+            isPrereleaseFlag = isPrereleaseFlag
+        )
+    }
+
+    fun hasAnyPreReleaseAllowed(): Boolean = synchronized(lock) {
+        if (runCatching { includePreReleasesGlobal.get() }.getOrDefault(false)) return@synchronized true
+        readAppPreReleaseOverridesSafe().values.any { it == com.apkup.data.ui.PreReleaseOverride.ALLOW }
+    }
+
+    fun isUpdateWindowAllowedNow(nowMinuteOfDay: Int = currentMinuteOfDay()): Boolean = synchronized(lock) {
+        com.apkup.data.ui.UpdateWindowEvaluator.isAllowedNow(
+            enabled = runCatching { autoUpdateWindowEnabled.get() }.getOrDefault(false),
+            mode = runCatching { autoUpdateWindowMode.get() }.getOrDefault(com.apkup.data.ui.UpdateWindowMode.QUIET_PAUSE),
+            startMinutes = runCatching { autoUpdateWindowStartMinutes.get() }.getOrDefault(22 * 60),
+            endMinutes = runCatching { autoUpdateWindowEndMinutes.get() }.getOrDefault(7 * 60),
+            nowMinuteOfDay = nowMinuteOfDay
+        )
+    }
+
+    fun minutesUntilNextUpdateWindow(nowMinuteOfDay: Int = currentMinuteOfDay()): Int = synchronized(lock) {
+        com.apkup.data.ui.UpdateWindowEvaluator.minutesUntilNextAllowedWindow(
+            enabled = runCatching { autoUpdateWindowEnabled.get() }.getOrDefault(false),
+            mode = runCatching { autoUpdateWindowMode.get() }.getOrDefault(com.apkup.data.ui.UpdateWindowMode.QUIET_PAUSE),
+            startMinutes = runCatching { autoUpdateWindowStartMinutes.get() }.getOrDefault(22 * 60),
+            endMinutes = runCatching { autoUpdateWindowEndMinutes.get() }.getOrDefault(7 * 60),
+            nowMinuteOfDay = nowMinuteOfDay
+        )
+    }
+
+    private fun currentMinuteOfDay(): Int {
+        val cal = java.util.Calendar.getInstance()
+        return cal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + cal.get(java.util.Calendar.MINUTE)
+    }
+
+    fun markVersionIncompatible(packageName: String, versionCode: Long) = synchronized(lock) {
+        val pkg = packageName.trim()
+        if (pkg.isBlank() || versionCode <= 0L) return@synchronized
+        val key = "$pkg:$versionCode"
+        val current = runCatching { incompatibleVersionKeys.get() }.getOrDefault(emptyList())
+        if (key !in current) {
+            incompatibleVersionKeys.put((current + key).takeLast(200))
+        }
+    }
+
+    fun isVersionMarkedIncompatible(packageName: String, versionCode: Long): Boolean = synchronized(lock) {
+        val pkg = packageName.trim()
+        if (pkg.isBlank() || versionCode <= 0L) return@synchronized false
+        val key = "$pkg:$versionCode"
+        runCatching { incompatibleVersionKeys.get() }.getOrDefault(emptyList()).contains(key)
     }
 }

@@ -9,7 +9,9 @@ import android.content.Context
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
@@ -36,9 +38,31 @@ class UpdatesWorker(
 
     companion object : KoinComponent {
         private const val TAG = "UpdatesWorker"
+        private const val WINDOW_CATCHUP_WORK_NAME = "UpdatesWorkerWindowCatchUp"
         private val prefs: Prefs by inject()
 
-        fun cancel(workManager: WorkManager) = workManager.cancelUniqueWork(TAG)
+        fun cancel(workManager: WorkManager) {
+            workManager.cancelUniqueWork(TAG)
+            workManager.cancelUniqueWork(WINDOW_CATCHUP_WORK_NAME)
+        }
+
+        fun scheduleWindowCatchUp(workManager: WorkManager, delayMinutes: Int) {
+            val safeMinutes = delayMinutes.coerceAtLeast(1)
+            val delayMillis = safeMinutes * 60_000L + 30_000L
+            val networkType = if (prefs.backgroundCheckWifiOnly.get()) NetworkType.UNMETERED else NetworkType.CONNECTED
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(networkType)
+                .build()
+            val request = OneTimeWorkRequestBuilder<UpdatesWorker>()
+                .setConstraints(constraints)
+                .setInitialDelay(delayMillis, TimeUnit.MILLISECONDS)
+                .build()
+            workManager.enqueueUniqueWork(
+                WINDOW_CATCHUP_WORK_NAME,
+                ExistingWorkPolicy.REPLACE,
+                request
+            )
+        }
 
         /**
          * Schedules periodic background update checks (`MED-13`).
@@ -83,6 +107,13 @@ class UpdatesWorker(
 
     override suspend fun doWork(): Result {
         if (!prefs.hasCompletedOnboarding.get()) {
+            return Result.success()
+        }
+        if (!prefs.isUpdateWindowAllowedNow()) {
+            val delayMins = prefs.minutesUntilNextUpdateWindow()
+            if (delayMins > 0) {
+                scheduleWindowCatchUp(WorkManager.getInstance(applicationContext), delayMins)
+            }
             return Result.success()
         }
         var finalResult: UpdateCheckResult<com.apkup.data.ui.AppUpdate>? = null

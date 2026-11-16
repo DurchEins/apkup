@@ -1,5 +1,9 @@
 package com.apkup.ui.component
 
+import android.content.Intent
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -25,18 +29,27 @@ import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Restore
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.core.net.toUri
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -79,6 +92,27 @@ fun UpdateHistoryBottomSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val rollbackManager = remember(context) { com.apkup.util.RollbackBackupManager(context) }
+    var selectedRollbackPair by remember { mutableStateOf<Pair<String, com.apkup.util.RollbackBackupMeta>?>(null) }
+    var rollbackStatusHint by remember { mutableStateOf<String?>(null) }
+    var pendingExportPkg by remember { mutableStateOf<String?>(null) }
+
+    val exportBackupLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/vnd.android.package-archive")
+    ) { destUri ->
+        val pkg = pendingExportPkg
+        pendingExportPkg = null
+        if (destUri != null && pkg != null) {
+            val ok = rollbackManager.exportBackupToUri(pkg, destUri)
+            val toastText = if (ok) {
+                context.getString(R.string.apk_save_success, destUri.lastPathSegment ?: "APK")
+            } else {
+                context.getString(R.string.apk_save_error)
+            }
+            Toast.makeText(context, toastText, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -239,18 +273,152 @@ fun UpdateHistoryBottomSheet(
                                 ?: updatesViewModel.getCustomRepoBinding(entry.packageName)
                             entry.effectivePreviousVersionUrl(binding)
                         }
+                        val backupMeta = remember(entry.packageName, entries.size) {
+                            rollbackManager.getBackupMeta(entry.packageName)
+                        }
                         UpdateHistoryCard(
                             entry = entry,
                             displayAppName = displayAppName,
                             previousVersionUrl = prevUrl,
                             onOpenPreviousVersion = { url ->
                                 runCatching { uriHandler.openUri(url) }
-                            }
+                            },
+                            backupMeta = backupMeta,
+                            onRequestRollback = if (backupMeta != null) {
+                                {
+                                    rollbackStatusHint = null
+                                    selectedRollbackPair = displayAppName to backupMeta
+                                }
+                            } else null,
+                            onExportBackup = if (backupMeta != null) {
+                                {
+                                    pendingExportPkg = entry.packageName
+                                    val ext = if (backupMeta.partCount > 1) "apks" else "apk"
+                                    exportBackupLauncher.launch("${entry.packageName}-v${backupMeta.versionName}.$ext")
+                                }
+                            } else null
                         )
                     }
                 }
             }
         }
+    }
+
+    selectedRollbackPair?.let { (appLabel, meta) ->
+        val isRootActive = updatesViewModel.isRootReady()
+        AlertDialog(
+            onDismissRequest = { selectedRollbackPair = null },
+            title = {
+                Text(
+                    text = stringResource(R.string.rollback_dialog_title, appLabel, meta.versionName),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        text = if (isRootActive) {
+                            stringResource(R.string.rollback_dialog_root_desc)
+                        } else {
+                            stringResource(R.string.rollback_dialog_non_root_desc, meta.versionName)
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    rollbackStatusHint?.let { hint ->
+                        Text(
+                            text = hint,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.error,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                    if (isRootActive) {
+                        Button(
+                            onClick = {
+                                val target = rollbackManager.getBackupTargetFileOrDir(meta.packageName) ?: return@Button
+                                scope.launch {
+                                    val res = updatesViewModel.executeRollback(meta.packageName, target, cleanReinstallWithRoot = false)
+                                    if (res.success) {
+                                        Toast.makeText(
+                                            context,
+                                            context.getString(R.string.rollback_success_snack, appLabel, meta.versionName),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        selectedRollbackPair = null
+                                    } else {
+                                        rollbackStatusHint = context.getString(R.string.rollback_failed_root_hint)
+                                    }
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(stringResource(R.string.rollback_btn_root_inplace))
+                        }
+                        OutlinedButton(
+                            onClick = {
+                                val target = rollbackManager.getBackupTargetFileOrDir(meta.packageName) ?: return@OutlinedButton
+                                scope.launch {
+                                    val res = updatesViewModel.executeRollback(meta.packageName, target, cleanReinstallWithRoot = true)
+                                    if (res.success) {
+                                        Toast.makeText(
+                                            context,
+                                            context.getString(R.string.rollback_success_snack, appLabel, meta.versionName),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        selectedRollbackPair = null
+                                    } else {
+                                        rollbackStatusHint = context.getString(R.string.rollback_failed_generic)
+                                    }
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(stringResource(R.string.rollback_btn_root_clean))
+                        }
+                    } else {
+                        FilledTonalButton(
+                            onClick = {
+                                val uninstallIntent = Intent(Intent.ACTION_DELETE, "package:${meta.packageName}".toUri()).apply {
+                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                }
+                                runCatching { context.startActivity(uninstallIntent) }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(stringResource(R.string.rollback_btn_step1_uninstall))
+                        }
+                        Button(
+                            onClick = {
+                                val target = rollbackManager.getBackupTargetFileOrDir(meta.packageName) ?: return@Button
+                                scope.launch {
+                                    val res = updatesViewModel.executeRollback(meta.packageName, target, cleanReinstallWithRoot = false)
+                                    if (res.success) {
+                                        Toast.makeText(
+                                            context,
+                                            context.getString(R.string.rollback_success_snack, appLabel, meta.versionName),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        selectedRollbackPair = null
+                                    } else {
+                                        rollbackStatusHint = context.getString(R.string.rollback_failed_generic)
+                                    }
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(stringResource(R.string.rollback_btn_step2_install, meta.versionName))
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { selectedRollbackPair = null }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            }
+        )
     }
 }
 
@@ -260,7 +428,10 @@ private fun UpdateHistoryCard(
     entry: UpdateHistoryEntry,
     displayAppName: String,
     previousVersionUrl: String,
-    onOpenPreviousVersion: (String) -> Unit
+    onOpenPreviousVersion: (String) -> Unit,
+    backupMeta: com.apkup.util.RollbackBackupMeta? = null,
+    onRequestRollback: (() -> Unit)? = null,
+    onExportBackup: (() -> Unit)? = null
 ) {
     val formattedTimestamp = remember(entry.installedAtMillis) {
         if (entry.installedAtMillis > 0L) {
@@ -426,7 +597,58 @@ private fun UpdateHistoryCard(
                 }
             }
 
-            if (previousVersionUrl.isNotBlank()) {
+            if (backupMeta != null && onRequestRollback != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        onClick = onRequestRollback,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Restore,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = stringResource(R.string.rollback_action_button, backupMeta.versionName),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                    if (onExportBackup != null) {
+                        Surface(
+                            onClick = onExportBackup,
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer
+                        ) {
+                            Text(
+                                text = stringResource(R.string.rollback_export_button),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (backupMeta == null && previousVersionUrl.isNotBlank()) {
                 val actionLabel = if (entry.oldVersion.isNotBlank()) {
                     stringResource(R.string.update_history_previous_version_action, entry.oldVersion)
                 } else {

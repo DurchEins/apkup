@@ -148,7 +148,9 @@ object ApkIntegrityVerifier {
         context: Context?,
         expectedPackageName: String,
         stagedFiles: List<Pair<File, String?>>,
-        allowSameVersionCode: Boolean = true
+        allowSameVersionCode: Boolean = true,
+        allowDowngrade: Boolean = false,
+        verifyAgainstInstalled: Boolean = true
     ) {
         if (!isValidPackageName(expectedPackageName)) {
             throw ApkIntegrityException(
@@ -243,20 +245,22 @@ object ApkIntegrityVerifier {
         }
 
         // 5. Compare against currently installed package (anti-downgrade + X.509 cert / v3 lineage check)
-        val installedInfo = getInstalledPackageInfoCompat(pm, expectedPackageName)
+        val installedInfo = if (verifyAgainstInstalled) getInstalledPackageInfoCompat(pm, expectedPackageName) else null
         if (installedInfo != null) {
             val installedVersionCode = installedInfo.longVersionCode
             val candidateVersionCode = baseArchiveInfo.longVersionCode
-            val isDowngrade = if (allowSameVersionCode) {
-                candidateVersionCode < installedVersionCode
-            } else {
-                candidateVersionCode <= installedVersionCode
-            }
-            if (isDowngrade) {
-                throw ApkIntegrityException(
-                    "Blocked version downgrade for $expectedPackageName: candidate=$candidateVersionCode < installed=$installedVersionCode",
-                    ApkIntegrityException.Reason.VERSION_DOWNGRADE
-                )
+            if (!allowDowngrade) {
+                val isDowngrade = if (allowSameVersionCode) {
+                    candidateVersionCode < installedVersionCode
+                } else {
+                    candidateVersionCode <= installedVersionCode
+                }
+                if (isDowngrade) {
+                    throw ApkIntegrityException(
+                        "Blocked version downgrade for $expectedPackageName: candidate=$candidateVersionCode < installed=$installedVersionCode",
+                        ApkIntegrityException.Reason.VERSION_DOWNGRADE
+                    )
+                }
             }
 
             val installedSigners = extractActiveSignersSha256(installedInfo)

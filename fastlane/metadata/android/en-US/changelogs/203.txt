@@ -1,0 +1,7 @@
+1.44.0 (203) – Feature Update:
+• Custom Source Priority (drag-and-drop) & Per-App Source Pinning with fallback
+• Pre-Release Channel Selector (Beta, RC, Alpha, Nightly) globally and per app
+• Automatic Pre-Update APK Backups & two-step Rollback Helper in Update History
+• Background Update Time Window / Quiet Hours with automatic catch-up scheduling
+• Pre-install minSdk / ABI compatibility check, Source Health sheet & App Watcher import
+• Fixed Save APK export when the installed app has a different signing certificate

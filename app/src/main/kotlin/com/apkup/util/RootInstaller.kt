@@ -156,7 +156,9 @@ class RootInstaller(
     fun executeRootInstall(
         packageName: String,
         parts: List<InstallPart>,
-        installerPackageName: String = BuildConfig.APPLICATION_ID
+        installerPackageName: String = BuildConfig.APPLICATION_ID,
+        allowDowngrade: Boolean = false,
+        bypassLowTargetSdkBlock: Boolean = false
     ): RootInstallResult {
         if (!ApkIntegrityVerifier.isValidPackageName(packageName)) {
             return RootInstallResult(false, details = "Invalid target package name: '$packageName'")
@@ -199,10 +201,19 @@ class RootInstaller(
 
             // Defense-in-depth fail-closed APK integrity & signature verification before invoking su
             try {
-                integrityVerifier(
-                    packageName,
-                    resolvedParts.map { (_, file, sha256) -> file to sha256 }
-                )
+                if (allowDowngrade) {
+                    ApkIntegrityVerifier.verifyStagedApkFiles(
+                        context = context,
+                        expectedPackageName = packageName,
+                        stagedFiles = resolvedParts.map { (_, file, sha256) -> file to sha256 },
+                        allowDowngrade = true
+                    )
+                } else {
+                    integrityVerifier(
+                        packageName,
+                        resolvedParts.map { (_, file, sha256) -> file to sha256 }
+                    )
+                }
             } catch (sec: ApkIntegrityException) {
                 runCatching { Log.e(TAG, "Blocked unsafe root install for $packageName (${sec.reason}): ${sec.message}") }
                 val reason = if (sec.reason == ApkIntegrityException.Reason.SIGNATURE_MISMATCH) {
@@ -221,7 +232,9 @@ class RootInstaller(
             val safeInstallerFlag = if (ApkIntegrityVerifier.isValidPackageName(installerPackageName)) {
                 "-i $installerPackageName "
             } else ""
-            val createCmd = "pm install-create -r $safeInstallerFlag-S $totalSize"
+            val downgradeFlag = if (allowDowngrade) "-d " else ""
+            val bypassLowTargetFlag = if (bypassLowTargetSdkBlock) "--bypass-low-target-sdk-block " else ""
+            val createCmd = "pm install-create -r $downgradeFlag$bypassLowTargetFlag$safeInstallerFlag-S $totalSize"
             val createOut = runCatching { shellExecutor.runCommand(createCmd) }
                 .getOrElse { err ->
                     return RootInstallResult(false, details = err.message ?: "su install-create failed")
@@ -284,5 +297,47 @@ class RootInstaller(
         } finally {
             tempVerifyDir?.let { runCatching { it.deleteRecursively() } }
         }
+    }
+
+    /**
+     * Clean Root rollback fallback: verifies the backup parts first (fail-closed), then uninstalls
+     * the newer package and installs the backup via `su`.
+     */
+    fun executeCleanRootRollback(
+        packageName: String,
+        parts: List<InstallPart>,
+        installerPackageName: String = BuildConfig.APPLICATION_ID,
+        bypassLowTargetSdkBlock: Boolean = false
+    ): RootInstallResult {
+        if (!ApkIntegrityVerifier.isValidPackageName(packageName)) {
+            return RootInstallResult(false, details = "Invalid target package name: '$packageName'")
+        }
+        val backingFiles = parts.mapNotNull { it.backingFile?.let { f -> f to it.expectedSha256 } }
+        if (backingFiles.size == parts.size && backingFiles.isNotEmpty()) {
+            try {
+                ApkIntegrityVerifier.verifyStagedApkFiles(
+                    context = context,
+                    expectedPackageName = packageName,
+                    stagedFiles = backingFiles,
+                    allowDowngrade = true
+                )
+            } catch (sec: ApkIntegrityException) {
+                return RootInstallResult(
+                    success = false,
+                    failureReason = if (sec.reason == ApkIntegrityException.Reason.SIGNATURE_MISMATCH) {
+                        InstallFailureReason.SIGNATURE_MISMATCH
+                    } else null,
+                    details = sec.message ?: "Backup verification failed"
+                )
+            }
+        }
+        runCatching { shellExecutor.runCommand("pm uninstall $packageName") }
+        return executeRootInstall(
+            packageName = packageName,
+            parts = parts,
+            installerPackageName = installerPackageName,
+            allowDowngrade = true,
+            bypassLowTargetSdkBlock = bypassLowTargetSdkBlock
+        )
     }
 }

@@ -66,6 +66,20 @@ class AppsViewModel(
 	fun scopeTab(): StateFlow<ScopeTab> = scopeTabState
 	fun viewMode(): StateFlow<String> = viewModeState
 	fun watchedApps(): StateFlow<List<WatchedAppEntry>> = prefs.watchedAppsFlow
+	fun pinnedAppSources(): StateFlow<Map<String, String>> = prefs.pinnedAppSourcesFlow
+	fun appPreReleaseOverrides(): StateFlow<Map<String, String>> = prefs.appPreReleaseOverridesFlow
+
+	fun getPinnedAppSource(packageName: String): String? = prefs.getPinnedAppSource(packageName)
+
+	fun pinAppSource(packageName: String, sourceKey: String?) {
+		prefs.pinAppSource(packageName, sourceKey)
+	}
+
+	fun getAppPreReleaseOverride(packageName: String): String = prefs.getAppPreReleaseOverride(packageName)
+
+	fun setAppPreReleaseOverride(packageName: String, mode: String?) {
+		prefs.setAppPreReleaseOverride(packageName, mode)
+	}
 
 	fun getAppsSortOrder(): AppsSortOrder = runCatching {
 		AppsSortOrder.valueOf(prefs.appsSortOrder.get())

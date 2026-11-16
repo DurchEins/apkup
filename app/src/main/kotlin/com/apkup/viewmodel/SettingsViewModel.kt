@@ -17,6 +17,7 @@ import com.apkup.data.ui.BackgroundCheckInterval
 import com.apkup.data.ui.CustomFDroidRepo
 import com.apkup.data.ui.IgnoredVersionEntry
 import com.apkup.data.ui.ShizukuSetupStatus
+import com.apkup.data.ui.SourcePriorityKeys
 import com.apkup.data.ui.WatchedAppEntry
 import com.apkup.prefs.Prefs
 import com.apkup.repository.RepoHostValidator
@@ -98,6 +99,23 @@ class SettingsViewModel(
 		prefs.useShizukuInstaller.get() && shizukuSetupStatusFlow.value.isReady
 	)
 	private val rootEnabledFlow = MutableStateFlow(prefs.useRootInstaller.get())
+
+	val sourcePriorityOrderFlow: StateFlow<List<String>> = prefs.sourcePriorityOrderFlow
+
+	fun getSourcePriorityOrder(): List<String> = prefs.readSourcePriorityOrderSafe()
+
+	fun moveSourcePriority(index: Int, delta: Int) {
+		val current = prefs.readSourcePriorityOrderSafe().toMutableList()
+		val target = index + delta
+		if (index !in current.indices || target !in current.indices) return
+		val item = current.removeAt(index)
+		current.add(target, item)
+		prefs.writeSourcePriorityOrder(current)
+	}
+
+	fun resetSourcePriorityOrder() {
+		prefs.writeSourcePriorityOrder(SourcePriorityKeys.DEFAULT_ORDER)
+	}
 	private val rootAvailableFlow = MutableStateFlow<Boolean?>(null)
 	private val customDownloadFolderUriFlow = MutableStateFlow(prefs.customDownloadFolderUri.get())
 	private val showShizukuSetupSheetFlow = MutableStateFlow(false)
@@ -775,7 +793,17 @@ class SettingsViewModel(
 			downloadChargingOnly = prefs.downloadChargingOnly.get(),
 			backgroundCheckWifiOnly = prefs.backgroundCheckWifiOnly.get(),
 			customDownloadFolderUri = prefs.customDownloadFolderUri.get(),
-			updateHistory = prefs.readUpdateHistorySafe()
+			updateHistory = prefs.readUpdateHistorySafe(),
+			sourcePriorityOrder = prefs.readSourcePriorityOrderSafe(),
+			pinnedAppSources = prefs.readPinnedAppSourcesSafe(),
+			includePreReleasesGlobal = prefs.includePreReleasesGlobal.get(),
+			preReleaseChannels = prefs.readAllowedPreReleaseChannelsSafe().toList(),
+			appPreReleaseOverrides = prefs.readAppPreReleaseOverridesSafe(),
+			autoUpdateWindowEnabled = prefs.autoUpdateWindowEnabled.get(),
+			autoUpdateWindowMode = prefs.autoUpdateWindowMode.get(),
+			autoUpdateWindowStartMinutes = prefs.autoUpdateWindowStartMinutes.get(),
+			autoUpdateWindowEndMinutes = prefs.autoUpdateWindowEndMinutes.get(),
+			enableRollbackBackups = prefs.enableRollbackBackups.get()
 		)
 		return gson.toJson(config)
 	}
@@ -935,6 +963,44 @@ class SettingsViewModel(
 				}
 			}
 
+			config.sourcePriorityOrder?.let { importedOrder ->
+				val safeOrder = importedOrder.filterIsInstance<String>()
+				prefs.writeSourcePriorityOrder(safeOrder)
+			}
+			config.pinnedAppSources?.let { rawPinned ->
+				val safePinned = rawPinned.entries.mapNotNull { (pkg, key) ->
+					val cleanPkg = (pkg as String?)?.trim().orEmpty()
+					val cleanKey = (key as String?)?.trim().orEmpty()
+					if (cleanPkg.isNotBlank() && cleanKey in SourcePriorityKeys.DEFAULT_ORDER) {
+						cleanPkg to cleanKey
+					} else null
+				}.toMap()
+				prefs.pinnedAppSources.put(safePinned)
+			}
+			config.includePreReleasesGlobal?.let { prefs.includePreReleasesGlobal.put(it) }
+			config.preReleaseChannels?.let { channels ->
+				val valid = com.apkup.data.repomapping.ReleaseAssetFilter.PreReleaseChannel.ALL
+				prefs.preReleaseChannels.put(channels.filter { it in valid }.distinct())
+			}
+			config.appPreReleaseOverrides?.let { rawOverrides ->
+				val safeOverrides = rawOverrides.entries.mapNotNull { (pkg, mode) ->
+					val cleanPkg = (pkg as String?)?.trim().orEmpty()
+					val cleanMode = (mode as String?)?.trim().orEmpty()
+					if (cleanPkg.isNotBlank() && (cleanMode == com.apkup.data.ui.PreReleaseOverride.ALLOW || cleanMode == com.apkup.data.ui.PreReleaseOverride.BLOCK)) {
+						cleanPkg to cleanMode
+					} else null
+				}.toMap()
+				prefs.appPreReleaseOverrides.put(safeOverrides)
+			}
+			config.autoUpdateWindowEnabled?.let { prefs.autoUpdateWindowEnabled.put(it) }
+			config.autoUpdateWindowMode?.let { mode ->
+				if (mode == com.apkup.data.ui.UpdateWindowMode.ALLOW_ONLY || mode == com.apkup.data.ui.UpdateWindowMode.QUIET_PAUSE) {
+					prefs.autoUpdateWindowMode.put(mode)
+				}
+			}
+			config.autoUpdateWindowStartMinutes?.let { prefs.autoUpdateWindowStartMinutes.put(com.apkup.data.ui.UpdateWindowEvaluator.normalizeMinutes(it)) }
+			config.autoUpdateWindowEndMinutes?.let { prefs.autoUpdateWindowEndMinutes.put(com.apkup.data.ui.UpdateWindowEvaluator.normalizeMinutes(it)) }
+			config.enableRollbackBackups?.let { prefs.enableRollbackBackups.put(it) }
 			config.fdroidRepos?.let { importedRepos ->
 				val presetsById = FDroidRepoConfig.defaultPresets().associateBy { it.id }
 				val validatedRepos = importedRepos.mapNotNull { candidate ->
@@ -1199,6 +1265,72 @@ class SettingsViewModel(
 			if (success) R.string.diagnostic_log_export_success else R.string.diagnostic_log_export_error,
 			if (success) com.apkup.data.snack.SnackVisualType.SUCCESS else com.apkup.data.snack.SnackVisualType.ERROR
 		)
+	}
+
+	fun getIncludePreReleasesGlobal(): Boolean = prefs.includePreReleasesGlobal.get()
+	fun setIncludePreReleasesGlobal(enabled: Boolean) {
+		prefs.includePreReleasesGlobal.put(enabled)
+	}
+
+	fun getAllowedPreReleaseChannels(): Set<String> = prefs.readAllowedPreReleaseChannelsSafe()
+	fun setPreReleaseChannelEnabled(channel: String, enabled: Boolean) {
+		prefs.setPreReleaseChannelEnabled(channel, enabled)
+	}
+
+	fun getAutoUpdateWindowEnabled(): Boolean = prefs.autoUpdateWindowEnabled.get()
+	fun setAutoUpdateWindowEnabled(enabled: Boolean) {
+		prefs.autoUpdateWindowEnabled.put(enabled)
+	}
+
+	fun getAutoUpdateWindowMode(): String = prefs.autoUpdateWindowMode.get()
+	fun setAutoUpdateWindowMode(mode: String) {
+		if (mode == com.apkup.data.ui.UpdateWindowMode.ALLOW_ONLY || mode == com.apkup.data.ui.UpdateWindowMode.QUIET_PAUSE) {
+			prefs.autoUpdateWindowMode.put(mode)
+		}
+	}
+
+	fun getAutoUpdateWindowStartMinutes(): Int = prefs.autoUpdateWindowStartMinutes.get()
+	fun setAutoUpdateWindowStartMinutes(minutes: Int) {
+		prefs.autoUpdateWindowStartMinutes.put(com.apkup.data.ui.UpdateWindowEvaluator.normalizeMinutes(minutes))
+	}
+
+	fun getAutoUpdateWindowEndMinutes(): Int = prefs.autoUpdateWindowEndMinutes.get()
+	fun setAutoUpdateWindowEndMinutes(minutes: Int) {
+		prefs.autoUpdateWindowEndMinutes.put(com.apkup.data.ui.UpdateWindowEvaluator.normalizeMinutes(minutes))
+	}
+
+	fun getEnableRollbackBackups(): Boolean = prefs.enableRollbackBackups.get()
+	fun setEnableRollbackBackups(enabled: Boolean) {
+		prefs.enableRollbackBackups.put(enabled)
+	}
+
+	fun importAppWatcherJson(
+		rawJson: String,
+		installedPackages: Set<String>
+	): com.apkup.util.AppWatcherImportSummary? {
+		val summary = com.apkup.util.AppWatcherImporter.parseExportJson(
+			rawJson = rawJson,
+			installedPackages = installedPackages,
+			existingWatched = prefs.readWatchedAppsSafe()
+		)
+		if (summary == null) {
+			notifySnack(R.string.app_watcher_import_error, com.apkup.data.snack.SnackVisualType.ERROR)
+			return null
+		}
+		summary.addedEntries.forEach { entry ->
+			prefs.addWatchedApp(entry)
+		}
+		val msg = stringer?.let { str ->
+			runCatching {
+				str.get(
+					R.string.app_watcher_import_success,
+					summary.addedEntries.size,
+					summary.skippedInstalledCount
+				)
+			}.getOrNull()
+		} ?: "App Watcher: ${summary.addedEntries.size} imported (${summary.skippedInstalledCount} installed skipped)"
+		notifyTextSnack(msg, com.apkup.data.snack.SnackVisualType.SUCCESS)
+		return summary
 	}
 
 	private fun notifySnack(

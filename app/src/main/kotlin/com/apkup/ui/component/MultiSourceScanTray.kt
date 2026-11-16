@@ -6,6 +6,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -44,10 +46,73 @@ data class ScanSourceStatus(
 fun resolveScanSourceIcon(name: String): Int = when {
     name.contains("apkmirror", ignoreCase = true) -> R.drawable.ic_apkmirror
     name.contains("play", ignoreCase = true) || name.contains("google", ignoreCase = true) -> R.drawable.ic_play
-    name.contains("izzy", ignoreCase = true) || name.contains("f-droid", ignoreCase = true) || name.contains("fdroid", ignoreCase = true) -> R.drawable.ic_izzy
+    name.contains("codeberg", ignoreCase = true) || name.contains("forgejo", ignoreCase = true) -> R.drawable.ic_codeberg
     name.contains("gitlab", ignoreCase = true) -> R.drawable.ic_gitlab
     name.contains("github", ignoreCase = true) -> R.drawable.ic_github
-    else -> R.drawable.ic_refresh
+    name.contains("newpipe", ignoreCase = true) -> R.drawable.ic_newpipe
+    name.contains("microg", ignoreCase = true) -> R.drawable.ic_microg
+    name.contains("guardian", ignoreCase = true) -> R.drawable.ic_guardian
+    name.contains("izzy", ignoreCase = true) -> R.drawable.ic_izzy
+    name.contains("f-droid", ignoreCase = true) || name.contains("fdroid", ignoreCase = true) -> R.drawable.ic_fdroid
+    else -> R.drawable.ic_izzy
+}
+
+fun isFDroidFamilySource(name: String): Boolean = when {
+    name.contains("apkmirror", ignoreCase = true) -> false
+    name.contains("play", ignoreCase = true) || name.contains("google", ignoreCase = true) -> false
+    name.contains("codeberg", ignoreCase = true) || name.contains("forgejo", ignoreCase = true) -> false
+    name.contains("gitlab", ignoreCase = true) -> false
+    name.contains("github", ignoreCase = true) -> false
+    else -> true
+}
+
+data class ScanTrayItem(
+    val status: ScanSourceStatus,
+    val iconRes: Int
+)
+
+fun groupScanTrayStatuses(statuses: List<ScanSourceStatus>): List<ScanTrayItem> {
+    if (statuses.isEmpty()) return emptyList()
+    val fdroidSources = statuses.filter { isFDroidFamilySource(it.name) }
+    if (fdroidSources.size <= 1) {
+        return statuses.map { ScanTrayItem(it, resolveScanSourceIcon(it.name)) }
+    }
+
+    val result = mutableListOf<ScanTrayItem>()
+    var fdroidInserted = false
+    for (source in statuses) {
+        if (!isFDroidFamilySource(source.name)) {
+            result.add(ScanTrayItem(source, resolveScanSourceIcon(source.name)))
+        } else if (!fdroidInserted) {
+            fdroidInserted = true
+            val activeIndex = fdroidSources.indexOfFirst { it.isScanning }
+            val combinedStatus = if (activeIndex >= 0) {
+                val active = fdroidSources[activeIndex]
+                ScanSourceStatus(
+                    name = "${active.name} (${activeIndex + 1}/${fdroidSources.size})",
+                    isScanning = true,
+                    updateCount = fdroidSources.sumOf { it.updateCount },
+                    isError = fdroidSources.any { it.isError }
+                )
+            } else {
+                ScanSourceStatus(
+                    name = "F-Droid (${fdroidSources.size})",
+                    isScanning = false,
+                    updateCount = fdroidSources.sumOf { it.updateCount },
+                    isError = fdroidSources.any { it.isError }
+                )
+            }
+            val iconRes = if (activeIndex >= 0) {
+                resolveScanSourceIcon(fdroidSources[activeIndex].name)
+            } else if (fdroidSources.any { it.name.contains("f-droid", ignoreCase = true) || it.name.contains("fdroid", ignoreCase = true) }) {
+                R.drawable.ic_fdroid
+            } else {
+                resolveScanSourceIcon(fdroidSources.first().name)
+            }
+            result.add(ScanTrayItem(combinedStatus, iconRes))
+        }
+    }
+    return result
 }
 
 @Composable
@@ -55,17 +120,20 @@ fun MultiSourceScanTray(
     statuses: List<ScanSourceStatus>,
     modifier: Modifier = Modifier
 ) {
-    if (statuses.isEmpty()) return
+    val trayItems = groupScanTrayStatuses(statuses)
+    if (trayItems.isEmpty()) return
 
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
             .padding(horizontal = 8.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        statuses.forEach { source ->
-            val iconRes = resolveScanSourceIcon(source.name)
+        trayItems.forEach { item ->
+            val source = item.status
+            val iconRes = item.iconRes
 
             if (source.isScanning) {
                 // Active accordion state: Expanded with icon, spinning indicator and source name

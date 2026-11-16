@@ -270,11 +270,64 @@ object ReleaseAssetFilter {
         return ParsedSemVer(segments, preRelease)
     }
 
+    private val PRE_RELEASE_TOKEN_REGEX = Regex(
+        "(?:^|[.\\-_+\\s])(alpha|beta|rc|nightly|canary|dev|preview|snapshot|pre|experimental)\\d*(?:$|[.\\-_+\\s])",
+        RegexOption.IGNORE_CASE
+    )
+
+    object PreReleaseChannel {
+        const val BETA = "BETA"
+        const val RC = "RC"
+        const val ALPHA = "ALPHA"
+        const val NIGHTLY = "NIGHTLY"
+        val ALL = setOf(BETA, RC, ALPHA, NIGHTLY)
+        val DEFAULT = setOf(BETA, RC)
+    }
+
+    fun classifyPreReleaseChannel(versionOrTag: String): String? {
+        val match = PRE_RELEASE_TOKEN_REGEX.find(cleanVersionString(versionOrTag)) ?: return null
+        val token = match.groupValues.getOrNull(1)?.lowercase(Locale.ROOT).orEmpty()
+        return when {
+            token == "beta" -> PreReleaseChannel.BETA
+            token == "rc" || token == "pre" || token == "preview" -> PreReleaseChannel.RC
+            token == "alpha" -> PreReleaseChannel.ALPHA
+            token in setOf("nightly", "canary", "dev", "snapshot", "experimental") -> PreReleaseChannel.NIGHTLY
+            else -> PreReleaseChannel.BETA
+        }
+    }
+
+    fun isPreReleaseVersion(versionOrTag: String, isPrereleaseFlag: Boolean = false): Boolean {
+        if (isPrereleaseFlag) return true
+        val cleaned = cleanVersionString(versionOrTag)
+        if (cleaned.isEmpty()) return false
+        return PRE_RELEASE_TOKEN_REGEX.containsMatchIn(cleaned)
+    }
+
+    fun isPreReleaseAllowedByChannels(
+        versionOrTag: String,
+        allowedChannels: Set<String>,
+        isPrereleaseFlag: Boolean = false
+    ): Boolean {
+        if (!isPreReleaseVersion(versionOrTag, isPrereleaseFlag)) return true
+        if (allowedChannels.isEmpty()) return false
+        val channel = classifyPreReleaseChannel(versionOrTag) ?: PreReleaseChannel.BETA
+        return channel in allowedChannels
+    }
+
+    fun isBareBuildNumberTag(parsed: ParsedSemVer): Boolean =
+        parsed.segments.size == 1 && parsed.segments[0] >= 100_000L
+
     fun isNewer(currentVersion: String, candidateTag: String): Boolean {
         if (currentVersion.isBlank()) return cleanVersionString(candidateTag).isNotBlank()
         val current = parseSemVer(currentVersion)
         val candidate = parseSemVer(candidateTag)
         if (candidate.segments.isEmpty()) return false
+
+        // Guard against bare date/build-number tags (e.g. "v2026072802") falsely beating a
+        // multi-segment semantic version (e.g. "2.4.0-261014").
+        if (current.segments.size >= 2 && current.segments[0] < 10_000L && isBareBuildNumberTag(candidate)) {
+            return false
+        }
 
         val maxLen = maxOf(current.segments.size, candidate.segments.size)
         for (i in 0 until maxLen) {

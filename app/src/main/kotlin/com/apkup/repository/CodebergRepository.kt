@@ -85,7 +85,12 @@ class CodebergRepository(
                         continue
                     }
                     try {
-                        val release = fetchLatestRelease(binding, allowLanHost = isManualCustom)
+                        val allowPreReleases = prefs.shouldAllowPreReleases(app.packageName)
+                        val release = fetchLatestRelease(
+                            binding = binding,
+                            allowLanHost = isManualCustom,
+                            includePreReleases = allowPreReleases
+                        )
                         successfulRequests++
                         if (release != null) {
                             val candidateTag = release.safeTagName.ifBlank { release.safeName }
@@ -176,7 +181,8 @@ class CodebergRepository(
 
     internal suspend fun fetchLatestRelease(
         binding: RepoBinding,
-        allowLanHost: Boolean = false
+        allowLanHost: Boolean = false,
+        includePreReleases: Boolean = false
     ): GitHubReleaseDto? = withContext(Dispatchers.IO) {
         val host = binding.resolvedHost.trim().lowercase(Locale.ROOT)
         if (!RepoHostValidator.isAllowedRepoHost(host, allowLanHosts = allowLanHost)) {
@@ -202,7 +208,7 @@ class CodebergRepository(
             .addPathSegment("releases")
             .addQueryParameter("limit", "5")
             .build()
-        val cacheKey = binding.canonicalKey()
+        val cacheKey = if (includePreReleases) "${binding.canonicalKey()}#pre" else binding.canonicalKey()
         val cached = releaseCache[cacheKey]
 
         val requestBuilder = Request.Builder()
@@ -242,9 +248,13 @@ class CodebergRepository(
                 gson.fromJson<List<GitHubReleaseDto>>(response.body.charStream(), listType)
             }.getOrNull().orEmpty()
 
-            val chosen = releases.firstOrNull { !it.draft && !it.prerelease && it.safeAssets.any { a -> a.safeName.endsWith(".apk", ignoreCase = true) } }
-                ?: releases.firstOrNull { !it.draft && !it.prerelease }
-                ?: releases.firstOrNull { !it.draft }
+            val chosen = if (includePreReleases) {
+                releases.firstOrNull { !it.draft && it.safeAssets.any { a -> a.safeName.endsWith(".apk", ignoreCase = true) } }
+                    ?: releases.firstOrNull { !it.draft }
+            } else {
+                releases.firstOrNull { !it.draft && !it.prerelease && it.safeAssets.any { a -> a.safeName.endsWith(".apk", ignoreCase = true) } }
+                    ?: releases.firstOrNull { !it.draft && !it.prerelease }
+            }
 
             if (chosen != null) {
                 releaseCache[cacheKey] = CachedRelease(etag, chosen, System.currentTimeMillis())

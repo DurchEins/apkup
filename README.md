@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.43.1%20(193)-A855F7?style=flat" alt="Version" /></a>
+  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.44.0%20(203)-A855F7?style=flat" alt="Version" /></a>
   <img src="https://img.shields.io/badge/Android-10.0%2B%20(API%2029%2B)-3DDC84?style=flat&logo=android" alt="Android" />
   <img src="https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat" alt="License: GPL v3" />
   <img src="https://img.shields.io/badge/Shizuku%20%26%20Root-Supported-00897B?style=flat" alt="Shizuku & Root" />
@@ -29,7 +29,10 @@
   * **Google Play Store:** Anonymous store delta queries with automatic HTTP 429 rate-limit recovery and privacy-minimized device compatibility profiles.
   * **APKMirror In-App Downloads:** Direct in-app downloading and `.apkm` split-bundle installation with automatic in-app Cloudflare WebView verification, intelligent concurrency throttling, 10-minute per-app cooldown, and seamless browser fallback on anti-bot challenges.
   * **GitHub, GitLab & Codeberg / Forgejo:** Built-in mappings for popular FOSS apps, batched GraphQL update queries when a GitHub token is configured, and 3-way custom repository bindings (`owner/repo`, self-hosted GitLab/Forgejo instances, multi-level subgroup paths, token verification sheets, optional asset regex filtering, and FOSS flavor preference) with strict host-isolated token handling.
-  * **Watch Uninstalled Apps:** Track releases for apps that are not yet installed via the **`+`** button in *Apps* and the *Watched* filter — discovered releases appear directly in *Updates* ready for one-tap installation or APK export.
+  * **Configurable Source Priority & Per-App Pinning:** Reorder update sources via drag-and-drop or arrow controls in *Setup*, pin individual apps to a preferred source with automatic fallback when no update is available there, and track active F-Droid repositories in a compact grouped scan tray.
+  * **Pre-Release Channels & Background Time Window:** Selectively enable **Beta**, **RC**, **Alpha**, or **Nightly** channels globally or per app, and configure quiet hours or active time windows for background checks and auto-updates with automatic catch-up scheduling.
+  * **Automatic Rollback Backups & Compatibility Guard:** Optionally back up installed APKs (including splits) before updating for in-place Root (`-r -d`) or guided non-Root rollbacks, with pre-install `minSdk` / `ABI` checks and a *Source Health & Cooldowns* sheet in *Setup*.
+  * **Watch Uninstalled Apps & App Watcher Import:** Track releases for apps that are not yet installed via the **`+`** button in *Apps* and the *Watched* filter, mark versions as *Seen*, or import watchlists directly from **App Watcher** exports.
   * **Obtainium Interoperability with Preview:** Import app configurations, custom F-Droid repositories, and watchlist candidates from Obtainium exports via an interactive preview sheet, and export custom bindings back to Obtainium JSON.
   * **Verified Self-Updater:** Checks official GitHub releases and validates `SHA256SUMS` digests plus APK signing certificates before installing updates.
 * **🛡️ Defense-in-Depth Security & Privacy:**

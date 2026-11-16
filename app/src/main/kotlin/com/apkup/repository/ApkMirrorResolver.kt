@@ -254,6 +254,11 @@ class ApkMirrorResolver(
         }
         val targetLabel = packageName?.takeIf { it.isNotBlank() } ?: variantUrl?.takeIf { it.isNotBlank() } ?: "unknown"
         AppJournal.record("ApkMirror", "Cloudflare cooldown (${cloudflareCooldownMs / 60_000L}m) active for $targetLabel")
+        com.apkup.util.SourceHealthTracker.recordCooldown(
+            sourceName = "APKMirror",
+            cooldownUntilMillis = blockedUntil,
+            reason = "Cloudflare cooldown ($targetLabel)"
+        )
     }
 
     fun clearCooldown(variantUrl: String? = null, packageName: String? = null) {

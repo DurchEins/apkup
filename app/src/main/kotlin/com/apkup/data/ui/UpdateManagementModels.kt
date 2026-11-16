@@ -115,7 +115,17 @@ data class ApkUpBackupConfig(
     val downloadChargingOnly: Boolean? = false,
     val backgroundCheckWifiOnly: Boolean? = false,
     val customDownloadFolderUri: String? = "",
-    val updateHistory: List<UpdateHistoryEntry>? = null
+    val updateHistory: List<UpdateHistoryEntry>? = null,
+    val sourcePriorityOrder: List<String>? = null,
+    val pinnedAppSources: Map<String, String>? = null,
+    val includePreReleasesGlobal: Boolean? = null,
+    val preReleaseChannels: List<String>? = null,
+    val appPreReleaseOverrides: Map<String, String>? = null,
+    val autoUpdateWindowEnabled: Boolean? = null,
+    val autoUpdateWindowMode: String? = null,
+    val autoUpdateWindowStartMinutes: Int? = null,
+    val autoUpdateWindowEndMinutes: Int? = null,
+    val enableRollbackBackups: Boolean? = null
 ) {
     companion object {
         const val CURRENT_SCHEMA_VERSION = 2
@@ -217,8 +227,93 @@ object CustomFDroidPresets {
 data class WatchedAppEntry(
     val packageName: String = "",
     val appName: String = "",
-    val addedAtMillis: Long = 0L
-)
+    val addedAtMillis: Long = 0L,
+    val seenVersion: String = "",
+    val seenVersionCode: Long = 0L
+) {
+    fun isCandidateUnseen(candidateVersion: String, candidateVersionCode: Long): Boolean {
+        val cleanSeen = seenVersion.trim()
+        val cleanCand = candidateVersion.trim()
+        if (seenVersionCode <= 0L && cleanSeen.isEmpty()) return true
+        if (seenVersionCode > 0L && candidateVersionCode > 0L && candidateVersionCode != seenVersionCode) {
+            return candidateVersionCode > seenVersionCode
+        }
+        if (cleanSeen.isNotEmpty() && cleanCand.isNotEmpty()) {
+            if (cleanSeen.equals(cleanCand, ignoreCase = true)) return false
+            return com.apkup.data.repomapping.ReleaseAssetFilter.isNewer(cleanSeen, cleanCand)
+        }
+        return candidateVersionCode > seenVersionCode
+    }
+}
+
+object PreReleaseOverride {
+    const val DEFAULT = ""
+    const val ALLOW = "ALLOW"
+    const val BLOCK = "BLOCK"
+}
+
+object UpdateWindowMode {
+    const val ALLOW_ONLY = "ALLOW_ONLY"
+    const val QUIET_PAUSE = "QUIET_PAUSE"
+}
+
+object UpdateWindowEvaluator {
+    private const val MINUTES_PER_DAY = 24 * 60
+
+    fun normalizeMinutes(minutes: Int): Int =
+        ((minutes % MINUTES_PER_DAY) + MINUTES_PER_DAY) % MINUTES_PER_DAY
+
+    fun isMinuteInRange(minuteOfDay: Int, startMinutes: Int, endMinutes: Int): Boolean {
+        val m = normalizeMinutes(minuteOfDay)
+        val s = normalizeMinutes(startMinutes)
+        val e = normalizeMinutes(endMinutes)
+        if (s == e) return true
+        return if (s < e) {
+            m in s until e
+        } else {
+            m >= s || m < e
+        }
+    }
+
+    fun isAllowedNow(
+        enabled: Boolean,
+        mode: String,
+        startMinutes: Int,
+        endMinutes: Int,
+        nowMinuteOfDay: Int
+    ): Boolean {
+        if (!enabled) return true
+        val inRange = isMinuteInRange(nowMinuteOfDay, startMinutes, endMinutes)
+        return when (mode) {
+            UpdateWindowMode.ALLOW_ONLY -> inRange
+            else -> !inRange // QUIET_PAUSE: pause inside range, allow outside
+        }
+    }
+
+    fun minutesUntilNextAllowedWindow(
+        enabled: Boolean,
+        mode: String,
+        startMinutes: Int,
+        endMinutes: Int,
+        nowMinuteOfDay: Int
+    ): Int {
+        if (isAllowedNow(enabled, mode, startMinutes, endMinutes, nowMinuteOfDay)) return 0
+        val now = normalizeMinutes(nowMinuteOfDay)
+        val targetMinute = when (mode) {
+            UpdateWindowMode.ALLOW_ONLY -> normalizeMinutes(startMinutes)
+            else -> normalizeMinutes(endMinutes) // QUIET_PAUSE ends at endMinutes
+        }
+        val diff = (targetMinute - now + MINUTES_PER_DAY) % MINUTES_PER_DAY
+        return if (diff == 0) MINUTES_PER_DAY else diff
+    }
+
+    fun formatMinutesOfDay(minutes: Int): String {
+        val norm = normalizeMinutes(minutes)
+        val h = norm / 60
+        val m = norm % 60
+        return String.format(java.util.Locale.ROOT, "%02d:%02d", h, m)
+    }
+}
 
 enum class AppsSortOrder {
     NAME_ASC,

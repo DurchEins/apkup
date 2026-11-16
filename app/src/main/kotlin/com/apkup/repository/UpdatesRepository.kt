@@ -16,6 +16,7 @@ import com.apkup.data.ui.InstallOrigin
 import com.apkup.data.ui.IzzyOnDroidSource
 import com.apkup.data.ui.Link
 import com.apkup.data.ui.PlaySource
+import com.apkup.data.ui.SourcePriorityKeys
 import com.apkup.data.ui.SourceUpdateResult
 import com.apkup.data.ui.UpdateCheckResult
 import com.apkup.data.ui.combineSourceResults
@@ -147,13 +148,28 @@ class UpdatesRepository(
             val packageNames = appsToCheck.getPackageNames()
             val progressTracker = UpdateCheckProgressTracker(packageNames, sourceChecks.map { it.first })
             val sourceResultsLock = Any()
+            val pinnedSources = prefs.readPinnedAppSourcesSafe()
+            val priorityOrder = prefs.readSourcePriorityOrderSafe()
             val prioritySelector: (AppUpdate) -> Int = { candidate ->
-                computeUpdateSourcePriority(candidate, repoMappingManager)
+                computeUpdateSourcePriority(candidate, repoMappingManager, pinnedSources, priorityOrder)
             }
             fun currentResult(isChecking: Boolean): UpdateCheckResult<AppUpdate> = synchronized(sourceResultsLock) {
+                val watchedByPkg = prefs.readWatchedAppsSafe().associateBy { it.packageName }
                 val filteredResults = sourceResults.map { sourceResult ->
                     sourceResult.copy(
-                        updates = sourceResult.updates.filter { it.isMeaningfulVersionUpgrade() }
+                        updates = sourceResult.updates.filter { candidate ->
+                            if (!candidate.isMeaningfulVersionUpgrade()) return@filter false
+                            if (!prefs.isPreReleaseCandidateAllowed(candidate.packageName, candidate.version)) {
+                                return@filter false
+                            }
+                            if (candidate.oldVersionCode < 0L) {
+                                val watchedEntry = watchedByPkg[candidate.packageName]
+                                if (watchedEntry != null && !watchedEntry.isCandidateUnseen(candidate.version, candidate.versionCode)) {
+                                    return@filter false
+                                }
+                            }
+                            true
+                        }
                     )
                 }
                 val combined = combineSourceResults(
@@ -202,6 +218,18 @@ class UpdatesRepository(
                         AppJournal.record("Updates", "$sourceName failure details: $failure")
                     }
                     val elapsedMs = SystemClock.elapsedRealtime() - sourceStartedAt
+                    if (result.failureSummary != null || (result.failedRequests > 0 && result.successfulRequests == 0)) {
+                        com.apkup.util.SourceHealthTracker.recordError(
+                            sourceName = sourceName,
+                            message = result.failureSummary ?: "Request failed (${result.failedRequests})"
+                        )
+                    } else {
+                        com.apkup.util.SourceHealthTracker.recordSuccess(
+                            sourceName = sourceName,
+                            foundUpdates = result.updates.size,
+                            durationMillis = elapsedMs
+                        )
+                    }
                     if (BuildConfig.DEBUG) {
                         Log.d(
                             "UpdatesRepository",
@@ -270,6 +298,7 @@ class UpdatesRepository(
         } else {
             buildWatchedAppPlaceholders(installedApps).associateBy { it.packageName }
         }
+        val watchedEntriesByPkg = prefs.readWatchedAppsSafe().associateBy { it.packageName }
         val restoredUpdates = snapshot.updates
             .orEmpty()
             .map { dto ->
@@ -278,6 +307,15 @@ class UpdatesRepository(
                 }
             }
             .mapNotNull { update ->
+                if (!prefs.isPreReleaseCandidateAllowed(update.packageName, update.version)) {
+                    return@mapNotNull null
+                }
+                if (update.oldVersionCode < 0L) {
+                    val watchedEntry = watchedEntriesByPkg[update.packageName]
+                    if (watchedEntry != null && !watchedEntry.isCandidateUnseen(update.version, update.versionCode)) {
+                        return@mapNotNull null
+                    }
+                }
                 if (installedByPackage == null) {
                     update.takeIf { it.isMeaningfulVersionUpgrade() }
                 } else {
@@ -355,15 +393,23 @@ class UpdatesRepository(
 }
 
 /**
- * Source deduplication priority (F-14):
- * 1. Explicit user custom repo binding (GitHub/GitLab/Codeberg) -> 100
- * 2. Matching installOrigin (Play->Play, F-Droid->F-Droid/Izzy, APKMirror->APKMirror, Sideload->GitHub/Codeberg/GitLab) -> 84..90
- * 3. Default tie-breaker priority -> Play (5) > GitHub (4) > Codeberg (3) > F-Droid/Izzy/CustomFDroid (2) > GitLab (1) > APKMirror (0)
+ * Source deduplication priority (P-15):
+ * 1. Explicit per-app pinned source (with fallback if unavailable) -> 200
+ * 2. Explicit user custom repo binding (GitHub/GitLab/Codeberg) -> 100
+ * 3. Matching installOrigin (Play->Play, F-Droid->F-Droid/Izzy, APKMirror->APKMirror, Sideload->GitHub/Codeberg/GitLab) -> 84..90
+ * 4. Configurable global source priority order (default: Play > GitHub > Codeberg > F-Droid/Izzy > CustomFDroid > GitLab > APKMirror) -> 0..6
  */
 internal fun computeUpdateSourcePriority(
     update: AppUpdate,
-    repoMappingManager: RepoMappingManager? = null
+    repoMappingManager: RepoMappingManager? = null,
+    pinnedSources: Map<String, String> = emptyMap(),
+    sourcePriorityOrder: List<String> = SourcePriorityKeys.DEFAULT_ORDER
 ): Int {
+    val pinnedKey = pinnedSources[update.packageName]
+    if (pinnedKey != null && pinnedKey == SourcePriorityKeys.fromSource(update.source)) {
+        return 200
+    }
+
     val customBinding = repoMappingManager?.getCustomBinding(update.packageName)
     if (customBinding != null) {
         val matchesCustomType = (customBinding.isGitHub && update.source == GitHubSource) ||
@@ -390,17 +436,17 @@ internal fun computeUpdateSourcePriority(
         else -> Unit
     }
 
-    return defaultSourcePriority(update)
+    return defaultSourcePriority(update, sourcePriorityOrder)
 }
 
-internal fun defaultSourcePriority(update: AppUpdate): Int = when (update.source) {
-    PlaySource -> 5
-    GitHubSource -> 4
-    CodebergSource -> 3
-    FDroidSource, IzzyOnDroidSource, CustomFDroidSource -> 2
-    GitLabSource -> 1
-    ApkMirrorSource -> 0
-    else -> 2
+internal fun defaultSourcePriority(
+    update: AppUpdate,
+    sourcePriorityOrder: List<String> = SourcePriorityKeys.DEFAULT_ORDER
+): Int {
+    val normalized = SourcePriorityKeys.normalizeOrder(sourcePriorityOrder)
+    val key = SourcePriorityKeys.fromSource(update.source)
+    val index = normalized.indexOf(key)
+    return if (index >= 0) (normalized.size - 1 - index) else 2
 }
 
 internal fun enrichWithSourceAlternatives(

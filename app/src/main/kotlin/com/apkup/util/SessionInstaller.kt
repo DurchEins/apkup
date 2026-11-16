@@ -497,10 +497,17 @@ class SessionInstaller internal constructor(
 
         val preservedInstaller = context?.let { resolvePreservedInstallerPackage(it, packageName) }
             ?: BuildConfig.APPLICATION_ID
+        val needsLowTargetBypass = context?.let { ctx ->
+            val firstFile = parts.firstNotNullOfOrNull { it.backingFile }
+            if (firstFile != null) {
+                ApkCompatibilityChecker.checkStagedTarget(ctx, firstFile.parentFile ?: firstFile).needsLowTargetSdkBypass
+            } else false
+        } ?: false
         val rootResult = rootInstaller.executeRootInstall(
             packageName = packageName,
             parts = parts,
-            installerPackageName = preservedInstaller
+            installerPackageName = preservedInstaller,
+            bypassLowTargetSdkBlock = needsLowTargetBypass
         )
         AppJournal.record(
             "Root",
@@ -750,7 +757,14 @@ class SessionInstaller internal constructor(
 
             // Always bind session to `-p packageName` and preserve original installingPackageName (F-12a, HIGH-01)
             val installerPkg = resolvePreservedInstallerPackage(ctx, packageName)
-            val createArgs = arrayOf("pm", "install-create", "-r", "-p", packageName, "-i", installerPkg)
+            val needsLowTargetBypass = stagedFiles.firstOrNull()?.second?.let { f ->
+                ApkCompatibilityChecker.checkStagedTarget(ctx, f.parentFile ?: f).needsLowTargetSdkBypass
+            } ?: false
+            val createArgs = if (needsLowTargetBypass && Build.VERSION.SDK_INT >= 34) {
+                arrayOf("pm", "install-create", "-r", "--bypass-low-target-sdk-block", "-p", packageName, "-i", installerPkg)
+            } else {
+                arrayOf("pm", "install-create", "-r", "-p", packageName, "-i", installerPkg)
+            }
             val createOutput = runShizukuCommand(shizukuService, createArgs)
             sessionId = Regex("\\[(\\d+)]").find(createOutput)?.groupValues?.getOrNull(1)
                 ?: throw IOException("Could not parse Shizuku install session ID from: $createOutput")
@@ -1237,6 +1251,104 @@ class SessionInstaller internal constructor(
         }
     }
 
+    suspend fun executeRollbackInstall(
+        packageName: String,
+        backupTarget: File,
+        cleanReinstallWithRoot: Boolean = false
+    ): RollbackInstallResult = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        val apkFiles = if (backupTarget.isDirectory) {
+            backupTarget.listFiles { f -> f.isFile && f.name.endsWith(".apk", ignoreCase = true) && f.length() > 0L }
+                ?.sortedBy { it.name }
+                .orEmpty()
+        } else if (backupTarget.isFile && backupTarget.length() > 0L) {
+            listOf(backupTarget)
+        } else {
+            emptyList()
+        }
+        if (apkFiles.isEmpty()) {
+            return@withContext RollbackInstallResult(
+                success = false,
+                usedRoot = false,
+                details = "No backup APK files found for $packageName"
+            )
+        }
+
+        try {
+            ApkIntegrityVerifier.verifyStagedApkFiles(
+                context = context,
+                expectedPackageName = packageName,
+                stagedFiles = apkFiles.map { it to null },
+                allowDowngrade = true
+            )
+        } catch (sec: ApkIntegrityException) {
+            return@withContext RollbackInstallResult(
+                success = false,
+                usedRoot = false,
+                details = sec.message ?: "Backup APK verification failed (${sec.reason})"
+            )
+        }
+
+        val parts = apkFiles.mapIndexed { idx, file ->
+            InstallPart(
+                name = ApkIntegrityVerifier.sanitizePartFileName(file.name, idx),
+                sizeBytes = file.length(),
+                expectedSha256 = null,
+                backingFile = file,
+                openStream = { file.inputStream() }
+            )
+        }
+
+        val rootUsable = prefs.useRootInstaller.get() && rootInstaller.isRootAvailable()
+        if (rootUsable) {
+            val preservedInstaller = context?.let { resolvePreservedInstallerPackage(it, packageName) }
+                ?: BuildConfig.APPLICATION_ID
+            val needsLowTargetBypass = context?.let { ctx ->
+                ApkCompatibilityChecker.checkStagedTarget(ctx, backupTarget).needsLowTargetSdkBypass
+            } ?: false
+            val rootRes = if (cleanReinstallWithRoot) {
+                rootInstaller.executeCleanRootRollback(
+                    packageName = packageName,
+                    parts = parts,
+                    installerPackageName = preservedInstaller,
+                    bypassLowTargetSdkBlock = needsLowTargetBypass
+                )
+            } else {
+                rootInstaller.executeRootInstall(
+                    packageName = packageName,
+                    parts = parts,
+                    installerPackageName = preservedInstaller,
+                    allowDowngrade = true,
+                    bypassLowTargetSdkBlock = needsLowTargetBypass
+                )
+            }
+            AppJournal.record(
+                "Rollback",
+                "Root rollback for $packageName (clean=$cleanReinstallWithRoot): success=${rootRes.success}"
+            )
+            return@withContext RollbackInstallResult(
+                success = rootRes.success,
+                usedRoot = true,
+                canFallbackToCleanRoot = !cleanReinstallWithRoot && !rootRes.success,
+                details = rootRes.details
+            )
+        }
+
+        val syntheticId = (packageName.hashCode() and 0x7FFFFFFF).coerceAtLeast(1)
+        if (prefs.useShizukuInstaller.get() && ensureShizukuReadyAndAuthorized() == ShizukuAvailability.READY) {
+            val shizukuOk = runCatching {
+                shizukuBridge.executeShizukuInstall(syntheticId, packageName, parts)
+            }.getOrDefault(false)
+            if (shizukuOk) {
+                return@withContext RollbackInstallResult(success = true, usedRoot = false)
+            }
+        }
+
+        val ok = kotlinx.coroutines.withTimeoutOrNull(120_000L) {
+            installWithPackageInstaller(syntheticId, packageName, parts)
+        } ?: false
+        RollbackInstallResult(success = ok, usedRoot = false)
+    }
+
     fun checkPermission(): Boolean {
         if (isSilentInstallerReady()) return true
         val ctx = context ?: return false
@@ -1251,6 +1363,13 @@ class SessionInstaller internal constructor(
         return true
     }
 }
+
+data class RollbackInstallResult(
+    val success: Boolean,
+    val usedRoot: Boolean,
+    val canFallbackToCleanRoot: Boolean = false,
+    val details: String = ""
+)
 
 private const val EXTRA_APP_ID = "appId"
 private const val EXTRA_SESSION_TOKEN = "sessionToken"

@@ -368,16 +368,18 @@ class DownloadCoordinator(
                 null
             }
 
+            val isSaveOnly = saveOnlyTaskIds.remove(update.id) || activeTasks[update.id]?.isSaveOnly == true
+
             ApkIntegrityVerifier.verifyStagedApkFiles(
                 context = appContext,
                 expectedPackageName = update.packageName,
-                stagedFiles = readyFiles.map { it to expectedSha256 }
+                stagedFiles = readyFiles.map { it to expectedSha256 },
+                verifyAgainstInstalled = !isSaveOnly
             )
             if (!wasCached) {
                 downloader.markStagingReady(stagingDir, update.versionCode)
             }
 
-            val isSaveOnly = saveOnlyTaskIds.remove(update.id) || activeTasks[update.id]?.isSaveOnly == true
             if (isSaveOnly) {
                 val totalPayloadSize = readyFiles.sumOf { it.length() }
                 mutateTask(update.id) {
@@ -426,6 +428,34 @@ class DownloadCoordinator(
                 installLog.emitProgress(AppInstallProgress(update.id, 0L))
                 knownUpdatesById.remove(update.id)
                 removeTask(update.id)
+                refreshNotification(force = true)
+                return
+            }
+
+            val compat = com.apkup.util.ApkCompatibilityChecker.checkStagedTarget(
+                context = appContext,
+                target = if (readyFiles.size == 1) readyFiles.first() else stagingDir
+            )
+            if (!compat.isCompatible) {
+                prefs.markVersionIncompatible(update.packageName, update.versionCode)
+                AppJournal.record(
+                    "Compatibility",
+                    "Blocked incompatible APK for ${update.packageName} v${update.version} (${compat.failureReason})"
+                )
+                runCatching { stagingDir.deleteRecursively() }
+                knownUpdatesById.remove(update.id)
+                removeTask(update.id)
+                installLog.emitProgress(AppInstallProgress(update.id, 0L))
+                val errMsg = when (compat.failureReason) {
+                    com.apkup.util.ApkCompatibilityResult.FailureReason.MIN_SDK_TOO_HIGH ->
+                        runCatching { stringer.get(R.string.install_error_incompatible_sdk, compat.requiredMinSdk) }
+                            .getOrDefault("Requires Android API ${compat.requiredMinSdk}+")
+                    com.apkup.util.ApkCompatibilityResult.FailureReason.NO_MATCHING_ABI ->
+                        runCatching { stringer.get(R.string.install_error_incompatible_abi, compat.apkAbis.joinToString(", ")) }
+                            .getOrDefault("Incompatible CPU architecture (${compat.apkAbis.joinToString(", ")})")
+                    else -> runCatching { stringer.get(R.string.install_error_integrity_failed) }.getOrDefault("Incompatible APK")
+                }
+                snackBar.emit(TextSnack(errMsg, visualType = com.apkup.data.snack.SnackVisualType.ERROR))
                 refreshNotification(force = true)
                 return
             }
@@ -479,6 +509,10 @@ class DownloadCoordinator(
                 )
             }
 
+            if (update.oldVersionCode >= 0L && prefs.enableRollbackBackups.get()) {
+                com.apkup.util.RollbackBackupManager(appContext)
+                    .backupInstalledPackageBeforeUpdate(update.packageName)
+            }
             val started = installer.installParts(update.id, update.packageName, parts)
             AppJournal.record(
                 "Install",
@@ -668,10 +702,11 @@ class DownloadCoordinator(
                     var totalBytes = link.size
                     var downloadedBytes = 0L
                     onProgress(0L, totalBytes)
+                    val tempFile = File(stagingDir, "base.apk.part")
                     val targetFile = File(stagingDir, "base.apk")
                     val ok = downloader.downloadToFile(
                         url = link.link,
-                        targetFile = targetFile,
+                        targetFile = tempFile,
                         callTag = callTag,
                         onContentLength = { cl ->
                             if (cl > 0L) totalBytes = cl
@@ -681,8 +716,14 @@ class DownloadCoordinator(
                             onProgress(downloadedBytes, totalBytes)
                         }
                     )
-                    if (!ok || targetFile.length() <= 0L) {
+                    if (!ok || tempFile.length() <= 0L) {
+                        runCatching { tempFile.delete() }
                         throw IOException("Failed downloading URL APK for ${update.packageName}")
+                    }
+                    if (targetFile.exists()) targetFile.delete()
+                    if (!tempFile.renameTo(targetFile)) {
+                        tempFile.copyTo(targetFile, overwrite = true)
+                        tempFile.delete()
                     }
                     listOf(targetFile)
                 }

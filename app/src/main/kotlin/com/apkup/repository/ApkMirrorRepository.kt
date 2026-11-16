@@ -54,7 +54,8 @@ private const val MAX_SEARCH_HTML_BYTES = 2 * 1024 * 1024 // 2 MB
 class ApkMirrorRepository(
     private val service: ApkMirrorService,
     @Suppress("UNUSED_PARAMETER") packageManager: PackageManager? = null,
-    private val fallbackHttpClient: OkHttpClient? = null
+    private val fallbackHttpClient: OkHttpClient? = null,
+    private val prefs: com.apkup.prefs.Prefs? = null
 ) {
 
     @Suppress("SENSELESS_COMPARISON")
@@ -217,7 +218,8 @@ class ApkMirrorRepository(
                         throw IOException("HTTP ${response.code}")
                     }
                     val html = readBoundedUtf8(response.body.byteStream(), MAX_SEARCH_HTML_BYTES)
-                    parseKeylessSearchHtml(html, app)
+                    val allowPre = prefs?.shouldAllowPreReleases(app.packageName) ?: false
+                    parseKeylessSearchHtml(html, app, allowPreReleases = allowPre)
                 }
                 succeeded++
                 if (parsedUpdate != null && parsedUpdate.isMeaningfulVersionUpgrade()) {
@@ -293,12 +295,17 @@ class ApkMirrorRepository(
 
     private fun filterMinApi(apk: AppExistsResponseApk) = supportsMinApi(apk.minapi, api)
 
-    private fun buildIgnoreList() = listOf("alpha", "beta")
+    private fun buildIgnoreList() =
+        if (prefs?.hasAnyPreReleaseAllowed() == true) emptyList() else listOf("alpha", "beta")
 
     companion object {
         private val VERSION_SUFFIX_REGEX = Regex("""\s([0-9][0-9A-Za-z._+-]*)$""")
 
-        internal fun parseKeylessSearchHtml(html: String, app: AppInstalled): AppUpdate? {
+        internal fun parseKeylessSearchHtml(
+            html: String,
+            app: AppInstalled,
+            allowPreReleases: Boolean = false
+        ): AppUpdate? {
             if (html.isBlank()) return null
             val doc = Jsoup.parse(html, "https://www.apkmirror.com")
             val rows = doc.select("div.appRow")
@@ -306,7 +313,7 @@ class ApkMirrorRepository(
                 val anchor = row.selectFirst("h5.appRowTitle a[href]") ?: continue
                 val title = anchor.attr("title").ifBlank { anchor.text() }.trim()
                 val lowerTitle = title.lowercase(Locale.ROOT)
-                if (lowerTitle.contains("alpha") || lowerTitle.contains("beta")) continue
+                if (!allowPreReleases && (lowerTitle.contains("alpha") || lowerTitle.contains("beta"))) continue
 
                 val href = anchor.absUrl("href").ifBlank {
                     val rel = anchor.attr("href").trim()

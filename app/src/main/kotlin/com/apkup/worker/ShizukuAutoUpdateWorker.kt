@@ -70,7 +70,9 @@ internal class ShizukuAutoUpdateRunner(
     }
 
     suspend fun execute(updates: List<AppUpdate>): AutoUpdateExecutionSummary {
-        val installableUpdates = updates.filterNot { it.isWatchedApp() }
+        val installableUpdates = updates.filterNot {
+            it.isWatchedApp() || prefs.isVersionMarkedIncompatible(it.packageName, it.versionCode)
+        }
         if (installableUpdates.isEmpty()) {
             return AutoUpdateExecutionSummary(
                 updatedPackages = emptyList(),
@@ -140,6 +142,20 @@ internal class ShizukuAutoUpdateRunner(
                 }
 
                 if (context != null) {
+                    val compat = com.apkup.util.ApkCompatibilityChecker.checkStagedTarget(
+                        context = context,
+                        target = if (readyFiles.size == 1) readyFiles.first() else stagingDir
+                    )
+                    if (!compat.isCompatible) {
+                        prefs.markVersionIncompatible(update.packageName, update.versionCode)
+                        AppJournal.record(
+                            "Compatibility",
+                            "Auto-update blocked incompatible APK for ${update.packageName} v${update.version}: ${compat.failureReason}"
+                        )
+                        runCatching { stagingDir.deleteRecursively() }
+                        continue
+                    }
+
                     val sigCheck = ApkSignatureVerifier.verifyApkFilesAgainstInstalled(
                         context = context,
                         packageName = update.packageName,
@@ -173,6 +189,10 @@ internal class ShizukuAutoUpdateRunner(
                         backingFile = file,
                         openStream = { file.inputStream() }
                     )
+                }
+                if (context != null && prefs.enableRollbackBackups.get()) {
+                    com.apkup.util.RollbackBackupManager(context)
+                        .backupInstalledPackageBeforeUpdate(update.packageName)
                 }
                 val installed = installer.installPartsSilently(update.id, update.packageName, parts)
                 if (installed) {
@@ -354,13 +374,19 @@ class ShizukuAutoUpdateWorker(
         fun enqueue(
             workManager: WorkManager,
             wifiOnly: Boolean,
-            chargingOnly: Boolean
+            chargingOnly: Boolean,
+            initialDelayMinutes: Int = 0
         ) {
             val constraints = buildWorkConstraints(wifiOnly = wifiOnly, chargingOnly = chargingOnly)
-            val request = OneTimeWorkRequestBuilder<ShizukuAutoUpdateWorker>()
+            val builder = OneTimeWorkRequestBuilder<ShizukuAutoUpdateWorker>()
                 .setConstraints(constraints)
-                .build()
-            workManager.enqueueUniqueWork(WORK_NAME, ExistingWorkPolicy.REPLACE, request)
+            if (initialDelayMinutes > 0) {
+                builder.setInitialDelay(
+                    initialDelayMinutes * 60_000L + 30_000L,
+                    java.util.concurrent.TimeUnit.MILLISECONDS
+                )
+            }
+            workManager.enqueueUniqueWork(WORK_NAME, ExistingWorkPolicy.REPLACE, builder.build())
         }
 
         fun cancel(workManager: WorkManager) {
@@ -387,6 +413,18 @@ class ShizukuAutoUpdateWorker(
 
     override suspend fun doWork(): Result {
         if ((!prefs.useShizukuInstaller.get() && !prefs.useRootInstaller.get()) || !prefs.autoInstallUpdates.get()) {
+            return Result.success()
+        }
+        if (!prefs.isUpdateWindowAllowedNow()) {
+            val delayMins = prefs.minutesUntilNextUpdateWindow()
+            if (delayMins > 0) {
+                enqueue(
+                    workManager = WorkManager.getInstance(applicationContext),
+                    wifiOnly = prefs.autoInstallWifiOnly.get(),
+                    chargingOnly = prefs.autoInstallChargingOnly.get(),
+                    initialDelayMinutes = delayMins
+                )
+            }
             return Result.success()
         }
 

@@ -83,6 +83,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
@@ -263,12 +265,17 @@ fun Settings(
 	val shizukuStatus = viewModel.shizukuSetupStatus().collectAsStateWithLifecycle().value
 	val showShizukuSheet = viewModel.showShizukuSetupSheet().collectAsStateWithLifecycle().value
 	val fdroidRepos = viewModel.fdroidReposFlow.collectAsStateWithLifecycle().value
+	val sourcePriorityOrder = viewModel.sourcePriorityOrderFlow.collectAsStateWithLifecycle().value
 	var showHiddenAppsSheet by remember { mutableStateOf(false) }
 	var showIgnoredVersionsSheet by remember { mutableStateOf(false) }
 	var showChangelogSheet by remember { mutableStateOf(false) }
 	var showIntervalSheet by remember { mutableStateOf(false) }
 	var showApkMirrorSheet by remember { mutableStateOf(false) }
 	var showFDroidReposSheet by remember { mutableStateOf(false) }
+	var showSourcePrioritySheet by remember { mutableStateOf(false) }
+	var showSourceHealthSheet by remember { mutableStateOf(false) }
+	var showPreReleaseSheet by remember { mutableStateOf(false) }
+	var showUpdateWindowSheet by remember { mutableStateOf(false) }
 	var showWifiDownloadSheet by remember { mutableStateOf(false) }
 	var showGitHubTokenDialog by remember { mutableStateOf(false) }
 	var showGitLabTokenDialog by remember { mutableStateOf(false) }
@@ -377,6 +384,32 @@ fun Settings(
 						} else {
 							obtainiumImportPreview = preview
 						}
+					}
+				}
+			}
+		}
+	}
+
+	val importAppWatcherLauncher = rememberLauncherForActivityResult(
+		ActivityResultContracts.OpenDocument()
+	) { uri ->
+		if (uri != null) {
+			coroutineScope.launch(Dispatchers.IO) {
+				val rawJson = runCatching {
+					context.contentResolver.openInputStream(uri)?.use { stream ->
+						stream.bufferedReader(Charsets.UTF_8).readText()
+					}
+				}.getOrNull().orEmpty()
+				val installedPkgs = (appsViewModel.state().value as? AppsUiState.Success)?.apps
+					?.filterNot { it.isWatchedOnly }
+					?.mapTo(HashSet()) { it.packageName }
+					.orEmpty()
+				withContext(Dispatchers.Main) {
+					val summary = viewModel.importAppWatcherJson(rawJson, installedPkgs)
+					if (summary != null) {
+						configRefreshKey++
+						appsViewModel.refresh(false)
+						updatesViewModel.refresh(false)
 					}
 				}
 			}
@@ -892,6 +925,87 @@ fun Settings(
 					},
 					onClick = { showCodebergTokenDialog = true }
 				)
+				var includePreReleases by remember(configRefreshKey) {
+					mutableStateOf(viewModel.getIncludePreReleasesGlobal())
+				}
+				val allowedChannels = remember(configRefreshKey) {
+					viewModel.getAllowedPreReleaseChannels()
+				}
+				val preReleaseSubtitle = if (!includePreReleases) {
+					stringResource(R.string.prerelease_summary_off)
+				} else if (allowedChannels.isEmpty()) {
+					stringResource(R.string.prerelease_summary_none)
+				} else {
+					listOfNotNull(
+						if (com.apkup.data.repomapping.ReleaseAssetFilter.PreReleaseChannel.BETA in allowedChannels) stringResource(R.string.prerelease_channel_beta) else null,
+						if (com.apkup.data.repomapping.ReleaseAssetFilter.PreReleaseChannel.RC in allowedChannels) "RC" else null,
+						if (com.apkup.data.repomapping.ReleaseAssetFilter.PreReleaseChannel.ALPHA in allowedChannels) stringResource(R.string.prerelease_channel_alpha) else null,
+						if (com.apkup.data.repomapping.ReleaseAssetFilter.PreReleaseChannel.NIGHTLY in allowedChannels) "Nightly" else null
+					).joinToString(", ")
+				}
+				SwitchSetting(
+					getValue = { includePreReleases },
+					setValue = { enabled ->
+						viewModel.setIncludePreReleasesGlobal(enabled)
+						includePreReleases = enabled
+						configRefreshKey++
+					},
+					text = stringResource(R.string.settings_include_prereleases_title),
+					icon = R.drawable.ic_refresh,
+					subtitle = preReleaseSubtitle,
+					onClick = { showPreReleaseSheet = true }
+				)
+				val priorityPreview = sourcePriorityOrder.take(3).map { com.apkup.ui.component.sourcePriorityLabel(it) }.joinToString(" → ") +
+					if (sourcePriorityOrder.size > 3) " → …" else ""
+				Surface(
+					modifier = Modifier
+						.fillMaxWidth()
+						.clip(RoundedCornerShape(14.dp))
+						.clickable { showSourcePrioritySheet = true },
+					color = Color.Transparent
+				) {
+					Row(
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(horizontal = 4.dp, vertical = 10.dp),
+						verticalAlignment = Alignment.CenterVertically
+					) {
+						Box(
+							modifier = Modifier
+								.size(38.dp)
+								.clip(RoundedCornerShape(10.dp))
+								.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+							contentAlignment = Alignment.Center
+						) {
+							Icon(
+								imageVector = Icons.Rounded.SwapVert,
+								contentDescription = null,
+								tint = MaterialTheme.colorScheme.primary,
+								modifier = Modifier.size(20.dp)
+							)
+						}
+						Spacer(modifier = Modifier.width(12.dp))
+						Column(modifier = Modifier.weight(1f)) {
+							Text(
+								text = stringResource(R.string.settings_source_priority_title),
+								style = MaterialTheme.typography.bodyLarge,
+								color = MaterialTheme.colorScheme.onSurface
+							)
+							Text(
+								text = priorityPreview,
+								style = MaterialTheme.typography.bodySmall,
+								color = MaterialTheme.colorScheme.onSurfaceVariant,
+								maxLines = 1,
+								overflow = TextOverflow.Ellipsis
+							)
+						}
+						Icon(
+							imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+							contentDescription = null,
+							tint = MaterialTheme.colorScheme.onSurfaceVariant
+						)
+					}
+				}
 			}
 		}
 
@@ -900,6 +1014,18 @@ fun Settings(
 			val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
 			var bgChecksEnabled by remember(configRefreshKey) {
 				mutableStateOf(viewModel.getBackgroundChecksEnabled())
+			}
+			var windowEnabled by remember(configRefreshKey) {
+				mutableStateOf(viewModel.getAutoUpdateWindowEnabled())
+			}
+			val windowMode = remember(configRefreshKey) {
+				viewModel.getAutoUpdateWindowMode()
+			}
+			val windowStartMins = remember(configRefreshKey) {
+				viewModel.getAutoUpdateWindowStartMinutes()
+			}
+			val windowEndMins = remember(configRefreshKey) {
+				viewModel.getAutoUpdateWindowEndMinutes()
 			}
 			val selectedIntervalHours = remember(configRefreshKey) {
 				viewModel.getBackgroundCheckIntervalHours()
@@ -912,6 +1038,19 @@ fun Settings(
 				168 to R.string.settings_interval_7d
 			)
 			val activeIntervalLabel = intervalLabels[selectedIntervalHours]?.let { stringResource(it) } ?: "${selectedIntervalHours}h"
+
+			val windowSubtitle = if (!windowEnabled) {
+				stringResource(R.string.update_window_summary_off)
+			} else {
+				val startFmt = com.apkup.data.ui.UpdateWindowEvaluator.formatMinutesOfDay(windowStartMins)
+				val endFmt = com.apkup.data.ui.UpdateWindowEvaluator.formatMinutesOfDay(windowEndMins)
+				val modePrefix = if (windowMode == com.apkup.data.ui.UpdateWindowMode.ALLOW_ONLY) {
+					stringResource(R.string.settings_update_window_mode_allow)
+				} else {
+					stringResource(R.string.settings_update_window_mode_quiet)
+				}
+				"$modePrefix ($startFmt – $endFmt)"
+			}
 
 			SettingsSection(stringResource(R.string.settings_section_background_checks)) {
 				SwitchSetting(
@@ -929,6 +1068,19 @@ fun Settings(
 					icon = R.drawable.ic_refresh,
 					subtitle = if (bgChecksEnabled) activeIntervalLabel else null,
 					onClick = { showIntervalSheet = true }
+				)
+
+				SwitchSetting(
+					getValue = { windowEnabled },
+					setValue = { enabled ->
+						viewModel.setAutoUpdateWindowEnabled(enabled)
+						windowEnabled = enabled
+						configRefreshKey++
+					},
+					text = stringResource(R.string.settings_update_window_title),
+					icon = R.drawable.ic_refresh,
+					subtitle = windowSubtitle,
+					onClick = { showUpdateWindowSheet = true }
 				)
 			}
 		}
@@ -972,6 +1124,20 @@ fun Settings(
 						viewModel.refreshRootStatus()
 						showRootSetupSheet = true
 					}
+				)
+
+				var rollbackBackupsEnabled by remember(configRefreshKey) {
+					mutableStateOf(viewModel.getEnableRollbackBackups())
+				}
+				SwitchSetting(
+					getValue = { rollbackBackupsEnabled },
+					setValue = { enabled ->
+						viewModel.setEnableRollbackBackups(enabled)
+						rollbackBackupsEnabled = enabled
+					},
+					text = stringResource(R.string.settings_rollback_backups_title),
+					icon = R.drawable.ic_refresh,
+					subtitle = stringResource(R.string.settings_rollback_backups_desc)
 				)
 
 				// Conditional Shizuku Warning Card if enabled but not running
@@ -1602,6 +1768,23 @@ fun Settings(
 										)
 									}
 								}
+								OutlinedButton(
+									onClick = { importAppWatcherLauncher.launch(arrayOf("application/json", "text/plain", "*/*")) },
+									modifier = Modifier.fillMaxWidth(),
+									shape = CircleShape
+								) {
+									Icon(
+										painter = painterResource(R.drawable.ic_download),
+										contentDescription = null,
+										modifier = Modifier.size(16.dp)
+									)
+									Spacer(modifier = Modifier.width(6.dp))
+									Text(
+										text = stringResource(R.string.settings_import_app_watcher_title),
+										maxLines = 1,
+										overflow = TextOverflow.Ellipsis
+									)
+								}
 							}
 
 							HorizontalDivider(
@@ -1733,6 +1916,23 @@ fun Settings(
 											overflow = TextOverflow.Ellipsis
 										)
 									}
+								}
+								OutlinedButton(
+									onClick = { showSourceHealthSheet = true },
+									modifier = Modifier.fillMaxWidth(),
+									shape = CircleShape
+								) {
+									Icon(
+										painter = painterResource(R.drawable.ic_refresh),
+										contentDescription = null,
+										modifier = Modifier.size(16.dp)
+									)
+									Spacer(modifier = Modifier.width(6.dp))
+									Text(
+										text = stringResource(R.string.settings_source_health_title),
+										maxLines = 1,
+										overflow = TextOverflow.Ellipsis
+									)
 								}
 							}
 						}
@@ -2421,6 +2621,63 @@ fun Settings(
 				configRefreshKey++
 			},
 			onDismiss = { showFDroidReposSheet = false }
+		)
+	}
+
+	if (showSourcePrioritySheet) {
+		com.apkup.ui.component.SourcePriorityBottomSheet(
+			order = sourcePriorityOrder,
+			onMove = { index, delta -> viewModel.moveSourcePriority(index, delta) },
+			onReset = { viewModel.resetSourcePriorityOrder() },
+			onDismiss = { showSourcePrioritySheet = false }
+		)
+	}
+
+	if (showSourceHealthSheet) {
+		com.apkup.ui.component.SourceHealthBottomSheet(
+			onDismiss = { showSourceHealthSheet = false }
+		)
+	}
+
+	if (showPreReleaseSheet) {
+		com.apkup.ui.component.PreReleaseBottomSheet(
+			enabled = viewModel.getIncludePreReleasesGlobal(),
+			selectedChannels = viewModel.getAllowedPreReleaseChannels(),
+			onToggleEnabled = { enabled ->
+				viewModel.setIncludePreReleasesGlobal(enabled)
+				configRefreshKey++
+			},
+			onToggleChannel = { channel, active ->
+				viewModel.setPreReleaseChannelEnabled(channel, active)
+				configRefreshKey++
+			},
+			onDismiss = { showPreReleaseSheet = false }
+		)
+	}
+
+	if (showUpdateWindowSheet) {
+		com.apkup.ui.component.UpdateWindowBottomSheet(
+			enabled = viewModel.getAutoUpdateWindowEnabled(),
+			mode = viewModel.getAutoUpdateWindowMode(),
+			startMinutes = viewModel.getAutoUpdateWindowStartMinutes(),
+			endMinutes = viewModel.getAutoUpdateWindowEndMinutes(),
+			onToggleEnabled = { enabled ->
+				viewModel.setAutoUpdateWindowEnabled(enabled)
+				configRefreshKey++
+			},
+			onModeChanged = { newMode ->
+				viewModel.setAutoUpdateWindowMode(newMode)
+				configRefreshKey++
+			},
+			onStartMinutesChanged = { mins ->
+				viewModel.setAutoUpdateWindowStartMinutes(mins)
+				configRefreshKey++
+			},
+			onEndMinutesChanged = { mins ->
+				viewModel.setAutoUpdateWindowEndMinutes(mins)
+				configRefreshKey++
+			},
+			onDismiss = { showUpdateWindowSheet = false }
 		)
 	}
 
@@ -4892,6 +5149,20 @@ private fun FDroidReposBottomSheet(
 							verticalAlignment = Alignment.CenterVertically,
 							horizontalArrangement = Arrangement.spacedBy(10.dp)
 						) {
+							Box(
+								modifier = Modifier
+									.size(34.dp)
+									.clip(RoundedCornerShape(10.dp))
+									.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+								contentAlignment = Alignment.Center
+							) {
+								Icon(
+									painter = painterResource(com.apkup.ui.component.resolveScanSourceIcon(repo.name)),
+									contentDescription = null,
+									tint = if (repo.enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+									modifier = Modifier.size(18.dp)
+								)
+							}
 							Column(modifier = Modifier.weight(1f)) {
 								Text(
 									text = repo.name,

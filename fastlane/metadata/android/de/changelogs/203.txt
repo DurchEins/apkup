@@ -1,0 +1,7 @@
+1.44.0 (203) – Feature-Update:
+• Quellen-Priorität (Halten & Ziehen) & App-Pinning auf feste Quellen mit Fallback
+• Vorabversions-Kanäle (Beta, RC, Alpha, Nightly) global im BottomSheet oder pro App wählbar
+• Automatische Pre-Update-APK-Backups & zweistufiger Rollback-Helfer im Update-Verlauf
+• Zeitfenster / Ruhezeit für Hintergrund-Updates mit automatischem Nachhol-Lauf
+• Pre-Install-Kompatibilitätscheck (minSdk / ABI), Quellen-Status & App-Watcher-Import
+• Fix für „APK speichern“ bei abweichender Signatur der installierten App
