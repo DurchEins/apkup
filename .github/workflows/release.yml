@@ -142,9 +142,9 @@ jobs:
 
           > [!TIP]
           > ### 🎉 Available Across Independent Platforms
-          > Download and update ApkUp via **GitHub**, **Zapstore**, **GitLab**, **APKPure**, and **itch.io**:
+          > Download and update ApkUp via **GitHub**, **Zapstore**, **GitLab**, **APKPure**, **itch.io**, and **Appteka**:
           >
-          > <a href="https://zapstore.dev/apps/com.apkup"><img src="https://img.shields.io/badge/Zapstore-Available-7C3AED?style=flat&logo=lightning&logoColor=white" alt="Zapstore" /></a>&nbsp;&nbsp;<a href="https://gitlab.com/DurchEins1/apkup/-/releases"><img src="https://img.shields.io/badge/GitLab-Releases-FC6D26?style=flat&logo=gitlab&logoColor=white" alt="GitLab Releases" /></a>&nbsp;&nbsp;<a href="https://apkpure.com/apkup/com.apkup"><img src="https://img.shields.io/badge/APKPure-Available-24C270?style=flat&logo=android&logoColor=white" alt="APKPure" /></a>&nbsp;&nbsp;<a href="https://durcheins.itch.io/apkup"><img src="https://img.shields.io/badge/itch.io-Available-FA5C5C?style=flat&logo=itchdotio&logoColor=white" alt="itch.io" /></a>
+          > <a href="https://zapstore.dev/apps/com.apkup"><img src="https://img.shields.io/badge/Zapstore-Available-7C3AED?style=flat&logo=lightning&logoColor=white" alt="Zapstore" /></a>&nbsp;&nbsp;<a href="https://gitlab.com/DurchEins1/apkup/-/releases"><img src="https://img.shields.io/badge/GitLab-Releases-FC6D26?style=flat&logo=gitlab&logoColor=white" alt="GitLab Releases" /></a>&nbsp;&nbsp;<a href="https://apkpure.com/apkup/com.apkup"><img src="https://img.shields.io/badge/APKPure-Available-24C270?style=flat&logo=android&logoColor=white" alt="APKPure" /></a>&nbsp;&nbsp;<a href="https://durcheins.itch.io/apkup"><img src="https://img.shields.io/badge/itch.io-Available-FA5C5C?style=flat&logo=itchdotio&logoColor=white" alt="itch.io" /></a>&nbsp;&nbsp;<a href="https://appteka.store/app/c0cr341070"><img src="https://img.shields.io/badge/Appteka-Available-0EA5E9?style=flat&logo=android&logoColor=white" alt="Appteka" /></a>
 
           ---
 
@@ -159,7 +159,7 @@ jobs:
 
           Download the attached **_[${APK_FILENAME}](https://github.com/DurchEins/apkup/releases/download/${SAFE_LABEL}/${APK_FILENAME})_** below or update directly via the in-app updater (<kbd>Setup</kbd> ➔ <kbd>About</kbd> ➔ <kbd>Check for updates</kbd>).
 
-          - **Alternative Mirrors:** [Zapstore](https://zapstore.dev/apps/com.apkup) · [GitLab Releases](https://gitlab.com/DurchEins1/apkup/-/releases) · [APKPure](https://apkpure.com/apkup/com.apkup) · [itch.io](https://durcheins.itch.io/apkup)
+          - **Alternative Mirrors:** [Zapstore](https://zapstore.dev/apps/com.apkup) · [GitLab Releases](https://gitlab.com/DurchEins1/apkup/-/releases) · [APKPure](https://apkpure.com/apkup/com.apkup) · [itch.io](https://durcheins.itch.io/apkup) · [Appteka](https://appteka.store/app/c0cr341070)
           - **SHA-256 Checksum:** \`${APK_SHA256}\`
           - **Certificate SHA-256:** \`8e9b512371ee965afc7cc91f23490d3a514623b90d483e638bba8a070a2170b4\`
 
@@ -260,7 +260,7 @@ jobs:
             exit 0
           fi
           go install github.com/zapstore/zsp/v2/cmd/zsp@latest
-          "$(go env GOPATH)/bin/zsp" publish zapstore.yaml
+          "$(go env GOPATH)/bin/zsp" publish -q zapstore.yaml
 
       - name: Publish to itch.io (Optional)
         env:
