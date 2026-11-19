@@ -1,0 +1,116 @@
+name: Silent Issue Auto-Labeler
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  label-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Silently classify and label issue
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const action = context.payload.action;
+            const title = issue.title || '';
+            const rawBody = issue.body || '';
+
+            // Strip diagnostic report & logcat boilerplate before general keyword matching
+            // so ActiveSources / Shizuku status lines do not falsely trigger unrelated labels.
+            let cleanBody = rawBody;
+            for (const marker of [
+              '=== ApkUp Diagnostic Report ===',
+              '=== In-App Update Journal',
+              '=== Android Process Logcat ===',
+              '### Diagnostic Report'
+            ]) {
+              const idx = cleanBody.indexOf(marker);
+              if (idx !== -1) {
+                cleanBody = cleanBody.slice(0, idx);
+              }
+            }
+
+            const text = `${title}\n${cleanBody}`.toLowerCase();
+            const fullText = `${title}\n${rawBody}`.toLowerCase();
+            const existingOnIssue = new Set((issue.labels || []).map((l) => l.name.toLowerCase()));
+
+            const desired = new Set();
+
+            if (action === 'opened') {
+              desired.add('needs-triage');
+            }
+
+            // Topic rules (silent, no comments ever)
+            const rules = [
+              { label: 'source:apkmirror', re: /\b(apkmirror|apk mirror|apkm|cloudflare)\b/ },
+              { label: 'source:play-store', re: /\b(google play|play store|playstore|gplay)\b/ },
+              { label: 'source:fdroid', re: /\b(f-droid|fdroid|izzyondroid|izzy|index[\s-]?v2)\b/ },
+              { label: 'source:git-forges', re: /\b(github|gitlab|codeberg|forgejo|gitea)\b/ },
+              { label: 'shizuku', re: /\b(shizuku|sui|binder)\b/ },
+              { label: 'root', re: /\b(root|magisk|kernelsu|apatch|su installer)\b/ },
+              { label: 'export-backup', re: /\b(save apk|export apk|apk export|backup|rollback|downgrade|obtainium|appwatcher|app watcher|save locally|locally)\b/ },
+              { label: 'ui-design', re: /\b(ui|ux|design|theme|dark mode|light mode|material|layout|font|icon|translation|language|übersetzung|sprache)\b/ },
+              { label: 'accessibility', re: /\b(accessibility|a11y|talkback|screen reader|contrast|font scale)\b/ },
+              { label: 'documentation', re: /\b(wiki|readme|docs|documentation|dokumentation)\b/ }
+            ];
+
+            for (const rule of rules) {
+              if (rule.re.test(text)) {
+                desired.add(rule.label);
+              }
+            }
+
+            // Security / signature rules may also match inside diagnostic report error lines
+            if (/\b(signature_mismatch|signature mismatch|signing certificate|sha-?256|checksum|integrity failed|tampered)\b/.test(fullText)) {
+              desired.add('security-signature');
+            }
+
+            // Fallback type classification for blank issues (only if no primary type label is already set)
+            const hasPrimaryType =
+              existingOnIssue.has('bug') ||
+              existingOnIssue.has('enhancement') ||
+              existingOnIssue.has('question');
+
+            if (!hasPrimaryType) {
+              if (/\b(bug|crash|crashes|crashing|error|fail|fails|failed|broken|fix|can't|cant|cannot|doesn't work|not working|fehler|absturz|funktioniert nicht)\b/.test(text)) {
+                desired.add('bug');
+              } else if (/\b(feature|request|suggestion|suggest|please add|add support|would be nice|enhancement|wunsch|vorschlag)\b/.test(text)) {
+                desired.add('enhancement');
+              } else if (/\b(how to|how do i|question|help|frage|wie kann ich)\b/.test(text)) {
+                desired.add('question');
+              }
+            }
+
+            // Fetch repository labels and only apply labels that exist in the repo
+            const repoLabels = await github.paginate(github.rest.issues.listLabelsForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+            const repoLabelMap = new Map(repoLabels.map((l) => [l.name.toLowerCase(), l.name]));
+
+            const toAdd = [];
+            for (const label of desired) {
+              const lower = label.toLowerCase();
+              if (!existingOnIssue.has(lower) && repoLabelMap.has(lower)) {
+                toAdd.push(repoLabelMap.get(lower));
+              }
+            }
+
+            if (toAdd.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: toAdd
+              });
+              core.info(`Applied labels: ${toAdd.join(', ')}`);
+            } else {
+              core.info('No new matching labels to apply.');
+            }
