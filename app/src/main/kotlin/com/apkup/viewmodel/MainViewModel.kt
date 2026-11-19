@@ -120,7 +120,9 @@ class MainViewModel(
         if (manual) {
             _selfUpdateState.value = SelfUpdateState.Checking
         }
-        val result = repo.checkForUpdate()
+        val result = repo.checkForUpdate(
+            includePreReleases = prefs.includeSelfUpdatePreReleases.get()
+        )
         if (manual) {
             val elapsed = System.currentTimeMillis() - startMs
             if (elapsed < 650L) {

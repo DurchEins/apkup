@@ -110,4 +110,36 @@ class BackupRestoreTest {
         assertEquals("org.schabi.newpipe", restoredHistory.first().packageName)
         assertEquals("https://github.com/TeamNewPipe/NewPipe/releases?q=0.27.2", restoredHistory.first().previousVersionUrl)
     }
+
+    @Test
+    fun backupExportAndImportPreservesSelfUpdatePreReleaseOptInAndLegacyDefault() {
+        val storage = InMemoryPrefsBackend()
+        val prefs = Prefs(storage)
+        val viewModel = SettingsViewModel(prefs = prefs)
+
+        // Default must be false
+        assertFalse(viewModel.getIncludeSelfUpdatePreReleases())
+
+        viewModel.setIncludeSelfUpdatePreReleases(true)
+        assertTrue(viewModel.getIncludeSelfUpdatePreReleases())
+
+        val exportedJson = viewModel.exportBackupJson()
+        assertTrue(exportedJson.contains("\"includeSelfUpdatePreReleases\": true"))
+
+        viewModel.setIncludeSelfUpdatePreReleases(false)
+        assertFalse(viewModel.getIncludeSelfUpdatePreReleases())
+
+        assertTrue(viewModel.importBackupJson(exportedJson))
+        assertTrue(viewModel.getIncludeSelfUpdatePreReleases())
+
+        // Legacy backup without includeSelfUpdatePreReleases must safely default back to false
+        val legacyJson = """
+            {
+              "schemaVersion": 2,
+              "usePlay": true
+            }
+        """.trimIndent()
+        assertTrue(viewModel.importBackupJson(legacyJson))
+        assertFalse(viewModel.getIncludeSelfUpdatePreReleases())
+    }
 }

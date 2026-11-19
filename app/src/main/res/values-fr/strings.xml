@@ -597,4 +597,9 @@
     <string name="prerelease_summary_off">Disabled (stable versions only)</string>
     <string name="prerelease_summary_none">Enabled, no channel selected</string>
     <string name="update_window_summary_off">Disabled (runs anytime)</string>
+    <string name="self_update_prerelease_title">Recevoir les bêtas</string>
+    <string name="self_update_prerelease_subtitle_short">Préversions incluses · Retour à stable si désactivé</string>
+    <string name="self_update_prerelease_subtitle">Inclut les préversions d\'ApkUp. Désactivez l\'option à tout moment pour revenir automatiquement à la version stable lors de la prochaine sortie.</string>
+    <string name="self_update_prerelease_badge">Bêta / Préversion</string>
+    <string name="self_update_prerelease_notice">Il s\'agit d\'une préversion d\'ApkUp destinée aux tests anticipés.</string>
 </resources>

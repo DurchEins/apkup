@@ -803,7 +803,8 @@ class SettingsViewModel(
 			autoUpdateWindowMode = prefs.autoUpdateWindowMode.get(),
 			autoUpdateWindowStartMinutes = prefs.autoUpdateWindowStartMinutes.get(),
 			autoUpdateWindowEndMinutes = prefs.autoUpdateWindowEndMinutes.get(),
-			enableRollbackBackups = prefs.enableRollbackBackups.get()
+			enableRollbackBackups = prefs.enableRollbackBackups.get(),
+			includeSelfUpdatePreReleases = prefs.includeSelfUpdatePreReleases.get()
 		)
 		return gson.toJson(config)
 	}
@@ -1001,6 +1002,7 @@ class SettingsViewModel(
 			config.autoUpdateWindowStartMinutes?.let { prefs.autoUpdateWindowStartMinutes.put(com.apkup.data.ui.UpdateWindowEvaluator.normalizeMinutes(it)) }
 			config.autoUpdateWindowEndMinutes?.let { prefs.autoUpdateWindowEndMinutes.put(com.apkup.data.ui.UpdateWindowEvaluator.normalizeMinutes(it)) }
 			config.enableRollbackBackups?.let { prefs.enableRollbackBackups.put(it) }
+			prefs.includeSelfUpdatePreReleases.put(config.includeSelfUpdatePreReleases ?: false)
 			config.fdroidRepos?.let { importedRepos ->
 				val presetsById = FDroidRepoConfig.defaultPresets().associateBy { it.id }
 				val validatedRepos = importedRepos.mapNotNull { candidate ->
@@ -1270,6 +1272,11 @@ class SettingsViewModel(
 	fun getIncludePreReleasesGlobal(): Boolean = prefs.includePreReleasesGlobal.get()
 	fun setIncludePreReleasesGlobal(enabled: Boolean) {
 		prefs.includePreReleasesGlobal.put(enabled)
+	}
+
+	fun getIncludeSelfUpdatePreReleases(): Boolean = prefs.includeSelfUpdatePreReleases.get()
+	fun setIncludeSelfUpdatePreReleases(enabled: Boolean) {
+		prefs.includeSelfUpdatePreReleases.put(enabled)
 	}
 
 	fun getAllowedPreReleaseChannels(): Set<String> = prefs.readAllowedPreReleaseChannelsSafe()

@@ -125,7 +125,8 @@ data class ApkUpBackupConfig(
     val autoUpdateWindowMode: String? = null,
     val autoUpdateWindowStartMinutes: Int? = null,
     val autoUpdateWindowEndMinutes: Int? = null,
-    val enableRollbackBackups: Boolean? = null
+    val enableRollbackBackups: Boolean? = null,
+    val includeSelfUpdatePreReleases: Boolean? = null
 ) {
     companion object {
         const val CURRENT_SCHEMA_VERSION = 2

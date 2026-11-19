@@ -609,4 +609,9 @@
     <string name="prerelease_summary_off">Deaktiviert (nur stabile Versionen)</string>
     <string name="prerelease_summary_none">Aktiv, aber kein Kanal gewählt</string>
     <string name="update_window_summary_off">Deaktiviert (jederzeit aktiv)</string>
+    <string name="self_update_prerelease_title">Beta-Updates erhalten</string>
+    <string name="self_update_prerelease_subtitle_short">Inkl. Vorabversionen · Rückkehr zu Stable</string>
+    <string name="self_update_prerelease_subtitle">Bezieht Vorabversionen von ApkUp ein. Beim Deaktivieren wechselst du mit dem nächsten regulären Release automatisch zurück auf Stable.</string>
+    <string name="self_update_prerelease_badge">Beta / Vorabversion</string>
+    <string name="self_update_prerelease_notice">Dies ist eine Vorabversion von ApkUp zum frühzeitigen Testen.</string>
 </resources>

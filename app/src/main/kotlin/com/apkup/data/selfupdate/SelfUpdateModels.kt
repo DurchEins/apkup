@@ -42,7 +42,8 @@ data class SelfUpdateInfo(
     val releaseNotes: String,
     val downloadUrl: String,
     val apkSize: Long,
-    val expectedSha256: String? = null
+    val expectedSha256: String? = null,
+    val isPreRelease: Boolean = false
 )
 
 sealed interface SelfUpdateState {
