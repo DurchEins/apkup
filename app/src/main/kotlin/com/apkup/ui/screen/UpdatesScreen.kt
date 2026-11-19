@@ -3641,49 +3641,50 @@ internal fun resolveWikiUrlForSourceError(sourceName: String?, reason: String? =
 	if (lowerReason.isNotBlank()) {
 		when {
 			lowerReason.contains("dns") || lowerReason.contains("unknownhost") ->
-				return "$base#41-dns-error--server-unreachable"
+				return "$base#dns-resolution-failed"
 			lowerReason.contains("timeout") || lowerReason.contains("zeitüberschreitung") ->
-				return "$base#42-network-timeout--connection-timed-out"
+				return "$base#connection-timeout"
 			lowerReason.contains("401") || lowerReason.contains("403") || lowerReason.contains("429") || lowerReason.contains("auth") || lowerReason.contains("rate") -> {
 				return when {
-					lowerSource.contains("play") -> "$base#39-common-error-google-play-store-download-fails-http-429-or-paid-apps"
-					lowerSource.contains("github") && (lowerReason.contains("403") || lowerReason.contains("rate")) -> "$base#310-common-error-github-updates-are-temporarily-not-found-http-403-rate-limit"
-					else -> "$base#43-auth-error--rate-limit-http-401--403--429"
+					lowerSource.contains("play") -> "$base#play-store-rate-limit"
+					lowerSource.contains("github") && (lowerReason.contains("403") || lowerReason.contains("rate")) -> "$base#github-rate-limit"
+					lowerSource.contains("gitlab") || lowerSource.contains("codeberg") || lowerSource.contains("forgejo") -> "$base#gitlab-auth-error"
+					else -> "$base#auth-and-rate-limits"
 				}
 			}
 			lowerReason.contains("404") || lowerReason.contains("500") || lowerReason.contains("502") || lowerReason.contains("503") || lowerReason.contains("504") -> {
 				return if (lowerSource.contains("apkmirror") && lowerReason.contains("404")) {
-					"$base#38-common-error-apkmirror-shows-an-update-but-the-webpage-says-404-not-found"
+					"$base#apkmirror-404"
 				} else {
-					"$base#44-server-error--not-found-http-404--500--502--503"
+					"$base#server-errors"
 				}
 			}
 			lowerReason.contains("cloudflare") || lowerReason.contains("captcha") || lowerReason.contains("browser") ->
-				return "$base#45-apkmirror-cloudflare-protection--browser-fallback"
+				return "$base#apkmirror-cloudflare"
 			lowerReason.contains("signature") || lowerReason.contains("incompatible") || lowerReason.contains("konflikt") ->
-				return "$base#46-installation-failed--signature-conflicts"
+				return "$base#signature-conflicts"
 			lowerReason.contains("asset") || lowerReason.contains("repo") ->
-				return "$base#47-repository-linking--no-matching-apk-asset"
+				return "$base#custom-repo-linking"
 		}
 	}
 
 	return when {
 		lowerSource.contains("signature") ->
-			"$base#31-why-does-apkup-sometimes-show-a-warning-icon-for-a-signature-conflict"
+			"$base#signature-conflicts"
 		lowerSource.contains("apkmirror") ->
-			"$base#23-direct-apkmirror-resolution--hardened-apkm-split-extraction"
+			"https://github.com/DurchEins/apkup/wiki/Update-Sources,-Repository-Linking-&-Signature-Protection#23-direct-apkmirror-resolution--hardened-apkm-split-extraction"
 		lowerSource.contains("play") ->
-			"$base#39-common-error-google-play-store-download-fails-http-429-or-paid-apps"
+			"$base#play-store-rate-limit"
 		lowerSource.contains("github") ->
-			"$base#310-common-error-github-updates-are-temporarily-not-found-http-403-rate-limit"
+			"$base#github-rate-limit"
 		lowerSource.contains("gitlab") ->
-			"$base#25-three-tier-repository-resolution-for-github--gitlab"
+			"https://github.com/DurchEins/apkup/wiki/Update-Sources,-Repository-Linking-&-Signature-Protection#25-three-tier-repository-resolution-for-github-gitlab--codeberg"
 		lowerSource.contains("codeberg") || lowerSource.contains("forgejo") ->
 			"https://github.com/DurchEins/apkup/wiki/Configuring-GitHub-&-GitLab-Tokens"
 		lowerSource.contains("fdroid") || lowerSource.contains("f-droid") || lowerSource.contains("izzy") ->
 			"https://github.com/DurchEins/apkup/wiki/F-Droid-&-Index-V2-Repositories"
 		else ->
-			"$base#-part-4-common-error-messages--self-help-troubleshooting"
+			"$base#diagnostic-checklist"
 	}
 }
 
