@@ -602,4 +602,6 @@
     <string name="self_update_prerelease_subtitle">Include le versioni preliminari di ApkUp. Disattivando l\'opzione tornerai automaticamente alla versione stabile con il prossimo rilascio regolare.</string>
     <string name="self_update_prerelease_badge">Beta / Preliminare</string>
     <string name="self_update_prerelease_notice">Questa è una versione preliminare di ApkUp pensata per i test anticipati.</string>
+    <string name="dynamic_color_title">Colore dinamico (Material You)</string>
+    <string name="dynamic_color_subtitle">Adatta i colori dell\'app al tuo sfondo</string>
 </resources>

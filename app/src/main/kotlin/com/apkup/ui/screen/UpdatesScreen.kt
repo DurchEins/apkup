@@ -52,7 +52,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PushPin
 import com.apkup.data.ui.SourcePriorityKeys
+import com.apkup.ui.component.ApkUpExpressiveLoadingIndicator
+import com.apkup.ui.component.ApkUpSplitActionButton
+import com.apkup.ui.component.ApkUpWavyLinearProgressIndicator
 import com.apkup.ui.component.sourcePriorityLabel
+import com.apkup.ui.theme.ApkUpTheme
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.filled.Check
@@ -467,14 +471,6 @@ fun UpdatesTopBar(
 					}
 				}
 			}
-			if (onOpenHistory != null) {
-				IconButton(onClick = onOpenHistory) {
-					Icon(
-						imageVector = Icons.Rounded.History,
-						contentDescription = stringResource(R.string.update_history_title)
-					)
-				}
-			}
 			IconButton(onClick = { viewModel.refresh() }) {
 				RefreshIcon(stringResource(R.string.refresh_updates))
 			}
@@ -802,7 +798,14 @@ fun UpdatesScreenSuccess(
 							execute()
 						}
 					},
-					onOpenQueue = { showQueueSheet = true }
+					onOpenQueue = { showQueueSheet = true },
+					onOpenHistory = onOpenHistory,
+					onSelectAll = {
+						selectedUpdateIds = displayedUpdates
+							.filter { it.name.isNotBlank() || it.packageName.isNotBlank() }
+							.map { it.id }
+							.toSet()
+					}
 				)
 			}
 
@@ -1200,11 +1203,13 @@ private fun UpdatesHeroBanner(
 	selectedCount: Int = 0,
 	onInstallAll: () -> Unit,
 	onInstallSelected: () -> Unit = {},
-	onOpenQueue: () -> Unit = {}
+	onOpenQueue: () -> Unit = {},
+	onOpenHistory: (() -> Unit)? = null,
+	onSelectAll: () -> Unit = {}
 ) {
 	val context = LocalContext.current
 	val resources = LocalResources.current
-	val shape = RoundedCornerShape(24.dp)
+	val shape = MaterialTheme.shapes.large
 	if (selectedCount > 0) {
 		Surface(
 			modifier = Modifier
@@ -1341,7 +1346,8 @@ private fun UpdatesHeroBanner(
 				.fillMaxWidth()
 				.padding(horizontal = 12.dp, vertical = 4.dp),
 			shape = shape,
-			color = MaterialTheme.colorScheme.surfaceContainer,
+			color = MaterialTheme.colorScheme.surfaceContainerLow,
+			border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.28f)),
 			shadowElevation = 0.dp
 		) {
 			Column(
@@ -1360,19 +1366,11 @@ private fun UpdatesHeroBanner(
 						horizontalArrangement = Arrangement.spacedBy(12.dp),
 						modifier = Modifier.weight(1f, fill = false)
 					) {
-						Surface(
-							shape = CircleShape,
-							color = MaterialTheme.colorScheme.primary,
-							modifier = Modifier.size(40.dp)
-						) {
-							Box(contentAlignment = Alignment.Center) {
-								CircularProgressIndicator(
-									modifier = Modifier.size(20.dp),
-									strokeWidth = 2.2.dp,
-									color = MaterialTheme.colorScheme.onPrimary
-								)
-							}
-						}
+						ApkUpExpressiveLoadingIndicator(
+							modifier = Modifier.size(40.dp),
+							containerColor = MaterialTheme.colorScheme.primaryContainer,
+							indicatorColor = MaterialTheme.colorScheme.onPrimaryContainer
+						)
 						Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
 							val allSaveOnly = activeTasks.isNotEmpty() && activeTasks.all { it.isSaveOnly }
 							Text(
@@ -1445,23 +1443,18 @@ private fun UpdatesHeroBanner(
 					else -> null
 				}
 				if (bannerFraction != null) {
-					LinearProgressIndicator(
+					ApkUpWavyLinearProgressIndicator(
 						progress = { bannerFraction },
-						modifier = Modifier
-							.fillMaxWidth()
-							.height(5.dp)
-							.clip(RoundedCornerShape(3.dp)),
+						modifier = Modifier.fillMaxWidth(),
 						color = MaterialTheme.colorScheme.primary,
-						trackColor = MaterialTheme.colorScheme.surfaceContainerHigh
+						trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
 					)
 				} else {
-					LinearProgressIndicator(
-						modifier = Modifier
-							.fillMaxWidth()
-							.height(5.dp)
-							.clip(RoundedCornerShape(3.dp)),
+					ApkUpWavyLinearProgressIndicator(
+						progress = null,
+						modifier = Modifier.fillMaxWidth(),
 						color = MaterialTheme.colorScheme.primary,
-						trackColor = MaterialTheme.colorScheme.surfaceContainerHigh
+						trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
 					)
 				}
 			}
@@ -1474,7 +1467,8 @@ private fun UpdatesHeroBanner(
 			.fillMaxWidth()
 			.padding(horizontal = 12.dp, vertical = 4.dp),
 		shape = shape,
-		color = MaterialTheme.colorScheme.surfaceContainer,
+		color = MaterialTheme.colorScheme.surfaceContainerLow,
+		border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.24f)),
 		shadowElevation = 0.dp
 	) {
 		Row(
@@ -1491,14 +1485,14 @@ private fun UpdatesHeroBanner(
 			) {
 				Surface(
 					shape = CircleShape,
-					color = MaterialTheme.colorScheme.primary,
-					modifier = Modifier.size(40.dp)
+					color = MaterialTheme.colorScheme.primaryContainer,
+					modifier = Modifier.size(42.dp)
 				) {
 					Box(contentAlignment = Alignment.Center) {
 						Icon(
 							painter = painterResource(R.drawable.ic_install),
 							contentDescription = null,
-							tint = MaterialTheme.colorScheme.onPrimary,
+							tint = MaterialTheme.colorScheme.onPrimaryContainer,
 							modifier = Modifier.size(20.dp)
 						)
 					}
@@ -1520,27 +1514,42 @@ private fun UpdatesHeroBanner(
 				}
 			}
 			if (hasInstallable) {
-				Button(
+				Spacer(Modifier.width(8.dp))
+				ApkUpSplitActionButton(
+					label = stringResource(R.string.install_all),
+					iconRes = R.drawable.ic_install,
 					onClick = onInstallAll,
-					shape = CircleShape,
-					colors = ButtonDefaults.buttonColors(
-						containerColor = MaterialTheme.colorScheme.primary,
-						contentColor = MaterialTheme.colorScheme.onPrimary
-					),
-					contentPadding = PaddingValues(start = 14.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
-				) {
-					Icon(
-						painter = painterResource(R.drawable.ic_install),
-						contentDescription = null,
-						modifier = Modifier.size(16.dp)
-					)
-					Spacer(Modifier.width(6.dp))
-					Text(
-						text = stringResource(R.string.install_all),
-						style = MaterialTheme.typography.labelMedium,
-						fontWeight = FontWeight.Bold
-					)
-				}
+					menuContent = { dismiss ->
+						if (onOpenHistory != null) {
+							DropdownMenuItem(
+								text = { Text(stringResource(R.string.update_history_title)) },
+								leadingIcon = {
+									Icon(
+										imageVector = Icons.Rounded.History,
+										contentDescription = null
+									)
+								},
+								onClick = {
+									dismiss()
+									onOpenHistory()
+								}
+							)
+						}
+						DropdownMenuItem(
+							text = { Text(stringResource(R.string.updates_select_all)) },
+							leadingIcon = {
+								Icon(
+									imageVector = Icons.Filled.Check,
+									contentDescription = null
+								)
+							},
+							onClick = {
+								dismiss()
+								onSelectAll()
+							}
+						)
+					}
+				)
 			}
 		}
 	}
@@ -2159,79 +2168,72 @@ private fun UpdateCheckProgressBar(
 		else -> activeSourceName
 	}
 	Surface(
-		color = MaterialTheme.colorScheme.surfaceContainer,
-		shape = RoundedCornerShape(24.dp),
-		border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
+		color = MaterialTheme.colorScheme.surfaceContainerLow,
+		shape = MaterialTheme.shapes.large,
+		border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)),
 		modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
 	) {
-		Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp)) {
+		Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp)) {
 			if (checkedApps != null && totalApps != null && totalApps > 0) {
 				val completed = checkedApps.coerceIn(0, totalApps - 1)
 				Row(
-					modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
-					horizontalArrangement = Arrangement.SpaceBetween,
+					modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+					horizontalArrangement = Arrangement.spacedBy(10.dp),
 					verticalAlignment = Alignment.CenterVertically
 				) {
+					ApkUpExpressiveLoadingIndicator(modifier = Modifier.size(28.dp))
 					Text(
 						text = stringResource(R.string.updates_checking_apps, completed, totalApps),
 						style = MaterialTheme.typography.labelMedium,
 						color = MaterialTheme.colorScheme.onSurfaceVariant,
 						maxLines = 1,
 						overflow = TextOverflow.Ellipsis,
-						modifier = Modifier.weight(1f, fill = false)
+						modifier = Modifier.weight(1f)
 					)
 					if (!resolvedActiveSource.isNullOrBlank()) {
-						Spacer(Modifier.width(8.dp))
 						Text(
 							text = stringResource(R.string.updates_checking_source, resolvedActiveSource),
 							style = MaterialTheme.typography.labelSmall,
-							fontWeight = FontWeight.Medium,
+							fontWeight = FontWeight.SemiBold,
 							color = MaterialTheme.colorScheme.primary,
 							maxLines = 1
 						)
 					}
 				}
-				if (completed > 0) {
-					LinearProgressIndicator(
-						progress = { completed.toFloat() / totalApps },
-						modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
-						color = MaterialTheme.colorScheme.primary,
-						trackColor = MaterialTheme.colorScheme.secondaryContainer
-					)
-				} else {
-					LinearProgressIndicator(
-						modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
-						color = MaterialTheme.colorScheme.primary,
-						trackColor = MaterialTheme.colorScheme.secondaryContainer
-					)
-				}
+				ApkUpWavyLinearProgressIndicator(
+					progress = if (completed > 0) ({ completed.toFloat() / totalApps }) else null,
+					modifier = Modifier.fillMaxWidth(),
+					color = MaterialTheme.colorScheme.primary,
+					trackColor = MaterialTheme.colorScheme.secondaryContainer
+				)
 			} else {
 				Row(
-					modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
-					horizontalArrangement = Arrangement.SpaceBetween,
+					modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+					horizontalArrangement = Arrangement.spacedBy(10.dp),
 					verticalAlignment = Alignment.CenterVertically
 				) {
+					ApkUpExpressiveLoadingIndicator(modifier = Modifier.size(28.dp))
 					Text(
 						text = stringResource(R.string.updates_checking),
 						style = MaterialTheme.typography.labelMedium,
 						color = MaterialTheme.colorScheme.onSurfaceVariant,
 						maxLines = 1,
 						overflow = TextOverflow.Ellipsis,
-						modifier = Modifier.weight(1f, fill = false)
+						modifier = Modifier.weight(1f)
 					)
 					if (!resolvedActiveSource.isNullOrBlank()) {
-						Spacer(Modifier.width(8.dp))
 						Text(
 							text = stringResource(R.string.updates_checking_source, resolvedActiveSource),
 							style = MaterialTheme.typography.labelSmall,
-							fontWeight = FontWeight.Medium,
+							fontWeight = FontWeight.SemiBold,
 							color = MaterialTheme.colorScheme.primary,
 							maxLines = 1
 						)
 					}
 				}
-				LinearProgressIndicator(
-					modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
+				ApkUpWavyLinearProgressIndicator(
+					progress = null,
+					modifier = Modifier.fillMaxWidth(),
 					color = MaterialTheme.colorScheme.primary,
 					trackColor = MaterialTheme.colorScheme.secondaryContainer
 				)
@@ -2392,7 +2394,7 @@ private fun UpdateCard(
 	val effProgress = liveTask?.progress ?: update.progress
 	val effTotal = liveTask?.total?.takeIf { it > 0L } ?: update.total
 
-	val cardShape = RoundedCornerShape(20.dp)
+	val cardShape = MaterialTheme.shapes.large
 	Surface(
 		modifier = modifier
 			.fillMaxWidth()
@@ -2401,14 +2403,21 @@ private fun UpdateCard(
 				onClick = onSelect,
 				onLongClick = onLongPress
 			)
-			.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
+			.animateContentSize(animationSpec = ApkUpTheme.motion.defaultSpatialSpec()),
 		shape = cardShape,
 		color = if (isSelected) {
-			MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f)
+			MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
 		} else {
 			MaterialTheme.colorScheme.surfaceContainerLow
 		},
-		border = if (isSelected) BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else null
+		border = BorderStroke(
+			width = if (isSelected) 1.5.dp else 1.dp,
+			color = if (isSelected) {
+				MaterialTheme.colorScheme.primary
+			} else {
+				MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+			}
+		)
 	) {
 		Column(
 			modifier = Modifier
@@ -2662,11 +2671,15 @@ private fun UpdateCard(
 						maxLines = 1,
 						overflow = TextOverflow.Ellipsis
 					)
-					LinearProgressIndicator(
-						progress = { if (effTotal > 0L && effProgress > 0L) (effProgress.toFloat() / effTotal).coerceIn(0f, 1f) else 0f },
-						modifier = Modifier.fillMaxWidth().height(4.dp),
+					ApkUpWavyLinearProgressIndicator(
+						progress = if (effTotal > 0L && effProgress > 0L) {
+							{ (effProgress.toFloat() / effTotal).coerceIn(0f, 1f) }
+						} else {
+							null
+						},
+						modifier = Modifier.fillMaxWidth(),
 						color = MaterialTheme.colorScheme.primary,
-						trackColor = MaterialTheme.colorScheme.surfaceContainer
+						trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
 					)
 				}
 			}

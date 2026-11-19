@@ -598,4 +598,6 @@
     <string name="self_update_prerelease_subtitle">ApkUp のプレリリース版を含めます。オフにすると次の正式リリースで自動的に安定版へ戻ります。</string>
     <string name="self_update_prerelease_badge">ベータ / プレリリース</string>
     <string name="self_update_prerelease_notice">これは早期テスト向けの ApkUp プレリリース版です。</string>
+    <string name="dynamic_color_title">ダイナミック カラー (Material You)</string>
+    <string name="dynamic_color_subtitle">壁紙に合わせてアプリの色を自動調整します</string>
 </resources>

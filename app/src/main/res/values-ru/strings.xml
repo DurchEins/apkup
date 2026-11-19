@@ -605,4 +605,6 @@
     <string name="self_update_prerelease_subtitle">Включает предварительные версии ApkUp. При отключении приложение автоматически вернётся на стабильную ветку со следующим обычным релизом.</string>
     <string name="self_update_prerelease_badge">Бета / Пререлиз</string>
     <string name="self_update_prerelease_notice">Это предварительная версия ApkUp, предназначенная для раннего тестирования.</string>
+    <string name="dynamic_color_title">Динамические цвета (Material You)</string>
+    <string name="dynamic_color_subtitle">Адаптировать цвета приложения под обои</string>
 </resources>

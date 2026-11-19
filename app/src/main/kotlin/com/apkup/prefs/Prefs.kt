@@ -283,6 +283,7 @@ class Prefs(
     val enableBackgroundChecks: PrefSlot<Boolean> = booleanSlot("enableAlarm", defValue = true)
     val backgroundCheckIntervalHours: PrefSlot<Int> = intSlot("backgroundCheckIntervalHours", defValue = 24)
     val theme: PrefSlot<Int> = intSlot("theme", defValue = 0)
+    val dynamicColor: PrefSlot<Boolean> = booleanSlot("dynamicColor", defValue = false)
     val lastTab: PrefSlot<String> = stringSlot("lastTab", defValue = com.apkup.data.ui.Screen.Updates.route)
 
     val playAuthData: PrefSlot<AuthData> = jsonSlot(

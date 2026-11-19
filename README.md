@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.44.0%20(203)-A855F7?style=flat" alt="Version" /></a>
+  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.45.0%20(211)-A855F7?style=flat" alt="Version" /></a>
   <img src="https://img.shields.io/badge/Android-10.0%2B%20(API%2029%2B)-3DDC84?style=flat&logo=android" alt="Android" />
   <img src="https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat" alt="License: GPL v3" />
   <img src="https://img.shields.io/badge/Shizuku%20%26%20Root-Supported-00897B?style=flat" alt="Shizuku & Root" />
@@ -41,7 +41,7 @@
   * **Encrypted Local Storage:** Preferences and optional API tokens are encrypted at rest via **Google Tink (AES-256-GCM)** in Android Keystore, with cloud backups and cleartext HTTP strictly disabled.
   * **Tapjacking & Archive Hardening:** Touch events are filtered when obscured by overlays, and `.apkm` extraction enforces strict Zip-Slip and decompression-bomb limits inside private internal storage.
 * **🎨 Material 3 Expressive Design & 9 Official Languages:**
-  * Pixel-inspired UI with Dynamic Color (Material You), dark/light/system themes, floating capsule navigation dock, collapsible scroll headers, unified modal bottom sheets, and tiered predictive back navigation.
+  * Unified Brand-Amber color scheme with a soft off-white light theme, optional Dynamic Color (Material You) toggle, dark/light/system themes, floating capsule navigation dock (with automatic `NavigationRail` on tablets/wider displays), wavy progress indicators, split-button actions, collapsible scroll headers, unified modal bottom sheets, and full reduced-motion accessibility support.
   * Instant search bars and flexible sorting across both **Updates** (*Name A–Z / Z–A, Source, Newest Release Date*) and **Apps** (*Name A–Z / Z–A, Source, Recently Updated*).
   * Localized in **9 official languages**: English, German, Spanish, French, Portuguese, Italian, Russian, Simplified Chinese, and Japanese.
   * Multiple display modes (*Compact Grid Tiles* vs. *Detailed List*), quick-filter chips (including *GitHub / Sideload* and *Watched*), and monthly-grouped in-app changelogs.

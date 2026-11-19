@@ -747,6 +747,13 @@ class SettingsViewModel(
 		themer?.setTheme(isDarkTheme(theme))
 	}
 
+	fun getDynamicColor(): Boolean = prefs.dynamicColor.get()
+
+	fun setDynamicColor(enabled: Boolean) {
+		prefs.dynamicColor.put(enabled)
+		themer?.setDynamicColor(enabled)
+	}
+
 	fun setBackgroundChecksEnabled(
 		b: Boolean,
 		@Suppress("UNUSED_PARAMETER")

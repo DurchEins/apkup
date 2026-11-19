@@ -53,7 +53,7 @@ fun SelfUpdateDialog(
             val info = state.info
             AlertDialog(
                 onDismissRequest = onDismiss,
-                shape = RoundedCornerShape(28.dp),
+                shape = MaterialTheme.shapes.extraLarge,
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                 icon = {
                     Box(
@@ -217,7 +217,7 @@ fun SelfUpdateDialog(
         is SelfUpdateState.Downloading -> {
             AlertDialog(
                 onDismissRequest = {},
-                shape = RoundedCornerShape(28.dp),
+                shape = MaterialTheme.shapes.extraLarge,
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                 title = {
                     Text(
@@ -232,22 +232,14 @@ fun SelfUpdateDialog(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        if (state.progressPercent in 1..99) {
-                            LinearProgressIndicator(
-                                progress = { state.progressPercent / 100f },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(8.dp)
-                                    .clip(RoundedCornerShape(4.dp))
-                            )
-                        } else {
-                            LinearProgressIndicator(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(8.dp)
-                                    .clip(RoundedCornerShape(4.dp))
-                            )
-                        }
+                        ApkUpWavyLinearProgressIndicator(
+                            progress = if (state.progressPercent in 1..99) {
+                                { state.progressPercent / 100f }
+                            } else {
+                                null
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
                         Text(
                             text = stringResource(R.string.self_update_downloading, state.progressPercent),
                             style = MaterialTheme.typography.bodyMedium,
@@ -261,7 +253,7 @@ fun SelfUpdateDialog(
         is SelfUpdateState.Installing -> {
             AlertDialog(
                 onDismissRequest = {},
-                shape = RoundedCornerShape(28.dp),
+                shape = MaterialTheme.shapes.extraLarge,
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                 title = {
                     Text(
@@ -278,7 +270,7 @@ fun SelfUpdateDialog(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        CircularProgressIndicator(modifier = Modifier.size(32.dp))
+                        ApkUpExpressiveLoadingIndicator(modifier = Modifier.size(36.dp))
                         Text(
                             text = stringResource(R.string.self_update_installing),
                             style = MaterialTheme.typography.bodyMedium,

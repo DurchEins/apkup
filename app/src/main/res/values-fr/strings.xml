@@ -602,4 +602,6 @@
     <string name="self_update_prerelease_subtitle">Inclut les préversions d\'ApkUp. Désactivez l\'option à tout moment pour revenir automatiquement à la version stable lors de la prochaine sortie.</string>
     <string name="self_update_prerelease_badge">Bêta / Préversion</string>
     <string name="self_update_prerelease_notice">Il s\'agit d\'une préversion d\'ApkUp destinée aux tests anticipés.</string>
+    <string name="dynamic_color_title">Couleurs dynamiques (Material You)</string>
+    <string name="dynamic_color_subtitle">Adapter les couleurs de l\'application à votre fond d\'écran</string>
 </resources>

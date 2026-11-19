@@ -9,16 +9,14 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -31,6 +29,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -49,6 +48,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -77,6 +79,10 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -101,6 +107,7 @@ import com.apkup.data.ui.UpdatesUiState
 import com.apkup.ui.component.ChangelogBottomSheet
 import com.apkup.ui.component.InstallPermissionDialog
 import com.apkup.ui.component.SelfUpdateDialog
+import com.apkup.ui.theme.ApkUpTheme
 import com.apkup.ui.theme.AppTheme
 import com.apkup.util.Badger
 import com.apkup.data.snack.SnackVisualType
@@ -196,60 +203,86 @@ fun MainScreen(
     CheckNotificationIntent(mainViewModel, updatesViewModel, navController)
     IntentListener(mainViewModel, updatesViewModel, navController)
 
-    val theme = koinInject<Themer>().flow().collectAsStateWithLifecycle().value
+    val themer = koinInject<Themer>()
+    val theme = themer.flow().collectAsStateWithLifecycle().value
+    val dynamicColor = themer.dynamicColorFlow().collectAsStateWithLifecycle().value
     val snackBarHostState = handleSnackBar()
 
-    AppTheme(theme) {
+    AppTheme(darkTheme = theme, dynamicColor = dynamicColor) {
         Scaffold(
             containerColor = MaterialTheme.colorScheme.background
         ) { padding ->
-            Box(
+            BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(top = padding.calculateTopPadding())
             ) {
-                PullToRefreshBox(
-                    isRefreshing = isRefreshing.value,
-                    onRefresh = { mainViewModel.refresh(appsViewModel, updatesViewModel) },
-                    state = pullToRefreshState,
-                    indicator = {
-                        if (!isUpdatesScreen) {
-                            PullToRefreshDefaults.Indicator(
-                                modifier = Modifier.align(Alignment.TopCenter),
-                                isRefreshing = isRefreshing.value,
-                                state = pullToRefreshState
+                val useNavigationRail = maxWidth >= 600.dp
+
+                Row(modifier = Modifier.fillMaxSize()) {
+                    if (useNavigationRail) {
+                        ApkUpNavigationRail(
+                            mainViewModel = mainViewModel,
+                            updatesViewModel = updatesViewModel,
+                            navController = navController
+                        )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                    ) {
+                        PullToRefreshBox(
+                            isRefreshing = isRefreshing.value,
+                            onRefresh = { mainViewModel.refresh(appsViewModel, updatesViewModel) },
+                            state = pullToRefreshState,
+                            indicator = {
+                                if (!isUpdatesScreen) {
+                                    PullToRefreshDefaults.Indicator(
+                                        modifier = Modifier.align(Alignment.TopCenter),
+                                        isRefreshing = isRefreshing.value,
+                                        state = pullToRefreshState
+                                    )
+                                }
+                            }
+                        ) {
+                            NavHost(navController, PaddingValues(0.dp), mainViewModel, appsViewModel, updatesViewModel, settingsViewModel)
+                        }
+
+                        BackHandler(enabled = currentDestinationRoute != null && currentDestinationRoute != Screen.Updates.route) {
+                            mainViewModel.navigateTo(navController, Screen.Updates.route)
+                        }
+
+                        ApkUpSnackbarHost(
+                            hostState = snackBarHostState,
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .navigationBarsPadding()
+                                .padding(
+                                    bottom = if (useNavigationRail) 20.dp else 94.dp,
+                                    start = 20.dp,
+                                    end = 20.dp
+                                )
+                                .widthIn(max = 460.dp)
+                        )
+
+                        if (!useNavigationRail) {
+                            FloatingCapsuleDock(
+                                mainViewModel = mainViewModel,
+                                updatesViewModel = updatesViewModel,
+                                navController = navController,
+                                modifier = Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .navigationBarsPadding()
+                                    .padding(bottom = 12.dp, start = 20.dp, end = 20.dp)
+                                    .fillMaxWidth()
+                                    .widthIn(max = 420.dp)
+                                    .height(68.dp)
                             )
                         }
                     }
-                ) {
-                    NavHost(navController, PaddingValues(0.dp), mainViewModel, appsViewModel, updatesViewModel, settingsViewModel)
                 }
-
-                BackHandler(enabled = currentDestinationRoute != null && currentDestinationRoute != Screen.Updates.route) {
-                    mainViewModel.navigateTo(navController, Screen.Updates.route)
-                }
-
-                ApkUpSnackbarHost(
-                    hostState = snackBarHostState,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .navigationBarsPadding()
-                        .padding(bottom = 92.dp, start = 20.dp, end = 20.dp)
-                        .widthIn(max = 420.dp)
-                )
-
-                FloatingCapsuleDock(
-                    mainViewModel = mainViewModel,
-                    updatesViewModel = updatesViewModel,
-                    navController = navController,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .navigationBarsPadding()
-                        .padding(bottom = 12.dp, start = 20.dp, end = 20.dp)
-                        .fillMaxWidth()
-                        .widthIn(max = 420.dp)
-                        .height(68.dp)
-                )
             }
         }
 
@@ -474,7 +507,7 @@ fun ApkUpSnackbarHost(
     ) { snackbarData ->
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
+            shape = MaterialTheme.shapes.large,
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             tonalElevation = 6.dp,
             shadowElevation = 10.dp,
@@ -488,26 +521,26 @@ fun ApkUpSnackbarHost(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 val visualType = (snackbarData.visuals as? TextSnack)?.visualType ?: SnackVisualType.INFO
-                val isDark = isSystemInDarkTheme()
+                val extendedColors = ApkUpTheme.colors
                 val (badgeBg, badgeTint, badgeIcon) = when (visualType) {
                     SnackVisualType.SUCCESS -> Triple(
-                        if (isDark) Color(0xFF1B3820) else Color(0xFFE8F5E9),
-                        if (isDark) Color(0xFF81C784) else Color(0xFF2E7D32),
+                        extendedColors.successContainer,
+                        extendedColors.success,
                         Icons.Default.Check
                     )
                     SnackVisualType.WARNING -> Triple(
-                        MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.75f),
-                        MaterialTheme.colorScheme.tertiary,
+                        extendedColors.warningContainer,
+                        extendedColors.warning,
                         Icons.Default.Warning
                     )
                     SnackVisualType.ERROR -> Triple(
-                        MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.75f),
+                        MaterialTheme.colorScheme.errorContainer,
                         MaterialTheme.colorScheme.error,
                         Icons.Default.Warning
                     )
                     SnackVisualType.INFO -> Triple(
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f),
-                        MaterialTheme.colorScheme.primary,
+                        extendedColors.infoContainer,
+                        extendedColors.info,
                         Icons.Default.Info
                     )
                 }
@@ -602,10 +635,10 @@ fun FloatingCapsuleDock(
     Surface(
         modifier = modifier.height(68.dp),
         shape = CircleShape,
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        tonalElevation = 6.dp,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        tonalElevation = 4.dp,
         shadowElevation = 8.dp,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f))
     ) {
         Row(
             modifier = Modifier
@@ -632,6 +665,111 @@ fun FloatingCapsuleDock(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ApkUpNavigationRail(
+    mainViewModel: MainViewModel,
+    updatesViewModel: UpdatesViewModel,
+    navController: NavController,
+    modifier: Modifier = Modifier
+) {
+    val badges = koinInject<Badger>().flow().collectAsStateWithLifecycle().value
+    val updatesState = updatesViewModel.state().collectAsStateWithLifecycle().value
+    val isChecking = updatesState.isChecking
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    val haptics = LocalHapticFeedback.current
+    val extendedColors = ApkUpTheme.colors
+
+    NavigationRail(
+        modifier = modifier
+            .fillMaxHeight()
+            .navigationBarsPadding(),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+    ) {
+        Spacer(modifier = Modifier.height(12.dp))
+        mainViewModel.screens.forEach { screen ->
+            val selected = currentRoute == screen.route
+            val badge = if (screen == Screen.Apps) "" else badges[screen.route].orEmpty()
+            val isLiveChecking = screen == Screen.Updates && isChecking
+            NavigationRailItem(
+                selected = selected,
+                onClick = {
+                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    mainViewModel.navigateTo(navController, screen.route)
+                },
+                colors = NavigationRailItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    selectedTextColor = MaterialTheme.colorScheme.onSurface,
+                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                icon = {
+                    NavigationBadgeBox(
+                        badge = badge,
+                        isLoadingUpdates = isLiveChecking,
+                        warningContainer = extendedColors.warning,
+                        onWarning = extendedColors.onWarning
+                    ) {
+                        Icon(
+                            imageVector = if (selected) screen.iconSelected else screen.icon,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                },
+                label = {
+                    Text(
+                        text = stringResource(screen.resourceId),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                        maxLines = 1,
+                        softWrap = false
+                    )
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun NavigationBadgeBox(
+    badge: String,
+    isLoadingUpdates: Boolean,
+    warningContainer: Color,
+    onWarning: Color,
+    content: @Composable () -> Unit
+) {
+    BadgedBox(
+        badge = {
+            if (badge.isNotEmpty()) {
+                val isWarning = badge == "!"
+                Badge(
+                    containerColor = if (isWarning) warningContainer else MaterialTheme.colorScheme.error,
+                    contentColor = if (isWarning) onWarning else MaterialTheme.colorScheme.onError
+                ) {
+                    Text(
+                        text = if (isWarning) "!" else formatCapsuleBadge(badge),
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontSize = if (isWarning) 11.sp else 10.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
+            } else if (isLoadingUpdates) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(10.dp),
+                    strokeWidth = 1.5.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    ) {
+        content()
+    }
+}
+
 internal fun formatCapsuleBadge(badge: String): String {
     val count = badge.toIntOrNull()
     return if (count != null && count > 99) "99+" else badge
@@ -648,24 +786,26 @@ fun CapsuleDockItem(
     modifier: Modifier = Modifier
 ) {
     val haptics = LocalHapticFeedback.current
+    val motion = ApkUpTheme.motion
+    val extendedColors = ApkUpTheme.colors
     val indicatorColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
-        animationSpec = spring(dampingRatio = 0.8f, stiffness = 380f),
+        targetValue = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+        animationSpec = motion.defaultEffectsSpec(),
         label = "CapsuleIndicatorColor"
     )
     val indicatorWidth by animateDpAsState(
-        targetValue = if (selected) 64.dp else 36.dp,
-        animationSpec = spring(dampingRatio = 0.8f, stiffness = 380f),
+        targetValue = if (selected) 64.dp else 32.dp,
+        animationSpec = motion.fastSpatialSpec(),
         label = "CapsuleIndicatorWidth"
     )
     val iconColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-        animationSpec = spring(dampingRatio = 0.8f, stiffness = 380f),
+        targetValue = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+        animationSpec = motion.defaultEffectsSpec(),
         label = "CapsuleIconColor"
     )
     val textColor by animateColorAsState(
         targetValue = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
-        animationSpec = spring(dampingRatio = 0.8f, stiffness = 380f),
+        animationSpec = motion.defaultEffectsSpec(),
         label = "CapsuleTextColor"
     )
 
@@ -675,6 +815,10 @@ fun CapsuleDockItem(
         modifier = modifier
             .fillMaxHeight()
             .clip(CircleShape)
+            .semantics {
+                role = Role.Tab
+                this.selected = selected
+            }
             .clickable {
                 haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 onClick()
@@ -683,41 +827,22 @@ fun CapsuleDockItem(
     ) {
         Box(
             modifier = Modifier
-                .height(36.dp)
+                .height(34.dp)
                 .widthIn(min = 64.dp),
             contentAlignment = Alignment.Center
         ) {
             Box(
                 modifier = Modifier
-                    .height(36.dp)
+                    .height(34.dp)
                     .width(indicatorWidth)
                     .clip(CircleShape)
                     .background(indicatorColor)
             )
-            BadgedBox(
-                badge = {
-                    if (badge.isNotEmpty()) {
-                        val isWarning = badge == "!"
-                        Badge(
-                            containerColor = if (isWarning) Color(0xFFE65100) else MaterialTheme.colorScheme.error,
-                            contentColor = Color.White
-                        ) {
-                            Text(
-                                text = if (isWarning) "!" else formatCapsuleBadge(badge),
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontSize = if (isWarning) 11.sp else 10.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            )
-                        }
-                    } else if (isLoadingUpdates) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(10.dp),
-                            strokeWidth = 1.5.dp,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
+            NavigationBadgeBox(
+                badge = badge,
+                isLoadingUpdates = isLoadingUpdates,
+                warningContainer = extendedColors.warning,
+                onWarning = extendedColors.onWarning
             ) {
                 Icon(
                     imageVector = if (selected) screen.iconSelected else screen.icon,
@@ -735,7 +860,7 @@ fun CapsuleDockItem(
             color = textColor,
             maxLines = 1,
             softWrap = false,
-            modifier = Modifier.padding(top = 4.dp)
+            modifier = Modifier.padding(top = 3.dp)
         )
     }
 }
@@ -748,15 +873,17 @@ fun NavHost(
     appsViewModel: AppsViewModel,
     updatesViewModel: UpdatesViewModel,
     settingsViewModel: SettingsViewModel
-) = NavHost(
-    navController = navController,
-    startDestination = Screen.Updates.route,
-    modifier = Modifier.padding(padding),
-    enterTransition = { fadeIn(animationSpec = tween(180)) },
-    exitTransition = { fadeOut(animationSpec = tween(180)) },
-    popEnterTransition = { fadeIn(animationSpec = tween(180)) },
-    popExitTransition = { fadeOut(animationSpec = tween(180)) }
 ) {
+    val transitionSpec = ApkUpTheme.motion.fastEffectsSpec<Float>()
+    NavHost(
+        navController = navController,
+        startDestination = Screen.Updates.route,
+        modifier = Modifier.padding(padding),
+        enterTransition = { fadeIn(animationSpec = transitionSpec) },
+        exitTransition = { fadeOut(animationSpec = transitionSpec) },
+        popEnterTransition = { fadeIn(animationSpec = transitionSpec) },
+        popExitTransition = { fadeOut(animationSpec = transitionSpec) }
+    ) {
     composable(Screen.Apps.route) {
         Box(
             modifier = Modifier
@@ -783,5 +910,6 @@ fun NavHost(
         ) {
             SettingsScreen(settingsViewModel, appsViewModel, updatesViewModel, mainViewModel)
         }
+    }
     }
 }
