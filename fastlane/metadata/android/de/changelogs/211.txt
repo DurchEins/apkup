@@ -1,0 +1,5 @@
+1.45.0 (211) – Feature-Update:
+• Material 3 Expressive Look mit einheitlichem Amber-Farbschema & augenfreundlichem Off-White-Hellmodus
+• Optionaler Dynamic-Color-Schalter (Material You) in den Darstellungseinstellungen
+• Wellen-Fortschrittsanzeigen bei Scans/Downloads & Split-Button für „Alle updaten“ samt Schnellmenü
+• Automatische Seitennavigation (NavigationRail) auf breiteren Displays/Tablets & Reduced-Motion-Support

@@ -1,0 +1,5 @@
+1.45.0 (211) – Feature Update:
+• Material 3 Expressive look with unified Amber color scheme & eye-friendly off-white light mode
+• Optional Dynamic Color (Material You) toggle in appearance settings
+• Wavy progress indicators for scans/downloads & split-button for "Install all" with quick actions
+• Automatic navigation rail on wider screens/tablets & full reduced-motion accessibility support

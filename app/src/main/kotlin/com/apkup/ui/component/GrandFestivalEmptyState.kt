@@ -51,6 +51,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.apkup.R
+import com.apkup.ui.theme.ApkUpTheme
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -128,7 +129,8 @@ fun GrandFestivalEmptyState(
         val widthPx = constraints.maxWidth.toFloat()
         val heightPx = constraints.maxHeight.toFloat()
 
-        // 1. Edge-to-Edge Ambient Particle Canvas
+        // 1. Edge-to-Edge Ambient Particle Canvas (respecting reduced motion)
+        if (!ApkUpTheme.isReducedMotion) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val progress = loopProgress.value
             val pulse = burstPulse.value
@@ -166,6 +168,7 @@ fun GrandFestivalEmptyState(
                     )
                 }
             }
+        }
         }
 
         // 2. Centered Frosted Readability Glass Plate

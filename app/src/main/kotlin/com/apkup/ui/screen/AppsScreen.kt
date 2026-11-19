@@ -19,6 +19,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -142,6 +143,7 @@ import com.apkup.repository.RepoMappingManager
 import com.apkup.ui.component.AppEmptyState
 import com.apkup.ui.component.CollapsibleScrollHeader
 import com.apkup.ui.component.LinkRepoDialog
+import com.apkup.ui.theme.ApkUpTheme
 import com.apkup.ui.component.PinAppSourceBottomSheet
 import com.apkup.ui.component.sourcePriorityLabel
 import com.apkup.ui.component.LoadingGrid
@@ -818,11 +820,12 @@ private fun AppListItem(
 	val interactionSource = remember { MutableInteractionSource() }
 	val isPressed by interactionSource.collectIsPressedAsState()
 	val scale by animateFloatAsState(
-		targetValue = if (isPressed) 0.97f else 1f,
-		animationSpec = spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = Spring.DampingRatioMediumBouncy)
+		targetValue = if (isPressed && !ApkUpTheme.isReducedMotion) 0.97f else 1f,
+		animationSpec = ApkUpTheme.motion.fastSpatialSpec(),
+		label = "AppListItemPressScale"
 	)
 
-	val cardShape = RoundedCornerShape(20.dp)
+	val cardShape = MaterialTheme.shapes.large
 	Surface(
 		modifier = Modifier
 			.fillMaxWidth()
@@ -843,9 +846,10 @@ private fun AppListItem(
 					showMenu = true
 				}
 			)
-			.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
+			.animateContentSize(animationSpec = ApkUpTheme.motion.defaultSpatialSpec()),
 		shape = cardShape,
-		color = MaterialTheme.colorScheme.surfaceContainerLow
+		color = MaterialTheme.colorScheme.surfaceContainerLow,
+		border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
 	) {
 		Row(
 			modifier = Modifier
@@ -1079,11 +1083,12 @@ private fun AppGridItem(
 	val interactionSource = remember { MutableInteractionSource() }
 	val isPressed by interactionSource.collectIsPressedAsState()
 	val scale by animateFloatAsState(
-		targetValue = if (isPressed) 0.97f else 1f,
-		animationSpec = spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = Spring.DampingRatioMediumBouncy)
+		targetValue = if (isPressed && !ApkUpTheme.isReducedMotion) 0.97f else 1f,
+		animationSpec = ApkUpTheme.motion.fastSpatialSpec(),
+		label = "AppGridItemPressScale"
 	)
 
-	val cardShape = RoundedCornerShape(18.dp)
+	val cardShape = MaterialTheme.shapes.medium
 	Surface(
 		modifier = Modifier
 			.fillMaxWidth()
@@ -1104,9 +1109,10 @@ private fun AppGridItem(
 					showMenu = true
 				}
 			)
-			.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
+			.animateContentSize(animationSpec = ApkUpTheme.motion.defaultSpatialSpec()),
 		shape = cardShape,
-		color = MaterialTheme.colorScheme.surfaceContainerLow
+		color = MaterialTheme.colorScheme.surfaceContainerLow,
+		border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
 	) {
 		Column(
 			modifier = Modifier
@@ -1743,14 +1749,14 @@ fun AppsTopBar(
 			if (totalCount != null) {
 				Surface(
 					shape = CircleShape,
-					color = MaterialTheme.colorScheme.secondaryContainer
+					color = MaterialTheme.colorScheme.primaryContainer
 				) {
 					Text(
 						text = totalCount.toString(),
 						modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
 						style = MaterialTheme.typography.labelMedium,
-						fontWeight = FontWeight.SemiBold,
-						color = MaterialTheme.colorScheme.onSecondaryContainer
+						fontWeight = FontWeight.Bold,
+						color = MaterialTheme.colorScheme.onPrimaryContainer
 					)
 				}
 			}

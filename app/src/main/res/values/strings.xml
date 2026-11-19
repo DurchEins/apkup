@@ -230,6 +230,8 @@
     <string name="theme_system">System</string>
     <string name="theme_dark">Dark</string>
     <string name="theme_light">Light</string>
+    <string name="dynamic_color_title">Dynamic Color (Material You)</string>
+    <string name="dynamic_color_subtitle">Adapt app colors to your wallpaper</string>
     <string name="about_copyright">Copyright &#169; 2026 DurchEins &#8226; GPL-3.0</string>
     <string name="about_tribute">Redesigned from the ground up with love by DurchEins. ♥</string>
     <string name="about_original_project">Based on the original project by rumboalla (GPL-3.0)</string>

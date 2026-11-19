@@ -224,6 +224,8 @@
     <string name="theme_system">System</string>
     <string name="theme_dark">Dunkel</string>
     <string name="theme_light">Hell</string>
+    <string name="dynamic_color_title">Dynamic Color (Material You)</string>
+    <string name="dynamic_color_subtitle">App-Farben an das Hintergrundbild anpassen</string>
     <string name="about_copyright">Copyright &#169; 2026 DurchEins &#8226; GPL-3.0</string>
     <string name="about_tribute">Mit viel Liebe von DurchEins von Grund auf neu gestaltet. ♥</string>
     <string name="about_original_project">Basierend auf dem Originalprojekt von rumboalla (GPL-3.0)</string>

@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.apkup.R
+import com.apkup.ui.theme.ApkUpTheme
 
 data class ScanSourceStatus(
     val name: String,
@@ -144,10 +145,7 @@ fun MultiSourceScanTray(
                     modifier = Modifier
                         .height(34.dp)
                         .animateContentSize(
-                            animationSpec = spring(
-                                stiffness = Spring.StiffnessMediumLow,
-                                dampingRatio = Spring.DampingRatioLowBouncy
-                            )
+                            animationSpec = ApkUpTheme.motion.defaultSpatialSpec()
                         )
                 ) {
                     Row(

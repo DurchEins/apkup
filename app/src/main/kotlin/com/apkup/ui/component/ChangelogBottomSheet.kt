@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.apkup.BuildConfig
 import com.apkup.R
+import com.apkup.ui.theme.ApkUpTheme
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.Locale
@@ -382,9 +383,9 @@ private fun ChangelogPillBadge(
     type: ChangelogBadgeType
 ) {
     val (containerColor, contentColor) = when (type) {
-        ChangelogBadgeType.FEATURE -> Color(0xFFA855F7) to Color(0xFF140524)
-        ChangelogBadgeType.PATCH -> Color(0xFF38BDF8) to Color(0xFF062030)
-        ChangelogBadgeType.MAJOR -> Color(0xFFF59E0B) to Color(0xFF241402)
+        ChangelogBadgeType.FEATURE -> MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
+        ChangelogBadgeType.PATCH -> ApkUpTheme.colors.infoContainer to ApkUpTheme.colors.onInfoContainer
+        ChangelogBadgeType.MAJOR -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
     }
 
     Surface(

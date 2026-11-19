@@ -820,6 +820,15 @@ fun Settings(
 					{ viewModel.setTheme(it) },
 					R.drawable.ic_theme
 				)
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+					SwitchSetting(
+						getValue = { viewModel.getDynamicColor() },
+						setValue = { viewModel.setDynamicColor(it) },
+						text = stringResource(R.string.dynamic_color_title),
+						subtitle = stringResource(R.string.dynamic_color_subtitle),
+						icon = R.drawable.ic_theme
+					)
+				}
 				SegmentedButtonSetting(
 					stringResource(R.string.updates_display_mode),
 					listOf(stringResource(R.string.updates_detail_view), stringResource(R.string.updates_compact_view)),
@@ -4632,7 +4641,7 @@ fun SettingsTopBar() = TopAppBar(
 		Text(
 			text = stringResource(R.string.tab_settings),
 			style = MaterialTheme.typography.headlineMedium,
-			fontWeight = FontWeight.SemiBold
+			fontWeight = FontWeight.Bold
 		)
 	},
 	colors = TopAppBarDefaults.topAppBarColors(
@@ -4646,14 +4655,14 @@ fun SettingsTopBar() = TopAppBar(
 				.minimumInteractiveComponentSize()
 				.padding(start = 8.dp, end = 4.dp)
 				.size(36.dp)
-				.clip(RoundedCornerShape(12.dp))
-				.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+				.clip(MaterialTheme.shapes.small)
+				.background(MaterialTheme.colorScheme.primaryContainer),
 			contentAlignment = Alignment.Center
 		) {
 			Icon(
 				imageVector = Icons.Filled.Settings,
 				contentDescription = stringResource(R.string.tab_settings),
-				tint = MaterialTheme.colorScheme.primary,
+				tint = MaterialTheme.colorScheme.onPrimaryContainer,
 				modifier = Modifier.size(18.dp)
 			)
 		}
