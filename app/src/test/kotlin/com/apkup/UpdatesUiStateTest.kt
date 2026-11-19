@@ -266,19 +266,19 @@ class UpdatesUiStateTest {
     @Test
     fun resolveWikiUrlForSourceErrorDeepLinksToTroubleshootingSectionByReason() {
         val dnsUrl = com.apkup.ui.screen.resolveWikiUrlForSourceError("IzzyOnDroid", "UnknownHostException: dns lookup failed")
-        assertTrue(dnsUrl.endsWith("#41-dns-error--server-unreachable"))
+        assertTrue(dnsUrl.endsWith("#dns-resolution-failed"))
 
         val timeoutUrl = com.apkup.ui.screen.resolveWikiUrlForSourceError("APKMirror", "read timeout")
-        assertTrue(timeoutUrl.endsWith("#42-network-timeout--connection-timed-out"))
+        assertTrue(timeoutUrl.endsWith("#connection-timeout"))
 
         val playAuthUrl = com.apkup.ui.screen.resolveWikiUrlForSourceError("Google Play", "authentication: HTTP 429")
-        assertTrue(playAuthUrl.endsWith("#39-common-error-google-play-store-download-fails-http-429-or-paid-apps"))
+        assertTrue(playAuthUrl.endsWith("#play-store-rate-limit"))
 
         val gitlabAuthUrl = com.apkup.ui.screen.resolveWikiUrlForSourceError("GitLab", "HTTP 401 Unauthorized")
-        assertTrue(gitlabAuthUrl.endsWith("#43-auth-error--rate-limit-http-401--403--429"))
+        assertTrue(gitlabAuthUrl.endsWith("#gitlab-auth-error"))
 
         val serverErrorUrl = com.apkup.ui.screen.resolveWikiUrlForSourceError("IzzyOnDroid", "HTTP 502 Bad Gateway")
-        assertTrue(serverErrorUrl.endsWith("#44-server-error--not-found-http-404--500--502--503"))
+        assertTrue(serverErrorUrl.endsWith("#server-errors"))
     }
 
     @Test
