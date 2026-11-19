@@ -251,8 +251,51 @@ jobs:
             -d "$PAYLOAD" \
             "https://gitlab.com/api/v4/projects/${PROJECT_ID}/releases" > /dev/null
 
+      - name: Submit APK to VirusTotal (Optional)
+        continue-on-error: true
+        env:
+          VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
+        run: |
+          if [ -z "$VIRUSTOTAL_API_KEY" ]; then
+            echo "VIRUSTOTAL_API_KEY not set; skipping VirusTotal upload."
+            exit 0
+          fi
+
+          APK_PATH=$(find release_assets -maxdepth 1 -name '*.apk' | head -n 1)
+          if [ -z "$APK_PATH" ] || [ ! -f "$APK_PATH" ]; then
+            echo "::warning::Expected APK not found in release_assets/; skipping VirusTotal upload."
+            exit 0
+          fi
+
+          APK_SHA256=$(sha256sum "$APK_PATH" | awk '{print $1}')
+          STATUS_CODE=$(curl -sS -o /dev/null -w "%{http_code}" \
+            -H "x-apikey: ${VIRUSTOTAL_API_KEY}" \
+            "https://www.virustotal.com/api/v3/files/${APK_SHA256}")
+
+          if [ "$STATUS_CODE" = "200" ]; then
+            echo "VirusTotal already has a record for ${APK_SHA256}."
+          elif [ "$STATUS_CODE" = "404" ]; then
+            FILE_SIZE=$(stat -c%s "$APK_PATH")
+            UPLOAD_URL="https://www.virustotal.com/api/v3/files"
+            if [ "$FILE_SIZE" -gt 33554432 ]; then
+              UPLOAD_URL=$(curl -fsSL \
+                -H "x-apikey: ${VIRUSTOTAL_API_KEY}" \
+                "https://www.virustotal.com/api/v3/files/upload_url" | jq -r '.data')
+            fi
+            curl -fsSL -X POST \
+              -H "x-apikey: ${VIRUSTOTAL_API_KEY}" \
+              -F "file=@${APK_PATH}" \
+              "$UPLOAD_URL" > /dev/null
+            echo "Submitted APK to VirusTotal for scanning."
+          else
+            echo "::warning::Unexpected VirusTotal lookup status (${STATUS_CODE}); skipping upload."
+          fi
+
+          echo "VirusTotal report: https://www.virustotal.com/gui/file/${APK_SHA256}/detection"
+
       - name: Publish to Zapstore (Optional)
         env:
+          GITHUB_TOKEN: ${{ github.token }}
           SIGN_WITH: ${{ secrets.ZAPSTORE_SIGN_WITH }}
         run: |
           if [ -z "$SIGN_WITH" ]; then
