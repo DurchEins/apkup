@@ -1,0 +1,66 @@
+name: Bug Report
+description: Report a bug, crash, or broken update source
+type: Bug
+labels:
+  - bug
+  - needs-triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! Including a **Diagnostic Report** from ApkUp (*Setup → Diagnostics → Export / Share*) helps fix issues much faster.
+
+  - type: input
+    id: version
+    attributes:
+      label: ApkUp Version
+      description: Shown in Setup → About
+      placeholder: e.g. 1.44.0 (203)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected Area / Source
+      description: Select everything that applies (optional)
+      multiple: true
+      options:
+        - Google Play Store
+        - APKMirror
+        - F-Droid / IzzyOnDroid
+        - GitHub / GitLab / Codeberg
+        - Shizuku / Root Background Install
+        - Local APK Export / Rollback / Backup
+        - UI / Theme / Translation
+        - Other
+    validations:
+      required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Briefly describe the problem and what you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce (optional)
+      placeholder: |
+        1. Open ...
+        2. Tap ...
+        3. See error ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: diagnostic_report
+    attributes:
+      label: Diagnostic Report / Logs (optional)
+      description: Paste your sanitized report from Setup → Diagnostics (sensitive tokens are already scrubbed).
+      render: text
+    validations:
+      required: false

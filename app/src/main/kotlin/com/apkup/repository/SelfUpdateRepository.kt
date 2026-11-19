@@ -24,7 +24,7 @@ class SelfUpdateRepository(
 ) {
     companion object {
         const val GITHUB_RELEASES_LIST_URL =
-            "https://api.github.com/repos/DurchEins/apkup/releases?per_page=10"
+            "https://api.github.com/repos/DurchEins/apkup/releases?per_page=20"
         private const val MAX_SHA256_SIDECAR_BYTES = 4096
         private val ALLOWED_SELF_UPDATE_HOSTS = setOf(
             "github.com",
@@ -34,7 +34,8 @@ class SelfUpdateRepository(
     }
 
     suspend fun checkForUpdate(
-        currentVersionName: String = BuildConfig.VERSION_NAME
+        currentVersionName: String = BuildConfig.VERSION_NAME,
+        includePreReleases: Boolean = false
     ): Result<SelfUpdateInfo?> = withContext(Dispatchers.IO) {
         try {
             val request = Request.Builder()
@@ -48,11 +49,15 @@ class SelfUpdateRepository(
                     throw IOException("HTTP ${response.code} when checking GitHub releases")
                 }
                 val releases = parseReleasesPayload(response.body.charStream().readText())
-                val bestCandidate = selectNewestEligibleRelease(releases, currentVersionName)
-                    ?: return@withContext Result.success(null)
+                val bestCandidate = selectNewestEligibleRelease(
+                    releases = releases,
+                    currentVersionName = currentVersionName,
+                    includePreReleases = includePreReleases
+                ) ?: return@withContext Result.success(null)
 
                 val (release, candidateTag, apkAsset) = bestCandidate
                 val sha256 = resolveAssetSha256(release, apkAsset)
+                val isPreRelease = isPreReleaseRelease(release, candidateTag)
 
                 Result.success(
                     SelfUpdateInfo(
@@ -61,7 +66,8 @@ class SelfUpdateRepository(
                         releaseNotes = release.safeBody,
                         downloadUrl = apkAsset.safeDownloadUrl,
                         apkSize = apkAsset.size,
-                        expectedSha256 = sha256
+                        expectedSha256 = sha256,
+                        isPreRelease = isPreRelease
                     )
                 )
             }
@@ -87,9 +93,13 @@ class SelfUpdateRepository(
         }
     }
 
+    internal fun isPreReleaseRelease(release: GitHubRelease, candidateTag: String): Boolean =
+        release.prerelease || parseVersion(candidateTag).preRelease != null
+
     internal fun selectNewestEligibleRelease(
         releases: List<GitHubRelease>,
-        currentVersionName: String
+        currentVersionName: String,
+        includePreReleases: Boolean = false
     ): Triple<GitHubRelease, String, GitHubAsset>? {
         var best: Triple<GitHubRelease, String, GitHubAsset>? = null
 
@@ -97,6 +107,8 @@ class SelfUpdateRepository(
             if (release.draft) continue
             val candidateTag = release.safeTagName.ifBlank { release.safeName }
             if (candidateTag.isBlank()) continue
+            val isPreRelease = isPreReleaseRelease(release, candidateTag)
+            if (isPreRelease && !includePreReleases) continue
             if (!isNewerVersion(currentVersionName, candidateTag)) continue
 
             val apkAsset = release.safeAssets.firstOrNull { asset ->
@@ -200,14 +212,33 @@ class SelfUpdateRepository(
         return false
     }
 
+    private fun preReleaseRank(type: String): Int? = when (type) {
+        "dev", "nightly", "canary", "snapshot" -> 0
+        "alpha", "a" -> 1
+        "beta", "b" -> 2
+        "rc" -> 3
+        else -> null
+    }
+
     private fun comparePreRelease(candidate: String, current: String): Int {
-        val cNum = Regex("\\d+").find(candidate)?.value?.toIntOrNull() ?: 0
-        val curNum = Regex("\\d+").find(current)?.value?.toIntOrNull() ?: 0
-        val cType = candidate.replace(Regex("\\d+"), "").lowercase(Locale.ROOT)
-        val curType = current.replace(Regex("\\d+"), "").lowercase(Locale.ROOT)
+        val cType = candidate.replace(Regex("\\d+"), "").trim('.', '-', '_').lowercase(Locale.ROOT)
+        val curType = current.replace(Regex("\\d+"), "").trim('.', '-', '_').lowercase(Locale.ROOT)
         if (cType != curType) {
-            return cType.compareTo(curType)
+            val cRank = preReleaseRank(cType)
+            val curRank = preReleaseRank(curType)
+            return if (cRank != null && curRank != null && cRank != curRank) {
+                cRank.compareTo(curRank)
+            } else {
+                cType.compareTo(curType)
+            }
         }
-        return cNum.compareTo(curNum)
+        val cNums = Regex("\\d+").findAll(candidate).mapNotNull { it.value.toIntOrNull() }.toList()
+        val curNums = Regex("\\d+").findAll(current).mapNotNull { it.value.toIntOrNull() }.toList()
+        val maxLen = maxOf(cNums.size, curNums.size)
+        for (i in 0 until maxLen) {
+            val cmp = cNums.getOrElse(i) { 0 }.compareTo(curNums.getOrElse(i) { 0 })
+            if (cmp != 0) return cmp
+        }
+        return 0
     }
 }

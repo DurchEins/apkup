@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 📖 ApkUp Wiki & Troubleshooting
+    url: https://github.com/DurchEins/apkup/wiki
+    about: Step-by-step guides for Shizuku, tokens, F-Droid repos, and common source errors.
+  - name: 🔒 Security Policy
+    url: https://github.com/DurchEins/apkup/blob/main/SECURITY.md
+    about: How to report security issues privately and which versions are supported.

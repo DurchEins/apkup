@@ -246,6 +246,8 @@ class Prefs(
     val pinnedAppSourcesFlow: StateFlow<Map<String, String>> = _pinnedAppSourcesFlow.asStateFlow()
 
     val includePreReleasesGlobal: PrefSlot<Boolean> = booleanSlot("includePreReleasesGlobal", defValue = false)
+    val includeSelfUpdatePreReleases: PrefSlot<Boolean> =
+        booleanSlot("includeSelfUpdatePreReleases", defValue = false)
 
     val preReleaseChannels: PrefSlot<List<String>> = jsonSlot(
         key = "preReleaseChannels",

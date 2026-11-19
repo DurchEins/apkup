@@ -34,7 +34,7 @@
   * **Automatic Rollback Backups & Compatibility Guard:** Optionally back up installed APKs (including splits) before updating for in-place Root (`-r -d`) or guided non-Root rollbacks, with pre-install `minSdk` / `ABI` checks and a *Source Health & Cooldowns* sheet in *Setup*.
   * **Watch Uninstalled Apps & App Watcher Import:** Track releases for apps that are not yet installed via the **`+`** button in *Apps* and the *Watched* filter, mark versions as *Seen*, or import watchlists directly from **App Watcher** exports.
   * **Obtainium Interoperability with Preview:** Import app configurations, custom F-Droid repositories, and watchlist candidates from Obtainium exports via an interactive preview sheet, and export custom bindings back to Obtainium JSON.
-  * **Verified Self-Updater:** Checks official GitHub releases and validates `SHA256SUMS` digests plus APK signing certificates before installing updates.
+  * **Verified Self-Updater with Optional Beta Channel:** Checks official GitHub releases (stable-only by default, with an opt-in *Receive ApkUp beta updates* toggle under *Setup ➔ About* that cleanly returns to stable on opt-out) and validates `SHA256SUMS` digests plus APK signing certificates before installing updates.
 * **🛡️ Defense-in-Depth Security & Privacy:**
   * **Pre-Install APK Signature & Downgrade Verification:** Cryptographically verifies APK Signature Scheme v2/v3 certificates against the installed app before launching `PackageInstaller`, Shizuku, or Root (`su`), blocking certificate mismatches and version downgrades.
   * **Onboarding Source Consent:** Transparent first-launch source selection ensures zero external network requests happen before you choose your preferred update sources.

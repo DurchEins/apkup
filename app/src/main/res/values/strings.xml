@@ -620,4 +620,9 @@
     <string name="prerelease_summary_off">Disabled (stable versions only)</string>
     <string name="prerelease_summary_none">Enabled, no channel selected</string>
     <string name="update_window_summary_off">Disabled (runs anytime)</string>
+    <string name="self_update_prerelease_title">Receive beta updates</string>
+    <string name="self_update_prerelease_subtitle_short">Includes pre-releases · Back to stable when off</string>
+    <string name="self_update_prerelease_subtitle">Includes pre-release versions of ApkUp. Turn off anytime to automatically return to stable with the next regular release.</string>
+    <string name="self_update_prerelease_badge">Beta / Pre-Release</string>
+    <string name="self_update_prerelease_notice">This is a pre-release build of ApkUp intended for early testing.</string>
 </resources>
