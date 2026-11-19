@@ -78,6 +78,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -109,6 +110,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.ButtonDefaults
 import com.apkup.util.Badger
 import androidx.compose.material3.Text
@@ -154,6 +156,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -2298,7 +2301,133 @@ fun Settings(
 						}
 					}
 
-					// 3. Zweite Bento-Zeile (GitHub & Hilfe/Wiki nebeneinander als 2x2-Vervollständigung)
+					// 3a. Kompakte Opt-In-Zeile für ApkUp Beta-/Vorab-Updates (direkt unter Update prüfen / Was ist neu)
+					var includeSelfUpdatePreReleases by remember(configRefreshKey) {
+						mutableStateOf(viewModel.getIncludeSelfUpdatePreReleases())
+					}
+					var showSelfUpdateBetaInfoDialog by remember { mutableStateOf(false) }
+					Surface(
+						modifier = Modifier.fillMaxWidth(),
+						shape = RoundedCornerShape(14.dp),
+						color = MaterialTheme.colorScheme.surfaceContainerHigh,
+						border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+					) {
+						Row(
+							modifier = Modifier
+								.fillMaxWidth()
+								.clip(RoundedCornerShape(14.dp))
+								.toggleable(
+									value = includeSelfUpdatePreReleases,
+									role = Role.Switch,
+									onValueChange = { enabled ->
+										viewModel.setIncludeSelfUpdatePreReleases(enabled)
+										includeSelfUpdatePreReleases = enabled
+									}
+								)
+								.padding(horizontal = 10.dp, vertical = 7.dp),
+							verticalAlignment = CenterVertically,
+							horizontalArrangement = Arrangement.spacedBy(8.dp)
+						) {
+							Box(
+								modifier = Modifier
+									.size(28.dp)
+									.clip(RoundedCornerShape(8.dp))
+									.background(
+										if (includeSelfUpdatePreReleases) {
+											MaterialTheme.colorScheme.tertiaryContainer
+										} else {
+											MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.65f)
+										}
+									),
+								contentAlignment = Alignment.Center
+							) {
+								Icon(
+									painter = painterResource(R.drawable.ic_refresh),
+									contentDescription = null,
+									tint = if (includeSelfUpdatePreReleases) {
+										MaterialTheme.colorScheme.onTertiaryContainer
+									} else {
+										MaterialTheme.colorScheme.primary
+									},
+									modifier = Modifier.size(15.dp)
+								)
+							}
+							Column(
+								modifier = Modifier.weight(1f),
+								verticalArrangement = Arrangement.spacedBy(1.dp)
+							) {
+								Text(
+									text = stringResource(R.string.self_update_prerelease_title),
+									style = MaterialTheme.typography.labelMedium,
+									fontWeight = FontWeight.SemiBold,
+									color = MaterialTheme.colorScheme.onSurface,
+									maxLines = 1,
+									overflow = TextOverflow.Ellipsis
+								)
+								Text(
+									text = stringResource(R.string.self_update_prerelease_subtitle_short),
+									style = MaterialTheme.typography.labelSmall,
+									color = MaterialTheme.colorScheme.onSurfaceVariant,
+									maxLines = 1,
+									overflow = TextOverflow.Ellipsis
+								)
+							}
+							Box(
+								modifier = Modifier
+									.size(40.dp)
+									.clip(CircleShape)
+									.clickable { showSelfUpdateBetaInfoDialog = true },
+								contentAlignment = Alignment.Center
+							) {
+								Icon(
+									painter = painterResource(R.drawable.ic_info),
+									contentDescription = stringResource(R.string.self_update_prerelease_title),
+									tint = MaterialTheme.colorScheme.onSurfaceVariant,
+									modifier = Modifier.size(16.dp)
+								)
+							}
+							Switch(
+								checked = includeSelfUpdatePreReleases,
+								onCheckedChange = null,
+								thumbContent = {
+									Icon(
+										imageVector = if (includeSelfUpdatePreReleases) Icons.Default.Check else Icons.Default.Close,
+										contentDescription = null,
+										modifier = Modifier.size(SwitchDefaults.IconSize)
+									)
+								}
+							)
+						}
+					}
+
+					if (showSelfUpdateBetaInfoDialog) {
+						AlertDialog(
+							onDismissRequest = { showSelfUpdateBetaInfoDialog = false },
+							shape = RoundedCornerShape(24.dp),
+							containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+							title = {
+								Text(
+									text = stringResource(R.string.self_update_prerelease_title),
+									style = MaterialTheme.typography.titleMedium,
+									fontWeight = FontWeight.Bold
+								)
+							},
+							text = {
+								Text(
+									text = stringResource(R.string.self_update_prerelease_subtitle),
+									style = MaterialTheme.typography.bodyMedium,
+									color = MaterialTheme.colorScheme.onSurfaceVariant
+								)
+							},
+							confirmButton = {
+								TextButton(onClick = { showSelfUpdateBetaInfoDialog = false }) {
+									Text(stringResource(android.R.string.ok))
+								}
+							}
+						)
+					}
+
+					// 3b. Zweite Bento-Zeile (GitHub & Hilfe/Wiki nebeneinander unter der Beta-Karte)
 					Row(
 						modifier = Modifier
 							.fillMaxWidth()

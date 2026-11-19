@@ -597,4 +597,9 @@
     <string name="prerelease_summary_off">Disabled (stable versions only)</string>
     <string name="prerelease_summary_none">Enabled, no channel selected</string>
     <string name="update_window_summary_off">Disabled (runs anytime)</string>
+    <string name="self_update_prerelease_title">Recibir betas de ApkUp</string>
+    <string name="self_update_prerelease_subtitle_short">Incluye preliminares · Vuelve a estable al desactivar</string>
+    <string name="self_update_prerelease_subtitle">Incluye versiones preliminares de ApkUp. Al desactivarlo, volverás automáticamente a la versión estable con el próximo lanzamiento regular.</string>
+    <string name="self_update_prerelease_badge">Beta / Preliminar</string>
+    <string name="self_update_prerelease_notice">Esta es una versión preliminar de ApkUp destinada a pruebas anticipadas.</string>
 </resources>

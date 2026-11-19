@@ -600,4 +600,9 @@
     <string name="prerelease_summary_off">Disabled (stable versions only)</string>
     <string name="prerelease_summary_none">Enabled, no channel selected</string>
     <string name="update_window_summary_off">Disabled (runs anytime)</string>
+    <string name="self_update_prerelease_title">Получать бета-версии</string>
+    <string name="self_update_prerelease_subtitle_short">Включая пререлизы · Возврат к стабильной при выкл.</string>
+    <string name="self_update_prerelease_subtitle">Включает предварительные версии ApkUp. При отключении приложение автоматически вернётся на стабильную ветку со следующим обычным релизом.</string>
+    <string name="self_update_prerelease_badge">Бета / Пререлиз</string>
+    <string name="self_update_prerelease_notice">Это предварительная версия ApkUp, предназначенная для раннего тестирования.</string>
 </resources>

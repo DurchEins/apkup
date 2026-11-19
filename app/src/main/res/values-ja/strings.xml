@@ -593,4 +593,9 @@
     <string name="prerelease_summary_off">Disabled (stable versions only)</string>
     <string name="prerelease_summary_none">Enabled, no channel selected</string>
     <string name="update_window_summary_off">Disabled (runs anytime)</string>
+    <string name="self_update_prerelease_title">ベータ版を受け取る</string>
+    <string name="self_update_prerelease_subtitle_short">プレリリースを含む · オフで安定版に自動復帰</string>
+    <string name="self_update_prerelease_subtitle">ApkUp のプレリリース版を含めます。オフにすると次の正式リリースで自動的に安定版へ戻ります。</string>
+    <string name="self_update_prerelease_badge">ベータ / プレリリース</string>
+    <string name="self_update_prerelease_notice">これは早期テスト向けの ApkUp プレリリース版です。</string>
 </resources>

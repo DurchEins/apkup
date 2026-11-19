@@ -594,4 +594,9 @@
     <string name="prerelease_summary_off">Disabled (stable versions only)</string>
     <string name="prerelease_summary_none">Enabled, no channel selected</string>
     <string name="update_window_summary_off">Disabled (runs anytime)</string>
+    <string name="self_update_prerelease_title">接收测试版更新</string>
+    <string name="self_update_prerelease_subtitle_short">包含预发布版 · 关闭后自动切回稳定版</string>
+    <string name="self_update_prerelease_subtitle">包含 ApkUp 的预发布版本。随时关闭即可在下一个正式版发布时自动切回稳定版。</string>
+    <string name="self_update_prerelease_badge">测试版 / 预发布</string>
+    <string name="self_update_prerelease_notice">这是用于抢先测试的 ApkUp 预发布版本。</string>
 </resources>
