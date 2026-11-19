@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <a href="#-features">Features</a> • <a href="#-requirements">Requirements</a> • <a href="#-tech-stack">Tech Stack</a> • <a href="#-screenshots">Screenshots</a> • <a href="#-downloads">Downloads</a> • <a href="#-troubleshooting--wiki">Wiki</a> • <a href="#-license--credits">License</a>
+  <a href="#-features">Features</a> • <a href="#-requirements">Requirements</a> • <a href="#-tech-stack">Tech Stack</a> • <a href="#-screenshots">Screenshots</a> • <a href="#-downloads">Downloads</a> • <a href="#-troubleshooting--wiki">Wiki</a> • <a href="#-support-apkup">Support</a> • <a href="#-license--credits">License</a>
 </p>
 
 ---
@@ -111,6 +111,7 @@ Get the latest release of ApkUp from your preferred platform:
   <a href="https://zapstore.dev/apps/com.apkup"><img src="https://img.shields.io/badge/Zapstore-Available-7C3AED?style=flat&logo=lightning&logoColor=white" alt="Zapstore" /></a>&nbsp;&nbsp;
   <a href="https://gitlab.com/DurchEins1/apkup/-/releases"><img src="https://img.shields.io/badge/GitLab-Releases-FC6D26?style=flat&logo=gitlab&logoColor=white" alt="GitLab Releases" /></a>&nbsp;&nbsp;
   <a href="https://apkpure.com/apkup/com.apkup"><img src="https://img.shields.io/badge/APKPure-Available-24C270?style=flat&logo=android&logoColor=white" alt="APKPure" /></a>&nbsp;&nbsp;
+  <a href="https://alternativeto.net/software/apkup/about/"><img src="https://img.shields.io/badge/AlternativeTo-Listed-0066CC?style=flat&logo=alternativeto&logoColor=white" alt="AlternativeTo" /></a>&nbsp;&nbsp;
   <a href="https://durcheins.itch.io/apkup"><img src="https://img.shields.io/badge/itch.io-Available-FA5C5C?style=flat&logo=itchdotio&logoColor=white" alt="itch.io" /></a>&nbsp;&nbsp;
   <a href="https://appteka.store/app/c0cr341070"><img src="https://img.shields.io/badge/Appteka-Available-0EA5E9?style=flat&logo=android&logoColor=white" alt="Appteka" /></a>&nbsp;&nbsp;
   <a href="https://www.amazon.com/gp/product/B0HR5TXL8R"><img src="https://img.shields.io/badge/Amazon%20Appstore-Outdated-B91C1C?style=flat&logo=amazon&logoColor=white" alt="Amazon Appstore (Outdated)" /></a>
@@ -127,6 +128,28 @@ Need help configuring sources or resolving connection errors? Visit the official
 * [Setting up Shizuku & Optional Root (`su`) for Silent Updates](https://github.com/DurchEins/apkup/wiki/Setting-up-Shizuku)
 * [Obtainium Migration & Sync Guide](https://github.com/DurchEins/apkup/wiki/Obtainium-Migration-&-Sync-Guide)
 * [F-Droid & Index V2 Repositories](https://github.com/DurchEins/apkup/wiki/F-Droid-&-Index-V2-Repositories)
+
+---
+
+## ☕ Support ApkUp
+
+If ApkUp saves you time keeping your apps up to date, consider supporting its ongoing development. Every contribution directly helps fund new features, Android compatibility testing, and regular updates:
+
+<br>
+
+<p align="center">
+  <a href="https://buymeacoffee.com/durcheins"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="203" height="57" /></a>&nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://coindrop.to/durcheins"><img src=".github/assets/coindrop-button.png" alt="Coindrop.to me" width="229" height="57" /></a>
+</p>
+
+<br>
+
+> [!TIP]
+> **Prefer to support ApkUp for free?** Every bit of visibility helps:
+>
+> * ⭐ **[Star the repository on GitHub](https://github.com/DurchEins/apkup)** (or **[GitLab](https://gitlab.com/DurchEins1/apkup)**)
+> * 💬 **Rate & review** ApkUp on **[Zapstore](https://zapstore.dev/apps/com.apkup)**, **[AlternativeTo](https://alternativeto.net/software/apkup/about/)**, **[APKPure](https://apkpure.com/apkup/com.apkup)**, **[itch.io](https://durcheins.itch.io/apkup)**, or **[Appteka](https://appteka.store/app/c0cr341070)**
+> * 🐛 **[Report bugs](https://github.com/DurchEins/apkup/issues)**, **[suggest features](https://github.com/DurchEins/apkup/issues)**, or share ApkUp with friends!
 
 ---
 
