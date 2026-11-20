@@ -656,7 +656,18 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
 });
 ---
 
-<BaseLayout title="Wiki & Guides — ApkUp">
+<BaseLayout
+  title="Wiki & Guides — ApkUp"
+  description="Complete 9-chapter ApkUp reference documentation covering update sources, F-Droid Index V2, PAT tokens, Shizuku & Root silent updates, Obtainium JSON import, and troubleshooting."
+  jsonLd={{
+    '@context': 'https://schema.org',
+    '@type': 'TechArticle',
+    headline: 'ApkUp Wiki & Complete Reference Guides',
+    url: 'https://durcheins.github.io/apkup/wiki/',
+    author: { '@type': 'Person', name: 'DurchEins', url: 'https://github.com/DurchEins' },
+    about: { '@type': 'SoftwareApplication', name: 'ApkUp' },
+  }}
+>
   <Navbar />
   <main id="main-content" class="section">
     <div class="container">

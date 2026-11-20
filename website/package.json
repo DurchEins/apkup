@@ -4,8 +4,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "node scripts/build-css.mjs && astro dev",
-    "build": "node scripts/build-css.mjs && astro build",
+    "dev": "node scripts/build-css.mjs && node scripts/build-llms.mjs && astro dev",
+    "build": "node scripts/build-css.mjs && node scripts/build-llms.mjs && astro build",
     "preview": "astro preview"
   },
   "dependencies": {

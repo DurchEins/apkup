@@ -9,9 +9,68 @@ import DownloadsAndSupport from '../components/DownloadsAndSupport.astro';
 import PermissionsSection from '../components/PermissionsSection.astro';
 import FaqAndFooter from '../components/FaqAndFooter.astro';
 import QrModal from '../components/QrModal.astro';
+import { SITE, FAQS } from '../data/content';
+
+const siteRoot = 'https://durcheins.github.io/apkup/';
+const homeSchemas = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'ApkUp',
+    url: siteRoot,
+    inLanguage: ['en', 'de'],
+    description:
+      'Open-source, privacy-first multi-source Android app updater supporting Google Play, F-Droid Index V2, IzzyOnDroid, APKMirror, GitHub, GitLab, and Codeberg.',
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'ApkUp',
+    applicationCategory: 'UtilitiesApplication',
+    operatingSystem: 'Android 10.0 - 17 (API 29+)',
+    softwareVersion: SITE.fallbackVersion,
+    license: SITE.licenseUrl,
+    isAccessibleForFree: true,
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'EUR',
+    },
+    url: siteRoot,
+    downloadUrl: SITE.releasesUrl,
+    installUrl: SITE.releasesUrl,
+    screenshot: `${siteRoot}assets/screenshots/en/01_updates.png`,
+    author: {
+      '@type': 'Person',
+      name: 'DurchEins',
+      url: 'https://github.com/DurchEins',
+    },
+    sameAs: [SITE.repoUrl, SITE.gitlabUrl, SITE.wikiUrl],
+    featureList: [
+      'Multi-source app update scanning (Google Play, F-Droid Index V2, IzzyOnDroid, APKMirror, GitHub, GitLab, Codeberg, Direct APK)',
+      'Optional silent background installations via Shizuku (no root) or Root (su)',
+      'Automatic SHA-256 and signing-certificate verification',
+      'Obtainium JSON import and source compatibility mapping',
+      'Hardware-backed Google Tink (AES-256-GCM) credential encryption',
+      'Zero ads, zero tracking, 100% open source (GPL-3.0)',
+    ],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: FAQS.map((item) => ({
+      '@type': 'Question',
+      name: item.en.q,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.en.a,
+      },
+    })),
+  },
+];
 ---
 
-<BaseLayout>
+<BaseLayout jsonLd={homeSchemas}>
   <Navbar />
   <main id="main-content">
     <Hero />

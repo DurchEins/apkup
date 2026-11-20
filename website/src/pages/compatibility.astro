@@ -199,7 +199,18 @@ const COMPARE_ROWS = [
 ];
 ---
 
-<BaseLayout title="Source Checker & Comparison — ApkUp">
+<BaseLayout
+  title="Why ApkUp? Comparison & Source Checker — ApkUp"
+  description="Compare ApkUp vs. Obtainium, Aurora Store & F-Droid and test your Obtainium JSON export 100% offline."
+  jsonLd={{
+    '@context': 'https://schema.org',
+    '@type': 'TechArticle',
+    headline: 'ApkUp vs. Obtainium vs. Aurora Store vs. F-Droid — Feature Comparison & Obtainium JSON Checker',
+    url: 'https://durcheins.github.io/apkup/compatibility/',
+    author: { '@type': 'Person', name: 'DurchEins', url: 'https://github.com/DurchEins' },
+    about: { '@type': 'SoftwareApplication', name: 'ApkUp' },
+  }}
+>
   <Navbar />
   <main id="main-content" class="section">
     <div class="container subpage-wrap">

@@ -1,0 +1,25 @@
+# ApkUp
+
+> Open-source, privacy-first multi-source Android app updater (GPL-3.0) supporting Google Play, F-Droid Index V2, IzzyOnDroid, APKMirror, GitHub, GitLab, Codeberg, and direct APK links — with optional silent background installations via Shizuku (no root) or Root (su), zero ads, and zero tracking.
+
+- Latest version: v1.45.0 (211)
+- Platform: Android 10.0 – 17 (API 29+) • arm64-v8a, armeabi-v7a, x86_64
+- Languages: 9 UI languages (English, German, Spanish, French, Italian, Polish, Portuguese-BR, Russian, Turkish)
+- License: GNU General Public License v3.0 (GPL-3.0)
+- Source Code: https://github.com/DurchEins/apkup
+- Complete AI Knowledge Base (single-file Markdown): https://durcheins.github.io/apkup/llms-full.txt
+
+## Main Pages
+
+- [Home & Feature Overview](https://durcheins.github.io/apkup/): Overview of all 8 update sources, 10 app screenshots, Shizuku/Root silent updates, signed APK download, SHA-256 verification, and Android permissions matrix.
+- [Wiki & Reference Guides](https://durcheins.github.io/apkup/wiki/): Complete 9-chapter documentation covering source priority, F-Droid Index V2, PAT tokens, Shizuku & Root setup, Obtainium JSON import, and error troubleshooting.
+- [Source Compatibility & Comparison](https://durcheins.github.io/apkup/compatibility/): Feature comparison (ApkUp vs. Obtainium vs. Aurora Store vs. F-Droid) and 100% offline Obtainium JSON compatibility checker.
+- [What's New / Changelog](https://durcheins.github.io/apkup/changelog/): Release history and feature highlights.
+- [Privacy Policy](https://durcheins.github.io/apkup/privacy/): Zero-telemetry, on-device storage, and encrypted credential details.
+- [Security Policy](https://durcheins.github.io/apkup/security/): Supported versions, SHA-256 verification, and vulnerability disclosure.
+
+## Direct Downloads & Mirrors
+
+- [GitHub Releases (Canonical Signed APK + SHA256SUMS)](https://github.com/DurchEins/apkup/releases/latest)
+- [GitLab Mirror](https://gitlab.com/DurchEins/apkup)
+- [GitHub Wiki](https://github.com/DurchEins/apkup/wiki)
