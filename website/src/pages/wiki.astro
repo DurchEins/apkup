@@ -740,14 +740,6 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
               >
                 <div class="wiki-chapter-top">
                   <span class="pill-badge pill-amber mono">{ch.tag}</span>
-                  <a
-                    class="wiki-gh-link mono"
-                    href={`${SITE.wikiUrl}/${ch.ghPage}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    GitHub Wiki ↗
-                  </a>
                 </div>
 
                 <h2 class="wiki-chapter-title">
@@ -874,6 +866,28 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
               </article>
             ))
           }
+
+          <div class="wiki-gh-footer-card">
+            <div>
+              <strong>
+                <span class="i18n-en">Original GitHub Wiki</span>
+                <span class="i18n-de">Originales GitHub-Wiki</span>
+              </strong>
+              <p>
+                <span class="i18n-en">Prefer viewing or editing the raw Markdown pages directly on GitHub?</span>
+                <span class="i18n-de">Möchtest du die Markdown-Seiten direkt auf GitHub ansehen oder mitbearbeiten?</span>
+              </p>
+            </div>
+            <a
+              class="btn btn-secondary"
+              href={SITE.wikiUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span class="i18n-en">Open GitHub Wiki ↗</span>
+              <span class="i18n-de">GitHub-Wiki öffnen ↗</span>
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -1342,6 +1356,30 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
     border: none;
     border-block-start: 1px solid var(--outline);
     margin-block: 20px;
+  }
+
+  .wiki-gh-footer-card {
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .wiki-gh-footer-card strong {
+    display: block;
+    font-size: 0.96rem;
+    margin-bottom: 4px;
+  }
+
+  .wiki-gh-footer-card p {
+    margin: 0;
+    font-size: 0.86rem;
+    color: var(--text-muted);
   }
 
   .wiki-chapter-card {
