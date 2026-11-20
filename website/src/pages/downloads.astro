@@ -80,9 +80,6 @@ const downloadSchema = {
   <main id="main-content" class="dl-page">
     <div class="container">
       <header class="dl-header">
-        <span class="pill-badge pill-amber mono" id="dl-page-version">
-          v{SITE.fallbackVersion} ({SITE.fallbackBuild})
-        </span>
         <h1 class="dl-title">
           <span class="i18n-en">Downloads, Mirrors &amp; Verification</span>
           <span class="i18n-de">Downloads, Mirrors &amp; Verifizierung</span>
@@ -90,21 +87,20 @@ const downloadSchema = {
         <p class="dl-lead">
           <span class="i18n-en">
             Single-Artifact Principle: GitHub Releases delivers the canonical CI-signed APK and
-            SHA256SUMS checksum. Below you’ll find live integrity verification and all 8 mirrors.
+            SHA-256 checksum. Below you’ll find live verification and all 8 mirrors.
           </span>
           <span class="i18n-de">
             Single-Artifact-Prinzip: GitHub Releases liefert die kanonische, per CI signierte APK
-            samt SHA256SUMS-Prüfsumme. Unten findest du Live-Verifizierung und alle 8 Mirrors.
+            samt SHA-256-Prüfsumme. Unten findest du Live-Verifizierung und alle 8 Mirrors.
           </span>
         </p>
       </header>
 
-      <!-- 1. Canonical Release Card -->
+      <!-- 1. Compact Canonical Release Card -->
       <section class="dl-hero-card" aria-labelledby="dl-canonical-title">
         <div class="dl-hero-top">
           <div>
             <div class="dl-badges">
-              <span class="pill-badge pill-amber mono" data-gh-version>v{SITE.fallbackVersion}</span>
               <span class="pill-badge pill-green">
                 <span class="i18n-en">Canonical Signed CI Build</span>
                 <span class="i18n-de">Kanonischer Signierter CI-Build</span>
@@ -113,19 +109,17 @@ const downloadSchema = {
             <h2 id="dl-canonical-title">GitHub Releases (Direct Signed APK)</h2>
             <p class="dl-muted">
               <span class="i18n-en">
-                Universal APK with built-in self-updater, reproducible GitHub Actions build, and
-                cryptographic SHA-256 verification.
+                Universal APK with built-in self-updater and cryptographic SHA-256 verification.
               </span>
               <span class="i18n-de">
-                Universelle APK mit integriertem Selbst-Updater, reproduzierbarem GitHub-Actions-Build
-                und kryptografischer SHA-256-Prüfung.
+                Universelle APK mit integriertem Selbst-Updater und kryptografischer SHA-256-Prüfung.
               </span>
             </p>
           </div>
           <div class="dl-actions">
             <a class="btn btn-primary" href={SITE.releasesUrl} data-apk-link>
-              <span class="i18n-en" data-apk-label-en>Download Latest APK</span>
-              <span class="i18n-de" data-apk-label-de>Aktuelle APK herunterladen</span>
+              <span class="i18n-en">Download <span class="apk-light">Apk</span><strong class="apk-up">Up</strong> <span data-apk-meta>(v{SITE.fallbackVersion})</span></span>
+              <span class="i18n-de"><span class="apk-light">Apk</span><strong class="apk-up">Up</strong> laden <span data-apk-meta>(v{SITE.fallbackVersion})</span></span>
             </a>
             <button type="button" class="btn btn-secondary" data-open-qr>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -144,32 +138,13 @@ const downloadSchema = {
         </div>
 
         <div class="dl-specs-strip mono">
-          <div class="dl-spec">
-            <span>Android</span>
-            <strong>10.0 – 17 (API 29+)</strong>
-          </div>
-          <div class="dl-spec">
-            <span>ABIs</span>
-            <strong>arm64-v8a • armeabi-v7a • x86_64</strong>
-          </div>
-          <div class="dl-spec">
-            <span>
-              <span class="i18n-en">License</span>
-              <span class="i18n-de">Lizenz</span>
-            </span>
-            <strong>GPL-3.0 Open Source</strong>
-          </div>
-          <div class="dl-spec">
-            <span>
-              <span class="i18n-en">Signature</span>
-              <span class="i18n-de">Signatur</span>
-            </span>
-            <strong>APK Signature v2 / v3</strong>
-          </div>
+          <span><strong>Android:</strong> 10.0 – 17 (API 29+)</span>
+          <span><strong>ABIs:</strong> arm64-v8a • armeabi-v7a • x86_64</span>
+          <span><strong>GPL-3.0</strong> • APK Signature v2 / v3</span>
         </div>
       </section>
 
-      <!-- 2. 2-Column Bento Verification Grid -->
+      <!-- 2. Compact 2-Column Bento Verification Grid -->
       <section class="dl-bento-grid" aria-labelledby="dl-verify-title">
         <div class="dl-bento-card">
           <div class="dl-bento-head">
@@ -188,16 +163,14 @@ const downloadSchema = {
           </div>
           <p class="dl-muted">
             <span class="i18n-en">
-              Fetched live from the latest GitHub Release so you can verify your APK matches the
-              exact CI build artifact.
+              Live SHA-256 digest of the latest signed APK asset from GitHub Releases.
             </span>
             <span class="i18n-de">
-              Live vom neuesten GitHub Release geladen, damit du deine APK exakt mit dem CI-Build
-              abgleichen kannst.
+              Live-SHA-256-Prüfsumme der aktuell signierten APK direkt aus dem GitHub Release.
             </span>
           </p>
           <div class="dl-code-box">
-            <code class="mono" id="sha256-output">Loading SHA256SUMS…</code>
+            <code class="mono" id="sha256-output">Loading SHA-256…</code>
             <button type="button" class="btn btn-secondary dl-copy-sm" id="copy-sha256-btn" hidden>
               <span class="i18n-en">Copy</span>
               <span class="i18n-de">Kopieren</span>
@@ -210,24 +183,34 @@ const downloadSchema = {
             <span class="i18n-en">Local Verification Commands</span>
             <span class="i18n-de">Lokale Prüfbefehle</span>
           </h2>
-          <p class="dl-muted">
-            <span class="i18n-en">
-              Run either command in your download folder to compare your local APK hash against the
-              official release checksum.
-            </span>
-            <span class="i18n-de">
-              Führe einen der Befehle im Download-Ordner aus, um deine APK-Datei lokal gegen die
-              offizielle Prüfsumme zu testen.
-            </span>
-          </p>
           <div class="dl-cmd-stack">
             <div class="dl-cmd-row">
-              <span class="mono dl-cmd-os">Linux / macOS</span>
-              <code class="mono">sha256sum -c SHA256SUMS</code>
+              <div class="dl-cmd-text">
+                <span class="mono dl-cmd-os">Linux / macOS</span>
+                <code class="mono">sha256sum -c SHA256SUMS</code>
+              </div>
+              <button
+                type="button"
+                class="btn btn-secondary dl-copy-sm"
+                data-copy-cmd="sha256sum -c SHA256SUMS"
+              >
+                <span class="i18n-en">Copy</span>
+                <span class="i18n-de">Kopieren</span>
+              </button>
             </div>
             <div class="dl-cmd-row">
-              <span class="mono dl-cmd-os">Windows PowerShell</span>
-              <code class="mono">Get-FileHash .\ApkUp-*.apk -Algorithm SHA256</code>
+              <div class="dl-cmd-text">
+                <span class="mono dl-cmd-os">Windows PowerShell</span>
+                <code class="mono">Get-FileHash .\ApkUp-*.apk -Algorithm SHA256</code>
+              </div>
+              <button
+                type="button"
+                class="btn btn-secondary dl-copy-sm"
+                data-copy-cmd="Get-FileHash .\ApkUp-*.apk -Algorithm SHA256"
+              >
+                <span class="i18n-en">Copy</span>
+                <span class="i18n-de">Kopieren</span>
+              </button>
             </div>
           </div>
         </div>
@@ -341,8 +324,24 @@ const downloadSchema = {
   (function () {
     var out = document.getElementById('sha256-output');
     var copyBtn = document.getElementById('copy-sha256-btn');
-    var verBadge = document.getElementById('dl-page-version');
     var shaText = '';
+
+    function flashBtn(btn) {
+      var orig = btn.innerHTML;
+      btn.textContent = '✓';
+      setTimeout(function () {
+        btn.innerHTML = orig;
+      }, 1600);
+    }
+
+    function copyText(text, btn) {
+      if (!text) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+          if (btn) flashBtn(btn);
+        }).catch(function () {});
+      }
+    }
 
     function renderSha(text) {
       shaText = (text || '').trim();
@@ -352,20 +351,21 @@ const downloadSchema = {
         if (copyBtn) copyBtn.hidden = false;
       } else {
         out.textContent = 'SHA256SUMS available on GitHub Releases.';
+        if (copyBtn) copyBtn.hidden = true;
       }
     }
 
     if (copyBtn) {
       copyBtn.addEventListener('click', function () {
-        if (!shaText || !navigator.clipboard) return;
-        navigator.clipboard.writeText(shaText).then(function () {
-          copyBtn.textContent = '✓';
-          setTimeout(function () {
-            copyBtn.innerHTML = '<span class="i18n-en">Copy</span><span class="i18n-de">Kopieren</span>';
-          }, 1800);
-        });
+        copyText(shaText, copyBtn);
       });
     }
+
+    document.querySelectorAll('[data-copy-cmd]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        copyText(btn.getAttribute('data-copy-cmd') || '', btn);
+      });
+    });
 
     fetch('https://api.github.com/repos/DurchEins/apkup/releases/latest', {
       headers: { Accept: 'application/vnd.github+json' },
@@ -373,15 +373,36 @@ const downloadSchema = {
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (rel) {
         if (!rel) return renderSha('');
-        if (verBadge && rel.tag_name) verBadge.textContent = rel.tag_name;
-        var shaAsset = (rel.assets || []).find(function (a) {
-          return /sha256/i.test(a.name || '');
+        var apkAsset = (rel.assets || []).find(function (a) {
+          return /\.apk$/i.test(a.name || '');
         });
-        if (!shaAsset || !shaAsset.browser_download_url) return renderSha('');
-        return fetch(shaAsset.browser_download_url)
-          .then(function (r) { return r.ok ? r.text() : ''; })
-          .then(renderSha)
-          .catch(function () { renderSha(''); });
+        // Update primary download link & meta on /downloads/
+        if (apkAsset && apkAsset.browser_download_url) {
+          document.querySelectorAll('[data-apk-link]').forEach(function (el) {
+            el.setAttribute('href', apkAsset.browser_download_url);
+          });
+        }
+        if (rel.tag_name) {
+          var mb = apkAsset && apkAsset.size ? (apkAsset.size / (1024 * 1024)).toFixed(1) : '';
+          var meta = '(' + rel.tag_name + (mb ? ' • ' + mb + ' MB' : '') + ')';
+          document.querySelectorAll('[data-apk-meta]').forEach(function (el) {
+            el.textContent = meta;
+          });
+        }
+
+        // 1. Prefer GitHub API digest field (no CORS redirect)
+        if (apkAsset && apkAsset.digest) {
+          var cleanHash = apkAsset.digest.replace(/^sha256:/i, '');
+          return renderSha(cleanHash + '  ' + apkAsset.name);
+        }
+
+        // 2. Fallback: extract sha256 hex from release body
+        if (rel.body) {
+          var m = rel.body.match(/[a-f0-9]{64}/i);
+          if (m) return renderSha(m[0] + (apkAsset ? '  ' + apkAsset.name : ''));
+        }
+
+        return renderSha('');
       })
       .catch(function () { renderSha(''); });
   })();
@@ -389,47 +410,47 @@ const downloadSchema = {
 
 <style>
   .dl-page {
-    padding-block: 48px 80px;
+    padding-block: 36px 72px;
   }
 
   .dl-header {
     max-width: 740px;
-    margin-bottom: 32px;
+    margin-bottom: 22px;
   }
 
   .dl-title {
-    margin-top: 14px;
-    font-size: clamp(1.9rem, 3.8vw, 2.7rem);
+    margin: 0;
+    font-size: clamp(1.8rem, 3.6vw, 2.5rem);
     letter-spacing: -0.025em;
   }
 
   .dl-lead {
-    margin-top: 10px;
+    margin-top: 8px;
     color: var(--text-muted);
-    font-size: 1rem;
-    line-height: 1.6;
+    font-size: 0.96rem;
+    line-height: 1.55;
   }
 
   .dl-muted {
     margin: 0;
     color: var(--text-muted);
-    font-size: 0.9rem;
-    line-height: 1.55;
+    font-size: 0.88rem;
+    line-height: 1.5;
   }
 
   .dl-hero-card {
     background: var(--surface-low);
     border: 1px solid var(--outline);
     border-radius: var(--radius-lg);
-    padding: clamp(22px, 3vw, 32px);
-    margin-bottom: 20px;
+    padding: 20px 24px;
+    margin-bottom: 14px;
   }
 
   .dl-hero-top {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
-    gap: 20px;
+    gap: 16px;
     flex-wrap: wrap;
   }
 
@@ -437,12 +458,12 @@ const downloadSchema = {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
   }
 
   .dl-hero-card h2 {
-    margin: 0 0 8px;
-    font-size: 1.38rem;
+    margin: 0 0 4px;
+    font-size: 1.25rem;
   }
 
   .dl-actions {
@@ -452,41 +473,35 @@ const downloadSchema = {
   }
 
   .dl-specs-strip {
-    margin-top: 22px;
-    padding-top: 18px;
+    margin-top: 16px;
+    padding-top: 12px;
     border-top: 1px solid var(--outline);
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-    gap: 14px;
-  }
-
-  .dl-spec {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
-    font-size: 0.84rem;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
   }
 
-  .dl-spec span {
-    color: var(--text-muted);
-    font-size: 0.74rem;
+  .dl-specs-strip strong {
+    color: var(--text);
   }
 
   .dl-bento-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
-    margin-bottom: 36px;
+    gap: 14px;
+    margin-bottom: 32px;
   }
 
   .dl-bento-card {
     background: var(--surface-low);
     border: 1px solid var(--outline);
     border-radius: var(--radius-lg);
-    padding: 22px 24px;
+    padding: 18px 20px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
 
   .dl-bento-head {
@@ -498,7 +513,7 @@ const downloadSchema = {
 
   .dl-bento-card h2 {
     margin: 0;
-    font-size: 1.12rem;
+    font-size: 1.05rem;
   }
 
   .dl-ext-link {
@@ -517,24 +532,24 @@ const downloadSchema = {
     background: var(--bg);
     border: 1px solid var(--outline);
     border-radius: var(--radius-md);
-    padding: 12px 14px;
+    padding: 10px 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 10px;
   }
 
   .dl-code-box code {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     color: var(--accent);
     word-break: break-all;
     white-space: pre-wrap;
   }
 
   .dl-copy-sm {
-    min-height: 32px;
-    padding: 4px 12px;
-    font-size: 0.78rem;
+    min-height: 30px;
+    padding: 3px 11px;
+    font-size: 0.76rem;
     flex-shrink: 0;
   }
 
@@ -549,52 +564,58 @@ const downloadSchema = {
     background: var(--bg);
     border: 1px solid var(--outline);
     border-radius: var(--radius-md);
-    padding: 10px 14px;
+    padding: 8px 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .dl-cmd-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
   }
 
   .dl-cmd-os {
-    font-size: 0.74rem;
+    font-size: 0.7rem;
     color: var(--text-muted);
   }
 
   .dl-cmd-row code {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     word-break: break-all;
   }
 
   .dl-mirrors-group {
-    margin-top: 32px;
+    margin-top: 28px;
   }
 
   .dl-group-head {
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
 
   .dl-group-head h2 {
-    margin: 0 0 4px;
-    font-size: 1.28rem;
+    margin: 0 0 3px;
+    font-size: 1.24rem;
   }
 
   .dl-mirror-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
+    gap: 12px;
   }
 
   .dl-mirror-card {
     background: var(--surface-low);
     border: 1px solid var(--outline);
     border-radius: var(--radius-lg);
-    padding: 18px 20px;
+    padding: 16px 18px;
     text-decoration: none;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     transition: border-color 150ms ease-out, transform 150ms ease-out, background-color 150ms ease-out;
   }
 
@@ -618,23 +639,23 @@ const downloadSchema = {
   .dl-mirror-brand {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
   }
 
   .dl-mirror-brand > div {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     flex-wrap: wrap;
   }
 
   .dl-mirror-brand strong {
-    font-size: 1rem;
+    font-size: 0.98rem;
   }
 
   .dl-mirror-icon {
-    width: 44px;
-    height: 44px;
+    width: 42px;
+    height: 42px;
     border-radius: 12px;
     display: inline-flex;
     align-items: center;
@@ -650,8 +671,8 @@ const downloadSchema = {
   .dl-mirror-card p {
     margin: 0;
     color: var(--text-muted);
-    font-size: 0.88rem;
-    line-height: 1.5;
+    font-size: 0.86rem;
+    line-height: 1.48;
   }
 
   .pill-warn {
