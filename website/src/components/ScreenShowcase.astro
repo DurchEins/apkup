@@ -240,6 +240,15 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     padding: 10px 18px;
     border-radius: var(--radius-pill);
     border: 1px solid var(--outline);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-weight: 700;
+    font-size: 0.9rem;
+    transition:
+      background-color 150ms ease-out,
+      color 150ms ease-out,
+      border-color 150ms ease-out,
+      transform 150ms ease-out;
   }
 
   .tab-btn.is-active::after {
