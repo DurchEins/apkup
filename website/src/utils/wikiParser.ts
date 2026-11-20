@@ -1,13 +1,13 @@
 const SLUG_BY_WIKI_NAME: Record<string, string> = {
-  Home: 'home',
-  'Update-Sources,-Repository-Linking-&-Signature-Protection': 'sources',
-  'F-Droid-&-Index-V2-Repositories': 'fdroid',
-  'Configuring-GitHub-&-GitLab-Tokens': 'tokens',
-  'Setting-up-Shizuku': 'shizuku-setup',
-  'Shizuku-&-Background-Installation': 'shizuku-deep',
-  'Obtainium-Migration-&-Sync-Guide': 'obtainium',
-  'App-Management,-Filters,-Background-Checks-&-Backup': 'management',
-  'Troubleshooting-Source-Errors': 'troubleshooting',
+  home: 'home',
+  'update-sources,-repository-linking-&-signature-protection': 'sources',
+  'f-droid-&-index-v2-repositories': 'fdroid',
+  'configuring-github-&-gitlab-tokens': 'tokens',
+  'setting-up-shizuku': 'shizuku-setup',
+  'shizuku-&-background-installation': 'shizuku-deep',
+  'obtainium-migration-&-sync-guide': 'obtainium',
+  'app-management,-filters,-background-checks-&-backup': 'management',
+  'troubleshooting-source-errors': 'troubleshooting',
 };
 
 function escapeHtml(s: string): string {
@@ -25,12 +25,11 @@ function formatInline(raw: string): string {
   s = s.replace(/\*([^*]+)\*/g, '<em>$1</em>');
   s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label, url) => {
     const cleanLabel = stripLeadingEmoji(label);
-    const wikiMatch = url.match(/github\.com\/DurchEins\/apkup\/wiki\/([^#?]+)(#.*)?/i);
+    const wikiMatch = url.match(/github\.com\/DurchEins\/apkup\/wiki(?:\/([^#?]+))?(#.*)?$/i);
     if (wikiMatch) {
-      const targetSlug = SLUG_BY_WIKI_NAME[wikiMatch[1]] || '';
-      if (targetSlug) {
-        return `<a href="#doc-${targetSlug}" data-wiki-jump="${targetSlug}">${cleanLabel}</a>`;
-      }
+      const rawName = wikiMatch[1] ? decodeURIComponent(wikiMatch[1]).toLowerCase() : 'home';
+      const targetSlug = SLUG_BY_WIKI_NAME[rawName] || 'home';
+      return `<a href="#doc-${targetSlug}" data-wiki-jump="${targetSlug}">${cleanLabel}</a>`;
     }
     if (url.startsWith('#')) {
       return `<a href="${url}">${cleanLabel}</a>`;

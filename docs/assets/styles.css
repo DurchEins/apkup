@@ -1449,6 +1449,10 @@ button {
     font-size: 0.92rem;
   }
 
+  .quick-compat-result[hidden] {
+    display: none;
+  }
+
   .quick-compat-result.is-ok {
     background: var(--tertiary-soft);
     color: var(--tertiary-soft-ink);
@@ -1952,6 +1956,7 @@ button {
   .wiki-tab-btn {
     width: 100%;
     text-align: start;
+    text-decoration: none;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -2192,6 +2197,7 @@ button {
   }
 
   .wiki-chapter-card {
+    scroll-margin-block-start: calc(var(--header-height) + 20px);
     background: var(--surface-low);
     border: 1px solid var(--outline);
     border-radius: var(--radius-lg);

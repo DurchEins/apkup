@@ -691,35 +691,32 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => ({
 
       <div class="wiki-layout">
         <aside class="wiki-sidebar" aria-label="Wiki chapters">
-          <div class="wiki-nav-card" role="tablist" aria-orientation="vertical">
+          <nav class="wiki-nav-card" aria-label="Wiki table of contents">
             {
-              CHAPTERS.map((ch, idx) => (
-                <button
-                  type="button"
-                  role="tab"
+              RENDERED_CHAPTERS.map((ch, idx) => (
+                <a
+                  href={`#doc-${ch.slug}`}
                   class={`wiki-tab-btn ${idx === 0 ? 'is-active' : ''}`}
                   data-wiki-tab={ch.slug}
-                  aria-selected={idx === 0 ? 'true' : 'false'}
                 >
                   <span class="wiki-tab-title">
                     <span class="i18n-en">{ch.enTitle}</span>
                     <span class="i18n-de">{ch.deTitle}</span>
                   </span>
                   <span class="wiki-tab-tag mono">{ch.tag}</span>
-                </button>
+                </a>
               ))
             }
-          </div>
+          </nav>
         </aside>
 
         <div class="wiki-content" id="wiki-content-top">
           {
-            RENDERED_CHAPTERS.map((ch, idx) => (
+            RENDERED_CHAPTERS.map((ch) => (
               <article
                 class="wiki-chapter-card"
                 id={`doc-${ch.slug}`}
                 data-wiki-article={ch.slug}
-                hidden={idx !== 0}
               >
                 <div class="wiki-chapter-top">
                   <span class="pill-badge pill-amber mono">{ch.tag}</span>
@@ -866,49 +863,40 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => ({
 
 <script is:inline>
   (function () {
-    var tabBtns = Array.prototype.slice.call(document.querySelectorAll('[data-wiki-tab]'));
+    var tabLinks = Array.prototype.slice.call(document.querySelectorAll('[data-wiki-tab]'));
     var articles = Array.prototype.slice.call(document.querySelectorAll('[data-wiki-article]'));
     var searchInput = document.getElementById('wiki-search-input');
     var searchCount = document.getElementById('wiki-search-count');
-    var activeSlug = 'home';
 
-    function selectChapter(slug, scrollToTop) {
-      activeSlug = slug;
-      if (searchInput && searchInput.value.trim()) {
-        searchInput.value = '';
-        if (searchCount) searchCount.hidden = true;
-      }
-      tabBtns.forEach(function (btn) {
-        var match = btn.getAttribute('data-wiki-tab') === slug;
-        btn.classList.toggle('is-active', match);
-        btn.setAttribute('aria-selected', String(match));
+    function setActiveNav(slug) {
+      tabLinks.forEach(function (link) {
+        link.classList.toggle('is-active', link.getAttribute('data-wiki-tab') === slug);
       });
-      articles.forEach(function (art) {
-        art.hidden = art.getAttribute('data-wiki-article') !== slug;
-      });
-      if (scrollToTop) {
-        var targetEl = document.getElementById('wiki-content-top');
-        if (targetEl) {
-          targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }
     }
 
-    tabBtns.forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        selectChapter(btn.getAttribute('data-wiki-tab'), true);
+    tabLinks.forEach(function (link) {
+      link.addEventListener('click', function () {
+        var slug = link.getAttribute('data-wiki-tab');
+        if (slug) setActiveNav(slug);
       });
     });
 
-    document.querySelectorAll('[data-wiki-jump]').forEach(function (link) {
-      link.addEventListener('click', function (e) {
-        var t = link.getAttribute('data-wiki-jump');
-        if (t) {
-          e.preventDefault();
-          selectChapter(t, true);
-        }
+    if ('IntersectionObserver' in window) {
+      var observer = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              var slug = entry.target.getAttribute('data-wiki-article');
+              if (slug) setActiveNav(slug);
+            }
+          });
+        },
+        { rootMargin: '-20% 0px -65% 0px' }
+      );
+      articles.forEach(function (art) {
+        observer.observe(art);
       });
-    });
+    }
 
     document.querySelectorAll('[data-copy-code]').forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -928,7 +916,9 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => ({
         var q = searchInput.value.trim().toLowerCase();
         if (!q) {
           if (searchCount) searchCount.hidden = true;
-          selectChapter(activeSlug, false);
+          articles.forEach(function (art) {
+            art.hidden = false;
+          });
           return;
         }
         var matches = 0;
@@ -937,11 +927,6 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => ({
           var hit = text.indexOf(q) !== -1;
           art.hidden = !hit;
           if (hit) matches++;
-        });
-        tabBtns.forEach(function (btn) {
-          var slug = btn.getAttribute('data-wiki-tab');
-          var art = document.querySelector('[data-wiki-article="' + slug + '"]');
-          btn.classList.toggle('is-active', Boolean(art && !art.hidden));
         });
         if (searchCount) {
           searchCount.hidden = false;
@@ -1017,6 +1002,7 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => ({
   .wiki-tab-btn {
     width: 100%;
     text-align: start;
+    text-decoration: none;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1257,6 +1243,7 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => ({
   }
 
   .wiki-chapter-card {
+    scroll-margin-block-start: calc(var(--header-height) + 20px);
     background: var(--surface-low);
     border: 1px solid var(--outline);
     border-radius: var(--radius-lg);
