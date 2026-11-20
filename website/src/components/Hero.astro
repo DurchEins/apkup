@@ -385,11 +385,27 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     transition: opacity 160ms ease-out, transform 160ms ease-out;
   }
 
-  .sideload-pop-wrap:hover .sideload-popover,
+  .sideload-popover::before {
+    content: '';
+    position: absolute;
+    top: -12px;
+    left: 0;
+    right: 0;
+    height: 14px;
+  }
+
   .sideload-pop-wrap:focus-within .sideload-popover {
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;
+  }
+
+  @media (hover: hover) {
+    .sideload-pop-wrap:hover .sideload-popover {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
   }
 
   .sideload-popover > strong {

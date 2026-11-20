@@ -66,12 +66,12 @@ const guideSchema = {
               </strong>
               <p>
                 <span class="i18n-en">
-                  Download the latest signed ApkUp APK via our{' '}
+                  Download the latest signed .apk(<strong><em>Up</em></strong>) file via our{' '}
                   <a href={`${base}downloads/`}>Downloads page</a> or GitHub Releases and tap the
                   file in your browser or file manager.
                 </span>
                 <span class="i18n-de">
-                  Lade die neueste signierte ApkUp-APK über unsere{' '}
+                  Lade die neueste signierte .apk(<strong><em>Up</em></strong>)-Datei über unsere{' '}
                   <a href={`${base}downloads/`}>Downloads-Seite</a> oder GitHub Releases herunter
                   und tippe die Datei im Browser oder Dateimanager an.
                 </span>
@@ -142,21 +142,25 @@ const guideSchema = {
             </span>
           </p>
           <div class="sl-actions">
-            <a href={`${base}wiki/#doc-shizuku-setup`} class="btn btn-secondary">
-              <span class="i18n-en">Shizuku Setup Guide →</span>
-              <span class="i18n-de">Shizuku-Anleitung →</span>
+            <a href={`${base}wiki/#doc-sideloading`} class="btn btn-secondary">
+              <span class="i18n-en">General Wiki →</span>
+              <span class="i18n-de">Allgemeines Wiki →</span>
             </a>
-            <a href={`${base}wiki/#doc-sideloading`} class="btn btn-ghost">
-              <span class="i18n-en">Open in Wiki →</span>
-              <span class="i18n-de">Im Wiki öffnen →</span>
+            <a href={`${base}wiki/#doc-shizuku-deep`} class="btn btn-ghost">
+              <span class="i18n-en">Root →</span>
+              <span class="i18n-de">Root →</span>
+            </a>
+            <a href={`${base}wiki/#doc-shizuku-setup`} class="btn btn-ghost">
+              <span class="i18n-en">Shizuku →</span>
+              <span class="i18n-de">Shizuku →</span>
             </a>
           </div>
         </article>
 
-        <article class="sl-card sl-card-warn has-spotlight">
-          <span class="pill-badge pill-amber mono">
-            <span class="i18n-en">2026 / 2027 • Keep Android Open</span>
-            <span class="i18n-de">2026 / 2027 • Keep Android Open</span>
+        <article class="sl-card sl-card-danger has-spotlight">
+          <span class="pill-badge pill-danger mono">
+            <span class="i18n-en">⚠ Warning • 2026 / 2027 Lock</span>
+            <span class="i18n-de">⚠ Warnung • 2026 / 2027 Sperre</span>
           </span>
           <h2>
             <span class="i18n-en">Blocked by Google’s 24h Developer Lock?</span>
@@ -175,9 +179,9 @@ const guideSchema = {
             </span>
           </p>
           <div class="sl-actions">
-            <a href={`${base}sideloading/google-lock/`} class="btn btn-primary">
-              <span class="i18n-en">24h Lock &amp; Keep Android Open →</span>
-              <span class="i18n-de">24h-Sperre &amp; Keep Android Open →</span>
+            <a href={`${base}sideloading/google-lock/`} class="btn btn-danger">
+              <span class="i18n-en">⚠ 24h Lock &amp; Keep Android Open →</span>
+              <span class="i18n-de">⚠ 24h-Sperre &amp; Keep Android Open →</span>
             </a>
           </div>
         </article>
@@ -211,8 +215,30 @@ const guideSchema = {
     gap: 14px;
   }
 
-  .sl-card-warn {
-    border-color: rgba(245, 158, 11, 0.45);
+  .sl-card-danger {
+    border-color: rgba(239, 68, 68, 0.65);
+    background: linear-gradient(160deg, rgba(239, 68, 68, 0.1), var(--surface-low) 58%);
+    box-shadow: 0 12px 32px rgba(239, 68, 68, 0.12);
+  }
+
+  .btn-danger {
+    background: #dc2626;
+    color: #fff;
+    border: 1px solid #ef4444;
+    font-weight: 700;
+    transition-property: background-color, transform;
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
+  }
+
+  @media (hover: hover) {
+    .btn-danger:hover {
+      background: #b91c1c;
+    }
+  }
+
+  .btn-danger:active:not(:disabled) {
+    transform: scale(0.96);
   }
 
   .sl-card h2 {

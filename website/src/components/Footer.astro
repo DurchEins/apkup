@@ -25,8 +25,12 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     <nav class="footer-links" aria-label="Footer links">
       <a href={`${base}downloads/`}>Downloads</a>
       <a href={`${base}sideloading/`}>
-        <span class="i18n-en">Install Guide (24h Fix)</span>
-        <span class="i18n-de">Installationshilfe (24h-Sperre)</span>
+        <span class="i18n-en">Install Unknown Apps</span>
+        <span class="i18n-de">Unbekannte Apps</span>
+      </a>
+      <a href={`${base}sideloading/google-lock/`}>
+        <span class="i18n-en">Google 24h Lock</span>
+        <span class="i18n-de">Googles 24h-Sperre</span>
       </a>
       <a href={`${base}changelog/`}>
         <span class="i18n-en">What’s New?</span>
@@ -119,17 +123,21 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     color: var(--accent);
   }
 
-  .footer-build-pill {
-    padding: 3px 10px;
+  .footer-links a.footer-build-pill {
+    padding: 2px 8px;
     border-radius: 999px;
     border: 1px solid var(--outline);
     background: var(--surface);
-    font-size: 0.76rem;
+    font-size: 0.7rem;
+    line-height: 1.25;
+    align-self: center;
     color: var(--text-muted);
   }
 
-  .footer-build-pill:hover {
-    border-color: var(--accent);
-    color: var(--accent);
+  @media (hover: hover) {
+    .footer-links a.footer-build-pill:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
   }
 </style>

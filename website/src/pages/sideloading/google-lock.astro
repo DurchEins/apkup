@@ -10,7 +10,7 @@ const base = import.meta.env.BASE_URL.endsWith('/')
 const lockSchema = {
   '@context': 'https://schema.org',
   '@type': 'TechArticle',
-  headline: 'Google’s 24-Hour Sideloading Lock (2026/2027) & Keep Android Open — ApkUp',
+  headline: 'Google’s 24-Hour Sideloading Lock (2026/2027) & Keep Android Open — Complete Guide',
   url: 'https://durcheins.github.io/apkup/sideloading/google-lock/',
   author: { '@type': 'Person', name: 'DurchEins', url: 'https://github.com/DurchEins' },
   about: { '@type': 'SoftwareApplication', name: 'ApkUp' },
@@ -18,8 +18,8 @@ const lockSchema = {
 ---
 
 <BaseLayout
-  title="Google’s 24h Sideloading Lock & Keep Android Open — ApkUp"
-  description="How to permanently unlock Google’s 2026/2027 24-hour Developer Options sideloading lock, what F-Droid & Keep Android Open say, and how to defend open Android."
+  title="⚠ Google’s 24h Sideloading Lock & Keep Android Open — ApkUp"
+  description="Detailed analysis & permanent unlock guide for Google’s 2026/2027 Android Developer Verification 24-hour sideloading lock, user impact, ADB/Shizuku workarounds, and Keep Android Open."
   jsonLd={lockSchema}
   kaoBannerSize="normal"
 >
@@ -33,152 +33,212 @@ const lockSchema = {
         </a>
       </nav>
 
-      <header class="sl-header">
-        <span class="pill-badge pill-amber mono">2026 / 2027 • Keep Android Open</span>
-        <h1 class="section-title">
+      <!-- Alarm-Red Hero Banner (Keep Android Open Inspired) -->
+      <header class="kao-hero">
+        <div class="kao-hero-top">
+          <span class="pill-badge pill-danger mono">
+            <span class="i18n-en">⚠ CRITICAL ALERT • 2026 / 2027 ANDROID LOCKDOWN</span>
+            <span class="i18n-de">⚠ WICHTIGE WARNUNG • ANDROID-SPERRE 2026 / 2027</span>
+          </span>
+          <span class="pill-badge pill-neutral mono">keepandroidopen.org</span>
+        </div>
+
+        <h1 class="kao-title">
           <span class="i18n-en">Google’s 24h Developer Lock &amp; Keep Android Open</span>
           <span class="i18n-de">Googles 24h-Entwicklersperre &amp; Keep Android Open</span>
         </h1>
-        <p class="section-subtitle">
+
+        <p class="kao-lead">
           <span class="i18n-en">
-            Starting September 30, 2026 (pilot regions) and rolling out globally in January 2027,
-            Google Play Protect restricts APKs from developers without government ID verification.
-            Here is how to unlock it permanently — and why the FOSS community pushes back.
+            Android is facing the biggest restriction on sideloading in its history. Starting
+            <strong>September 30, 2026</strong> (pilot regions) and rolling out globally in
+            <strong>January 2027</strong>, Google Play Protect blocks APKs from developers who have
+            not submitted government ID and package keys to Google — forcing users through a hidden
+            <strong>24-hour Developer Options cooldown</strong>.
           </span>
           <span class="i18n-de">
-            Seit 30. September 2026 (Pilotregionen) und ab Januar 2027 weltweit schränkt Google Play
-            Protect APKs von Entwicklern ohne Ausweisverifizierung ein. So löst du die Sperre
-            dauerhaft – und darum wehrt sich die FOSS-Community.
+            Android steht vor der größten Einschränkung beim Installieren freier Apps in seiner
+            Geschichte: Seit <strong>30. September 2026</strong> (Pilotregionen) und ab
+            <strong>Januar 2027</strong> weltweit blockiert Google Play Protect standardmäßig APKs
+            von Entwicklern ohne Ausweisverifizierung bei Google – und versteckt die Freigabe
+            hinter einer <strong>24-Stunden-Sperre in den Entwickleroptionen</strong>.
           </span>
         </p>
+
+        <div class="kao-hero-actions">
+          <a href="#sl-lock-steps" class="btn btn-danger">
+            <span class="i18n-en">Unlock 24h Lock Step-by-Step ↓</span>
+            <span class="i18n-de">24h-Sperre dauerhaft lösen ↓</span>
+          </a>
+          <a
+            href="https://keepandroidopen.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn-danger-outline"
+          >
+            <span class="i18n-en">Join Keep Android Open ↗</span>
+            <span class="i18n-de">Keep Android Open unterstützen ↗</span>
+          </a>
+        </div>
       </header>
 
-      <!-- Step-by-step 24h Lock Unlock -->
-      <section class="sl-card sl-card-warn has-spotlight" aria-labelledby="sl-lock-steps">
-        <div class="sl-card-head">
-          <span class="pill-badge pill-amber mono">
-            <span class="i18n-en">Developer Options • Permanent Unlock</span>
-            <span class="i18n-de">Entwickleroptionen • Dauerhafte Freigabe</span>
+      <!-- Section 1: Hard Facts & Timeline -->
+      <section class="kao-section" aria-labelledby="kao-timeline-heading">
+        <div class="kao-sec-head">
+          <span class="pill-badge pill-danger mono">
+            <span class="i18n-en">Rollout &amp; Facts</span>
+            <span class="i18n-de">Zeitplan &amp; Fakten</span>
           </span>
-          <h2 id="sl-lock-steps">
-            <span class="i18n-en">How to Unlock “Apps from unverified developers”</span>
-            <span class="i18n-de">So löst du die 24-Stunden-Sperre dauerhaft</span>
+          <h2 id="kao-timeline-heading">
+            <span class="i18n-en">What Google Is Rolling Out — And When</span>
+            <span class="i18n-de">Was Google genau einführt – und ab wann es greift</span>
           </h2>
-          <p class="sl-lead">
-            <span class="i18n-en">
-              Android still allows installing independent open-source apps like ApkUp and F-Droid
-              builds, provided you complete this one-time Developer Options flow:
-            </span>
-            <span class="i18n-de">
-              Android erlaubt weiterhin die Installation freier Open-Source-Apps wie ApkUp und
-              F-Droid-Builds, wenn du diesen einmaligen Ablauf in den Entwickleroptionen durchführst:
-            </span>
-          </p>
         </div>
 
-        <ol class="sl-steps">
-          <li>
-            <span class="sl-num mono">01</span>
-            <div>
-              <strong class="sl-step-title">
-                <span class="i18n-en">Enable Developer Options (7× Build Number)</span>
-                <span class="i18n-de">Entwickleroptionen freischalten (7× Build-Nummer)</span>
-              </strong>
-              <p>
-                <span class="i18n-en">
-                  Open <strong>Settings → About Phone</strong> and tap <strong>Build Number</strong>{' '}
-                  7 times until Android confirms Developer Mode is active.
-                </span>
-                <span class="i18n-de">
-                  Öffne <strong>Einstellungen → Über das Telefon</strong> und tippe 7-mal auf die{' '}
-                  <strong>Build-Nummer</strong>, bis die Entwickleroptionen aktiviert sind.
-                </span>
-              </p>
-            </div>
-          </li>
-          <li>
-            <span class="sl-num mono">02</span>
-            <div>
-              <strong class="sl-step-title">
-                <span class="i18n-en">Toggle “Apps from unverified developers”</span>
-                <span class="i18n-de">„Apps von nicht verifizierten Entwicklern“ aktivieren</span>
-              </strong>
-              <p>
-                <span class="i18n-en">
-                  Go to <strong>Settings → System → Developer Options → Apps from unverified developers</strong>{' '}
-                  and select <strong>Allow apps from unverified developers</strong>.
-                </span>
-                <span class="i18n-de">
-                  Gehe zu <strong>Einstellungen → System → Entwickleroptionen → Apps von nicht verifizierten Entwicklern</strong>{' '}
-                  und aktiviere die Option.
-                </span>
-              </p>
-            </div>
-          </li>
-          <li>
-            <span class="sl-num mono">03</span>
-            <div>
-              <strong class="sl-step-title">
-                <span class="i18n-en">Confirm PIN &amp; restart your device</span>
-                <span class="i18n-de">Displaysperre bestätigen &amp; Gerät neu starten</span>
-              </strong>
-              <p>
-                <span class="i18n-en">
-                  Confirm your lock screen PIN/biometrics and reboot your smartphone to start the
-                  24-hour security cooldown.
-                </span>
-                <span class="i18n-de">
-                  Bestätige deine PIN/Biometrie und starte das Smartphone einmal neu, damit der
-                  24-Stunden-Countdown beginnt.
-                </span>
-              </p>
-            </div>
-          </li>
-          <li>
-            <span class="sl-num mono">04</span>
-            <div>
-              <strong class="sl-step-title">
-                <span class="i18n-en">After 24 hours: Choose “Allow indefinitely” (Avoid the 7-day trap!)</span>
-                <span class="i18n-de">Nach 24 Stunden: „Dauerhaft erlauben“ wählen (7-Tage-Falle vermeiden!)</span>
-              </strong>
-              <p>
-                <span class="i18n-en">
-                  Once the 24-hour cooldown finishes, return to Developer Options and choose{' '}
-                  <strong>Allow indefinitely</strong>. If you only pick the 7-day window, Android
-                  will disable it again after a week and force another 24-hour wait.
-                </span>
-                <span class="i18n-de">
-                  Gehe nach Ablauf der 24 Stunden zurück in die Entwickleroptionen und wähle{' '}
-                  <strong>Dauerhaft erlauben</strong>. Wählst du nur das 7-Tage-Fenster, schaltet
-                  Android die Option nach einer Woche wieder ab und erzwingt erneut 24 Stunden
-                  Wartezeit.
-                </span>
-              </p>
-            </div>
-          </li>
-        </ol>
+        <div class="kao-facts-grid">
+          <article class="kao-fact-card">
+            <span class="kao-fact-date mono">30.09.2026</span>
+            <h3>
+              <span class="i18n-en">Pilot Enforcement Active</span>
+              <span class="i18n-de">Pilotphase gestartet</span>
+            </h3>
+            <p>
+              <span class="i18n-en">
+                Google Play Protect began enforcing mandatory developer verification in initial
+                pilot countries (including Brazil, Indonesia, Singapore, and Thailand), blocking
+                unregistered APKs by default.
+              </span>
+              <span class="i18n-de">
+                Google Play Protect blockiert in ersten Pilotregionen (u. a. Brasilien, Indonesien,
+                Singapur und Thailand) standardmäßig jede APK ohne hinterlegte Google-Verifizierung.
+              </span>
+            </p>
+          </article>
+
+          <article class="kao-fact-card">
+            <span class="kao-fact-date mono">01 / 2027</span>
+            <h3>
+              <span class="i18n-en">Global Play Protect Rollout</span>
+              <span class="i18n-de">Weltweiter Rollout</span>
+            </h3>
+            <p>
+              <span class="i18n-en">
+                Starting January 2027, Google Play Services pushes this restriction worldwide to
+                certified Android smartphones — even for apps never distributed on the Play Store.
+              </span>
+              <span class="i18n-de">
+                Ab Januar 2027 wird die Sperre weltweit per Google Play Services auf zertifizierten
+                Android-Geräten aktiviert – selbst für Apps, die nie im Play Store standen.
+              </span>
+            </p>
+          </article>
+
+          <article class="kao-fact-card">
+            <span class="kao-fact-date mono">ID + KEY</span>
+            <h3>
+              <span class="i18n-en">Mandatory ID &amp; Package Binding</span>
+              <span class="i18n-de">Ausweis- &amp; Schlüsselpflicht</span>
+            </h3>
+            <p>
+              <span class="i18n-en">
+                Independent authors must upload government ID, pay a registration fee, and bind
+                every app’s package ID and signing certificate to Google’s central registry.
+              </span>
+              <span class="i18n-de">
+                Unabhängige Entwickler sollen Ausweisdaten einreichen, eine Gebühr zahlen und
+                Paketnamen samt Signaturschlüssel zentral bei Google registrieren.
+              </span>
+            </p>
+          </article>
+        </div>
       </section>
 
-      <!-- Two-column Context: Keep Android Open + F-Droid / FOSS Stance -->
+      <!-- Section 2: Why This Is Dangerous (Keep Android Open Core) -->
+      <section class="sl-card sl-card-danger" aria-labelledby="kao-why-heading">
+        <div class="sl-card-head">
+          <span class="pill-badge pill-danger mono">
+            <span class="i18n-en">⚠ Why It Matters</span>
+            <span class="i18n-de">⚠ Warum das gefährlich ist</span>
+          </span>
+          <h2 id="kao-why-heading">
+            <span class="i18n-en">From an Open Computer to a Locked Gatekeeper</span>
+            <span class="i18n-de">Vom freien Computer zur geschlossenen Gatekeeper-Plattform</span>
+          </h2>
+        </div>
+
+        <div class="kao-danger-list">
+          <div class="kao-danger-item">
+            <strong>
+              <span class="i18n-en">1. You lose control over your own hardware</span>
+              <span class="i18n-de">1. Verlust der Kontrolle über deine eigene Hardware</span>
+            </strong>
+            <p>
+              <span class="i18n-en">
+                You bought and own your smartphone, yet Google Play Protect decides remotely which
+                software is allowed to run unless you jump through a 24-hour waiting hoop.
+              </span>
+              <span class="i18n-de">
+                Du hast dein Smartphone bezahlt – trotzdem entscheidet Google per Play-Protect-Update
+                aus der Ferne, welche Software ohne 24-Stunden-Hürde installiert werden darf.
+              </span>
+            </p>
+          </div>
+          <div class="kao-danger-item">
+            <strong>
+              <span class="i18n-en">2. Chilling effect on independent &amp; privacy apps</span>
+              <span class="i18n-de">2. Druck auf unabhängige Entwickler &amp; Datenschutz-Apps</span>
+            </strong>
+            <p>
+              <span class="i18n-en">
+                Hobbyists, security researchers, students, and privacy-focused developers who cannot
+                or will not hand over personal IDs to Google are automatically flagged as
+                “unverified” and scary-blocked.
+              </span>
+              <span class="i18n-de">
+                Hobby-Entwickler, Sicherheitsforscher, Studierende und Datenschutz-Projekte, die
+                keine Ausweisdaten an Google übermitteln wollen oder können, werden automatisch als
+                „nicht verifiziert“ blockiert.
+              </span>
+            </p>
+          </div>
+          <div class="kao-danger-item">
+            <strong>
+              <span class="i18n-en">3. Friction designed to push users back to Play Store</span>
+              <span class="i18n-de">3. Künstliche Hürden statt echter Sicherheit</span>
+            </strong>
+            <p>
+              <span class="i18n-en">
+                Real malware checks happen via cryptographic signatures and reproducible source code —
+                not by hiding an off-switch in Developer Options with a 24-hour cooldown and a
+                7-day auto-reset trap.
+              </span>
+              <span class="i18n-de">
+                Echte Sicherheit entsteht durch Signaturprüfungen und offenen Quellcode – nicht durch
+                einen versteckten Entwickler-Schalter mit 24h-Countdown und 7-Tage-Rückfall-Falle.
+              </span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: 2-Column Context (Keep Android Open + S4 Replacement: User Impact & Escape Hatches) -->
       <div class="sl-two-col">
-        <article class="sl-card has-spotlight">
-          <span class="pill-badge pill-amber mono">keepandroidopen.org</span>
+        <article class="sl-card sl-card-danger">
+          <span class="pill-badge pill-danger mono">keepandroidopen.org</span>
           <h2>
-            <span class="i18n-en">Why Keep Android Open Matters</span>
-            <span class="i18n-de">Warum „Keep Android Open“ wichtig ist</span>
+            <span class="i18n-en">Support Keep Android Open</span>
+            <span class="i18n-de">Keep Android Open unterstützen</span>
           </h2>
           <p>
             <span class="i18n-en">
-              The <strong>Keep Android Open</strong> coalition warns that forcing every Android app
-              author to register keys, package IDs, and government ID with Google turns an open
-              operating system into a closed gatekeeper platform — putting independent tools, privacy
-              apps, and alternative app stores at risk.
+              The <strong>Keep Android Open</strong> coalition documents the rollout, mobilizes
+              developers and users worldwide, and provides the open countdown banner we display on
+              this website. Share the campaign or add the banner to your own project.
             </span>
             <span class="i18n-de">
-              Die Initiative <strong>Keep Android Open</strong> warnt: Wer jeden Android-Entwickler
-              zwingt, Signaturschlüssel, Paketnamen und Ausweisdaten bei Google zu hinterlegen,
-              verwandelt ein freies Betriebssystem in eine geschlossene Gatekeeper-Plattform und
-              gefährdet unabhängige Tools und alternative App-Stores.
+              Die Initiative <strong>Keep Android Open</strong> dokumentiert den Rollout, informiert
+              Nutzer sowie Entwickler weltweit und stellt das offene Countdown-Banner bereit, das wir
+              auf dieser Website einbinden. Teile die Kampagne oder binde das Banner selbst ein.
             </span>
           </p>
           <div class="sl-actions">
@@ -186,7 +246,7 @@ const lockSchema = {
               href="https://keepandroidopen.org"
               target="_blank"
               rel="noopener noreferrer"
-              class="btn btn-secondary"
+              class="btn btn-danger"
             >
               keepandroidopen.org ↗
             </a>
@@ -194,7 +254,7 @@ const lockSchema = {
               href="https://keepandroidopen.org/banner/"
               target="_blank"
               rel="noopener noreferrer"
-              class="btn btn-ghost"
+              class="btn btn-danger-outline"
             >
               <span class="i18n-en">Campaign Banner ↗</span>
               <span class="i18n-de">Kampagnen-Banner ↗</span>
@@ -203,37 +263,303 @@ const lockSchema = {
         </article>
 
         <article class="sl-card has-spotlight">
-          <span class="pill-badge pill-green mono">FOSS • F-Droid • ADB</span>
+          <span class="pill-badge pill-amber mono">
+            <span class="i18n-en">Daily Impact • Escape Hatches</span>
+            <span class="i18n-de">Alltagsfolgen • Auswege</span>
+          </span>
           <h2>
-            <span class="i18n-en">What F-Droid &amp; FOSS Developers Say</span>
-            <span class="i18n-de">Was F-Droid &amp; FOSS-Entwickler dazu sagen</span>
+            <span class="i18n-en">What This Means for You as a User</span>
+            <span class="i18n-de">Was bedeutet das für dich als Nutzer?</span>
           </h2>
           <p>
             <span class="i18n-en">
-              F-Droid compiles free software reproducibly from public source code using its own
-              repository keys — it cannot register thousands of upstream package IDs with Google or
-              compel anonymous contributors to submit ID. Meanwhile, <strong>ADB</strong> and{' '}
-              <strong>Shizuku</strong> remain key open developer escape hatches.
+              Without unlocking Developer Options, tapping direct APKs from GitHub, GitLab,
+              Codeberg, or independent sites can be blocked by Play Protect. Once you select
+              <strong>Allow indefinitely</strong> after 24h — or update via <strong>ADB</strong>,{' '}
+              <strong>Shizuku</strong>, or <strong>Root (su)</strong> — ApkUp continues working
+              without restrictions.
             </span>
             <span class="i18n-de">
-              F-Droid kompiliert freie Software reproduzierbar aus dem Quellcode mit eigenen
-              Repo-Schlüsseln und kann weder tausende fremde Paketnamen bei Google registrieren noch
-              anonyme Entwickler zur Ausweisabgabe zwingen. <strong>ADB</strong> und{' '}
-              <strong>Shizuku</strong> bleiben zentrale Werkzeuge für freie Installationen.
+              Ohne Freigabe in den Entwickleroptionen kann Play Protect direkte APKs von GitHub,
+              GitLab, Codeberg oder Webseiten blockieren. Sobald du nach 24h
+              <strong>Dauerhaft erlauben</strong> wählst – oder über <strong>ADB</strong>,{' '}
+              <strong>Shizuku</strong> bzw. <strong>Root (su)</strong> installierst – läuft ApkUp
+              dauerhaft uneingeschränkt weiter.
             </span>
           </p>
           <div class="sl-actions">
             <a href={`${base}wiki/#doc-google-lock`} class="btn btn-secondary">
-              <span class="i18n-en">Read Full Wiki Chapter →</span>
-              <span class="i18n-de">Komplettes Wiki-Kapitel →</span>
+              <span class="i18n-en">Wiki Chapter →</span>
+              <span class="i18n-de">Allgemeines Wiki →</span>
             </a>
-            <a href={`${base}sideloading/`} class="btn btn-ghost">
-              <span class="i18n-en">Unknown Apps Guide →</span>
-              <span class="i18n-de">Unbekannte-Apps-Guide →</span>
+            <a href={`${base}wiki/#doc-shizuku-deep`} class="btn btn-ghost">
+              <span class="i18n-en">Root →</span>
+              <span class="i18n-de">Root →</span>
+            </a>
+            <a href={`${base}wiki/#doc-shizuku-setup`} class="btn btn-ghost">
+              <span class="i18n-en">Shizuku →</span>
+              <span class="i18n-de">Shizuku →</span>
             </a>
           </div>
         </article>
       </div>
+
+      <!-- Section 4: Step-by-step 24h Lock Unlock -->
+      <section class="sl-card sl-card-danger" aria-labelledby="sl-lock-steps">
+        <div class="sl-card-head">
+          <span class="pill-badge pill-danger mono">
+            <span class="i18n-en">Developer Options • Permanent Unlock</span>
+            <span class="i18n-de">Entwickleroptionen • Dauerhafte Freigabe</span>
+          </span>
+          <h2 id="sl-lock-steps">
+            <span class="i18n-en">How to Permanently Unlock “Apps from unverified developers”</span>
+            <span class="i18n-de">So löst du die 24-Stunden-Sperre dauerhaft</span>
+          </h2>
+          <p class="sl-lead">
+            <span class="i18n-en">
+              Follow these exact 4 steps once per device to keep installing ApkUp and independent
+              open-source apps without future blocks:
+            </span>
+            <span class="i18n-de">
+              Führe diese 4 Schritte einmalig pro Gerät aus, um ApkUp und unabhängige
+              Open-Source-Apps dauerhaft ohne Blockaden zu installieren:
+            </span>
+          </p>
+        </div>
+
+        <ol class="sl-steps">
+          <li>
+            <span class="sl-num sl-num-danger mono">01</span>
+            <div>
+              <strong class="sl-step-title">
+                <span class="i18n-en">Enable Developer Options (7× Build Number)</span>
+                <span class="i18n-de">Entwickleroptionen freischalten (7× Build-Nummer)</span>
+              </strong>
+              <p>
+                <span class="i18n-en">
+                  Open <strong>Settings → About Phone</strong> (on Samsung: <em>Software
+                  information</em>) and tap <strong>Build Number</strong> 7 times until Android
+                  confirms <em>“You are now a developer!”</em>.
+                </span>
+                <span class="i18n-de">
+                  Öffne <strong>Einstellungen → Über das Telefon</strong> (bei Samsung:{' '}
+                  <em>Softwareinformationen</em>) und tippe 7-mal auf die{' '}
+                  <strong>Build-Nummer</strong>, bis <em>„Du bist jetzt Entwickler!“</em> erscheint.
+                </span>
+              </p>
+            </div>
+          </li>
+          <li>
+            <span class="sl-num sl-num-danger mono">02</span>
+            <div>
+              <strong class="sl-step-title">
+                <span class="i18n-en">Toggle “Apps from unverified developers”</span>
+                <span class="i18n-de">„Apps von nicht verifizierten Entwicklern“ aktivieren</span>
+              </strong>
+              <p>
+                <span class="i18n-en">
+                  Open <strong>Settings → System → Developer Options</strong> (or search for
+                  <em>Developer Options</em> in Settings), find{' '}
+                  <strong>Apps from unverified developers</strong>, and enable{' '}
+                  <strong>Allow apps from unverified developers</strong>.
+                </span>
+                <span class="i18n-de">
+                  Gehe zu <strong>Einstellungen → System → Entwickleroptionen</strong> (oder suche in
+                  den Einstellungen nach <em>Entwickleroptionen</em>), tippe auf{' '}
+                  <strong>Apps von nicht verifizierten Entwicklern</strong> und aktiviere die
+                  Freigabe.
+                </span>
+              </p>
+            </div>
+          </li>
+          <li>
+            <span class="sl-num sl-num-danger mono">03</span>
+            <div>
+              <strong class="sl-step-title">
+                <span class="i18n-en">Confirm Lock Screen &amp; Restart Device</span>
+                <span class="i18n-de">Displaysperre bestätigen &amp; Gerät neu starten</span>
+              </strong>
+              <p>
+                <span class="i18n-en">
+                  Verify your lock screen PIN, pattern, or biometrics when prompted, then{' '}
+                  <strong>restart your smartphone</strong>. The mandatory 24-hour cooldown timer
+                  starts immediately after reboot.
+                </span>
+                <span class="i18n-de">
+                  Bestätige deine PIN, dein Muster oder deine Biometrie und{' '}
+                  <strong>starte das Smartphone neu</strong>. Direkt nach dem Neustart beginnt der
+                  vorgeschriebene 24-Stunden-Countdown.
+                </span>
+              </p>
+            </div>
+          </li>
+          <li>
+            <span class="sl-num sl-num-danger mono">04</span>
+            <div>
+              <strong class="sl-step-title">
+                <span class="i18n-en">After 24 Hours: Select “Allow indefinitely”</span>
+                <span class="i18n-de">Nach 24 Stunden: Unbedingt „Dauerhaft erlauben“ wählen</span>
+              </strong>
+              <p>
+                <span class="i18n-en">
+                  Return to <strong>Developer Options → Apps from unverified developers</strong>{' '}
+                  once the 24 hours are up and choose <strong>Allow indefinitely</strong>.
+                </span>
+                <span class="i18n-de">
+                  Kehre nach Ablauf der 24 Stunden zurück zu{' '}
+                  <strong>Entwickleroptionen → Apps von nicht verifizierten Entwicklern</strong> und
+                  wähle dort ausdrücklich <strong>Dauerhaft erlauben</strong>.
+                </span>
+              </p>
+            </div>
+          </li>
+        </ol>
+
+        <div class="kao-trap-alert" role="note">
+          <strong>
+            <span class="i18n-en">⚠ Watch Out for the 7-Day Reset Trap!</span>
+            <span class="i18n-de">⚠ Achtung vor der 7-Tage-Rückfall-Falle!</span>
+          </strong>
+          <p>
+            <span class="i18n-en">
+              Android offers a temporary <strong>7-day option</strong> next to{' '}
+              <strong>Allow indefinitely</strong>. If you select 7 days, Android automatically
+              re-enables the lock after one week — forcing you to wait another full 24 hours.
+              Always pick <strong>Allow indefinitely</strong>!
+            </span>
+            <span class="i18n-de">
+              Android zeigt neben <strong>Dauerhaft erlauben</strong> auch eine befristete{' '}
+              <strong>7-Tage-Option</strong> an. Wählst du nur 7 Tage, schaltet Android die Sperre
+              nach einer Woche automatisch wieder scharf – und du musst erneut 24 Stunden warten.
+              Wähle deshalb immer <strong>Dauerhaft erlauben</strong>!
+            </span>
+          </p>
+        </div>
+      </section>
+
+      <!-- Section 5: Comparison Table -->
+      <section class="sl-card" aria-labelledby="kao-compare-heading">
+        <div class="sl-card-head">
+          <span class="pill-badge pill-neutral mono">
+            <span class="i18n-en">Comparison</span>
+            <span class="i18n-de">Direktvergleich</span>
+          </span>
+          <h2 id="kao-compare-heading">
+            <span class="i18n-en">Locked Play Protect vs. Unlocked / ADB &amp; Shizuku</span>
+            <span class="i18n-de">Aktive Play-Protect-Sperre vs. Freigabe / ADB &amp; Shizuku</span>
+          </h2>
+        </div>
+
+        <div class="kao-table-wrap">
+          <table class="kao-table">
+            <thead>
+              <tr>
+                <th>
+                  <span class="i18n-en">Scenario</span>
+                  <span class="i18n-de">Szenario</span>
+                </th>
+                <th>
+                  <span class="i18n-en">With 24h Lock Active</span>
+                  <span class="i18n-de">Mit aktiver Sperre</span>
+                </th>
+                <th>
+                  <span class="i18n-en">Unlocked / ADB / Shizuku</span>
+                  <span class="i18n-de">Dauerhaft frei / ADB / Shizuku</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <strong>
+                    <span class="i18n-en">Direct APK from Browser</span>
+                    <span class="i18n-de">Direkte APK aus Browser</span>
+                  </strong>
+                </td>
+                <td class="kao-td-bad">
+                  <span class="i18n-en">✕ Blocked if dev has no Google ID</span>
+                  <span class="i18n-de">✕ Blockiert ohne Google-Ausweis</span>
+                </td>
+                <td class="kao-td-good">
+                  <span class="i18n-en">✓ Installs normally</span>
+                  <span class="i18n-de">✓ Installiert normal</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>
+                    <span class="i18n-en">ApkUp Multi-Source Updates</span>
+                    <span class="i18n-de">ApkUp Multi-Quellen-Updates</span>
+                  </strong>
+                </td>
+                <td class="kao-td-bad">
+                  <span class="i18n-en">⚠ Play Protect blocks unverified APKs</span>
+                  <span class="i18n-de">⚠ Play Protect blockiert Updates</span>
+                </td>
+                <td class="kao-td-good">
+                  <span class="i18n-en">✓ All 7 sources work seamlessly</span>
+                  <span class="i18n-de">✓ Alle 7 Quellen laufen nahtlos</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>
+                    <span class="i18n-en">ADB / Shizuku / Root (su)</span>
+                    <span class="i18n-de">ADB / Shizuku / Root (su)</span>
+                  </strong>
+                </td>
+                <td class="kao-td-good">
+                  <span class="i18n-en">✓ Developer pipeline stays open</span>
+                  <span class="i18n-de">✓ Entwickler-Pipeline bleibt offen</span>
+                </td>
+                <td class="kao-td-good">
+                  <span class="i18n-en">✓ Silent background updates</span>
+                  <span class="i18n-de">✓ Lautlose Hintergrund-Updates</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Section 6: Power-User Workaround & Quick Links -->
+      <section class="sl-card" aria-labelledby="kao-adb-heading">
+        <div class="sl-card-head">
+          <span class="pill-badge pill-green mono">ADB • Shizuku • Root</span>
+          <h2 id="kao-adb-heading">
+            <span class="i18n-en">Immediate Developer Escape Hatch (No 24h Wait)</span>
+            <span class="i18n-de">Sofortiger Entwickler-Ausweg (ohne 24h Wartezeit)</span>
+          </h2>
+          <p>
+            <span class="i18n-en">
+              If you cannot wait 24 hours, you can install ApkUp immediately from any PC via ADB
+              (USB or Wireless Debugging), and then enable Shizuku or Root inside ApkUp:
+            </span>
+            <span class="i18n-de">
+              Wenn du nicht 24 Stunden warten möchtest, kannst du ApkUp sofort per ADB vom PC
+              (USB oder Kabelloses Debugging) installieren und danach Shizuku oder Root in ApkUp
+              nutzen:
+            </span>
+          </p>
+        </div>
+        <pre class="kao-code mono"><code>adb install -r ApkUp.apk</code></pre>
+        <div class="sl-actions">
+          <a href={`${base}sideloading/`} class="btn btn-secondary">
+            <span class="i18n-en">← Unknown Apps Guide</span>
+            <span class="i18n-de">← Unbekannte-Apps-Guide</span>
+          </a>
+          <a href={`${base}wiki/#doc-sideloading`} class="btn btn-ghost">
+            <span class="i18n-en">General Wiki →</span>
+            <span class="i18n-de">Allgemeines Wiki →</span>
+          </a>
+          <a href={`${base}wiki/#doc-shizuku-deep`} class="btn btn-ghost">
+            <span>Root →</span>
+          </a>
+          <a href={`${base}wiki/#doc-shizuku-setup`} class="btn btn-ghost">
+            <span>Shizuku →</span>
+          </a>
+        </div>
+      </section>
     </div>
   </main>
   <Footer />
@@ -241,7 +567,7 @@ const lockSchema = {
 
 <style>
   .subpage-wrap {
-    max-width: 940px;
+    max-width: 980px;
   }
 
   .sl-breadcrumb {
@@ -254,18 +580,148 @@ const lockSchema = {
     text-decoration: none;
   }
 
-  .sl-breadcrumb a:hover {
-    text-decoration: underline;
+  @media (hover: hover) {
+    .sl-breadcrumb a:hover {
+      text-decoration: underline;
+    }
   }
 
-  .sl-header {
-    margin-bottom: 28px;
+  /* Alarm-Red Hero (Keep Android Open Style) */
+  .kao-hero {
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(239, 68, 68, 0.7);
+    background: linear-gradient(145deg, rgba(220, 38, 38, 0.22), rgba(127, 29, 29, 0.14) 45%, var(--surface-low));
+    padding: clamp(24px, 4vw, 38px);
+    margin-bottom: 24px;
+    box-shadow: 0 18px 44px rgba(220, 38, 38, 0.16);
   }
 
-  .sl-header .section-title {
-    margin-top: 12px;
+  .kao-hero-top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
   }
 
+  .kao-title {
+    margin: 0 0 12px;
+    font-size: clamp(1.85rem, 3.6vw, 2.7rem);
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+  }
+
+  .kao-lead {
+    margin: 0 0 22px;
+    max-width: 70ch;
+    color: var(--text);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .kao-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .btn-danger {
+    background: #dc2626;
+    color: #fff;
+    border: 1px solid #ef4444;
+    font-weight: 700;
+    transition-property: background-color, transform;
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
+  }
+
+  .btn-danger-outline {
+    background: rgba(220, 38, 38, 0.12);
+    color: #fca5a5;
+    border: 1px solid rgba(239, 68, 68, 0.55);
+    font-weight: 700;
+    transition-property: background-color, border-color, transform;
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
+  }
+
+  [data-theme='light'] .btn-danger-outline {
+    color: #b91c1c;
+    background: rgba(220, 38, 38, 0.08);
+  }
+
+  @media (hover: hover) {
+    .btn-danger:hover {
+      background: #b91c1c;
+    }
+    .btn-danger-outline:hover {
+      background: rgba(220, 38, 38, 0.22);
+      border-color: #ef4444;
+    }
+  }
+
+  .btn-danger:active:not(:disabled),
+  .btn-danger-outline:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+
+  /* Timeline & Facts */
+  .kao-section {
+    margin-bottom: 24px;
+  }
+
+  .kao-sec-head {
+    margin-bottom: 14px;
+  }
+
+  .kao-sec-head h2 {
+    margin: 8px 0 0;
+    font-size: 1.4rem;
+  }
+
+  .kao-facts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .kao-fact-card {
+    background: var(--surface-low);
+    border: 1px solid rgba(239, 68, 68, 0.38);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .kao-fact-date {
+    display: inline-flex;
+    align-self: flex-start;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(239, 68, 68, 0.16);
+    color: #f87171;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  [data-theme='light'] .kao-fact-date {
+    color: #b91c1c;
+  }
+
+  .kao-fact-card h3 {
+    margin: 0;
+    font-size: 1.04rem;
+  }
+
+  .kao-fact-card p {
+    margin: 0;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  /* Cards */
   .sl-card {
     background: var(--surface-low);
     border: 1px solid var(--outline);
@@ -277,8 +733,9 @@ const lockSchema = {
     gap: 14px;
   }
 
-  .sl-card-warn {
-    border-color: rgba(245, 158, 11, 0.45);
+  .sl-card-danger {
+    border-color: rgba(239, 68, 68, 0.58);
+    background: linear-gradient(165deg, rgba(220, 38, 38, 0.08), var(--surface-low) 52%);
   }
 
   .sl-card h2 {
@@ -291,9 +748,36 @@ const lockSchema = {
     margin: 0;
     color: var(--text-muted);
     font-size: 0.92rem;
-    line-height: 1.55;
+    line-height: 1.58;
   }
 
+  .kao-danger-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .kao-danger-item {
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    border: 1px solid rgba(239, 68, 68, 0.28);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .kao-danger-item strong {
+    font-size: 0.94rem;
+    color: var(--text);
+  }
+
+  .kao-danger-item p {
+    font-size: 0.86rem;
+    line-height: 1.5;
+  }
+
+  /* Steps */
   .sl-steps {
     list-style: none;
     margin: 4px 0 0;
@@ -308,23 +792,27 @@ const lockSchema = {
     grid-template-columns: 36px minmax(0, 1fr);
     gap: 12px;
     align-items: start;
-    padding: 12px 14px;
+    padding: 14px 16px;
     border-radius: var(--radius-md);
     background: var(--bg);
     border: 1px solid var(--outline);
   }
 
-  .sl-num {
+  .sl-num-danger {
     width: 32px;
     height: 32px;
     border-radius: 9px;
-    background: var(--accent-soft);
-    color: var(--accent);
+    background: rgba(239, 68, 68, 0.16);
+    color: #f87171;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     font-size: 0.78rem;
     font-weight: 700;
+  }
+
+  [data-theme='light'] .sl-num-danger {
+    color: #b91c1c;
   }
 
   .sl-step-title {
@@ -334,8 +822,78 @@ const lockSchema = {
     color: var(--text);
   }
 
-  .sl-steps a {
-    color: var(--accent);
+  .kao-trap-alert {
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(239, 68, 68, 0.65);
+    background: rgba(220, 38, 38, 0.14);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .kao-trap-alert strong {
+    color: #fca5a5;
+    font-size: 0.95rem;
+  }
+
+  [data-theme='light'] .kao-trap-alert strong {
+    color: #b91c1c;
+  }
+
+  .kao-trap-alert p {
+    color: var(--text);
+    font-size: 0.88rem;
+  }
+
+  /* Comparison Table */
+  .kao-table-wrap {
+    overflow-x: auto;
+  }
+
+  .kao-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+
+  .kao-table th,
+  .kao-table td {
+    text-align: left;
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--outline);
+  }
+
+  .kao-table th {
+    color: var(--text-muted);
+    font-weight: 700;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .kao-td-bad {
+    color: #f87171;
+    font-weight: 600;
+  }
+
+  .kao-td-good {
+    color: var(--tertiary-soft-ink);
+    font-weight: 600;
+  }
+
+  [data-theme='light'] .kao-td-bad {
+    color: #b91c1c;
+  }
+
+  .kao-code {
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    border: 1px solid var(--outline);
+    font-size: 0.86rem;
+    overflow-x: auto;
   }
 
   .sl-two-col {
@@ -352,9 +910,22 @@ const lockSchema = {
     padding-top: 6px;
   }
 
-  @media (max-width: 760px) {
+  @media (max-width: 820px) {
+    .kao-facts-grid,
+    .kao-danger-list,
     .sl-two-col {
       grid-template-columns: 1fr;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn-danger,
+    .btn-danger-outline {
+      transition: none;
+    }
+    .btn-danger:active:not(:disabled),
+    .btn-danger-outline:active:not(:disabled) {
+      transform: none;
     }
   }
 </style>

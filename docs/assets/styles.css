@@ -975,18 +975,22 @@ p {
     color: var(--accent);
   }
 
-  .footer-build-pill {
-    padding: 3px 10px;
+  .footer-links a.footer-build-pill {
+    padding: 2px 8px;
     border-radius: 999px;
     border: 1px solid var(--outline);
     background: var(--surface);
-    font-size: 0.76rem;
+    font-size: 0.7rem;
+    line-height: 1.25;
+    align-self: center;
     color: var(--text-muted);
   }
 
-  .footer-build-pill:hover {
-    border-color: var(--accent);
-    color: var(--accent);
+  @media (hover: hover) {
+    .footer-links a.footer-build-pill:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
   }
 
 /* src/components/Hero.astro */
@@ -1123,11 +1127,27 @@ p {
     transition: opacity 160ms ease-out, transform 160ms ease-out;
   }
 
-  .sideload-pop-wrap:hover .sideload-popover,
+  .sideload-popover::before {
+    content: '';
+    position: absolute;
+    top: -12px;
+    left: 0;
+    right: 0;
+    height: 14px;
+  }
+
   .sideload-pop-wrap:focus-within .sideload-popover {
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;
+  }
+
+  @media (hover: hover) {
+    .sideload-pop-wrap:hover .sideload-popover {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
   }
 
   .sideload-popover > strong {
@@ -3323,8 +3343,30 @@ p {
     gap: 14px;
   }
 
-  .sl-card-warn {
-    border-color: rgba(245, 158, 11, 0.45);
+  .sl-card-danger {
+    border-color: rgba(239, 68, 68, 0.65);
+    background: linear-gradient(160deg, rgba(239, 68, 68, 0.1), var(--surface-low) 58%);
+    box-shadow: 0 12px 32px rgba(239, 68, 68, 0.12);
+  }
+
+  .btn-danger {
+    background: #dc2626;
+    color: #fff;
+    border: 1px solid #ef4444;
+    font-weight: 700;
+    transition-property: background-color, transform;
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
+  }
+
+  @media (hover: hover) {
+    .btn-danger:hover {
+      background: #b91c1c;
+    }
+  }
+
+  .btn-danger:active:not(:disabled) {
+    transform: scale(0.96);
   }
 
   .sl-card h2 {
