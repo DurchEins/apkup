@@ -1148,11 +1148,15 @@ Copyright © 2026 DurchEins • GPL-3.0 •  <span class="i18n-en" data-astro-ci
           articles.forEach(function (art) {
             art.hidden = false;
           });
+          navGroups.forEach(function (grp) {
+            grp.hidden = false;
+          });
           return;
         }
         var tokens = q.split(/\s+/).filter(Boolean);
         var tokenGroups = tokens.map(expandToken);
         var matches = 0;
+        var matchedSlugs = {};
         articles.forEach(function (art) {
           var text = (art.textContent || '').toLowerCase();
           var hit = tokenGroups.every(function (group) {
@@ -1161,7 +1165,15 @@ Copyright © 2026 DurchEins • GPL-3.0 •  <span class="i18n-en" data-astro-ci
             });
           });
           art.hidden = !hit;
-          if (hit) matches++;
+          if (hit) {
+            matches++;
+            var slug = art.getAttribute('data-wiki-article');
+            if (slug) matchedSlugs[slug] = true;
+          }
+        });
+        navGroups.forEach(function (grp) {
+          var gSlug = grp.getAttribute('data-wiki-group');
+          grp.hidden = gSlug ? !matchedSlugs[gSlug] : false;
         });
         if (searchCount) {
           searchCount.hidden = false;
