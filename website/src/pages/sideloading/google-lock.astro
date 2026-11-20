@@ -72,7 +72,7 @@ const lockSchema = {
         </p>
 
         <div class="kao-hero-actions">
-          <a href="#sl-lock-steps" class="btn btn-danger" data-flash-steps>
+          <a href="#sl-lock-steps" class="btn btn-danger" data-kao-jump-steps>
             <span class="i18n-en">Unlock 24h Lock Step-by-Step ↓</span>
             <span class="i18n-de">24h-Sperre dauerhaft lösen ↓</span>
           </a>
@@ -85,36 +85,62 @@ const lockSchema = {
             <span class="i18n-en">Join Keep Android Open ↗</span>
             <span class="i18n-de">Keep Android Open unterstützen ↗</span>
           </a>
+          <button type="button" class="btn btn-danger-outline kao-share-btn" id="kao-share-btn">
+            <span class="i18n-en">Share &amp; Warn Others ↗</span>
+            <span class="i18n-de">Teilen &amp; Aufklären ↗</span>
+          </button>
         </div>
       </header>
 
-      <!-- Interactive "Am I Affected?" Quick Check -->
-      <section class="kao-quickcheck" aria-labelledby="kao-qc-title">
-        <div class="kao-qc-head">
-          <span class="pill-badge pill-neutral mono">
+      <!-- Quick Self-Check: Am I Affected? -->
+      <section class="kao-checker" id="kao-checker" aria-labelledby="kao-checker-title">
+        <div class="kao-checker-head">
+          <span class="pill-badge pill-danger mono">
             <span class="i18n-en">2-Click Check</span>
             <span class="i18n-de">2-Klick-Check</span>
           </span>
-          <h2 id="kao-qc-title">
+          <h2 id="kao-checker-title">
             <span class="i18n-en">Am I Affected by Google’s 24h Lock?</span>
             <span class="i18n-de">Bin ich von Googles 24h-Sperre betroffen?</span>
           </h2>
         </div>
-        <div class="kao-qc-controls">
-          <button type="button" class="kao-qc-toggle is-on" id="kao-qc-play" aria-pressed="true">
-            <span class="kao-qc-dot" aria-hidden="true"></span>
-            <span class="i18n-en">Certified Android (with Google Play Services)</span>
-            <span class="i18n-de">Zertifiziertes Android (mit Google Play Services)</span>
-          </button>
-          <button type="button" class="kao-qc-toggle is-on" id="kao-qc-sideload" aria-pressed="true">
-            <span class="kao-qc-dot" aria-hidden="true"></span>
-            <span class="i18n-en">Installing APKs outside Play Store (ApkUp / GitHub / Web)</span>
-            <span class="i18n-de">APKs außerhalb des Play Stores (ApkUp / GitHub / Web)</span>
-          </button>
+        <div class="kao-checker-grid">
+          <div class="kao-q">
+            <span class="kao-q-label">
+              <span class="i18n-en">1. Device uses Google Play Services / Play Protect?</span>
+              <span class="i18n-de">1. Gerät nutzt Google Play Services / Play Protect?</span>
+            </span>
+            <div class="kao-q-btns">
+              <button type="button" class="kao-q-btn is-selected" data-q="gms" data-val="yes">
+                <span class="i18n-en">Yes (Standard Android)</span>
+                <span class="i18n-de">Ja (Standard-Android)</span>
+              </button>
+              <button type="button" class="kao-q-btn" data-q="gms" data-val="no">
+                <span class="i18n-en">No (GrapheneOS / Lineage / DeGoogled)</span>
+                <span class="i18n-de">Nein (GrapheneOS / Lineage / ohne Google)</span>
+              </button>
+            </div>
+          </div>
+          <div class="kao-q">
+            <span class="kao-q-label">
+              <span class="i18n-en">2. How do you install ApkUp / FOSS apps?</span>
+              <span class="i18n-de">2. Wie installierst du ApkUp / FOSS-Apps?</span>
+            </span>
+            <div class="kao-q-btns">
+              <button type="button" class="kao-q-btn is-selected" data-q="method" data-val="apk">
+                <span class="i18n-en">Tap APK directly on phone</span>
+                <span class="i18n-de">APK direkt am Handy antippen</span>
+              </button>
+              <button type="button" class="kao-q-btn" data-q="method" data-val="adb">
+                <span class="i18n-en">ADB / Shizuku / Root (su)</span>
+                <span class="i18n-de">ADB / Shizuku / Root (su)</span>
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="kao-qc-verdict is-affected mono" id="kao-qc-verdict" aria-live="polite">
-          <span class="i18n-en">⚠ Affected: Complete the 24h Developer Options unlock once (or use ADB / Shizuku).</span>
-          <span class="i18n-de">⚠ Betroffen: Einmalig 24h-Freigabe in den Entwickleroptionen nötig (oder ADB / Shizuku).</span>
+        <div class="kao-checker-result is-affected mono" id="kao-checker-result" aria-live="polite">
+          <span class="i18n-en">⚠ Affected: Complete the 4-step “Allow indefinitely” unlock below once.</span>
+          <span class="i18n-de">⚠ Betroffen: Einmalig unten die 4 Schritte („Dauerhaft erlauben“) ausführen.</span>
         </div>
       </section>
 
@@ -295,16 +321,6 @@ const lockSchema = {
               <span class="i18n-en">Campaign Banner ↗</span>
               <span class="i18n-de">Kampagnen-Banner ↗</span>
             </a>
-            <button type="button" class="btn btn-ghost kao-share-btn" id="kao-share-btn">
-              <span class="kao-share-default">
-                <span class="i18n-en">Share Guide ↗</span>
-                <span class="i18n-de">Seite teilen ↗</span>
-              </span>
-              <span class="kao-share-done">
-                <span class="i18n-en">✓ Link copied</span>
-                <span class="i18n-de">✓ Link kopiert</span>
-              </span>
-            </button>
           </div>
         </article>
 
@@ -351,7 +367,7 @@ const lockSchema = {
       </div>
 
       <!-- Section 4: Step-by-step 24h Lock Unlock -->
-      <section class="sl-card sl-card-danger" id="kao-steps-card" aria-labelledby="sl-lock-steps">
+      <section class="sl-card sl-card-danger" id="sl-lock-section" aria-labelledby="sl-lock-steps">
         <div class="sl-card-head">
           <span class="pill-badge pill-danger mono">
             <span class="i18n-en">Developer Options • Permanent Unlock</span>
@@ -393,7 +409,7 @@ const lockSchema = {
 
         <ol class="sl-steps" id="kao-steps-list">
           <li data-step-idx="0" role="checkbox" aria-checked="false" tabindex="0">
-            <span class="sl-num sl-num-danger mono" id="kao-step01-badge" title="Tip: 7× tap!">
+            <span class="sl-num sl-num-danger mono" id="kao-step1-badge" aria-hidden="true" title="Tap 7×!">
               <span class="sl-num-text">01</span>
               <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
             </span>
@@ -414,10 +430,20 @@ const lockSchema = {
                   <strong>Build-Nummer</strong>, bis <em>„Du bist jetzt Entwickler!“</em> erscheint.
                 </span>
               </p>
-              <span class="kao-egg-toast mono" id="kao-dev-egg-toast" hidden>
+              <div class="kao-path-chips mono" aria-label="Android menu path">
+                <span class="kao-chip i18n-en">Settings</span>
+                <span class="kao-chip i18n-de">Einstellungen</span>
+                <span class="kao-chip-arrow" aria-hidden="true">→</span>
+                <span class="kao-chip i18n-en">About Phone</span>
+                <span class="kao-chip i18n-de">Über das Telefon</span>
+                <span class="kao-chip-arrow" aria-hidden="true">→</span>
+                <span class="kao-chip kao-chip-hl i18n-en">Build Number (7×)</span>
+                <span class="kao-chip kao-chip-hl i18n-de">Build-Nummer (7×)</span>
+              </div>
+              <div class="kao-dev-toast mono" id="kao-dev-toast" hidden aria-live="polite">
                 <span class="i18n-en">🎉 You are now a developer!</span>
                 <span class="i18n-de">🎉 Du bist jetzt Entwickler!</span>
-              </span>
+              </div>
             </div>
           </li>
           <li data-step-idx="1" role="checkbox" aria-checked="false" tabindex="0">
@@ -432,29 +458,27 @@ const lockSchema = {
               </strong>
               <p>
                 <span class="i18n-en">
-                  Follow this settings path and switch on <strong>Allow apps from unverified developers</strong>:
+                  Open <strong>Settings → System → Developer Options</strong> (or search for
+                  <em>Developer Options</em> in Settings), find{' '}
+                  <strong>Apps from unverified developers</strong>, and enable{' '}
+                  <strong>Allow apps from unverified developers</strong>.
                 </span>
                 <span class="i18n-de">
-                  Folge diesem Menü-Pfad und aktiviere die Freigabe:
+                  Gehe zu <strong>Einstellungen → System → Entwickleroptionen</strong> (oder suche in
+                  den Einstellungen nach <em>Entwickleroptionen</em>), tippe auf{' '}
+                  <strong>Apps von nicht verifizierten Entwicklern</strong> und aktiviere die
+                  Freigabe.
                 </span>
               </p>
-              <div class="kao-path-chips mono" aria-label="Android settings path">
-                <button type="button" class="kao-path-chip" data-copy-chip="Settings → System → Developer Options → Apps from unverified developers">
-                  <span class="i18n-en">Settings</span>
-                  <span class="i18n-de">Einstellungen</span>
-                </button>
-                <span class="kao-path-arrow" aria-hidden="true">→</span>
-                <button type="button" class="kao-path-chip" data-copy-chip="System">System</button>
-                <span class="kao-path-arrow" aria-hidden="true">→</span>
-                <button type="button" class="kao-path-chip" data-copy-chip="Developer Options">
-                  <span class="i18n-en">Developer Options</span>
-                  <span class="i18n-de">Entwickleroptionen</span>
-                </button>
-                <span class="kao-path-arrow" aria-hidden="true">→</span>
-                <button type="button" class="kao-path-chip is-target" data-copy-chip="Apps from unverified developers">
-                  <span class="i18n-en">Apps from unverified developers</span>
-                  <span class="i18n-de">Apps von nicht verifizierten Entwicklern</span>
-                </button>
+              <div class="kao-path-chips mono" aria-label="Developer Options menu path">
+                <span class="kao-chip i18n-en">System</span>
+                <span class="kao-chip i18n-de">System</span>
+                <span class="kao-chip-arrow" aria-hidden="true">→</span>
+                <span class="kao-chip i18n-en">Developer Options</span>
+                <span class="kao-chip i18n-de">Entwickleroptionen</span>
+                <span class="kao-chip-arrow" aria-hidden="true">→</span>
+                <span class="kao-chip kao-chip-hl i18n-en">Unverified developers</span>
+                <span class="kao-chip kao-chip-hl i18n-de">Nicht verifizierte Entwickler</span>
               </div>
             </div>
           </li>
@@ -480,18 +504,18 @@ const lockSchema = {
                   vorgeschriebene 24-Stunden-Countdown.
                 </span>
               </p>
-              <div class="kao-timer-box" id="kao-timer-box">
-                <div class="kao-timer-actions">
-                  <button type="button" class="kao-timer-btn mono" id="kao-start-24h-btn">
-                    <span class="i18n-en">⏱ Timer started now</span>
-                    <span class="i18n-de">⏱ Timer jetzt gestartet</span>
+              <div class="kao-timer-box">
+                <div class="kao-timer-btns">
+                  <button type="button" class="kao-mini-btn mono" id="kao-timer-start">
+                    <span class="i18n-en">⏱ Start 24h Browser Timer</span>
+                    <span class="i18n-de">⏱ 24h-Browser-Timer starten</span>
                   </button>
-                  <button type="button" class="kao-timer-btn kao-ics-btn mono" id="kao-download-ics-btn">
-                    <span class="i18n-en">📅 Calendar Reminder (.ics)</span>
+                  <button type="button" class="kao-mini-btn kao-mini-btn-accent mono" id="kao-timer-ics">
+                    <span class="i18n-en">📅 Download Calendar Reminder (.ics)</span>
                     <span class="i18n-de">📅 Kalender-Erinnerung (.ics)</span>
                   </button>
                 </div>
-                <div class="kao-timer-status mono" id="kao-24h-status" hidden></div>
+                <div class="kao-timer-status mono" id="kao-timer-status" hidden aria-live="polite"></div>
               </div>
             </div>
           </li>
@@ -583,7 +607,7 @@ const lockSchema = {
                   <span class="i18n-en">With 24h Lock Active</span>
                   <span class="i18n-de">Mit aktiver Sperre</span>
                 </th>
-                <th data-col="unlocked">
+                <th class="kao-col-safe-th" id="kao-col-safe-th" tabindex="0">
                   <span class="i18n-en">Unlocked / ADB / Shizuku</span>
                   <span class="i18n-de">Dauerhaft frei / ADB / Shizuku</span>
                 </th>
@@ -601,7 +625,7 @@ const lockSchema = {
                   <span class="i18n-en">✕ Blocked if dev has no Google ID</span>
                   <span class="i18n-de">✕ Blockiert ohne Google-Ausweis</span>
                 </td>
-                <td class="kao-td-good" data-col="unlocked">
+                <td class="kao-td-good">
                   <span class="i18n-en">✓ Installs normally</span>
                   <span class="i18n-de">✓ Installiert normal</span>
                 </td>
@@ -617,7 +641,7 @@ const lockSchema = {
                   <span class="i18n-en">⚠ Play Protect blocks unverified APKs</span>
                   <span class="i18n-de">⚠ Play Protect blockiert Updates</span>
                 </td>
-                <td class="kao-td-good" data-col="unlocked">
+                <td class="kao-td-good">
                   <span class="i18n-en">✓ All 7 sources work seamlessly</span>
                   <span class="i18n-de">✓ Alle 7 Quellen laufen nahtlos</span>
                 </td>
@@ -633,7 +657,7 @@ const lockSchema = {
                   <span class="i18n-en">✓ Developer pipeline stays open</span>
                   <span class="i18n-de">✓ Entwickler-Pipeline bleibt offen</span>
                 </td>
-                <td class="kao-td-good" data-col="unlocked">
+                <td class="kao-td-good">
                   <span class="i18n-en">✓ Silent background updates</span>
                   <span class="i18n-de">✓ Lautlose Hintergrund-Updates</span>
                 </td>
@@ -698,7 +722,7 @@ const lockSchema = {
     </div>
   </main>
 
-  <a href="#sl-lock-steps" class="kao-quick-jump mono" id="kao-quick-jump" data-flash-steps hidden>
+  <a href="#sl-lock-steps" class="kao-quick-jump mono" id="kao-quick-jump" data-kao-jump-steps hidden>
     <span class="i18n-en">24h Fix ↓</span>
     <span class="i18n-de">Zur 24h-Sperre ↓</span>
   </a>
@@ -1425,24 +1449,24 @@ const lockSchema = {
     transform: scale(0.96);
   }
 
-  /* New Spell 6: Scroll Progress Line */
+  /* 6b. Scroll Progress Line */
   .kao-scroll-progress {
-    position: sticky;
+    position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 2px;
-    z-index: 50;
+    right: 0;
+    height: 3px;
+    z-index: 60;
     background: linear-gradient(90deg, #ef4444, #f97316);
-    transform-origin: left center;
+    transform-origin: 0 50%;
     transform: scaleX(0);
     pointer-events: none;
   }
 
-  /* New Spell 3: 2-Click "Am I Affected?" Quick Check */
-  .kao-quickcheck {
+  /* 3b. 2-Click Self-Check */
+  .kao-checker {
     background: var(--surface-low);
-    border: 1px solid var(--outline);
+    border: 1px solid rgba(239, 68, 68, 0.48);
     border-radius: var(--radius-lg);
     padding: clamp(18px, 3vw, 24px);
     margin-bottom: 24px;
@@ -1451,94 +1475,83 @@ const lockSchema = {
     gap: 14px;
   }
 
-  .kao-qc-head h2 {
+  .kao-checker-head h2 {
     margin: 8px 0 0;
-    font-size: 1.2rem;
+    font-size: 1.24rem;
   }
 
-  .kao-qc-controls {
+  .kao-checker-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .kao-q {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .kao-q-label {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .kao-q-btns {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
   }
 
-  .kao-qc-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 14px;
+  .kao-q-btn {
+    padding: 6px 12px;
     border-radius: 999px;
     border: 1px solid var(--outline);
     background: var(--bg);
     color: var(--text-muted);
-    font-size: 0.84rem;
+    font-size: 0.8rem;
     font-weight: 600;
     cursor: pointer;
-    transition-property: border-color, background-color, color, transform;
+    transition-property: background-color, border-color, color, transform;
     transition-duration: 150ms;
   }
 
-  .kao-qc-toggle.is-on {
-    border-color: rgba(239, 68, 68, 0.55);
-    background: rgba(220, 38, 38, 0.12);
+  .kao-q-btn.is-selected {
+    border-color: #ef4444;
+    background: rgba(220, 38, 38, 0.16);
     color: var(--text);
   }
 
-  .kao-qc-toggle:active:not(:disabled) {
+  .kao-q-btn:active:not(:disabled) {
     transform: scale(0.96);
   }
 
-  .kao-qc-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
-    background: var(--text-muted);
-    transition-property: background-color;
-    transition-duration: 150ms;
-  }
-
-  .kao-qc-toggle.is-on .kao-qc-dot {
-    background: #ef4444;
-  }
-
-  .kao-qc-verdict {
+  .kao-checker-result {
     padding: 10px 14px;
     border-radius: var(--radius-md);
     font-size: 0.82rem;
+    font-weight: 700;
     border: 1px solid rgba(239, 68, 68, 0.5);
     background: rgba(220, 38, 38, 0.12);
     color: #fca5a5;
   }
 
-  .kao-qc-verdict.is-clear {
+  .kao-checker-result.is-safe {
     border-color: rgba(34, 197, 94, 0.5);
     background: rgba(34, 197, 94, 0.12);
     color: #86efac;
   }
 
-  [data-theme='light'] .kao-qc-verdict {
+  [data-theme='light'] .kao-checker-result {
     color: #b91c1c;
   }
 
-  [data-theme='light'] .kao-qc-verdict.is-clear {
+  [data-theme='light'] .kao-checker-result.is-safe {
     color: #15803d;
   }
 
-  /* New Spell 2: Web Share Morph */
-  .kao-share-done {
-    display: none;
-    color: #4ade80;
-  }
-
-  .kao-share-btn.is-shared .kao-share-default {
-    display: none;
-  }
-
-  .kao-share-btn.is-shared .kao-share-done {
-    display: inline;
-  }
-
-  /* New Spell 9: Reset Micro-Button */
+  /* 9b. Reset Micro-Button */
   .kao-progress-right {
     display: inline-flex;
     align-items: center;
@@ -1561,75 +1574,65 @@ const lockSchema = {
   @media (hover: hover) {
     .kao-reset-btn:hover {
       border-color: #ef4444;
-      color: var(--text);
+      color: #f87171;
     }
   }
 
-  .kao-reset-btn:active:not(:disabled) {
-    transform: scale(0.96);
-  }
-
-  /* New Spell 5: 7x Tap Easter Egg */
-  .kao-egg-toast {
-    display: inline-block;
-    margin-top: 8px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    background: rgba(34, 197, 94, 0.16);
-    border: 1px solid rgba(34, 197, 94, 0.45);
-    color: #86efac;
-    font-size: 0.76rem;
-    font-weight: 700;
-  }
-
-  [data-theme='light'] .kao-egg-toast {
-    color: #15803d;
-  }
-
-  /* New Spell 4: Android Settings Path Breadcrumbs */
+  /* 4b. Path Breadcrumb Chips */
   .kao-path-chips {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 6px;
-    margin-top: 8px;
+    margin-top: 10px;
   }
 
-  .kao-path-chip {
-    padding: 4px 9px;
-    border-radius: 8px;
-    border: 1px solid var(--outline);
+  .kao-chip {
+    padding: 3px 9px;
+    border-radius: 7px;
     background: var(--surface);
-    color: var(--text);
-    font-size: 0.74rem;
-    cursor: pointer;
-    transition-property: border-color, background-color, transform;
-    transition-duration: 150ms;
-  }
-
-  .kao-path-chip.is-target {
-    border-color: rgba(239, 68, 68, 0.55);
-    background: rgba(220, 38, 38, 0.12);
-  }
-
-  .kao-path-chip.is-copied {
-    border-color: rgba(34, 197, 94, 0.55);
-  }
-
-  .kao-path-arrow {
+    border: 1px solid var(--outline);
+    font-size: 0.73rem;
     color: var(--text-muted);
-    font-size: 0.78rem;
+  }
+
+  .kao-chip-hl {
+    border-color: rgba(239, 68, 68, 0.45);
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  .kao-chip-arrow {
+    color: var(--text-muted);
+    font-size: 0.75rem;
     transition-property: transform;
     transition-duration: 150ms;
   }
 
   @media (hover: hover) {
-    .kao-path-chip:hover + .kao-path-arrow {
+    #kao-steps-list li:hover .kao-chip-arrow {
       transform: translateX(2px);
     }
   }
 
-  /* New Spell 1: 24h Timer + .ics Calendar Export */
+  /* 5b. 7x Tap Developer Toast */
+  .kao-dev-toast {
+    margin-top: 8px;
+    display: inline-flex;
+    padding: 5px 11px;
+    border-radius: 999px;
+    background: rgba(34, 197, 94, 0.16);
+    border: 1px solid rgba(34, 197, 94, 0.5);
+    color: #86efac;
+    font-size: 0.76rem;
+    font-weight: 700;
+  }
+
+  [data-theme='light'] .kao-dev-toast {
+    color: #15803d;
+  }
+
+  /* 1b. 24h Timer + .ics Calendar Helper */
   .kao-timer-box {
     margin-top: 10px;
     display: flex;
@@ -1637,79 +1640,82 @@ const lockSchema = {
     gap: 8px;
   }
 
-  .kao-timer-actions {
+  .kao-timer-btns {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
   }
 
-  .kao-timer-btn {
+  .kao-mini-btn {
     padding: 6px 11px;
     border-radius: 999px;
-    border: 1px solid rgba(239, 68, 68, 0.5);
-    background: rgba(220, 38, 38, 0.14);
+    border: 1px solid var(--outline);
+    background: var(--surface);
     color: var(--text);
-    font-size: 0.75rem;
+    font-size: 0.74rem;
     font-weight: 700;
     cursor: pointer;
-    transition-property: background-color, border-color, transform;
+    transition-property: border-color, background-color, transform;
     transition-duration: 150ms;
   }
 
-  .kao-ics-btn {
-    border-color: var(--outline);
-    background: var(--surface);
+  .kao-mini-btn-accent {
+    border-color: rgba(239, 68, 68, 0.55);
+    background: rgba(220, 38, 38, 0.14);
   }
 
-  .kao-timer-btn:active:not(:disabled) {
+  .kao-mini-btn:active:not(:disabled) {
     transform: scale(0.96);
   }
 
   .kao-timer-status {
+    padding: 7px 11px;
+    border-radius: 8px;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: var(--text);
     font-size: 0.76rem;
-    color: #fca5a5;
   }
 
-  [data-theme='light'] .kao-timer-status {
-    color: #b91c1c;
-  }
-
-  /* New Spell 8: Unlocked Column Highlight */
-  .kao-table th[data-col='unlocked'],
-  .kao-table td[data-col='unlocked'] {
-    transition-property: background-color;
+  /* 8b. Table Safe Column Highlight */
+  .kao-col-safe-th {
+    cursor: pointer;
+    transition-property: color, background-color;
     transition-duration: 150ms;
   }
 
-  .kao-table.is-col-highlighted [data-col='unlocked'] {
-    background: rgba(34, 197, 94, 0.09);
+  .kao-table.is-col-safe-hl th:nth-child(3),
+  .kao-table.is-col-safe-hl td:nth-child(3) {
+    background: rgba(34, 197, 94, 0.1);
   }
 
-  /* New Spell 10: Anchor Highlight Flash */
-  @keyframes kaoTargetFlash {
+  /* 10b. Smooth Anchor Highlight Flash */
+  @keyframes kaoAnchorFlash {
     0% {
-      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.65);
     }
     50% {
-      box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.35);
+      box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.28);
     }
     100% {
       box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
     }
   }
 
-  #kao-steps-card.is-flashing {
-    animation: kaoTargetFlash 600ms ease-out 1;
+  .kao-anchor-flash {
+    animation: kaoAnchorFlash 600ms ease-out;
+  }
+
+  @media (max-width: 720px) {
+    .kao-checker-grid {
+      grid-template-columns: 1fr;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    #kao-steps-card.is-flashing {
+    .kao-scroll-progress,
+    .kao-anchor-flash {
       animation: none;
-    }
-    .kao-qc-toggle,
-    .kao-reset-btn,
-    .kao-path-chip,
-    .kao-timer-btn {
       transition: none;
     }
   }
@@ -1717,50 +1723,10 @@ const lockSchema = {
 
 <script is:inline>
   (function () {
-    var STEPS_STORAGE_KEY = 'apkup-24h-steps-v1';
-    var TIMER_STORAGE_KEY = 'apkup-24h-timer-end-v1';
-
-    function readStorage(key, fallback) {
-      try {
-        var raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : fallback;
-      } catch (e) {
-        return fallback;
-      }
-    }
-
-    function writeStorage(key, value) {
-      try {
-        localStorage.setItem(key, JSON.stringify(value));
-      } catch (e) {}
-    }
-
-    function copyTextWithClass(buttonEl, text, className, durationMs) {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text);
-      }
-      buttonEl.classList.add(className);
-      setTimeout(function () {
-        buttonEl.classList.remove(className);
-      }, durationMs || 1800);
-    }
-
-    function initScrollProgress() {
-      var bar = document.getElementById('kao-scroll-progress');
-      if (!bar) return;
-      function updateProgress() {
-        var max = document.documentElement.scrollHeight - window.innerHeight;
-        var ratio = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
-        bar.style.transform = 'scaleX(' + ratio.toFixed(4) + ')';
-      }
-      window.addEventListener('scroll', updateProgress, { passive: true });
-      updateProgress();
-    }
-
-    function initGlobalCountdown() {
-      var cdEl = document.getElementById('kao-global-countdown');
-      if (!cdEl) return;
-      function render() {
+    // 2. Live Countdown to Jan 1, 2027
+    var cdEl = document.getElementById('kao-global-countdown');
+    if (cdEl) {
+      function updateCountdown() {
         var diff = Date.UTC(2027, 0, 1, 0, 0, 0) - Date.now();
         if (diff <= 0) {
           cdEl.innerHTML =
@@ -1773,307 +1739,365 @@ const lockSchema = {
           '<span class="i18n-en">Global Rollout in ' + days + 'd ' + hrs + 'h</span>' +
           '<span class="i18n-de">Globaler Rollout in ' + days + 'T ' + hrs + 'Std.</span>';
       }
-      render();
-      setInterval(render, 60000);
+      updateCountdown();
+      setInterval(updateCountdown, 60000);
     }
 
-    function initSpotlightCards() {
-      document.querySelectorAll('.kao-spotlight').forEach(function (card) {
-        card.addEventListener('pointermove', function (e) {
-          var rect = card.getBoundingClientRect();
-          card.style.setProperty('--mx', (e.clientX - rect.left) + 'px');
-          card.style.setProperty('--my', (e.clientY - rect.top) + 'px');
-        });
+    // 5. Spotlight cursor tracking on fact cards
+    document.querySelectorAll('.kao-spotlight').forEach(function (card) {
+      card.addEventListener('pointermove', function (e) {
+        var r = card.getBoundingClientRect();
+        card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+        card.style.setProperty('--my', (e.clientY - r.top) + 'px');
       });
-    }
+    });
 
-    function initDangerReveal() {
-      var items = document.querySelectorAll('.kao-danger-item');
-      if (!items.length || !('IntersectionObserver' in window)) {
-        items.forEach(function (item) { item.classList.add('is-visible'); });
-        return;
-      }
-      var observer = new IntersectionObserver(function (entries) {
+    // 9. Staggered Scroll-Reveal for danger cards
+    var dangerItems = document.querySelectorAll('.kao-danger-item');
+    if ('IntersectionObserver' in window && dangerItems.length) {
+      var io = new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
-          if (!entry.isIntersecting) return;
-          entry.target.classList.add('is-visible');
-          observer.unobserve(entry.target);
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            io.unobserve(entry.target);
+          }
         });
       }, { threshold: 0.15 });
-      items.forEach(function (item) { observer.observe(item); });
+      dangerItems.forEach(function (item) { io.observe(item); });
+    } else {
+      dangerItems.forEach(function (item) { item.classList.add('is-visible'); });
     }
 
-    function initQuickCheck() {
-      var playBtn = document.getElementById('kao-qc-play');
-      var sideloadBtn = document.getElementById('kao-qc-sideload');
-      var verdictEl = document.getElementById('kao-qc-verdict');
-      if (!playBtn || !sideloadBtn || !verdictEl) return;
-
-      function syncVerdict() {
-        var hasPlay = playBtn.classList.contains('is-on');
-        var doesSideload = sideloadBtn.classList.contains('is-on');
-        var affected = hasPlay && doesSideload;
-        verdictEl.classList.toggle('is-clear', !affected);
-        verdictEl.innerHTML = affected
-          ? '<span class="i18n-en">⚠ Affected: Complete the 24h Developer Options unlock once (or use ADB / Shizuku).</span>' +
-            '<span class="i18n-de">⚠ Betroffen: Einmalig 24h-Freigabe in den Entwickleroptionen nötig (oder ADB / Shizuku).</span>'
-          : '<span class="i18n-en">✓ Not blocked by Play Protect: Devices without Play Services or Play-Store-only apps are unaffected.</span>' +
-            '<span class="i18n-de">✓ Nicht blockiert: Geräte ohne Play Services oder reine Play-Store-Apps sind nicht betroffen.</span>';
-      }
-
-      [playBtn, sideloadBtn].forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          var next = !btn.classList.contains('is-on');
-          btn.classList.toggle('is-on', next);
-          btn.setAttribute('aria-pressed', next ? 'true' : 'false');
-          syncVerdict();
-        });
-      });
-    }
-
-    function initShareAction() {
-      var shareBtn = document.getElementById('kao-share-btn');
-      if (!shareBtn) return;
-      shareBtn.addEventListener('click', function () {
-        var url = window.location.href;
-        if (navigator.share) {
-          navigator.share({ title: document.title, url: url }).catch(function () {});
-          return;
-        }
-        copyTextWithClass(shareBtn, url, 'is-shared', 1800);
-      });
-    }
-
-    function initStepsChecklist() {
-      var stepsList = document.getElementById('kao-steps-list');
-      var countEl = document.getElementById('kao-steps-count');
-      var fillEl = document.getElementById('kao-steps-fill');
-      var resetBtn = document.getElementById('kao-steps-reset');
-      if (!stepsList) return;
-
-      var saved = readStorage(STEPS_STORAGE_KEY, []);
+    // 3. Interactive 4-Step Checklist
+    var STORAGE_KEY = 'apkup-24h-steps-v1';
+    var stepsList = document.getElementById('kao-steps-list');
+    var countEl = document.getElementById('kao-steps-count');
+    var fillEl = document.getElementById('kao-steps-fill');
+    if (stepsList) {
+      var saved = [];
+      try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch (e) {}
       if (!Array.isArray(saved) || saved.length !== 4) saved = [false, false, false, false];
       var items = stepsList.querySelectorAll('li[data-step-idx]');
 
-      function render() {
+      function renderSteps() {
         var doneCount = 0;
         items.forEach(function (li, i) {
-          var done = !!saved[i];
-          if (done) doneCount++;
-          li.classList.toggle('is-done', done);
-          li.setAttribute('aria-checked', done ? 'true' : 'false');
+          var isDone = !!saved[i];
+          if (isDone) doneCount++;
+          li.classList.toggle('is-done', isDone);
+          li.setAttribute('aria-checked', isDone ? 'true' : 'false');
         });
         if (countEl) countEl.textContent = doneCount + ' / 4';
         if (fillEl) fillEl.style.width = (doneCount * 25) + '%';
-        if (resetBtn) resetBtn.hidden = doneCount < 4;
-        writeStorage(STEPS_STORAGE_KEY, saved);
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch (e) {}
       }
 
       items.forEach(function (li, i) {
-        function toggle(e) {
-          if (e.target && e.target.closest('button')) return;
+        function toggle() {
           saved[i] = !saved[i];
-          render();
+          renderSteps();
         }
         li.addEventListener('click', toggle);
         li.addEventListener('keydown', function (e) {
           if (e.key === ' ' || e.key === 'Enter') {
             e.preventDefault();
-            saved[i] = !saved[i];
-            render();
+            toggle();
           }
         });
       });
-
-      if (resetBtn) {
-        resetBtn.addEventListener('click', function () {
-          saved = [false, false, false, false];
-          render();
-        });
-      }
-      render();
+      renderSteps();
     }
 
-    function initDeveloperEasterEgg() {
-      var badge = document.getElementById('kao-step01-badge');
-      var toast = document.getElementById('kao-dev-egg-toast');
-      if (!badge || !toast) return;
-      var taps = 0;
-      badge.addEventListener('click', function (e) {
-        e.stopPropagation();
-        taps++;
-        if (taps < 7) return;
-        taps = 0;
-        toast.hidden = false;
-        setTimeout(function () { toast.hidden = true; }, 3200);
-      });
-    }
-
-    function initPathBreadcrumbs() {
-      document.querySelectorAll('.kao-path-chip').forEach(function (chip) {
-        chip.addEventListener('click', function (e) {
-          e.stopPropagation();
-          var text = chip.getAttribute('data-copy-chip') || chip.textContent.trim();
-          copyTextWithClass(chip, text, 'is-copied', 1200);
-        });
-      });
-    }
-
-    function buildIcsContent(targetDate) {
-      function pad(n) { return String(n).padStart(2, '0'); }
-      function fmtUtc(d) {
-        return d.getUTCFullYear() + pad(d.getUTCMonth() + 1) + pad(d.getUTCDate()) + 'T' +
-          pad(d.getUTCHours()) + pad(d.getUTCMinutes()) + pad(d.getUTCSeconds()) + 'Z';
-      }
-      var end = new Date(targetDate.getTime() + 15 * 60000);
-      return [
-        'BEGIN:VCALENDAR',
-        'VERSION:2.0',
-        'PRODID:-//ApkUp//24h Unlock Reminder//EN',
-        'BEGIN:VEVENT',
-        'UID:apkup-24h-' + targetDate.getTime() + '@durcheins.github.io',
-        'DTSTAMP:' + fmtUtc(new Date()),
-        'DTSTART:' + fmtUtc(targetDate),
-        'DTEND:' + fmtUtc(end),
-        'SUMMARY:Android: Choose "Allow indefinitely" in Developer Options',
-        'DESCRIPTION:Open Settings -> Developer Options -> Apps from unverified developers and pick Allow indefinitely (not 7 days!).',
-        'BEGIN:VALARM',
-        'TRIGGER:-PT0M',
-        'ACTION:DISPLAY',
-        'DESCRIPTION:24h Android Developer Options cooldown finished!',
-        'END:VALARM',
-        'END:VEVENT',
-        'END:VCALENDAR',
-      ].join('\r\n');
-    }
-
-    function init24hTimerAndIcs() {
-      var startBtn = document.getElementById('kao-start-24h-btn');
-      var icsBtn = document.getElementById('kao-download-ics-btn');
-      var statusEl = document.getElementById('kao-24h-status');
-      if (!startBtn || !icsBtn || !statusEl) return;
-
-      function renderTimer() {
-        var endMs = readStorage(TIMER_STORAGE_KEY, 0);
-        if (!endMs) {
-          statusEl.hidden = true;
-          return;
-        }
-        statusEl.hidden = false;
-        var diff = endMs - Date.now();
-        if (diff <= 0) {
-          statusEl.innerHTML =
-            '<span class="i18n-en">✓ 24h passed! Now select “Allow indefinitely” in Developer Options.</span>' +
-            '<span class="i18n-de">✓ 24h abgelaufen! Jetzt „Dauerhaft erlauben“ in den Entwickleroptionen wählen.</span>';
-          return;
-        }
-        var hrs = Math.floor(diff / 3600000);
-        var mins = Math.floor((diff % 3600000) / 60000);
-        var timeStr = new Date(endMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        statusEl.innerHTML =
-          '<span class="i18n-en">⏱ ' + hrs + 'h ' + mins + 'm left (ready at ' + timeStr + ')</span>' +
-          '<span class="i18n-de">⏱ Noch ' + hrs + ' Std. ' + mins + ' Min. (frei ab ' + timeStr + ' Uhr)</span>';
-      }
-
-      startBtn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        writeStorage(TIMER_STORAGE_KEY, Date.now() + 86400000);
-        renderTimer();
-      });
-
-      icsBtn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        var endMs = readStorage(TIMER_STORAGE_KEY, 0) || (Date.now() + 86400000);
-        var blob = new Blob([buildIcsContent(new Date(endMs))], { type: 'text/calendar;charset=utf-8' });
-        var link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'android-24h-unlock-reminder.ics';
-        link.click();
-        setTimeout(function () { URL.revokeObjectURL(link.href); }, 1000);
-      });
-
-      renderTimer();
-      setInterval(renderTimer, 60000);
-    }
-
-    function initTrapSimulation() {
-      var sim = document.getElementById('kao-trap-sim');
-      var result = document.getElementById('kao-trap-result');
-      if (!sim || !result) return;
+    // 7. 7-Day Trap Mini-Simulation
+    var sim = document.getElementById('kao-trap-sim');
+    var simResult = document.getElementById('kao-trap-result');
+    if (sim && simResult) {
       sim.querySelectorAll('.kao-trap-tab').forEach(function (btn) {
         btn.addEventListener('click', function () {
-          var isForever = btn.getAttribute('data-trap-mode') === 'forever';
+          var mode = btn.getAttribute('data-trap-mode');
           sim.querySelectorAll('.kao-trap-tab').forEach(function (b) {
             var active = b === btn;
             b.classList.toggle('is-active', active);
             b.setAttribute('aria-selected', active ? 'true' : 'false');
           });
-          result.classList.toggle('is-good', isForever);
-          result.classList.toggle('is-bad', !isForever);
-          result.innerHTML = isForever
-            ? '<span class="i18n-en">Day 1 → Day 365+: ✓ Permanently unlocked (no repeat 24h wait!)</span>' +
-              '<span class="i18n-de">Tag 1 → Tag 365+: ✓ Dauerhaft freigeschaltet (nie wieder 24h warten!)</span>'
-            : '<span class="i18n-en">Day 1–7: Allowed → Day 8: ✕ Auto-locked again (+24h new wait!)</span>' +
+          if (mode === 'forever') {
+            simResult.classList.remove('is-bad');
+            simResult.classList.add('is-good');
+            simResult.innerHTML =
+              '<span class="i18n-en">Day 1 → Day 365+: ✓ Permanently unlocked (no repeat 24h wait!)</span>' +
+              '<span class="i18n-de">Tag 1 → Tag 365+: ✓ Dauerhaft freigeschaltet (nie wieder 24h warten!)</span>';
+          } else {
+            simResult.classList.remove('is-good');
+            simResult.classList.add('is-bad');
+            simResult.innerHTML =
+              '<span class="i18n-en">Day 1–7: Allowed → Day 8: ✕ Auto-locked again (+24h new wait!)</span>' +
               '<span class="i18n-de">Tag 1–7: Erlaubt → Tag 8: ✕ Automatisch wieder gesperrt (+24h Wartezeit!)</span>';
+          }
         });
       });
     }
 
-    function initColumnHighlight() {
-      var table = document.getElementById('kao-compare-table');
-      if (!table) return;
-      table.querySelectorAll('[data-col="unlocked"]').forEach(function (cell) {
-        cell.addEventListener('pointerenter', function () { table.classList.add('is-col-highlighted'); });
-        cell.addEventListener('pointerleave', function () { table.classList.remove('is-col-highlighted'); });
-        cell.addEventListener('click', function () { table.classList.toggle('is-col-highlighted'); });
-      });
-    }
-
-    function initAdbCopy() {
-      var copyBtn = document.getElementById('kao-copy-adb');
-      if (!copyBtn) return;
+    // 6. ADB Copy-to-Clipboard Morph
+    var copyBtn = document.getElementById('kao-copy-adb');
+    if (copyBtn) {
+      var copyTimer = null;
       copyBtn.addEventListener('click', function () {
-        copyTextWithClass(copyBtn, 'adb install -r ApkUp.apk', 'is-copied', 1800);
+        navigator.clipboard && navigator.clipboard.writeText('adb install -r ApkUp.apk');
+        copyBtn.classList.add('is-copied');
+        clearTimeout(copyTimer);
+        copyTimer = setTimeout(function () {
+          copyBtn.classList.remove('is-copied');
+        }, 1800);
       });
     }
 
-    function initQuickJumpAndFlash() {
-      var heroEl = document.getElementById('kao-hero');
-      var stepsCard = document.getElementById('kao-steps-card');
-      var jumpBtn = document.getElementById('kao-quick-jump');
-
-      if (heroEl && stepsCard && jumpBtn && 'IntersectionObserver' in window) {
-        var heroVisible = true;
-        var stepsVisible = false;
-        function syncJump() { jumpBtn.hidden = heroVisible || stepsVisible; }
-        new IntersectionObserver(function (e) { heroVisible = e[0].isIntersecting; syncJump(); }).observe(heroEl);
-        new IntersectionObserver(function (e) { stepsVisible = e[0].isIntersecting; syncJump(); }).observe(stepsCard);
+    // 10. Floating Quick-Jump Pill
+    var heroEl = document.getElementById('kao-hero');
+    var stepsSection = document.getElementById('sl-lock-steps');
+    var jumpBtn = document.getElementById('kao-quick-jump');
+    if (heroEl && stepsSection && jumpBtn && 'IntersectionObserver' in window) {
+      var heroVisible = true;
+      var stepsVisible = false;
+      function syncJump() {
+        jumpBtn.hidden = heroVisible || stepsVisible;
       }
-
-      if (stepsCard) {
-        document.querySelectorAll('[data-flash-steps]').forEach(function (trigger) {
-          trigger.addEventListener('click', function () {
-            stepsCard.classList.remove('is-flashing');
-            void stepsCard.offsetWidth;
-            stepsCard.classList.add('is-flashing');
-          });
-        });
-      }
+      new IntersectionObserver(function (e) {
+        heroVisible = e[0].isIntersecting;
+        syncJump();
+      }).observe(heroEl);
+      new IntersectionObserver(function (e) {
+        stepsVisible = e[0].isIntersecting;
+        syncJump();
+      }).observe(stepsSection);
     }
 
-    initScrollProgress();
-    initGlobalCountdown();
-    initSpotlightCards();
-    initDangerReveal();
-    initQuickCheck();
-    initShareAction();
-    initStepsChecklist();
-    initDeveloperEasterEgg();
-    initPathBreadcrumbs();
-    init24hTimerAndIcs();
-    initTrapSimulation();
-    initColumnHighlight();
-    initAdbCopy();
-    initQuickJumpAndFlash();
+    // 6b. Scroll Progress Line
+    var scrollBar = document.getElementById('kao-scroll-progress');
+    if (scrollBar) {
+      function updateScrollBar() {
+        var docH = document.documentElement.scrollHeight - window.innerHeight;
+        var ratio = docH > 0 ? Math.min(1, Math.max(0, window.scrollY / docH)) : 0;
+        scrollBar.style.transform = 'scaleX(' + ratio.toFixed(4) + ')';
+      }
+      window.addEventListener('scroll', updateScrollBar, { passive: true });
+      updateScrollBar();
+    }
+
+    // 2b. Share & Warn Others (Native Share or Clipboard Fallback)
+    var shareBtn = document.getElementById('kao-share-btn');
+    if (shareBtn) {
+      var shareResetTimer = null;
+      shareBtn.addEventListener('click', function () {
+        var url = window.location.href;
+        var isDe = document.documentElement.getAttribute('data-lang') === 'de';
+        if (navigator.share) {
+          navigator.share({
+            title: isDe ? 'Googles 24h-Entwicklersperre & Keep Android Open' : 'Google 24h Developer Lock & Keep Android Open',
+            text: isDe
+              ? 'So löst du Googles neue 24h-Sperre auf Android dauerhaft:'
+              : 'How to permanently unlock Google’s 24h sideloading lock on Android:',
+            url: url,
+          }).catch(function () {});
+        } else if (navigator.clipboard) {
+          navigator.clipboard.writeText(url);
+          var prev = shareBtn.innerHTML;
+          shareBtn.innerHTML = '<span class="i18n-en">✓ Link copied!</span><span class="i18n-de">✓ Link kopiert!</span>';
+          clearTimeout(shareResetTimer);
+          shareResetTimer = setTimeout(function () { shareBtn.innerHTML = prev; }, 1800);
+        }
+      });
+    }
+
+    // 3b. 2-Click Self-Check ("Bin ich betroffen?")
+    var checker = document.getElementById('kao-checker');
+    var checkerRes = document.getElementById('kao-checker-result');
+    if (checker && checkerRes) {
+      var state = { gms: 'yes', method: 'apk' };
+      function renderChecker() {
+        var safe = state.gms === 'no' || state.method === 'adb';
+        checkerRes.classList.toggle('is-safe', safe);
+        checkerRes.classList.toggle('is-affected', !safe);
+        if (state.gms === 'no') {
+          checkerRes.innerHTML =
+            '<span class="i18n-en">✓ Not affected: DeGoogled / Custom ROMs without Play Protect are not blocked.</span>' +
+            '<span class="i18n-de">✓ Nicht betroffen: Custom-ROMs ohne Google Play Protect werden nicht blockiert.</span>';
+        } else if (state.method === 'adb') {
+          checkerRes.innerHTML =
+            '<span class="i18n-en">✓ Developer path open: ADB, Shizuku &amp; Root bypass the 24h consumer block.</span>' +
+            '<span class="i18n-de">✓ Entwickler-Weg frei: ADB, Shizuku &amp; Root umgehen die 24h-Sperre direkt.</span>';
+        } else {
+          checkerRes.innerHTML =
+            '<span class="i18n-en">⚠ Affected: Complete the 4-step “Allow indefinitely” unlock below once.</span>' +
+            '<span class="i18n-de">⚠ Betroffen: Einmalig unten die 4 Schritte („Dauerhaft erlauben“) ausführen.</span>';
+        }
+      }
+      checker.querySelectorAll('.kao-q-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var q = btn.getAttribute('data-q');
+          var val = btn.getAttribute('data-val');
+          state[q] = val;
+          checker.querySelectorAll('.kao-q-btn[data-q="' + q + '"]').forEach(function (b) {
+            b.classList.toggle('is-selected', b === btn);
+          });
+          renderChecker();
+        });
+      });
+    }
+
+    // 9b. Reset Micro-Button for 4/4 Checklist
+    var resetBtn = document.getElementById('kao-steps-reset');
+    var stepsCountEl = document.getElementById('kao-steps-count');
+    if (resetBtn && stepsList) {
+      function syncResetVisibility() {
+        var allDone = stepsList.querySelectorAll('li.is-done').length === 4;
+        resetBtn.hidden = !allDone;
+      }
+      stepsList.addEventListener('click', function () {
+        setTimeout(syncResetVisibility, 0);
+      });
+      resetBtn.addEventListener('click', function () {
+        try { localStorage.removeItem('apkup-24h-steps-v1'); } catch (e) {}
+        stepsList.querySelectorAll('li[data-step-idx]').forEach(function (li) {
+          li.classList.remove('is-done');
+          li.setAttribute('aria-checked', 'false');
+        });
+        if (stepsCountEl) stepsCountEl.textContent = '0 / 4';
+        if (fillEl) fillEl.style.width = '0%';
+        resetBtn.hidden = true;
+      });
+      syncResetVisibility();
+    }
+
+    // 5b. 7x Tap Easter Egg on Step 01 Badge
+    var badge1 = document.getElementById('kao-step1-badge');
+    var devToast = document.getElementById('kao-dev-toast');
+    if (badge1 && devToast) {
+      var taps = 0;
+      var toastTimer = null;
+      badge1.addEventListener('click', function (e) {
+        e.stopPropagation();
+        taps++;
+        if (taps >= 7) {
+          taps = 0;
+          devToast.hidden = false;
+          clearTimeout(toastTimer);
+          toastTimer = setTimeout(function () { devToast.hidden = true; }, 2600);
+        }
+      });
+    }
+
+    // 1b. 24h Browser Timer + .ics Calendar Reminder Export
+    var TIMER_KEY = 'apkup-24h-unlock-at';
+    var timerStartBtn = document.getElementById('kao-timer-start');
+    var timerIcsBtn = document.getElementById('kao-timer-ics');
+    var timerStatus = document.getElementById('kao-timer-status');
+    var timerInterval = null;
+
+    function render24hTimer() {
+      if (!timerStatus) return;
+      var targetMs = 0;
+      try { targetMs = Number(localStorage.getItem(TIMER_KEY) || '0'); } catch (e) {}
+      if (!targetMs) {
+        timerStatus.hidden = true;
+        return;
+      }
+      timerStatus.hidden = false;
+      var diff = targetMs - Date.now();
+      if (diff <= 0) {
+        timerStatus.innerHTML =
+          '<span class="i18n-en">✓ 24h complete! Open Developer Options now &amp; pick “Allow indefinitely”.</span>' +
+          '<span class="i18n-de">✓ 24h abgelaufen! Jetzt in den Entwickleroptionen „Dauerhaft erlauben“ wählen.</span>';
+        return;
+      }
+      var h = Math.floor(diff / 3600000);
+      var m = Math.floor((diff % 3600000) / 60000);
+      var endDate = new Date(targetMs);
+      var hhmm = String(endDate.getHours()).padStart(2, '0') + ':' + String(endDate.getMinutes()).padStart(2, '0');
+      timerStatus.innerHTML =
+        '<span class="i18n-en">⏳ ' + h + 'h ' + m + 'm left (ready at ' + hhmm + ')</span>' +
+        '<span class="i18n-de">⏳ Noch ' + h + ' Std. ' + m + ' Min. (Freigabe ab ' + hhmm + ' Uhr)</span>';
+    }
+
+    if (timerStartBtn) {
+      timerStartBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var unlockAt = Date.now() + 24 * 3600 * 1000;
+        try { localStorage.setItem(TIMER_KEY, String(unlockAt)); } catch (err) {}
+        render24hTimer();
+        clearInterval(timerInterval);
+        timerInterval = setInterval(render24hTimer, 30000);
+      });
+      render24hTimer();
+      timerInterval = setInterval(render24hTimer, 30000);
+    }
+
+    if (timerIcsBtn) {
+      timerIcsBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var targetMs = 0;
+        try { targetMs = Number(localStorage.getItem(TIMER_KEY) || '0'); } catch (err) {}
+        if (!targetMs) targetMs = Date.now() + 24 * 3600 * 1000;
+        function toIcsUtc(d) {
+          return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+        }
+        var start = new Date(targetMs);
+        var end = new Date(targetMs + 15 * 60 * 1000);
+        var isDe = document.documentElement.getAttribute('data-lang') === 'de';
+        var summary = isDe
+          ? 'Android 24h-Sperre: Dauerhaft erlauben wählen!'
+          : 'Android 24h Lock: Choose Allow indefinitely!';
+        var desc = isDe
+          ? 'Öffne Einstellungen -> System -> Entwickleroptionen -> Apps von nicht verifizierten Entwicklern -> Dauerhaft erlauben.'
+          : 'Open Settings -> System -> Developer Options -> Apps from unverified developers -> Allow indefinitely.';
+        var ics = [
+          'BEGIN:VCALENDAR',
+          'VERSION:2.0',
+          'PRODID:-//ApkUp//24h Lock Reminder//EN',
+          'BEGIN:VEVENT',
+          'UID:apkup-24h-' + start.getTime() + '@durcheins.github.io',
+          'DTSTAMP:' + toIcsUtc(new Date()),
+          'DTSTART:' + toIcsUtc(start),
+          'DTEND:' + toIcsUtc(end),
+          'SUMMARY:' + summary,
+          'DESCRIPTION:' + desc,
+          'BEGIN:VALARM',
+          'TRIGGER:-PT0M',
+          'ACTION:DISPLAY',
+          'DESCRIPTION:' + summary,
+          'END:VALARM',
+          'END:VEVENT',
+          'END:VCALENDAR',
+        ].join('\r\n');
+        var blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'apkup-android-24h-unlock.ics';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+      });
+    }
+
+    // 8b. Comparison Table Safe Column Highlight
+    var cmpTable = document.getElementById('kao-compare-table');
+    var safeTh = document.getElementById('kao-col-safe-th');
+    if (cmpTable && safeTh) {
+      safeTh.addEventListener('mouseenter', function () { cmpTable.classList.add('is-col-safe-hl'); });
+      safeTh.addEventListener('mouseleave', function () { cmpTable.classList.remove('is-col-safe-hl'); });
+      safeTh.addEventListener('click', function () { cmpTable.classList.toggle('is-col-safe-hl'); });
+    }
+
+    // 10b. Smooth Anchor Highlight Flash
+    var lockSection = document.getElementById('sl-lock-section');
+    if (lockSection) {
+      document.querySelectorAll('[data-kao-jump-steps]').forEach(function (el) {
+        el.addEventListener('click', function () {
+          lockSection.classList.remove('kao-anchor-flash');
+          void lockSection.offsetWidth;
+          lockSection.classList.add('kao-anchor-flash');
+        });
+      });
+    }
   })();
 </script>
