@@ -5,6 +5,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
 import { SITE } from '../data/content';
+import { WIKI_SYNONYMS } from '../data/wikiSynonyms';
 import { renderFullWikiHtml } from '../utils/wikiParser';
 
 interface WikiStep {
@@ -733,6 +734,8 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
             type="search"
             id="wiki-search-input"
             placeholder="Search all 10 guides (e.g. Shizuku, SHA-256, Cloudflare, 403, TOFU, Obtainium)…"
+            data-placeholder-en="Search all 10 guides (e.g. Shizuku, SHA-256, Cloudflare, 403, TOFU, Obtainium)…"
+            data-placeholder-de="Alle 10 Anleitungen durchsuchen (englische Begriffe bevorzugt, z. B. Shizuku, Rollback, Verification, Token)…"
             aria-label="Search wiki guides"
           />
           <span class="wiki-search-count mono" id="wiki-search-count" hidden></span>
@@ -941,7 +944,7 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
   <Footer />
 </BaseLayout>
 
-<script is:inline>
+<script is:inline define:vars={{ wikiSynonyms: WIKI_SYNONYMS }}>
   (function () {
     var tabLinks = Array.prototype.slice.call(document.querySelectorAll('[data-wiki-tab]'));
     var navGroups = Array.prototype.slice.call(document.querySelectorAll('[data-wiki-group]'));
@@ -1007,7 +1010,31 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
       });
     });
 
+    function syncSearchPlaceholder() {
+      if (!searchInput) return;
+      var isDe = document.documentElement.getAttribute('data-lang') === 'de';
+      var next = searchInput.getAttribute(isDe ? 'data-placeholder-de' : 'data-placeholder-en');
+      if (next) searchInput.setAttribute('placeholder', next);
+    }
+
+    function expandToken(token) {
+      var terms = [token];
+      if (wikiSynonyms && wikiSynonyms[token]) {
+        terms = terms.concat(wikiSynonyms[token]);
+      } else if (wikiSynonyms && token.length >= 4) {
+        Object.keys(wikiSynonyms).forEach(function (k) {
+          if (k.indexOf(token) === 0 || token.indexOf(k) === 0) {
+            terms = terms.concat(wikiSynonyms[k]);
+          }
+        });
+      }
+      return terms;
+    }
+
     if (searchInput) {
+      syncSearchPlaceholder();
+      window.addEventListener('apkup:langchange', syncSearchPlaceholder);
+
       searchInput.addEventListener('input', function () {
         var q = searchInput.value.trim().toLowerCase();
         if (!q) {
@@ -1017,10 +1044,16 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
           });
           return;
         }
+        var tokens = q.split(/\s+/).filter(Boolean);
+        var tokenGroups = tokens.map(expandToken);
         var matches = 0;
         articles.forEach(function (art) {
           var text = (art.textContent || '').toLowerCase();
-          var hit = text.indexOf(q) !== -1;
+          var hit = tokenGroups.every(function (group) {
+            return group.some(function (term) {
+              return text.indexOf(term) !== -1;
+            });
+          });
           art.hidden = !hit;
           if (hit) matches++;
         });
