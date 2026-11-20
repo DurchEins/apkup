@@ -2318,18 +2318,30 @@ button {
     color: var(--accent);
   }
 
-  :global(mark.wk-hit) {
+  mark.wk-hit {
     background: rgba(245, 158, 11, 0.28);
     color: inherit;
     border-radius: 4px;
-    padding: 0 2px;
+    padding: 0 3px;
   }
 
-  :global(mark.wk-hit.is-current) {
-    background: var(--accent);
-    color: var(--accent-ink);
+  mark.wk-hit.is-current {
+    background: #f97316;
+    color: #ffffff;
     font-weight: 700;
-    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.45);
+    border-radius: 5px;
+    padding: 1px 5px;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85), 0 0 14px rgba(249, 115, 22, 0.7);
+    animation: wkHitPulse 450ms ease-out;
+  }
+
+  @keyframes wkHitPulse {
+    0% {
+      box-shadow: 0 0 0 6px rgba(249, 115, 22, 0.65), 0 0 20px rgba(249, 115, 22, 0.85);
+    }
+    100% {
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85), 0 0 14px rgba(249, 115, 22, 0.7);
+    }
   }
 
   .wiki-layout {
