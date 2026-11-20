@@ -148,7 +148,7 @@ const downloadSchema = {
       <section class="dl-bento-grid" aria-labelledby="dl-verify-title">
         <div class="dl-bento-card">
           <div class="dl-bento-head">
-            <div class="dl-title-with-help">
+            <div class="dl-title-with-help" data-help-wrap="help-sha256">
               <h2 id="dl-verify-title">
                 <span class="i18n-en">Live SHA-256 Checksum</span>
                 <span class="i18n-de">Live-SHA-256-Prüfsumme</span>
@@ -163,6 +163,20 @@ const downloadSchema = {
               >
                 ?
               </button>
+              <div class="dl-help-popover" id="help-sha256" hidden>
+                <p>
+                  <span class="i18n-en">
+                    A SHA-256 checksum is a unique 64-character digital fingerprint of the APK. If even a single byte was altered or corrupted, the hash won’t match.
+                  </span>
+                  <span class="i18n-de">
+                    Eine SHA-256-Prüfsumme ist der eindeutige 64-stellige Fingerabdruck der APK. Wurde auch nur ein einzelnes Byte verändert oder beschädigt, stimmt der Hash nicht mehr überein.
+                  </span>
+                </p>
+                <a href={`${base}wiki/#doc-sha256`} class="dl-help-wiki-link">
+                  <span class="i18n-en">Read full guide in Wiki →</span>
+                  <span class="i18n-de">Ausführlich im Wiki lesen →</span>
+                </a>
+              </div>
             </div>
             <a
               class="dl-ext-link mono"
@@ -171,21 +185,6 @@ const downloadSchema = {
               rel="noopener noreferrer"
             >
               SHA256SUMS ↗
-            </a>
-          </div>
-
-          <div class="dl-help-popover" id="help-sha256" hidden>
-            <p>
-              <span class="i18n-en">
-                A SHA-256 checksum is a unique 64-character digital fingerprint of the APK. If even a single byte was altered or corrupted, the hash won’t match.
-              </span>
-              <span class="i18n-de">
-                Eine SHA-256-Prüfsumme ist der eindeutige 64-stellige Fingerabdruck der APK. Wurde auch nur ein einzelnes Byte verändert oder beschädigt, stimmt der Hash nicht mehr überein.
-              </span>
-            </p>
-            <a href={`${base}wiki/#doc-sha256`} class="dl-help-wiki-link">
-              <span class="i18n-en">Read full guide in Wiki →</span>
-              <span class="i18n-de">Ausführlich im Wiki lesen →</span>
             </a>
           </div>
 
@@ -208,7 +207,7 @@ const downloadSchema = {
 
         <div class="dl-bento-card">
           <div class="dl-bento-head">
-            <div class="dl-title-with-help">
+            <div class="dl-title-with-help" data-help-wrap="help-cmd">
               <h2>
                 <span class="i18n-en">Local Verification Commands</span>
                 <span class="i18n-de">Lokale Prüfbefehle</span>
@@ -223,22 +222,21 @@ const downloadSchema = {
               >
                 ?
               </button>
+              <div class="dl-help-popover" id="help-cmd" hidden>
+                <p>
+                  <span class="i18n-en">
+                    Run the command for your OS in your Downloads folder to calculate your file’s SHA-256 hash and compare it with the official checksum on the left.
+                  </span>
+                  <span class="i18n-de">
+                    Führe den Befehl für dein System im Download-Ordner aus, um den SHA-256-Hash deiner APK zu berechnen und mit der offiziellen Prüfsumme links zu vergleichen.
+                  </span>
+                </p>
+                <a href={`${base}wiki/#sha256-local-verification-step-by-step`} class="dl-help-wiki-link">
+                  <span class="i18n-en">Step-by-step guide in Wiki →</span>
+                  <span class="i18n-de">Schritt-für-Schritt im Wiki →</span>
+                </a>
+              </div>
             </div>
-          </div>
-
-          <div class="dl-help-popover" id="help-cmd" hidden>
-            <p>
-              <span class="i18n-en">
-                Run the command for your OS in your Downloads folder to calculate your file’s SHA-256 hash and compare it with the official checksum on the left.
-              </span>
-              <span class="i18n-de">
-                Führe den Befehl für dein System im Download-Ordner aus, um den SHA-256-Hash deiner APK zu berechnen und mit der offiziellen Prüfsumme links zu vergleichen.
-              </span>
-            </p>
-            <a href={`${base}wiki/#sha256-local-verification-step-by-step`} class="dl-help-wiki-link">
-              <span class="i18n-en">Step-by-step guide in Wiki →</span>
-              <span class="i18n-de">Schritt-für-Schritt im Wiki →</span>
-            </a>
           </div>
           <div class="dl-cmd-stack">
             <div class="dl-cmd-row">
@@ -430,32 +428,55 @@ const downloadSchema = {
       });
     });
 
-    document.querySelectorAll('[data-help-toggle]').forEach(function (btn) {
+    function closeAllHelp() {
+      document.querySelectorAll('.dl-help-popover').forEach(function (p) {
+        p.hidden = true;
+      });
+      document.querySelectorAll('[data-help-toggle]').forEach(function (b) {
+        b.setAttribute('aria-expanded', 'false');
+      });
+    }
+
+    document.querySelectorAll('[data-help-wrap]').forEach(function (wrap) {
+      var id = wrap.getAttribute('data-help-wrap');
+      var panel = id ? document.getElementById(id) : null;
+      var btn = wrap.querySelector('[data-help-toggle]');
+      var closeTimer = null;
+      if (!panel || !btn) return;
+
+      function openPanel() {
+        clearTimeout(closeTimer);
+        closeAllHelp();
+        panel.hidden = false;
+        btn.setAttribute('aria-expanded', 'true');
+      }
+
+      function scheduleClose() {
+        closeTimer = setTimeout(function () {
+          panel.hidden = true;
+          btn.setAttribute('aria-expanded', 'false');
+        }, 160);
+      }
+
+      btn.addEventListener('mouseenter', openPanel);
+      panel.addEventListener('mouseenter', function () {
+        clearTimeout(closeTimer);
+      });
+      wrap.addEventListener('mouseleave', scheduleClose);
+
       btn.addEventListener('click', function (e) {
         e.stopPropagation();
-        var id = btn.getAttribute('data-help-toggle');
-        var panel = id ? document.getElementById(id) : null;
-        if (!panel) return;
-        var nextOpen = panel.hidden;
-        document.querySelectorAll('.dl-help-popover').forEach(function (p) {
-          p.hidden = true;
-        });
-        document.querySelectorAll('[data-help-toggle]').forEach(function (b) {
-          b.setAttribute('aria-expanded', 'false');
-        });
-        panel.hidden = !nextOpen;
-        btn.setAttribute('aria-expanded', String(nextOpen));
+        if (panel.hidden) {
+          openPanel();
+        } else {
+          closeAllHelp();
+        }
       });
     });
 
     document.addEventListener('click', function (e) {
-      if (!e.target.closest('.dl-help-popover') && !e.target.closest('[data-help-toggle]')) {
-        document.querySelectorAll('.dl-help-popover').forEach(function (p) {
-          p.hidden = true;
-        });
-        document.querySelectorAll('[data-help-toggle]').forEach(function (b) {
-          b.setAttribute('aria-expanded', 'false');
-        });
+      if (!e.target.closest('[data-help-wrap]')) {
+        closeAllHelp();
       }
     });
 
@@ -763,7 +784,8 @@ const downloadSchema = {
   }
 
   .dl-title-with-help {
-    display: flex;
+    position: relative;
+    display: inline-flex;
     align-items: center;
     gap: 8px;
   }
@@ -793,10 +815,16 @@ const downloadSchema = {
   }
 
   .dl-help-popover {
-    background: var(--bg);
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 40;
+    width: min(340px, 82vw);
+    background: var(--surface-high);
     border: 1px solid var(--accent);
     border-radius: var(--radius-md);
     padding: 12px 14px;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.48);
     display: flex;
     flex-direction: column;
     gap: 8px;
