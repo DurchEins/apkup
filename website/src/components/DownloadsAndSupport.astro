@@ -25,30 +25,6 @@ const base = import.meta.env.BASE_URL.endsWith('/')
       </p>
     </div>
 
-    <div class="req-strip">
-      <div class="req-items">
-        <div class="req-pill">
-          <span class="req-label">Android</span>
-          <strong class="mono">10.0 – 17 (API 29+)</strong>
-        </div>
-        <div class="req-pill">
-          <span class="req-label">ABIs</span>
-          <strong class="mono">arm64-v8a • armeabi-v7a • x86_64</strong>
-        </div>
-        <div class="req-pill">
-          <span class="req-label">
-            <span class="i18n-en">Silent Mode</span>
-            <span class="i18n-de">Hintergrund</span>
-          </span>
-          <strong class="mono">Optional Shizuku / Root (su)</strong>
-        </div>
-      </div>
-      <a class="btn btn-secondary req-compare-link" href={`${base}compatibility/#comparison`}>
-        <span class="i18n-en">Why ApkUp? Full Comparison →</span>
-        <span class="i18n-de">Warum ApkUp? Ausführlicher Vergleich →</span>
-      </a>
-    </div>
-
     <div class="primary-download-card">
       <div class="primary-info">
         <div class="primary-badges">
@@ -90,6 +66,15 @@ const base = import.meta.env.BASE_URL.endsWith('/')
         <a class="btn btn-ghost" href={`${base}changelog/`}>
           <span class="i18n-en">What’s New?</span>
           <span class="i18n-de">Was ist neu?</span>
+        </a>
+      </div>
+
+      <div class="primary-req-line mono">
+        <span>Android 10.0 – 17 (API 29+) • ABIs: arm64-v8a, armeabi-v7a, x86_64</span>
+        <span class="req-sep" aria-hidden="true">|</span>
+        <a href={`${base}compatibility/#comparison`} class="why-apkup-link">
+          <span class="i18n-en">Why ApkUp?</span>
+          <span class="i18n-de">Warum ApkUp?</span>
         </a>
       </div>
     </div>
@@ -245,48 +230,37 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     border-block: 1px solid var(--outline);
   }
 
-  .req-strip {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 16px;
-    padding: 16px 22px;
-    border-radius: var(--radius-lg);
-    background: var(--bg);
-    border: 1px solid var(--outline);
-    margin-block-end: 18px;
-  }
-
-  .req-items {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px 24px;
-  }
-
-  .req-pill {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.86rem;
-  }
-
-  .req-label {
-    color: var(--text-muted);
-    font-weight: 600;
-  }
-
   .primary-download-card {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 24px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
     background: var(--bg);
     border: 1px solid var(--outline-strong);
     border-radius: var(--radius-lg);
-    padding: clamp(22px, 3.5vw, 34px);
+    padding: clamp(22px, 3.5vw, 32px);
     margin-block-end: 20px;
+  }
+
+  .primary-req-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    padding-block-start: 4px;
+  }
+
+  .req-sep {
+    opacity: 0.45;
+  }
+
+  .why-apkup-link {
+    color: var(--accent);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   .primary-badges {

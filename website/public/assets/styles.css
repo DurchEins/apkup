@@ -293,48 +293,37 @@ button {
     border-block: 1px solid var(--outline);
   }
 
-  .req-strip {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 16px;
-    padding: 16px 22px;
-    border-radius: var(--radius-lg);
-    background: var(--bg);
-    border: 1px solid var(--outline);
-    margin-block-end: 18px;
-  }
-
-  .req-items {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px 24px;
-  }
-
-  .req-pill {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.86rem;
-  }
-
-  .req-label {
-    color: var(--text-muted);
-    font-weight: 600;
-  }
-
   .primary-download-card {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 24px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
     background: var(--bg);
     border: 1px solid var(--outline-strong);
     border-radius: var(--radius-lg);
-    padding: clamp(22px, 3.5vw, 34px);
+    padding: clamp(22px, 3.5vw, 32px);
     margin-block-end: 20px;
+  }
+
+  .primary-req-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    padding-block-start: 4px;
+  }
+
+  .req-sep {
+    opacity: 0.45;
+  }
+
+  .why-apkup-link {
+    color: var(--accent);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   .primary-badges {
@@ -956,19 +945,24 @@ button {
   }
 
 /* src/components/PermissionsSection.astro */
-.privacy-top {
+.privacy-inline-links {
     display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
     flex-wrap: wrap;
-    gap: 20px;
-    margin-block-end: 28px;
+    align-items: center;
+    gap: 10px;
+    margin-block-start: 10px;
+    font-size: 0.88rem;
+    font-weight: 700;
   }
 
-  .privacy-cta-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+  .privacy-inline-links a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .privacy-inline-links span {
+    color: var(--text-muted);
+    opacity: 0.45;
   }
 
   .perm-list {
@@ -1371,64 +1365,59 @@ button {
   .quick-compat-box {
     background: var(--surface-low);
     border: 1px solid var(--outline);
-    border-radius: var(--radius-lg);
-    padding: clamp(20px, 3vw, 30px);
-    margin-block-end: 32px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .quick-compat-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-
-  .quick-compat-head h3 {
-    margin: 0 0 4px;
-    font-size: 1.2rem;
-    font-weight: 800;
-  }
-
-  .quick-compat-head p {
-    margin: 0;
-    color: var(--text-muted);
-    font-size: 0.94rem;
-  }
-
-  .quick-compat-form {
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    margin-block-end: 28px;
     display: flex;
     flex-direction: column;
     gap: 10px;
   }
 
+  .quick-compat-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .quick-compat-title {
+    font-size: 0.92rem;
+    white-space: nowrap;
+  }
+
   .quick-compat-input {
-    width: 100%;
-    min-height: 48px;
-    padding: 12px 16px;
-    border-radius: var(--radius-md);
+    flex: 1;
+    min-width: 220px;
+    height: 38px;
+    padding: 6px 12px;
+    border-radius: 10px;
     border: 1px solid var(--outline-strong);
     background: var(--bg);
     color: var(--text);
-    font-size: 0.9rem;
+    font-size: 0.84rem;
+  }
+
+  .quick-compat-link {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--accent);
+    text-decoration: none;
+    white-space: nowrap;
   }
 
   .quick-compat-presets {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
   }
 
   .preset-chip {
-    padding: 6px 12px;
+    padding: 4px 10px;
     border-radius: var(--radius-pill);
     border: 1px solid var(--outline);
     background: var(--surface);
     color: var(--text-muted);
-    font-size: 0.78rem;
+    font-size: 0.74rem;
     font-weight: 700;
   }
 
@@ -1591,11 +1580,15 @@ button {
 
 /* src/pages/compatibility.astro */
 .subpage-wrap {
-    max-width: 1020px;
+    max-width: 1060px;
   }
 
   .compare-block {
     margin-block-end: 56px;
+  }
+
+  .checker-block {
+    scroll-margin-block-start: calc(var(--header-height) + 24px);
   }
 
   .compare-table-card {
@@ -1613,7 +1606,7 @@ button {
     width: 100%;
     border-collapse: collapse;
     text-align: start;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
   }
 
   .compare-table th,
@@ -1877,7 +1870,7 @@ button {
     background: transparent;
     color: var(--text);
     font: inherit;
-    font-size: 0.96rem;
+    font-size: 0.95rem;
     outline: none;
   }
 
@@ -1892,7 +1885,7 @@ button {
 
   .wiki-layout {
     display: grid;
-    grid-template-columns: 300px minmax(0, 1fr);
+    grid-template-columns: 290px minmax(0, 1fr);
     gap: 28px;
     align-items: start;
   }
@@ -1922,7 +1915,7 @@ button {
     background: transparent;
     color: var(--text-muted);
     font-weight: 600;
-    font-size: 0.88rem;
+    font-size: 0.87rem;
     transition: background-color 150ms ease-out, color 150ms ease-out;
   }
 
@@ -1941,7 +1934,7 @@ button {
   }
 
   .wiki-tab-tag {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     padding: 2px 7px;
     border-radius: var(--radius-pill);
     background: var(--surface);
@@ -1952,23 +1945,25 @@ button {
   .wiki-content {
     display: flex;
     flex-direction: column;
-    gap: 22px;
+    gap: 24px;
     min-width: 0;
   }
 
-  .wiki-article-card {
+  .wiki-chapter-card {
     background: var(--surface-low);
     border: 1px solid var(--outline);
     border-radius: var(--radius-lg);
-    padding: clamp(22px, 3.5vw, 36px);
+    padding: clamp(22px, 3.5vw, 34px);
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
   }
 
-  .wiki-article-meta {
+  .wiki-chapter-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    margin-block-end: 18px;
   }
 
   .wiki-gh-link {
@@ -1977,122 +1972,169 @@ button {
     text-decoration: none;
   }
 
-  .wiki-prose .wiki-h2 {
-    margin: 0 0 14px;
-    font-size: clamp(1.45rem, 2.4vw, 1.85rem);
+  .wiki-chapter-title {
+    margin: -6px 0 0;
+    font-size: clamp(1.45rem, 2.4vw, 1.9rem);
     font-weight: 800;
     letter-spacing: -0.02em;
   }
 
-  .wiki-prose .wiki-h3 {
-    margin: 28px 0 10px;
-    font-size: 1.2rem;
-    font-weight: 800;
-    color: var(--text);
-  }
-
-  .wiki-prose .wiki-h4 {
-    margin: 20px 0 8px;
+  .wiki-chapter-lead {
+    margin: -10px 0 0;
+    color: var(--text-muted);
     font-size: 1.02rem;
-    font-weight: 700;
-    color: var(--accent);
-  }
-
-  .wiki-prose .wiki-p {
-    margin: 0 0 14px;
-    color: var(--text-muted);
-    line-height: 1.65;
-  }
-
-  .wiki-prose .wiki-ul,
-  .wiki-prose .wiki-ol {
-    margin: 0 0 16px;
-    padding-inline-start: 22px;
-    color: var(--text-muted);
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
     line-height: 1.6;
   }
 
-  .wiki-prose strong {
-    color: var(--text);
+  .wiki-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
   }
 
-  .wiki-prose a {
-    color: var(--accent);
-  }
-
-  .wiki-prose .wiki-inline-code {
-    padding: 2px 6px;
-    border-radius: 6px;
-    background: var(--surface);
-    color: var(--accent);
-    font-size: 0.84em;
-  }
-
-  .wiki-prose .wiki-pre {
-    margin: 0 0 16px;
-    padding: 14px 16px;
-    border-radius: var(--radius-md);
+  .wiki-subcard {
     background: var(--bg);
     border: 1px solid var(--outline);
-    overflow-x: auto;
-    font-size: 0.82rem;
+    border-radius: var(--radius-md);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .wiki-subcard h3 {
+    margin: 2px 0 0;
+    font-size: 1.02rem;
+    font-weight: 700;
+  }
+
+  .wiki-subcard p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.91rem;
     line-height: 1.55;
   }
 
-  .wiki-prose .wiki-table-wrap {
-    overflow-x: auto;
-    margin: 0 0 18px;
+  .wiki-block-heading {
+    margin: 0 0 12px;
+    font-size: 1.08rem;
+    font-weight: 800;
   }
 
-  .wiki-prose .wiki-table {
-    width: 100%;
-    border-collapse: collapse;
+  .wiki-steps-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .wiki-steps-list li {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+    padding: 16px;
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    border: 1px solid var(--outline);
+  }
+
+  .wiki-step-num {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    background: var(--tertiary-soft);
+    color: var(--tertiary-soft-ink);
+    font-weight: 700;
     font-size: 0.88rem;
   }
 
-  .wiki-prose .wiki-table th,
-  .wiki-prose .wiki-table td {
-    padding: 10px 12px;
-    border-block-end: 1px solid var(--outline);
-    text-align: start;
-  }
-
-  .wiki-prose .wiki-table th {
-    color: var(--text);
+  .wiki-steps-list h4 {
+    margin: 0 0 4px;
+    font-size: 0.98rem;
     font-weight: 700;
-    background: var(--surface);
   }
 
-  .wiki-prose .wiki-callout,
-  .wiki-prose .wiki-quote {
-    margin: 0 0 16px;
-    padding: 14px 16px;
-    border-radius: var(--radius-md);
-    background: var(--bg);
-    border: 1px solid var(--outline-strong);
-  }
-
-  .wiki-prose .wiki-callout strong {
-    display: block;
-    font-size: 0.76rem;
-    color: var(--accent);
-    margin-bottom: 4px;
-  }
-
-  .wiki-prose .wiki-callout p,
-  .wiki-prose .wiki-quote p {
+  .wiki-steps-list p {
     margin: 0;
     color: var(--text-muted);
-    font-size: 0.9rem;
+    font-size: 0.91rem;
+    line-height: 1.55;
   }
 
-  .wiki-prose .wiki-hr {
-    border: none;
-    border-block-start: 1px solid var(--outline);
-    margin-block: 24px;
+  .wiki-table-wrap {
+    overflow-x: auto;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--outline);
+    background: var(--bg);
+  }
+
+  .wiki-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.87rem;
+  }
+
+  .wiki-table th,
+  .wiki-table td {
+    padding: 12px 14px;
+    border-block-end: 1px solid var(--outline);
+    text-align: start;
+    line-height: 1.5;
+  }
+
+  .wiki-table tr:last-child td {
+    border-block-end: none;
+  }
+
+  .wiki-table th {
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .wiki-deep-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .wiki-deep-item {
+    background: var(--bg);
+    border: 1px solid var(--outline-strong);
+    border-radius: var(--radius-md);
+    padding: 4px 18px;
+  }
+
+  .wiki-deep-item summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-block: 12px;
+    font-weight: 700;
+    font-size: 0.96rem;
+    cursor: pointer;
+    color: var(--accent);
+  }
+
+  .wiki-deep-item summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .wiki-deep-item p {
+    margin: 0;
+    padding-block-end: 14px;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.6;
   }
 
   @media (max-width: 920px) {
@@ -2101,5 +2143,8 @@ button {
     }
     .wiki-nav-card {
       position: static;
+    }
+    .wiki-cards-grid {
+      grid-template-columns: minmax(0, 1fr);
     }
   }

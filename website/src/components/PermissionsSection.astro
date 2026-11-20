@@ -81,31 +81,30 @@ const PERMISSIONS = [
 
 <section id="privacy" class="section">
   <div class="container">
-    <div class="privacy-top">
-      <div class="section-header" style="margin-block-end: 0;">
-        <h2 class="section-title">
-          <span class="i18n-en">Transparent permissions &amp; local encryption</span>
-          <span class="i18n-de">Transparente Berechtigungen &amp; lokale Verschlüsselung</span>
-        </h2>
-        <p class="section-subtitle">
-          <span class="i18n-en">
-            Every Android permission from AndroidManifest.xml explained in plain language.
-            Preferences and optional tokens are encrypted via Google Tink (AES-256-GCM).
-          </span>
-          <span class="i18n-de">
-            Alle Android-Berechtigungen aus der AndroidManifest.xml verständlich erklärt.
-            Einstellungen und Tokens liegen per Google Tink (AES-256-GCM) lokal verschlüsselt.
-          </span>
-        </p>
-      </div>
-      <div class="privacy-cta-group">
-        <a class="btn btn-secondary" href={`${base}privacy/`}>
-          <span class="i18n-en">Privacy Policy</span>
-          <span class="i18n-de">Datenschutzerklärung</span>
+    <div class="section-header">
+      <h2 class="section-title">
+        <span class="i18n-en">Transparent permissions &amp; local encryption</span>
+        <span class="i18n-de">Transparente Berechtigungen &amp; lokale Verschlüsselung</span>
+      </h2>
+      <p class="section-subtitle">
+        <span class="i18n-en">
+          Every Android permission from AndroidManifest.xml explained in plain language.
+          Preferences and optional tokens are encrypted via Google Tink (AES-256-GCM).
+        </span>
+        <span class="i18n-de">
+          Alle Android-Berechtigungen aus der AndroidManifest.xml verständlich erklärt.
+          Einstellungen und Tokens liegen per Google Tink (AES-256-GCM) lokal verschlüsselt.
+        </span>
+      </p>
+      <div class="privacy-inline-links">
+        <a href={`${base}privacy/`}>
+          <span class="i18n-en">Full Privacy Policy →</span>
+          <span class="i18n-de">Vollständige Datenschutzerklärung →</span>
         </a>
-        <a class="btn btn-secondary" href={`${base}security/`}>
-          <span class="i18n-en">Security Policy</span>
-          <span class="i18n-de">Sicherheitsarchitektur</span>
+        <span aria-hidden="true">|</span>
+        <a href={`${base}security/`}>
+          <span class="i18n-en">Security Architecture (SECURITY.md) →</span>
+          <span class="i18n-de">Sicherheitsarchitektur (SECURITY.md) →</span>
         </a>
       </div>
     </div>
@@ -138,19 +137,24 @@ const PERMISSIONS = [
 </section>
 
 <style>
-  .privacy-top {
+  .privacy-inline-links {
     display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
     flex-wrap: wrap;
-    gap: 20px;
-    margin-block-end: 28px;
+    align-items: center;
+    gap: 10px;
+    margin-block-start: 10px;
+    font-size: 0.88rem;
+    font-weight: 700;
   }
 
-  .privacy-cta-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+  .privacy-inline-links a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .privacy-inline-links span {
+    color: var(--text-muted);
+    opacity: 0.45;
   }
 
   .perm-list {

@@ -1,332 +1,635 @@
 ---
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
 import { SITE } from '../data/content';
 
-interface WikiDocMeta {
-  slug: string;
-  file: string;
-  titleEn: string;
-  titleDe: string;
-  tag: string;
+interface WikiStep {
+  enTitle: string;
+  deTitle: string;
+  enBody: string;
+  deBody: string;
 }
 
-const WIKI_DOCS: WikiDocMeta[] = [
+interface WikiCard {
+  badge?: string;
+  enTitle: string;
+  deTitle: string;
+  enBody: string;
+  deBody: string;
+}
+
+interface WikiTableRow {
+  col1: string;
+  col2En: string;
+  col2De: string;
+  col3En: string;
+  col3De: string;
+}
+
+interface WikiChapter {
+  slug: string;
+  tag: string;
+  ghPage: string;
+  enTitle: string;
+  deTitle: string;
+  enLead: string;
+  deLead: string;
+  cards: WikiCard[];
+  stepsTitleEn?: string;
+  stepsTitleDe?: string;
+  steps?: WikiStep[];
+  tableHeaders?: { h1: string; h2En: string; h2De: string; h3En: string; h3De: string };
+  tableRows?: WikiTableRow[];
+  deepDives?: { qEn: string; qDe: string; aEn: string; aDe: string }[];
+}
+
+const CHAPTERS: WikiChapter[] = [
   {
     slug: 'home',
-    file: 'Home.md',
-    titleEn: 'Overview & Quick Start',
-    titleDe: 'Übersicht & Schnellstart',
     tag: 'Start',
+    ghPage: 'Home',
+    enTitle: 'Overview & Quick Start',
+    deTitle: 'Übersicht & Schnellstart',
+    enLead:
+      'ApkUp is a client-side multi-source Android app updater for Android 10–17 (API 29+). It checks, verifies, and installs updates across 7 ecosystems without telemetry or developer servers.',
+    deLead:
+      'ApkUp ist ein lokaler Multi-Quellen-Updater für Android 10–17 (API 29+). Er findet, verifiziert und installiert App-Updates über 7 Ökosysteme hinweg – komplett ohne Telemetrie oder eigene Server.',
+    cards: [
+      {
+        badge: 'Consent First',
+        enTitle: 'Zero network calls before source selection',
+        deTitle: 'Null Netzwerkabfragen vor deiner Quellenwahl',
+        enBody:
+          'On first launch, ApkUp shows an explicit Choose Update Sources dialog. Only the sources you enable are queried over HTTPS.',
+        deBody:
+          'Beim Erststart zeigt ApkUp den Dialog zur Quellenauswahl. Erst danach werden ausschließlich die von dir aktivierten Quellen per HTTPS abgefragt.',
+      },
+      {
+        badge: '3 Main Tabs',
+        enTitle: 'Apps, Updates & Setup',
+        deTitle: 'Apps, Updates & Setup',
+        enBody:
+          'Manage installed User/System apps and Watchlist entries in Apps, run single or batch updates in Updates, and configure sources, schedules, and backups in Setup.',
+        deBody:
+          'Verwalte installierte Apps und die Merkliste unter Apps, starte Einzel- oder Sammel-Updates unter Updates und steuere Quellen, Zeitpläne und Backups im Setup.',
+      },
+      {
+        badge: 'apksig v2/v3',
+        enTitle: 'Cryptographic signature & ABI guard',
+        deTitle: 'Kryptografischer Signatur- & Architektur-Schutz',
+        enBody:
+          'Every downloaded APK or .apkm bundle is checked against the installed signing certificate, minSdk, and CPU ABI before installation.',
+        deBody:
+          'Jede heruntergeladene APK oder .apkm-Datei wird vor der Installation gegen das installierte Signaturzertifikat, minSdk und CPU-ABI geprüft.',
+      },
+      {
+        badge: 'Optional Automation',
+        enTitle: 'Standard prompt, Shizuku, or Root (su)',
+        deTitle: 'Normaler Dialog, Shizuku oder Root (su)',
+        enBody:
+          'Works out of the box with Android’s standard PackageInstaller, or silently in the background via Shizuku (no Root) or optional Root (su).',
+        deBody:
+          'Funktioniert sofort über den normalen Android-Installationsdialog – oder optional lautlos im Hintergrund per Shizuku (ohne Root) bzw. Root (su).',
+      },
+    ],
+    stepsTitleEn: 'First-Run Quick Start in 3 Steps',
+    stepsTitleDe: 'Schnellstart beim ersten Öffnen in 3 Schritten',
+    steps: [
+      {
+        enTitle: 'Choose your active update sources',
+        deTitle: 'Aktive Update-Quellen auswählen',
+        enBody:
+          'Enable F-Droid/IzzyOnDroid, GitHub, GitLab, Codeberg, APKMirror, or Google Play Store in the onboarding sheet (adjustable anytime in Setup).',
+        deBody:
+          'Wähle beim Start F-Droid/IzzyOnDroid, GitHub, GitLab, Codeberg, APKMirror oder Google Play Store aus (jederzeit im Setup änderbar).',
+      },
+      {
+        enTitle: 'Order source priority & optional pinning',
+        deTitle: 'Quellen-Priorität & optionales App-Pinning festlegen',
+        enBody:
+          'Drag and drop your preferred source order in Setup (e.g. GitHub → F-Droid → Play Store → APKMirror) or pin specific apps in Apps.',
+        deBody:
+          'Sortiere die Reihenfolge deiner Quellen per Drag-and-Drop im Setup (z. B. GitHub → F-Droid → Play Store → APKMirror) oder pinne einzelne Apps.',
+      },
+      {
+        enTitle: 'Scan & update (interactively or silently)',
+        deTitle: 'Scannen & aktualisieren (manuell oder lautlos)',
+        enBody:
+          'Pull to refresh in Updates, inspect release notes or save APKs via Detail, and install single apps or tap Install All.',
+        deBody:
+          'Aktualisiere die Liste im Updates-Tab, prüfe Changelogs oder speichere APKs über Details und aktualisiere einzeln oder über Alle aktualisieren.',
+      },
+    ],
   },
   {
     slug: 'sources',
-    file: 'Update-Sources,-Repository-Linking-&-Signature-Protection.md',
-    titleEn: 'Update Sources & Signature Protection',
-    titleDe: 'Update-Quellen & Signaturschutz',
     tag: 'Core',
+    ghPage: 'Update-Sources,-Repository-Linking-&-Signature-Protection',
+    enTitle: 'Update Sources, Repository Linking & Signature Protection',
+    deTitle: 'Update-Quellen, Repository-Verknüpfung & Signaturschutz',
+    enLead:
+      'How ApkUp queries each source, how custom 3-way repository bindings work, and why signature mismatches occur when switching ecosystems.',
+    deLead:
+      'Wie ApkUp die einzelnen Quellen abfragt, wie eigene Repository-Verknüpfungen funktionieren und warum Signatur-Konflikte beim Quellenwechsel auftreten.',
+    cards: [
+      {
+        badge: 'Priority & Pinning',
+        enTitle: 'Global priority order with automatic fallback',
+        deTitle: 'Globale Priorität mit automatischem Fallback',
+        enBody:
+          'ApkUp evaluates enabled sources according to your drag-and-drop priority list. Pinning an app prioritizes that source first and falls back cleanly if no update is found there.',
+        deBody:
+          'ApkUp prüft aktivierte Quellen in deiner festgelegten Prioritäts-Reihenfolge. Angepinnte Apps bevorzugen ihre feste Quelle und nutzen bei Bedarf automatisch den Fallback.',
+      },
+      {
+        badge: '3-Way Repo Binding',
+        enTitle: 'Custom GitHub, GitLab & Codeberg / Forgejo links',
+        deTitle: 'Eigene GitHub-, GitLab- & Codeberg-/Forgejo-Links',
+        enBody:
+          'Bind any installed or watched app to owner/repo, multi-level GitLab subgroups (group/sub/project), or self-hosted GitLab/Forgejo instances.',
+        deBody:
+          'Verknüpfe jede installierte oder beobachtete App mit owner/repo, mehrstufigen GitLab-Subgroups (group/sub/project) oder eigenen GitLab-/Forgejo-Servern.',
+      },
+      {
+        badge: 'Asset Filtering',
+        enTitle: 'ABI matching, FOSS flavor & Regex filters',
+        deTitle: 'ABI-Erkennung, FOSS-Flavor & Regex-Filter',
+        enBody:
+          'Automatically selects arm64-v8a / armeabi-v7a / x86_64 assets over universal APKs, prefers FOSS/fdroid flavors when enabled, and supports custom asset Regex filters.',
+        deBody:
+          'Wählt automatisch passende arm64-v8a / armeabi-v7a / x86_64-Pakete vor Universal-APKs, bevorzugt auf Wunsch FOSS-Flavors und unterstützt eigene Regex-Asset-Filter.',
+      },
+      {
+        badge: 'Signature Guard',
+        enTitle: 'Why Android blocks cross-source certificate changes',
+        deTitle: 'Warum Android abweichende Signaturen blockiert',
+        enBody:
+          'Official F-Droid builds are signed by the F-Droid key, while GitHub/Play/IzzyOnDroid builds use the developer key. ApkUp detects mismatches before installation and still lets you Save APK.',
+        deBody:
+          'Offizielle F-Droid-Builds sind mit dem F-Droid-Schlüssel signiert, während GitHub/Play/IzzyOnDroid den Entwicklerschlüssel nutzen. ApkUp warnt vorab – das Speichern der APK bleibt möglich.',
+      },
+    ],
+    tableHeaders: {
+      h1: 'Source',
+      h2En: 'Protocol & Authentication',
+      h2De: 'Protokoll & Authentifizierung',
+      h3En: 'Special Capabilities',
+      h3De: 'Besonderheiten',
+    },
+    tableRows: [
+      {
+        col1: 'GitHub',
+        col2En: 'REST + Batched GraphQL (with optional PAT)',
+        col2De: 'REST + Gebündeltes GraphQL (mit optionalem Token)',
+        col3En: 'Built-in FOSS mappings, custom owner/repo, SHA256SUMS self-updater',
+        col3De: 'Integrierte FOSS-Mappings, eigene owner/repo-Links, SHA256SUMS-Selbst-Updater',
+      },
+      {
+        col1: 'GitLab',
+        col2En: 'REST API v4 (gitlab.com & self-hosted + optional PAT)',
+        col2De: 'REST-API v4 (gitlab.com & eigene Server + optionales Token)',
+        col3En: 'Supports nested multi-level subgroup paths (group/sub/project)',
+        col3De: 'Unterstützt verschachtelte Subgroup-Pfade (group/sub/project)',
+      },
+      {
+        col1: 'Codeberg / Forgejo',
+        col2En: 'Gitea/Forgejo Releases API (codeberg.org & custom hosts)',
+        col2De: 'Gitea-/Forgejo-Releases-API (codeberg.org & eigene Instanzen)',
+        col3En: 'Direct asset resolution with ABI & Regex filtering',
+        col3De: 'Direkte Asset-Auflösung samt ABI- und Regex-Filterung',
+      },
+      {
+        col1: 'F-Droid & IzzyOnDroid',
+        col2En: 'Signed Index V2 (entry.jar) + Index V1 fallback',
+        col2De: 'Signierter Index V2 (entry.jar) + Index-V1-Fallback',
+        col3En: 'RFC 7396 incremental diffs, X.509 TOFU pinning, local-only matching',
+        col3De: 'Inkrementelle RFC-7396-Diffs, X.509-TOFU-Pinning, rein lokaler Abgleich',
+      },
+      {
+        col1: 'APKMirror',
+        col2En: 'HTTPS API/Feeds + In-App Cloudflare WebView fallback',
+        col2De: 'HTTPS-Abfrage + integrierter Cloudflare-WebView-Fallback',
+        col3En: 'Direct .apk & .apkm split-bundle extraction with 10-min per-app cooldown',
+        col3De: 'Direkter .apk- & .apkm-Split-Download mit 10-Minuten-Cooldown pro App',
+      },
+      {
+        col1: 'Google Play Store',
+        col2En: 'Anonymous Aurora Dispenser token (no Google login)',
+        col2De: 'Anonymes Aurora-Dispenser-Token (kein Google-Konto)',
+        col3En: 'Minimized device profile (ABI, SDK, density, locale) & HTTP 429 recovery',
+        col3De: 'Minimiertes Geräteprofil (ABI, SDK, Dichte, Sprache) & HTTP-429-Schutz',
+      },
+    ],
   },
   {
     slug: 'fdroid',
-    file: 'F-Droid-&-Index-V2-Repositories.md',
-    titleEn: 'F-Droid & Index V2 Repositories',
-    titleDe: 'F-Droid & Index-V2-Repositories',
     tag: 'Index V2',
+    ghPage: 'F-Droid-&-Index-V2-Repositories',
+    enTitle: 'F-Droid & Index V2 Repositories',
+    deTitle: 'F-Droid & Index-V2-Repositories',
+    enLead:
+      'ApkUp features a native F-Droid Index V2 engine with incremental RFC 7396 JSON Merge Patch diffs, cryptographic JAR certificate verification, and 1-tap presets.',
+    deLead:
+      'ApkUp besitzt eine native F-Droid-Index-V2-Engine mit inkrementellen RFC-7396-Diffs, kryptografischer JAR-Zertifikatsprüfung und 1-Tipp-Presets.',
+    cards: [
+      {
+        badge: 'RFC 7396 Diffs',
+        enTitle: 'Up to 95% less bandwidth on repeat scans',
+        deTitle: 'Bis zu 95 % weniger Datenverbrauch bei Folge-Scans',
+        enBody:
+          'Instead of downloading a 50+ MB full index every time, ApkUp verifies entry.jar and applies only the small JSON diff since your last check.',
+        deBody:
+          'Statt jedes Mal einen über 50 MB großen Voll-Index zu laden, prüft ApkUp die kleine entry.jar und wendet nur die Änderungen seit dem letzten Scan an.',
+      },
+      {
+        badge: 'X.509 TOFU Pinning',
+        enTitle: 'Cryptographic fingerprint verification',
+        deTitle: 'Kryptografische Fingerprint-Prüfung',
+        enBody:
+          'Repository JAR signatures are verified against their pinned 64-hex SHA-256 X.509 certificate fingerprint. Any tampered index or diff is rejected immediately.',
+        deBody:
+          'Die JAR-Signaturen jedes Repositories werden gegen den gepinnten 64-stelligen SHA-256-Zertifikats-Fingerprint geprüft. Manipulierte Indizes werden sofort abgewiesen.',
+      },
+    ],
+    tableHeaders: {
+      h1: 'Repository Preset',
+      h2En: 'Official Index URL',
+      h2De: 'Offizielle Index-URL',
+      h3En: 'SHA-256 Certificate Fingerprint (Prefix)',
+      h3De: 'SHA-256-Zertifikats-Fingerprint (Auszug)',
+    },
+    tableRows: [
+      {
+        col1: 'F-Droid Official',
+        col2En: 'https://f-droid.org/repo',
+        col2De: 'https://f-droid.org/repo',
+        col3En: '43238D512C1E5EB2D6569F4A3AFBF5523418B82E0A3ED1552770ABB9A9C9CCAB',
+        col3De: '43238D512C1E5EB2D6569F4A3AFBF5523418B82E0A3ED1552770ABB9A9C9CCAB',
+      },
+      {
+        col1: 'IzzyOnDroid',
+        col2En: 'https://apt.izzysoft.de/fdroid/repo',
+        col2De: 'https://apt.izzysoft.de/fdroid/repo',
+        col3En: '3BF0D6ABFEAE2F401707B6D966BE743BF0EEE49C2561B9BA39073711F628937A',
+        col3De: '3BF0D6ABFEAE2F401707B6D966BE743BF0EEE49C2561B9BA39073711F628937A',
+      },
+      {
+        col1: 'Guardian Project',
+        col2En: 'https://guardianproject.info/fdroid/repo',
+        col2De: 'https://guardianproject.info/fdroid/repo',
+        col3En: 'B7C2EEFD8DAC7806AF67DFCD92EB18126BC08312A7F2D6F3862E46013C7A6135',
+        col3De: 'B7C2EEFD8DAC7806AF67DFCD92EB18126BC08312A7F2D6F3862E46013C7A6135',
+      },
+      {
+        col1: 'MicroG F-Droid Repo',
+        col2En: 'https://microg.org/fdroid/repo',
+        col2De: 'https://microg.org/fdroid/repo',
+        col3En: '9BD06727E62796C0130EB6DAB39B73157451582CBD138E86C468ACC395D14165',
+        col3De: '9BD06727E62796C0130EB6DAB39B73157451582CBD138E86C468ACC395D14165',
+      },
+      {
+        col1: 'NewPipe Repo',
+        col2En: 'https://archive.newpipe.net/fdroid/repo',
+        col2De: 'https://archive.newpipe.net/fdroid/repo',
+        col3En: 'E2402C78F9B97C6C89E97DB914A2751FDA1D02FE2039CC0897A462BDB57E7501',
+        col3De: 'E2402C78F9B97C6C89E97DB914A2751FDA1D02FE2039CC0897A462BDB57E7501',
+      },
+    ],
+    deepDives: [
+      {
+        qEn: 'How to add any custom HTTPS F-Droid repository',
+        qDe: 'So fügst du ein beliebiges eigenes HTTPS-F-Droid-Repository hinzu',
+        aEn: 'Open Setup → Update Sources → IzzyOnDroid / F-Droid → Add Repository. You can paste a full F-Droid share link including ?fingerprint=<64-hex> or leave the fingerprint empty on first add to let ApkUp verify the JAR signature and display the fingerprint for Trust-On-First-Use (TOFU) pinning.',
+        aDe: 'Öffne Setup → Update-Quellen → IzzyOnDroid / F-Droid → Repository hinzufügen. Du kannst direkt einen F-Droid-Link mit ?fingerprint=<64-Hex> einfügen oder das Feld beim ersten Mal leer lassen, damit ApkUp die JAR-Signatur prüft und den Fingerprint per Trust-On-First-Use (TOFU) dauerhaft pinnt.',
+      },
+    ],
   },
   {
     slug: 'tokens',
-    file: 'Configuring-GitHub-&-GitLab-Tokens.md',
-    titleEn: 'GitHub, GitLab & Codeberg Tokens',
-    titleDe: 'GitHub-, GitLab- & Codeberg-Tokens',
     tag: 'API / PAT',
+    ghPage: 'Configuring-GitHub-&-GitLab-Tokens',
+    enTitle: 'Configuring GitHub, GitLab & Codeberg Personal Access Tokens',
+    deTitle: 'Zugangs-Tokens (PAT) für GitHub, GitLab & Codeberg einrichten',
+    enLead:
+      'Public repositories work out of the box without tokens. Adding a read-only Personal Access Token eliminates API rate limits (60 → 5,000 req/hr on GitHub) and enables batched GraphQL queries.',
+    deLead:
+      'Öffentliche Repositories funktionieren sofort ohne Token. Ein Read-Only-Token hebt jedoch enge API-Limits auf (bei GitHub von 60 auf 5.000 Abfragen/Stunde) und aktiviert gebündelte GraphQL-Checks.',
+    cards: [
+      {
+        badge: '5,000 req/h + GraphQL',
+        enTitle: 'GitHub Fine-Grained Token (Read-Only)',
+        deTitle: 'GitHub Fine-Grained Token (Nur Lesezugriff)',
+        enBody:
+          'Create a Fine-grained token at github.com/settings/personal-access-tokens with Public Repositories (read-only) — no write scopes needed. ApkUp verifies the token and shows your live remaining quota.',
+        deBody:
+          'Erstelle unter github.com/settings/personal-access-tokens ein Fine-grained Token mit Public Repositories (read-only) – keine Schreibrechte nötig. ApkUp testet das Token direkt beim Speichern.',
+      },
+      {
+        badge: 'read_api Scope',
+        enTitle: 'GitLab & Codeberg / Forgejo Tokens',
+        deTitle: 'GitLab- & Codeberg-/Forgejo-Tokens',
+        enBody:
+          'For GitLab, create a Personal Access Token with the read_api scope. For Codeberg or self-hosted Forgejo, generate a read-only repository token in User Settings → Applications.',
+        deBody:
+          'Erstelle für GitLab ein Token mit dem Scope read_api. Für Codeberg oder eigenes Forgejo genügt ein Read-Only-Token unter Einstellungen → Anwendungen.',
+      },
+      {
+        badge: 'AES-256-GCM',
+        enTitle: 'Hardware-backed encryption & redirect stripping',
+        deTitle: 'Hardware-Verschlüsselung & Redirect-Schutz',
+        enBody:
+          'Tokens are encrypted locally with Google Tink (AES-256-GCM) in Android Keystore. ApkUp’s OkHttp interceptor strictly strips Authorization headers on any cross-host redirect (e.g. to CDN asset servers).',
+        deBody:
+          'Alle Tokens liegen AES-256-GCM-verschlüsselt im Android Keystore. Bei Weiterleitungen auf externe CDN-Server entfernt ApkUp automatisch jeden Authorization-Header.',
+      },
+      {
+        badge: '1-Tap Test',
+        enTitle: 'Built-in Token Verification Sheet',
+        deTitle: 'Integrierte Token-Prüfung mit einem Tipp',
+        enBody:
+          'Tap Verify Token in Setup → Update Sources → GitHub / GitLab to confirm validity, account handle, and remaining API quota immediately.',
+        deBody:
+          'Tippe im Setup bei GitHub oder GitLab auf Token prüfen, um Gültigkeit, Account-Name und verbleibendes Abfrage-Kontingent sofort zu testen.',
+      },
+    ],
   },
   {
     slug: 'shizuku-setup',
-    file: 'Setting-up-Shizuku.md',
-    titleEn: 'Setting up Shizuku (Quick Guide)',
-    titleDe: 'Shizuku einrichten (Kurzanleitung)',
     tag: 'Shizuku',
+    ghPage: 'Setting-up-Shizuku',
+    enTitle: 'Setting up Shizuku (Quick Guide)',
+    deTitle: 'Shizuku einrichten (Kurzanleitung)',
+    enLead:
+      'Shizuku is completely optional — standard Android installs work without it. Pairing Shizuku enables zero-touch silent background updates on stock, non-rooted Android 11+ devices.',
+    deLead:
+      'Shizuku ist komplett optional – der normale Android-Installationsweg funktioniert jederzeit ohne Einrichtung. Mit Shizuku laufen Updates auch ohne Root vollautomatisch im Hintergrund.',
+    stepsTitleEn: 'Wireless Debugging Setup (Android 11+ — No PC or Root Needed)',
+    stepsTitleDe: 'Einrichtung per Kabellosem Debugging (ab Android 11 – ohne PC & ohne Root)',
+    steps: [
+      {
+        enTitle: 'Install Shizuku & enable Developer Options',
+        deTitle: 'Shizuku installieren & Entwickleroptionen aktivieren',
+        enBody:
+          'Install the official Shizuku app (from Google Play or GitHub) and tap Build Number 7 times in Android Settings → About Phone to unlock Developer Options.',
+        deBody:
+          'Installiere die offizielle Shizuku-App (aus dem Play Store oder von GitHub) und tippe in den Android-Einstellungen 7-mal auf die Build-Nummer.',
+      },
+      {
+        enTitle: 'Pair Shizuku with Wireless Debugging',
+        deTitle: 'Shizuku über Kabelloses Debugging koppeln',
+        enBody:
+          'Connect to Wi-Fi, tap Pairing in Shizuku, open Developer Options → Wireless Debugging → Pair device with pairing code, and enter the 6-digit code in the Shizuku notification.',
+        deBody:
+          'Verbinde dich mit einem WLAN, tippe in Shizuku auf Koppeln, öffne Entwickleroptionen → Kabelloses Debugging → Gerät mit Kopplungscode koppeln und gib den 6-stelligen Code ein.',
+      },
+      {
+        enTitle: 'Start Shizuku & authorize ApkUp',
+        deTitle: 'Shizuku starten & ApkUp berechtigen',
+        enBody:
+          'Tap Start in Shizuku, then open ApkUp → Setup → Installation & Automation → toggle Use Shizuku for background installs and tap Allow on the prompt.',
+        deBody:
+          'Tippe in Shizuku auf Starten, öffne danach ApkUp → Setup → Installation & Automatisierung → aktiviere Shizuku für Hintergrundinstallationen nutzen und bestätige die Freigabe.',
+      },
+    ],
+    deepDives: [
+      {
+        qEn: 'Alternative: Starting Shizuku via PC (ADB) or Root',
+        qDe: 'Alternative: Shizuku per PC (ADB) oder auf Root-Geräten starten',
+        aEn: 'On Android 10 (or if you prefer USB debugging), run "adb shell sh /sdcard/Android/data/moe.shizuku.privileged.api/start.sh" from a PC. On rooted devices, simply choose "Start (for rooted devices)" inside Shizuku — or use ApkUp’s direct Root (su) installer toggle.',
+        aDe: 'Unter Android 10 (oder per USB-Debugging am PC) lässt sich Shizuku über "adb shell sh /sdcard/Android/data/moe.shizuku.privileged.api/start.sh" starten. Auf gerooteten Geräten kannst du Shizuku direkt per Root starten – oder in ApkUp einfach den direkten Root-Installer (su) aktivieren.',
+      },
+    ],
   },
   {
     slug: 'shizuku-deep',
-    file: 'Shizuku-&-Background-Installation.md',
-    titleEn: 'Shizuku & Background Installation (Deep Dive)',
-    titleDe: 'Shizuku & Hintergrund-Installation (Detail-Guide)',
     tag: 'Shizuku + su',
+    ghPage: 'Shizuku-&-Background-Installation',
+    enTitle: 'Shizuku & Background Installation (Architecture & Guards)',
+    deTitle: 'Shizuku & Hintergrund-Installation (Architektur & Schutzregeln)',
+    enLead:
+      'Deep dive into how ApkUp orchestrates unattended background installs, Root (su) session fallbacks, Wi-Fi/charging guards, active time windows, and rollbacks.',
+    deLead:
+      'Alle Details dazu, wie ApkUp Hintergrund-Installationen, den optionalen Root-(su)-Fallback, WLAN-/Lade-Schutzregeln, Zeitfenster und Rollback-Sicherungen steuert.',
+    cards: [
+      {
+        badge: 'IPC Pipeline',
+        enTitle: 'Elevated PackageInstaller Session via Binder',
+        deTitle: 'Privilegierte PackageInstaller-Sitzung per Binder',
+        enBody:
+          'After apksig v2/v3 and ABI checks pass, ApkUp streams the verified APK (or extracted .apkm splits) into an elevated PackageInstaller session via Shizuku Binder IPC or su pm install-create.',
+        deBody:
+          'Nach bestandener Signatur- (apksig v2/v3) und ABI-Prüfung übergibt ApkUp die APK-Dateien (inkl. .apkm-Splits) an eine privilegierte PackageInstaller-Sitzung über Shizuku oder su.',
+      },
+      {
+        badge: 'Self-Update Safety',
+        enTitle: 'Deferred self-update at the end of a batch',
+        deTitle: 'Verzögertes Selbst-Update am Ende eines Durchlaufs',
+        enBody:
+          'When updating multiple apps including ApkUp itself, ApkUp installs all other apps first and schedules its own update last so the running worker is never killed mid-batch.',
+        deBody:
+          'Wenn bei einem Sammel-Update auch ApkUp selbst aktualisiert wird, installiert ApkUp zuerst alle anderen Apps und führt das eigene Update ganz am Ende aus.',
+      },
+      {
+        badge: 'Time Windows',
+        enTitle: 'Active hours, quiet hours & automatic catch-up',
+        deTitle: 'Zeitfenster, Ruhezeiten & automatisches Nachholen',
+        enBody:
+          'Restrict background checks and auto-updates to an active window (e.g. 02:00–06:00 while charging on Wi-Fi). Deferred checks automatically catch up at the next allowed window.',
+        deBody:
+          'Beschränke Hintergrund-Updates auf ein festes Zeitfenster (z. B. 02:00–06:00 Uhr im WLAN beim Laden). Übersprungene Prüfungen werden im nächsten freien Fenster automatisch nachgeholt.',
+      },
+      {
+        badge: '2 GB Rollback Vault',
+        enTitle: 'Automatic pre-update backups & 1-tap rollback',
+        deTitle: 'Automatische Vorab-Sicherung & schneller Rollback',
+        enBody:
+          'When Rollback Backups are enabled, ApkUp archives the currently installed base + split APKs in private storage (up to 2 GB LRU) before installing the update.',
+        deBody:
+          'Bei aktivierter Rollback-Sicherung speichert ApkUp vor jedem Update die aktuell installierte Basis- und Split-APK privat (bis zu 2 GB) für einen sofortigen Rollback im Update-Verlauf.',
+      },
+    ],
+    deepDives: [
+      {
+        qEn: 'How in-place Root rollback (-r -d) vs. guided non-Root rollback works',
+        qDe: 'Unterschied zwischen direktem Root-Rollback (-r -d) und geführtem Rollback ohne Root',
+        aEn: 'Android normally blocks version downgrades unless the app is uninstalled first. With Root (su), ApkUp can execute an in-place downgrade (pm install -r -d) keeping your app data intact where supported by the app. Without Root, ApkUp guides you through a clean two-step flow: uninstalling the newer build and immediately reinstalling the backed-up previous APK (or exporting it to Downloads).',
+        aDe: 'Standard-Android blockiert Versions-Downgrades ohne vorherige Deinstallation. Mit Root (su) führt ApkUp ein direktes In-Place-Downgrade (pm install -r -d) unter Erhalt der App-Daten durch. Ohne Root führt dich ApkUp sicher in zwei Schritten durch Deinstallation und sofortige Neuinstallation der gesicherten Vorgänger-APK (oder exportiert sie in deinen Download-Ordner).',
+      },
+    ],
   },
   {
     slug: 'obtainium',
-    file: 'Obtainium-Migration-&-Sync-Guide.md',
-    titleEn: 'Obtainium Migration & Sync Guide',
-    titleDe: 'Obtainium-Migration & Sync-Guide',
     tag: 'JSON Sync',
+    ghPage: 'Obtainium-Migration-&-Sync-Guide',
+    enTitle: 'Obtainium Migration & Sync Guide',
+    deTitle: 'Obtainium-Migration & Sync-Anleitung',
+    enLead:
+      'Seamlessly import your existing Obtainium app configurations, custom F-Droid repositories, and track-only watchlists into ApkUp — or export your custom ApkUp bindings back to Obtainium JSON.',
+    deLead:
+      'Importiere deine bestehenden Obtainium-App-Konfigurationen, eigenen F-Droid-Repos und Merklisten nahtlos nach ApkUp – oder exportiere deine Verknüpfungen zurück als Obtainium-JSON.',
+    stepsTitleEn: 'Migrating from Obtainium in 3 Steps',
+    stepsTitleDe: 'Umstieg von Obtainium in 3 Schritten',
+    steps: [
+      {
+        enTitle: 'Export your JSON in Obtainium',
+        deTitle: 'JSON-Export in Obtainium erstellen',
+        enBody:
+          'In Obtainium, open Import/Export → Obtainium Export to save your configuration JSON file (or test it offline first on our Source Checker page).',
+        deBody:
+          'Öffne in Obtainium den Bereich Import/Export → Obtainium-Export, um deine JSON-Datei zu speichern (du kannst sie auch vorab auf unserer Seite Quellen-Check offline testen).',
+      },
+      {
+        enTitle: 'Open Interactive Import Preview in ApkUp',
+        deTitle: 'Interaktive Import-Vorschau in ApkUp öffnen',
+        enBody:
+          'In ApkUp, navigate to Setup → Advanced Settings → Backup & Export → Obtainium Import and select your JSON file.',
+        deBody:
+          'Öffne in ApkUp Setup → Erweiterte Einstellungen → Datensicherung & Export → Obtainium Import und wähle deine JSON-Datei aus.',
+      },
+      {
+        enTitle: 'Review matched bindings, F-Droid repos & Watchlist items',
+        deTitle: 'Erkannte Apps, F-Droid-Repos & Merkliste prüfen und übernehmen',
+        enBody:
+          'ApkUp previews installed app repo bindings (GitHub, GitLab subgroups, Codeberg), custom F-Droid repositories, and uninstalled apps (which can be added to your Watchlist with one tap).',
+        deBody:
+          'ApkUp zeigt dir vorab alle erkannten Repo-Verknüpfungen (inkl. GitLab-Subgroups & Codeberg), eigene F-Droid-Repos sowie noch nicht installierte Apps für deine Merkliste.',
+      },
+    ],
   },
   {
     slug: 'management',
-    file: 'App-Management,-Filters,-Background-Checks-&-Backup.md',
-    titleEn: 'App Management, Filters, Schedules & Backup',
-    titleDe: 'App-Verwaltung, Filter, Zeitpläne & Backup',
     tag: 'Setup',
+    ghPage: 'App-Management,-Filters,-Background-Checks-&-Backup',
+    enTitle: 'App Management, Watchlist, Filters, Schedules & Backup',
+    deTitle: 'App-Verwaltung, Merkliste, Filter, Zeitpläne & Datensicherung',
+    enLead:
+      'Master ApkUp’s day-to-day tools: Watchlist tracking for uninstalled apps, pre-release channels, 24-hour smart cache, SAF APK export, and full JSON backups.',
+    deLead:
+      'Alle Werkzeuge für den Alltag: Merkliste für noch nicht installierte Apps, Vorabversions-Kanäle, 24h-Download-Cache, APK-Export per SAF und vollständige JSON-Backups.',
+    cards: [
+      {
+        badge: 'Watchlist + App Watcher',
+        enTitle: 'Track releases for apps before installing them',
+        deTitle: 'Noch nicht installierte Apps auf der Merkliste verfolgen',
+        enBody:
+          'Tap the + button in Apps to watch any GitHub, GitLab, Codeberg, F-Droid, or APKMirror app without installing it yet, mark versions as Seen, or import lists from App Watcher.',
+        deBody:
+          'Tippe unter Apps auf +, um Apps von GitHub, GitLab, Codeberg, F-Droid oder APKMirror ohne Installation zu beobachten, Versionen als Gesehen zu markieren oder App-Watcher-Listen zu importieren.',
+      },
+      {
+        badge: 'Pre-Release Channels',
+        enTitle: 'Selective Beta, RC, Alpha & Nightly support',
+        deTitle: 'Gezielte Kanäle für Beta, RC, Alpha & Nightly',
+        enBody:
+          'Keep your system stable by default and enable Beta, Release Candidate (RC), Alpha, or Nightly builds either globally or individually for specific apps.',
+        deBody:
+          'Bleibe standardmäßig auf stabilen Releases und schalte Beta-, RC-, Alpha- oder Nightly-Versionen gezielt global oder nur für einzelne Apps frei.',
+      },
+      {
+        badge: '24h Cache & Save APK',
+        enTitle: 'Instant retry without re-downloading & SAF export',
+        deTitle: 'Sofort-Installation aus dem 24h-Cache & SAF-Export',
+        enBody:
+          'Verified downloads stay ready in private cache for 24 hours. Use Save APK in Detail to export single .apk files or bundled .apks split packages into Download/ApkUp/ or any custom folder.',
+        deBody:
+          'Geprüfte Downloads bleiben 24 Stunden im Cache bereit. Über APK speichern in den Details exportierst du einzelne .apk- oder Split-.apks-Pakete direkt in deinen Wunschordner.',
+      },
+      {
+        badge: 'Full JSON Backup',
+        enTitle: 'Portable settings & sanitized diagnostic logs',
+        deTitle: 'Vollständiges Einstellungs-Backup & bereinigtes Diagnose-Log',
+        enBody:
+          'Export all source priorities, pinned apps, hidden lists, custom repos, and schedules as a JSON backup (tokens are excluded for security), and export token-stripped .txt logs for debugging.',
+        deBody:
+          'Sichere Prioritäten, angepinnte/ausgeblendete Apps, eigene Repos und Zeitpläne als JSON-Datei (ohne geheime Tokens) und exportiere bereinigte .txt-Diagnoseprotokolle bei Fehlern.',
+      },
+    ],
   },
   {
     slug: 'troubleshooting',
-    file: 'Troubleshooting-Source-Errors.md',
-    titleEn: 'Troubleshooting Source Errors',
-    titleDe: 'Fehlerbehebung bei Quellen-Fehlern',
     tag: 'Help',
+    ghPage: 'Troubleshooting-Source-Errors',
+    enTitle: 'Troubleshooting Source Errors & Common Questions',
+    deTitle: 'Fehlerbehebung bei Quellen-Fehlern & häufige Probleme',
+    enLead:
+      'Quick reference table for every network status code, rate limit, Cloudflare challenge, and package installer error — with direct solutions.',
+    deLead:
+      'Schnelle Übersicht für alle HTTP-Fehlercodes, Rate-Limits, Cloudflare-Abfragen und Installations-Meldungen – inklusive direkter Lösung.',
+    cards: [],
+    tableHeaders: {
+      h1: 'Error / Symptom',
+      h2En: 'Cause',
+      h2De: 'Ursache',
+      h3En: 'Solution in ApkUp',
+      h3De: 'Lösung in ApkUp',
+    },
+    tableRows: [
+      {
+        col1: 'GitHub HTTP 403 / 429',
+        col2En: 'Unauthenticated GitHub IP rate limit (60 requests/hour) reached',
+        col2De: 'Unauthentifiziertes GitHub-Limit (60 Abfragen/Stunde pro IP) erreicht',
+        col3En: 'Add a read-only GitHub Personal Access Token in Setup (raises limit to 5,000/h + GraphQL)',
+        col3De: 'Hinterlege im Setup ein Read-Only GitHub-Token (erhöht das Limit auf 5.000/h + GraphQL)',
+      },
+      {
+        col1: 'APKMirror Cloudflare / 403',
+        col2En: 'Anti-bot challenge or per-app cooldown active on APKMirror',
+        col2De: 'Cloudflare-Schutzabfrage oder 10-Minuten-Cooldown auf APKMirror aktiv',
+        col3En: 'Complete the automatic in-app WebView check or check Setup → Source Health & Cooldowns',
+        col3De: 'Bestätige kurz die integrierte In-App-WebView oder prüfe Setup → Quellen-Status & Cooldowns',
+      },
+      {
+        col1: 'Google Play HTTP 429',
+        col2En: 'Temporary anonymous Aurora Dispenser rate limit',
+        col2De: 'Kurzzeitiges Rate-Limit des anonymen Aurora-Dispensers',
+        col3En: 'ApkUp automatically backs off and retries with a fresh anonymous session token',
+        col3De: 'ApkUp wartet automatisch kurz ab und erneuert das anonyme Sitzungs-Token selbstständig',
+      },
+      {
+        col1: 'Signature Mismatch Blocked',
+        col2En: 'Update APK is signed with a different developer/F-Droid key than the installed app',
+        col2De: 'Das Update ist mit einem anderen Schlüssel signiert als die installierte App (z. B. F-Droid vs. GitHub)',
+        col3En: 'Pin the app to its original source, or use Save APK and reinstall cleanly if switching ecosystems',
+        col3De: 'Pinne die App an ihre ursprüngliche Quelle oder nutze APK speichern für einen bewussten Neuinstallations-Wechsel',
+      },
+      {
+        col1: 'Incompatible ABI / minSdk',
+        col2En: 'Release asset requires a newer Android version or different CPU architecture',
+        col2De: 'Release erfordert eine neuere Android-Version oder andere CPU-Architektur',
+        col3En: 'ApkUp blocks incompatible assets automatically to prevent broken install loops',
+        col3De: 'ApkUp blockiert inkompatible Dateien automatisch, um Endlosschleifen zu verhindern',
+      },
+      {
+        col1: 'Shizuku Disconnected',
+        col2En: 'Shizuku background service stopped after a device reboot or Wi-Fi change',
+        col2De: 'Der Shizuku-Dienst wurde nach einem Geräte-Neustart beendet',
+        col3En: 'Restart Shizuku via Wireless Debugging (or enable wireless auto-start on boot inside Shizuku)',
+        col3De: 'Starte Shizuku kurz per Kabellosem Debugging neu (oder aktiviere den Autostart in Shizuku)',
+      },
+    ],
   },
 ];
-
-const SLUG_BY_WIKI_NAME: Record<string, string> = {
-  Home: 'home',
-  'Update-Sources,-Repository-Linking-&-Signature-Protection': 'sources',
-  'F-Droid-&-Index-V2-Repositories': 'fdroid',
-  'Configuring-GitHub-&-GitLab-Tokens': 'tokens',
-  'Setting-up-Shizuku': 'shizuku-setup',
-  'Shizuku-&-Background-Installation': 'shizuku-deep',
-  'Obtainium-Migration-&-Sync-Guide': 'obtainium',
-  'App-Management,-Filters,-Background-Checks-&-Backup': 'management',
-  'Troubleshooting-Source-Errors': 'troubleshooting',
-};
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-function slugifyHeading(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[`*_~()[\]{}:.!?,/\\+]/g, '')
-    .trim()
-    .replace(/\s+/g, '-');
-}
-
-function formatInline(raw: string): string {
-  let s = escapeHtml(raw);
-  // Inline code
-  s = s.replace(/`([^`]+)`/g, '<code class="wiki-inline-code mono">$1</code>');
-  // Bold + italic
-  s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  s = s.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-  // Links
-  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label, url) => {
-    const wikiMatch = url.match(/github\.com\/DurchEins\/apkup\/wiki\/([^#?]+)(#.*)?/i);
-    if (wikiMatch) {
-      const targetSlug = SLUG_BY_WIKI_NAME[wikiMatch[1]] || '';
-      if (targetSlug) {
-        return `<a href="#doc-${targetSlug}" data-wiki-jump="${targetSlug}" class="wiki-internal-link">${label}</a>`;
-      }
-    }
-    if (url.startsWith('#')) {
-      return `<a href="${url}" class="wiki-anchor-link">${label}</a>`;
-    }
-    return `<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`;
-  });
-  return s;
-}
-
-function renderMarkdown(md: string): string {
-  const lines = md.split(/\r?\n/);
-  const out: string[] = [];
-  let inCode = false;
-  let codeLang = '';
-  let codeBuf: string[] = [];
-  let inUl = false;
-  let inOl = false;
-  let inTable = false;
-  let tableRows: string[][] = [];
-  let inQuote = false;
-  let quoteBuf: string[] = [];
-
-  function flushLists() {
-    if (inUl) {
-      out.push('</ul>');
-      inUl = false;
-    }
-    if (inOl) {
-      out.push('</ol>');
-      inOl = false;
-    }
-  }
-
-  function flushTable() {
-    if (!inTable) return;
-    inTable = false;
-    if (tableRows.length === 0) return;
-    const header = tableRows[0];
-    const body = tableRows.slice(1).filter((r) => !r.every((c) => /^[-:\s]+$/.test(c)));
-    let html = '<div class="wiki-table-wrap"><table class="wiki-table"><thead><tr>';
-    for (const h of header) html += `<th>${formatInline(h)}</th>`;
-    html += '</tr></thead><tbody>';
-    for (const row of body) {
-      html += '<tr>';
-      for (const cell of row) html += `<td>${formatInline(cell)}</td>`;
-      html += '</tr>';
-    }
-    html += '</tbody></table></div>';
-    out.push(html);
-    tableRows = [];
-  }
-
-  function flushQuote() {
-    if (!inQuote) return;
-    inQuote = false;
-    const joined = quoteBuf.join(' ').trim();
-    const alertMatch = joined.match(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(.*)$/i);
-    if (alertMatch) {
-      const kind = alertMatch[1].toUpperCase();
-      out.push(
-        `<div class="wiki-callout wiki-callout-${kind.toLowerCase()}"><strong class="mono">${kind}</strong><p>${formatInline(alertMatch[2])}</p></div>`
-      );
-    } else {
-      out.push(`<blockquote class="wiki-quote"><p>${formatInline(joined)}</p></blockquote>`);
-    }
-    quoteBuf = [];
-  }
-
-  for (const rawLine of lines) {
-    const line = rawLine.trimEnd();
-
-    if (line.startsWith('```')) {
-      flushLists();
-      flushTable();
-      flushQuote();
-      if (!inCode) {
-        inCode = true;
-        codeLang = line.slice(3).trim();
-        codeBuf = [];
-      } else {
-        inCode = false;
-        out.push(
-          `<pre class="wiki-pre mono"><code data-lang="${escapeHtml(codeLang)}">${escapeHtml(
-            codeBuf.join('\n')
-          )}</code></pre>`
-        );
-      }
-      continue;
-    }
-
-    if (inCode) {
-      codeBuf.push(rawLine);
-      continue;
-    }
-
-    if (line.startsWith('|') && line.endsWith('|')) {
-      flushLists();
-      flushQuote();
-      inTable = true;
-      const cells = line
-        .slice(1, -1)
-        .split('|')
-        .map((c) => c.trim());
-      tableRows.push(cells);
-      continue;
-    } else if (inTable) {
-      flushTable();
-    }
-
-    if (line.startsWith('>')) {
-      flushLists();
-      inQuote = true;
-      quoteBuf.push(line.replace(/^>\s?/, ''));
-      continue;
-    } else if (inQuote) {
-      flushQuote();
-    }
-
-    if (!line.trim()) {
-      flushLists();
-      continue;
-    }
-
-    if (/^---+$/.test(line.trim())) {
-      flushLists();
-      out.push('<hr class="wiki-hr" />');
-      continue;
-    }
-
-    const hMatch = line.match(/^(#{1,4})\s+(.*)$/);
-    if (hMatch) {
-      flushLists();
-      const level = Math.min(4, hMatch[1].length + 1); // shift # -> h2, ## -> h3
-      const text = hMatch[2].trim();
-      const id = slugifyHeading(text);
-      out.push(`<h${level} id="${id}" class="wiki-h${level}">${formatInline(text)}</h${level}>`);
-      continue;
-    }
-
-    const ulMatch = line.match(/^\s*[-*]\s+(.*)$/);
-    if (ulMatch) {
-      if (inOl) {
-        out.push('</ol>');
-        inOl = false;
-      }
-      if (!inUl) {
-        out.push('<ul class="wiki-ul">');
-        inUl = true;
-      }
-      out.push(`<li>${formatInline(ulMatch[1])}</li>`);
-      continue;
-    }
-
-    const olMatch = line.match(/^\s*\d+\.\s+(.*)$/);
-    if (olMatch) {
-      if (inUl) {
-        out.push('</ul>');
-        inUl = false;
-      }
-      if (!inOl) {
-        out.push('<ol class="wiki-ol">');
-        inOl = true;
-      }
-      out.push(`<li>${formatInline(olMatch[1])}</li>`);
-      continue;
-    }
-
-    flushLists();
-    out.push(`<p class="wiki-p">${formatInline(line.trim())}</p>`);
-  }
-
-  flushLists();
-  flushTable();
-  flushQuote();
-  return out.join('\n');
-}
-
-const wikiDir = join(process.cwd(), 'src/data/wiki');
-const renderedDocs = WIKI_DOCS.map((doc) => {
-  const md = readFileSync(join(wikiDir, doc.file), 'utf8');
-  return {
-    ...doc,
-    html: renderMarkdown(md),
-  };
-});
 ---
 
-<BaseLayout title="Complete Wiki & Guides — ApkUp">
+<BaseLayout title="Wiki & Guides — ApkUp">
   <Navbar />
   <main id="main-content" class="section">
     <div class="container">
       <div class="wiki-top">
         <div class="section-header" style="margin-block-end: 0;">
           <h1 class="section-title">
-            <span class="i18n-en">ApkUp Wiki &amp; Complete Documentation</span>
-            <span class="i18n-de">Vollständiges ApkUp-Wiki &amp; Dokumentation</span>
+            <span class="i18n-en">ApkUp Wiki &amp; Documentation</span>
+            <span class="i18n-de">ApkUp-Wiki &amp; Anleitungen</span>
           </h1>
           <p class="section-subtitle">
             <span class="i18n-en">
-              All 9 official wiki chapters natively on the website — search across every guide or
-              pick a chapter on the left.
+              All 9 official guides adapted into a clean, bilingual layout — search across every
+              topic below or switch chapters on the left.
             </span>
             <span class="i18n-de">
-              Alle 9 offiziellen Wiki-Kapitel komplett nativ auf der Website – durchsuche alle
-              Anleitungen live oder wähle links ein Kapitel.
+              Alle 9 offiziellen Wiki-Kapitel übersichtlich und zweisprachig aufbereitet –
+              durchsuche alle Themen live oder wähle links ein Kapitel.
             </span>
           </p>
         </div>
@@ -350,46 +653,158 @@ const renderedDocs = WIKI_DOCS.map((doc) => {
         <aside class="wiki-sidebar" aria-label="Wiki chapters">
           <div class="wiki-nav-card" role="tablist" aria-orientation="vertical">
             {
-              renderedDocs.map((doc, idx) => (
+              CHAPTERS.map((ch, idx) => (
                 <button
                   type="button"
                   role="tab"
                   class={`wiki-tab-btn ${idx === 0 ? 'is-active' : ''}`}
-                  data-wiki-tab={doc.slug}
+                  data-wiki-tab={ch.slug}
                   aria-selected={idx === 0 ? 'true' : 'false'}
                 >
                   <span class="wiki-tab-title">
-                    <span class="i18n-en">{doc.titleEn}</span>
-                    <span class="i18n-de">{doc.titleDe}</span>
+                    <span class="i18n-en">{ch.enTitle}</span>
+                    <span class="i18n-de">{ch.deTitle}</span>
                   </span>
-                  <span class="wiki-tab-tag mono">{doc.tag}</span>
+                  <span class="wiki-tab-tag mono">{ch.tag}</span>
                 </button>
               ))
             }
           </div>
         </aside>
 
-        <div class="wiki-content" id="wiki-articles-host">
+        <div class="wiki-content">
           {
-            renderedDocs.map((doc, idx) => (
+            CHAPTERS.map((ch, idx) => (
               <article
-                class="wiki-article-card"
-                id={`doc-${doc.slug}`}
-                data-wiki-article={doc.slug}
+                class="wiki-chapter-card"
+                id={`doc-${ch.slug}`}
+                data-wiki-article={ch.slug}
                 hidden={idx !== 0}
               >
-                <div class="wiki-article-meta">
-                  <span class="pill-badge pill-amber mono">{doc.tag}</span>
+                <div class="wiki-chapter-top">
+                  <span class="pill-badge pill-amber mono">{ch.tag}</span>
                   <a
                     class="wiki-gh-link mono"
-                    href={`${SITE.wikiUrl}/${doc.file.replace(/\.md$/, '')}`}
+                    href={`${SITE.wikiUrl}/${ch.ghPage}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
                     GitHub Wiki ↗
                   </a>
                 </div>
-                <div class="wiki-prose" set:html={doc.html} />
+
+                <h2 class="wiki-chapter-title">
+                  <span class="i18n-en">{ch.enTitle}</span>
+                  <span class="i18n-de">{ch.deTitle}</span>
+                </h2>
+
+                <p class="wiki-chapter-lead">
+                  <span class="i18n-en">{ch.enLead}</span>
+                  <span class="i18n-de">{ch.deLead}</span>
+                </p>
+
+                {ch.cards && ch.cards.length > 0 && (
+                  <div class="wiki-cards-grid">
+                    {ch.cards.map((c) => (
+                      <div class="wiki-subcard">
+                        {c.badge && <span class="pill-badge pill-neutral mono">{c.badge}</span>}
+                        <h3>
+                          <span class="i18n-en">{c.enTitle}</span>
+                          <span class="i18n-de">{c.deTitle}</span>
+                        </h3>
+                        <p>
+                          <span class="i18n-en">{c.enBody}</span>
+                          <span class="i18n-de">{c.deBody}</span>
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {ch.steps && ch.steps.length > 0 && (
+                  <div class="wiki-steps-block">
+                    {ch.stepsTitleEn && (
+                      <h3 class="wiki-block-heading">
+                        <span class="i18n-en">{ch.stepsTitleEn}</span>
+                        <span class="i18n-de">{ch.stepsTitleDe}</span>
+                      </h3>
+                    )}
+                    <ol class="wiki-steps-list">
+                      {ch.steps.map((s, sIdx) => (
+                        <li>
+                          <span class="wiki-step-num mono">0{sIdx + 1}</span>
+                          <div>
+                            <h4>
+                              <span class="i18n-en">{s.enTitle}</span>
+                              <span class="i18n-de">{s.deTitle}</span>
+                            </h4>
+                            <p>
+                              <span class="i18n-en">{s.enBody}</span>
+                              <span class="i18n-de">{s.deBody}</span>
+                            </p>
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
+
+                {ch.tableHeaders && ch.tableRows && (
+                  <div class="wiki-table-wrap">
+                    <table class="wiki-table">
+                      <thead>
+                        <tr>
+                          <th>{ch.tableHeaders.h1}</th>
+                          <th>
+                            <span class="i18n-en">{ch.tableHeaders.h2En}</span>
+                            <span class="i18n-de">{ch.tableHeaders.h2De}</span>
+                          </th>
+                          <th>
+                            <span class="i18n-en">{ch.tableHeaders.h3En}</span>
+                            <span class="i18n-de">{ch.tableHeaders.h3De}</span>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ch.tableRows.map((r) => (
+                          <tr>
+                            <td class="mono"><strong>{r.col1}</strong></td>
+                            <td>
+                              <span class="i18n-en">{r.col2En}</span>
+                              <span class="i18n-de">{r.col2De}</span>
+                            </td>
+                            <td>
+                              <span class="i18n-en">{r.col3En}</span>
+                              <span class="i18n-de">{r.col3De}</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {ch.deepDives && ch.deepDives.length > 0 && (
+                  <div class="wiki-deep-list">
+                    {ch.deepDives.map((d) => (
+                      <details class="wiki-deep-item" open>
+                        <summary>
+                          <span>
+                            <span class="i18n-en">{d.qEn}</span>
+                            <span class="i18n-de">{d.qDe}</span>
+                          </span>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="m6 9 6 6 6-6" />
+                          </svg>
+                        </summary>
+                        <p>
+                          <span class="i18n-en">{d.aEn}</span>
+                          <span class="i18n-de">{d.aDe}</span>
+                        </p>
+                      </details>
+                    ))}
+                  </div>
+                )}
               </article>
             ))
           }
@@ -430,16 +845,6 @@ const renderedDocs = WIKI_DOCS.map((doc) => {
     tabBtns.forEach(function (btn) {
       btn.addEventListener('click', function () {
         selectChapter(btn.getAttribute('data-wiki-tab'), true);
-      });
-    });
-
-    document.querySelectorAll('[data-wiki-jump]').forEach(function (link) {
-      link.addEventListener('click', function (e) {
-        var target = link.getAttribute('data-wiki-jump');
-        if (target) {
-          e.preventDefault();
-          selectChapter(target, true);
-        }
       });
     });
 
@@ -497,7 +902,7 @@ const renderedDocs = WIKI_DOCS.map((doc) => {
     background: transparent;
     color: var(--text);
     font: inherit;
-    font-size: 0.96rem;
+    font-size: 0.95rem;
     outline: none;
   }
 
@@ -512,7 +917,7 @@ const renderedDocs = WIKI_DOCS.map((doc) => {
 
   .wiki-layout {
     display: grid;
-    grid-template-columns: 300px minmax(0, 1fr);
+    grid-template-columns: 290px minmax(0, 1fr);
     gap: 28px;
     align-items: start;
   }
@@ -542,7 +947,7 @@ const renderedDocs = WIKI_DOCS.map((doc) => {
     background: transparent;
     color: var(--text-muted);
     font-weight: 600;
-    font-size: 0.88rem;
+    font-size: 0.87rem;
     transition: background-color 150ms ease-out, color 150ms ease-out;
   }
 
@@ -561,7 +966,7 @@ const renderedDocs = WIKI_DOCS.map((doc) => {
   }
 
   .wiki-tab-tag {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     padding: 2px 7px;
     border-radius: var(--radius-pill);
     background: var(--surface);
@@ -572,23 +977,25 @@ const renderedDocs = WIKI_DOCS.map((doc) => {
   .wiki-content {
     display: flex;
     flex-direction: column;
-    gap: 22px;
+    gap: 24px;
     min-width: 0;
   }
 
-  .wiki-article-card {
+  .wiki-chapter-card {
     background: var(--surface-low);
     border: 1px solid var(--outline);
     border-radius: var(--radius-lg);
-    padding: clamp(22px, 3.5vw, 36px);
+    padding: clamp(22px, 3.5vw, 34px);
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
   }
 
-  .wiki-article-meta {
+  .wiki-chapter-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    margin-block-end: 18px;
   }
 
   .wiki-gh-link {
@@ -597,122 +1004,169 @@ const renderedDocs = WIKI_DOCS.map((doc) => {
     text-decoration: none;
   }
 
-  .wiki-prose .wiki-h2 {
-    margin: 0 0 14px;
-    font-size: clamp(1.45rem, 2.4vw, 1.85rem);
+  .wiki-chapter-title {
+    margin: -6px 0 0;
+    font-size: clamp(1.45rem, 2.4vw, 1.9rem);
     font-weight: 800;
     letter-spacing: -0.02em;
   }
 
-  .wiki-prose .wiki-h3 {
-    margin: 28px 0 10px;
-    font-size: 1.2rem;
-    font-weight: 800;
-    color: var(--text);
-  }
-
-  .wiki-prose .wiki-h4 {
-    margin: 20px 0 8px;
+  .wiki-chapter-lead {
+    margin: -10px 0 0;
+    color: var(--text-muted);
     font-size: 1.02rem;
-    font-weight: 700;
-    color: var(--accent);
-  }
-
-  .wiki-prose .wiki-p {
-    margin: 0 0 14px;
-    color: var(--text-muted);
-    line-height: 1.65;
-  }
-
-  .wiki-prose .wiki-ul,
-  .wiki-prose .wiki-ol {
-    margin: 0 0 16px;
-    padding-inline-start: 22px;
-    color: var(--text-muted);
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
     line-height: 1.6;
   }
 
-  .wiki-prose strong {
-    color: var(--text);
+  .wiki-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
   }
 
-  .wiki-prose a {
-    color: var(--accent);
-  }
-
-  .wiki-prose .wiki-inline-code {
-    padding: 2px 6px;
-    border-radius: 6px;
-    background: var(--surface);
-    color: var(--accent);
-    font-size: 0.84em;
-  }
-
-  .wiki-prose .wiki-pre {
-    margin: 0 0 16px;
-    padding: 14px 16px;
-    border-radius: var(--radius-md);
+  .wiki-subcard {
     background: var(--bg);
     border: 1px solid var(--outline);
-    overflow-x: auto;
-    font-size: 0.82rem;
+    border-radius: var(--radius-md);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .wiki-subcard h3 {
+    margin: 2px 0 0;
+    font-size: 1.02rem;
+    font-weight: 700;
+  }
+
+  .wiki-subcard p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.91rem;
     line-height: 1.55;
   }
 
-  .wiki-prose .wiki-table-wrap {
-    overflow-x: auto;
-    margin: 0 0 18px;
+  .wiki-block-heading {
+    margin: 0 0 12px;
+    font-size: 1.08rem;
+    font-weight: 800;
   }
 
-  .wiki-prose .wiki-table {
-    width: 100%;
-    border-collapse: collapse;
+  .wiki-steps-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .wiki-steps-list li {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+    padding: 16px;
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    border: 1px solid var(--outline);
+  }
+
+  .wiki-step-num {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    background: var(--tertiary-soft);
+    color: var(--tertiary-soft-ink);
+    font-weight: 700;
     font-size: 0.88rem;
   }
 
-  .wiki-prose .wiki-table th,
-  .wiki-prose .wiki-table td {
-    padding: 10px 12px;
-    border-block-end: 1px solid var(--outline);
-    text-align: start;
-  }
-
-  .wiki-prose .wiki-table th {
-    color: var(--text);
+  .wiki-steps-list h4 {
+    margin: 0 0 4px;
+    font-size: 0.98rem;
     font-weight: 700;
-    background: var(--surface);
   }
 
-  .wiki-prose .wiki-callout,
-  .wiki-prose .wiki-quote {
-    margin: 0 0 16px;
-    padding: 14px 16px;
-    border-radius: var(--radius-md);
-    background: var(--bg);
-    border: 1px solid var(--outline-strong);
-  }
-
-  .wiki-prose .wiki-callout strong {
-    display: block;
-    font-size: 0.76rem;
-    color: var(--accent);
-    margin-bottom: 4px;
-  }
-
-  .wiki-prose .wiki-callout p,
-  .wiki-prose .wiki-quote p {
+  .wiki-steps-list p {
     margin: 0;
     color: var(--text-muted);
-    font-size: 0.9rem;
+    font-size: 0.91rem;
+    line-height: 1.55;
   }
 
-  .wiki-prose .wiki-hr {
-    border: none;
-    border-block-start: 1px solid var(--outline);
-    margin-block: 24px;
+  .wiki-table-wrap {
+    overflow-x: auto;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--outline);
+    background: var(--bg);
+  }
+
+  .wiki-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.87rem;
+  }
+
+  .wiki-table th,
+  .wiki-table td {
+    padding: 12px 14px;
+    border-block-end: 1px solid var(--outline);
+    text-align: start;
+    line-height: 1.5;
+  }
+
+  .wiki-table tr:last-child td {
+    border-block-end: none;
+  }
+
+  .wiki-table th {
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .wiki-deep-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .wiki-deep-item {
+    background: var(--bg);
+    border: 1px solid var(--outline-strong);
+    border-radius: var(--radius-md);
+    padding: 4px 18px;
+  }
+
+  .wiki-deep-item summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-block: 12px;
+    font-weight: 700;
+    font-size: 0.96rem;
+    cursor: pointer;
+    color: var(--accent);
+  }
+
+  .wiki-deep-item summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .wiki-deep-item p {
+    margin: 0;
+    padding-block-end: 14px;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.6;
   }
 
   @media (max-width: 920px) {
@@ -721,6 +1175,9 @@ const renderedDocs = WIKI_DOCS.map((doc) => {
     }
     .wiki-nav-card {
       position: static;
+    }
+    .wiki-cards-grid {
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 </style>

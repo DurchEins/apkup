@@ -43,28 +43,13 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     </div>
 
     <div class="quick-compat-box">
-      <div class="quick-compat-head">
-        <div>
-          <h3>
-            <span class="i18n-en">Quick source &amp; repo compatibility check</span>
-            <span class="i18n-de">Schneller Quellen- &amp; Repo-Kompatibilitätstest</span>
-          </h3>
-          <p>
-            <span class="i18n-en">
-              Paste any repository, F-Droid index, or app store URL to verify support instantly.
-            </span>
-            <span class="i18n-de">
-              Füge eine Repository-, F-Droid- oder Store-URL ein und prüfe die Unterstützung sofort.
-            </span>
-          </p>
+      <div class="quick-compat-row">
+        <div class="quick-compat-title">
+          <strong>
+            <span class="i18n-en">Quick URL Test:</span>
+            <span class="i18n-de">Schneller URL-Test:</span>
+          </strong>
         </div>
-        <a class="btn btn-secondary" href={`${base}compatibility/`}>
-          <span class="i18n-en">Source &amp; Obtainium Checker →</span>
-          <span class="i18n-de">Quellen- &amp; Obtainium-Check →</span>
-        </a>
-      </div>
-
-      <div class="quick-compat-form">
         <input
           type="url"
           id="quick-compat-input"
@@ -72,16 +57,19 @@ const base = import.meta.env.BASE_URL.endsWith('/')
           placeholder="https://github.com/owner/repo or https://gitlab.com/group/sub/repo"
           aria-label="Repository or store URL"
         />
-        <div class="quick-compat-presets">
-          <button type="button" class="preset-chip mono" data-preset-url="https://github.com/DurchEins/apkup">GitHub</button>
-          <button type="button" class="preset-chip mono" data-preset-url="https://gitlab.com/AuroraOSS/AuroraStore">GitLab</button>
-          <button type="button" class="preset-chip mono" data-preset-url="https://codeberg.org/Freeyourgadget/Gadgetbridge">Codeberg</button>
-          <button type="button" class="preset-chip mono" data-preset-url="https://apt.izzysoft.de/fdroid/repo">IzzyOnDroid</button>
-          <button type="button" class="preset-chip mono" data-preset-url="https://www.apkmirror.com/apk/google-inc/android-auto/">APKMirror</button>
-          <button type="button" class="preset-chip mono" data-preset-url="https://play.google.com/store/apps/details?id=org.thoughtcrime.securesms">Play Store</button>
-        </div>
+        <a class="quick-compat-link" href={`${base}compatibility/#checker`}>
+          <span class="i18n-en">Obtainium JSON Checker →</span>
+          <span class="i18n-de">Obtainium-JSON-Tester →</span>
+        </a>
       </div>
-
+      <div class="quick-compat-presets">
+        <button type="button" class="preset-chip mono" data-preset-url="https://github.com/DurchEins/apkup">GitHub</button>
+        <button type="button" class="preset-chip mono" data-preset-url="https://gitlab.com/AuroraOSS/AuroraStore">GitLab</button>
+        <button type="button" class="preset-chip mono" data-preset-url="https://codeberg.org/Freeyourgadget/Gadgetbridge">Codeberg</button>
+        <button type="button" class="preset-chip mono" data-preset-url="https://apt.izzysoft.de/fdroid/repo">IzzyOnDroid</button>
+        <button type="button" class="preset-chip mono" data-preset-url="https://www.apkmirror.com/apk/google-inc/android-auto/">APKMirror</button>
+        <button type="button" class="preset-chip mono" data-preset-url="https://play.google.com/store/apps/details?id=org.thoughtcrime.securesms">Play Store</button>
+      </div>
       <div class="quick-compat-result" id="quick-compat-result" role="status" hidden></div>
     </div>
 
@@ -409,64 +397,59 @@ const base = import.meta.env.BASE_URL.endsWith('/')
   .quick-compat-box {
     background: var(--surface-low);
     border: 1px solid var(--outline);
-    border-radius: var(--radius-lg);
-    padding: clamp(20px, 3vw, 30px);
-    margin-block-end: 32px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .quick-compat-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-
-  .quick-compat-head h3 {
-    margin: 0 0 4px;
-    font-size: 1.2rem;
-    font-weight: 800;
-  }
-
-  .quick-compat-head p {
-    margin: 0;
-    color: var(--text-muted);
-    font-size: 0.94rem;
-  }
-
-  .quick-compat-form {
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    margin-block-end: 28px;
     display: flex;
     flex-direction: column;
     gap: 10px;
   }
 
+  .quick-compat-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .quick-compat-title {
+    font-size: 0.92rem;
+    white-space: nowrap;
+  }
+
   .quick-compat-input {
-    width: 100%;
-    min-height: 48px;
-    padding: 12px 16px;
-    border-radius: var(--radius-md);
+    flex: 1;
+    min-width: 220px;
+    height: 38px;
+    padding: 6px 12px;
+    border-radius: 10px;
     border: 1px solid var(--outline-strong);
     background: var(--bg);
     color: var(--text);
-    font-size: 0.9rem;
+    font-size: 0.84rem;
+  }
+
+  .quick-compat-link {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--accent);
+    text-decoration: none;
+    white-space: nowrap;
   }
 
   .quick-compat-presets {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
   }
 
   .preset-chip {
-    padding: 6px 12px;
+    padding: 4px 10px;
     border-radius: var(--radius-pill);
     border: 1px solid var(--outline);
     background: var(--surface);
     color: var(--text-muted);
-    font-size: 0.78rem;
+    font-size: 0.74rem;
     font-weight: 700;
   }
 
