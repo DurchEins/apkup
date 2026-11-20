@@ -1045,6 +1045,18 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
       return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
+    function clearSidebarSearchState() {
+      document.querySelectorAll('.wk-nav-badge').forEach(function (b) {
+        b.remove();
+      });
+      navGroups.forEach(function (grp) {
+        grp.classList.remove('has-search-hits', 'no-search-hits');
+      });
+      document.querySelectorAll('[data-wiki-sub]').forEach(function (a) {
+        a.classList.remove('has-search-hits', 'no-search-hits', 'is-search-active-sub');
+      });
+    }
+
     function clearHighlights() {
       document.querySelectorAll('mark.wk-hit').forEach(function (mark) {
         var parent = mark.parentNode;
@@ -1054,6 +1066,70 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
       });
       hits = [];
       currentHit = -1;
+      clearSidebarSearchState();
+    }
+
+    function findHitContext(mark) {
+      var art = mark.closest('[data-wiki-article]');
+      var slug = art ? art.getAttribute('data-wiki-article') : '';
+      var subId = '';
+      if (art) {
+        var headings = art.querySelectorAll('.wk-full-body h2[id], .wk-full-body h3[id], .wk-full-body details[id]');
+        for (var i = 0; i < headings.length; i++) {
+          var h = headings[i];
+          if (h === mark || h.contains(mark) || (h.compareDocumentPosition(mark) & Node.DOCUMENT_POSITION_FOLLOWING)) {
+            subId = h.id || '';
+          } else {
+            break;
+          }
+        }
+      }
+      return { slug: slug, subId: subId };
+    }
+
+    function updateSidebarSearchState() {
+      clearSidebarSearchState();
+      if (hits.length === 0) return;
+      var chapCounts = {};
+      var subCounts = {};
+      hits.forEach(function (m) {
+        var ctx = findHitContext(m);
+        if (ctx.slug) chapCounts[ctx.slug] = (chapCounts[ctx.slug] || 0) + 1;
+        if (ctx.subId) subCounts[ctx.subId] = (subCounts[ctx.subId] || 0) + 1;
+      });
+
+      navGroups.forEach(function (grp) {
+        var slug = grp.getAttribute('data-wiki-group') || '';
+        var count = chapCounts[slug] || 0;
+        var right = grp.querySelector('.wiki-tab-right');
+        if (count > 0) {
+          grp.classList.add('has-search-hits');
+          grp.open = true;
+          if (right) {
+            var badge = document.createElement('span');
+            badge.className = 'wk-nav-badge mono';
+            badge.textContent = String(count);
+            right.insertBefore(badge, right.firstChild);
+          }
+        } else {
+          grp.classList.add('no-search-hits');
+          grp.open = false;
+        }
+      });
+
+      document.querySelectorAll('[data-wiki-sub]').forEach(function (a) {
+        var id = a.getAttribute('data-wiki-sub') || '';
+        var count = subCounts[id] || 0;
+        if (count > 0) {
+          a.classList.add('has-search-hits');
+          var badge = document.createElement('span');
+          badge.className = 'wk-nav-badge is-sub mono';
+          badge.textContent = String(count);
+          a.appendChild(badge);
+        } else {
+          a.classList.add('no-search-hits');
+        }
+      });
     }
 
     function isNodeVisible(node) {
@@ -1145,6 +1221,20 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
       }
       target.classList.add('is-current');
       target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      document.querySelectorAll('[data-wiki-sub].is-search-active-sub').forEach(function (a) {
+        a.classList.remove('is-search-active-sub');
+      });
+      var ctx = findHitContext(target);
+      if (ctx.slug) setActiveNav(ctx.slug, false);
+      if (ctx.subId) {
+        var subEl = document.querySelector('[data-wiki-sub="' + ctx.subId + '"]');
+        if (subEl) {
+          subEl.classList.add('is-search-active-sub');
+          subEl.scrollIntoView({ block: 'nearest' });
+        }
+      }
+
       if (searchCount) {
         searchCount.textContent = currentHit + 1 + ' / ' + hits.length;
       }
@@ -1165,6 +1255,7 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
         allTerms = allTerms.concat(expandToken(t));
       });
       highlightTerms(allTerms);
+      updateSidebarSearchState();
       if (searchCount) searchCount.hidden = false;
       if (searchNav) searchNav.hidden = hits.length === 0;
       if (hits.length > 0) {
@@ -1314,6 +1405,54 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
     100% {
       box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85), 0 0 14px rgba(249, 115, 22, 0.7);
     }
+  }
+
+  .wiki-nav-group.no-search-hits {
+    opacity: 0.38;
+  }
+
+  .wiki-nav-group.has-search-hits > summary {
+    border-color: rgba(245, 158, 11, 0.4);
+  }
+
+  .wiki-subnav a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .wiki-subnav a.no-search-hits {
+    opacity: 0.42;
+  }
+
+  .wiki-subnav a.has-search-hits {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .wiki-subnav a.is-search-active-sub {
+    background: rgba(249, 115, 22, 0.16);
+    border-left: 3px solid #f97316;
+    padding-left: 9px;
+    color: #ffffff;
+    font-weight: 700;
+    border-radius: 6px;
+  }
+
+  .wk-nav-badge {
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 0.7rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .wk-nav-badge.is-sub {
+    font-size: 0.66rem;
+    padding: 0 6px;
   }
 
   .wiki-layout {

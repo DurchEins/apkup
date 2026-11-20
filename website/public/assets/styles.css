@@ -2344,6 +2344,54 @@ button {
     }
   }
 
+  .wiki-nav-group.no-search-hits {
+    opacity: 0.38;
+  }
+
+  .wiki-nav-group.has-search-hits > summary {
+    border-color: rgba(245, 158, 11, 0.4);
+  }
+
+  .wiki-subnav a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .wiki-subnav a.no-search-hits {
+    opacity: 0.42;
+  }
+
+  .wiki-subnav a.has-search-hits {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .wiki-subnav a.is-search-active-sub {
+    background: rgba(249, 115, 22, 0.16);
+    border-left: 3px solid #f97316;
+    padding-left: 9px;
+    color: #ffffff;
+    font-weight: 700;
+    border-radius: 6px;
+  }
+
+  .wk-nav-badge {
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 0.7rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .wk-nav-badge.is-sub {
+    font-size: 0.66rem;
+    padding: 0 6px;
+  }
+
   .wiki-layout {
     display: grid;
     grid-template-columns: 280px minmax(0, 1fr);
