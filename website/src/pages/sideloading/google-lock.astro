@@ -34,11 +34,16 @@ const lockSchema = {
       </nav>
 
       <!-- Alarm-Red Hero Banner (Keep Android Open Inspired) -->
-      <header class="kao-hero">
+      <header class="kao-hero" id="kao-hero">
         <div class="kao-hero-top">
-          <span class="pill-badge pill-danger mono">
-            <span class="i18n-en">⚠ CRITICAL ALERT • 2026 / 2027 ANDROID LOCKDOWN</span>
-            <span class="i18n-de">⚠ WICHTIGE WARNUNG • ANDROID-SPERRE 2026 / 2027</span>
+          <span class="pill-badge pill-danger mono kao-alert-pill">
+            <span class="kao-pulse-dot" aria-hidden="true"></span>
+            <span class="i18n-en">CRITICAL ALERT • 2026 / 2027 ANDROID LOCKDOWN</span>
+            <span class="i18n-de">WICHTIGE WARNUNG • ANDROID-SPERRE 2026 / 2027</span>
+          </span>
+          <span class="pill-badge pill-neutral mono kao-countdown-pill" id="kao-global-countdown">
+            <span class="i18n-en">Global Rollout: Jan 2027</span>
+            <span class="i18n-de">Globaler Rollout: Jan. 2027</span>
           </span>
           <span class="pill-badge pill-neutral mono">keepandroidopen.org</span>
         </div>
@@ -96,7 +101,7 @@ const lockSchema = {
         </div>
 
         <div class="kao-facts-grid">
-          <article class="kao-fact-card">
+          <article class="kao-fact-card kao-spotlight">
             <span class="kao-fact-date mono">30.09.2026</span>
             <h3>
               <span class="i18n-en">Pilot Enforcement Active</span>
@@ -115,7 +120,7 @@ const lockSchema = {
             </p>
           </article>
 
-          <article class="kao-fact-card">
+          <article class="kao-fact-card kao-spotlight">
             <span class="kao-fact-date mono">01 / 2027</span>
             <h3>
               <span class="i18n-en">Global Play Protect Rollout</span>
@@ -133,7 +138,7 @@ const lockSchema = {
             </p>
           </article>
 
-          <article class="kao-fact-card">
+          <article class="kao-fact-card kao-spotlight">
             <span class="kao-fact-date mono">ID + KEY</span>
             <h3>
               <span class="i18n-en">Mandatory ID &amp; Package Binding</span>
@@ -166,8 +171,8 @@ const lockSchema = {
           </h2>
         </div>
 
-        <div class="kao-danger-list">
-          <div class="kao-danger-item">
+        <div class="kao-danger-list" id="kao-danger-list">
+          <div class="kao-danger-item" style="--stagger-i: 0;">
             <strong>
               <span class="i18n-en">1. You lose control over your own hardware</span>
               <span class="i18n-de">1. Verlust der Kontrolle über deine eigene Hardware</span>
@@ -183,7 +188,7 @@ const lockSchema = {
               </span>
             </p>
           </div>
-          <div class="kao-danger-item">
+          <div class="kao-danger-item" style="--stagger-i: 1;">
             <strong>
               <span class="i18n-en">2. Chilling effect on independent &amp; privacy apps</span>
               <span class="i18n-de">2. Druck auf unabhängige Entwickler &amp; Datenschutz-Apps</span>
@@ -201,7 +206,7 @@ const lockSchema = {
               </span>
             </p>
           </div>
-          <div class="kao-danger-item">
+          <div class="kao-danger-item" style="--stagger-i: 2;">
             <strong>
               <span class="i18n-en">3. Friction designed to push users back to Play Store</span>
               <span class="i18n-de">3. Künstliche Hürden statt echter Sicherheit</span>
@@ -318,18 +323,33 @@ const lockSchema = {
           <p class="sl-lead">
             <span class="i18n-en">
               Follow these exact 4 steps once per device to keep installing ApkUp and independent
-              open-source apps without future blocks:
+              open-source apps without future blocks (click/tap each step to check it off):
             </span>
             <span class="i18n-de">
               Führe diese 4 Schritte einmalig pro Gerät aus, um ApkUp und unabhängige
-              Open-Source-Apps dauerhaft ohne Blockaden zu installieren:
+              Open-Source-Apps dauerhaft ohne Blockaden zu installieren (antippen zum Abhaken):
             </span>
           </p>
+          <div class="kao-progress-wrap" aria-live="polite">
+            <div class="kao-progress-head mono">
+              <span>
+                <span class="i18n-en">Checklist Progress</span>
+                <span class="i18n-de">Fortschritt</span>
+              </span>
+              <span id="kao-steps-count">0 / 4</span>
+            </div>
+            <div class="kao-progress-track">
+              <div class="kao-progress-fill" id="kao-steps-fill"></div>
+            </div>
+          </div>
         </div>
 
-        <ol class="sl-steps">
-          <li>
-            <span class="sl-num sl-num-danger mono">01</span>
+        <ol class="sl-steps" id="kao-steps-list">
+          <li data-step-idx="0" role="checkbox" aria-checked="false" tabindex="0">
+            <span class="sl-num sl-num-danger mono" aria-hidden="true">
+              <span class="sl-num-text">01</span>
+              <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
             <div>
               <strong class="sl-step-title">
                 <span class="i18n-en">Enable Developer Options (7× Build Number)</span>
@@ -349,8 +369,11 @@ const lockSchema = {
               </p>
             </div>
           </li>
-          <li>
-            <span class="sl-num sl-num-danger mono">02</span>
+          <li data-step-idx="1" role="checkbox" aria-checked="false" tabindex="0">
+            <span class="sl-num sl-num-danger mono" aria-hidden="true">
+              <span class="sl-num-text">02</span>
+              <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
             <div>
               <strong class="sl-step-title">
                 <span class="i18n-en">Toggle “Apps from unverified developers”</span>
@@ -372,8 +395,11 @@ const lockSchema = {
               </p>
             </div>
           </li>
-          <li>
-            <span class="sl-num sl-num-danger mono">03</span>
+          <li data-step-idx="2" role="checkbox" aria-checked="false" tabindex="0">
+            <span class="sl-num sl-num-danger mono" aria-hidden="true">
+              <span class="sl-num-text">03</span>
+              <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
             <div>
               <strong class="sl-step-title">
                 <span class="i18n-en">Confirm Lock Screen &amp; Restart Device</span>
@@ -393,8 +419,11 @@ const lockSchema = {
               </p>
             </div>
           </li>
-          <li>
-            <span class="sl-num sl-num-danger mono">04</span>
+          <li data-step-idx="3" role="checkbox" aria-checked="false" tabindex="0">
+            <span class="sl-num sl-num-danger mono" aria-hidden="true">
+              <span class="sl-num-text">04</span>
+              <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
             <div>
               <strong class="sl-step-title">
                 <span class="i18n-en">After 24 Hours: Select “Allow indefinitely”</span>
@@ -434,6 +463,22 @@ const lockSchema = {
               Wähle deshalb immer <strong>Dauerhaft erlauben</strong>!
             </span>
           </p>
+          <div class="kao-trap-sim" id="kao-trap-sim">
+            <div class="kao-trap-tabs" role="tablist" aria-label="7-day trap comparison">
+              <button type="button" class="kao-trap-tab is-active" data-trap-mode="7d" role="tab" aria-selected="true">
+                <span class="i18n-en">If you pick “7 Days”</span>
+                <span class="i18n-de">Bei „7 Tage wählen“ (Falle)</span>
+              </button>
+              <button type="button" class="kao-trap-tab" data-trap-mode="forever" role="tab" aria-selected="false">
+                <span class="i18n-en">If you pick “Allow indefinitely”</span>
+                <span class="i18n-de">Bei „Dauerhaft erlauben“</span>
+              </button>
+            </div>
+            <div class="kao-trap-result is-bad mono" id="kao-trap-result">
+              <span class="i18n-en">Day 1–7: Allowed → Day 8: ✕ Auto-locked again (+24h new wait!)</span>
+              <span class="i18n-de">Tag 1–7: Erlaubt → Tag 8: ✕ Automatisch wieder gesperrt (+24h Wartezeit!)</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -469,7 +514,7 @@ const lockSchema = {
               </tr>
             </thead>
             <tbody>
-              <tr>
+              <tr class="kao-row-warn">
                 <td>
                   <strong>
                     <span class="i18n-en">Direct APK from Browser</span>
@@ -485,7 +530,7 @@ const lockSchema = {
                   <span class="i18n-de">✓ Installiert normal</span>
                 </td>
               </tr>
-              <tr>
+              <tr class="kao-row-warn">
                 <td>
                   <strong>
                     <span class="i18n-en">ApkUp Multi-Source Updates</span>
@@ -501,7 +546,7 @@ const lockSchema = {
                   <span class="i18n-de">✓ Alle 7 Quellen laufen nahtlos</span>
                 </td>
               </tr>
-              <tr>
+              <tr class="kao-row-safe">
                 <td>
                   <strong>
                     <span class="i18n-en">ADB / Shizuku / Root (su)</span>
@@ -542,7 +587,21 @@ const lockSchema = {
             </span>
           </p>
         </div>
-        <pre class="kao-code mono"><code>adb install -r ApkUp.apk</code></pre>
+        <div class="kao-code-wrap">
+          <pre class="kao-code mono"><code>adb install -r ApkUp.apk</code></pre>
+          <button type="button" class="kao-copy-btn mono" id="kao-copy-adb" aria-label="Copy ADB command">
+            <span class="kao-copy-icon kao-icon-default" aria-hidden="true">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            </span>
+            <span class="kao-copy-icon kao-icon-done" aria-hidden="true">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
+            <span class="kao-copy-label">
+              <span class="i18n-en">Copy</span>
+              <span class="i18n-de">Kopieren</span>
+            </span>
+          </button>
+        </div>
         <div class="sl-actions">
           <a href={`${base}sideloading/`} class="btn btn-secondary">
             <span class="i18n-en">← Unknown Apps Guide</span>
@@ -562,6 +621,12 @@ const lockSchema = {
       </section>
     </div>
   </main>
+
+  <a href="#sl-lock-steps" class="kao-quick-jump mono" id="kao-quick-jump" hidden>
+    <span class="i18n-en">24h Fix ↓</span>
+    <span class="i18n-de">Zur 24h-Sperre ↓</span>
+  </a>
+
   <Footer />
 </BaseLayout>
 
@@ -920,12 +985,519 @@ const lockSchema = {
 
   @media (prefers-reduced-motion: reduce) {
     .btn-danger,
-    .btn-danger-outline {
+    .btn-danger-outline,
+    .kao-copy-btn,
+    .kao-quick-jump,
+    .kao-progress-fill,
+    .kao-danger-item,
+    .kao-pulse-dot::after {
       transition: none;
+      animation: none;
     }
     .btn-danger:active:not(:disabled),
-    .btn-danger-outline:active:not(:disabled) {
+    .btn-danger-outline:active:not(:disabled),
+    .kao-copy-btn:active:not(:disabled),
+    .kao-quick-jump:active:not(:disabled) {
+      transform: none;
+    }
+    .kao-danger-item {
+      opacity: 1;
       transform: none;
     }
   }
+
+  /* 1. Alert Radar Pulse */
+  .kao-alert-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .kao-pulse-dot {
+    position: relative;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #ef4444;
+    flex-shrink: 0;
+  }
+
+  .kao-pulse-dot::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 999px;
+    border: 1.5px solid #ef4444;
+    animation: kaoRadarPulse 2.2s ease-out infinite;
+  }
+
+  @keyframes kaoRadarPulse {
+    0% {
+      transform: scale(0.8);
+      opacity: 0.8;
+    }
+    100% {
+      transform: scale(2.1);
+      opacity: 0;
+    }
+  }
+
+  /* 5. Red Cursor Spotlight on Fact Cards */
+  .kao-spotlight {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kao-spotlight::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), rgba(239, 68, 68, 0.16), transparent 70%);
+    transition-property: opacity;
+    transition-duration: 160ms;
+  }
+
+  @media (hover: hover) {
+    .kao-spotlight:hover::before {
+      opacity: 1;
+    }
+  }
+
+  /* 9. Staggered Scroll-Reveal for Danger Cards */
+  .kao-danger-item {
+    opacity: 0;
+    transform: translateY(12px);
+    transition-property: opacity, transform;
+    transition-duration: 300ms;
+    transition-timing-function: ease-out;
+    transition-delay: calc(var(--stagger-i, 0) * 100ms);
+  }
+
+  .kao-danger-item.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* 3. Interactive Steps & Progress Bar */
+  .kao-progress-wrap {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .kao-progress-head {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.76rem;
+    color: var(--text-muted);
+  }
+
+  .kao-progress-track {
+    width: 100%;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--bg);
+    border: 1px solid var(--outline);
+    overflow: hidden;
+  }
+
+  .kao-progress-fill {
+    width: 0%;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #ef4444, #22c55e);
+    transition-property: width;
+    transition-duration: 280ms;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  #kao-steps-list li {
+    cursor: pointer;
+    user-select: none;
+    transition-property: border-color, background-color;
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
+  }
+
+  @media (hover: hover) {
+    #kao-steps-list li:hover {
+      border-color: rgba(239, 68, 68, 0.55);
+    }
+  }
+
+  #kao-steps-list li.is-done {
+    border-color: rgba(34, 197, 94, 0.45);
+    background: rgba(34, 197, 94, 0.06);
+  }
+
+  #kao-steps-list .sl-num {
+    position: relative;
+  }
+
+  #kao-steps-list .sl-num-check {
+    position: absolute;
+    opacity: 0;
+    transform: scale(0.25);
+    transition-property: opacity, transform;
+    transition-duration: 260ms;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  #kao-steps-list .sl-num-text {
+    transition-property: opacity, transform;
+    transition-duration: 200ms;
+  }
+
+  #kao-steps-list li.is-done .sl-num {
+    background: rgba(34, 197, 94, 0.18);
+    color: #4ade80;
+  }
+
+  [data-theme='light'] #kao-steps-list li.is-done .sl-num {
+    color: #15803d;
+  }
+
+  #kao-steps-list li.is-done .sl-num-text {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  #kao-steps-list li.is-done .sl-num-check {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* 7. 7-Day Trap Mini-Simulation */
+  .kao-trap-sim {
+    margin-top: 8px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(239, 68, 68, 0.35);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .kao-trap-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .kao-trap-tab {
+    padding: 5px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--outline);
+    background: var(--bg);
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition-property: background-color, border-color, color, transform;
+    transition-duration: 150ms;
+  }
+
+  .kao-trap-tab.is-active {
+    border-color: #ef4444;
+    background: rgba(220, 38, 38, 0.2);
+    color: var(--text);
+  }
+
+  .kao-trap-tab.is-active[data-trap-mode='forever'] {
+    border-color: #22c55e;
+    background: rgba(34, 197, 94, 0.16);
+  }
+
+  .kao-trap-result {
+    font-size: 0.78rem;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm, 8px);
+    background: var(--bg);
+    border: 1px solid rgba(239, 68, 68, 0.45);
+    color: #fca5a5;
+  }
+
+  .kao-trap-result.is-good {
+    border-color: rgba(34, 197, 94, 0.45);
+    color: #86efac;
+  }
+
+  [data-theme='light'] .kao-trap-result {
+    color: #b91c1c;
+  }
+
+  [data-theme='light'] .kao-trap-result.is-good {
+    color: #15803d;
+  }
+
+  /* 8. Table Row Status Highlight */
+  .kao-table tbody tr {
+    border-left: 3px solid transparent;
+    transition-property: background-color, border-color;
+    transition-duration: 150ms;
+  }
+
+  @media (hover: hover) {
+    .kao-table tbody tr.kao-row-warn:hover {
+      background: rgba(239, 68, 68, 0.08);
+      border-left-color: #ef4444;
+    }
+    .kao-table tbody tr.kao-row-safe:hover {
+      background: rgba(34, 197, 94, 0.08);
+      border-left-color: #22c55e;
+    }
+  }
+
+  /* 6. ADB Copy-to-Clipboard Morph */
+  .kao-code-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-md);
+    padding: 8px 10px 8px 14px;
+  }
+
+  .kao-code-wrap .kao-code {
+    flex: 1;
+    border: none;
+    padding: 0;
+    background: transparent;
+  }
+
+  .kao-copy-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 11px;
+    border-radius: 999px;
+    border: 1px solid var(--outline);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.76rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition-property: background-color, border-color, color, transform;
+    transition-duration: 150ms;
+  }
+
+  .kao-copy-icon {
+    display: inline-flex;
+    transition-property: opacity, transform;
+    transition-duration: 300ms;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .kao-icon-done {
+    position: absolute;
+    left: 11px;
+    opacity: 0;
+    transform: scale(0.25);
+    color: #4ade80;
+  }
+
+  .kao-copy-btn.is-copied {
+    border-color: rgba(34, 197, 94, 0.55);
+    color: #4ade80;
+  }
+
+  .kao-copy-btn.is-copied .kao-icon-default {
+    opacity: 0;
+    transform: scale(0.25);
+  }
+
+  .kao-copy-btn.is-copied .kao-icon-done {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .kao-copy-btn:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+
+  /* 10. Floating Quick-Jump Pill */
+  .kao-quick-jump {
+    position: fixed;
+    left: 20px;
+    bottom: 20px;
+    z-index: 40;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: #dc2626;
+    color: #fff;
+    border: 1px solid #ef4444;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 10px 26px rgba(220, 38, 38, 0.35);
+    transition-property: transform, background-color, opacity;
+    transition-duration: 180ms;
+    transition-timing-function: ease-out;
+  }
+
+  @media (hover: hover) {
+    .kao-quick-jump:hover {
+      background: #b91c1c;
+    }
+  }
+
+  .kao-quick-jump:active:not(:disabled) {
+    transform: scale(0.96);
+  }
 </style>
+
+<script is:inline>
+  (function () {
+    // 2. Live Countdown to Jan 1, 2027
+    var cdEl = document.getElementById('kao-global-countdown');
+    if (cdEl) {
+      function updateCountdown() {
+        var diff = Date.UTC(2027, 0, 1, 0, 0, 0) - Date.now();
+        if (diff <= 0) {
+          cdEl.innerHTML =
+            '<span class="i18n-en">Global Rollout: Active</span><span class="i18n-de">Globaler Rollout: Aktiv</span>';
+          return;
+        }
+        var days = Math.floor(diff / 86400000);
+        var hrs = Math.floor((diff % 86400000) / 3600000);
+        cdEl.innerHTML =
+          '<span class="i18n-en">Global Rollout in ' + days + 'd ' + hrs + 'h</span>' +
+          '<span class="i18n-de">Globaler Rollout in ' + days + 'T ' + hrs + 'Std.</span>';
+      }
+      updateCountdown();
+      setInterval(updateCountdown, 60000);
+    }
+
+    // 5. Spotlight cursor tracking on fact cards
+    document.querySelectorAll('.kao-spotlight').forEach(function (card) {
+      card.addEventListener('pointermove', function (e) {
+        var r = card.getBoundingClientRect();
+        card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+        card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+      });
+    });
+
+    // 9. Staggered Scroll-Reveal for danger cards
+    var dangerItems = document.querySelectorAll('.kao-danger-item');
+    if ('IntersectionObserver' in window && dangerItems.length) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            io.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15 });
+      dangerItems.forEach(function (item) { io.observe(item); });
+    } else {
+      dangerItems.forEach(function (item) { item.classList.add('is-visible'); });
+    }
+
+    // 3. Interactive 4-Step Checklist
+    var STORAGE_KEY = 'apkup-24h-steps-v1';
+    var stepsList = document.getElementById('kao-steps-list');
+    var countEl = document.getElementById('kao-steps-count');
+    var fillEl = document.getElementById('kao-steps-fill');
+    if (stepsList) {
+      var saved = [];
+      try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch (e) {}
+      if (!Array.isArray(saved) || saved.length !== 4) saved = [false, false, false, false];
+      var items = stepsList.querySelectorAll('li[data-step-idx]');
+
+      function renderSteps() {
+        var doneCount = 0;
+        items.forEach(function (li, i) {
+          var isDone = !!saved[i];
+          if (isDone) doneCount++;
+          li.classList.toggle('is-done', isDone);
+          li.setAttribute('aria-checked', isDone ? 'true' : 'false');
+        });
+        if (countEl) countEl.textContent = doneCount + ' / 4';
+        if (fillEl) fillEl.style.width = (doneCount * 25) + '%';
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch (e) {}
+      }
+
+      items.forEach(function (li, i) {
+        function toggle() {
+          saved[i] = !saved[i];
+          renderSteps();
+        }
+        li.addEventListener('click', toggle);
+        li.addEventListener('keydown', function (e) {
+          if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault();
+            toggle();
+          }
+        });
+      });
+      renderSteps();
+    }
+
+    // 7. 7-Day Trap Mini-Simulation
+    var sim = document.getElementById('kao-trap-sim');
+    var simResult = document.getElementById('kao-trap-result');
+    if (sim && simResult) {
+      sim.querySelectorAll('.kao-trap-tab').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var mode = btn.getAttribute('data-trap-mode');
+          sim.querySelectorAll('.kao-trap-tab').forEach(function (b) {
+            var active = b === btn;
+            b.classList.toggle('is-active', active);
+            b.setAttribute('aria-selected', active ? 'true' : 'false');
+          });
+          if (mode === 'forever') {
+            simResult.classList.remove('is-bad');
+            simResult.classList.add('is-good');
+            simResult.innerHTML =
+              '<span class="i18n-en">Day 1 → Day 365+: ✓ Permanently unlocked (no repeat 24h wait!)</span>' +
+              '<span class="i18n-de">Tag 1 → Tag 365+: ✓ Dauerhaft freigeschaltet (nie wieder 24h warten!)</span>';
+          } else {
+            simResult.classList.remove('is-good');
+            simResult.classList.add('is-bad');
+            simResult.innerHTML =
+              '<span class="i18n-en">Day 1–7: Allowed → Day 8: ✕ Auto-locked again (+24h new wait!)</span>' +
+              '<span class="i18n-de">Tag 1–7: Erlaubt → Tag 8: ✕ Automatisch wieder gesperrt (+24h Wartezeit!)</span>';
+          }
+        });
+      });
+    }
+
+    // 6. ADB Copy-to-Clipboard Morph
+    var copyBtn = document.getElementById('kao-copy-adb');
+    if (copyBtn) {
+      var copyTimer = null;
+      copyBtn.addEventListener('click', function () {
+        navigator.clipboard && navigator.clipboard.writeText('adb install -r ApkUp.apk');
+        copyBtn.classList.add('is-copied');
+        clearTimeout(copyTimer);
+        copyTimer = setTimeout(function () {
+          copyBtn.classList.remove('is-copied');
+        }, 1800);
+      });
+    }
+
+    // 10. Floating Quick-Jump Pill
+    var heroEl = document.getElementById('kao-hero');
+    var stepsSection = document.getElementById('sl-lock-steps');
+    var jumpBtn = document.getElementById('kao-quick-jump');
+    if (heroEl && stepsSection && jumpBtn && 'IntersectionObserver' in window) {
+      var heroVisible = true;
+      var stepsVisible = false;
+      function syncJump() {
+        jumpBtn.hidden = heroVisible || stepsVisible;
+      }
+      new IntersectionObserver(function (e) {
+        heroVisible = e[0].isIntersecting;
+        syncJump();
+      }).observe(heroEl);
+      new IntersectionObserver(function (e) {
+        stepsVisible = e[0].isIntersecting;
+        syncJump();
+      }).observe(stepsSection);
+    }
+  })();
+</script>
