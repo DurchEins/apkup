@@ -1,4 +1,5 @@
 ---
+import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import BaseLayout from '../layouts/BaseLayout.astro';
@@ -21,8 +22,15 @@ interface MonthGroup {
   releases: ReleaseEntry[];
 }
 
-function parseChangelog(mdPath: string): MonthGroup[] {
-  const raw = readFileSync(mdPath, 'utf8');
+function loadReleasedMarkdown(relPath: string, repoRoot: string): string {
+  try {
+    return execSync(`git show main:${relPath}`, { cwd: repoRoot, encoding: 'utf8' });
+  } catch {
+    return readFileSync(join(repoRoot, relPath), 'utf8');
+  }
+}
+
+function parseChangelog(raw: string): MonthGroup[] {
   const lines = raw.split(/\r?\n/);
   const months: MonthGroup[] = [];
   let currentMonth: MonthGroup | null = null;
@@ -61,8 +69,8 @@ function parseChangelog(mdPath: string): MonthGroup[] {
 }
 
 const repoRoot = join(process.cwd(), '..');
-const enMonths = parseChangelog(join(repoRoot, 'app/src/main/assets/changelog/1.45_en.md'));
-const deMonths = parseChangelog(join(repoRoot, 'app/src/main/assets/changelog/1.45_de.md'));
+const enMonths = parseChangelog(loadReleasedMarkdown('app/src/main/assets/changelog/1.45_en.md', repoRoot));
+const deMonths = parseChangelog(loadReleasedMarkdown('app/src/main/assets/changelog/1.45_de.md', repoRoot));
 ---
 
 <BaseLayout title="Changelog — ApkUp">

@@ -1,5 +1,9 @@
 ---
 import { MIRRORS, SITE } from '../data/content';
+
+const base = import.meta.env.BASE_URL.endsWith('/')
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
 ---
 
 <section id="downloads" class="section downloads-section">
@@ -59,8 +63,9 @@ import { MIRRORS, SITE } from '../data/content';
           </svg>
           <span>QR-Code</span>
         </button>
-        <a class="btn btn-ghost" href={SITE.releasesUrl} target="_blank" rel="noopener noreferrer">
-          <span>SHA256</span>
+        <a class="btn btn-ghost" href={`${base}changelog/`}>
+          <span class="i18n-en">Changelog</span>
+          <span class="i18n-de">Neuerungen</span>
         </a>
       </div>
     </div>
