@@ -98,10 +98,16 @@ const PERMISSIONS = [
           </span>
         </p>
       </div>
-      <a class="btn btn-secondary" href={`${base}privacy/`}>
-        <span class="i18n-en">Full Privacy Policy</span>
-        <span class="i18n-de">Vollständige Datenschutzerklärung</span>
-      </a>
+      <div class="privacy-cta-group">
+        <a class="btn btn-secondary" href={`${base}privacy/`}>
+          <span class="i18n-en">Privacy Policy</span>
+          <span class="i18n-de">Datenschutzerklärung</span>
+        </a>
+        <a class="btn btn-secondary" href={`${base}security/`}>
+          <span class="i18n-en">Security Policy</span>
+          <span class="i18n-de">Sicherheitsarchitektur</span>
+        </a>
+      </div>
     </div>
 
     <div class="perm-list">
@@ -141,18 +147,30 @@ const PERMISSIONS = [
     margin-block-end: 28px;
   }
 
+  .privacy-cta-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
   .perm-list {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
-    gap: 14px;
+    columns: 2;
+    column-gap: 14px;
   }
 
   .perm-item {
+    break-inside: avoid;
+    margin-block-end: 14px;
     background: var(--surface-low);
     border: 1px solid var(--outline);
     border-radius: var(--radius-md);
     padding: 4px 18px;
+  }
+
+  @media (max-width: 820px) {
+    .perm-list {
+      columns: 1;
+    }
   }
 
   .perm-item[open] {

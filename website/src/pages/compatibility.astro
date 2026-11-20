@@ -2,17 +2,180 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
+
+const COMPARE_ROWS = [
+  {
+    en: 'Automatic discovery for already installed apps (zero manual URL setup)',
+    de: 'Automatische Update-Erkennung für installierte Apps (ohne manuelle URL-Pflege)',
+    apkup: '✓ 7 Sources',
+    obtainium: '✕ Manual URLs',
+    aurora: '✓ Play Only',
+    fdroid: '✓ F-Droid Only',
+  },
+  {
+    en: 'Anonymous Google Play Store delta updates (no Google account)',
+    de: 'Anonyme Google-Play-Store-Updates (ohne Google-Konto)',
+    apkup: '✓ Built-in',
+    obtainium: '✕ No',
+    aurora: '✓ Built-in',
+    fdroid: '✕ No',
+  },
+  {
+    en: 'Direct in-app APKMirror downloads & .apkm split-bundle extraction',
+    de: 'Direkter APKMirror-Download in der App & .apkm-Split-Entpackung',
+    apkup: '✓ Native + WebView',
+    obtainium: '◐ Track Only',
+    aurora: '✕ No',
+    fdroid: '✕ No',
+  },
+  {
+    en: 'F-Droid Index V2 incremental diffs (RFC 7396) & X.509 TOFU pinning',
+    de: 'Inkrementelle F-Droid-Index-V2-Diffs (RFC 7396) & TOFU-Zertifikats-Pinning',
+    apkup: '✓ Built-in',
+    obtainium: '◐ Basic Repo',
+    aurora: '✕ No',
+    fdroid: '✓ Built-in',
+  },
+  {
+    en: 'GitHub GraphQL batching, GitLab nested subgroups & Codeberg/Forgejo',
+    de: 'Gebündeltes GitHub-GraphQL, mehrstufige GitLab-Subgroups & Codeberg/Forgejo',
+    apkup: '✓ Full Support',
+    obtainium: '✓ REST / Custom',
+    aurora: '✕ No',
+    fdroid: '✕ No',
+  },
+  {
+    en: 'Drag-and-drop source priority & per-app source pinning with fallback',
+    de: 'Drag-and-Drop-Quellen-Priorität & festes App-Pinning samt Fallback',
+    apkup: '✓ Built-in',
+    obtainium: '✕ Single Source',
+    aurora: '✕ Single Source',
+    fdroid: '◐ Repo Priority',
+  },
+  {
+    en: 'Pre-install APK Signature Scheme v2/v3 mismatch & downgrade block',
+    de: 'Vorab-Prüfung der APK-Signatur (v2/v3) & Schutz vor Versions-Downgrades',
+    apkup: '✓ Cryptographic',
+    obtainium: '◐ OS Installer',
+    aurora: '◐ OS Installer',
+    fdroid: '✓ Repo Signed',
+  },
+  {
+    en: 'Automatic pre-update APK rollback backups (including split APKs)',
+    de: 'Automatische Rollback-Sicherungen vor jedem Update (inkl. Split-APKs)',
+    apkup: '✓ Up to 2 GB Local',
+    obtainium: '✕ No',
+    aurora: '✕ No',
+    fdroid: '✕ No',
+  },
+  {
+    en: 'Pre-install minSdk & CPU ABI compatibility guard',
+    de: 'Vorab-Kompatibilitätsprüfung auf Android-Mindestversion (minSdk) & CPU-ABI',
+    apkup: '✓ Built-in',
+    obtainium: '◐ Regex / Manual',
+    aurora: '✓ Device Profile',
+    fdroid: '✓ Index Metadata',
+  },
+  {
+    en: 'Silent background installations via Shizuku (no Root) & Root (su)',
+    de: 'Lautlose Hintergrund-Installation über Shizuku (ohne Root) & Root (su)',
+    apkup: '✓ Shizuku + su',
+    obtainium: '✓ Shizuku + su',
+    aurora: '✓ Shizuku + su',
+    fdroid: '✓ Privileged / Shizuku',
+  },
+  {
+    en: 'Configurable background quiet hours, active time windows & Wi-Fi/charging guards',
+    de: 'Ruhezeiten, aktive Zeitfenster sowie WLAN- und Lade-Schutzregeln',
+    apkup: '✓ Full Schedule',
+    obtainium: '◐ Basic Interval',
+    aurora: '◐ Basic Interval',
+    fdroid: '◐ Basic Interval',
+  },
+  {
+    en: 'Obtainium JSON import (with interactive preview) & export interoperability',
+    de: 'Obtainium-JSON-Import (mit interaktiver Vorschau) & Export-Kompatibilität',
+    apkup: '✓ 2-Way Sync',
+    obtainium: '✓ Native Format',
+    aurora: '✕ No',
+    fdroid: '✕ No',
+  },
+  {
+    en: 'Google Tink AES-256-GCM Keystore token encryption & host-isolated redirects',
+    de: 'Google Tink AES-256-GCM Token-Verschlüsselung & Host-Isolierung bei Redirects',
+    apkup: '✓ Hardware-Backed',
+    obtainium: '◐ Standard Prefs',
+    aurora: '◐ Standard Prefs',
+    fdroid: '✓ No Tokens Needed',
+  },
+];
 ---
 
-<BaseLayout title="Source & Obtainium Checker — ApkUp">
+<BaseLayout title="Source Checker & Comparison — ApkUp">
   <Navbar />
   <main id="main-content" class="section">
     <div class="container subpage-wrap">
+      <!-- PART 1: WHY APKUP COMPARISON TABLE (13 PROPERTIES) -->
+      <div id="comparison" class="compare-block">
+        <div class="section-header">
+          <h1 class="section-title">
+            <span class="i18n-en">Why ApkUp? Feature Comparison</span>
+            <span class="i18n-de">Warum ApkUp? Der ausführliche Vergleich</span>
+          </h1>
+          <p class="section-subtitle">
+            <span class="i18n-en">
+              How ApkUp compares across 13 technical capabilities against Obtainium, Aurora Store,
+              and F-Droid clients.
+            </span>
+            <span class="i18n-de">
+              Wie sich ApkUp in 13 konkreten Disziplinen gegenüber Obtainium, Aurora Store und
+              klassischen F-Droid-Clients unterscheidet.
+            </span>
+          </p>
+        </div>
+
+        <div class="compare-table-card">
+          <div class="compare-scroll">
+            <table class="compare-table">
+              <thead>
+                <tr>
+                  <th>
+                    <span class="i18n-en">Capability / Feature</span>
+                    <span class="i18n-de">Eigenschaft / Funktion</span>
+                  </th>
+                  <th class="is-apkup">ApkUp</th>
+                  <th>Obtainium</th>
+                  <th>Aurora Store</th>
+                  <th>F-Droid</th>
+                </tr>
+              </thead>
+              <tbody>
+                {
+                  COMPARE_ROWS.map((row) => (
+                    <tr>
+                      <td>
+                        <span class="i18n-en">{row.en}</span>
+                        <span class="i18n-de">{row.de}</span>
+                      </td>
+                      <td class="is-apkup mono">{row.apkup}</td>
+                      <td class="mono">{row.obtainium}</td>
+                      <td class="mono">{row.aurora}</td>
+                      <td class="mono">{row.fdroid}</td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PART 2: OBTAINIUM & SOURCE CHECKER -->
       <div class="section-header">
-        <h1 class="section-title">
-          <span class="i18n-en">Source &amp; Obtainium Checker</span>
-          <span class="i18n-de">Quellen- &amp; Obtainium-Check</span>
-        </h1>
+        <h2 class="section-title">
+          <span class="i18n-en">Obtainium &amp; Source Checker</span>
+          <span class="i18n-de">Quellen- &amp; Obtainium-JSON-Tester</span>
+        </h2>
         <p class="section-subtitle">
           <span class="i18n-en">
             100% offline in your browser — nothing is uploaded. Paste an Obtainium JSON export or
@@ -148,7 +311,52 @@ import Footer from '../components/Footer.astro';
 
 <style>
   .subpage-wrap {
-    max-width: 900px;
+    max-width: 1020px;
+  }
+
+  .compare-block {
+    margin-block-end: 56px;
+  }
+
+  .compare-table-card {
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-lg);
+    padding: 8px 18px;
+  }
+
+  .compare-scroll {
+    overflow-x: auto;
+  }
+
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: start;
+    font-size: 0.9rem;
+  }
+
+  .compare-table th,
+  .compare-table td {
+    padding: 13px 14px;
+    border-block-end: 1px solid var(--outline);
+  }
+
+  .compare-table tr:last-child td {
+    border-block-end: none;
+  }
+
+  .compare-table th {
+    font-size: 0.84rem;
+    color: var(--text-muted);
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .compare-table .is-apkup {
+    color: var(--accent);
+    font-weight: 700;
+    white-space: nowrap;
   }
 
   .compat-card {

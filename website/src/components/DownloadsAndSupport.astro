@@ -25,6 +25,30 @@ const base = import.meta.env.BASE_URL.endsWith('/')
       </p>
     </div>
 
+    <div class="req-strip">
+      <div class="req-items">
+        <div class="req-pill">
+          <span class="req-label">Android</span>
+          <strong class="mono">10.0 – 17 (API 29+)</strong>
+        </div>
+        <div class="req-pill">
+          <span class="req-label">ABIs</span>
+          <strong class="mono">arm64-v8a • armeabi-v7a • x86_64</strong>
+        </div>
+        <div class="req-pill">
+          <span class="req-label">
+            <span class="i18n-en">Silent Mode</span>
+            <span class="i18n-de">Hintergrund</span>
+          </span>
+          <strong class="mono">Optional Shizuku / Root (su)</strong>
+        </div>
+      </div>
+      <a class="btn btn-secondary req-compare-link" href={`${base}compatibility/#comparison`}>
+        <span class="i18n-en">Why ApkUp? Full Comparison →</span>
+        <span class="i18n-de">Warum ApkUp? Ausführlicher Vergleich →</span>
+      </a>
+    </div>
+
     <div class="primary-download-card">
       <div class="primary-info">
         <div class="primary-badges">
@@ -203,7 +227,7 @@ const base = import.meta.env.BASE_URL.endsWith('/')
           target="_blank"
           rel="noopener noreferrer"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="9" />
             <path d="M14.8 9a2.8 2.8 0 0 0-2.8-2 3 3 0 0 0 0 6 3 3 0 0 1 0 6 2.8 2.8 0 0 1-2.8-2" />
             <path d="M12 5v2m0 10v2" />
@@ -219,6 +243,37 @@ const base = import.meta.env.BASE_URL.endsWith('/')
   .downloads-section {
     background: var(--surface-low);
     border-block: 1px solid var(--outline);
+  }
+
+  .req-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px 22px;
+    border-radius: var(--radius-lg);
+    background: var(--bg);
+    border: 1px solid var(--outline);
+    margin-block-end: 18px;
+  }
+
+  .req-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+  }
+
+  .req-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.86rem;
+  }
+
+  .req-label {
+    color: var(--text-muted);
+    font-weight: 600;
   }
 
   .primary-download-card {

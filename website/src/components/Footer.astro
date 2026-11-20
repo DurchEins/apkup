@@ -9,8 +9,8 @@ const base = import.meta.env.BASE_URL.endsWith('/')
 <footer class="site-footer">
   <div class="container footer-inner">
     <div class="footer-brand">
-      <img src={`${base}assets/logo.png`} alt="" width="32" height="32" class="footer-icon" />
-      <div>
+      <img src={`${base}assets/logo.png`} alt="" width="34" height="34" class="footer-icon" />
+      <div class="footer-brand-text">
         <strong>ApkUp</strong>
         <p class="footer-copy">
           Copyright © 2026 DurchEins • GPL-3.0 •{' '}
@@ -31,8 +31,8 @@ const base = import.meta.env.BASE_URL.endsWith('/')
         <span class="i18n-de">Quellen-Check</span>
       </a>
       <a href={`${base}privacy/`}>Privacy</a>
+      <a href={`${base}security/`}>Security</a>
       <a href={SITE.repoUrl} target="_blank" rel="noopener noreferrer">GitHub</a>
-      <a href={SITE.securityUrl} target="_blank" rel="noopener noreferrer">Security</a>
       <a href={SITE.licenseUrl} target="_blank" rel="noopener noreferrer">GPL-3.0</a>
     </nav>
   </div>
@@ -42,25 +42,27 @@ const base = import.meta.env.BASE_URL.endsWith('/')
   .site-footer {
     border-block-start: 1px solid var(--outline);
     background: var(--surface-lowest);
-    padding-block: 32px;
+    padding-block: 36px;
   }
 
   .footer-inner {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 20px;
+    justify-content: center;
+    text-align: center;
+    gap: 18px;
   }
 
   .footer-brand {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
   }
 
   .footer-icon {
-    border-radius: 8px;
+    border-radius: 9px;
   }
 
   .footer-copy {
@@ -72,15 +74,16 @@ const base = import.meta.env.BASE_URL.endsWith('/')
   .footer-links {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px 18px;
+    justify-content: center;
+    gap: 8px 22px;
   }
 
   .footer-links a {
-    font-size: 0.9rem;
+    font-size: 0.92rem;
     font-weight: 600;
     color: var(--text-muted);
     text-decoration: none;
-    padding-block: 6px;
+    padding-block: 4px;
   }
 
   @media (hover: hover) {
