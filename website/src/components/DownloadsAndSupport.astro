@@ -79,6 +79,13 @@ const base = import.meta.env.BASE_URL.endsWith('/')
       </div>
     </div>
 
+    <div class="downloads-subpage-cta">
+      <a href={`${base}downloads/`} class="btn btn-secondary">
+        <span class="i18n-en">All Mirrors, SHA-256 &amp; Verification →</span>
+        <span class="i18n-de">Alle Mirrors, SHA-256 &amp; Prüfung →</span>
+      </a>
+    </div>
+
     <div class="mirrors-grid">
       {
         MIRRORS.map((mirror) => (
@@ -313,6 +320,12 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
+  }
+
+  .downloads-subpage-cta {
+    display: flex;
+    justify-content: center;
+    margin-block: 4px 20px;
   }
 
   .mirrors-grid {

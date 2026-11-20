@@ -351,6 +351,12 @@ button {
     gap: 12px;
   }
 
+  .downloads-subpage-cta {
+    display: flex;
+    justify-content: center;
+    margin-block: 4px 20px;
+  }
+
   .mirrors-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -1739,6 +1745,220 @@ button {
   .compat-err {
     color: var(--danger);
     margin: 0;
+  }
+
+/* src/pages/downloads.astro */
+.subpage-main {
+    padding-block: 48px 80px;
+  }
+
+  .subpage-header {
+    margin-bottom: 32px;
+    max-width: 760px;
+  }
+
+  .subpage-title {
+    margin-top: 14px;
+    font-size: clamp(1.9rem, 3.8vw, 2.7rem);
+    letter-spacing: -0.025em;
+  }
+
+  .subpage-lead {
+    margin-top: 10px;
+    color: var(--text-muted);
+    font-size: 1.02rem;
+    line-height: 1.6;
+  }
+
+  .dl-card,
+  .dl-verify-card {
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-lg);
+    padding: clamp(22px, 3vw, 32px);
+    margin-bottom: 24px;
+  }
+
+  .dl-card-top,
+  .dl-verify-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .dl-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  .dl-card h2,
+  .dl-verify-card h2,
+  .dl-section-head h2 {
+    font-size: 1.35rem;
+    margin: 0 0 8px;
+  }
+
+  .dl-subtext {
+    color: var(--text-muted);
+    font-size: 0.94rem;
+    margin: 0;
+    max-width: 68ch;
+  }
+
+  .dl-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .dl-specs-grid {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid var(--outline);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 14px;
+  }
+
+  .dl-spec-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.84rem;
+  }
+
+  .dl-spec-label {
+    color: var(--text-muted);
+    font-size: 0.76rem;
+  }
+
+  .dl-hash-box {
+    margin-top: 18px;
+    background: var(--bg);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+  }
+
+  .dl-hash-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .dl-hash-row code {
+    font-size: 0.82rem;
+    color: var(--accent);
+    word-break: break-all;
+    white-space: pre-wrap;
+  }
+
+  .dl-copy-btn {
+    min-height: 34px;
+    padding: 4px 12px;
+    font-size: 0.8rem;
+  }
+
+  .dl-cmd-grid {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+  }
+
+  .dl-cmd-box {
+    background: var(--bg);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .dl-cmd-label {
+    font-size: 0.74rem;
+    color: var(--text-muted);
+  }
+
+  .dl-cmd-box code {
+    font-size: 0.82rem;
+    word-break: break-all;
+  }
+
+  .dl-mirrors-section {
+    margin-top: 36px;
+  }
+
+  .dl-section-head {
+    margin-bottom: 18px;
+  }
+
+  .dl-mirrors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+  }
+
+  .dl-mirror-item {
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: border-color 150ms ease-out, transform 150ms ease-out;
+  }
+
+  .dl-mirror-item:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .dl-mirror-item.is-outdated {
+    opacity: 0.78;
+  }
+
+  .dl-mirror-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .dl-mirror-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .dl-mirror-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    flex-shrink: 0;
+  }
+
+  .dl-mirror-item p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+
+  .pill-warn {
+    background: rgba(239, 68, 68, 0.14);
+    color: #fca5a5;
+    border: 1px solid rgba(239, 68, 68, 0.35);
   }
 
 /* src/pages/privacy.astro */

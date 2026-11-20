@@ -32,7 +32,7 @@ const base = import.meta.env.BASE_URL.endsWith('/')
       </a>
       <a href={`${base}wiki/`}>Wiki</a>
       <a href={`${base}privacy/`}>Privacy</a>
-      <a href={`${base}#downloads`}>Downloads</a>
+      <a href={`${base}downloads/`}>Downloads</a>
     </nav>
 
     <div class="nav-actions">
@@ -87,7 +87,7 @@ const base = import.meta.env.BASE_URL.endsWith('/')
         </svg>
       </button>
 
-      <a class="btn btn-primary nav-cta" href={SITE.releasesUrl} data-apk-link>
+      <a class="btn btn-primary nav-cta" href={`${base}#downloads`}>
         <span class="i18n-en">Download</span>
         <span class="i18n-de">Herunterladen</span>
       </a>
