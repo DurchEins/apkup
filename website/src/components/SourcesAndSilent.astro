@@ -57,18 +57,18 @@ const base = import.meta.env.BASE_URL.endsWith('/')
           placeholder="https://github.com/owner/repo or https://gitlab.com/group/sub/repo"
           aria-label="Repository or store URL"
         />
+        <div class="quick-compat-presets">
+          <button type="button" class="preset-chip mono" data-preset-url="https://github.com/DurchEins/apkup">GitHub</button>
+          <button type="button" class="preset-chip mono" data-preset-url="https://gitlab.com/AuroraOSS/AuroraStore">GitLab</button>
+          <button type="button" class="preset-chip mono" data-preset-url="https://codeberg.org/Freeyourgadget/Gadgetbridge">Codeberg</button>
+          <button type="button" class="preset-chip mono" data-preset-url="https://apt.izzysoft.de/fdroid/repo">IzzyOnDroid</button>
+          <button type="button" class="preset-chip mono" data-preset-url="https://www.apkmirror.com/apk/google-inc/android-auto/">APKMirror</button>
+          <button type="button" class="preset-chip mono" data-preset-url="https://play.google.com/store/apps/details?id=org.thoughtcrime.securesms">Play Store</button>
+        </div>
         <a class="quick-compat-link" href={`${base}compatibility/#checker`}>
           <span class="i18n-en">Obtainium JSON Checker →</span>
           <span class="i18n-de">Obtainium-JSON-Tester →</span>
         </a>
-      </div>
-      <div class="quick-compat-presets">
-        <button type="button" class="preset-chip mono" data-preset-url="https://github.com/DurchEins/apkup">GitHub</button>
-        <button type="button" class="preset-chip mono" data-preset-url="https://gitlab.com/AuroraOSS/AuroraStore">GitLab</button>
-        <button type="button" class="preset-chip mono" data-preset-url="https://codeberg.org/Freeyourgadget/Gadgetbridge">Codeberg</button>
-        <button type="button" class="preset-chip mono" data-preset-url="https://apt.izzysoft.de/fdroid/repo">IzzyOnDroid</button>
-        <button type="button" class="preset-chip mono" data-preset-url="https://www.apkmirror.com/apk/google-inc/android-auto/">APKMirror</button>
-        <button type="button" class="preset-chip mono" data-preset-url="https://play.google.com/store/apps/details?id=org.thoughtcrime.securesms">Play Store</button>
       </div>
       <div class="quick-compat-result" id="quick-compat-result" role="status" hidden></div>
     </div>

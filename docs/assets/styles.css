@@ -550,6 +550,12 @@ button {
     max-width: 70ch;
   }
 
+  .faq-wiki-cta {
+    margin-block-start: 28px;
+    display: flex;
+    justify-content: center;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .faq-chevron {
       transition: none;
@@ -1604,15 +1610,33 @@ button {
 
   .compare-table {
     width: 100%;
+    table-layout: fixed;
     border-collapse: collapse;
     text-align: start;
-    font-size: 0.88rem;
+    font-size: 0.86rem;
+  }
+
+  .compare-table th:first-child,
+  .compare-table td:first-child {
+    width: 34%;
+  }
+
+  .compare-table th:nth-child(2),
+  .compare-table td:nth-child(2) {
+    width: 18%;
+  }
+
+  .compare-table th:nth-child(n + 3),
+  .compare-table td:nth-child(n + 3) {
+    width: 16%;
   }
 
   .compare-table th,
   .compare-table td {
-    padding: 13px 14px;
+    padding: 12px 10px;
     border-block-end: 1px solid var(--outline);
+    overflow-wrap: break-word;
+    vertical-align: top;
   }
 
   .compare-table tr:last-child td {
@@ -1620,16 +1644,21 @@ button {
   }
 
   .compare-table th {
-    font-size: 0.84rem;
+    font-size: 0.82rem;
     color: var(--text-muted);
     font-weight: 800;
-    white-space: nowrap;
   }
 
   .compare-table .is-apkup {
     color: var(--accent);
     font-weight: 700;
-    white-space: nowrap;
+  }
+
+  @media (max-width: 720px) {
+    .compare-table {
+      table-layout: auto;
+      min-width: 560px;
+    }
   }
 
   .compat-card {
@@ -1885,21 +1914,26 @@ button {
 
   .wiki-layout {
     display: grid;
-    grid-template-columns: 290px minmax(0, 1fr);
+    grid-template-columns: 280px minmax(0, 1fr);
     gap: 28px;
     align-items: start;
   }
 
-  .wiki-nav-card {
+  .wiki-sidebar {
     position: sticky;
     top: calc(var(--header-height) + 18px);
+    max-height: calc(100vh - var(--header-height) - 32px);
+    overflow-y: auto;
+  }
+
+  .wiki-nav-card {
     background: var(--surface-low);
     border: 1px solid var(--outline);
     border-radius: var(--radius-lg);
-    padding: 12px;
+    padding: 10px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
   }
 
   .wiki-tab-btn {
@@ -1908,14 +1942,15 @@ button {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    padding: 11px 14px;
-    border-radius: 14px;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: 12px;
     border: 1px solid transparent;
     background: transparent;
     color: var(--text-muted);
     font-weight: 600;
-    font-size: 0.87rem;
+    font-size: 0.83rem;
+    line-height: 1.3;
     transition: background-color 150ms ease-out, color 150ms ease-out;
   }
 
@@ -2141,8 +2176,9 @@ button {
     .wiki-layout {
       grid-template-columns: minmax(0, 1fr);
     }
-    .wiki-nav-card {
+    .wiki-sidebar {
       position: static;
+      max-height: none;
     }
     .wiki-cards-grid {
       grid-template-columns: minmax(0, 1fr);

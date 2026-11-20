@@ -437,15 +437,33 @@ const COMPARE_ROWS = [
 
   .compare-table {
     width: 100%;
+    table-layout: fixed;
     border-collapse: collapse;
     text-align: start;
-    font-size: 0.88rem;
+    font-size: 0.86rem;
+  }
+
+  .compare-table th:first-child,
+  .compare-table td:first-child {
+    width: 34%;
+  }
+
+  .compare-table th:nth-child(2),
+  .compare-table td:nth-child(2) {
+    width: 18%;
+  }
+
+  .compare-table th:nth-child(n + 3),
+  .compare-table td:nth-child(n + 3) {
+    width: 16%;
   }
 
   .compare-table th,
   .compare-table td {
-    padding: 13px 14px;
+    padding: 12px 10px;
     border-block-end: 1px solid var(--outline);
+    overflow-wrap: break-word;
+    vertical-align: top;
   }
 
   .compare-table tr:last-child td {
@@ -453,16 +471,21 @@ const COMPARE_ROWS = [
   }
 
   .compare-table th {
-    font-size: 0.84rem;
+    font-size: 0.82rem;
     color: var(--text-muted);
     font-weight: 800;
-    white-space: nowrap;
   }
 
   .compare-table .is-apkup {
     color: var(--accent);
     font-weight: 700;
-    white-space: nowrap;
+  }
+
+  @media (max-width: 720px) {
+    .compare-table {
+      table-layout: auto;
+      min-width: 560px;
+    }
   }
 
   .compat-card {
