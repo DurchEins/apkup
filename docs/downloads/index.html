@@ -388,6 +388,10 @@ const fallbackUrl = "https://github.com/DurchEins/apkup/releases/latest";
       }
     });
 
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeAllHelp();
+    });
+
     fetch('https://api.github.com/repos/DurchEins/apkup/releases/latest', {
       headers: { Accept: 'application/vnd.github+json' },
     })

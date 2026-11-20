@@ -739,7 +739,7 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
           data-placeholder-de="Alle 10 Anleitungen durchsuchen (englische Begriffe bevorzugt, z. B. Shizuku, Rollback, Verification, Token)…"
           aria-label="Search wiki guides"
         />
-        <span class="wiki-search-count mono" id="wiki-search-count" hidden></span>
+        <span class="wiki-search-count mono" id="wiki-search-count" aria-live="polite" hidden></span>
         <div class="wiki-search-nav" id="wiki-search-nav" hidden>
           <button type="button" id="wiki-search-prev" aria-label="Previous match" title="Previous (Shift+Enter)">▲</button>
           <button type="button" id="wiki-search-next" aria-label="Next match" title="Next (Enter)">▼</button>
@@ -1373,7 +1373,7 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
     background: transparent;
     color: var(--text);
     font: inherit;
-    font-size: 0.95rem;
+    font-size: 1rem;
     outline: none;
     min-width: 0;
   }
@@ -1606,7 +1606,7 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
   .wk-h2,
   .wk-h3,
   .wk-faq {
-    scroll-margin-block-start: calc(var(--header-height) + 20px);
+    scroll-margin-block-start: calc(var(--header-height) + 84px);
   }
 
   .wiki-tab-btn.is-active {
@@ -1637,7 +1637,7 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
     flex-direction: column;
     gap: 24px;
     min-width: 0;
-    scroll-margin-block-start: calc(var(--header-height) + 18px);
+    scroll-margin-block-start: calc(var(--header-height) + 84px);
   }
 
   .wk-full-section {
@@ -1858,7 +1858,7 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
   }
 
   .wiki-chapter-card {
-    scroll-margin-block-start: calc(var(--header-height) + 20px);
+    scroll-margin-block-start: calc(var(--header-height) + 84px);
     background: var(--surface-low);
     border: 1px solid var(--outline);
     border-radius: var(--radius-lg);
