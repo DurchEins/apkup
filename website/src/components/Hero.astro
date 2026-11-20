@@ -1,0 +1,258 @@
+---
+import { SITE } from '../data/content';
+
+const base = import.meta.env.BASE_URL.endsWith('/')
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+---
+
+<section id="top" class="hero">
+  <div class="container hero-grid">
+    <div class="hero-copy">
+      <div class="hero-badges">
+        <span class="pill-badge pill-amber mono" id="hero-version-pill">
+          v{SITE.fallbackVersion} ({SITE.fallbackBuild})
+        </span>
+        <span class="pill-badge pill-emerald">
+          <span class="i18n-en">GPL-3.0 Open Source</span>
+          <span class="i18n-de">GPL-3.0 Open Source</span>
+        </span>
+      </div>
+
+      <h1 class="hero-title">
+        <span class="i18n-en">Every Android app update. One privacy-first hub.</span>
+        <span class="i18n-de">Alle Android-App-Updates. Eine sichere App.</span>
+      </h1>
+
+      <p class="hero-lead">
+        <span class="i18n-en">
+          ApkUp discovers, verifies, and autonomously installs app updates across Google Play,
+          F-Droid Index V2, IzzyOnDroid, APKMirror, GitHub, GitLab, and Codeberg — with zero ads,
+          zero tracking, and silent Shizuku or Root background installs.
+        </span>
+        <span class="i18n-de">
+          ApkUp findet, prüft und installiert App-Updates über Google Play, F-Droid Index V2,
+          IzzyOnDroid, APKMirror, GitHub, GitLab und Codeberg – komplett werbefrei, ohne Tracking
+          und auf Wunsch lautlos im Hintergrund per Shizuku oder Root.
+        </span>
+      </p>
+
+      <div class="hero-actions">
+        <a class="btn btn-primary hero-download" href={SITE.releasesUrl} data-apk-link>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 3v12" />
+            <path d="m7 10 5 5 5-5" />
+            <path d="M5 21h14" />
+          </svg>
+          <span class="i18n-en" data-apk-label-en>Download APK (v{SITE.fallbackVersion})</span>
+          <span class="i18n-de" data-apk-label-de>APK laden (v{SITE.fallbackVersion})</span>
+        </a>
+
+        <a class="btn btn-secondary" href={SITE.wikiUrl} target="_blank" rel="noopener noreferrer">
+          <span class="i18n-en">Read the Wiki</span>
+          <span class="i18n-de">Wiki &amp; Anleitungen</span>
+        </a>
+
+        <a class="btn btn-ghost" href={SITE.repoUrl} target="_blank" rel="noopener noreferrer">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2Z" />
+          </svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+
+      <p class="hero-meta mono" id="hero-meta">
+        <span class="i18n-en">Android 10.0 – 17 (API 29+) • Verified SHA-256 • 9 Languages</span>
+        <span class="i18n-de">Android 10.0 – 17 (API 29+) • SHA-256-geprüft • 9 Sprachen</span>
+      </p>
+    </div>
+
+    <div class="hero-visual">
+      <div class="phone-frame">
+        <img
+          class="phone-screen i18n-en"
+          src={`${base}assets/screenshots/en/01_updates.png`}
+          alt="ApkUp Updates screen showing available app updates and batch install button"
+          width="360"
+          height="780"
+          loading="eager"
+          decoding="async"
+        />
+        <img
+          class="phone-screen i18n-de"
+          src={`${base}assets/screenshots/de/01_updates.png`}
+          alt="ApkUp-Update-Ansicht mit verfügbaren App-Updates und Sammel-Installation"
+          width="360"
+          height="780"
+          loading="eager"
+          decoding="async"
+        />
+      </div>
+    </div>
+  </div>
+
+  <div class="trust-strip">
+    <div class="container trust-grid">
+      <div class="trust-item">
+        <strong>100%</strong>
+        <span class="i18n-en">Zero Ads &amp; Zero Telemetry</span>
+        <span class="i18n-de">Werbefrei &amp; ohne Tracking</span>
+      </div>
+      <div class="trust-item">
+        <strong>7+</strong>
+        <span class="i18n-en">Independent Update Sources</span>
+        <span class="i18n-de">Unabhängige Update-Quellen</span>
+      </div>
+      <div class="trust-item">
+        <strong>v2 / v3</strong>
+        <span class="i18n-en">APK Signature Verification</span>
+        <span class="i18n-de">APK-Signaturprüfung</span>
+      </div>
+      <div class="trust-item">
+        <strong>AES-256</strong>
+        <span class="i18n-en">Google Tink Local Keystore</span>
+        <span class="i18n-de">Google-Tink-Verschlüsselung</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding-block-start: clamp(40px, 6vw, 76px);
+    padding-block-end: 0;
+    background:
+      radial-gradient(640px 420px at 82% 14%, rgba(245, 158, 11, 0.14), transparent 70%),
+      radial-gradient(520px 380px at 14% 72%, rgba(110, 231, 183, 0.08), transparent 70%);
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    align-items: center;
+    gap: clamp(32px, 5vw, 64px);
+    padding-block-end: clamp(44px, 6vw, 72px);
+  }
+
+  .hero-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-block-end: 20px;
+  }
+
+  .hero-title {
+    margin: 0 0 18px;
+    font-size: clamp(2.15rem, 4.4vw, 3.6rem);
+    font-weight: 800;
+    line-height: 1.07;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  .hero-lead {
+    margin: 0 0 28px;
+    max-width: 60ch;
+    color: var(--text-muted);
+    font-size: clamp(1.03rem, 1.4vw, 1.18rem);
+    line-height: 1.6;
+    text-wrap: pretty;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-block-end: 18px;
+  }
+
+  .hero-meta {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.84rem;
+  }
+
+  .hero-visual {
+    display: flex;
+    justify-content: center;
+  }
+
+  .phone-frame {
+    width: min(320px, 84vw);
+    padding: 10px;
+    border-radius: 34px;
+    background: var(--surface-low);
+    border: 1px solid var(--outline-strong);
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .phone-screen {
+    width: 100%;
+    border-radius: 24px;
+    outline: 1px solid var(--img-ring);
+    outline-offset: -1px;
+  }
+
+  .trust-strip {
+    border-block: 1px solid var(--outline);
+    background: var(--surface-low);
+    padding-block: 22px;
+  }
+
+  .trust-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px 24px;
+  }
+
+  .trust-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .trust-item strong {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .trust-item span {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  @media (max-width: 920px) {
+    .hero-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .trust-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 480px) {
+    .trust-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="ApkUp — Multi-Source Android App Updater">
+  <defs>
+    <radialGradient id="amberGlow" cx="78%" cy="22%" r="55%">
+      <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.22" />
+      <stop offset="100%" stop-color="#121316" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="emeraldGlow" cx="15%" cy="85%" r="45%">
+      <stop offset="0%" stop-color="#6EE7B7" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#121316" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#121316" />
+  <rect width="1200" height="630" fill="url(#amberGlow)" />
+  <rect width="1200" height="630" fill="url(#emeraldGlow)" />
+  <rect x="64" y="64" width="1072" height="502" rx="32" fill="#181A1F" stroke="#2A2E37" stroke-width="2" />
+  <rect x="116" y="128" width="96" height="96" rx="26" fill="#20232A" stroke="#F59E0B" stroke-opacity="0.45" stroke-width="2" />
+  <path d="M164 150 L186 172 L176 172 L176 202 L152 202 L152 172 L142 172 Z" fill="#F59E0B" />
+  <text x="236" y="178" fill="#F3F4F6" font-family="system-ui, -apple-system, sans-serif" font-size="44" font-weight="800">ApkUp</text>
+  <text x="236" y="214" fill="#F59E0B" font-family="monospace" font-size="22" font-weight="700">v1.45.0 • Android 10–17 • GPL-3.0</text>
+  <text x="116" y="308" fill="#F3F4F6" font-family="system-ui, -apple-system, sans-serif" font-size="52" font-weight="800">Every Android app update.</text>
+  <text x="116" y="370" fill="#F3F4F6" font-family="system-ui, -apple-system, sans-serif" font-size="52" font-weight="800">One privacy-first hub.</text>
+  <text x="116" y="438" fill="#9CA3AF" font-family="system-ui, -apple-system, sans-serif" font-size="26" font-weight="500">GitHub • GitLab • Codeberg • F-Droid Index V2 • IzzyOnDroid • APKMirror • Play Store</text>
+  <rect x="116" y="482" width="228" height="44" rx="22" fill="#064E3B" />
+  <text x="142" y="511" fill="#D1FAE5" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="700">Shizuku &amp; Root Ready</text>
+  <rect x="364" y="482" width="240" height="44" rx="22" fill="#4D2800" />
+  <text x="392" y="511" fill="#FDE68A" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="700">Zero Ads • Zero Tracking</text>
+</svg>

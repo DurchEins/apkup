@@ -1,0 +1,247 @@
+---
+import { SOURCES, SITE } from '../data/content';
+---
+
+<section id="sources" class="section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">
+        <span class="i18n-en">All your app sources, unified &amp; prioritized</span>
+        <span class="i18n-de">Alle Update-Quellen, vereint &amp; priorisiert</span>
+      </h2>
+      <p class="section-subtitle">
+        <span class="i18n-en">
+          First-launch source consent guarantees zero external requests until you pick what to
+          enable. Reorder priorities globally or pin individual apps.
+        </span>
+        <span class="i18n-de">
+          Durch die bewusste Quellenauswahl beim Erststart sendet ApkUp keine Anfragen ohne deine
+          Zustimmung. Prioritäten lassen sich global sortieren oder pro App festpinnen.
+        </span>
+      </p>
+    </div>
+
+    <div class="sources-grid">
+      {
+        SOURCES.map((source) => (
+          <article class="source-card">
+            <div class="source-top">
+              <h3>{source.name}</h3>
+              <span class="pill-badge pill-neutral mono">{source.tag}</span>
+            </div>
+            <p>
+              <span class="i18n-en">{source.en}</span>
+              <span class="i18n-de">{source.de}</span>
+            </p>
+          </article>
+        ))
+      }
+    </div>
+
+    <div class="silent-box">
+      <div class="silent-intro">
+        <span class="pill-badge pill-emerald">
+          <span class="i18n-en">No Root Required</span>
+          <span class="i18n-de">Kein Root erforderlich</span>
+        </span>
+        <h3>
+          <span class="i18n-en">How silent background updates work with Shizuku</span>
+          <span class="i18n-de">So funktionieren lautlose Hintergrund-Updates mit Shizuku</span>
+        </h3>
+        <p>
+          <span class="i18n-en">
+            Skip repetitive Android install prompts. Pair ApkUp with Shizuku once (or use optional
+            Root su), set your Wi-Fi and charging rules, and let verified updates install silently.
+          </span>
+          <span class="i18n-de">
+            Schluss mit ständigen Installations-Dialogen. Kopple ApkUp einmalig mit Shizuku (oder
+            nutze optionales Root su), wähle deine WLAN- und Lade-Regeln – fertig.
+          </span>
+        </p>
+        <a
+          class="btn btn-secondary"
+          href={`${SITE.wikiUrl}/Setting-up-Shizuku`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span class="i18n-en">Shizuku Setup Guide</span>
+          <span class="i18n-de">Shizuku-Anleitung im Wiki</span>
+        </a>
+      </div>
+
+      <ol class="silent-steps">
+        <li>
+          <span class="step-num mono">01</span>
+          <div>
+            <h4>
+              <span class="i18n-en">Start Shizuku via Wireless Debugging</span>
+              <span class="i18n-de">Shizuku per Wireless Debugging starten</span>
+            </h4>
+            <p>
+              <span class="i18n-en">
+                Enable Shizuku on Android 11+ in under a minute without unlocking your bootloader.
+              </span>
+              <span class="i18n-de">
+                Aktiviere Shizuku ab Android 11 in unter einer Minute – ganz ohne Bootloader-Unlock.
+              </span>
+            </p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num mono">02</span>
+          <div>
+            <h4>
+              <span class="i18n-en">Grant ApkUp permission &amp; set guards</span>
+              <span class="i18n-de">Berechtigung erteilen &amp; Regeln setzen</span>
+            </h4>
+            <p>
+              <span class="i18n-en">
+                Toggle silent updates in Setup and configure Wi-Fi-only, charging-only, and quiet
+                hours.
+              </span>
+              <span class="i18n-de">
+                Aktiviere Hintergrund-Updates im Setup und lege WLAN-, Lade- sowie Ruhezeit-Regeln
+                fest.
+              </span>
+            </p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num mono">03</span>
+          <div>
+            <h4>
+              <span class="i18n-en">Verified auto-install with rollback safety</span>
+              <span class="i18n-de">Verifizierte Installation samt Rollback-Schutz</span>
+            </h4>
+            <p>
+              <span class="i18n-en">
+                Every APK passes v2/v3 signature and compatibility checks first, with optional
+                pre-update backup.
+              </span>
+              <span class="i18n-de">
+                Jede APK durchläuft zuerst Signatur- und Kompatibilitätsprüfungen – auf Wunsch mit
+                Backup vorab.
+              </span>
+            </p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<style>
+  .sources-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-block-end: 40px;
+  }
+
+  .source-card {
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-md);
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .source-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .source-card h3 {
+    margin: 0;
+    font-size: 1.08rem;
+    font-weight: 700;
+  }
+
+  .source-card p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.93rem;
+    line-height: 1.55;
+  }
+
+  .silent-box {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    gap: clamp(24px, 4vw, 48px);
+    align-items: center;
+    background: var(--surface-low);
+    border: 1px solid var(--outline-strong);
+    border-radius: var(--radius-lg);
+    padding: clamp(24px, 4vw, 40px);
+  }
+
+  .silent-intro h3 {
+    margin: 14px 0 12px;
+    font-size: clamp(1.35rem, 2.2vw, 1.75rem);
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  .silent-intro p {
+    margin: 0 0 22px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .silent-steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .silent-steps li {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+    padding: 16px;
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    border: 1px solid var(--outline);
+  }
+
+  .step-num {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    background: var(--tertiary-soft);
+    color: var(--tertiary-soft-ink);
+    font-weight: 700;
+    font-size: 0.92rem;
+  }
+
+  .silent-steps h4 {
+    margin: 0 0 4px;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .silent-steps p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 900px) {
+    .silent-box {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

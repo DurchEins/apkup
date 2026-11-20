@@ -1,0 +1,131 @@
+---
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'ApkUp — Multi-Source Android App Updater',
+  description = 'Open-source, privacy-first Android app updater for Google Play, F-Droid Index V2, IzzyOnDroid, APKMirror, GitHub, GitLab & Codeberg with Shizuku silent background updates.',
+} = Astro.props;
+
+const base = import.meta.env.BASE_URL.endsWith('/')
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+const canonical = new URL(base, Astro.site).toString();
+const ogImage = new URL(`${base}og-card.svg`, Astro.site).toString();
+---
+
+<!doctype html>
+<html lang="en" data-theme="dark" data-lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#121316" id="meta-theme-color" />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/png" href={`${base}assets/logo.png`} />
+    <link rel="apple-touch-icon" href={`${base}assets/logo.png`} />
+    <link rel="stylesheet" href={`${base}assets/styles.css`} />
+
+    <!-- OpenGraph & Social -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- Google Fonts CDN (Plus Jakarta Sans + JetBrains Mono) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Prevent theme/lang flash before first paint -->
+    <script is:inline>
+      (function () {
+        try {
+          var savedTheme = localStorage.getItem('apkup-theme');
+          var theme = savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : 'dark';
+          document.documentElement.setAttribute('data-theme', theme);
+          var meta = document.getElementById('meta-theme-color');
+          if (meta) meta.setAttribute('content', theme === 'light' ? '#F4F1EA' : '#121316');
+
+          var savedLang = localStorage.getItem('apkup-lang');
+          var lang = savedLang === 'de' || savedLang === 'en' ? savedLang : 'en';
+          document.documentElement.setAttribute('data-lang', lang);
+          document.documentElement.setAttribute('lang', lang);
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">
+      <span class="i18n-en">Skip to main content</span>
+      <span class="i18n-de">Zum Hauptinhalt springen</span>
+    </a>
+
+    <slot />
+
+    <script is:inline>
+      (function () {
+        var root = document.documentElement;
+        var themeBtn = document.getElementById('theme-toggle');
+        var langBtn = document.getElementById('lang-toggle');
+
+        function applyTheme(next) {
+          root.classList.add('theme-switching');
+          root.setAttribute('data-theme', next);
+          var meta = document.getElementById('meta-theme-color');
+          if (meta) meta.setAttribute('content', next === 'light' ? '#F4F1EA' : '#121316');
+          try {
+            localStorage.setItem('apkup-theme', next);
+          } catch (e) {}
+          if (themeBtn) {
+            themeBtn.setAttribute('aria-pressed', String(next === 'light'));
+          }
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+              root.classList.remove('theme-switching');
+            });
+          });
+        }
+
+        function applyLang(next) {
+          root.setAttribute('data-lang', next);
+          root.setAttribute('lang', next);
+          try {
+            localStorage.setItem('apkup-lang', next);
+          } catch (e) {}
+          if (langBtn) {
+            langBtn.setAttribute('aria-pressed', String(next === 'de'));
+          }
+          window.dispatchEvent(new CustomEvent('apkup:langchange', { detail: { lang: next } }));
+        }
+
+        if (themeBtn) {
+          themeBtn.setAttribute('aria-pressed', String(root.getAttribute('data-theme') === 'light'));
+          themeBtn.addEventListener('click', function () {
+            var current = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+          });
+        }
+
+        if (langBtn) {
+          langBtn.setAttribute('aria-pressed', String(root.getAttribute('data-lang') === 'de'));
+          langBtn.addEventListener('click', function () {
+            var current = root.getAttribute('data-lang') === 'de' ? 'de' : 'en';
+            applyLang(current === 'en' ? 'de' : 'en');
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>

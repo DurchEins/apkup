@@ -1,0 +1,91 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Hero from '../components/Hero.astro';
+import FeatureBento from '../components/FeatureBento.astro';
+import ScreenShowcase from '../components/ScreenShowcase.astro';
+import SourcesAndSilent from '../components/SourcesAndSilent.astro';
+import DownloadsAndSupport from '../components/DownloadsAndSupport.astro';
+import FaqAndFooter from '../components/FaqAndFooter.astro';
+---
+
+<BaseLayout>
+  <Navbar />
+  <main id="main-content">
+    <Hero />
+    <FeatureBento />
+    <ScreenShowcase />
+    <SourcesAndSilent />
+    <DownloadsAndSupport />
+    <FaqAndFooter />
+  </main>
+
+  <script is:inline>
+    (function () {
+      var CACHE_KEY = 'apkup-latest-release-v1';
+      var API_URL = 'https://api.github.com/repos/DurchEins/apkup/releases/latest';
+
+      function applyRelease(data) {
+        if (!data || !data.version) return;
+        var links = document.querySelectorAll('[data-apk-link]');
+        var enLabels = document.querySelectorAll('[data-apk-label-en]');
+        var deLabels = document.querySelectorAll('[data-apk-label-de]');
+        var heroPill = document.getElementById('hero-version-pill');
+        var dlBadge = document.getElementById('dl-version-badge');
+
+        if (data.apkUrl) {
+          links.forEach(function (el) {
+            el.setAttribute('href', data.apkUrl);
+          });
+        }
+        enLabels.forEach(function (el) {
+          el.textContent = 'Download APK (' + data.version + (data.sizeMb ? ' • ' + data.sizeMb + ' MB' : '') + ')';
+        });
+        deLabels.forEach(function (el) {
+          el.textContent = 'APK laden (' + data.version + (data.sizeMb ? ' • ' + data.sizeMb + ' MB' : '') + ')';
+        });
+        if (heroPill) heroPill.textContent = data.version;
+        if (dlBadge) dlBadge.textContent = data.version;
+      }
+
+      try {
+        var cached = sessionStorage.getItem(CACHE_KEY);
+        if (cached) {
+          var parsed = JSON.parse(cached);
+          if (parsed && Date.now() - parsed.ts < 15 * 60 * 1000) {
+            applyRelease(parsed);
+            return;
+          }
+        }
+      } catch (e) {}
+
+      fetch(API_URL, { headers: { Accept: 'application/vnd.github+json' } })
+        .then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json();
+        })
+        .then(function (release) {
+          var version = release.tag_name || '';
+          var apkAsset = null;
+          if (Array.isArray(release.assets)) {
+            apkAsset = release.assets.find(function (a) {
+              return typeof a.name === 'string' && a.name.toLowerCase().endsWith('.apk');
+            });
+          }
+          var payload = {
+            ts: Date.now(),
+            version: version.startsWith('v') ? version : 'v' + version,
+            apkUrl: apkAsset ? apkAsset.browser_download_url : release.html_url,
+            sizeMb: apkAsset && apkAsset.size ? (apkAsset.size / (1024 * 1024)).toFixed(1) : '',
+          };
+          try {
+            sessionStorage.setItem(CACHE_KEY, JSON.stringify(payload));
+          } catch (e) {}
+          applyRelease(payload);
+        })
+        .catch(function () {
+          // Graceful fallback to static /releases/latest already rendered in HTML
+        });
+    })();
+  </script>
+</BaseLayout>

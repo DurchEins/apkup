@@ -1,0 +1,214 @@
+---
+import { SITE } from '../data/content';
+
+const base = import.meta.env.BASE_URL.endsWith('/')
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+---
+
+<header class="site-header">
+  <div class="container nav-inner">
+    <a class="brand" href="#top" aria-label="ApkUp Home">
+      <img src={`${base}assets/logo.png`} alt="" width="36" height="36" class="brand-icon" />
+      <span class="brand-name">ApkUp</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary navigation">
+      <a href="#features">
+        <span class="i18n-en">Features</span>
+        <span class="i18n-de">Funktionen</span>
+      </a>
+      <a href="#showcase">
+        <span class="i18n-en">Showcase</span>
+        <span class="i18n-de">Einblicke</span>
+      </a>
+      <a href="#sources">
+        <span class="i18n-en">Sources</span>
+        <span class="i18n-de">Quellen</span>
+      </a>
+      <a href="#downloads">
+        <span class="i18n-en">Downloads</span>
+        <span class="i18n-de">Downloads</span>
+      </a>
+      <a href="#faq">FAQ</a>
+    </nav>
+
+    <div class="nav-actions">
+      <button
+        id="lang-toggle"
+        type="button"
+        class="icon-pill"
+        aria-label="Switch language between English and German"
+        title="EN / DE"
+      >
+        <span class="i18n-en">DE</span>
+        <span class="i18n-de">EN</span>
+      </button>
+
+      <button
+        id="theme-toggle"
+        type="button"
+        class="icon-pill icon-only"
+        aria-label="Toggle light and dark theme"
+        title="Toggle theme"
+      >
+        <!-- Sun icon (shown in dark mode to switch to light) -->
+        <svg
+          class="theme-icon-sun"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.75"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+        </svg>
+        <!-- Moon icon (shown in light mode to switch to dark) -->
+        <svg
+          class="theme-icon-moon"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.75"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+        </svg>
+      </button>
+
+      <a class="btn btn-primary nav-cta" href={SITE.releasesUrl} data-apk-link>
+        <span class="i18n-en">Download</span>
+        <span class="i18n-de">Laden</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 100;
+    height: var(--header-height);
+    background: var(--nav-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-block-end: 1px solid var(--outline);
+  }
+
+  .nav-inner {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    font-weight: 800;
+    font-size: 1.15rem;
+    letter-spacing: -0.02em;
+    flex-shrink: 0;
+  }
+
+  .brand-icon {
+    border-radius: 10px;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .nav-links a {
+    padding: 8px 14px;
+    border-radius: var(--radius-pill);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--text-muted);
+    transition: background-color 150ms ease-out, color 150ms ease-out;
+  }
+
+  @media (hover: hover) {
+    .nav-links a:hover {
+      background-color: var(--surface);
+      color: var(--text);
+    }
+  }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .icon-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    height: 44px;
+    padding-inline: 12px;
+    border-radius: var(--radius-pill);
+    background: var(--surface);
+    border: 1px solid var(--outline);
+    font-size: 0.85rem;
+    font-weight: 700;
+    transition: background-color 150ms ease-out, transform 150ms ease-out;
+  }
+
+  .icon-pill.icon-only {
+    padding-inline: 0;
+  }
+
+  .icon-pill:active {
+    transform: scale(0.96);
+  }
+
+  @media (hover: hover) {
+    .icon-pill:hover {
+      background: var(--surface-high);
+    }
+  }
+
+  [data-theme='dark'] .theme-icon-moon {
+    display: none;
+  }
+  [data-theme='light'] .theme-icon-sun {
+    display: none;
+  }
+
+  .nav-cta {
+    min-height: 44px;
+    padding: 10px 18px;
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 860px) {
+    .nav-links {
+      display: none;
+    }
+  }
+
+  @media (max-width: 400px) {
+    .nav-cta {
+      display: none;
+    }
+  }
+</style>

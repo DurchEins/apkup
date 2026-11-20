@@ -1,0 +1,14 @@
+{
+  "name": "apkup-website",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/build-css.mjs && astro dev",
+    "build": "node scripts/build-css.mjs && astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^5.7.10"
+  }
+}

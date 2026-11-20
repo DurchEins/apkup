@@ -1,0 +1,276 @@
+---
+import { SHOWCASE_SCREENS } from '../data/content';
+
+const base = import.meta.env.BASE_URL.endsWith('/')
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+---
+
+<section id="showcase" class="section showcase-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">
+        <span class="i18n-en">Designed for thumb-zone ergonomics</span>
+        <span class="i18n-de">Optimiert für einhändige Bedienung</span>
+      </h2>
+      <p class="section-subtitle">
+        <span class="i18n-en">
+          Explore the real app interface in English or German — switch screens below or toggle the
+          site language above.
+        </span>
+        <span class="i18n-de">
+          Entdecke die echte App-Oberfläche auf Deutsch oder Englisch – wähle unten einen Bereich
+          oder schalte oben die Sprache um.
+        </span>
+      </p>
+    </div>
+
+    <div class="showcase-shell">
+      <div class="showcase-controls">
+        <div class="tab-list" role="tablist" aria-label="App screenshots">
+          {
+            SHOWCASE_SCREENS.map((screen, idx) => (
+              <button
+                type="button"
+                role="tab"
+                class={`tab-btn ${idx === 0 ? 'is-active' : ''}`}
+                id={`tab-${screen.id}`}
+                aria-selected={idx === 0 ? 'true' : 'false'}
+                aria-controls={`panel-${screen.id}`}
+                tabindex={idx === 0 ? 0 : -1}
+                data-screen-tab={screen.id}
+              >
+                <span class="i18n-en">{screen.enLabel}</span>
+                <span class="i18n-de">{screen.deLabel}</span>
+              </button>
+            ))
+          }
+        </div>
+
+        <div class="showcase-panels">
+          {
+            SHOWCASE_SCREENS.map((screen, idx) => (
+              <div
+                id={`panel-${screen.id}`}
+                role="tabpanel"
+                aria-labelledby={`tab-${screen.id}`}
+                class={`tab-panel ${idx === 0 ? 'is-active' : ''}`}
+                hidden={idx !== 0}
+                data-screen-panel={screen.id}
+              >
+                <h3>
+                  <span class="i18n-en">{screen.enTitle}</span>
+                  <span class="i18n-de">{screen.deTitle}</span>
+                </h3>
+                <p>
+                  <span class="i18n-en">{screen.enDesc}</span>
+                  <span class="i18n-de">{screen.deDesc}</span>
+                </p>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+
+      <div class="showcase-device">
+        <div class="device-bezel">
+          {
+            SHOWCASE_SCREENS.map((screen, idx) => (
+              <div
+                class={`screen-slot ${idx === 0 ? 'is-active' : ''}`}
+                data-screen-media={screen.id}
+                hidden={idx !== 0}
+              >
+                <img
+                  class="i18n-en"
+                  src={`${base}${screen.enImg}`}
+                  alt={`ApkUp ${screen.enLabel} screen`}
+                  width="360"
+                  height="780"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <img
+                  class="i18n-de"
+                  src={`${base}${screen.deImg}`}
+                  alt={`ApkUp Ansicht ${screen.deLabel}`}
+                  width="360"
+                  height="780"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script is:inline>
+  (function () {
+    var tabs = Array.prototype.slice.call(document.querySelectorAll('[data-screen-tab]'));
+    var panels = Array.prototype.slice.call(document.querySelectorAll('[data-screen-panel]'));
+    var media = Array.prototype.slice.call(document.querySelectorAll('[data-screen-media]'));
+
+    if (!tabs.length) return;
+
+    function activate(id, focusTab) {
+      tabs.forEach(function (tab) {
+        var active = tab.getAttribute('data-screen-tab') === id;
+        tab.classList.toggle('is-active', active);
+        tab.setAttribute('aria-selected', String(active));
+        tab.setAttribute('tabindex', active ? '0' : '-1');
+        if (active && focusTab) tab.focus();
+      });
+
+      panels.forEach(function (panel) {
+        var active = panel.getAttribute('data-screen-panel') === id;
+        panel.classList.toggle('is-active', active);
+        panel.hidden = !active;
+      });
+
+      media.forEach(function (slot) {
+        var active = slot.getAttribute('data-screen-media') === id;
+        slot.classList.toggle('is-active', active);
+        slot.hidden = !active;
+      });
+    }
+
+    tabs.forEach(function (tab, index) {
+      tab.addEventListener('click', function () {
+        activate(tab.getAttribute('data-screen-tab'), false);
+      });
+
+      tab.addEventListener('keydown', function (e) {
+        var nextIndex = index;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          nextIndex = (index + 1) % tabs.length;
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          nextIndex = (index - 1 + tabs.length) % tabs.length;
+        } else if (e.key === 'Home') {
+          nextIndex = 0;
+        } else if (e.key === 'End') {
+          nextIndex = tabs.length - 1;
+        } else {
+          return;
+        }
+        e.preventDefault();
+        activate(tabs[nextIndex].getAttribute('data-screen-tab'), true);
+      });
+    });
+  })();
+</script>
+
+<style>
+  .showcase-section {
+    background: var(--surface-low);
+    border-block: 1px solid var(--outline);
+  }
+
+  .showcase-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    align-items: center;
+    gap: clamp(28px, 5vw, 56px);
+  }
+
+  .tab-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-block-end: 24px;
+  }
+
+  .tab-btn {
+    min-height: 44px;
+    padding: 10px 18px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--outline);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-weight: 700;
+    font-size: 0.9rem;
+    transition:
+      background-color 150ms ease-out,
+      color 150ms ease-out,
+      border-color 150ms ease-out,
+      transform 150ms ease-out;
+  }
+
+  .tab-btn:active {
+    transform: scale(0.96);
+  }
+
+  .tab-btn.is-active {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
+  }
+
+  @media (hover: hover) {
+    .tab-btn:not(.is-active):hover {
+      background: var(--surface-high);
+      color: var(--text);
+    }
+  }
+
+  .showcase-panels {
+    background: var(--bg);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-lg);
+    padding: clamp(22px, 3vw, 32px);
+  }
+
+  .tab-panel h3 {
+    margin: 0 0 12px;
+    font-size: clamp(1.25rem, 2vw, 1.6rem);
+    font-weight: 800;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+  }
+
+  .tab-panel p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.65;
+    text-wrap: pretty;
+  }
+
+  .showcase-device {
+    display: flex;
+    justify-content: center;
+  }
+
+  .device-bezel {
+    width: min(310px, 82vw);
+    padding: 10px;
+    border-radius: 34px;
+    background: var(--bg);
+    border: 1px solid var(--outline-strong);
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .screen-slot img {
+    width: 100%;
+    border-radius: 24px;
+    outline: 1px solid var(--img-ring);
+    outline-offset: -1px;
+  }
+
+  @media (max-width: 900px) {
+    .showcase-shell {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tab-btn,
+    .tab-btn:active {
+      transition: none;
+      transform: none;
+    }
+  }
+</style>
