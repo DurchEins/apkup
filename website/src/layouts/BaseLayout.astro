@@ -12,8 +12,8 @@ const {
 const base = import.meta.env.BASE_URL.endsWith('/')
   ? import.meta.env.BASE_URL
   : `${import.meta.env.BASE_URL}/`;
-const canonical = new URL(base, Astro.site).toString();
-const ogImage = new URL(`${base}og-card.svg`, Astro.site).toString();
+const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+const ogImage = new URL(`${base}og-card.png`, Astro.site).toString();
 ---
 
 <!doctype html>
@@ -35,6 +35,8 @@ const ogImage = new URL(`${base}og-card.svg`, Astro.site).toString();
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
@@ -125,6 +127,43 @@ const ogImage = new URL(`${base}og-card.svg`, Astro.site).toString();
             applyLang(current === 'en' ? 'de' : 'en');
           });
         }
+
+        function showCopied(btn) {
+          var lbl = btn.querySelector('[data-share-label]');
+          var copied = btn.querySelector('[data-share-copied]');
+          if (!lbl || !copied) return;
+          lbl.hidden = true;
+          copied.hidden = false;
+          clearTimeout(btn._shareTimer);
+          btn._shareTimer = setTimeout(function () {
+            lbl.hidden = false;
+            copied.hidden = true;
+          }, 2000);
+        }
+
+        document.querySelectorAll('[data-share-btn]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var isDe = root.getAttribute('data-lang') === 'de';
+            var shareUrl = window.location.origin + (window.location.pathname.indexOf('/apkup') === 0 ? '/apkup/' : '/');
+            var shareData = {
+              title: 'ApkUp — Multi-Source Android App Updater',
+              text: isDe
+                ? 'ApkUp: Open-Source Android App-Updater für Google Play, F-Droid, GitHub & mehr – werbefrei & mit Shizuku.'
+                : 'ApkUp: Open-source Android app updater for Google Play, F-Droid, GitHub & more — ad-free & Shizuku-ready.',
+              url: shareUrl
+            };
+            if (navigator.share) {
+              navigator.share(shareData).catch(function (err) {
+                if (err && err.name === 'AbortError') return;
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                  navigator.clipboard.writeText(shareUrl).then(function () { showCopied(btn); }).catch(function () {});
+                }
+              });
+            } else if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(shareUrl).then(function () { showCopied(btn); }).catch(function () {});
+            }
+          });
+        });
       })();
     </script>
   </body>

@@ -78,10 +78,33 @@ const base = import.meta.env.BASE_URL.endsWith('/')
           <span>QR-Code</span>
         </button>
 
-        <a class="btn btn-ghost" href={`${base}wiki/`}>
-          <span class="i18n-en">Wiki</span>
-          <span class="i18n-de">Wiki</span>
-        </a>
+        <button class="btn btn-ghost" type="button" data-share-btn>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="18" cy="5" r="3" />
+            <circle cx="6" cy="12" r="3" />
+            <circle cx="18" cy="19" r="3" />
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+          </svg>
+          <span data-share-label>
+            <span class="i18n-en">Share</span>
+            <span class="i18n-de">Teilen</span>
+          </span>
+          <span data-share-copied hidden>
+            <span class="i18n-en">Link copied!</span>
+            <span class="i18n-de">Link kopiert!</span>
+          </span>
+        </button>
       </div>
 
       <p class="hero-meta mono" id="hero-meta">

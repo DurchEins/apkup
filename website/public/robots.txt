@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://durcheins.github.io/apkup/sitemap.xml

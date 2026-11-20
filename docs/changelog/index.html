@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en" data-theme="dark" data-lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>What’s New? — ApkUp</title><meta name="description" content="Open-source, privacy-first Android app updater for Google Play, F-Droid Index V2, IzzyOnDroid, APKMirror, GitHub, GitLab &#38; Codeberg with Shizuku silent background updates."><meta name="theme-color" content="#121316" id="meta-theme-color"><link rel="canonical" href="https://durcheins.github.io/apkup/"><link rel="icon" type="image/png" href="/apkup/assets/logo.png"><link rel="apple-touch-icon" href="/apkup/assets/logo.png"><link rel="stylesheet" href="/apkup/assets/styles.css"><!-- OpenGraph & Social --><meta property="og:type" content="website"><meta property="og:url" content="https://durcheins.github.io/apkup/"><meta property="og:title" content="What’s New? — ApkUp"><meta property="og:description" content="Open-source, privacy-first Android app updater for Google Play, F-Droid Index V2, IzzyOnDroid, APKMirror, GitHub, GitLab &#38; Codeberg with Shizuku silent background updates."><meta property="og:image" content="https://durcheins.github.io/apkup/og-card.svg"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="What’s New? — ApkUp"><meta name="twitter:description" content="Open-source, privacy-first Android app updater for Google Play, F-Droid Index V2, IzzyOnDroid, APKMirror, GitHub, GitLab &#38; Codeberg with Shizuku silent background updates."><meta name="twitter:image" content="https://durcheins.github.io/apkup/og-card.svg"><!-- Google Fonts CDN (Plus Jakarta Sans + JetBrains Mono) --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"><!-- Prevent theme/lang flash before first paint --><script>
+<!DOCTYPE html><html lang="en" data-theme="dark" data-lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>What’s New? — ApkUp</title><meta name="description" content="Open-source, privacy-first Android app updater for Google Play, F-Droid Index V2, IzzyOnDroid, APKMirror, GitHub, GitLab &#38; Codeberg with Shizuku silent background updates."><meta name="theme-color" content="#121316" id="meta-theme-color"><link rel="canonical" href="https://durcheins.github.io/apkup/changelog/"><link rel="icon" type="image/png" href="/apkup/assets/logo.png"><link rel="apple-touch-icon" href="/apkup/assets/logo.png"><link rel="stylesheet" href="/apkup/assets/styles.css"><!-- OpenGraph & Social --><meta property="og:type" content="website"><meta property="og:url" content="https://durcheins.github.io/apkup/changelog/"><meta property="og:title" content="What’s New? — ApkUp"><meta property="og:description" content="Open-source, privacy-first Android app updater for Google Play, F-Droid Index V2, IzzyOnDroid, APKMirror, GitHub, GitLab &#38; Codeberg with Shizuku silent background updates."><meta property="og:image" content="https://durcheins.github.io/apkup/og-card.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="What’s New? — ApkUp"><meta name="twitter:description" content="Open-source, privacy-first Android app updater for Google Play, F-Droid Index V2, IzzyOnDroid, APKMirror, GitHub, GitLab &#38; Codeberg with Shizuku silent background updates."><meta name="twitter:image" content="https://durcheins.github.io/apkup/og-card.png"><!-- Google Fonts CDN (Plus Jakarta Sans + JetBrains Mono) --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"><!-- Prevent theme/lang flash before first paint --><script>
       (function () {
         try {
           var savedTheme = localStorage.getItem('apkup-theme');
@@ -71,5 +71,42 @@ Copyright © 2026 DurchEins • GPL-3.0 •  <span class="i18n-en" data-astro-ci
             applyLang(current === 'en' ? 'de' : 'en');
           });
         }
+
+        function showCopied(btn) {
+          var lbl = btn.querySelector('[data-share-label]');
+          var copied = btn.querySelector('[data-share-copied]');
+          if (!lbl || !copied) return;
+          lbl.hidden = true;
+          copied.hidden = false;
+          clearTimeout(btn._shareTimer);
+          btn._shareTimer = setTimeout(function () {
+            lbl.hidden = false;
+            copied.hidden = true;
+          }, 2000);
+        }
+
+        document.querySelectorAll('[data-share-btn]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var isDe = root.getAttribute('data-lang') === 'de';
+            var shareUrl = window.location.origin + (window.location.pathname.indexOf('/apkup') === 0 ? '/apkup/' : '/');
+            var shareData = {
+              title: 'ApkUp — Multi-Source Android App Updater',
+              text: isDe
+                ? 'ApkUp: Open-Source Android App-Updater für Google Play, F-Droid, GitHub & mehr – werbefrei & mit Shizuku.'
+                : 'ApkUp: Open-source Android app updater for Google Play, F-Droid, GitHub & more — ad-free & Shizuku-ready.',
+              url: shareUrl
+            };
+            if (navigator.share) {
+              navigator.share(shareData).catch(function (err) {
+                if (err && err.name === 'AbortError') return;
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                  navigator.clipboard.writeText(shareUrl).then(function () { showCopied(btn); }).catch(function () {});
+                }
+              });
+            } else if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(shareUrl).then(function () { showCopied(btn); }).catch(function () {});
+            }
+          });
+        });
       })();
     </script> </body> </html> 

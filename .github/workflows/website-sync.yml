@@ -11,6 +11,8 @@ on:
       - 'PRIVACY.md'
   release:
     types: [published]
+  schedule:
+    - cron: '0 4 * * *'
   workflow_dispatch:
 
 permissions:
@@ -32,6 +34,14 @@ jobs:
           cache: 'npm'
           cache-dependency-path: website/package-lock.json
 
+      - name: Sync GitHub Wiki markdown
+        run: |
+          git clone --depth=1 https://github.com/DurchEins/apkup.wiki.git /tmp/apkup-wiki || true
+          if [ -d /tmp/apkup-wiki ]; then
+            cp -f /tmp/apkup-wiki/*.md website/src/data/wiki/ 2>/dev/null || true
+            rm -rf /tmp/apkup-wiki
+          fi
+
       - name: Install dependencies & build docs/
         working-directory: website
         run: |
@@ -43,8 +53,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/
+          git add docs/ website/src/data/wiki/
           if ! git diff --cached --quiet; then
-            git commit -m "chore(website): auto-sync docs/ build"
+            git commit -m "chore(website): auto-sync wiki & docs/ build"
             git push
           fi
