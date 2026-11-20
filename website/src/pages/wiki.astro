@@ -739,6 +739,10 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
             aria-label="Search wiki guides"
           />
           <span class="wiki-search-count mono" id="wiki-search-count" hidden></span>
+          <div class="wiki-search-nav" id="wiki-search-nav" hidden>
+            <button type="button" id="wiki-search-prev" aria-label="Previous match" title="Previous (Shift+Enter)">▲</button>
+            <button type="button" id="wiki-search-next" aria-label="Next match" title="Next (Enter)">▼</button>
+          </div>
         </div>
       </div>
 
@@ -1031,49 +1035,186 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
       return terms;
     }
 
-    if (searchInput) {
-      syncSearchPlaceholder();
-      window.addEventListener('apkup:langchange', syncSearchPlaceholder);
+    var searchNav = document.getElementById('wiki-search-nav');
+    var prevBtn = document.getElementById('wiki-search-prev');
+    var nextBtn = document.getElementById('wiki-search-next');
+    var hits = [];
+    var currentHit = -1;
 
-      searchInput.addEventListener('input', function () {
-        var q = searchInput.value.trim().toLowerCase();
-        if (!q) {
-          if (searchCount) searchCount.hidden = true;
-          articles.forEach(function (art) {
-            art.hidden = false;
-          });
-          navGroups.forEach(function (grp) {
-            grp.hidden = false;
-          });
-          return;
-        }
-        var tokens = q.split(/\s+/).filter(Boolean);
-        var tokenGroups = tokens.map(expandToken);
-        var matches = 0;
-        var matchedSlugs = {};
-        articles.forEach(function (art) {
-          var text = (art.textContent || '').toLowerCase();
-          var hit = tokenGroups.every(function (group) {
-            return group.some(function (term) {
-              return text.indexOf(term) !== -1;
-            });
-          });
-          art.hidden = !hit;
-          if (hit) {
-            matches++;
-            var slug = art.getAttribute('data-wiki-article');
-            if (slug) matchedSlugs[slug] = true;
-          }
-        });
-        navGroups.forEach(function (grp) {
-          var gSlug = grp.getAttribute('data-wiki-group');
-          grp.hidden = gSlug ? !matchedSlugs[gSlug] : false;
-        });
-        if (searchCount) {
-          searchCount.hidden = false;
-          searchCount.textContent = matches + ' / ' + articles.length;
+    function escapeRegex(str) {
+      return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function clearHighlights() {
+      document.querySelectorAll('mark.wk-hit').forEach(function (mark) {
+        var parent = mark.parentNode;
+        if (!parent) return;
+        parent.replaceChild(document.createTextNode(mark.textContent || ''), mark);
+        parent.normalize();
+      });
+      hits = [];
+      currentHit = -1;
+    }
+
+    function isNodeVisible(node) {
+      var el = node.parentElement;
+      while (el && el !== document.body) {
+        var style = window.getComputedStyle(el);
+        if (style.display === 'none' || style.visibility === 'hidden') return false;
+        el = el.parentElement;
+      }
+      return true;
+    }
+
+    function highlightTerms(terms) {
+      var unique = [];
+      var seen = {};
+      terms.forEach(function (t) {
+        var clean = (t || '').trim().toLowerCase();
+        if (clean.length >= 2 && !seen[clean]) {
+          seen[clean] = true;
+          unique.push(clean);
         }
       });
+      if (unique.length === 0) return;
+      unique.sort(function (a, b) { return b.length - a.length; });
+      var regex = new RegExp('(' + unique.map(escapeRegex).join('|') + ')', 'gi');
+      var container = document.querySelector('.wiki-content');
+      if (!container) return;
+
+      var textNodes = [];
+      var walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
+        acceptNode: function (node) {
+          var p = node.parentElement;
+          if (!p) return NodeFilter.FILTER_REJECT;
+          var tag = p.tagName;
+          if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'BUTTON' || tag === 'MARK') {
+            return NodeFilter.FILTER_REJECT;
+          }
+          if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+          if (!isNodeVisible(node)) return NodeFilter.FILTER_REJECT;
+          return NodeFilter.FILTER_ACCEPT;
+        },
+      });
+      var n;
+      while ((n = walker.nextNode())) {
+        textNodes.push(n);
+      }
+
+      textNodes.forEach(function (node) {
+        var val = node.nodeValue || '';
+        regex.lastIndex = 0;
+        if (!regex.test(val)) return;
+        regex.lastIndex = 0;
+        var frag = document.createDocumentFragment();
+        var lastIdx = 0;
+        var m;
+        while ((m = regex.exec(val)) !== null) {
+          if (m.index > lastIdx) {
+            frag.appendChild(document.createTextNode(val.slice(lastIdx, m.index)));
+          }
+          var mark = document.createElement('mark');
+          mark.className = 'wk-hit';
+          mark.textContent = m[0];
+          frag.appendChild(mark);
+          hits.push(mark);
+          lastIdx = m.index + m[0].length;
+        }
+        if (lastIdx < val.length) {
+          frag.appendChild(document.createTextNode(val.slice(lastIdx)));
+        }
+        if (node.parentNode) node.parentNode.replaceChild(frag, node);
+      });
+    }
+
+    function jumpToHit(index) {
+      if (hits.length === 0) {
+        if (searchCount) searchCount.textContent = '0 / 0';
+        return;
+      }
+      if (currentHit >= 0 && hits[currentHit]) {
+        hits[currentHit].classList.remove('is-current');
+      }
+      currentHit = ((index % hits.length) + hits.length) % hits.length;
+      var target = hits[currentHit];
+      // Auto-open any collapsed <details> ancestor (e.g., FAQ items)
+      var el = target.parentElement;
+      while (el) {
+        if (el.tagName === 'DETAILS') el.open = true;
+        el = el.parentElement;
+      }
+      target.classList.add('is-current');
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (searchCount) {
+        searchCount.textContent = currentHit + 1 + ' / ' + hits.length;
+      }
+    }
+
+    function runWikiSearch(jumpFirst) {
+      if (!searchInput) return;
+      var q = searchInput.value.trim().toLowerCase();
+      clearHighlights();
+      if (!q || q.length < 2) {
+        if (searchCount) searchCount.hidden = true;
+        if (searchNav) searchNav.hidden = true;
+        return;
+      }
+      var tokens = q.split(/\s+/).filter(Boolean);
+      var allTerms = [];
+      tokens.forEach(function (t) {
+        allTerms = allTerms.concat(expandToken(t));
+      });
+      highlightTerms(allTerms);
+      if (searchCount) searchCount.hidden = false;
+      if (searchNav) searchNav.hidden = hits.length === 0;
+      if (hits.length > 0) {
+        if (jumpFirst) {
+          jumpToHit(0);
+        } else {
+          currentHit = 0;
+          hits[0].classList.add('is-current');
+          if (searchCount) searchCount.textContent = '1 / ' + hits.length;
+        }
+      } else if (searchCount) {
+        searchCount.textContent = '0 / 0';
+      }
+    }
+
+    if (searchInput) {
+      syncSearchPlaceholder();
+      window.addEventListener('apkup:langchange', function () {
+        syncSearchPlaceholder();
+        if (searchInput.value.trim().length >= 2) runWikiSearch(false);
+      });
+
+      var debounceTimer = null;
+      searchInput.addEventListener('input', function () {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(function () {
+          runWikiSearch(true);
+        }, 120);
+      });
+
+      searchInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (hits.length > 0) jumpToHit(currentHit + (e.shiftKey ? -1 : 1));
+        } else if (e.key === 'Escape') {
+          searchInput.value = '';
+          runWikiSearch(false);
+        }
+      });
+
+      if (prevBtn) {
+        prevBtn.addEventListener('click', function () {
+          if (hits.length > 0) jumpToHit(currentHit - 1);
+        });
+      }
+      if (nextBtn) {
+        nextBtn.addEventListener('click', function () {
+          if (hits.length > 0) jumpToHit(currentHit + 1);
+        });
+      }
     }
   })();
 </script>
@@ -1087,14 +1228,18 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
   }
 
   .wiki-search-bar {
+    position: sticky;
+    top: calc(var(--header-height) + 10px);
+    z-index: 30;
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 10px 18px;
+    gap: 10px;
+    padding: 10px 16px;
     border-radius: var(--radius-pill);
     background: var(--surface-low);
     border: 1px solid var(--outline-strong);
     color: var(--text-muted);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
   }
 
   .wiki-search-bar input {
@@ -1105,6 +1250,7 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
     font: inherit;
     font-size: 0.95rem;
     outline: none;
+    min-width: 0;
   }
 
   .wiki-search-count {
@@ -1114,6 +1260,47 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
     color: var(--accent-soft-ink);
     font-size: 0.78rem;
     font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .wiki-search-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .wiki-search-nav button {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    border: 1px solid var(--outline-strong);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.7rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color 140ms ease-out, color 140ms ease-out;
+  }
+
+  .wiki-search-nav button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  :global(mark.wk-hit) {
+    background: rgba(245, 158, 11, 0.28);
+    color: inherit;
+    border-radius: 4px;
+    padding: 0 2px;
+  }
+
+  :global(mark.wk-hit.is-current) {
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 700;
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.45);
   }
 
   .wiki-layout {
