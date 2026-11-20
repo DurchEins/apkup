@@ -48,7 +48,8 @@ const WIKI_ORDER = [
   { file: 'App-Management,-Filters,-Background-Checks-&-Backup.md', title: 'App Management, Filters, Background Checks & Backup' },
   { file: 'Troubleshooting-Source-Errors.md', title: 'Troubleshooting Source Errors & Error Codes' },
   { file: 'SHA-256-&-Signature-Verification.md', title: 'SHA-256 Checksums & APK Signature Verification' },
-  { file: 'Sideloading,-Unknown-Apps-&-Android-24h-Verification.md', title: 'Installing Unknown Apps, Sideloading & Google 24-Hour Verification Flow' },
+  { file: 'Installing-Unknown-Apps.md', title: 'Installing Unknown Apps on Android (Sideloading Guide)' },
+  { file: 'Google-24h-Lock-&-Keep-Android-Open.md', title: 'Google 24-Hour Sideloading Lock & Keep Android Open' },
 ];
 
 // 1. Build llms.txt (compact llmstxt.org-compliant directory)

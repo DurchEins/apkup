@@ -111,10 +111,13 @@ const base = import.meta.env.BASE_URL.endsWith('/')
         </div>
         <a
           class="btn btn-secondary"
-          href={`${base}wiki/#doc-shizuku`}
+          id="silent-wiki-btn"
+          href={`${base}wiki/#doc-shizuku-setup`}
+          data-shizuku-href={`${base}wiki/#doc-shizuku-setup`}
+          data-root-href={`${base}wiki/#doc-shizuku-deep`}
         >
-          <span class="i18n-en">Shizuku Setup Guide</span>
-          <span class="i18n-de">Shizuku-Anleitung im Wiki</span>
+          <span class="i18n-en" data-silent-btn-en>Shizuku Setup Guide</span>
+          <span class="i18n-de" data-silent-btn-de>Shizuku-Anleitung im Wiki</span>
         </a>
       </div>
 
@@ -237,6 +240,9 @@ const base = import.meta.env.BASE_URL.endsWith('/')
   (function () {
     var modeBtns = document.querySelectorAll('[data-silent-mode]');
     var modePanels = document.querySelectorAll('[data-mode-panel]');
+    var wikiBtn = document.getElementById('silent-wiki-btn');
+    var btnEn = document.querySelector('[data-silent-btn-en]');
+    var btnDe = document.querySelector('[data-silent-btn-de]');
     modeBtns.forEach(function (btn) {
       btn.addEventListener('click', function () {
         var mode = btn.getAttribute('data-silent-mode');
@@ -246,6 +252,12 @@ const base = import.meta.env.BASE_URL.endsWith('/')
         modePanels.forEach(function (p) {
           p.hidden = p.getAttribute('data-mode-panel') !== mode;
         });
+        if (wikiBtn) {
+          var isRoot = mode === 'root';
+          wikiBtn.setAttribute('href', wikiBtn.getAttribute(isRoot ? 'data-root-href' : 'data-shizuku-href') || '');
+          if (btnEn) btnEn.textContent = isRoot ? 'Root & Background Guide' : 'Shizuku Setup Guide';
+          if (btnDe) btnDe.textContent = isRoot ? 'Root- & Hintergrund-Anleitung im Wiki' : 'Shizuku-Anleitung im Wiki';
+        }
       });
     });
   })();

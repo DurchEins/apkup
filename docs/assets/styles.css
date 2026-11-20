@@ -476,9 +476,23 @@ p {
   color: var(--accent-soft-ink);
 }
 
-.pill-emerald {
+.pill-emerald,
+.pill-green {
   background: var(--tertiary-soft);
   color: var(--tertiary-soft-ink);
+}
+
+.pill-danger {
+  background: rgba(239, 68, 68, 0.14);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.32);
+}
+
+:global([data-theme="light"]) .pill-danger,
+[data-theme="light"] .pill-danger {
+  background: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+  border: 1px solid rgba(220, 38, 38, 0.25);
 }
 
 .pill-neutral {
@@ -1083,7 +1097,7 @@ p {
   }
 
   .sideload-trigger {
-    font-size: 0.78rem;
+    font-size: 0.82rem;
     color: var(--accent);
     text-decoration: underline;
     text-underline-offset: 3px;
@@ -1094,15 +1108,15 @@ p {
     top: calc(100% + 8px);
     left: 0;
     z-index: 45;
-    width: min(360px, 86vw);
-    padding: 14px 16px;
+    width: min(410px, 90vw);
+    padding: 16px 18px;
     border-radius: var(--radius-md);
     background: var(--surface-high);
     border: 1px solid var(--accent);
     box-shadow: 0 14px 36px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
     opacity: 0;
     transform: translateY(6px);
     pointer-events: none;
@@ -1116,16 +1130,28 @@ p {
     pointer-events: auto;
   }
 
-  .sideload-popover strong {
-    font-size: 0.86rem;
+  .sideload-popover > strong {
+    font-size: 0.88rem;
     color: var(--text);
   }
 
-  .sideload-popover p {
+  .sideload-pop-list {
     margin: 0;
+    padding-inline-start: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
     font-size: 0.8rem;
     color: var(--text-muted);
     line-height: 1.5;
+  }
+
+  .sideload-pop-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 4px;
+    border-top: 1px solid var(--outline);
   }
 
   .sideload-pop-link {
@@ -1846,7 +1872,7 @@ p {
     border-radius: 999px;
     background: rgba(18, 19, 22, 0.45);
     transform-origin: left;
-    animation: tabProgress 5s linear infinite;
+    animation: tabProgress 3.2s linear infinite;
   }
 
   #showcase:hover .tab-btn.is-active::after {
@@ -3306,7 +3332,6 @@ p {
     font-size: 1.32rem;
   }
 
-  .sl-lead,
   .sl-card p {
     margin: 0;
     color: var(--text-muted);
@@ -3347,10 +3372,11 @@ p {
     font-weight: 700;
   }
 
-  .sl-steps strong {
+  .sl-step-title {
     display: block;
-    margin-bottom: 3px;
+    margin-bottom: 4px;
     font-size: 0.96rem;
+    color: var(--text);
   }
 
   .sl-steps a {

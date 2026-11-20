@@ -405,9 +405,23 @@ p {
   color: var(--accent-soft-ink);
 }
 
-.pill-emerald {
+.pill-emerald,
+.pill-green {
   background: var(--tertiary-soft);
   color: var(--tertiary-soft-ink);
+}
+
+.pill-danger {
+  background: rgba(239, 68, 68, 0.14);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.32);
+}
+
+:global([data-theme="light"]) .pill-danger,
+[data-theme="light"] .pill-danger {
+  background: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+  border: 1px solid rgba(220, 38, 38, 0.25);
 }
 
 .pill-neutral {

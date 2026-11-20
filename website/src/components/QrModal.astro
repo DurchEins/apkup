@@ -1,9 +1,30 @@
 ---
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { SITE } from '../data/content';
 
 const base = import.meta.env.BASE_URL.endsWith('/')
   ? import.meta.env.BASE_URL
   : `${import.meta.env.BASE_URL}/`;
+
+function getReleaseSummary(lang: 'en' | 'de', version: string): string {
+  try {
+    const md = readFileSync(
+      join(process.cwd(), '..', 'app', 'src', 'main', 'assets', 'changelog', `1.45_${lang}.md`),
+      'utf8'
+    );
+    const verEsc = version.replace('.', '\\.');
+    const secMatch = md.match(new RegExp(`###[^\\n]*\\|\\s*${verEsc}[\\s\\S]*?(?=\\n###|$)`));
+    if (!secMatch) return '';
+    const bullets = Array.from(secMatch[0].matchAll(/^- \*\*([^*]+)\*\*/gm)).map((m) => m[1]);
+    return bullets.slice(0, 3).join(' • ');
+  } catch {
+    return '';
+  }
+}
+
+const summaryEn = getReleaseSummary('en', SITE.fallbackVersion) || 'Material 3 Expressive UI, Opt-in Beta Channel & Redesigned Help Wiki';
+const summaryDe = getReleaseSummary('de', SITE.fallbackVersion) || 'Material 3 Expressive Look, Opt-in Beta-Kanal & Überarbeitetes Hilfe-Wiki';
 ---
 
 <dialog id="qr-modal" class="qr-dialog" aria-labelledby="qr-modal-title">
@@ -44,13 +65,11 @@ const base = import.meta.env.BASE_URL.endsWith('/')
       </summary>
       <p>
         <span class="i18n-en">
-          Unified 8-source update scanner, Shizuku &amp; Root silent background installer, SHA-256
-          &amp; v2/v3 certificate protection.{' '}
+          {summaryEn}.{' '}
           <a href={`${base}changelog/`}>Full changelog →</a>
         </span>
         <span class="i18n-de">
-          Vereinter 8-Quellen-Scanner, lautlose Hintergrund-Updates per Shizuku &amp; Root sowie
-          SHA-256- &amp; Signaturschutz.{' '}
+          {summaryDe}.{' '}
           <a href={`${base}changelog/`}>Zum Changelog →</a>
         </span>
       </p>

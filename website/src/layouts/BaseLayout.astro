@@ -3,12 +3,14 @@ interface Props {
   title?: string;
   description?: string;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  kaoBannerSize?: 'normal' | 'mini';
 }
 
 const {
   title = 'ApkUp — Multi-Source Android App Updater',
   description = 'Open-source, privacy-first Android app updater for Google Play, F-Droid Index V2, IzzyOnDroid, APKMirror, GitHub, GitLab & Codeberg with Shizuku silent background updates.',
   jsonLd,
+  kaoBannerSize = 'mini',
 } = Astro.props;
 
 const ldList = Array.isArray(jsonLd) ? jsonLd : jsonLd ? [jsonLd] : [];
@@ -82,6 +84,25 @@ const ogImage = new URL(`${base}og-card.png`, Astro.site).toString();
       <span class="i18n-en">Skip to main content</span>
       <span class="i18n-de">Zum Hauptinhalt springen</span>
     </a>
+
+    <div id="kao-banner-slot" data-kao-size={kaoBannerSize}></div>
+    <script is:inline define:vars={{ kaoBannerSize }}>
+      (function () {
+        try {
+          var lang = document.documentElement.getAttribute('data-lang') || 'en';
+          var s = document.createElement('script');
+          s.async = true;
+          s.src =
+            'https://keepandroidopen.org/banner.js?id=kao-banner-slot&size=' +
+            encodeURIComponent(kaoBannerSize) +
+            '&hidebutton=on&link=' +
+            encodeURIComponent('https://durcheins.github.io/apkup/sideloading/google-lock/') +
+            '&lang=' +
+            encodeURIComponent(lang);
+          document.body.appendChild(s);
+        } catch (e) {}
+      })();
+    </script>
 
     <slot />
     <button

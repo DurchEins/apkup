@@ -678,15 +678,15 @@ const CHAPTERS: WikiChapter[] = [
   },
   {
     slug: 'sideloading',
-    ghPage: 'Sideloading,-Unknown-Apps-&-Android-24h-Verification',
-    mdFile: 'Sideloading,-Unknown-Apps-&-Android-24h-Verification.md',
+    ghPage: 'Installing-Unknown-Apps',
+    mdFile: 'Installing-Unknown-Apps.md',
     tag: 'Sideload',
-    enTitle: 'Installing Unknown Apps & Google’s 24h Verification Lock',
-    deTitle: 'Unbekannte Apps installieren & Googles 24h-Sperre lösen',
+    enTitle: 'Installing Unknown Apps on Android',
+    deTitle: 'Unbekannte Apps auf Android installieren',
     enLead:
-      'Step-by-step instructions for Android’s classic “Install unknown apps” permission, unlocking Google’s 2026/2027 24-hour Developer Options verification flow, and using Shizuku or ADB.',
+      'Step-by-step instructions for Android’s classic “Install unknown apps” permission plus power-user installations via Shizuku, ADB, and Root.',
     deLead:
-      'Schritt-für-Schritt-Anleitung für „Unbekannte Apps installieren“, das dauerhafte Lösen von Googles neuer 24-Stunden-Sperre in den Entwickleroptionen (2026/2027) sowie Shizuku & ADB.',
+      'Schritt-für-Schritt-Anleitung für „Unbekannte Apps installieren“ sowie den Power-User-Weg über Shizuku, ADB und Root.',
     cards: [
       {
         badge: '30 Sec',
@@ -698,6 +698,29 @@ const CHAPTERS: WikiChapter[] = [
           'Heruntergeladene APK antippen, im Hinweis auf Einstellungen tippen, „Aus dieser Quelle zulassen“ aktivieren und installieren.',
       },
       {
+        badge: 'Power User',
+        enTitle: 'Shizuku, ADB & Root (su)',
+        deTitle: 'Shizuku, ADB & Root (su)',
+        enBody:
+          'Use Shizuku (Wireless Debugging), adb install -r, or Root (su) for streamlined background installations.',
+        deBody:
+          'Nutze Shizuku (Kabelloses Debugging), adb install -r oder Root (su) für direkte Hintergrund-Installationen.',
+      },
+    ],
+  },
+  {
+    slug: 'google-lock',
+    ghPage: 'Google-24h-Lock-&-Keep-Android-Open',
+    mdFile: 'Google-24h-Lock-&-Keep-Android-Open.md',
+    tag: '24h Lock',
+    enTitle: 'Google’s 24h Lock & Keep Android Open',
+    deTitle: 'Googles 24h-Sperre & Keep Android Open',
+    enLead:
+      'How to permanently unlock Google’s 2026/2027 24-hour Developer Options cooldown (“Allow indefinitely”), why F-Droid criticizes ID verification, and the Keep Android Open campaign.',
+    deLead:
+      'So löst du Googles neue 24-Stunden-Sperre (2026/2027) dauerhaft in den Entwickleroptionen („Dauerhaft erlauben“), was F-Droid dazu sagt und warum wir Keep Android Open unterstützen.',
+    cards: [
+      {
         badge: '24h Lock',
         enTitle: 'Google’s 2026/2027 Developer Options Flow',
         deTitle: 'Googles 24h-Sperre (Entwickleroptionen)',
@@ -705,6 +728,15 @@ const CHAPTERS: WikiChapter[] = [
           'Enable Developer Options (7× Build Number) → Allow apps from unverified developers → Restart → After 24h choose “Allow indefinitely”.',
         deBody:
           'Entwickleroptionen (7× Build-Nummer) → Apps von nicht verifizierten Entwicklern erlauben → Neustart → Nach 24h „Dauerhaft erlauben“ wählen.',
+      },
+      {
+        badge: 'Keep Android Open',
+        enTitle: 'FOSS, F-Droid & keepandroidopen.org',
+        deTitle: 'FOSS, F-Droid & keepandroidopen.org',
+        enBody:
+          'F-Droid builds reproducible open-source APKs without forcing anonymous developers to submit government IDs to Google.',
+        deBody:
+          'F-Droid baut reproduzierbare Open-Source-APKs, ohne anonyme Entwickler zur Ausweisabgabe bei Google zu zwingen.',
       },
     ],
   },
@@ -747,7 +779,7 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
           </h1>
           <p class="section-subtitle">
             <span class="i18n-en">
-              All 11 official guides in one searchable place — switch chapters on the left or
+              All 12 official guides in one searchable place — switch chapters on the left or
               search across every topic below.
             </span>
             <span class="i18n-de">
@@ -755,7 +787,7 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
               englischen GitHub-Wiki und ist daher größtenteils auf <strong>Englisch</strong>.
               Die Kapitel-Übersichten, Kurzanleitungen, Tabellen und wichtigsten Erklärungen oben
               in jedem Kapitel sind vollständig auf <strong>Deutsch</strong> aufbereitet – wähle
-              links ein Thema oder durchsuche alle 11 Kapitel live.
+              links ein Thema oder durchsuche alle 12 Kapitel live.
             </span>
           </p>
         </div>
@@ -769,9 +801,9 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
         <input
           type="search"
           id="wiki-search-input"
-          placeholder="Search all 11 guides (e.g. Shizuku, 24h, SHA-256, Cloudflare, 403, Obtainium)…"
-          data-placeholder-en="Search all 11 guides (e.g. Shizuku, 24h, SHA-256, Cloudflare, 403, Obtainium)…"
-          data-placeholder-de="Alle 11 Anleitungen durchsuchen (englische Begriffe bevorzugt, z. B. Shizuku, 24h, Rollback, Verification, Token)…"
+          placeholder="Search all 12 guides (e.g. Shizuku, 24h, SHA-256, Cloudflare, 403, Obtainium)…"
+          data-placeholder-en="Search all 12 guides (e.g. Shizuku, 24h, SHA-256, Cloudflare, 403, Obtainium)…"
+          data-placeholder-de="Alle 12 Anleitungen durchsuchen (englische Begriffe bevorzugt, z. B. Shizuku, 24h, Rollback, Verification, Token)…"
           aria-label="Search wiki guides"
         />
         <span class="wiki-search-count mono" id="wiki-search-count" aria-live="polite" hidden></span>

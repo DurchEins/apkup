@@ -173,7 +173,7 @@ const base = import.meta.env.BASE_URL.endsWith('/')
           if (paused) return;
           autoIdx = (autoIdx + 1) % tabs.length;
           activate(tabs[autoIdx].getAttribute('data-screen-tab'), false);
-        }, 5000);
+        }, 3200);
       }
       showcaseEl.addEventListener('mouseenter', function () { paused = true; });
       showcaseEl.addEventListener('mouseleave', function () { paused = false; });
@@ -261,7 +261,7 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     border-radius: 999px;
     background: rgba(18, 19, 22, 0.45);
     transform-origin: left;
-    animation: tabProgress 5s linear infinite;
+    animation: tabProgress 3.2s linear infinite;
   }
 
   #showcase:hover .tab-btn.is-active::after {

@@ -1,0 +1,360 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+
+const base = import.meta.env.BASE_URL.endsWith('/')
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+
+const lockSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: 'Google’s 24-Hour Sideloading Lock (2026/2027) & Keep Android Open — ApkUp',
+  url: 'https://durcheins.github.io/apkup/sideloading/google-lock/',
+  author: { '@type': 'Person', name: 'DurchEins', url: 'https://github.com/DurchEins' },
+  about: { '@type': 'SoftwareApplication', name: 'ApkUp' },
+};
+---
+
+<BaseLayout
+  title="Google’s 24h Sideloading Lock & Keep Android Open — ApkUp"
+  description="How to permanently unlock Google’s 2026/2027 24-hour Developer Options sideloading lock, what F-Droid & Keep Android Open say, and how to defend open Android."
+  jsonLd={lockSchema}
+  kaoBannerSize="normal"
+>
+  <Navbar />
+  <main id="main-content" class="section">
+    <div class="container subpage-wrap">
+      <nav class="sl-breadcrumb" aria-label="Breadcrumb">
+        <a href={`${base}sideloading/`} class="mono">
+          <span class="i18n-en">← Back to Installing Unknown Apps</span>
+          <span class="i18n-de">← Zurück zu „Unbekannte Apps installieren“</span>
+        </a>
+      </nav>
+
+      <header class="sl-header">
+        <span class="pill-badge pill-amber mono">2026 / 2027 • Keep Android Open</span>
+        <h1 class="section-title">
+          <span class="i18n-en">Google’s 24h Developer Lock &amp; Keep Android Open</span>
+          <span class="i18n-de">Googles 24h-Entwicklersperre &amp; Keep Android Open</span>
+        </h1>
+        <p class="section-subtitle">
+          <span class="i18n-en">
+            Starting September 30, 2026 (pilot regions) and rolling out globally in January 2027,
+            Google Play Protect restricts APKs from developers without government ID verification.
+            Here is how to unlock it permanently — and why the FOSS community pushes back.
+          </span>
+          <span class="i18n-de">
+            Seit 30. September 2026 (Pilotregionen) und ab Januar 2027 weltweit schränkt Google Play
+            Protect APKs von Entwicklern ohne Ausweisverifizierung ein. So löst du die Sperre
+            dauerhaft – und darum wehrt sich die FOSS-Community.
+          </span>
+        </p>
+      </header>
+
+      <!-- Step-by-step 24h Lock Unlock -->
+      <section class="sl-card sl-card-warn has-spotlight" aria-labelledby="sl-lock-steps">
+        <div class="sl-card-head">
+          <span class="pill-badge pill-amber mono">
+            <span class="i18n-en">Developer Options • Permanent Unlock</span>
+            <span class="i18n-de">Entwickleroptionen • Dauerhafte Freigabe</span>
+          </span>
+          <h2 id="sl-lock-steps">
+            <span class="i18n-en">How to Unlock “Apps from unverified developers”</span>
+            <span class="i18n-de">So löst du die 24-Stunden-Sperre dauerhaft</span>
+          </h2>
+          <p class="sl-lead">
+            <span class="i18n-en">
+              Android still allows installing independent open-source apps like ApkUp and F-Droid
+              builds, provided you complete this one-time Developer Options flow:
+            </span>
+            <span class="i18n-de">
+              Android erlaubt weiterhin die Installation freier Open-Source-Apps wie ApkUp und
+              F-Droid-Builds, wenn du diesen einmaligen Ablauf in den Entwickleroptionen durchführst:
+            </span>
+          </p>
+        </div>
+
+        <ol class="sl-steps">
+          <li>
+            <span class="sl-num mono">01</span>
+            <div>
+              <strong class="sl-step-title">
+                <span class="i18n-en">Enable Developer Options (7× Build Number)</span>
+                <span class="i18n-de">Entwickleroptionen freischalten (7× Build-Nummer)</span>
+              </strong>
+              <p>
+                <span class="i18n-en">
+                  Open <strong>Settings → About Phone</strong> and tap <strong>Build Number</strong>{' '}
+                  7 times until Android confirms Developer Mode is active.
+                </span>
+                <span class="i18n-de">
+                  Öffne <strong>Einstellungen → Über das Telefon</strong> und tippe 7-mal auf die{' '}
+                  <strong>Build-Nummer</strong>, bis die Entwickleroptionen aktiviert sind.
+                </span>
+              </p>
+            </div>
+          </li>
+          <li>
+            <span class="sl-num mono">02</span>
+            <div>
+              <strong class="sl-step-title">
+                <span class="i18n-en">Toggle “Apps from unverified developers”</span>
+                <span class="i18n-de">„Apps von nicht verifizierten Entwicklern“ aktivieren</span>
+              </strong>
+              <p>
+                <span class="i18n-en">
+                  Go to <strong>Settings → System → Developer Options → Apps from unverified developers</strong>{' '}
+                  and select <strong>Allow apps from unverified developers</strong>.
+                </span>
+                <span class="i18n-de">
+                  Gehe zu <strong>Einstellungen → System → Entwickleroptionen → Apps von nicht verifizierten Entwicklern</strong>{' '}
+                  und aktiviere die Option.
+                </span>
+              </p>
+            </div>
+          </li>
+          <li>
+            <span class="sl-num mono">03</span>
+            <div>
+              <strong class="sl-step-title">
+                <span class="i18n-en">Confirm PIN &amp; restart your device</span>
+                <span class="i18n-de">Displaysperre bestätigen &amp; Gerät neu starten</span>
+              </strong>
+              <p>
+                <span class="i18n-en">
+                  Confirm your lock screen PIN/biometrics and reboot your smartphone to start the
+                  24-hour security cooldown.
+                </span>
+                <span class="i18n-de">
+                  Bestätige deine PIN/Biometrie und starte das Smartphone einmal neu, damit der
+                  24-Stunden-Countdown beginnt.
+                </span>
+              </p>
+            </div>
+          </li>
+          <li>
+            <span class="sl-num mono">04</span>
+            <div>
+              <strong class="sl-step-title">
+                <span class="i18n-en">After 24 hours: Choose “Allow indefinitely” (Avoid the 7-day trap!)</span>
+                <span class="i18n-de">Nach 24 Stunden: „Dauerhaft erlauben“ wählen (7-Tage-Falle vermeiden!)</span>
+              </strong>
+              <p>
+                <span class="i18n-en">
+                  Once the 24-hour cooldown finishes, return to Developer Options and choose{' '}
+                  <strong>Allow indefinitely</strong>. If you only pick the 7-day window, Android
+                  will disable it again after a week and force another 24-hour wait.
+                </span>
+                <span class="i18n-de">
+                  Gehe nach Ablauf der 24 Stunden zurück in die Entwickleroptionen und wähle{' '}
+                  <strong>Dauerhaft erlauben</strong>. Wählst du nur das 7-Tage-Fenster, schaltet
+                  Android die Option nach einer Woche wieder ab und erzwingt erneut 24 Stunden
+                  Wartezeit.
+                </span>
+              </p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <!-- Two-column Context: Keep Android Open + F-Droid / FOSS Stance -->
+      <div class="sl-two-col">
+        <article class="sl-card has-spotlight">
+          <span class="pill-badge pill-amber mono">keepandroidopen.org</span>
+          <h2>
+            <span class="i18n-en">Why Keep Android Open Matters</span>
+            <span class="i18n-de">Warum „Keep Android Open“ wichtig ist</span>
+          </h2>
+          <p>
+            <span class="i18n-en">
+              The <strong>Keep Android Open</strong> coalition warns that forcing every Android app
+              author to register keys, package IDs, and government ID with Google turns an open
+              operating system into a closed gatekeeper platform — putting independent tools, privacy
+              apps, and alternative app stores at risk.
+            </span>
+            <span class="i18n-de">
+              Die Initiative <strong>Keep Android Open</strong> warnt: Wer jeden Android-Entwickler
+              zwingt, Signaturschlüssel, Paketnamen und Ausweisdaten bei Google zu hinterlegen,
+              verwandelt ein freies Betriebssystem in eine geschlossene Gatekeeper-Plattform und
+              gefährdet unabhängige Tools und alternative App-Stores.
+            </span>
+          </p>
+          <div class="sl-actions">
+            <a
+              href="https://keepandroidopen.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn btn-secondary"
+            >
+              keepandroidopen.org ↗
+            </a>
+            <a
+              href="https://keepandroidopen.org/banner/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn btn-ghost"
+            >
+              <span class="i18n-en">Campaign Banner ↗</span>
+              <span class="i18n-de">Kampagnen-Banner ↗</span>
+            </a>
+          </div>
+        </article>
+
+        <article class="sl-card has-spotlight">
+          <span class="pill-badge pill-green mono">FOSS • F-Droid • ADB</span>
+          <h2>
+            <span class="i18n-en">What F-Droid &amp; FOSS Developers Say</span>
+            <span class="i18n-de">Was F-Droid &amp; FOSS-Entwickler dazu sagen</span>
+          </h2>
+          <p>
+            <span class="i18n-en">
+              F-Droid compiles free software reproducibly from public source code using its own
+              repository keys — it cannot register thousands of upstream package IDs with Google or
+              compel anonymous contributors to submit ID. Meanwhile, <strong>ADB</strong> and{' '}
+              <strong>Shizuku</strong> remain key open developer escape hatches.
+            </span>
+            <span class="i18n-de">
+              F-Droid kompiliert freie Software reproduzierbar aus dem Quellcode mit eigenen
+              Repo-Schlüsseln und kann weder tausende fremde Paketnamen bei Google registrieren noch
+              anonyme Entwickler zur Ausweisabgabe zwingen. <strong>ADB</strong> und{' '}
+              <strong>Shizuku</strong> bleiben zentrale Werkzeuge für freie Installationen.
+            </span>
+          </p>
+          <div class="sl-actions">
+            <a href={`${base}wiki/#doc-google-lock`} class="btn btn-secondary">
+              <span class="i18n-en">Read Full Wiki Chapter →</span>
+              <span class="i18n-de">Komplettes Wiki-Kapitel →</span>
+            </a>
+            <a href={`${base}sideloading/`} class="btn btn-ghost">
+              <span class="i18n-en">Unknown Apps Guide →</span>
+              <span class="i18n-de">Unbekannte-Apps-Guide →</span>
+            </a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .subpage-wrap {
+    max-width: 940px;
+  }
+
+  .sl-breadcrumb {
+    margin-bottom: 14px;
+  }
+
+  .sl-breadcrumb a {
+    font-size: 0.82rem;
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .sl-breadcrumb a:hover {
+    text-decoration: underline;
+  }
+
+  .sl-header {
+    margin-bottom: 28px;
+  }
+
+  .sl-header .section-title {
+    margin-top: 12px;
+  }
+
+  .sl-card {
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-lg);
+    padding: clamp(20px, 3vw, 28px);
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .sl-card-warn {
+    border-color: rgba(245, 158, 11, 0.45);
+  }
+
+  .sl-card h2 {
+    margin: 8px 0 0;
+    font-size: 1.32rem;
+  }
+
+  .sl-lead,
+  .sl-card p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+
+  .sl-steps {
+    list-style: none;
+    margin: 4px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .sl-steps li {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    border: 1px solid var(--outline);
+  }
+
+  .sl-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .sl-step-title {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.96rem;
+    color: var(--text);
+  }
+
+  .sl-steps a {
+    color: var(--accent);
+  }
+
+  .sl-two-col {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .sl-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 6px;
+  }
+
+  @media (max-width: 760px) {
+    .sl-two-col {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
