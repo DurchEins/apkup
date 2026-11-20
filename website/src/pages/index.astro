@@ -86,6 +86,44 @@ import FaqAndFooter from '../components/FaqAndFooter.astro';
         .catch(function () {
           // Graceful fallback to static /releases/latest already rendered in HTML
         });
+
+      // Fetch live GitHub Star count
+      var STAR_KEY = 'apkup-gh-stars-v1';
+      function applyStars(count) {
+        if (typeof count !== 'number') return;
+        document.querySelectorAll('[data-gh-stars]').forEach(function (el) {
+          el.textContent = String(count);
+          el.hidden = false;
+        });
+      }
+      try {
+        var cachedStars = sessionStorage.getItem(STAR_KEY);
+        if (cachedStars) {
+          var parsedStars = JSON.parse(cachedStars);
+          if (parsedStars && Date.now() - parsedStars.ts < 15 * 60 * 1000) {
+            applyStars(parsedStars.stars);
+            return;
+          }
+        }
+      } catch (e) {}
+      fetch('https://api.github.com/repos/DurchEins/apkup', {
+        headers: { Accept: 'application/vnd.github+json' },
+      })
+        .then(function (res) {
+          return res.ok ? res.json() : null;
+        })
+        .then(function (repo) {
+          if (repo && typeof repo.stargazers_count === 'number') {
+            try {
+              sessionStorage.setItem(
+                STAR_KEY,
+                JSON.stringify({ ts: Date.now(), stars: repo.stargazers_count })
+              );
+            } catch (e) {}
+            applyStars(repo.stargazers_count);
+          }
+        })
+        .catch(function () {});
     })();
   </script>
 </BaseLayout>

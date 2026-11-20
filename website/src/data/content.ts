@@ -131,6 +131,7 @@ export const MIRRORS = [
     url: 'https://zapstore.dev/apps/com.apkup',
     badgeEn: 'Signed Nostr Releases',
     badgeDe: 'Signierte Nostr-Releases',
+    color: '#A855F7',
     outdated: false,
   },
   {
@@ -138,6 +139,7 @@ export const MIRRORS = [
     url: 'https://gitlab.com/DurchEins1/apkup/-/releases',
     badgeEn: 'Official Mirror',
     badgeDe: 'Offizieller Mirror',
+    color: '#FC6D26',
     outdated: false,
   },
   {
@@ -145,6 +147,7 @@ export const MIRRORS = [
     url: 'https://apkpure.com/apkup/com.apkup',
     badgeEn: 'Verified Listing',
     badgeDe: 'Verifizierter Eintrag',
+    color: '#24C270',
     outdated: false,
   },
   {
@@ -152,6 +155,7 @@ export const MIRRORS = [
     url: 'https://durcheins.itch.io/apkup',
     badgeEn: 'Direct APK Download',
     badgeDe: 'Direkter APK-Download',
+    color: '#FA5C5C',
     outdated: false,
   },
   {
@@ -159,6 +163,7 @@ export const MIRRORS = [
     url: 'https://appteka.store/app/c0cr341070',
     badgeEn: 'Alternative Store',
     badgeDe: 'Alternativer Store',
+    color: '#0EA5E9',
     outdated: false,
   },
   {
@@ -166,6 +171,7 @@ export const MIRRORS = [
     url: 'https://komistore.app',
     badgeEn: 'FOSS Store',
     badgeDe: 'FOSS-Store',
+    color: '#6366F1',
     outdated: false,
   },
   {
@@ -173,6 +179,7 @@ export const MIRRORS = [
     url: 'https://alternativeto.net/software/apkup/about/',
     badgeEn: 'Reviews & Info',
     badgeDe: 'Bewertungen & Infos',
+    color: '#38BDF8',
     outdated: false,
   },
   {
@@ -180,6 +187,7 @@ export const MIRRORS = [
     url: 'https://www.amazon.com/gp/product/B0HR5TXL8R',
     badgeEn: 'Outdated',
     badgeDe: 'Veraltet',
+    color: '#EF4444',
     outdated: true,
   },
 ];

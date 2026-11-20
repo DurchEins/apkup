@@ -8,24 +8,346 @@ const base = import.meta.env.BASE_URL.endsWith('/')
 
 <section id="showcase" class="section showcase-section">
   <div class="container">
-    <div class="section-header">
-      <h2 class="section-title">
-        <span class="i18n-en">Designed for thumb-zone ergonomics</span>
-        <span class="i18n-de">Optimiert für einhändige Bedienung</span>
-      </h2>
-      <p class="section-subtitle">
-        <span class="i18n-en">
-          Explore the real app interface in English or German — switch screens below or toggle the
-          site language above.
-        </span>
-        <span class="i18n-de">
-          Entdecke die echte App-Oberfläche auf Deutsch oder Englisch – wähle unten einen Bereich
-          oder schalte oben die Sprache um.
-        </span>
-      </p>
+    <div class="showcase-top-row">
+      <div class="section-header" style="margin-block-end: 0;">
+        <h2 class="section-title">
+          <span class="i18n-en">Try ApkUp right in your browser</span>
+          <span class="i18n-de">ApkUp direkt im Browser ausprobieren</span>
+        </h2>
+        <p class="section-subtitle">
+          <span class="i18n-en">
+            Scroll, filter sources, inspect release details, test silent toggles, or switch to the
+            real device screenshots anytime.
+          </span>
+          <span class="i18n-de">
+            Scrolle durch die Liste, filtere Quellen, öffne Release-Details, teste Schalter oder
+            wechsle jederzeit zu den echten Geräte-Screenshots.
+          </span>
+        </p>
+      </div>
+
+      <div class="mode-switch" role="group" aria-label="Showcase mode">
+        <button type="button" class="mode-btn is-active" data-showcase-mode="demo" aria-pressed="true">
+          <span class="i18n-en">Interactive Demo</span>
+          <span class="i18n-de">Interaktive Demo</span>
+        </button>
+        <button type="button" class="mode-btn" data-showcase-mode="shots" aria-pressed="false">
+          <span class="i18n-en">Real Screenshots</span>
+          <span class="i18n-de">Echte Screenshots</span>
+        </button>
+      </div>
     </div>
 
-    <div class="showcase-shell">
+    <!-- MODE 1: INTERACTIVE APP SIMULATION -->
+    <div class="showcase-shell" id="showcase-demo-view">
+      <div class="demo-guide">
+        <div class="guide-card">
+          <span class="pill-badge pill-amber mono">Live UI Simulation</span>
+          <h3>
+            <span class="i18n-en">Feel the Material 3 Expressive flow</span>
+            <span class="i18n-de">Erlebe den Material-3-Expressive-Flow</span>
+          </h3>
+          <ul class="guide-list">
+            <li>
+              <span class="i18n-en">Tap <strong>Get update</strong> or <strong>Install All</strong> to watch the update state</span>
+              <span class="i18n-de">Tippe auf <strong>Update starten</strong> oder <strong>Alle aktualisieren</strong></span>
+            </li>
+            <li>
+              <span class="i18n-en">Tap <strong>Details</strong> on any card to open the in-app bottom sheet</span>
+              <span class="i18n-de">Tippe auf <strong>Details</strong> für das integrierte Bottom Sheet</span>
+            </li>
+            <li>
+              <span class="i18n-en">Use the floating bottom dock to switch between <strong>Updates</strong>, <strong>Apps</strong>, and <strong>Setup</strong></span>
+              <span class="i18n-de">Wechsle unten im Dock zwischen <strong>Updates</strong>, <strong>Apps</strong> und <strong>Setup</strong></span>
+            </li>
+            <li>
+              <span class="i18n-en">Toggle Dark / Off-White Light or EN / DE in the top bar — the phone adapts live</span>
+              <span class="i18n-de">Schalte oben Dark/Light oder EN/DE um – das Handy passt sich live an</span>
+            </li>
+          </ul>
+          <button type="button" class="btn btn-secondary" id="sim-reset-btn">
+            <span class="i18n-en">Reset Demo Updates</span>
+            <span class="i18n-de">Demo zurücksetzen</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="showcase-device">
+        <div class="sim-phone" aria-label="Interactive ApkUp Android app simulation">
+          <div class="sim-statusbar mono">
+            <span>14:15</span>
+            <span class="sim-notch" aria-hidden="true"></span>
+            <span>5G • 92%</span>
+          </div>
+
+          <div class="sim-viewport" id="sim-viewport">
+            <!-- TAB 1: UPDATES -->
+            <div class="sim-screen is-active" data-sim-screen="updates">
+              <div class="sim-appbar">
+                <div class="sim-appbar-title">
+                  <span class="sim-logo-dot" aria-hidden="true"></span>
+                  <strong>Updates</strong>
+                  <span class="sim-count-pill mono" id="sim-badge-header">4</span>
+                </div>
+                <span class="sim-shizuku-chip mono">Shizuku ON</span>
+              </div>
+
+              <div class="sim-banner">
+                <div class="sim-banner-text">
+                  <strong id="sim-banner-title">
+                    <span class="i18n-en" data-sim-avail-en>4 updates available</span>
+                    <span class="i18n-de" data-sim-avail-de>4 Updates verfügbar</span>
+                  </strong>
+                  <span>
+                    <span class="i18n-en">Verified sources ready</span>
+                    <span class="i18n-de">Verifizierte Quellen bereit</span>
+                  </span>
+                </div>
+                <button type="button" class="sim-install-all" id="sim-install-all">
+                  <span class="i18n-en">Install All</span>
+                  <span class="i18n-de">Alle</span>
+                </button>
+              </div>
+
+              <div class="sim-chips" role="group" aria-label="Filter updates by source">
+                <button type="button" class="sim-chip is-active" data-sim-filter="all">
+                  <span class="i18n-en">All</span>
+                  <span class="i18n-de">Alle</span>
+                </button>
+                <button type="button" class="sim-chip" data-sim-filter="GitHub">GitHub</button>
+                <button type="button" class="sim-chip" data-sim-filter="F-Droid V2">F-Droid V2</button>
+                <button type="button" class="sim-chip" data-sim-filter="APKMirror">APKMirror</button>
+              </div>
+
+              <div class="sim-cards" id="sim-update-list">
+                <article class="sim-card" data-sim-app="signal" data-sim-source="GitHub">
+                  <div class="sim-card-top">
+                    <div class="sim-app-badge" style="background:#3B82F6;">S</div>
+                    <div class="sim-card-meta">
+                      <strong>Signal</strong>
+                      <span class="mono sim-ver">7.22.1 → <em>7.23.0</em></span>
+                      <span class="sim-source-pill">GitHub</span>
+                    </div>
+                  </div>
+                  <p class="sim-notes">
+                    <span class="i18n-en">• Improved call reliability &amp; security patches.</span>
+                    <span class="i18n-de">• Verbesserte Anrufstabilität &amp; Sicherheitsupdates.</span>
+                  </p>
+                  <div class="sim-card-actions">
+                    <button type="button" class="sim-detail-btn" data-sim-detail="signal">Details</button>
+                    <button type="button" class="sim-update-btn" data-sim-install="signal">
+                      <span class="i18n-en">Get update</span>
+                      <span class="i18n-de">Update starten</span>
+                    </button>
+                  </div>
+                </article>
+
+                <article class="sim-card" data-sim-app="organic" data-sim-source="F-Droid V2">
+                  <div class="sim-card-top">
+                    <div class="sim-app-badge" style="background:#10B981;">O</div>
+                    <div class="sim-card-meta">
+                      <strong>Organic Maps</strong>
+                      <span class="mono sim-ver">2026.10.1 → <em>2026.11.0</em></span>
+                      <span class="sim-source-pill">F-Droid V2</span>
+                    </div>
+                  </div>
+                  <p class="sim-notes">
+                    <span class="i18n-en">• Updated offline maps &amp; faster routing.</span>
+                    <span class="i18n-de">• Neue Offline-Karten &amp; schnelleres Routing.</span>
+                  </p>
+                  <div class="sim-card-actions">
+                    <button type="button" class="sim-detail-btn" data-sim-detail="organic">Details</button>
+                    <button type="button" class="sim-update-btn" data-sim-install="organic">
+                      <span class="i18n-en">Get update</span>
+                      <span class="i18n-de">Update starten</span>
+                    </button>
+                  </div>
+                </article>
+
+                <article class="sim-card" data-sim-app="auto" data-sim-source="APKMirror">
+                  <div class="sim-card-top">
+                    <div class="sim-app-badge" style="background:#F59E0B;color:#451A03;">A</div>
+                    <div class="sim-card-meta">
+                      <strong>Android Auto</strong>
+                      <span class="mono sim-ver">18.0.664 → <em>18.1.6644</em></span>
+                      <span class="sim-source-pill">APKMirror (.apkm)</span>
+                    </div>
+                  </div>
+                  <p class="sim-notes">
+                    <span class="i18n-en">• Bug fixes and split-bundle optimizations.</span>
+                    <span class="i18n-de">• Fehlerbehebungen und Split-Bundle-Optimierungen.</span>
+                  </p>
+                  <div class="sim-card-actions">
+                    <button type="button" class="sim-detail-btn" data-sim-detail="auto">Details</button>
+                    <button type="button" class="sim-update-btn" data-sim-install="auto">
+                      <span class="i18n-en">Get update</span>
+                      <span class="i18n-de">Update starten</span>
+                    </button>
+                  </div>
+                </article>
+
+                <article class="sim-card" data-sim-app="newpipe" data-sim-source="GitHub">
+                  <div class="sim-card-top">
+                    <div class="sim-app-badge" style="background:#EF4444;">N</div>
+                    <div class="sim-card-meta">
+                      <strong>NewPipe</strong>
+                      <span class="mono sim-ver">0.27.3 → <em>0.27.4</em></span>
+                      <span class="sim-source-pill">GitHub</span>
+                    </div>
+                  </div>
+                  <p class="sim-notes">
+                    <span class="i18n-en">• Fixed stream extractor &amp; background playback.</span>
+                    <span class="i18n-de">• Stream-Extraktor &amp; Hintergrundwiedergabe korrigiert.</span>
+                  </p>
+                  <div class="sim-card-actions">
+                    <button type="button" class="sim-detail-btn" data-sim-detail="newpipe">Details</button>
+                    <button type="button" class="sim-update-btn" data-sim-install="newpipe">
+                      <span class="i18n-en">Get update</span>
+                      <span class="i18n-de">Update starten</span>
+                    </button>
+                  </div>
+                </article>
+              </div>
+            </div>
+
+            <!-- TAB 2: APPS -->
+            <div class="sim-screen" data-sim-screen="apps" hidden>
+              <div class="sim-appbar">
+                <div class="sim-appbar-title">
+                  <strong>Apps</strong>
+                  <span class="sim-count-pill mono">6</span>
+                </div>
+                <button type="button" class="sim-detail-btn" id="sim-grid-toggle">
+                  <span class="i18n-en">Grid / List</span>
+                  <span class="i18n-de">Raster / Liste</span>
+                </button>
+              </div>
+
+              <input
+                type="search"
+                class="sim-search"
+                id="sim-app-search"
+                placeholder="Search apps… / Apps suchen…"
+                aria-label="Search simulated apps"
+              />
+
+              <div class="sim-app-list" id="sim-app-list">
+                <div class="sim-app-row" data-app-name="signal">
+                  <strong>Signal</strong>
+                  <span class="mono">GitHub • v7.22.1</span>
+                </div>
+                <div class="sim-app-row" data-app-name="organic maps">
+                  <strong>Organic Maps</strong>
+                  <span class="mono">F-Droid V2 • 2026.10</span>
+                </div>
+                <div class="sim-app-row" data-app-name="android auto">
+                  <strong>Android Auto</strong>
+                  <span class="mono">APKMirror • 18.0.664</span>
+                </div>
+                <div class="sim-app-row" data-app-name="newpipe">
+                  <strong>NewPipe</strong>
+                  <span class="mono">GitHub • v0.27.3</span>
+                </div>
+                <div class="sim-app-row" data-app-name="breeze weather">
+                  <strong>Breezy Weather</strong>
+                  <span class="mono">IzzyOnDroid • Watchlist</span>
+                </div>
+                <div class="sim-app-row" data-app-name="cromite">
+                  <strong>Cromite</strong>
+                  <span class="mono">GitHub • Pinned</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 3: SETUP -->
+            <div class="sim-screen" data-sim-screen="setup" hidden>
+              <div class="sim-appbar">
+                <div class="sim-appbar-title">
+                  <strong>Setup</strong>
+                </div>
+                <span class="sim-shizuku-chip mono">AES-256-GCM</span>
+              </div>
+
+              <div class="sim-setup-group">
+                <div class="sim-setup-title">
+                  <span class="i18n-en">Silent Installation</span>
+                  <span class="i18n-de">Hintergrund-Installation</span>
+                </div>
+                <label class="sim-toggle-row">
+                  <span>Shizuku Silent Updates</span>
+                  <input type="checkbox" checked class="sim-switch" />
+                </label>
+                <label class="sim-toggle-row">
+                  <span>
+                    <span class="i18n-en">Wi-Fi Only Guard</span>
+                    <span class="i18n-de">Nur über WLAN</span>
+                  </span>
+                  <input type="checkbox" checked class="sim-switch" />
+                </label>
+                <label class="sim-toggle-row">
+                  <span>
+                    <span class="i18n-en">Rollback Backups</span>
+                    <span class="i18n-de">Rollback-Sicherungen</span>
+                  </span>
+                  <input type="checkbox" checked class="sim-switch" />
+                </label>
+              </div>
+
+              <div class="sim-setup-group">
+                <div class="sim-setup-title">
+                  <span class="i18n-en">Update Sources</span>
+                  <span class="i18n-de">Update-Quellen</span>
+                </div>
+                <label class="sim-toggle-row">
+                  <span>GitHub &amp; GitLab</span>
+                  <input type="checkbox" checked class="sim-switch" />
+                </label>
+                <label class="sim-toggle-row">
+                  <span>F-Droid Index V2</span>
+                  <input type="checkbox" checked class="sim-switch" />
+                </label>
+                <label class="sim-toggle-row">
+                  <span>APKMirror (.apkm)</span>
+                  <input type="checkbox" checked class="sim-switch" />
+                </label>
+                <label class="sim-toggle-row">
+                  <span>Google Play (Aurora)</span>
+                  <input type="checkbox" checked class="sim-switch" />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- IN-PHONE BOTTOM SHEET -->
+          <div class="sim-sheet" id="sim-sheet" hidden role="dialog" aria-label="App update details">
+            <div class="sim-sheet-handle"></div>
+            <div class="sim-sheet-head">
+              <strong id="sim-sheet-title">Signal 7.23.0</strong>
+              <button type="button" class="sim-detail-btn" id="sim-sheet-close">✕</button>
+            </div>
+            <p class="sim-sheet-sub mono" id="sim-sheet-meta">SHA-256 verified • apksig v3 • arm64-v8a</p>
+            <p class="sim-sheet-body" id="sim-sheet-body"></p>
+          </div>
+
+          <!-- FLOATING CAPSULE DOCK -->
+          <nav class="sim-dock" aria-label="Simulated app navigation">
+            <button type="button" class="sim-dock-btn" data-sim-nav="apps">
+              <span>Apps</span>
+            </button>
+            <button type="button" class="sim-dock-btn is-active" data-sim-nav="updates">
+              <span>Updates</span>
+              <span class="sim-dock-badge mono" id="sim-badge-dock">4</span>
+            </button>
+            <button type="button" class="sim-dock-btn" data-sim-nav="setup">
+              <span>Setup</span>
+            </button>
+          </nav>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODE 2: REAL SCREENSHOTS GALLERY -->
+    <div class="showcase-shell" id="showcase-shots-view" hidden>
       <div class="showcase-controls">
         <div class="tab-list" role="tablist" aria-label="App screenshots">
           {
@@ -110,13 +432,30 @@ const base = import.meta.env.BASE_URL.endsWith('/')
 
 <script is:inline>
   (function () {
+    // 1. Mode switch (Interactive Demo vs Real Screenshots)
+    var modeBtns = Array.prototype.slice.call(document.querySelectorAll('[data-showcase-mode]'));
+    var demoView = document.getElementById('showcase-demo-view');
+    var shotsView = document.getElementById('showcase-shots-view');
+
+    modeBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var mode = btn.getAttribute('data-showcase-mode');
+        modeBtns.forEach(function (b) {
+          var active = b.getAttribute('data-showcase-mode') === mode;
+          b.classList.toggle('is-active', active);
+          b.setAttribute('aria-pressed', String(active));
+        });
+        if (demoView) demoView.hidden = mode !== 'demo';
+        if (shotsView) shotsView.hidden = mode !== 'shots';
+      });
+    });
+
+    // 2. Real Screenshots Tablist
     var tabs = Array.prototype.slice.call(document.querySelectorAll('[data-screen-tab]'));
     var panels = Array.prototype.slice.call(document.querySelectorAll('[data-screen-panel]'));
     var media = Array.prototype.slice.call(document.querySelectorAll('[data-screen-media]'));
 
-    if (!tabs.length) return;
-
-    function activate(id, focusTab) {
+    function activateShot(id, focusTab) {
       tabs.forEach(function (tab) {
         var active = tab.getAttribute('data-screen-tab') === id;
         tab.classList.toggle('is-active', active);
@@ -124,42 +463,203 @@ const base = import.meta.env.BASE_URL.endsWith('/')
         tab.setAttribute('tabindex', active ? '0' : '-1');
         if (active && focusTab) tab.focus();
       });
-
-      panels.forEach(function (panel) {
-        var active = panel.getAttribute('data-screen-panel') === id;
-        panel.classList.toggle('is-active', active);
-        panel.hidden = !active;
+      panels.forEach(function (p) {
+        var active = p.getAttribute('data-screen-panel') === id;
+        p.hidden = !active;
       });
-
-      media.forEach(function (slot) {
-        var active = slot.getAttribute('data-screen-media') === id;
-        slot.classList.toggle('is-active', active);
-        slot.hidden = !active;
+      media.forEach(function (m) {
+        var active = m.getAttribute('data-screen-media') === id;
+        m.hidden = !active;
       });
     }
 
     tabs.forEach(function (tab, index) {
       tab.addEventListener('click', function () {
-        activate(tab.getAttribute('data-screen-tab'), false);
+        activateShot(tab.getAttribute('data-screen-tab'), false);
       });
-
       tab.addEventListener('keydown', function (e) {
-        var nextIndex = index;
-        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-          nextIndex = (index + 1) % tabs.length;
-        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-          nextIndex = (index - 1 + tabs.length) % tabs.length;
-        } else if (e.key === 'Home') {
-          nextIndex = 0;
-        } else if (e.key === 'End') {
-          nextIndex = tabs.length - 1;
-        } else {
-          return;
-        }
+        var next = index;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (index + 1) % tabs.length;
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (index - 1 + tabs.length) % tabs.length;
+        else if (e.key === 'Home') next = 0;
+        else if (e.key === 'End') next = tabs.length - 1;
+        else return;
         e.preventDefault();
-        activate(tabs[nextIndex].getAttribute('data-screen-tab'), true);
+        activateShot(tabs[next].getAttribute('data-screen-tab'), true);
       });
     });
+
+    // 3. Interactive Phone Simulation
+    var navBtns = Array.prototype.slice.call(document.querySelectorAll('[data-sim-nav]'));
+    var screens = Array.prototype.slice.call(document.querySelectorAll('[data-sim-screen]'));
+    navBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var target = btn.getAttribute('data-sim-nav');
+        navBtns.forEach(function (b) {
+          b.classList.toggle('is-active', b.getAttribute('data-sim-nav') === target);
+        });
+        screens.forEach(function (s) {
+          s.hidden = s.getAttribute('data-sim-screen') !== target;
+        });
+      });
+    });
+
+    // Source filter chips
+    var filterChips = Array.prototype.slice.call(document.querySelectorAll('[data-sim-filter]'));
+    var updateCards = Array.prototype.slice.call(document.querySelectorAll('#sim-update-list .sim-card'));
+    filterChips.forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        var src = chip.getAttribute('data-sim-filter');
+        filterChips.forEach(function (c) {
+          c.classList.toggle('is-active', c.getAttribute('data-sim-filter') === src);
+        });
+        updateCards.forEach(function (card) {
+          if (card.getAttribute('data-sim-done') === 'true') return;
+          card.hidden = src !== 'all' && card.getAttribute('data-sim-source') !== src;
+        });
+      });
+    });
+
+    // Update counter + install simulation
+    var badgeHeader = document.getElementById('sim-badge-header');
+    var badgeDock = document.getElementById('sim-badge-dock');
+    var availEn = document.querySelector('[data-sim-avail-en]');
+    var availDe = document.querySelector('[data-sim-avail-de]');
+
+    function syncCount() {
+      var remaining = updateCards.filter(function (c) {
+        return c.getAttribute('data-sim-done') !== 'true';
+      }).length;
+      if (badgeHeader) badgeHeader.textContent = String(remaining);
+      if (badgeDock) badgeDock.textContent = String(remaining);
+      if (availEn) availEn.textContent = remaining === 0 ? 'All apps up to date' : remaining + ' updates available';
+      if (availDe) availDe.textContent = remaining === 0 ? 'Alle Apps aktuell' : remaining + ' Updates verfügbar';
+    }
+
+    function installCard(card) {
+      if (!card || card.getAttribute('data-sim-done') === 'true') return;
+      var btn = card.querySelector('[data-sim-install]');
+      if (!btn) return;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="i18n-en">Installing…</span><span class="i18n-de">Installiere…</span>';
+      setTimeout(function () {
+        card.setAttribute('data-sim-done', 'true');
+        card.classList.add('is-installed');
+        btn.innerHTML = '<span class="i18n-en">Installed ✓</span><span class="i18n-de">Installiert ✓</span>';
+        syncCount();
+      }, 450);
+    }
+
+    document.querySelectorAll('[data-sim-install]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        installCard(btn.closest('.sim-card'));
+      });
+    });
+
+    var installAllBtn = document.getElementById('sim-install-all');
+    if (installAllBtn) {
+      installAllBtn.addEventListener('click', function () {
+        updateCards.forEach(function (card, i) {
+          setTimeout(function () {
+            installCard(card);
+          }, i * 160);
+        });
+      });
+    }
+
+    var resetBtn = document.getElementById('sim-reset-btn');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', function () {
+        updateCards.forEach(function (card) {
+          card.removeAttribute('data-sim-done');
+          card.classList.remove('is-installed');
+          card.hidden = false;
+          var btn = card.querySelector('[data-sim-install]');
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="i18n-en">Get update</span><span class="i18n-de">Update starten</span>';
+          }
+        });
+        filterChips.forEach(function (c) {
+          c.classList.toggle('is-active', c.getAttribute('data-sim-filter') === 'all');
+        });
+        syncCount();
+      });
+    }
+
+    // Bottom Sheet details
+    var DETAILS = {
+      signal: {
+        title: 'Signal 7.23.0',
+        meta: 'GitHub • SHA-256 verified • apksig v3',
+        en: 'Includes end-to-end encrypted group call improvements, reduced battery usage in background sync, and verified APK signature match.',
+        de: 'Enthält Verbesserungen für verschlüsselte Gruppenanrufe, geringeren Akkuverbrauch und eine verifizierte APK-Signaturprüfung.',
+      },
+      organic: {
+        title: 'Organic Maps 2026.11.0',
+        meta: 'F-Droid Index V2 • RFC 7396 diff • TOFU pinned',
+        en: 'Updated OpenStreetMap data, improved cycling route elevation profiles, and incremental Index V2 metadata verification.',
+        de: 'Aktualisierte OpenStreetMap-Daten, verbesserte Fahrrad-Höhenprofile und inkrementelle Index-V2-Verifizierung.',
+      },
+      auto: {
+        title: 'Android Auto 18.1.6644',
+        meta: 'APKMirror • .apkm split bundle • arm64-v8a',
+        en: 'Split-APK bundle extracted safely inside private internal storage with Zip-Slip protection and minSdk compatibility guard.',
+        de: 'Split-APK-Bundle sicher im privaten App-Speicher entpackt – inklusive Zip-Slip-Schutz und minSdk-Kompatibilitätscheck.',
+      },
+      newpipe: {
+        title: 'NewPipe 0.27.4',
+        meta: 'GitHub • SHA-256 verified • Rollback backup ready',
+        en: 'Fixes playback stream extraction and adds smoother queue handling. Previous APK backed up locally for instant rollback.',
+        de: 'Behebt Probleme beim Stream-Abruf und optimiert die Warteschlange. Vorherige APK wird lokal für den Rollback gesichert.',
+      },
+    };
+
+    var sheet = document.getElementById('sim-sheet');
+    var sheetTitle = document.getElementById('sim-sheet-title');
+    var sheetMeta = document.getElementById('sim-sheet-meta');
+    var sheetBody = document.getElementById('sim-sheet-body');
+    var sheetClose = document.getElementById('sim-sheet-close');
+
+    document.querySelectorAll('[data-sim-detail]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var key = btn.getAttribute('data-sim-detail');
+        var item = DETAILS[key];
+        if (!item || !sheet) return;
+        var isDe = document.documentElement.getAttribute('data-lang') === 'de';
+        if (sheetTitle) sheetTitle.textContent = item.title;
+        if (sheetMeta) sheetMeta.textContent = item.meta;
+        if (sheetBody) sheetBody.textContent = isDe ? item.de : item.en;
+        sheet.hidden = false;
+      });
+    });
+
+    if (sheetClose && sheet) {
+      sheetClose.addEventListener('click', function () {
+        sheet.hidden = true;
+      });
+    }
+
+    // Apps search & Grid toggle
+    var appSearch = document.getElementById('sim-app-search');
+    var appRows = Array.prototype.slice.call(document.querySelectorAll('#sim-app-list .sim-app-row'));
+    if (appSearch) {
+      appSearch.addEventListener('input', function () {
+        var q = appSearch.value.trim().toLowerCase();
+        appRows.forEach(function (row) {
+          var name = row.getAttribute('data-app-name') || '';
+          row.hidden = q.length > 0 && name.indexOf(q) === -1;
+        });
+      });
+    }
+
+    var gridToggle = document.getElementById('sim-grid-toggle');
+    var appList = document.getElementById('sim-app-list');
+    if (gridToggle && appList) {
+      gridToggle.addEventListener('click', function () {
+        appList.classList.toggle('is-grid');
+      });
+    }
   })();
 </script>
 
@@ -169,13 +669,483 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     border-block: 1px solid var(--outline);
   }
 
+  .showcase-top-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-block-end: clamp(28px, 4vw, 44px);
+  }
+
+  .mode-switch {
+    display: inline-flex;
+    padding: 4px;
+    border-radius: var(--radius-pill);
+    background: var(--surface);
+    border: 1px solid var(--outline);
+    gap: 4px;
+  }
+
+  .mode-btn {
+    min-height: 40px;
+    padding: 8px 16px;
+    border-radius: var(--radius-pill);
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-weight: 700;
+    font-size: 0.88rem;
+  }
+
+  .mode-btn.is-active {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+
   .showcase-shell {
     display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
     align-items: center;
     gap: clamp(28px, 5vw, 56px);
   }
 
+  .guide-card {
+    background: var(--bg);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-lg);
+    padding: clamp(22px, 3.5vw, 34px);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .guide-card h3 {
+    margin: 0;
+    font-size: clamp(1.3rem, 2.1vw, 1.65rem);
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  .guide-list {
+    margin: 0;
+    padding-inline-start: 20px;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    line-height: 1.55;
+  }
+
+  .guide-list strong {
+    color: var(--text);
+  }
+
+  .showcase-device {
+    display: flex;
+    justify-content: center;
+  }
+
+  /* Interactive Phone Simulator */
+  .sim-phone {
+    position: relative;
+    width: min(350px, 90vw);
+    height: 620px;
+    border-radius: 36px;
+    background: var(--bg);
+    border: 2px solid var(--outline-strong);
+    box-shadow: var(--shadow-elevated);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sim-statusbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px 8px;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .sim-notch {
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    background: var(--surface-highest);
+  }
+
+  .sim-viewport {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 14px 86px;
+    overscroll-behavior: contain;
+  }
+
+  .sim-appbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-block-end: 12px;
+  }
+
+  .sim-appbar-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.25rem;
+  }
+
+  .sim-logo-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+  }
+
+  .sim-count-pill {
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    background: var(--accent-soft);
+    color: var(--accent-soft-ink);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .sim-shizuku-chip {
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    background: var(--tertiary-soft);
+    color: var(--tertiary-soft-ink);
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  .sim-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 18px;
+    background: var(--surface);
+    border: 1px solid var(--outline);
+    margin-block-end: 10px;
+  }
+
+  .sim-banner-text {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.84rem;
+  }
+
+  .sim-banner-text span {
+    font-size: 0.74rem;
+    color: var(--text-muted);
+  }
+
+  .sim-install-all {
+    padding: 8px 14px;
+    border-radius: var(--radius-pill);
+    border: none;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 700;
+    font-size: 0.78rem;
+    flex-shrink: 0;
+  }
+
+  .sim-chips {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-block-end: 8px;
+    margin-block-end: 6px;
+  }
+
+  .sim-chip {
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--outline);
+    background: var(--surface-low);
+    color: var(--text-muted);
+    font-size: 0.74rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .sim-chip.is-active {
+    background: var(--accent-soft);
+    color: var(--accent-soft-ink);
+    border-color: var(--accent);
+  }
+
+  .sim-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .sim-card {
+    padding: 12px;
+    border-radius: 18px;
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .sim-card.is-installed {
+    opacity: 0.65;
+  }
+
+  .sim-card-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .sim-app-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+  }
+
+  .sim-card-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    font-size: 0.88rem;
+  }
+
+  .sim-ver {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+
+  .sim-ver em {
+    font-style: normal;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .sim-source-pill {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .sim-notes {
+    margin: 0;
+    padding: 7px 10px;
+    border-radius: 10px;
+    background: var(--surface);
+    font-size: 0.74rem;
+    color: var(--text-muted);
+  }
+
+  .sim-card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .sim-detail-btn {
+    padding: 6px 10px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--outline);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.74rem;
+    font-weight: 600;
+  }
+
+  .sim-update-btn {
+    padding: 7px 13px;
+    border-radius: var(--radius-pill);
+    border: none;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .sim-update-btn:disabled {
+    background: var(--tertiary-soft);
+    color: var(--tertiary-soft-ink);
+    cursor: default;
+  }
+
+  .sim-search {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--outline);
+    background: var(--surface-low);
+    color: var(--text);
+    font: inherit;
+    font-size: 0.86rem;
+    margin-block-end: 12px;
+  }
+
+  .sim-app-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .sim-app-list.is-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sim-app-row {
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 0.85rem;
+  }
+
+  .sim-app-row span {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+  }
+
+  .sim-setup-group {
+    padding: 12px;
+    border-radius: 18px;
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    margin-block-end: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .sim-setup-title {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  .sim-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.83rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .sim-switch {
+    accent-color: var(--accent);
+    width: 18px;
+    height: 18px;
+  }
+
+  .sim-sheet {
+    position: absolute;
+    inset-inline: 8px;
+    inset-block-end: 68px;
+    z-index: 15;
+    padding: 10px 16px 16px;
+    border-radius: 22px;
+    background: var(--surface);
+    border: 1px solid var(--outline-strong);
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .sim-sheet-handle {
+    width: 36px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--outline-strong);
+    margin: 0 auto 10px;
+  }
+
+  .sim-sheet-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-block-end: 4px;
+  }
+
+  .sim-sheet-sub {
+    margin: 0 0 8px;
+    font-size: 0.7rem;
+    color: var(--accent);
+  }
+
+  .sim-sheet-body {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .sim-dock {
+    position: absolute;
+    inset-inline: 22px;
+    inset-block-end: 14px;
+    height: 50px;
+    padding: 4px;
+    border-radius: var(--radius-pill);
+    background: var(--surface);
+    border: 1px solid var(--outline-strong);
+    box-shadow: var(--shadow-card);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    z-index: 10;
+  }
+
+  .sim-dock-btn {
+    border: none;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+
+  .sim-dock-btn.is-active {
+    background: var(--accent-soft);
+    color: var(--accent-soft-ink);
+  }
+
+  .sim-dock-badge {
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-size: 0.68rem;
+  }
+
+  /* Real Screenshots View */
   .tab-list {
     display: flex;
     flex-wrap: wrap;
@@ -192,28 +1162,12 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     color: var(--text-muted);
     font-weight: 700;
     font-size: 0.9rem;
-    transition:
-      background-color 150ms ease-out,
-      color 150ms ease-out,
-      border-color 150ms ease-out,
-      transform 150ms ease-out;
-  }
-
-  .tab-btn:active {
-    transform: scale(0.96);
   }
 
   .tab-btn.is-active {
     background: var(--accent);
     color: var(--accent-ink);
     border-color: var(--accent);
-  }
-
-  @media (hover: hover) {
-    .tab-btn:not(.is-active):hover {
-      background: var(--surface-high);
-      color: var(--text);
-    }
   }
 
   .showcase-panels {
@@ -228,20 +1182,12 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     font-size: clamp(1.25rem, 2vw, 1.6rem);
     font-weight: 800;
     line-height: 1.25;
-    letter-spacing: -0.02em;
   }
 
   .tab-panel p {
     margin: 0;
     color: var(--text-muted);
-    font-size: 1rem;
     line-height: 1.65;
-    text-wrap: pretty;
-  }
-
-  .showcase-device {
-    display: flex;
-    justify-content: center;
   }
 
   .device-bezel {
@@ -263,14 +1209,6 @@ const base = import.meta.env.BASE_URL.endsWith('/')
   @media (max-width: 900px) {
     .showcase-shell {
       grid-template-columns: minmax(0, 1fr);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .tab-btn,
-    .tab-btn:active {
-      transition: none;
-      transform: none;
     }
   }
 </style>

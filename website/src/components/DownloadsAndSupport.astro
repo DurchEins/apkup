@@ -1,9 +1,5 @@
 ---
 import { MIRRORS, SITE } from '../data/content';
-
-const base = import.meta.env.BASE_URL.endsWith('/')
-  ? import.meta.env.BASE_URL
-  : `${import.meta.env.BASE_URL}/`;
 ---
 
 <section id="downloads" class="section downloads-section">
@@ -52,7 +48,7 @@ const base = import.meta.env.BASE_URL.endsWith('/')
       <div class="primary-actions">
         <a class="btn btn-primary" href={SITE.releasesUrl} data-apk-link>
           <span class="i18n-en" data-apk-label-en>Download Latest APK</span>
-          <span class="i18n-de" data-apk-label-de>Aktuelle APK laden</span>
+          <span class="i18n-de" data-apk-label-de>Aktuelle APK herunterladen</span>
         </a>
         <a class="btn btn-secondary" href={SITE.releasesUrl} target="_blank" rel="noopener noreferrer">
           <span class="i18n-en">Release Notes &amp; SHA256</span>
@@ -70,14 +66,67 @@ const base = import.meta.env.BASE_URL.endsWith('/')
             target="_blank"
             rel="noopener noreferrer"
           >
-            <div class="mirror-main">
-              <strong>{mirror.name}</strong>
-              <span class={`mirror-badge ${mirror.outdated ? 'badge-warn' : ''}`}>
-                <span class="i18n-en">{mirror.badgeEn}</span>
-                <span class="i18n-de">{mirror.badgeDe}</span>
+            <div class="mirror-left">
+              <span class="mirror-icon" style={`--mirror-tint: ${mirror.color};`} aria-hidden="true">
+                {mirror.name === 'Zapstore' && (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" />
+                  </svg>
+                )}
+                {mirror.name === 'GitLab Releases' && (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="m22.65 14.39-1.4-4.32L18.47 1.5a.46.46 0 0 0-.88 0l-2.78 8.57H9.19L6.41 1.5a.46.46 0 0 0-.88 0L2.75 10.07l-1.4 4.32a.94.94 0 0 0 .34 1.05L12 22.92l10.31-7.48a.94.94 0 0 0 .34-1.05Z" />
+                  </svg>
+                )}
+                {mirror.name === 'APKPure' && (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M5.2 2.4C4.2 1.8 3 2.5 3 3.7v16.6c0 1.2 1.2 1.9 2.2 1.3l14.6-8.3c1-.6 1-2 0-2.6L5.2 2.4Zm4.9 5.5 4.9 4.1-4.9 4.1V7.9Z" />
+                  </svg>
+                )}
+                {mirror.name === 'itch.io' && (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="6" width="20" height="12" rx="4" />
+                    <path d="M6 12h4M8 10v4M15 11h.01M18 13h.01" />
+                  </svg>
+                )}
+                {mirror.name === 'Appteka' && (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2 2 12l10 10 10-10L12 2Z" />
+                    <path d="m8 12 4-4 4 4" />
+                  </svg>
+                )}
+                {mirror.name === 'Komi Store' && (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+                    <path d="M3 6h18M16 10a4 4 0 0 1-8 0" />
+                  </svg>
+                )}
+                {mirror.name === 'AlternativeTo' && (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m16 3 4 4-4 4" />
+                    <path d="M20 7H4" />
+                    <path d="m8 21-4-4 4-4" />
+                    <path d="M4 17h16" />
+                  </svg>
+                )}
+                {mirror.name === 'Amazon Appstore' && (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 17c4.5 3.2 11.5 3.2 16 0" />
+                    <path d="m17 16 3 1-1 3" />
+                    <path d="M9 12V8a3 3 0 0 1 6 0v4M9 11h6" />
+                  </svg>
+                )}
               </span>
+              <div class="mirror-main">
+                <strong>{mirror.name}</strong>
+                <span class={`mirror-badge ${mirror.outdated ? 'badge-warn' : ''}`}>
+                  <span class="i18n-en">{mirror.badgeEn}</span>
+                  <span class="i18n-de">{mirror.badgeDe}</span>
+                </span>
+              </div>
             </div>
             <svg
+              class="mirror-arrow"
               width="18"
               height="18"
               viewBox="0 0 24 24"
@@ -104,7 +153,7 @@ const base = import.meta.env.BASE_URL.endsWith('/')
         <p>
           <span class="i18n-en">
             ApkUp is free, ad-free, and open source. If it saves you time keeping your apps up to
-            date, consider starring the repository or buying a coffee.
+            date, consider starring the repository on GitHub or buying a coffee.
           </span>
           <span class="i18n-de">
             ApkUp ist kostenlos, werbefrei und Open Source. Wenn dir die App Zeit spart, freue ich
@@ -120,8 +169,12 @@ const base = import.meta.env.BASE_URL.endsWith('/')
           target="_blank"
           rel="noopener noreferrer"
         >
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z" />
+          </svg>
           <span class="i18n-en">Star on GitHub</span>
-          <span class="i18n-de">Stern auf GitHub</span>
+          <span class="i18n-de">Auf GitHub sternen</span>
+          <span class="star-count mono" data-gh-stars hidden></span>
         </a>
         <a
           class="btn btn-primary"
@@ -129,16 +182,27 @@ const base = import.meta.env.BASE_URL.endsWith('/')
           target="_blank"
           rel="noopener noreferrer"
         >
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
+            <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
+            <line x1="6" y1="2" x2="6" y2="4" />
+            <line x1="10" y1="2" x2="10" y2="4" />
+            <line x1="14" y1="2" x2="14" y2="4" />
+          </svg>
           <span>Buy Me a Coffee</span>
         </a>
         <a
-          class="coindrop-link"
+          class="btn btn-secondary"
           href="https://coindrop.to/durcheins"
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Support via Coindrop"
         >
-          <img src={`${base}assets/coindrop-button.png`} alt="Coindrop.to me" width="192" height="48" loading="lazy" />
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M14.8 9a2.8 2.8 0 0 0-2.8-2 3 3 0 0 0 0 6 3 3 0 0 1 0 6 2.8 2.8 0 0 1-2.8-2" />
+            <path d="M12 5v2m0 10v2" />
+          </svg>
+          <span>Coindrop</span>
         </a>
       </div>
     </div>
@@ -191,7 +255,7 @@ const base = import.meta.env.BASE_URL.endsWith('/')
 
   .mirrors-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 12px;
     margin-block-end: 40px;
   }
@@ -201,8 +265,8 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    min-height: 64px;
-    padding: 14px 18px;
+    min-height: 68px;
+    padding: 14px 16px;
     border-radius: var(--radius-md);
     background: var(--bg);
     border: 1px solid var(--outline);
@@ -221,16 +285,41 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     }
   }
 
+  .mirror-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .mirror-icon {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    background: var(--surface);
+    color: var(--mirror-tint, var(--accent));
+    border: 1px solid var(--outline);
+  }
+
   .mirror-main {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 2px;
+    min-width: 0;
   }
 
   .mirror-badge {
     font-size: 0.82rem;
     color: var(--text-muted);
     font-weight: 600;
+  }
+
+  .mirror-arrow {
+    flex-shrink: 0;
+    color: var(--text-muted);
   }
 
   .mirror-card.is-outdated {
@@ -272,16 +361,12 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     gap: 12px;
   }
 
-  .coindrop-link {
-    display: inline-flex;
-    align-items: center;
-    border-radius: var(--radius-sm);
-    overflow: hidden;
-  }
-
-  .coindrop-link img {
-    height: 48px;
-    width: auto;
+  .star-count {
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-high);
+    color: var(--accent);
+    font-size: 0.8rem;
   }
 
   @media (prefers-reduced-motion: reduce) {
