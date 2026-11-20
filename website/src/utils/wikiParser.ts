@@ -18,6 +18,14 @@ function stripLeadingEmoji(s: string): string {
   return s.replace(/^[\p{Emoji_Presentation}\p{Extended_Pictographic}\uFE0F\u200D]+\s*/gu, '').trim();
 }
 
+function plainHeadingText(s: string): string {
+  return stripLeadingEmoji(
+    s
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, (_m, label) => stripLeadingEmoji(label))
+      .replace(/[`*_]/g, '')
+  );
+}
+
 function formatInline(raw: string): string {
   let s = escapeHtml(raw);
   s = s.replace(/`([^`]+)`/g, '<code class="wk-code mono">$1</code>');
@@ -163,6 +171,11 @@ export function renderFullWikiHtml(md: string, slugPrefix: string): { html: stri
       return candidate;
     }
 
+    // Skip raw HTML anchor tags like <a id="..."></a> from GitHub Wiki markdown
+    if (/^<a\s+id=["'][^"']+["']\s*>\s*<\/a>$/i.test(line.trim())) {
+      continue;
+    }
+
     // Top H1 is already shown in the chapter header
     if (line.startsWith('# ')) {
       continue;
@@ -171,7 +184,7 @@ export function renderFullWikiHtml(md: string, slugPrefix: string): { html: stri
     const h2Match = line.match(/^##\s+(.*)$/);
     if (h2Match) {
       closeFaqItem();
-      const clean = stripLeadingEmoji(h2Match[1]);
+      const clean = plainHeadingText(h2Match[1]);
       if (/^(table of contents|quick navigation)$/i.test(clean)) {
         skipSection = true;
         continue;
@@ -187,7 +200,7 @@ export function renderFullWikiHtml(md: string, slugPrefix: string): { html: stri
           : /part 3/i.test(clean)
             ? 'wk-part-amber'
             : 'wk-part-neutral';
-      out.push(`<h3 id="${id}" class="wk-h2 ${badgeClass}">${formatInline(clean)}</h3>`);
+      out.push(`<h3 id="${id}" class="wk-h2 ${badgeClass}">${formatInline(stripLeadingEmoji(h2Match[1]))}</h3>`);
       continue;
     }
 
@@ -196,16 +209,16 @@ export function renderFullWikiHtml(md: string, slugPrefix: string): { html: stri
     const h3Match = line.match(/^###\s+(.*)$/);
     if (h3Match) {
       closeFaqItem();
-      const clean = stripLeadingEmoji(h3Match[1]);
+      const clean = plainHeadingText(h3Match[1]);
       const id = makeId(clean);
       headings.push({ id, text: clean, level: 3 });
       if (inFaqPart) {
         inFaqDetails = true;
         out.push(
-          `<details id="${id}" class="wk-faq"><summary><span>${formatInline(clean)}</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="wk-faq-body">`
+          `<details id="${id}" class="wk-faq"><summary><span>${formatInline(stripLeadingEmoji(h3Match[1]))}</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="wk-faq-body">`
         );
       } else {
-        out.push(`<h4 id="${id}" class="wk-h3">${formatInline(clean)}</h4>`);
+        out.push(`<h4 id="${id}" class="wk-h3">${formatInline(stripLeadingEmoji(h3Match[1]))}</h4>`);
       }
       continue;
     }
