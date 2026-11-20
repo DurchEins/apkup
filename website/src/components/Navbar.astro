@@ -146,14 +146,33 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     var btn = document.getElementById('mobile-menu-toggle');
     var panel = document.getElementById('mobile-nav-panel');
 
-    // Highlight active nav link
+    // Highlight active nav link + Scroll-Spy on homepage sections
     var path = window.location.pathname;
-    document.querySelectorAll('.nav-links a').forEach(function (a) {
+    var navLinks = Array.prototype.slice.call(document.querySelectorAll('.nav-links a'));
+    navLinks.forEach(function (a) {
       var href = a.getAttribute('href') || '';
       if (href.indexOf('#') === -1 && path.indexOf(href) === 0 && href.length > 6) {
         a.classList.add('is-current');
       }
     });
+
+    var secIds = ['features', 'showcase', 'sources'];
+    var secEls = secIds.map(function (id) { return document.getElementById(id); }).filter(Boolean);
+    if (secEls.length && 'IntersectionObserver' in window) {
+      var spy = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          var hash = '#' + entry.target.id;
+          navLinks.forEach(function (a) {
+            var h = a.getAttribute('href') || '';
+            if (h.indexOf('#') !== -1) {
+              a.classList.toggle('is-current', h.slice(h.indexOf('#')) === hash);
+            }
+          });
+        });
+      }, { rootMargin: '-30% 0px -60% 0px' });
+      secEls.forEach(function (el) { spy.observe(el); });
+    }
 
     if (!btn || !panel) return;
 

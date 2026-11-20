@@ -1,0 +1,397 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import { SITE } from '../data/content';
+
+const base = import.meta.env.BASE_URL.endsWith('/')
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+
+const guideSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: 'How to Install Unknown Apps on Android & Bypass Google’s 24-Hour Verification Delay (2026/2027)',
+  url: 'https://durcheins.github.io/apkup/sideloading/',
+  author: { '@type': 'Person', name: 'DurchEins', url: 'https://github.com/DurchEins' },
+  about: { '@type': 'SoftwareApplication', name: 'ApkUp' },
+};
+---
+
+<BaseLayout
+  title="Install Unknown Apps & 24h Verification Guide — ApkUp"
+  description="Step-by-step guide to installing unknown APKs on Android 10–17, unlocking Google’s 2026/2027 24-hour Developer Options verification flow, and using Shizuku or ADB."
+  jsonLd={guideSchema}
+>
+  <Navbar />
+  <main id="main-content" class="section">
+    <div class="container subpage-wrap">
+      <header class="sl-header">
+        <span class="pill-badge pill-amber mono">Android 10 – 17 • Update 11/2026</span>
+        <h1 class="section-title">
+          <span class="i18n-en">Installing Unknown Apps &amp; Google’s 24h Sideloading Lock</span>
+          <span class="i18n-de">Unbekannte Apps installieren &amp; Googles 24h-Sperre lösen</span>
+        </h1>
+        <p class="section-subtitle">
+          <span class="i18n-en">
+            Everything you need to install ApkUp and open-source Android apps smoothly — including
+            the classic “Install unknown apps” toggle, Google’s 2026/2027 24-hour Developer Options
+            flow, and what F-Droid &amp; FOSS developers say about it.
+          </span>
+          <span class="i18n-de">
+            Alles, was du für die reibungslose Installation von ApkUp und Open-Source-Apps wissen
+            musst – vom klassischen Schalter „Unbekannte Apps installieren“ über Googles neue
+            24-Stunden-Sperre in den Entwickleroptionen bis zur Einschätzung von F-Droid &amp;
+            FOSS-Entwicklern.
+          </span>
+        </p>
+      </header>
+
+      <!-- Way 1: Standard Android Flow -->
+      <section class="sl-card has-spotlight" aria-labelledby="sl-way1">
+        <div class="sl-card-head">
+          <span class="pill-badge pill-green mono">
+            <span class="i18n-en">Method 1 • Standard Android</span>
+            <span class="i18n-de">Weg 1 • Standard-Android</span>
+          </span>
+          <h2 id="sl-way1">
+            <span class="i18n-en">Classic “Install Unknown Apps” Permission (30 Seconds)</span>
+            <span class="i18n-de">Klassische Berechtigung „Unbekannte Apps installieren“ (30 Sek.)</span>
+          </h2>
+        </div>
+        <ol class="sl-steps">
+          <li>
+            <span class="sl-num mono">01</span>
+            <div>
+              <strong>
+                <span class="i18n-en">Download &amp; open the signed APK</span>
+                <span class="i18n-de">Signierte APK herunterladen &amp; antippen</span>
+              </strong>
+              <p>
+                <span class="i18n-en">
+                  Download <code>ApkUp-v{SITE.fallbackVersion}.apk</code> from GitHub Releases or
+                  our <a href={`${base}downloads/`}>Downloads page</a> and tap the file in your
+                  browser or file manager.
+                </span>
+                <span class="i18n-de">
+                  Lade <code>ApkUp-v{SITE.fallbackVersion}.apk</code> über unsere{' '}
+                  <a href={`${base}downloads/`}>Downloads-Seite</a> herunter und tippe die Datei im
+                  Browser oder Dateimanager an.
+                </span>
+              </p>
+            </div>
+          </li>
+          <li>
+            <span class="sl-num mono">02</span>
+            <div>
+              <strong>
+                <span class="i18n-en">Enable “Allow from this source”</span>
+                <span class="i18n-de">„Aus dieser Quelle zulassen“ aktivieren</span>
+              </strong>
+              <p>
+                <span class="i18n-en">
+                  When Android prompts you, tap <strong>Settings</strong>, switch on{' '}
+                  <strong>Allow from this source</strong> for your browser, and tap{' '}
+                  <strong>Install</strong>.
+                </span>
+                <span class="i18n-de">
+                  Tippe im Android-Hinweis auf <strong>Einstellungen</strong>, aktiviere{' '}
+                  <strong>Aus dieser Quelle zulassen</strong> für deinen Browser und tippe auf{' '}
+                  <strong>Installieren</strong>.
+                </span>
+              </p>
+            </div>
+          </li>
+          <li>
+            <span class="sl-num mono">03</span>
+            <div>
+              <strong>
+                <span class="i18n-en">Grant permission once to ApkUp</span>
+                <span class="i18n-de">Berechtigung einmalig auch für ApkUp freigeben</span>
+              </strong>
+              <p>
+                <span class="i18n-en">
+                  On your first app update inside ApkUp, grant the same permission to ApkUp once —
+                  or use Shizuku/Root for completely silent background updates.
+                </span>
+                <span class="i18n-de">
+                  Beim ersten App-Update in ApkUp gibst du dieselbe Berechtigung einmalig für ApkUp
+                  frei – oder nutzt optional Shizuku/Root für lautlose Hintergrund-Updates.
+                </span>
+              </p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <!-- Way 2: Google's 2026/2027 24h Developer Options Flow -->
+      <section class="sl-card sl-card-warn has-spotlight" aria-labelledby="sl-way2">
+        <div class="sl-card-head">
+          <span class="pill-badge pill-amber mono">
+            <span class="i18n-en">Method 2 • New in Late 2026 / Jan 2027</span>
+            <span class="i18n-de">Weg 2 • Neu ab Ende 2026 / Jan. 2027</span>
+          </span>
+          <h2 id="sl-way2">
+            <span class="i18n-en">Unlocking Google’s 24-Hour “Unverified Developer” Lock</span>
+            <span class="i18n-de">Googles neue 24-Stunden-Sperre in den Entwickleroptionen dauerhaft lösen</span>
+          </h2>
+          <p class="sl-lead">
+            <span class="i18n-en">
+              Starting September 30, 2026 (pilot regions) and rolling out globally in January 2027,
+              Google Play Protect blocks APKs from developers who have not submitted government ID
+              to Google — unless you unlock this setting in Developer Options:
+            </span>
+            <span class="i18n-de">
+              Seit 30. September 2026 (Pilotregionen) und ab Januar 2027 weltweit blockiert Google
+              Play Protect standardmäßig APKs von Entwicklern ohne Google-Ausweisverifizierung – so
+              schaltest du die Installation dauerhaft frei:
+            </span>
+          </p>
+        </div>
+
+        <ol class="sl-steps">
+          <li>
+            <span class="sl-num mono">01</span>
+            <div>
+              <strong>
+                <span class="i18n-en">Enable Developer Options (7× Build Number)</span>
+                <span class="i18n-de">Entwickleroptionen freischalten (7× Build-Nummer)</span>
+              </strong>
+              <p>
+                <span class="i18n-en">
+                  Open <strong>Settings → About Phone</strong> and tap <strong>Build Number</strong>{' '}
+                  7 times until Android confirms Developer Mode is active.
+                </span>
+                <span class="i18n-de">
+                  Öffne <strong>Einstellungen → Über das Telefon</strong> und tippe 7-mal auf die{' '}
+                  <strong>Build-Nummer</strong>, bis die Entwickleroptionen aktiviert sind.
+                </span>
+              </p>
+            </div>
+          </li>
+          <li>
+            <span class="sl-num mono">02</span>
+            <div>
+              <strong>
+                <span class="i18n-en">Toggle “Apps from unverified developers”</span>
+                <span class="i18n-de">„Apps von nicht verifizierten Entwicklern“ aktivieren</span>
+              </strong>
+              <p>
+                <span class="i18n-en">
+                  Go to <strong>Settings → System → Developer Options → Apps from unverified developers</strong>{' '}
+                  and select <strong>Allow apps from unverified developers</strong>.
+                </span>
+                <span class="i18n-de">
+                  Gehe zu <strong>Einstellungen → System → Entwickleroptionen → Apps von nicht verifizierten Entwicklern</strong>{' '}
+                  und aktiviere die Option.
+                </span>
+              </p>
+            </div>
+          </li>
+          <li>
+            <span class="sl-num mono">03</span>
+            <div>
+              <strong>
+                <span class="i18n-en">Confirm PIN &amp; restart your device</span>
+                <span class="i18n-de">Displaysperre bestätigen &amp; Gerät neu starten</span>
+              </strong>
+              <p>
+                <span class="i18n-en">
+                  Confirm your lock screen PIN/biometrics and reboot your smartphone to start the
+                  24-hour security timer.
+                </span>
+                <span class="i18n-de">
+                  Bestätige deine PIN/Biometrie und starte das Smartphone einmal neu, damit der
+                  24-Stunden-Countdown beginnt.
+                </span>
+              </p>
+            </div>
+          </li>
+          <li>
+            <span class="sl-num mono">04</span>
+            <div>
+              <strong>
+                <span class="i18n-en">After 24 hours: Choose “Allow indefinitely” (Avoid the 7-day trap!)</span>
+                <span class="i18n-de">Nach 24 Stunden: „Dauerhaft erlauben“ wählen (7-Tage-Falle vermeiden!)</span>
+              </strong>
+              <p>
+                <span class="i18n-en">
+                  Once the 24-hour cooldown finishes, return to Developer Options and choose{' '}
+                  <strong>Allow indefinitely</strong>. If you only pick the 7-day window, Android
+                  will disable it again after a week and force another 24-hour wait.
+                </span>
+                <span class="i18n-de">
+                  Gehe nach Ablauf der 24 Stunden zurück in die Entwickleroptionen und wähle{' '}
+                  <strong>Dauerhaft erlauben</strong>. Wählst du nur das 7-Tage-Fenster, schaltet
+                  Android die Option nach einer Woche wieder ab und erzwingt erneut 24 Stunden
+                  Wartezeit.
+                </span>
+              </p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <!-- Two-column Bottom: FOSS Context + Shizuku/ADB Bypass -->
+      <div class="sl-two-col">
+        <article class="sl-card has-spotlight">
+          <span class="pill-badge pill-neutral mono">FOSS &amp; F-Droid</span>
+          <h2>
+            <span class="i18n-en">What F-Droid &amp; FOSS Developers Say</span>
+            <span class="i18n-de">Was F-Droid &amp; FOSS-Entwickler dazu sagen</span>
+          </h2>
+          <p>
+            <span class="i18n-en">
+              F-Droid and open-source maintainers criticize Google’s mandatory ID verification as an
+              artificial barrier against free software: F-Droid compiles reproducible builds from
+              public source code with its own repository keys and cannot register thousands of
+              independent developers’ package IDs with Google.
+            </span>
+            <span class="i18n-de">
+              F-Droid und Open-Source-Entwickler kritisieren Googles Ausweiszwang scharf: F-Droid
+              kompiliert freie Software reproduzierbar direkt aus dem Quellcode mit eigenen
+              Repo-Schlüsseln und kann weder tausende fremde Paketnamen bei Google registrieren noch
+              anonyme Entwickler zur Ausweisabgabe zwingen.
+            </span>
+          </p>
+        </article>
+
+        <article class="sl-card has-spotlight">
+          <span class="pill-badge pill-green mono">Shizuku • ADB • Root</span>
+          <h2>
+            <span class="i18n-en">Power-User Bypass via Shizuku or ADB</span>
+            <span class="i18n-de">Power-User-Weg über Shizuku oder ADB</span>
+          </h2>
+          <p>
+            <span class="i18n-en">
+              Installing via <strong>Shizuku</strong> (Wireless Debugging on Android 11+),{' '}
+              <code>adb install -r ApkUp.apk</code> from a PC, or <strong>Root (su)</strong> uses
+              Android’s developer package installer pipeline directly.
+            </span>
+            <span class="i18n-de">
+              Installationen über <strong>Shizuku</strong> (Kabelloses Debugging ab Android 11),{' '}
+              <code>adb install -r ApkUp.apk</code> vom PC oder <strong>Root (su)</strong> nutzen
+              direkt die Entwickler-Schnittstelle des Android-PackageInstallers.
+            </span>
+          </p>
+          <div class="sl-actions">
+            <a href={`${base}wiki/#doc-shizuku`} class="btn btn-secondary">
+              <span class="i18n-en">Shizuku Setup Guide →</span>
+              <span class="i18n-de">Shizuku-Anleitung →</span>
+            </a>
+            <a href={`${base}wiki/#doc-sideloading`} class="btn btn-ghost">
+              <span class="i18n-en">Open in Wiki →</span>
+              <span class="i18n-de">Im Wiki öffnen →</span>
+            </a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .subpage-wrap {
+    max-width: 940px;
+  }
+
+  .sl-header {
+    margin-bottom: 28px;
+  }
+
+  .sl-header .section-title {
+    margin-top: 12px;
+  }
+
+  .sl-card {
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-lg);
+    padding: clamp(20px, 3vw, 28px);
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .sl-card-warn {
+    border-color: rgba(245, 158, 11, 0.45);
+  }
+
+  .sl-card h2 {
+    margin: 8px 0 0;
+    font-size: 1.32rem;
+  }
+
+  .sl-lead,
+  .sl-card p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+
+  .sl-steps {
+    list-style: none;
+    margin: 4px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .sl-steps li {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    border: 1px solid var(--outline);
+  }
+
+  .sl-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .sl-steps strong {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 0.96rem;
+  }
+
+  .sl-steps a {
+    color: var(--accent);
+  }
+
+  .sl-two-col {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .sl-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 6px;
+  }
+
+  @media (max-width: 760px) {
+    .sl-two-col {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

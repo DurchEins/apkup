@@ -25,6 +25,22 @@ import { SITE } from '../data/content';
       </div>
 
       <div class="privacy-cards">
+        <article class="priv-card priv-summary-grid">
+          <div>
+            <span class="pill-badge pill-green mono">✓ 100% On-Device</span>
+            <ul>
+              <li><span class="i18n-en">App scan, version matching &amp; SHA-256 verification</span><span class="i18n-de">App-Scan, Versionsabgleich &amp; SHA-256-Prüfung</span></li>
+              <li><span class="i18n-en">Hardware-backed Google Tink (AES-256-GCM) tokens</span><span class="i18n-de">Hardware-geschützte Google-Tink-Tokens (AES-256-GCM)</span></li>
+            </ul>
+          </div>
+          <div>
+            <span class="pill-badge pill-amber mono">✕ Never Sent</span>
+            <ul>
+              <li><span class="i18n-en">Zero telemetry, crash trackers, or advertising IDs</span><span class="i18n-de">Null Telemetrie, Crash-Tracker oder Werbe-IDs</span></li>
+              <li><span class="i18n-en">No developer backend, user accounts, or analytics</span><span class="i18n-de">Kein Entwickler-Backend, keine Konten, keine Statistik</span></li>
+            </ul>
+          </div>
+        </article>
         <article class="priv-card">
           <h2>
             <span class="i18n-en">1. No Developer Backend, Analytics, or Ads</span>
@@ -135,5 +151,11 @@ import { SITE } from '../data/content';
     margin: 0;
     color: var(--text-muted);
     line-height: 1.6;
+  }
+  .priv-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    border-color: rgba(245, 158, 11, 0.35);
   }
 </style>

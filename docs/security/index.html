@@ -18,14 +18,33 @@
     var btn = document.getElementById('mobile-menu-toggle');
     var panel = document.getElementById('mobile-nav-panel');
 
-    // Highlight active nav link
+    // Highlight active nav link + Scroll-Spy on homepage sections
     var path = window.location.pathname;
-    document.querySelectorAll('.nav-links a').forEach(function (a) {
+    var navLinks = Array.prototype.slice.call(document.querySelectorAll('.nav-links a'));
+    navLinks.forEach(function (a) {
       var href = a.getAttribute('href') || '';
       if (href.indexOf('#') === -1 && path.indexOf(href) === 0 && href.length > 6) {
         a.classList.add('is-current');
       }
     });
+
+    var secIds = ['features', 'showcase', 'sources'];
+    var secEls = secIds.map(function (id) { return document.getElementById(id); }).filter(Boolean);
+    if (secEls.length && 'IntersectionObserver' in window) {
+      var spy = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          var hash = '#' + entry.target.id;
+          navLinks.forEach(function (a) {
+            var h = a.getAttribute('href') || '';
+            if (h.indexOf('#') !== -1) {
+              a.classList.toggle('is-current', h.slice(h.indexOf('#')) === hash);
+            }
+          });
+        });
+      }, { rootMargin: '-30% 0px -60% 0px' });
+      secEls.forEach(function (el) { spy.observe(el); });
+    }
 
     if (!btn || !panel) return;
 
@@ -141,9 +160,9 @@ Solltest du eine Sicherheitslücke in ApkUp entdecken (insbesondere bei der
               Root-(su)-Ausführung, der Token-Speicherung oder dem Netzwerk-Transport), erstelle
               bitte <strong data-astro-cid-kaas2ygb>KEIN</strong> öffentliches Issue.
 </span> </p> <ol class="sec-steps" data-astro-cid-kaas2ygb> <li data-astro-cid-kaas2ygb> <span class="i18n-en" data-astro-cid-kaas2ygb>Use GitHub’s confidential <strong data-astro-cid-kaas2ygb>Private Vulnerability Reporting</strong>.</span> <span class="i18n-de" data-astro-cid-kaas2ygb>Nutze vertraulich GitHubs <strong data-astro-cid-kaas2ygb>Private Vulnerability Reporting</strong>.</span> </li> <li data-astro-cid-kaas2ygb> <span class="i18n-en" data-astro-cid-kaas2ygb>Detail the issue, steps to reproduce, affected versions, and include a proof-of-concept if available.</span> <span class="i18n-de" data-astro-cid-kaas2ygb>Beschreibe die Schwachstelle mit Reproduktionsschritten, betroffenen Versionen sowie ggf. einem Proof-of-Concept.</span> </li> <li data-astro-cid-kaas2ygb> <span class="i18n-en" data-astro-cid-kaas2ygb>We will review incoming reports promptly, investigate the scope, and release a patch before any public disclosure occurs.</span> <span class="i18n-de" data-astro-cid-kaas2ygb>Meldungen werden schnellstmöglich geprüft und behoben, bevor Details öffentlich geteilt werden.</span> </li> </ol> <div class="sec-actions" data-astro-cid-kaas2ygb> <a class="btn btn-primary" href="https://github.com/DurchEins/apkup/security/advisories/new" target="_blank" rel="noopener noreferrer" data-astro-cid-kaas2ygb> <span class="i18n-en" data-astro-cid-kaas2ygb>Report a Vulnerability (Confidential)</span> <span class="i18n-de" data-astro-cid-kaas2ygb>Sicherheitslücke vertraulich melden</span> </a> <a class="btn btn-secondary" href="https://github.com/DurchEins/apkup/blob/main/SECURITY.md" target="_blank" rel="noopener noreferrer" data-astro-cid-kaas2ygb> <span class="i18n-en" data-astro-cid-kaas2ygb>View SECURITY.md on GitHub</span> <span class="i18n-de" data-astro-cid-kaas2ygb>SECURITY.md auf GitHub</span> </a> </div> </article> </div> </div> </main> <footer class="site-footer" data-astro-cid-dghet7ke> <div class="container footer-inner" data-astro-cid-dghet7ke> <div class="footer-brand" data-astro-cid-dghet7ke> <img src="/apkup/assets/logo.png" alt="" width="34" height="34" class="footer-icon" data-astro-cid-dghet7ke> <div class="footer-brand-text" data-astro-cid-dghet7ke> <strong data-astro-cid-dghet7ke>ApkUp</strong> <p class="footer-copy" data-astro-cid-dghet7ke>
-Copyright © 2026 DurchEins • GPL-3.0 •  <span class="i18n-en" data-astro-cid-dghet7ke>Based on APKUpdater by rumboalla</span> <span class="i18n-de" data-astro-cid-dghet7ke>Basiert auf APKUpdater von rumboalla</span> </p> </div> </div> <nav class="footer-links" aria-label="Footer links" data-astro-cid-dghet7ke> <a href="/apkup/downloads/" data-astro-cid-dghet7ke>Downloads</a> <a href="/apkup/changelog/" data-astro-cid-dghet7ke> <span class="i18n-en" data-astro-cid-dghet7ke>What’s New?</span> <span class="i18n-de" data-astro-cid-dghet7ke>Was ist neu?</span> </a> <a href="/apkup/wiki/" data-astro-cid-dghet7ke>Wiki</a> <a href="/apkup/compare/" data-astro-cid-dghet7ke> <span class="i18n-en" data-astro-cid-dghet7ke>Source Checker</span> <span class="i18n-de" data-astro-cid-dghet7ke>Quellen-Check</span> </a> <a href="/apkup/privacy/" data-astro-cid-dghet7ke>Privacy</a> <a href="/apkup/security/" data-astro-cid-dghet7ke>Security</a> <a href="https://github.com/DurchEins/apkup" target="_blank" rel="noopener noreferrer" data-astro-cid-dghet7ke>GitHub</a> <a href="https://github.com/DurchEins/apkup/wiki" target="_blank" rel="noopener noreferrer" data-astro-cid-dghet7ke>GitHub Wiki</a> <a href="https://github.com/DurchEins/apkup/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" data-astro-cid-dghet7ke>GPL-3.0</a> <a href="https://github.com/DurchEins/apkup/releases/latest" target="_blank" rel="noopener noreferrer" class="footer-build-pill mono" title="Canonical Release" data-astro-cid-dghet7ke>
+Copyright © 2026  <a href="https://github.com/DurchEins" target="_blank" rel="noopener noreferrer" class="footer-author-link" data-astro-cid-dghet7ke>DurchEins</a>  • GPL-3.0 •  <span class="i18n-en" data-astro-cid-dghet7ke>Based on APKUpdater by rumboalla</span> <span class="i18n-de" data-astro-cid-dghet7ke>Basiert auf APKUpdater von rumboalla</span> </p> </div> </div> <nav class="footer-links" aria-label="Footer links" data-astro-cid-dghet7ke> <a href="/apkup/downloads/" data-astro-cid-dghet7ke>Downloads</a> <a href="/apkup/sideloading/" data-astro-cid-dghet7ke> <span class="i18n-en" data-astro-cid-dghet7ke>Install Guide (24h Fix)</span> <span class="i18n-de" data-astro-cid-dghet7ke>Installationshilfe (24h-Sperre)</span> </a> <a href="/apkup/changelog/" data-astro-cid-dghet7ke> <span class="i18n-en" data-astro-cid-dghet7ke>What’s New?</span> <span class="i18n-de" data-astro-cid-dghet7ke>Was ist neu?</span> </a> <a href="/apkup/wiki/" data-astro-cid-dghet7ke>Wiki</a> <a href="/apkup/compare/" data-astro-cid-dghet7ke> <span class="i18n-en" data-astro-cid-dghet7ke>Source Checker</span> <span class="i18n-de" data-astro-cid-dghet7ke>Quellen-Check</span> </a> <a href="/apkup/privacy/" data-astro-cid-dghet7ke>Privacy</a> <a href="/apkup/security/" data-astro-cid-dghet7ke>Security</a> <a href="https://github.com/DurchEins/apkup" target="_blank" rel="noopener noreferrer" data-astro-cid-dghet7ke>GitHub</a> <a href="https://github.com/DurchEins/apkup/wiki" target="_blank" rel="noopener noreferrer" data-astro-cid-dghet7ke>GitHub Wiki</a> <a href="https://github.com/DurchEins/apkup/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" data-astro-cid-dghet7ke>GPL-3.0</a> <a href="https://github.com/DurchEins/apkup/releases/latest" target="_blank" rel="noopener noreferrer" class="footer-build-pill mono" title="Canonical Release" data-astro-cid-dghet7ke>
 v1.45.0 (211)
-</a> </nav> </div> </footer>   <button type="button" id="back-to-top-btn" class="back-to-top-pill" aria-label="Back to top" title="Back to top"> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <path d="m18 15-6-6-6 6"></path> </svg> </button> <script>
+</a> </nav> </div> </footer>   <button type="button" id="back-to-top-btn" class="back-to-top-pill" aria-label="Back to top" title="Back to top"> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <path d="m18 15-6-6-6 6"></path> </svg> </button> <aside id="dev-mode-hud" class="dev-mode-hud mono" aria-label="ApkUp Developer Mode" hidden> <div class="dev-hud-head"> <strong>⚡ ApkUp Developer Mode</strong> <button type="button" id="dev-hud-close" aria-label="Close Developer HUD">✕</button> </div> <div class="dev-hud-grid"> <span>Release: <strong>v1.45.0 (211)</strong></span> <span>SDK: <strong>API 29 – 36 (Android 10–17)</strong></span> <span>ABIs: <strong>arm64-v8a • armeabi-v7a • x86_64</strong></span> <span>Signature: <strong>APK Scheme v2/v3 + SHA-256</strong></span> <span id="dev-hud-perf">DOM Ready: <strong>-- ms</strong></span> </div> </aside> <script>
       (function () {
         var root = document.documentElement;
         var themeBtn = document.getElementById('theme-toggle');
@@ -185,7 +204,11 @@ v1.45.0 (211)
 
         if (themeBtn) {
           themeBtn.setAttribute('aria-pressed', String(root.getAttribute('data-theme') === 'light'));
+          try {
+            if (!localStorage.getItem('apkup-theme')) themeBtn.classList.add('is-system-sync');
+          } catch (e) {}
           themeBtn.addEventListener('click', function () {
+            themeBtn.classList.remove('is-system-sync');
             var current = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
             applyTheme(current === 'dark' ? 'light' : 'dark');
           });
@@ -206,6 +229,13 @@ v1.45.0 (211)
           lbl.hidden = true;
           copied.hidden = false;
           btn.classList.add('is-copied');
+          if (window.innerWidth <= 860) {
+            var t = document.createElement('div');
+            t.className = 'brand-toast mono';
+            t.textContent = root.getAttribute('data-lang') === 'de' ? '✓ In Zwischenablage kopiert' : '✓ Copied to clipboard';
+            document.body.appendChild(t);
+            setTimeout(function () { t.remove(); }, 1800);
+          }
           clearTimeout(btn._shareTimer);
           btn._shareTimer = setTimeout(function () {
             lbl.hidden = false;
@@ -213,6 +243,38 @@ v1.45.0 (211)
             btn.classList.remove('is-copied');
           }, 2000);
         }
+
+        // Konami Code (↑↑↓↓←→←→BA) & Alt+D Developer Mode HUD
+        var devHud = document.getElementById('dev-mode-hud');
+        var devClose = document.getElementById('dev-hud-close');
+        var devPerf = document.getElementById('dev-hud-perf');
+        var konami = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+        var kPos = 0;
+        function toggleDevHud() {
+          if (!devHud) return;
+          devHud.hidden = !devHud.hidden;
+          if (!devHud.hidden && devPerf && window.performance) {
+            devPerf.innerHTML = 'DOM Load: <strong>' + Math.round(performance.now()) + ' ms</strong>';
+          }
+        }
+        if (devClose) devClose.addEventListener('click', function () { if (devHud) devHud.hidden = true; });
+        document.addEventListener('keydown', function (e) {
+          if (e.altKey && (e.key === 'd' || e.key === 'D')) {
+            e.preventDefault();
+            toggleDevHud();
+            return;
+          }
+          var key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+          if (key === konami[kPos]) {
+            kPos++;
+            if (kPos === konami.length) {
+              kPos = 0;
+              toggleDevHud();
+            }
+          } else {
+            kPos = 0;
+          }
+        });
 
         var topBtn = document.getElementById('back-to-top-btn');
         if (topBtn) {

@@ -37,6 +37,25 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     >
       {SITE.releasesUrl}
     </a>
+    <details class="qr-release-notes">
+      <summary class="mono">
+        <span class="i18n-en">What’s new in v{SITE.fallbackVersion}? ▾</span>
+        <span class="i18n-de">Was ist neu in v{SITE.fallbackVersion}? ▾</span>
+      </summary>
+      <p>
+        <span class="i18n-en">
+          Unified 8-source update scanner, Shizuku &amp; Root silent background installer, SHA-256
+          &amp; v2/v3 certificate protection.{' '}
+          <a href={`${base}changelog/`}>Full changelog →</a>
+        </span>
+        <span class="i18n-de">
+          Vereinter 8-Quellen-Scanner, lautlose Hintergrund-Updates per Shizuku &amp; Root sowie
+          SHA-256- &amp; Signaturschutz.{' '}
+          <a href={`${base}changelog/`}>Zum Changelog →</a>
+        </span>
+      </p>
+    </details>
+
     <p class="qr-hint">
       <span class="i18n-en">
         Points directly to the latest signed GitHub Release APK.
@@ -314,6 +333,37 @@ const base = import.meta.env.BASE_URL.endsWith('/')
   .qr-url:hover {
     color: var(--accent);
     text-decoration: underline;
+  }
+
+  .qr-release-notes {
+    width: 100%;
+    text-align: left;
+    background: var(--bg);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-md);
+    padding: 8px 12px;
+    font-size: 0.78rem;
+  }
+
+  .qr-release-notes summary {
+    cursor: pointer;
+    color: var(--accent);
+    font-weight: 700;
+    list-style: none;
+  }
+
+  .qr-release-notes summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .qr-release-notes p {
+    margin: 6px 0 0;
+    color: var(--text-muted);
+    line-height: 1.45;
+  }
+
+  .qr-release-notes a {
+    color: var(--accent);
   }
 
   .qr-hint {

@@ -676,6 +676,38 @@ const CHAPTERS: WikiChapter[] = [
       },
     ],
   },
+  {
+    slug: 'sideloading',
+    ghPage: 'Sideloading,-Unknown-Apps-&-Android-24h-Verification',
+    mdFile: 'Sideloading,-Unknown-Apps-&-Android-24h-Verification.md',
+    tag: 'Sideload',
+    enTitle: 'Installing Unknown Apps & Google’s 24h Verification Lock',
+    deTitle: 'Unbekannte Apps installieren & Googles 24h-Sperre lösen',
+    enLead:
+      'Step-by-step instructions for Android’s classic “Install unknown apps” permission, unlocking Google’s 2026/2027 24-hour Developer Options verification flow, and using Shizuku or ADB.',
+    deLead:
+      'Schritt-für-Schritt-Anleitung für „Unbekannte Apps installieren“, das dauerhafte Lösen von Googles neuer 24-Stunden-Sperre in den Entwickleroptionen (2026/2027) sowie Shizuku & ADB.',
+    cards: [
+      {
+        badge: '30 Sec',
+        enTitle: 'Classic Android Sideloading',
+        deTitle: 'Klassische Android-Freigabe',
+        enBody:
+          'Tap the downloaded APK, open Settings when prompted, enable “Allow from this source,” and install.',
+        deBody:
+          'Heruntergeladene APK antippen, im Hinweis auf Einstellungen tippen, „Aus dieser Quelle zulassen“ aktivieren und installieren.',
+      },
+      {
+        badge: '24h Lock',
+        enTitle: 'Google’s 2026/2027 Developer Options Flow',
+        deTitle: 'Googles 24h-Sperre (Entwickleroptionen)',
+        enBody:
+          'Enable Developer Options (7× Build Number) → Allow apps from unverified developers → Restart → After 24h choose “Allow indefinitely”.',
+        deBody:
+          'Entwickleroptionen (7× Build-Nummer) → Apps von nicht verifizierten Entwicklern erlauben → Neustart → Nach 24h „Dauerhaft erlauben“ wählen.',
+      },
+    ],
+  },
 ];
 
 const wikiDir = join(process.cwd(), 'src/data/wiki');
@@ -715,7 +747,7 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
           </h1>
           <p class="section-subtitle">
             <span class="i18n-en">
-              All 10 official guides in one searchable place — switch chapters on the left or
+              All 11 official guides in one searchable place — switch chapters on the left or
               search across every topic below.
             </span>
             <span class="i18n-de">
@@ -723,7 +755,7 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
               englischen GitHub-Wiki und ist daher größtenteils auf <strong>Englisch</strong>.
               Die Kapitel-Übersichten, Kurzanleitungen, Tabellen und wichtigsten Erklärungen oben
               in jedem Kapitel sind vollständig auf <strong>Deutsch</strong> aufbereitet – wähle
-              links ein Thema oder durchsuche alle 10 Kapitel live.
+              links ein Thema oder durchsuche alle 11 Kapitel live.
             </span>
           </p>
         </div>
@@ -737,9 +769,9 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
         <input
           type="search"
           id="wiki-search-input"
-          placeholder="Search all 10 guides (e.g. Shizuku, SHA-256, Cloudflare, 403, TOFU, Obtainium)…"
-          data-placeholder-en="Search all 10 guides (e.g. Shizuku, SHA-256, Cloudflare, 403, TOFU, Obtainium)…"
-          data-placeholder-de="Alle 10 Anleitungen durchsuchen (englische Begriffe bevorzugt, z. B. Shizuku, Rollback, Verification, Token)…"
+          placeholder="Search all 11 guides (e.g. Shizuku, 24h, SHA-256, Cloudflare, 403, Obtainium)…"
+          data-placeholder-en="Search all 11 guides (e.g. Shizuku, 24h, SHA-256, Cloudflare, 403, Obtainium)…"
+          data-placeholder-de="Alle 11 Anleitungen durchsuchen (englische Begriffe bevorzugt, z. B. Shizuku, 24h, Rollback, Verification, Token)…"
           aria-label="Search wiki guides"
         />
         <span class="wiki-search-count mono" id="wiki-search-count" aria-live="polite" hidden></span>

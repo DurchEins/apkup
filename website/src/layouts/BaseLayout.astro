@@ -96,6 +96,20 @@ const ogImage = new URL(`${base}og-card.png`, Astro.site).toString();
       </svg>
     </button>
 
+    <aside id="dev-mode-hud" class="dev-mode-hud mono" aria-label="ApkUp Developer Mode" hidden>
+      <div class="dev-hud-head">
+        <strong>⚡ ApkUp Developer Mode</strong>
+        <button type="button" id="dev-hud-close" aria-label="Close Developer HUD">✕</button>
+      </div>
+      <div class="dev-hud-grid">
+        <span>Release: <strong>v1.45.0 (211)</strong></span>
+        <span>SDK: <strong>API 29 – 36 (Android 10–17)</strong></span>
+        <span>ABIs: <strong>arm64-v8a • armeabi-v7a • x86_64</strong></span>
+        <span>Signature: <strong>APK Scheme v2/v3 + SHA-256</strong></span>
+        <span id="dev-hud-perf">DOM Ready: <strong>-- ms</strong></span>
+      </div>
+    </aside>
+
     <script is:inline>
       (function () {
         var root = document.documentElement;
@@ -138,7 +152,11 @@ const ogImage = new URL(`${base}og-card.png`, Astro.site).toString();
 
         if (themeBtn) {
           themeBtn.setAttribute('aria-pressed', String(root.getAttribute('data-theme') === 'light'));
+          try {
+            if (!localStorage.getItem('apkup-theme')) themeBtn.classList.add('is-system-sync');
+          } catch (e) {}
           themeBtn.addEventListener('click', function () {
+            themeBtn.classList.remove('is-system-sync');
             var current = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
             applyTheme(current === 'dark' ? 'light' : 'dark');
           });
@@ -159,6 +177,13 @@ const ogImage = new URL(`${base}og-card.png`, Astro.site).toString();
           lbl.hidden = true;
           copied.hidden = false;
           btn.classList.add('is-copied');
+          if (window.innerWidth <= 860) {
+            var t = document.createElement('div');
+            t.className = 'brand-toast mono';
+            t.textContent = root.getAttribute('data-lang') === 'de' ? '✓ In Zwischenablage kopiert' : '✓ Copied to clipboard';
+            document.body.appendChild(t);
+            setTimeout(function () { t.remove(); }, 1800);
+          }
           clearTimeout(btn._shareTimer);
           btn._shareTimer = setTimeout(function () {
             lbl.hidden = false;
@@ -166,6 +191,38 @@ const ogImage = new URL(`${base}og-card.png`, Astro.site).toString();
             btn.classList.remove('is-copied');
           }, 2000);
         }
+
+        // Konami Code (↑↑↓↓←→←→BA) & Alt+D Developer Mode HUD
+        var devHud = document.getElementById('dev-mode-hud');
+        var devClose = document.getElementById('dev-hud-close');
+        var devPerf = document.getElementById('dev-hud-perf');
+        var konami = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+        var kPos = 0;
+        function toggleDevHud() {
+          if (!devHud) return;
+          devHud.hidden = !devHud.hidden;
+          if (!devHud.hidden && devPerf && window.performance) {
+            devPerf.innerHTML = 'DOM Load: <strong>' + Math.round(performance.now()) + ' ms</strong>';
+          }
+        }
+        if (devClose) devClose.addEventListener('click', function () { if (devHud) devHud.hidden = true; });
+        document.addEventListener('keydown', function (e) {
+          if (e.altKey && (e.key === 'd' || e.key === 'D')) {
+            e.preventDefault();
+            toggleDevHud();
+            return;
+          }
+          var key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+          if (key === konami[kPos]) {
+            kPos++;
+            if (kPos === konami.length) {
+              kPos = 0;
+              toggleDevHud();
+            }
+          } else {
+            kPos = 0;
+          }
+        });
 
         var topBtn = document.getElementById('back-to-top-btn');
         if (topBtn) {

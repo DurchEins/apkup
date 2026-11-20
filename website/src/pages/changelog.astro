@@ -107,6 +107,13 @@ const deMonths = parseChangelog(loadReleasedMarkdown('app/src/main/assets/change
           <span class="i18n-en">Patch &amp; Fix</span>
           <span class="i18n-de">Patch &amp; Bugfix</span>
         </button>
+        <input
+          type="search"
+          id="cl-search-input"
+          class="cl-search-input"
+          placeholder="Filter changelog…"
+          aria-label="Filter changelog"
+        />
       </div>
 
       <div class="i18n-en cl-months">
@@ -220,22 +227,33 @@ const deMonths = parseChangelog(loadReleasedMarkdown('app/src/main/assets/change
     var btns = document.querySelectorAll('[data-cl-filter]');
     var cards = document.querySelectorAll('.cl-card[data-cl-type]');
     var months = document.querySelectorAll('.cl-month');
+    var searchIn = document.getElementById('cl-search-input');
+    var activeFilter = 'all';
+
+    function applyClFilter() {
+      var q = searchIn ? searchIn.value.trim().toLowerCase() : '';
+      cards.forEach(function (c) {
+        var typeOk = activeFilter === 'all' || c.getAttribute('data-cl-type') === activeFilter;
+        var textOk = !q || (c.textContent || '').toLowerCase().indexOf(q) !== -1;
+        c.hidden = !(typeOk && textOk);
+      });
+      months.forEach(function (m) {
+        var visible = m.querySelectorAll('.cl-card:not([hidden])').length;
+        m.hidden = visible === 0;
+        if ((activeFilter !== 'all' || q) && visible > 0) m.open = true;
+      });
+    }
+
     btns.forEach(function (btn) {
       btn.addEventListener('click', function () {
-        var f = btn.getAttribute('data-cl-filter');
+        activeFilter = btn.getAttribute('data-cl-filter') || 'all';
         btns.forEach(function (b) {
-          b.classList.toggle('is-active', b.getAttribute('data-cl-filter') === f);
+          b.classList.toggle('is-active', b.getAttribute('data-cl-filter') === activeFilter);
         });
-        cards.forEach(function (c) {
-          c.hidden = f !== 'all' && c.getAttribute('data-cl-type') !== f;
-        });
-        months.forEach(function (m) {
-          var visible = m.querySelectorAll('.cl-card:not([hidden])').length;
-          m.hidden = visible === 0;
-          if (f !== 'all' && visible > 0) m.open = true;
-        });
+        applyClFilter();
       });
     });
+    if (searchIn) searchIn.addEventListener('input', applyClFilter);
   })();
 </script>
 
@@ -263,6 +281,22 @@ const deMonths = parseChangelog(loadReleasedMarkdown('app/src/main/assets/change
     background: var(--accent);
     border-color: var(--accent);
     color: var(--accent-ink);
+  }
+
+  .cl-search-input {
+    margin-inline-start: auto;
+    min-height: 36px;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--outline);
+    background: var(--surface-low);
+    color: var(--text);
+    font-size: 0.84rem;
+    outline: none;
+  }
+
+  .cl-search-input:focus {
+    border-color: var(--accent);
   }
 
   .subpage-wrap {

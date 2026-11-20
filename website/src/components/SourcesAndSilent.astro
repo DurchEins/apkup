@@ -331,7 +331,9 @@ const base = import.meta.env.BASE_URL.endsWith('/')
         info.source +
         '</strong><span>' +
         (isDe ? info.de : info.en) +
-        '</span>';
+        ' <a href="wiki/#doc-sources" style="color:var(--accent);font-weight:700;">' +
+        (isDe ? 'Im Wiki →' : 'Wiki →') +
+        '</a></span>';
     }
 
     input.addEventListener('input', function () {
