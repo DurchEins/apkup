@@ -1,0 +1,139 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import { SITE } from '../data/content';
+---
+
+<BaseLayout title="Privacy Policy — ApkUp">
+  <Navbar />
+  <main id="main-content" class="section">
+    <div class="container subpage-wrap">
+      <div class="section-header">
+        <h1 class="section-title">
+          <span class="i18n-en">Privacy Policy</span>
+          <span class="i18n-de">Datenschutzerklärung</span>
+        </h1>
+        <p class="section-subtitle">
+          <span class="i18n-en">
+            Last Updated: November 13, 2026 • Based on PRIVACY.md in the ApkUp repository.
+          </span>
+          <span class="i18n-de">
+            Stand: 13. November 2026 • Basiert auf der offiziellen PRIVACY.md im ApkUp-Repository.
+          </span>
+        </p>
+      </div>
+
+      <div class="privacy-cards">
+        <article class="priv-card">
+          <h2>
+            <span class="i18n-en">1. No Developer Backend, Analytics, or Ads</span>
+            <span class="i18n-de">1. Kein Entwickler-Backend, keine Analyse, keine Werbung</span>
+          </h2>
+          <ul>
+            <li>
+              <span class="i18n-en">No ApkUp servers, proxy servers, or databases logging user queries or IP addresses.</span>
+              <span class="i18n-de">Keine ApkUp-Server, Proxy-Server oder Datenbanken zur Protokollierung von Abfragen oder IP-Adressen.</span>
+            </li>
+            <li>
+              <span class="i18n-en">No registration, user accounts, crash trackers (Firebase, Sentry, Crashlytics), or behavioral telemetry.</span>
+              <span class="i18n-de">Keine Registrierung, keine Nutzerkonten, keine Absturz-Tracker oder Verhaltens-Telemetrie.</span>
+            </li>
+            <li>
+              <span class="i18n-en">Never collects IMEI, hardware serials, MAC addresses, or Advertising IDs.</span>
+              <span class="i18n-de">Erfasst niemals IMEI, Seriennummern, MAC-Adressen oder Werbe-IDs.</span>
+            </li>
+          </ul>
+        </article>
+
+        <article class="priv-card">
+          <h2>
+            <span class="i18n-en">2. Explicit Source Consent &amp; Network Activity</span>
+            <span class="i18n-de">2. Bewusste Quellenauswahl &amp; Netzwerkaktivität</span>
+          </h2>
+          <ul>
+            <li>
+              <span class="i18n-en">On first launch, ApkUp presents a Choose Update Sources consent dialog — zero external requests happen beforehand.</span>
+              <span class="i18n-de">Beim Erststart erscheint der Dialog zur Quellenauswahl – vorher finden null externe Netzwerkabfragen statt.</span>
+            </li>
+            <li>
+              <span class="i18n-en">F-Droid &amp; IzzyOnDroid indexes are downloaded and compared locally on your device without transmitting your app list.</span>
+              <span class="i18n-de">F-Droid- &amp; IzzyOnDroid-Indizes werden lokal auf dem Gerät abgeglichen, ohne deine App-Liste zu senden.</span>
+            </li>
+            <li>
+              <span class="i18n-en">Google Play checks use anonymous Aurora Dispenser tokens with a minimized compatibility profile — no personal Google account is used.</span>
+              <span class="i18n-de">Google-Play-Prüfungen nutzen anonyme Aurora-Dispenser-Tokens mit minimiertem Geräteprofil – ohne Google-Konto.</span>
+            </li>
+          </ul>
+        </article>
+
+        <article class="priv-card">
+          <h2>
+            <span class="i18n-en">3. Encrypted Local Storage &amp; Auditing</span>
+            <span class="i18n-de">3. Verschlüsselter lokaler Speicher &amp; Open Source</span>
+          </h2>
+          <p>
+            <span class="i18n-en">
+              All preferences, bindings, and optional API tokens are encrypted at rest via Google
+              Tink (AES-256-GCM) backed by Android Keystore. Cloud backups and cleartext HTTP are
+              disabled.
+            </span>
+            <span class="i18n-de">
+              Alle Einstellungen, Verknüpfungen und optionalen Tokens werden per Google Tink
+              (AES-256-GCM) im Android Keystore verschlüsselt. Cloud-Backups und Klartext-HTTP sind
+              deaktiviert.
+            </span>
+          </p>
+          <div style="margin-top: 14px;">
+            <a class="btn btn-secondary" href={SITE.privacyUrl} target="_blank" rel="noopener noreferrer">
+              <span class="i18n-en">View PRIVACY.md on GitHub</span>
+              <span class="i18n-de">PRIVACY.md auf GitHub ansehen</span>
+            </a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .subpage-wrap {
+    max-width: 860px;
+  }
+
+  .privacy-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .priv-card {
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+  }
+
+  .priv-card h2 {
+    margin: 0 0 12px;
+    font-size: 1.25rem;
+    font-weight: 800;
+  }
+
+  .priv-card ul {
+    margin: 0;
+    padding-inline-start: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .priv-card p {
+    margin: 0;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+</style>

@@ -1,0 +1,281 @@
+---
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+
+interface ReleaseEntry {
+  header: string;
+  date: string;
+  version: string;
+  badge: string;
+  isFeature: boolean;
+  bannerTitle?: string;
+  bannerTag?: string;
+  bullets: { title: string; body: string }[];
+}
+
+interface MonthGroup {
+  month: string;
+  releases: ReleaseEntry[];
+}
+
+function parseChangelog(mdPath: string): MonthGroup[] {
+  const raw = readFileSync(mdPath, 'utf8');
+  const lines = raw.split(/\r?\n/);
+  const months: MonthGroup[] = [];
+  let currentMonth: MonthGroup | null = null;
+  let currentRelease: ReleaseEntry | null = null;
+
+  for (const line of lines) {
+    if (line.startsWith('## ')) {
+      currentMonth = { month: line.slice(3).trim(), releases: [] };
+      months.push(currentMonth);
+      currentRelease = null;
+    } else if (line.startsWith('### ') && currentMonth) {
+      const parts = line.slice(4).split('|').map((s) => s.trim());
+      const badge = parts[2] || 'Update';
+      const isFeature = /feature|major/i.test(badge);
+      currentRelease = {
+        header: line.slice(4).trim(),
+        date: parts[0] || '',
+        version: parts[1] || '',
+        badge,
+        isFeature,
+        bullets: [],
+      };
+      currentMonth.releases.push(currentRelease);
+    } else if (line.startsWith('> [Banner]') && currentRelease) {
+      const bParts = line.replace('> [Banner]', '').split('|').map((s) => s.trim());
+      currentRelease.bannerTitle = bParts[0] || '';
+      currentRelease.bannerTag = bParts[1] || '';
+    } else if (line.startsWith('- **') && currentRelease) {
+      const m = line.match(/^- \*\*(.+?)\*\*\s*(.*)$/);
+      if (m) {
+        currentRelease.bullets.push({ title: m[1], body: m[2] });
+      }
+    }
+  }
+  return months;
+}
+
+const repoRoot = join(process.cwd(), '..');
+const enMonths = parseChangelog(join(repoRoot, 'app/src/main/assets/changelog/1.45_en.md'));
+const deMonths = parseChangelog(join(repoRoot, 'app/src/main/assets/changelog/1.45_de.md'));
+---
+
+<BaseLayout title="Changelog — ApkUp">
+  <Navbar />
+  <main id="main-content" class="section">
+    <div class="container subpage-wrap">
+      <div class="section-header">
+        <h1 class="section-title">
+          <span class="i18n-en">Release Changelog</span>
+          <span class="i18n-de">Release-Verlauf &amp; Neuerungen</span>
+        </h1>
+        <p class="section-subtitle">
+          <span class="i18n-en">
+            Synced directly from ApkUp’s in-app monthly changelog files.
+          </span>
+          <span class="i18n-de">
+            Direkt aus den monatlichen In-App-Changelog-Dateien von ApkUp generiert.
+          </span>
+        </p>
+      </div>
+
+      <div class="i18n-en cl-months">
+        {
+          enMonths.map((group, idx) => (
+            <details class="cl-month" open={idx === 0}>
+              <summary class="cl-month-head">
+                <h2>{group.month}</h2>
+                <span class="pill-badge pill-neutral mono">{group.releases.length} releases</span>
+              </summary>
+              <div class="cl-releases">
+                {group.releases.map((rel) => (
+                  <article class="cl-card">
+                    <div class="cl-card-head">
+                      <div>
+                        <span class="cl-date">{rel.date}</span>
+                        <h3 class="mono">{rel.version}</h3>
+                      </div>
+                      <span class={`pill-badge ${rel.isFeature ? 'pill-purple' : 'pill-blue'}`}>
+                        {rel.badge}
+                      </span>
+                    </div>
+                    {rel.bannerTitle && (
+                      <div class="cl-banner">
+                        <strong>{rel.bannerTitle}</strong>
+                        {rel.bannerTag && <span class="mono">{rel.bannerTag}</span>}
+                      </div>
+                    )}
+                    <ul class="cl-list">
+                      {rel.bullets.map((b) => (
+                        <li>
+                          <strong>{b.title}</strong> {b.body}
+                        </li>
+                      ))}
+                    </ul>
+                  </article>
+                ))}
+              </div>
+            </details>
+          ))
+        }
+      </div>
+
+      <div class="i18n-de cl-months">
+        {
+          deMonths.map((group, idx) => (
+            <details class="cl-month" open={idx === 0}>
+              <summary class="cl-month-head">
+                <h2>{group.month}</h2>
+                <span class="pill-badge pill-neutral mono">{group.releases.length} Releases</span>
+              </summary>
+              <div class="cl-releases">
+                {group.releases.map((rel) => (
+                  <article class="cl-card">
+                    <div class="cl-card-head">
+                      <div>
+                        <span class="cl-date">{rel.date}</span>
+                        <h3 class="mono">{rel.version}</h3>
+                      </div>
+                      <span class={`pill-badge ${rel.isFeature ? 'pill-purple' : 'pill-blue'}`}>
+                        {rel.badge}
+                      </span>
+                    </div>
+                    {rel.bannerTitle && (
+                      <div class="cl-banner">
+                        <strong>{rel.bannerTitle}</strong>
+                        {rel.bannerTag && <span class="mono">{rel.bannerTag}</span>}
+                      </div>
+                    )}
+                    <ul class="cl-list">
+                      {rel.bullets.map((b) => (
+                        <li>
+                          <strong>{b.title}</strong> {b.body}
+                        </li>
+                      ))}
+                    </ul>
+                  </article>
+                ))}
+              </div>
+            </details>
+          ))
+        }
+      </div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .subpage-wrap {
+    max-width: 900px;
+  }
+
+  .cl-months {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .cl-month {
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-lg);
+    padding: 8px 22px 18px;
+  }
+
+  .cl-month-head {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-block: 14px;
+    cursor: pointer;
+  }
+
+  .cl-month-head::-webkit-details-marker {
+    display: none;
+  }
+
+  .cl-month-head h2 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 800;
+  }
+
+  .cl-releases {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 8px;
+  }
+
+  .cl-card {
+    background: var(--bg);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-md);
+    padding: 20px;
+  }
+
+  .cl-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .cl-date {
+    display: block;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+  }
+
+  .cl-card-head h3 {
+    margin: 0;
+    font-size: 1.15rem;
+  }
+
+  .pill-purple {
+    background: rgba(168, 85, 247, 0.16);
+    color: #c084fc;
+  }
+
+  .pill-blue {
+    background: rgba(56, 189, 248, 0.16);
+    color: #38bdf8;
+  }
+
+  .cl-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    background: var(--accent-soft);
+    color: var(--accent-soft-ink);
+    margin-bottom: 14px;
+  }
+
+  .cl-list {
+    margin: 0;
+    padding-inline-start: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: var(--text-muted);
+    line-height: 1.55;
+  }
+
+  .cl-list strong {
+    color: var(--text);
+  }
+</style>

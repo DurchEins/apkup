@@ -287,7 +287,7 @@ button {
 }
 
 
-/* DownloadsAndSupport.astro */
+/* src/components/DownloadsAndSupport.astro */
 .downloads-section {
     background: var(--surface-low);
     border-block: 1px solid var(--outline);
@@ -377,9 +377,6 @@ button {
     border-radius: 12px;
     display: grid;
     place-items: center;
-    background: var(--surface);
-    color: var(--mirror-tint, var(--accent));
-    border: 1px solid var(--outline);
   }
 
   .mirror-main {
@@ -409,15 +406,14 @@ button {
   }
 
   .support-card {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 24px;
-    background: var(--surface);
+    gap: 24px 36px;
+    background: var(--bg);
     border: 1px solid var(--outline-strong);
     border-radius: var(--radius-lg);
-    padding: clamp(22px, 3.5vw, 34px);
+    padding: clamp(22px, 3.5vw, 32px);
   }
 
   .support-copy h3 {
@@ -436,15 +432,26 @@ button {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
+  }
+
+  .support-pill {
+    background: var(--surface-low);
+    border-color: var(--outline-strong);
   }
 
   .star-count {
     padding: 2px 8px;
     border-radius: var(--radius-pill);
-    background: var(--surface-high);
-    color: var(--accent);
-    font-size: 0.8rem;
+    background: var(--accent-soft);
+    color: var(--accent-soft-ink);
+    font-size: 0.78rem;
+  }
+
+  @media (max-width: 960px) {
+    .support-card {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -455,7 +462,7 @@ button {
     }
   }
 
-/* FaqAndFooter.astro */
+/* src/components/FaqAndFooter.astro */
 .faq-container {
     max-width: 860px;
   }
@@ -517,63 +524,13 @@ button {
     max-width: 70ch;
   }
 
-  .site-footer {
-    border-block-start: 1px solid var(--outline);
-    background: var(--surface-lowest);
-    padding-block: 32px;
-  }
-
-  .footer-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 20px;
-  }
-
-  .footer-brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .footer-icon {
-    border-radius: 8px;
-  }
-
-  .footer-copy {
-    margin: 2px 0 0;
-    font-size: 0.86rem;
-    color: var(--text-muted);
-  }
-
-  .footer-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 18px;
-  }
-
-  .footer-links a {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-decoration: none;
-    padding-block: 6px;
-  }
-
-  @media (hover: hover) {
-    .footer-links a:hover {
-      color: var(--accent);
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
     .faq-chevron {
       transition: none;
     }
   }
 
-/* FeatureBento.astro */
+/* src/components/FeatureBento.astro */
 .bento-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -665,7 +622,58 @@ button {
     }
   }
 
-/* Hero.astro */
+/* src/components/Footer.astro */
+.site-footer {
+    border-block-start: 1px solid var(--outline);
+    background: var(--surface-lowest);
+    padding-block: 32px;
+  }
+
+  .footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .footer-icon {
+    border-radius: 8px;
+  }
+
+  .footer-copy {
+    margin: 2px 0 0;
+    font-size: 0.86rem;
+    color: var(--text-muted);
+  }
+
+  .footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+  }
+
+  .footer-links a {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: none;
+    padding-block: 6px;
+  }
+
+  @media (hover: hover) {
+    .footer-links a:hover {
+      color: var(--accent);
+    }
+  }
+
+/* src/components/Hero.astro */
 .hero {
     padding-block-start: clamp(40px, 6vw, 76px);
     padding-block-end: 0;
@@ -788,7 +796,7 @@ button {
     }
   }
 
-/* Navbar.astro */
+/* src/components/Navbar.astro */
 .site-header {
     position: sticky;
     inset-block-start: 0;
@@ -907,7 +915,169 @@ button {
     }
   }
 
-/* ScreenShowcase.astro */
+/* src/components/PermissionsSection.astro */
+.privacy-top {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-block-end: 28px;
+  }
+
+  .perm-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .perm-item {
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-md);
+    padding: 4px 18px;
+  }
+
+  .perm-item[open] {
+    border-color: var(--outline-strong);
+    background: var(--surface);
+  }
+
+  .perm-summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-block: 14px;
+    cursor: pointer;
+  }
+
+  .perm-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .perm-head {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .perm-code {
+    font-size: 0.78rem;
+    color: var(--accent);
+    font-weight: 700;
+    word-break: break-word;
+  }
+
+  .perm-title {
+    font-weight: 700;
+    font-size: 0.96rem;
+  }
+
+  .perm-chev {
+    flex-shrink: 0;
+    color: var(--text-muted);
+    transition: transform 150ms ease-out;
+  }
+
+  .perm-item[open] .perm-chev {
+    transform: rotate(180deg);
+    color: var(--accent);
+  }
+
+  .perm-body {
+    padding-block-end: 16px;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.6;
+  }
+
+  .perm-body p {
+    margin: 0;
+  }
+
+  @media (max-width: 820px) {
+    .perm-list {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+/* src/components/QrModal.astro */
+.qr-dialog {
+    padding: 0;
+    border: 1px solid var(--outline-strong);
+    border-radius: var(--radius-lg);
+    background: var(--surface-low);
+    color: var(--text);
+    max-width: min(400px, 92vw);
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .qr-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(6px);
+  }
+
+  .qr-card {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    text-align: center;
+  }
+
+  .qr-header {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    text-align: start;
+  }
+
+  .qr-header h3 {
+    margin: 8px 0 0;
+    font-size: 1.18rem;
+    font-weight: 800;
+  }
+
+  .qr-close {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--outline);
+    background: var(--surface);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+
+  .qr-frame {
+    padding: 12px;
+    border-radius: 22px;
+    background: #faf8f4;
+    border: 2px solid var(--accent);
+  }
+
+  .qr-url {
+    margin: 0;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    word-break: break-all;
+    max-width: 100%;
+  }
+
+  .qr-hint {
+    margin: 0;
+    font-size: 0.84rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+/* src/components/ScreenShowcase.astro */
 .showcase-section {
     background: var(--surface-low);
     border-block: 1px solid var(--outline);
@@ -949,7 +1119,7 @@ button {
 
   .showcase-shell {
     display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: center;
     gap: clamp(28px, 5vw, 56px);
   }
@@ -991,12 +1161,12 @@ button {
     justify-content: center;
   }
 
-  /* Interactive Phone Simulator */
-  .sim-phone {
+  /* 1:1 ApkUp Phone */
+  .apkup-phone {
     position: relative;
-    width: min(350px, 90vw);
-    height: 620px;
-    border-radius: 36px;
+    width: min(368px, 92vw);
+    height: 670px;
+    border-radius: 38px;
     background: var(--bg);
     border: 2px solid var(--outline-strong);
     box-shadow: var(--shadow-elevated);
@@ -1005,31 +1175,32 @@ button {
     overflow: hidden;
   }
 
-  .sim-statusbar {
+  .apkup-statusbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 20px 8px;
+    padding: 12px 20px 6px;
     font-size: 0.72rem;
-    color: var(--text-muted);
+    font-weight: 700;
+    color: var(--text);
     flex-shrink: 0;
   }
 
-  .sim-notch {
+  .apkup-camera {
     width: 14px;
     height: 14px;
     border-radius: 999px;
     background: var(--surface-highest);
   }
 
-  .sim-viewport {
+  .apkup-viewport {
     flex: 1;
     overflow-y: auto;
-    padding: 8px 14px 86px;
+    padding: 6px 14px 86px;
     overscroll-behavior: contain;
   }
 
-  .sim-appbar {
+  .apkup-topbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1037,74 +1208,129 @@ button {
     margin-block-end: 12px;
   }
 
-  .sim-appbar-title {
+  .apkup-topbar-left {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 1.25rem;
   }
 
-  .sim-logo-dot {
-    width: 24px;
-    height: 24px;
-    border-radius: 8px;
+  .apkup-title-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
     background: var(--accent-soft);
-    border: 1px solid var(--accent);
+    color: var(--accent);
+    display: grid;
+    place-items: center;
+    font-weight: 800;
   }
 
-  .sim-count-pill {
+  .apkup-screen-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .apkup-count-badge {
     padding: 2px 8px;
     border-radius: var(--radius-pill);
     background: var(--accent-soft);
-    color: var(--accent-soft-ink);
-    font-size: 0.75rem;
+    color: var(--accent);
+    font-size: 0.74rem;
     font-weight: 700;
   }
 
-  .sim-shizuku-chip {
-    padding: 4px 10px;
+  .apkup-topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .apkup-icon-btn {
+    width: 32px;
+    height: 32px;
     border-radius: var(--radius-pill);
-    background: var(--tertiary-soft);
-    color: var(--tertiary-soft-ink);
-    font-size: 0.7rem;
-    font-weight: 700;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    display: grid;
+    place-items: center;
   }
 
-  .sim-banner {
+  .apkup-summary-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
     padding: 12px 14px;
-    border-radius: 18px;
-    background: var(--surface);
+    border-radius: 20px;
+    background: var(--surface-low);
     border: 1px solid var(--outline);
     margin-block-end: 10px;
   }
 
-  .sim-banner-text {
+  .apkup-summary-left {
     display: flex;
-    flex-direction: column;
-    font-size: 0.84rem;
+    align-items: center;
+    gap: 10px;
   }
 
-  .sim-banner-text span {
-    font-size: 0.74rem;
+  .apkup-summary-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+
+  .apkup-summary-text {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.86rem;
+    line-height: 1.25;
+  }
+
+  .apkup-summary-text span {
+    font-size: 0.72rem;
     color: var(--text-muted);
   }
 
-  .sim-install-all {
+  .apkup-primary-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     padding: 8px 14px;
     border-radius: var(--radius-pill);
     border: none;
     background: var(--accent);
     color: var(--accent-ink);
     font-weight: 700;
-    font-size: 0.78rem;
-    flex-shrink: 0;
+    font-size: 0.76rem;
+    white-space: nowrap;
   }
 
-  .sim-chips {
+  .apkup-primary-pill:disabled {
+    background: var(--tertiary-soft);
+    color: var(--tertiary-soft-ink);
+  }
+
+  .apkup-tonal-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 14px;
+    border-radius: var(--radius-pill);
+    border: none;
+    background: var(--accent-soft);
+    color: var(--accent-soft-ink);
+    font-weight: 700;
+    font-size: 0.78rem;
+  }
+
+  .apkup-chips {
     display: flex;
     gap: 6px;
     overflow-x: auto;
@@ -1112,246 +1338,369 @@ button {
     margin-block-end: 6px;
   }
 
-  .sim-chip {
-    padding: 6px 12px;
+  .apkup-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 10px;
     border-radius: var(--radius-pill);
     border: 1px solid var(--outline);
     background: var(--surface-low);
     color: var(--text-muted);
-    font-size: 0.74rem;
+    font-size: 0.72rem;
     font-weight: 700;
     white-space: nowrap;
   }
 
-  .sim-chip.is-active {
+  .apkup-chip.is-active {
     background: var(--accent-soft);
     color: var(--accent-soft-ink);
     border-color: var(--accent);
   }
 
-  .sim-cards {
+  .apkup-chip-num {
+    padding: 1px 5px;
+    border-radius: 999px;
+    background: var(--surface);
+    font-size: 0.66rem;
+  }
+
+  .apkup-card-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
   }
 
-  .sim-card {
-    padding: 12px;
-    border-radius: 18px;
+  .apkup-card {
+    padding: 13px;
+    border-radius: 20px;
     background: var(--surface-low);
     border: 1px solid var(--outline);
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 9px;
   }
 
-  .sim-card.is-installed {
-    opacity: 0.65;
+  .apkup-card.is-installed {
+    opacity: 0.62;
   }
 
-  .sim-card-top {
+  .apkup-card-row {
     display: flex;
     align-items: center;
     gap: 10px;
   }
 
-  .sim-app-badge {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
+  .apkup-app-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
     display: grid;
     place-items: center;
-    color: #fff;
     font-weight: 800;
-    font-size: 0.95rem;
+    font-size: 1rem;
     flex-shrink: 0;
   }
 
-  .sim-card-meta {
+  .apkup-card-info {
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 2px;
-    min-width: 0;
     font-size: 0.88rem;
   }
 
-  .sim-ver {
-    font-size: 0.72rem;
+  .apkup-ver {
+    font-size: 0.7rem;
     color: var(--text-muted);
   }
 
-  .sim-ver em {
-    font-style: normal;
+  .apkup-ver span {
     color: var(--accent);
     font-weight: 700;
   }
 
-  .sim-source-pill {
-    font-size: 0.68rem;
-    color: var(--text-muted);
-    font-weight: 600;
-  }
-
-  .sim-notes {
-    margin: 0;
-    padding: 7px 10px;
-    border-radius: 10px;
+  .apkup-source-tag {
+    display: inline-flex;
+    align-self: flex-start;
+    padding: 2px 8px;
+    border-radius: 8px;
     background: var(--surface);
-    font-size: 0.74rem;
     color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 700;
   }
 
-  .sim-card-actions {
+  .apkup-notes-box {
+    display: flex;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: var(--surface);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    line-height: 1.45;
+  }
+
+  .apkup-info-dot {
+    width: 15px;
+    height: 15px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-size: 0.62rem;
+    font-weight: 800;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .apkup-card-footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
   }
 
-  .sim-detail-btn {
-    padding: 6px 10px;
-    border-radius: var(--radius-pill);
-    border: 1px solid var(--outline);
+  .apkup-text-btn {
+    border: none;
     background: transparent;
     color: var(--text-muted);
-    font-size: 0.74rem;
-    font-weight: 600;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 6px 4px;
   }
 
-  .sim-update-btn {
-    padding: 7px 13px;
+  /* Apps & Settings */
+  .apkup-segmented {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border: 1px solid var(--outline-strong);
     border-radius: var(--radius-pill);
+    overflow: hidden;
+    margin-block-end: 10px;
+  }
+
+  .apkup-seg-btn {
     border: none;
-    background: var(--accent);
-    color: var(--accent-ink);
+    background: transparent;
+    padding: 8px 10px;
     font-size: 0.75rem;
     font-weight: 700;
+    color: var(--text-muted);
   }
 
-  .sim-update-btn:disabled {
-    background: var(--tertiary-soft);
-    color: var(--tertiary-soft-ink);
-    cursor: default;
+  .apkup-seg-btn.is-active {
+    background: var(--accent-soft);
+    color: var(--accent-soft-ink);
   }
 
-  .sim-search {
+  .apkup-search-bar {
     width: 100%;
-    padding: 10px 14px;
+    padding: 9px 14px;
     border-radius: var(--radius-pill);
     border: 1px solid var(--outline);
     background: var(--surface-low);
     color: var(--text);
     font: inherit;
-    font-size: 0.86rem;
-    margin-block-end: 12px;
+    font-size: 0.82rem;
+    margin-block-end: 10px;
   }
 
-  .sim-app-list {
+  .apkup-alpha-bar {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.74rem;
+    color: var(--accent);
+    font-weight: 700;
+    border-block-end: 1px solid var(--outline);
+    padding-block-end: 4px;
+    margin-block-end: 8px;
+  }
+
+  .apkup-apps-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
   }
 
-  .sim-app-list.is-grid {
+  .apkup-apps-list.is-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .sim-app-row {
-    padding: 10px 12px;
-    border-radius: 14px;
+  .apkup-app-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 16px;
     background: var(--surface-low);
     border: 1px solid var(--outline);
+  }
+
+  .apkup-app-meta {
+    min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 3px;
-    font-size: 0.85rem;
+    gap: 2px;
+    font-size: 0.84rem;
   }
 
-  .sim-app-row span {
-    font-size: 0.7rem;
+  .apkup-app-meta > span {
+    font-size: 0.66rem;
     color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .sim-setup-group {
-    padding: 12px;
-    border-radius: 18px;
+  .apkup-app-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 2px;
+  }
+
+  .apkup-ver-pill {
+    padding: 2px 7px;
+    border-radius: 7px;
+    background: var(--accent-soft);
+    color: var(--accent-soft-ink);
+    font-size: 0.66rem;
+    font-weight: 700;
+  }
+
+  .apkup-settings-card {
+    padding: 14px;
+    border-radius: 20px;
     background: var(--surface-low);
     border: 1px solid var(--outline);
-    margin-block-end: 12px;
+    margin-block-end: 10px;
     display: flex;
     flex-direction: column;
     gap: 10px;
   }
 
-  .sim-setup-title {
-    font-size: 0.78rem;
-    font-weight: 800;
+  .apkup-settings-heading {
     color: var(--accent);
+    font-weight: 700;
+    font-size: 0.82rem;
   }
 
-  .sim-toggle-row {
+  .apkup-settings-sub {
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .apkup-source-switch-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
-    font-size: 0.83rem;
-    font-weight: 600;
+    gap: 10px;
     cursor: pointer;
   }
 
-  .sim-switch {
-    accent-color: var(--accent);
-    width: 18px;
-    height: 18px;
+  .apkup-source-switch-row strong {
+    display: block;
+    font-size: 0.84rem;
   }
 
-  .sim-sheet {
+  .apkup-source-switch-row span {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+  }
+
+  .apkup-m3-switch {
+    accent-color: var(--accent);
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Bottom Sheets */
+  .apkup-sheet {
     position: absolute;
-    inset-inline: 8px;
-    inset-block-end: 68px;
-    z-index: 15;
-    padding: 10px 16px 16px;
-    border-radius: 22px;
+    inset-inline: 0;
+    inset-block-end: 0;
+    z-index: 25;
+    padding: 10px 16px 20px;
+    border-radius: 26px 26px 0 0;
     background: var(--surface);
-    border: 1px solid var(--outline-strong);
+    border-block-start: 1px solid var(--outline-strong);
     box-shadow: var(--shadow-elevated);
   }
 
-  .sim-sheet-handle {
+  .apkup-sheet-handle {
     width: 36px;
     height: 4px;
     border-radius: 999px;
     background: var(--outline-strong);
-    margin: 0 auto 10px;
+    margin: 0 auto 12px;
   }
 
-  .sim-sheet-head {
+  .apkup-sheet-top {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    margin-block-end: 4px;
+    gap: 10px;
+    margin-block-end: 10px;
   }
 
-  .sim-sheet-sub {
-    margin: 0 0 8px;
-    font-size: 0.7rem;
-    color: var(--accent);
-  }
-
-  .sim-sheet-body {
-    margin: 0;
-    font-size: 0.8rem;
+  .apkup-pkg {
+    font-size: 0.68rem;
     color: var(--text-muted);
-    line-height: 1.5;
   }
 
-  .sim-dock {
+  .apkup-sheet-ver-pill {
+    padding: 8px 12px;
+    border-radius: 14px;
+    background: var(--accent-soft);
+    color: var(--accent-soft-ink);
+    font-size: 0.74rem;
+    font-weight: 700;
+    margin-block-end: 8px;
+  }
+
+  .apkup-sheet-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .apkup-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+
+  .apkup-history-item {
+    padding: 10px;
+    border-radius: 14px;
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.84rem;
+  }
+
+  .apkup-rollback-pill {
+    padding: 6px 10px;
+    border-radius: 10px;
+    background: var(--accent-soft);
+    color: var(--accent-soft-ink);
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  /* Floating Capsule Bottom Navigation */
+  .apkup-dock {
     position: absolute;
-    inset-inline: 22px;
-    inset-block-end: 14px;
-    height: 50px;
+    inset-inline: 18px;
+    inset-block-end: 12px;
+    height: 54px;
     padding: 4px;
     border-radius: var(--radius-pill);
     background: var(--surface);
@@ -1360,36 +1709,42 @@ button {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 4px;
-    z-index: 10;
+    z-index: 15;
   }
 
-  .sim-dock-btn {
+  .apkup-dock-btn {
     border: none;
     border-radius: var(--radius-pill);
     background: transparent;
     color: var(--text-muted);
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 700;
-    display: inline-flex;
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: 2px;
+    position: relative;
   }
 
-  .sim-dock-btn.is-active {
+  .apkup-dock-btn.is-active {
     background: var(--accent-soft);
-    color: var(--accent-soft-ink);
+    color: var(--accent);
   }
 
-  .sim-dock-badge {
-    padding: 1px 6px;
+  .apkup-dock-badge {
+    position: absolute;
+    inset-block-start: 4px;
+    inset-inline-end: 20px;
+    padding: 1px 5px;
     border-radius: 999px;
-    background: var(--accent);
-    color: var(--accent-ink);
-    font-size: 0.68rem;
+    background: #f87171;
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 800;
   }
 
-  /* Real Screenshots View */
+  /* Real Screenshots Gallery */
   .tab-list {
     display: flex;
     flex-wrap: wrap;
@@ -1425,7 +1780,6 @@ button {
     margin: 0 0 12px;
     font-size: clamp(1.25rem, 2vw, 1.6rem);
     font-weight: 800;
-    line-height: 1.25;
   }
 
   .tab-panel p {
@@ -1450,13 +1804,13 @@ button {
     outline-offset: -1px;
   }
 
-  @media (max-width: 900px) {
+  @media (max-width: 920px) {
     .showcase-shell {
       grid-template-columns: minmax(0, 1fr);
     }
   }
 
-/* SourcesAndSilent.astro */
+/* src/components/SourcesAndSilent.astro */
 .sources-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -1569,4 +1923,304 @@ button {
     .silent-box {
       grid-template-columns: minmax(0, 1fr);
     }
+  }
+
+  .quick-compat-box {
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-lg);
+    padding: clamp(20px, 3vw, 30px);
+    margin-block-end: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .quick-compat-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .quick-compat-head h3 {
+    margin: 0 0 4px;
+    font-size: 1.2rem;
+    font-weight: 800;
+  }
+
+  .quick-compat-head p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.94rem;
+  }
+
+  .quick-compat-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .quick-compat-input {
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--outline-strong);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.9rem;
+  }
+
+  .quick-compat-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .preset-chip {
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--outline);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .quick-compat-result {
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.92rem;
+  }
+
+  .quick-compat-result.is-ok {
+    background: var(--tertiary-soft);
+    color: var(--tertiary-soft-ink);
+  }
+
+  .quick-compat-result.is-warn {
+    background: var(--accent-soft);
+    color: var(--accent-soft-ink);
+  }
+
+/* src/pages/changelog.astro */
+.subpage-wrap {
+    max-width: 900px;
+  }
+
+  .cl-months {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .cl-month {
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-lg);
+    padding: 8px 22px 18px;
+  }
+
+  .cl-month-head {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-block: 14px;
+    cursor: pointer;
+  }
+
+  .cl-month-head::-webkit-details-marker {
+    display: none;
+  }
+
+  .cl-month-head h2 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 800;
+  }
+
+  .cl-releases {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 8px;
+  }
+
+  .cl-card {
+    background: var(--bg);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-md);
+    padding: 20px;
+  }
+
+  .cl-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .cl-date {
+    display: block;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+  }
+
+  .cl-card-head h3 {
+    margin: 0;
+    font-size: 1.15rem;
+  }
+
+  .pill-purple {
+    background: rgba(168, 85, 247, 0.16);
+    color: #c084fc;
+  }
+
+  .pill-blue {
+    background: rgba(56, 189, 248, 0.16);
+    color: #38bdf8;
+  }
+
+  .cl-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    background: var(--accent-soft);
+    color: var(--accent-soft-ink);
+    margin-bottom: 14px;
+  }
+
+  .cl-list {
+    margin: 0;
+    padding-inline-start: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: var(--text-muted);
+    line-height: 1.55;
+  }
+
+  .cl-list strong {
+    color: var(--text);
+  }
+
+/* src/pages/compatibility.astro */
+.subpage-wrap {
+    max-width: 900px;
+  }
+
+  .compat-card {
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-lg);
+    padding: clamp(20px, 3vw, 32px);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .compat-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .compat-textarea {
+    width: 100%;
+    padding: 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--outline-strong);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.85rem;
+    resize: vertical;
+  }
+
+  .compat-summary {
+    font-size: 0.85rem;
+    color: var(--accent);
+    margin-bottom: 12px;
+    font-weight: 700;
+  }
+
+  .compat-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .compat-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    border: 1px solid var(--outline);
+  }
+
+  .compat-url {
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    word-break: break-all;
+  }
+
+  .compat-err {
+    color: var(--danger);
+    margin: 0;
+  }
+
+/* src/pages/privacy.astro */
+.subpage-wrap {
+    max-width: 860px;
+  }
+
+  .privacy-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .priv-card {
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+  }
+
+  .priv-card h2 {
+    margin: 0 0 12px;
+    font-size: 1.25rem;
+    font-weight: 800;
+  }
+
+  .priv-card ul {
+    margin: 0;
+    padding-inline-start: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .priv-card p {
+    margin: 0;
+    color: var(--text-muted);
+    line-height: 1.6;
   }

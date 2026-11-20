@@ -1,0 +1,216 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout title="Source & Obtainium Compatibility — ApkUp">
+  <Navbar />
+  <main id="main-content" class="section">
+    <div class="container subpage-wrap">
+      <div class="section-header">
+        <h1 class="section-title">
+          <span class="i18n-en">Obtainium &amp; Source Compatibility Checker</span>
+          <span class="i18n-de">Obtainium- &amp; Quellen-Kompatibilitäts-Check</span>
+        </h1>
+        <p class="section-subtitle">
+          <span class="i18n-en">
+            100% offline in your browser — nothing is uploaded. Paste an Obtainium JSON export or
+            choose a file to preview how ApkUp maps your apps and custom F-Droid repositories.
+          </span>
+          <span class="i18n-de">
+            100 % offline in deinem Browser – es wird nichts hochgeladen. Füge deinen
+            Obtainium-JSON-Export ein oder wähle eine Datei, um kompatible Apps &amp; Repos vorab zu
+            prüfen.
+          </span>
+        </p>
+      </div>
+
+      <div class="compat-card">
+        <div class="compat-actions">
+          <label class="btn btn-primary" for="obt-file-input">
+            <span class="i18n-en">Choose Obtainium JSON File</span>
+            <span class="i18n-de">Obtainium-JSON-Datei wählen</span>
+          </label>
+          <input type="file" id="obt-file-input" accept=".json,application/json" hidden />
+          <button type="button" class="btn btn-secondary" id="obt-sample-btn">
+            <span class="i18n-en">Load Sample Export</span>
+            <span class="i18n-de">Beispiel-Export laden</span>
+          </button>
+        </div>
+
+        <textarea
+          id="obt-json-input"
+          class="compat-textarea mono"
+          rows="7"
+          placeholder='{"apps": [{"id": "com.apkup", "url": "https://github.com/DurchEins/apkup", "name": "ApkUp"}]}'
+          aria-label="Obtainium JSON export content"
+        ></textarea>
+
+        <div id="obt-report" class="compat-report" hidden></div>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<script is:inline>
+  (function () {
+    var fileInput = document.getElementById('obt-file-input');
+    var textarea = document.getElementById('obt-json-input');
+    var sampleBtn = document.getElementById('obt-sample-btn');
+    var report = document.getElementById('obt-report');
+
+    function classifyUrl(url) {
+      var u = (url || '').toLowerCase();
+      if (u.includes('github.com')) return 'GitHub';
+      if (u.includes('gitlab')) return 'GitLab';
+      if (u.includes('codeberg.org') || u.includes('forgejo') || u.includes('gitea')) return 'Codeberg / Forgejo';
+      if (u.includes('izzysoft.de')) return 'IzzyOnDroid';
+      if (u.includes('f-droid.org') || u.includes('fdroid')) return 'F-Droid Index V2';
+      if (u.includes('apkmirror.com')) return 'APKMirror';
+      if (u.includes('play.google.com')) return 'Google Play';
+      return 'Custom / HTML';
+    }
+
+    function analyze(raw) {
+      if (!report) return;
+      var text = (raw || '').trim();
+      if (!text) {
+        report.hidden = true;
+        return;
+      }
+      try {
+        var parsed = JSON.parse(text);
+        var apps = Array.isArray(parsed) ? parsed : Array.isArray(parsed.apps) ? parsed.apps : [];
+        if (!apps.length) {
+          report.hidden = false;
+          report.innerHTML = '<p class="compat-err">No Obtainium app entries found in JSON.</p>';
+          return;
+        }
+        var rows = apps.map(function (a) {
+          var name = a.name || a.id || 'Unknown App';
+          var url = a.url || '';
+          var src = classifyUrl(url);
+          var ok = src !== 'Custom / HTML';
+          return (
+            '<div class="compat-row">' +
+            '<div><strong>' + name + '</strong><div class="mono compat-url">' + url + '</div></div>' +
+            '<span class="pill-badge ' + (ok ? 'pill-emerald' : 'pill-amber') + ' mono">' + src + '</span>' +
+            '</div>'
+          );
+        });
+        report.hidden = false;
+        report.innerHTML =
+          '<div class="compat-summary mono">' + apps.length + ' entries analyzed offline</div>' +
+          '<div class="compat-rows">' + rows.join('') + '</div>';
+      } catch (e) {
+        report.hidden = false;
+        report.innerHTML = '<p class="compat-err">Invalid JSON format.</p>';
+      }
+    }
+
+    if (textarea) {
+      textarea.addEventListener('input', function () {
+        analyze(textarea.value);
+      });
+    }
+
+    if (fileInput && textarea) {
+      fileInput.addEventListener('change', function () {
+        var file = fileInput.files && fileInput.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function () {
+          textarea.value = String(reader.result || '');
+          analyze(textarea.value);
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    if (sampleBtn && textarea) {
+      sampleBtn.addEventListener('click', function () {
+        var sample = {
+          apps: [
+            { id: 'com.apkup', name: 'ApkUp', url: 'https://github.com/DurchEins/apkup' },
+            { id: 'com.aurora.store', name: 'Aurora Store', url: 'https://gitlab.com/AuroraOSS/AuroraStore' },
+            { id: 'nodomain.freeyourgadget.gadgetbridge', name: 'Gadgetbridge', url: 'https://codeberg.org/Freeyourgadget/Gadgetbridge' },
+            { id: 'app.organicmaps', name: 'Organic Maps', url: 'https://apt.izzysoft.de/fdroid/index/apk/app.organicmaps' },
+          ],
+        };
+        textarea.value = JSON.stringify(sample, null, 2);
+        analyze(textarea.value);
+      });
+    }
+  })();
+</script>
+
+<style>
+  .subpage-wrap {
+    max-width: 900px;
+  }
+
+  .compat-card {
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-lg);
+    padding: clamp(20px, 3vw, 32px);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .compat-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .compat-textarea {
+    width: 100%;
+    padding: 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--outline-strong);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.85rem;
+    resize: vertical;
+  }
+
+  .compat-summary {
+    font-size: 0.85rem;
+    color: var(--accent);
+    margin-bottom: 12px;
+    font-weight: 700;
+  }
+
+  .compat-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .compat-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    border: 1px solid var(--outline);
+  }
+
+  .compat-url {
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    word-break: break-all;
+  }
+
+  .compat-err {
+    color: var(--danger);
+    margin: 0;
+  }
+</style>

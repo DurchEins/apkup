@@ -11,25 +11,25 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     <div class="showcase-top-row">
       <div class="section-header" style="margin-block-end: 0;">
         <h2 class="section-title">
-          <span class="i18n-en">Try ApkUp right in your browser</span>
-          <span class="i18n-de">ApkUp direkt im Browser ausprobieren</span>
+          <span class="i18n-en">Try the real ApkUp interface</span>
+          <span class="i18n-de">Die echte ApkUp-App direkt ausprobieren</span>
         </h2>
         <p class="section-subtitle">
           <span class="i18n-en">
-            Scroll, filter sources, inspect release details, test silent toggles, or switch to the
-            real device screenshots anytime.
+            Interactive 1:1 replica of ApkUp’s Material 3 Expressive screens — tap Detail, History,
+            Install All, filter chips, Apps User/System tabs, and Setup switches.
           </span>
           <span class="i18n-de">
-            Scrolle durch die Liste, filtere Quellen, öffne Release-Details, teste Schalter oder
-            wechsle jederzeit zu den echten Geräte-Screenshots.
+            Originalgetreue interaktive Nachbildung der echten ApkUp-Oberfläche – tippe auf
+            Details, Verlauf, Alle aktualisieren, Filter-Chips, Apps-Tabs oder die Quellen-Schalter.
           </span>
         </p>
       </div>
 
       <div class="mode-switch" role="group" aria-label="Showcase mode">
         <button type="button" class="mode-btn is-active" data-showcase-mode="demo" aria-pressed="true">
-          <span class="i18n-en">Interactive Demo</span>
-          <span class="i18n-de">Interaktive Demo</span>
+          <span class="i18n-en">Interactive App</span>
+          <span class="i18n-de">Interaktive App</span>
         </button>
         <button type="button" class="mode-btn" data-showcase-mode="shots" aria-pressed="false">
           <span class="i18n-en">Real Screenshots</span>
@@ -38,170 +38,216 @@ const base = import.meta.env.BASE_URL.endsWith('/')
       </div>
     </div>
 
-    <!-- MODE 1: INTERACTIVE APP SIMULATION -->
+    <!-- MODE 1: 1:1 INTERACTIVE APKUP APP -->
     <div class="showcase-shell" id="showcase-demo-view">
       <div class="demo-guide">
         <div class="guide-card">
-          <span class="pill-badge pill-amber mono">Live UI Simulation</span>
+          <span class="pill-badge pill-amber mono">1:1 Interactive UI</span>
           <h3>
-            <span class="i18n-en">Feel the Material 3 Expressive flow</span>
-            <span class="i18n-de">Erlebe den Material-3-Expressive-Flow</span>
+            <span class="i18n-en">Explore every screen &amp; sheet</span>
+            <span class="i18n-de">Alle Screens &amp; Bottom Sheets testen</span>
           </h3>
           <ul class="guide-list">
             <li>
-              <span class="i18n-en">Tap <strong>Get update</strong> or <strong>Install All</strong> to watch the update state</span>
-              <span class="i18n-de">Tippe auf <strong>Update starten</strong> oder <strong>Alle aktualisieren</strong></span>
+              <span class="i18n-en">Tap <strong>Detail</strong> on any update card to open the full <strong>Update Details</strong> sheet (with Save APK &amp; Skip version)</span>
+              <span class="i18n-de">Tippe auf <strong>Details</strong> für das komplette <strong>Update-Details</strong>-Sheet (inkl. APK speichern &amp; Überspringen)</span>
             </li>
             <li>
-              <span class="i18n-en">Tap <strong>Details</strong> on any card to open the in-app bottom sheet</span>
-              <span class="i18n-de">Tippe auf <strong>Details</strong> für das integrierte Bottom Sheet</span>
+              <span class="i18n-en">Tap the <strong>History</strong> clock icon in the top bar to open <strong>Update History</strong> with rollback links</span>
+              <span class="i18n-de">Tippe oben auf das <strong>Verlauf</strong>-Symbol für den Update-Verlauf mit Rollback-Links</span>
             </li>
             <li>
-              <span class="i18n-en">Use the floating bottom dock to switch between <strong>Updates</strong>, <strong>Apps</strong>, and <strong>Setup</strong></span>
-              <span class="i18n-de">Wechsle unten im Dock zwischen <strong>Updates</strong>, <strong>Apps</strong> und <strong>Setup</strong></span>
-            </li>
-            <li>
-              <span class="i18n-en">Toggle Dark / Off-White Light or EN / DE in the top bar — the phone adapts live</span>
-              <span class="i18n-de">Schalte oben Dark/Light oder EN/DE um – das Handy passt sich live an</span>
+              <span class="i18n-en">Switch to <strong>Apps</strong> (User / System, Grid / List, search) or <strong>Settings</strong> (live source toggles &amp; theme)</span>
+              <span class="i18n-de">Wechsle unten zu <strong>Apps</strong> (Benutzer / System, Raster / Liste) oder <strong>Setup</strong> (Quellen-Schalter)</span>
             </li>
           </ul>
           <button type="button" class="btn btn-secondary" id="sim-reset-btn">
-            <span class="i18n-en">Reset Demo Updates</span>
+            <span class="i18n-en">Reset Demo State</span>
             <span class="i18n-de">Demo zurücksetzen</span>
           </button>
         </div>
       </div>
 
       <div class="showcase-device">
-        <div class="sim-phone" aria-label="Interactive ApkUp Android app simulation">
-          <div class="sim-statusbar mono">
-            <span>14:15</span>
-            <span class="sim-notch" aria-hidden="true"></span>
-            <span>5G • 92%</span>
+        <div class="apkup-phone" aria-label="Interactive ApkUp 1:1 Android app">
+          <!-- Status Bar -->
+          <div class="apkup-statusbar mono">
+            <span>16:47</span>
+            <span class="apkup-camera" aria-hidden="true"></span>
+            <span class="apkup-status-icons">5G • 54%</span>
           </div>
 
-          <div class="sim-viewport" id="sim-viewport">
-            <!-- TAB 1: UPDATES -->
-            <div class="sim-screen is-active" data-sim-screen="updates">
-              <div class="sim-appbar">
-                <div class="sim-appbar-title">
-                  <span class="sim-logo-dot" aria-hidden="true"></span>
-                  <strong>Updates</strong>
-                  <span class="sim-count-pill mono" id="sim-badge-header">4</span>
+          <div class="apkup-viewport">
+            <!-- SCREEN 1: UPDATES -->
+            <div class="apkup-screen" data-sim-screen="updates">
+              <div class="apkup-topbar">
+                <div class="apkup-topbar-left">
+                  <span class="apkup-title-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><circle cx="12" cy="12" r="1.5"/></svg>
+                  </span>
+                  <strong class="apkup-screen-title">Updates</strong>
+                  <span class="apkup-count-badge mono" id="sim-badge-header">4</span>
                 </div>
-                <span class="sim-shizuku-chip mono">Shizuku ON</span>
+                <div class="apkup-topbar-actions">
+                  <button type="button" class="apkup-icon-btn" id="sim-updates-search-toggle" aria-label="Search updates">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                  </button>
+                  <button type="button" class="apkup-icon-btn" id="sim-history-open" aria-label="Open Update History">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>
+                  </button>
+                  <button type="button" class="apkup-icon-btn" id="sim-refresh-btn" aria-label="Refresh updates">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+                  </button>
+                </div>
               </div>
 
-              <div class="sim-banner">
-                <div class="sim-banner-text">
-                  <strong id="sim-banner-title">
-                    <span class="i18n-en" data-sim-avail-en>4 updates available</span>
-                    <span class="i18n-de" data-sim-avail-de>4 Updates verfügbar</span>
-                  </strong>
-                  <span>
-                    <span class="i18n-en">Verified sources ready</span>
-                    <span class="i18n-de">Verifizierte Quellen bereit</span>
+              <input type="search" class="apkup-search-bar" id="sim-updates-search" placeholder="Search updates…" hidden />
+
+              <!-- Updates Summary Card -->
+              <div class="apkup-summary-card">
+                <div class="apkup-summary-left">
+                  <span class="apkup-summary-circle">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M12 8v6m-3-3 3 3 3-3"/></svg>
                   </span>
+                  <div class="apkup-summary-text">
+                    <strong class="i18n-en" data-sim-avail-en>4 updates available</strong>
+                    <strong class="i18n-de" data-sim-avail-de>4 Updates verfügbar</strong>
+                    <span>Updates</span>
+                  </div>
                 </div>
-                <button type="button" class="sim-install-all" id="sim-install-all">
+                <button type="button" class="apkup-primary-pill" id="sim-install-all">
                   <span class="i18n-en">Install All</span>
-                  <span class="i18n-de">Alle</span>
+                  <span class="i18n-de">Alle aktualisieren</span>
                 </button>
               </div>
 
-              <div class="sim-chips" role="group" aria-label="Filter updates by source">
-                <button type="button" class="sim-chip is-active" data-sim-filter="all">
-                  <span class="i18n-en">All</span>
-                  <span class="i18n-de">Alle</span>
+              <!-- Filter Chips -->
+              <div class="apkup-chips">
+                <button type="button" class="apkup-chip is-active" data-sim-filter="all">
+                  <span>✓</span>
+                  <span class="i18n-en">All apps</span>
+                  <span class="i18n-de">Alle Apps</span>
+                  <span class="apkup-chip-num mono">4</span>
                 </button>
-                <button type="button" class="sim-chip" data-sim-filter="GitHub">GitHub</button>
-                <button type="button" class="sim-chip" data-sim-filter="F-Droid V2">F-Droid V2</button>
-                <button type="button" class="sim-chip" data-sim-filter="APKMirror">APKMirror</button>
+                <button type="button" class="apkup-chip" data-sim-filter="Google Play Store">
+                  <span>▶</span>
+                  <span>Google Play Store</span>
+                  <span class="apkup-chip-num mono">1</span>
+                </button>
+                <button type="button" class="apkup-chip" data-sim-filter="ApkMirror">
+                  <span>M</span>
+                  <span>ApkMirror</span>
+                  <span class="apkup-chip-num mono">2</span>
+                </button>
+                <button type="button" class="apkup-chip" data-sim-filter="GitHub">
+                  <span>◎</span>
+                  <span>GitHub</span>
+                  <span class="apkup-chip-num mono">1</span>
+                </button>
               </div>
 
-              <div class="sim-cards" id="sim-update-list">
-                <article class="sim-card" data-sim-app="signal" data-sim-source="GitHub">
-                  <div class="sim-card-top">
-                    <div class="sim-app-badge" style="background:#3B82F6;">S</div>
-                    <div class="sim-card-meta">
-                      <strong>Signal</strong>
-                      <span class="mono sim-ver">7.22.1 → <em>7.23.0</em></span>
-                      <span class="sim-source-pill">GitHub</span>
+              <!-- Update Cards -->
+              <div class="apkup-card-list" id="sim-update-list">
+                <article class="apkup-card" data-sim-app="aicore" data-sim-source="ApkMirror" data-sim-name="aicore">
+                  <div class="apkup-card-row">
+                    <div class="apkup-app-icon" style="background:#EFF6FF;color:#3B82F6;">✦</div>
+                    <div class="apkup-card-info">
+                      <strong>AICore</strong>
+                      <div class="apkup-ver mono">0.release.aicore → <span>26.10.15…</span></div>
+                      <span class="apkup-source-tag">M ApkMirror</span>
                     </div>
                   </div>
-                  <p class="sim-notes">
-                    <span class="i18n-en">• Improved call reliability &amp; security patches.</span>
-                    <span class="i18n-de">• Verbesserte Anrufstabilität &amp; Sicherheitsupdates.</span>
-                  </p>
-                  <div class="sim-card-actions">
-                    <button type="button" class="sim-detail-btn" data-sim-detail="signal">Details</button>
-                    <button type="button" class="sim-update-btn" data-sim-install="signal">
+                  <div class="apkup-notes-box">
+                    <span class="apkup-info-dot">i</span>
+                    <div>
+                      <div>* Operating system improvements and capabilities.</div>
+                      <div>* Bug fixes and various optimizations.</div>
+                    </div>
+                  </div>
+                  <div class="apkup-card-footer">
+                    <button type="button" class="apkup-text-btn" data-sim-detail="aicore">
+                      <span class="i18n-en">Detail</span>
+                      <span class="i18n-de">Details</span>
+                    </button>
+                    <button type="button" class="apkup-primary-pill" data-sim-install="aicore">
                       <span class="i18n-en">Get update</span>
                       <span class="i18n-de">Update starten</span>
                     </button>
                   </div>
                 </article>
 
-                <article class="sim-card" data-sim-app="organic" data-sim-source="F-Droid V2">
-                  <div class="sim-card-top">
-                    <div class="sim-app-badge" style="background:#10B981;">O</div>
-                    <div class="sim-card-meta">
-                      <strong>Organic Maps</strong>
-                      <span class="mono sim-ver">2026.10.1 → <em>2026.11.0</em></span>
-                      <span class="sim-source-pill">F-Droid V2</span>
-                    </div>
-                  </div>
-                  <p class="sim-notes">
-                    <span class="i18n-en">• Updated offline maps &amp; faster routing.</span>
-                    <span class="i18n-de">• Neue Offline-Karten &amp; schnelleres Routing.</span>
-                  </p>
-                  <div class="sim-card-actions">
-                    <button type="button" class="sim-detail-btn" data-sim-detail="organic">Details</button>
-                    <button type="button" class="sim-update-btn" data-sim-install="organic">
-                      <span class="i18n-en">Get update</span>
-                      <span class="i18n-de">Update starten</span>
-                    </button>
-                  </div>
-                </article>
-
-                <article class="sim-card" data-sim-app="auto" data-sim-source="APKMirror">
-                  <div class="sim-card-top">
-                    <div class="sim-app-badge" style="background:#F59E0B;color:#451A03;">A</div>
-                    <div class="sim-card-meta">
+                <article class="apkup-card" data-sim-app="auto" data-sim-source="ApkMirror" data-sim-name="android auto">
+                  <div class="apkup-card-row">
+                    <div class="apkup-app-icon" style="background:#ECFDF5;color:#10B981;">▲</div>
+                    <div class="apkup-card-info">
                       <strong>Android Auto</strong>
-                      <span class="mono sim-ver">18.0.664 → <em>18.1.6644</em></span>
-                      <span class="sim-source-pill">APKMirror (.apkm)</span>
+                      <div class="apkup-ver mono">18.0.664264-release → <span>18.1.6644</span></div>
+                      <span class="apkup-source-tag">M ApkMirror</span>
                     </div>
                   </div>
-                  <p class="sim-notes">
-                    <span class="i18n-en">• Bug fixes and split-bundle optimizations.</span>
-                    <span class="i18n-de">• Fehlerbehebungen und Split-Bundle-Optimierungen.</span>
-                  </p>
-                  <div class="sim-card-actions">
-                    <button type="button" class="sim-detail-btn" data-sim-detail="auto">Details</button>
-                    <button type="button" class="sim-update-btn" data-sim-install="auto">
+                  <div class="apkup-notes-box">
+                    <span class="apkup-info-dot">i</span>
+                    <div>
+                      <div>What's new?</div>
+                      <div>• Bug fixes and other improvements…</div>
+                    </div>
+                  </div>
+                  <div class="apkup-card-footer">
+                    <button type="button" class="apkup-text-btn" data-sim-detail="auto">
+                      <span class="i18n-en">Detail</span>
+                      <span class="i18n-de">Details</span>
+                    </button>
+                    <button type="button" class="apkup-primary-pill" data-sim-install="auto">
                       <span class="i18n-en">Get update</span>
                       <span class="i18n-de">Update starten</span>
                     </button>
                   </div>
                 </article>
 
-                <article class="sim-card" data-sim-app="newpipe" data-sim-source="GitHub">
-                  <div class="sim-card-top">
-                    <div class="sim-app-badge" style="background:#EF4444;">N</div>
-                    <div class="sim-card-meta">
-                      <strong>NewPipe</strong>
-                      <span class="mono sim-ver">0.27.3 → <em>0.27.4</em></span>
-                      <span class="sim-source-pill">GitHub</span>
+                <article class="apkup-card" data-sim-app="keyverifier" data-sim-source="Google Play Store" data-sim-name="android system key verifier">
+                  <div class="apkup-card-row">
+                    <div class="apkup-app-icon" style="background:#EFF6FF;color:#2563EB;">🛡</div>
+                    <div class="apkup-card-info">
+                      <strong>Android System Key Verifier</strong>
+                      <div class="apkup-ver mono">1.483.1014711393 → <span>1.487.1016999859</span></div>
+                      <span class="apkup-source-tag">▶ Google Play Store</span>
                     </div>
                   </div>
-                  <p class="sim-notes">
-                    <span class="i18n-en">• Fixed stream extractor &amp; background playback.</span>
-                    <span class="i18n-de">• Stream-Extraktor &amp; Hintergrundwiedergabe korrigiert.</span>
-                  </p>
-                  <div class="sim-card-actions">
-                    <button type="button" class="sim-detail-btn" data-sim-detail="newpipe">Details</button>
-                    <button type="button" class="sim-update-btn" data-sim-install="newpipe">
+                  <div class="apkup-notes-box">
+                    <span class="apkup-info-dot">i</span>
+                    <div>Initial release: Store and verify end-to-end encryption contact keys.</div>
+                  </div>
+                  <div class="apkup-card-footer">
+                    <button type="button" class="apkup-text-btn" data-sim-detail="keyverifier">
+                      <span class="i18n-en">Detail</span>
+                      <span class="i18n-de">Details</span>
+                    </button>
+                    <button type="button" class="apkup-primary-pill" data-sim-install="keyverifier">
+                      <span class="i18n-en">Get update</span>
+                      <span class="i18n-de">Update starten</span>
+                    </button>
+                  </div>
+                </article>
+
+                <article class="apkup-card" data-sim-app="apkup" data-sim-source="GitHub" data-sim-name="apkup">
+                  <div class="apkup-card-row">
+                    <div class="apkup-app-icon" style="background:#181A1F;color:#F59E0B;border:1px solid #F59E0B;">▲</div>
+                    <div class="apkup-card-info">
+                      <strong>ApkUp</strong>
+                      <div class="apkup-ver mono">1.44.0 (203) → <span>1.45.0 (211)</span></div>
+                      <span class="apkup-source-tag">◎ GitHub</span>
+                    </div>
+                  </div>
+                  <div class="apkup-notes-box">
+                    <span class="apkup-info-dot">i</span>
+                    <div>• Material 3 Expressive &amp; Opt-in Self-Update Beta Channel.</div>
+                  </div>
+                  <div class="apkup-card-footer">
+                    <button type="button" class="apkup-text-btn" data-sim-detail="apkup">
+                      <span class="i18n-en">Detail</span>
+                      <span class="i18n-de">Details</span>
+                    </button>
+                    <button type="button" class="apkup-primary-pill" data-sim-install="apkup">
                       <span class="i18n-en">Get update</span>
                       <span class="i18n-de">Update starten</span>
                     </button>
@@ -210,136 +256,222 @@ const base = import.meta.env.BASE_URL.endsWith('/')
               </div>
             </div>
 
-            <!-- TAB 2: APPS -->
-            <div class="sim-screen" data-sim-screen="apps" hidden>
-              <div class="sim-appbar">
-                <div class="sim-appbar-title">
-                  <strong>Apps</strong>
-                  <span class="sim-count-pill mono">6</span>
+            <!-- SCREEN 2: APPS -->
+            <div class="apkup-screen" data-sim-screen="apps" hidden>
+              <div class="apkup-topbar">
+                <div class="apkup-topbar-left">
+                  <span class="apkup-title-icon">⌂</span>
+                  <strong class="apkup-screen-title">Apps</strong>
+                  <span class="apkup-count-badge mono" id="sim-apps-count">111</span>
                 </div>
-                <button type="button" class="sim-detail-btn" id="sim-grid-toggle">
-                  <span class="i18n-en">Grid / List</span>
-                  <span class="i18n-de">Raster / Liste</span>
+                <div class="apkup-topbar-actions">
+                  <button type="button" class="apkup-icon-btn" id="sim-apps-grid-toggle" aria-label="Toggle list or grid view">⊞</button>
+                </div>
+              </div>
+
+              <div class="apkup-segmented">
+                <button type="button" class="apkup-seg-btn is-active" data-sim-apptype="user">
+                  ✓ User apps (111)
+                </button>
+                <button type="button" class="apkup-seg-btn" data-sim-apptype="system">
+                  System apps (364)
                 </button>
               </div>
 
-              <input
-                type="search"
-                class="sim-search"
-                id="sim-app-search"
-                placeholder="Search apps… / Apps suchen…"
-                aria-label="Search simulated apps"
-              />
+              <input type="search" class="apkup-search-bar" id="sim-app-search" placeholder="Search apps… / Apps suchen…" />
 
-              <div class="sim-app-list" id="sim-app-list">
-                <div class="sim-app-row" data-app-name="signal">
-                  <strong>Signal</strong>
-                  <span class="mono">GitHub • v7.22.1</span>
+              <div class="apkup-alpha-bar mono"><span>A</span><span>11</span></div>
+
+              <div class="apkup-apps-list" id="sim-app-list">
+                <div class="apkup-app-row" data-app-name="amber" data-app-type="user">
+                  <div class="apkup-app-icon" style="background:#FEF3C7;color:#D97706;">◆</div>
+                  <div class="apkup-app-meta">
+                    <strong>Amber</strong>
+                    <span class="mono">com.greenart7c3.nostrsigner</span>
+                    <div class="apkup-app-pills">
+                      <span class="apkup-ver-pill mono">v7.0.0-pre4</span>
+                      <span class="apkup-source-tag">M APKMirror</span>
+                    </div>
+                  </div>
                 </div>
-                <div class="sim-app-row" data-app-name="organic maps">
-                  <strong>Organic Maps</strong>
-                  <span class="mono">F-Droid V2 • 2026.10</span>
+                <div class="apkup-app-row" data-app-name="amethyst" data-app-type="user">
+                  <div class="apkup-app-icon" style="background:#EDE9FE;color:#7C3AED;">❖</div>
+                  <div class="apkup-app-meta">
+                    <strong>Amethyst</strong>
+                    <span class="mono">com.vitorpamplona.amethyst</span>
+                    <div class="apkup-app-pills">
+                      <span class="apkup-ver-pill mono">v1.21.0</span>
+                      <span class="apkup-source-tag">Sideload</span>
+                    </div>
+                  </div>
                 </div>
-                <div class="sim-app-row" data-app-name="android auto">
-                  <strong>Android Auto</strong>
-                  <span class="mono">APKMirror • 18.0.664</span>
+                <div class="apkup-app-row" data-app-name="android system key verifier" data-app-type="system">
+                  <div class="apkup-app-icon" style="background:#EFF6FF;color:#2563EB;">🛡</div>
+                  <div class="apkup-app-meta">
+                    <strong>Android System Key Verifier</strong>
+                    <span class="mono">com.google.android.contactkeys</span>
+                    <div class="apkup-app-pills">
+                      <span class="apkup-ver-pill mono">v1.483.1014711393</span>
+                      <span class="apkup-source-tag">▶ Google Play</span>
+                    </div>
+                  </div>
                 </div>
-                <div class="sim-app-row" data-app-name="newpipe">
-                  <strong>NewPipe</strong>
-                  <span class="mono">GitHub • v0.27.3</span>
-                </div>
-                <div class="sim-app-row" data-app-name="breeze weather">
-                  <strong>Breezy Weather</strong>
-                  <span class="mono">IzzyOnDroid • Watchlist</span>
-                </div>
-                <div class="sim-app-row" data-app-name="cromite">
-                  <strong>Cromite</strong>
-                  <span class="mono">GitHub • Pinned</span>
+                <div class="apkup-app-row" data-app-name="ant radio service" data-app-type="system">
+                  <div class="apkup-app-icon" style="background:#F3F4F6;color:#374151;">◉</div>
+                  <div class="apkup-app-meta">
+                    <strong>ANT Radio Service</strong>
+                    <span class="mono">com.dsi.ant.service.socket</span>
+                    <div class="apkup-app-pills">
+                      <span class="apkup-ver-pill mono">v4.18.00</span>
+                      <span class="apkup-source-tag">▶ Google Play</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <!-- TAB 3: SETUP -->
-            <div class="sim-screen" data-sim-screen="setup" hidden>
-              <div class="sim-appbar">
-                <div class="sim-appbar-title">
-                  <strong>Setup</strong>
+            <!-- SCREEN 3: SETTINGS -->
+            <div class="apkup-screen" data-sim-screen="settings" hidden>
+              <div class="apkup-topbar">
+                <div class="apkup-topbar-left">
+                  <span class="apkup-title-icon">⚙</span>
+                  <strong class="apkup-screen-title">
+                    <span class="i18n-en">Settings</span>
+                    <span class="i18n-de">Einstellungen</span>
+                  </strong>
                 </div>
-                <span class="sim-shizuku-chip mono">AES-256-GCM</span>
               </div>
 
-              <div class="sim-setup-group">
-                <div class="sim-setup-title">
-                  <span class="i18n-en">Silent Installation</span>
-                  <span class="i18n-de">Hintergrund-Installation</span>
+              <div class="apkup-settings-card">
+                <div class="apkup-settings-heading">Appearance &amp; Layout</div>
+                <div class="apkup-settings-sub">Theme</div>
+                <div class="apkup-segmented">
+                  <button type="button" class="apkup-seg-btn is-active" data-sim-theme="dark">✓ Dark</button>
+                  <button type="button" class="apkup-seg-btn" data-sim-theme="light">Light</button>
                 </div>
-                <label class="sim-toggle-row">
-                  <span>Shizuku Silent Updates</span>
-                  <input type="checkbox" checked class="sim-switch" />
-                </label>
-                <label class="sim-toggle-row">
-                  <span>
-                    <span class="i18n-en">Wi-Fi Only Guard</span>
-                    <span class="i18n-de">Nur über WLAN</span>
-                  </span>
-                  <input type="checkbox" checked class="sim-switch" />
-                </label>
-                <label class="sim-toggle-row">
-                  <span>
-                    <span class="i18n-en">Rollback Backups</span>
-                    <span class="i18n-de">Rollback-Sicherungen</span>
-                  </span>
-                  <input type="checkbox" checked class="sim-switch" />
-                </label>
               </div>
 
-              <div class="sim-setup-group">
-                <div class="sim-setup-title">
-                  <span class="i18n-en">Update Sources</span>
-                  <span class="i18n-de">Update-Quellen</span>
-                </div>
-                <label class="sim-toggle-row">
-                  <span>GitHub &amp; GitLab</span>
-                  <input type="checkbox" checked class="sim-switch" />
+              <div class="apkup-settings-card">
+                <div class="apkup-settings-heading">Update Sources</div>
+
+                <label class="apkup-source-switch-row">
+                  <div>
+                    <strong>ApkMirror</strong>
+                    <span>Direct downloads active</span>
+                  </div>
+                  <input type="checkbox" checked class="apkup-m3-switch" />
                 </label>
-                <label class="sim-toggle-row">
-                  <span>F-Droid Index V2</span>
-                  <input type="checkbox" checked class="sim-switch" />
+
+                <label class="apkup-source-switch-row">
+                  <div>
+                    <strong>Google Play Store</strong>
+                  </div>
+                  <input type="checkbox" checked class="apkup-m3-switch" />
                 </label>
-                <label class="sim-toggle-row">
-                  <span>APKMirror (.apkm)</span>
-                  <input type="checkbox" checked class="sim-switch" />
+
+                <label class="apkup-source-switch-row">
+                  <div>
+                    <strong>IzzyOnDroid / F-Droid V2</strong>
+                    <span>Tap to configure repositories</span>
+                  </div>
+                  <input type="checkbox" checked class="apkup-m3-switch" />
                 </label>
-                <label class="sim-toggle-row">
-                  <span>Google Play (Aurora)</span>
-                  <input type="checkbox" checked class="sim-switch" />
+
+                <label class="apkup-source-switch-row">
+                  <div>
+                    <strong>GitHub</strong>
+                    <span>Check GitHub releases</span>
+                  </div>
+                  <input type="checkbox" checked class="apkup-m3-switch" />
+                </label>
+
+                <label class="apkup-source-switch-row">
+                  <div>
+                    <strong>GitLab &amp; Codeberg</strong>
+                    <span>Self-hosted &amp; subgroups</span>
+                  </div>
+                  <input type="checkbox" checked class="apkup-m3-switch" />
                 </label>
               </div>
             </div>
           </div>
 
-          <!-- IN-PHONE BOTTOM SHEET -->
-          <div class="sim-sheet" id="sim-sheet" hidden role="dialog" aria-label="App update details">
-            <div class="sim-sheet-handle"></div>
-            <div class="sim-sheet-head">
-              <strong id="sim-sheet-title">Signal 7.23.0</strong>
-              <button type="button" class="sim-detail-btn" id="sim-sheet-close">✕</button>
+          <!-- MODAL BOTTOM SHEET: UPDATE DETAILS -->
+          <div class="apkup-sheet" id="sim-detail-sheet" hidden>
+            <div class="apkup-sheet-handle"></div>
+            <div class="apkup-sheet-top">
+              <div class="apkup-app-icon" id="sim-sheet-icon">✦</div>
+              <div style="flex:1;min-width:0;">
+                <strong id="sim-sheet-title">AICore</strong>
+                <div class="apkup-pkg mono" id="sim-sheet-pkg">com.google.android.aicore</div>
+              </div>
+              <button type="button" class="apkup-icon-btn" id="sim-detail-close" aria-label="Close details">✕</button>
             </div>
-            <p class="sim-sheet-sub mono" id="sim-sheet-meta">SHA-256 verified • apksig v3 • arm64-v8a</p>
-            <p class="sim-sheet-body" id="sim-sheet-body"></p>
+            <div class="apkup-sheet-ver-pill mono" id="sim-sheet-ver">0.release → 26.10.15</div>
+            <div class="apkup-sheet-tags">
+              <span class="apkup-source-tag" id="sim-sheet-src">M ApkMirror</span>
+              <span class="apkup-source-tag mono">2026-11-15 00:57:07</span>
+            </div>
+            <div class="apkup-notes-box" style="margin-block:10px;">
+              <div>
+                <div style="color:var(--accent);font-weight:700;margin-bottom:4px;">What's new</div>
+                <div id="sim-sheet-notes"></div>
+              </div>
+            </div>
+            <button type="button" class="apkup-primary-pill" style="width:100%;justify-content:center;margin-bottom:8px;" id="sim-sheet-install">
+              <span class="i18n-en">Get update</span>
+              <span class="i18n-de">Update starten</span>
+            </button>
+            <button type="button" class="apkup-tonal-pill" style="width:100%;justify-content:center;">
+              <span class="i18n-en">Save APK</span>
+              <span class="i18n-de">APK speichern</span>
+            </button>
           </div>
 
-          <!-- FLOATING CAPSULE DOCK -->
-          <nav class="sim-dock" aria-label="Simulated app navigation">
-            <button type="button" class="sim-dock-btn" data-sim-nav="apps">
+          <!-- MODAL BOTTOM SHEET: UPDATE HISTORY -->
+          <div class="apkup-sheet" id="sim-history-sheet" hidden>
+            <div class="apkup-sheet-handle"></div>
+            <div class="apkup-sheet-top">
+              <span class="apkup-title-icon">↺</span>
+              <div style="flex:1;">
+                <strong>Update History <span class="apkup-count-badge mono">3</span></strong>
+                <div class="apkup-pkg">App updates installed by ApkUp</div>
+              </div>
+              <button type="button" class="apkup-icon-btn" id="sim-history-close" aria-label="Close history">✕</button>
+            </div>
+            <div class="apkup-history-list">
+              <div class="apkup-history-item">
+                <strong>Reddit</strong>
+                <span class="apkup-ver-pill mono">2026.45.0 → 2026.46.0</span>
+                <div class="apkup-rollback-pill">↺ Get previous version (2026.45.0)</div>
+              </div>
+              <div class="apkup-history-item">
+                <strong>Notebook</strong>
+                <span class="apkup-ver-pill mono">1.66.7 → 1.67.7</span>
+                <div class="apkup-rollback-pill">↺ Get previous version (1.66.7)</div>
+              </div>
+              <div class="apkup-history-item">
+                <strong>Claude by Anthropic</strong>
+                <span class="apkup-ver-pill mono">1.261112 → 1.261113</span>
+                <div class="apkup-rollback-pill">↺ Get previous version (1.261112)</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FLOATING CAPSULE BOTTOM NAVIGATION -->
+          <nav class="apkup-dock" aria-label="ApkUp bottom navigation">
+            <button type="button" class="apkup-dock-btn" data-sim-nav="apps">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
               <span>Apps</span>
             </button>
-            <button type="button" class="sim-dock-btn is-active" data-sim-nav="updates">
+            <button type="button" class="apkup-dock-btn is-active" data-sim-nav="updates">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5l3 2"/></svg>
               <span>Updates</span>
-              <span class="sim-dock-badge mono" id="sim-badge-dock">4</span>
+              <span class="apkup-dock-badge mono" id="sim-badge-dock">4</span>
             </button>
-            <button type="button" class="sim-dock-btn" data-sim-nav="setup">
-              <span>Setup</span>
+            <button type="button" class="apkup-dock-btn" data-sim-nav="settings">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.86 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+              <span>Settings</span>
             </button>
           </nav>
         </div>
@@ -432,7 +564,7 @@ const base = import.meta.env.BASE_URL.endsWith('/')
 
 <script is:inline>
   (function () {
-    // 1. Mode switch (Interactive Demo vs Real Screenshots)
+    // 1. Mode switch
     var modeBtns = Array.prototype.slice.call(document.querySelectorAll('[data-showcase-mode]'));
     var demoView = document.getElementById('showcase-demo-view');
     var shotsView = document.getElementById('showcase-shots-view');
@@ -464,12 +596,10 @@ const base = import.meta.env.BASE_URL.endsWith('/')
         if (active && focusTab) tab.focus();
       });
       panels.forEach(function (p) {
-        var active = p.getAttribute('data-screen-panel') === id;
-        p.hidden = !active;
+        p.hidden = p.getAttribute('data-screen-panel') !== id;
       });
       media.forEach(function (m) {
-        var active = m.getAttribute('data-screen-media') === id;
-        m.hidden = !active;
+        m.hidden = m.getAttribute('data-screen-media') !== id;
       });
     }
 
@@ -489,7 +619,7 @@ const base = import.meta.env.BASE_URL.endsWith('/')
       });
     });
 
-    // 3. Interactive Phone Simulation
+    // 3. 1:1 ApkUp Navigation
     var navBtns = Array.prototype.slice.call(document.querySelectorAll('[data-sim-nav]'));
     var screens = Array.prototype.slice.call(document.querySelectorAll('[data-sim-screen]'));
     navBtns.forEach(function (btn) {
@@ -504,9 +634,27 @@ const base = import.meta.env.BASE_URL.endsWith('/')
       });
     });
 
-    // Source filter chips
+    // Search updates toggle
+    var updSearchBtn = document.getElementById('sim-updates-search-toggle');
+    var updSearchInput = document.getElementById('sim-updates-search');
+    var updateCards = Array.prototype.slice.call(document.querySelectorAll('#sim-update-list .apkup-card'));
+
+    if (updSearchBtn && updSearchInput) {
+      updSearchBtn.addEventListener('click', function () {
+        updSearchInput.hidden = !updSearchInput.hidden;
+        if (!updSearchInput.hidden) updSearchInput.focus();
+      });
+      updSearchInput.addEventListener('input', function () {
+        var q = updSearchInput.value.trim().toLowerCase();
+        updateCards.forEach(function (c) {
+          var n = c.getAttribute('data-sim-name') || '';
+          c.hidden = q.length > 0 && n.indexOf(q) === -1;
+        });
+      });
+    }
+
+    // Source Filter Chips
     var filterChips = Array.prototype.slice.call(document.querySelectorAll('[data-sim-filter]'));
-    var updateCards = Array.prototype.slice.call(document.querySelectorAll('#sim-update-list .sim-card'));
     filterChips.forEach(function (chip) {
       chip.addEventListener('click', function () {
         var src = chip.getAttribute('data-sim-filter');
@@ -520,7 +668,7 @@ const base = import.meta.env.BASE_URL.endsWith('/')
       });
     });
 
-    // Update counter + install simulation
+    // Install & Badge Sync
     var badgeHeader = document.getElementById('sim-badge-header');
     var badgeDock = document.getElementById('sim-badge-dock');
     var availEn = document.querySelector('[data-sim-avail-en]');
@@ -547,12 +695,12 @@ const base = import.meta.env.BASE_URL.endsWith('/')
         card.classList.add('is-installed');
         btn.innerHTML = '<span class="i18n-en">Installed ✓</span><span class="i18n-de">Installiert ✓</span>';
         syncCount();
-      }, 450);
+      }, 420);
     }
 
     document.querySelectorAll('[data-sim-install]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        installCard(btn.closest('.sim-card'));
+        installCard(btn.closest('.apkup-card'));
       });
     });
 
@@ -587,79 +735,138 @@ const base = import.meta.env.BASE_URL.endsWith('/')
       });
     }
 
-    // Bottom Sheet details
+    // Update Detail Bottom Sheet
     var DETAILS = {
-      signal: {
-        title: 'Signal 7.23.0',
-        meta: 'GitHub • SHA-256 verified • apksig v3',
-        en: 'Includes end-to-end encrypted group call improvements, reduced battery usage in background sync, and verified APK signature match.',
-        de: 'Enthält Verbesserungen für verschlüsselte Gruppenanrufe, geringeren Akkuverbrauch und eine verifizierte APK-Signaturprüfung.',
-      },
-      organic: {
-        title: 'Organic Maps 2026.11.0',
-        meta: 'F-Droid Index V2 • RFC 7396 diff • TOFU pinned',
-        en: 'Updated OpenStreetMap data, improved cycling route elevation profiles, and incremental Index V2 metadata verification.',
-        de: 'Aktualisierte OpenStreetMap-Daten, verbesserte Fahrrad-Höhenprofile und inkrementelle Index-V2-Verifizierung.',
+      aicore: {
+        title: 'AICore',
+        pkg: 'com.google.android.aicore',
+        ver: '0.release.prod_aicore_20260917.00_RC04 → 26.10.15.11.release.qc8635',
+        src: 'M ApkMirror',
+        notes: '* Operating system improvements and capabilities.<br>* Bug fixes and various optimizations.',
       },
       auto: {
-        title: 'Android Auto 18.1.6644',
-        meta: 'APKMirror • .apkm split bundle • arm64-v8a',
-        en: 'Split-APK bundle extracted safely inside private internal storage with Zip-Slip protection and minSdk compatibility guard.',
-        de: 'Split-APK-Bundle sicher im privaten App-Speicher entpackt – inklusive Zip-Slip-Schutz und minSdk-Kompatibilitätscheck.',
+        title: 'Android Auto',
+        pkg: 'com.google.android.projection.gearhead',
+        ver: '18.0.664264-release → 18.1.6644',
+        src: 'M ApkMirror',
+        notes: '• Bug fixes and split-bundle (.apkm) optimizations.<br>• Verified arm64-v8a signature match.',
       },
-      newpipe: {
-        title: 'NewPipe 0.27.4',
-        meta: 'GitHub • SHA-256 verified • Rollback backup ready',
-        en: 'Fixes playback stream extraction and adds smoother queue handling. Previous APK backed up locally for instant rollback.',
-        de: 'Behebt Probleme beim Stream-Abruf und optimiert die Warteschlange. Vorherige APK wird lokal für den Rollback gesichert.',
+      keyverifier: {
+        title: 'Android System Key Verifier',
+        pkg: 'com.google.android.contactkeys',
+        ver: '1.483.1014711393 → 1.487.1016999859',
+        src: '▶ Google Play Store',
+        notes: '• Initial release: Store and verify end-to-end encryption contact keys.',
+      },
+      apkup: {
+        title: 'ApkUp',
+        pkg: 'com.apkup',
+        ver: '1.44.0 (203) → 1.45.0 (211)',
+        src: '◎ GitHub',
+        notes: '• Material 3 Expressive look, wave progress indicators & opt-in Beta channel.<br>• SHA256SUMS verified.',
       },
     };
 
-    var sheet = document.getElementById('sim-sheet');
-    var sheetTitle = document.getElementById('sim-sheet-title');
-    var sheetMeta = document.getElementById('sim-sheet-meta');
-    var sheetBody = document.getElementById('sim-sheet-body');
-    var sheetClose = document.getElementById('sim-sheet-close');
-
+    var detailSheet = document.getElementById('sim-detail-sheet');
+    var activeDetailKey = null;
     document.querySelectorAll('[data-sim-detail]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var key = btn.getAttribute('data-sim-detail');
         var item = DETAILS[key];
-        if (!item || !sheet) return;
-        var isDe = document.documentElement.getAttribute('data-lang') === 'de';
-        if (sheetTitle) sheetTitle.textContent = item.title;
-        if (sheetMeta) sheetMeta.textContent = item.meta;
-        if (sheetBody) sheetBody.textContent = isDe ? item.de : item.en;
-        sheet.hidden = false;
+        if (!item || !detailSheet) return;
+        activeDetailKey = key;
+        document.getElementById('sim-sheet-title').textContent = item.title;
+        document.getElementById('sim-sheet-pkg').textContent = item.pkg;
+        document.getElementById('sim-sheet-ver').textContent = item.ver;
+        document.getElementById('sim-sheet-src').textContent = item.src;
+        document.getElementById('sim-sheet-notes').innerHTML = item.notes;
+        detailSheet.hidden = false;
       });
     });
 
-    if (sheetClose && sheet) {
-      sheetClose.addEventListener('click', function () {
-        sheet.hidden = true;
+    var detailClose = document.getElementById('sim-detail-close');
+    if (detailClose && detailSheet) {
+      detailClose.addEventListener('click', function () {
+        detailSheet.hidden = true;
       });
     }
 
-    // Apps search & Grid toggle
+    var sheetInstall = document.getElementById('sim-sheet-install');
+    if (sheetInstall && detailSheet) {
+      sheetInstall.addEventListener('click', function () {
+        if (activeDetailKey) {
+          var card = document.querySelector('[data-sim-app="' + activeDetailKey + '"]');
+          installCard(card);
+        }
+        detailSheet.hidden = true;
+      });
+    }
+
+    // History Bottom Sheet
+    var histBtn = document.getElementById('sim-history-open');
+    var histSheet = document.getElementById('sim-history-sheet');
+    var histClose = document.getElementById('sim-history-close');
+    if (histBtn && histSheet) {
+      histBtn.addEventListener('click', function () {
+        histSheet.hidden = false;
+      });
+    }
+    if (histClose && histSheet) {
+      histClose.addEventListener('click', function () {
+        histSheet.hidden = true;
+      });
+    }
+
+    // Apps User/System + Search + Grid
+    var appTypeBtns = Array.prototype.slice.call(document.querySelectorAll('[data-sim-apptype]'));
+    var appRows = Array.prototype.slice.call(document.querySelectorAll('#sim-app-list .apkup-app-row'));
     var appSearch = document.getElementById('sim-app-search');
-    var appRows = Array.prototype.slice.call(document.querySelectorAll('#sim-app-list .sim-app-row'));
+    var appsCount = document.getElementById('sim-apps-count');
+
+    appTypeBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var t = btn.getAttribute('data-sim-apptype');
+        appTypeBtns.forEach(function (b) {
+          b.classList.toggle('is-active', b.getAttribute('data-sim-apptype') === t);
+        });
+        if (appsCount) appsCount.textContent = t === 'user' ? '111' : '364';
+        appRows.forEach(function (r) {
+          r.hidden = r.getAttribute('data-app-type') !== t;
+        });
+      });
+    });
+
     if (appSearch) {
       appSearch.addEventListener('input', function () {
         var q = appSearch.value.trim().toLowerCase();
-        appRows.forEach(function (row) {
-          var name = row.getAttribute('data-app-name') || '';
-          row.hidden = q.length > 0 && name.indexOf(q) === -1;
+        appRows.forEach(function (r) {
+          var name = r.getAttribute('data-app-name') || '';
+          r.hidden = q.length > 0 && name.indexOf(q) === -1;
         });
       });
     }
 
-    var gridToggle = document.getElementById('sim-grid-toggle');
-    var appList = document.getElementById('sim-app-list');
-    if (gridToggle && appList) {
-      gridToggle.addEventListener('click', function () {
-        appList.classList.toggle('is-grid');
+    var appsGridBtn = document.getElementById('sim-apps-grid-toggle');
+    var appsListEl = document.getElementById('sim-app-list');
+    if (appsGridBtn && appsListEl) {
+      appsGridBtn.addEventListener('click', function () {
+        appsListEl.classList.toggle('is-grid');
       });
     }
+
+    // Settings Theme switcher sync
+    document.querySelectorAll('[data-sim-theme]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var targetTheme = btn.getAttribute('data-sim-theme');
+        document.querySelectorAll('[data-sim-theme]').forEach(function (b) {
+          b.classList.toggle('is-active', b.getAttribute('data-sim-theme') === targetTheme);
+        });
+        document.documentElement.setAttribute('data-theme', targetTheme);
+        try {
+          localStorage.setItem('apkup-theme', targetTheme);
+        } catch (e) {}
+      });
+    });
   })();
 </script>
 
@@ -705,7 +912,7 @@ const base = import.meta.env.BASE_URL.endsWith('/')
 
   .showcase-shell {
     display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: center;
     gap: clamp(28px, 5vw, 56px);
   }
@@ -747,12 +954,12 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     justify-content: center;
   }
 
-  /* Interactive Phone Simulator */
-  .sim-phone {
+  /* 1:1 ApkUp Phone */
+  .apkup-phone {
     position: relative;
-    width: min(350px, 90vw);
-    height: 620px;
-    border-radius: 36px;
+    width: min(368px, 92vw);
+    height: 670px;
+    border-radius: 38px;
     background: var(--bg);
     border: 2px solid var(--outline-strong);
     box-shadow: var(--shadow-elevated);
@@ -761,31 +968,32 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     overflow: hidden;
   }
 
-  .sim-statusbar {
+  .apkup-statusbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 20px 8px;
+    padding: 12px 20px 6px;
     font-size: 0.72rem;
-    color: var(--text-muted);
+    font-weight: 700;
+    color: var(--text);
     flex-shrink: 0;
   }
 
-  .sim-notch {
+  .apkup-camera {
     width: 14px;
     height: 14px;
     border-radius: 999px;
     background: var(--surface-highest);
   }
 
-  .sim-viewport {
+  .apkup-viewport {
     flex: 1;
     overflow-y: auto;
-    padding: 8px 14px 86px;
+    padding: 6px 14px 86px;
     overscroll-behavior: contain;
   }
 
-  .sim-appbar {
+  .apkup-topbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -793,74 +1001,129 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     margin-block-end: 12px;
   }
 
-  .sim-appbar-title {
+  .apkup-topbar-left {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 1.25rem;
   }
 
-  .sim-logo-dot {
-    width: 24px;
-    height: 24px;
-    border-radius: 8px;
+  .apkup-title-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
     background: var(--accent-soft);
-    border: 1px solid var(--accent);
+    color: var(--accent);
+    display: grid;
+    place-items: center;
+    font-weight: 800;
   }
 
-  .sim-count-pill {
+  .apkup-screen-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .apkup-count-badge {
     padding: 2px 8px;
     border-radius: var(--radius-pill);
     background: var(--accent-soft);
-    color: var(--accent-soft-ink);
-    font-size: 0.75rem;
+    color: var(--accent);
+    font-size: 0.74rem;
     font-weight: 700;
   }
 
-  .sim-shizuku-chip {
-    padding: 4px 10px;
+  .apkup-topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .apkup-icon-btn {
+    width: 32px;
+    height: 32px;
     border-radius: var(--radius-pill);
-    background: var(--tertiary-soft);
-    color: var(--tertiary-soft-ink);
-    font-size: 0.7rem;
-    font-weight: 700;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    display: grid;
+    place-items: center;
   }
 
-  .sim-banner {
+  .apkup-summary-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
     padding: 12px 14px;
-    border-radius: 18px;
-    background: var(--surface);
+    border-radius: 20px;
+    background: var(--surface-low);
     border: 1px solid var(--outline);
     margin-block-end: 10px;
   }
 
-  .sim-banner-text {
+  .apkup-summary-left {
     display: flex;
-    flex-direction: column;
-    font-size: 0.84rem;
+    align-items: center;
+    gap: 10px;
   }
 
-  .sim-banner-text span {
-    font-size: 0.74rem;
+  .apkup-summary-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+
+  .apkup-summary-text {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.86rem;
+    line-height: 1.25;
+  }
+
+  .apkup-summary-text span {
+    font-size: 0.72rem;
     color: var(--text-muted);
   }
 
-  .sim-install-all {
+  .apkup-primary-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     padding: 8px 14px;
     border-radius: var(--radius-pill);
     border: none;
     background: var(--accent);
     color: var(--accent-ink);
     font-weight: 700;
-    font-size: 0.78rem;
-    flex-shrink: 0;
+    font-size: 0.76rem;
+    white-space: nowrap;
   }
 
-  .sim-chips {
+  .apkup-primary-pill:disabled {
+    background: var(--tertiary-soft);
+    color: var(--tertiary-soft-ink);
+  }
+
+  .apkup-tonal-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 14px;
+    border-radius: var(--radius-pill);
+    border: none;
+    background: var(--accent-soft);
+    color: var(--accent-soft-ink);
+    font-weight: 700;
+    font-size: 0.78rem;
+  }
+
+  .apkup-chips {
     display: flex;
     gap: 6px;
     overflow-x: auto;
@@ -868,246 +1131,369 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     margin-block-end: 6px;
   }
 
-  .sim-chip {
-    padding: 6px 12px;
+  .apkup-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 10px;
     border-radius: var(--radius-pill);
     border: 1px solid var(--outline);
     background: var(--surface-low);
     color: var(--text-muted);
-    font-size: 0.74rem;
+    font-size: 0.72rem;
     font-weight: 700;
     white-space: nowrap;
   }
 
-  .sim-chip.is-active {
+  .apkup-chip.is-active {
     background: var(--accent-soft);
     color: var(--accent-soft-ink);
     border-color: var(--accent);
   }
 
-  .sim-cards {
+  .apkup-chip-num {
+    padding: 1px 5px;
+    border-radius: 999px;
+    background: var(--surface);
+    font-size: 0.66rem;
+  }
+
+  .apkup-card-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
   }
 
-  .sim-card {
-    padding: 12px;
-    border-radius: 18px;
+  .apkup-card {
+    padding: 13px;
+    border-radius: 20px;
     background: var(--surface-low);
     border: 1px solid var(--outline);
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 9px;
   }
 
-  .sim-card.is-installed {
-    opacity: 0.65;
+  .apkup-card.is-installed {
+    opacity: 0.62;
   }
 
-  .sim-card-top {
+  .apkup-card-row {
     display: flex;
     align-items: center;
     gap: 10px;
   }
 
-  .sim-app-badge {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
+  .apkup-app-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
     display: grid;
     place-items: center;
-    color: #fff;
     font-weight: 800;
-    font-size: 0.95rem;
+    font-size: 1rem;
     flex-shrink: 0;
   }
 
-  .sim-card-meta {
+  .apkup-card-info {
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 2px;
-    min-width: 0;
     font-size: 0.88rem;
   }
 
-  .sim-ver {
-    font-size: 0.72rem;
+  .apkup-ver {
+    font-size: 0.7rem;
     color: var(--text-muted);
   }
 
-  .sim-ver em {
-    font-style: normal;
+  .apkup-ver span {
     color: var(--accent);
     font-weight: 700;
   }
 
-  .sim-source-pill {
-    font-size: 0.68rem;
-    color: var(--text-muted);
-    font-weight: 600;
-  }
-
-  .sim-notes {
-    margin: 0;
-    padding: 7px 10px;
-    border-radius: 10px;
+  .apkup-source-tag {
+    display: inline-flex;
+    align-self: flex-start;
+    padding: 2px 8px;
+    border-radius: 8px;
     background: var(--surface);
-    font-size: 0.74rem;
     color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 700;
   }
 
-  .sim-card-actions {
+  .apkup-notes-box {
+    display: flex;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: var(--surface);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    line-height: 1.45;
+  }
+
+  .apkup-info-dot {
+    width: 15px;
+    height: 15px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-size: 0.62rem;
+    font-weight: 800;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .apkup-card-footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
   }
 
-  .sim-detail-btn {
-    padding: 6px 10px;
-    border-radius: var(--radius-pill);
-    border: 1px solid var(--outline);
+  .apkup-text-btn {
+    border: none;
     background: transparent;
     color: var(--text-muted);
-    font-size: 0.74rem;
-    font-weight: 600;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 6px 4px;
   }
 
-  .sim-update-btn {
-    padding: 7px 13px;
+  /* Apps & Settings */
+  .apkup-segmented {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border: 1px solid var(--outline-strong);
     border-radius: var(--radius-pill);
+    overflow: hidden;
+    margin-block-end: 10px;
+  }
+
+  .apkup-seg-btn {
     border: none;
-    background: var(--accent);
-    color: var(--accent-ink);
+    background: transparent;
+    padding: 8px 10px;
     font-size: 0.75rem;
     font-weight: 700;
+    color: var(--text-muted);
   }
 
-  .sim-update-btn:disabled {
-    background: var(--tertiary-soft);
-    color: var(--tertiary-soft-ink);
-    cursor: default;
+  .apkup-seg-btn.is-active {
+    background: var(--accent-soft);
+    color: var(--accent-soft-ink);
   }
 
-  .sim-search {
+  .apkup-search-bar {
     width: 100%;
-    padding: 10px 14px;
+    padding: 9px 14px;
     border-radius: var(--radius-pill);
     border: 1px solid var(--outline);
     background: var(--surface-low);
     color: var(--text);
     font: inherit;
-    font-size: 0.86rem;
-    margin-block-end: 12px;
+    font-size: 0.82rem;
+    margin-block-end: 10px;
   }
 
-  .sim-app-list {
+  .apkup-alpha-bar {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.74rem;
+    color: var(--accent);
+    font-weight: 700;
+    border-block-end: 1px solid var(--outline);
+    padding-block-end: 4px;
+    margin-block-end: 8px;
+  }
+
+  .apkup-apps-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
   }
 
-  .sim-app-list.is-grid {
+  .apkup-apps-list.is-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .sim-app-row {
-    padding: 10px 12px;
-    border-radius: 14px;
+  .apkup-app-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 16px;
     background: var(--surface-low);
     border: 1px solid var(--outline);
+  }
+
+  .apkup-app-meta {
+    min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 3px;
-    font-size: 0.85rem;
+    gap: 2px;
+    font-size: 0.84rem;
   }
 
-  .sim-app-row span {
-    font-size: 0.7rem;
+  .apkup-app-meta > span {
+    font-size: 0.66rem;
     color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .sim-setup-group {
-    padding: 12px;
-    border-radius: 18px;
+  .apkup-app-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 2px;
+  }
+
+  .apkup-ver-pill {
+    padding: 2px 7px;
+    border-radius: 7px;
+    background: var(--accent-soft);
+    color: var(--accent-soft-ink);
+    font-size: 0.66rem;
+    font-weight: 700;
+  }
+
+  .apkup-settings-card {
+    padding: 14px;
+    border-radius: 20px;
     background: var(--surface-low);
     border: 1px solid var(--outline);
-    margin-block-end: 12px;
+    margin-block-end: 10px;
     display: flex;
     flex-direction: column;
     gap: 10px;
   }
 
-  .sim-setup-title {
-    font-size: 0.78rem;
-    font-weight: 800;
+  .apkup-settings-heading {
     color: var(--accent);
+    font-weight: 700;
+    font-size: 0.82rem;
   }
 
-  .sim-toggle-row {
+  .apkup-settings-sub {
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .apkup-source-switch-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
-    font-size: 0.83rem;
-    font-weight: 600;
+    gap: 10px;
     cursor: pointer;
   }
 
-  .sim-switch {
-    accent-color: var(--accent);
-    width: 18px;
-    height: 18px;
+  .apkup-source-switch-row strong {
+    display: block;
+    font-size: 0.84rem;
   }
 
-  .sim-sheet {
+  .apkup-source-switch-row span {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+  }
+
+  .apkup-m3-switch {
+    accent-color: var(--accent);
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Bottom Sheets */
+  .apkup-sheet {
     position: absolute;
-    inset-inline: 8px;
-    inset-block-end: 68px;
-    z-index: 15;
-    padding: 10px 16px 16px;
-    border-radius: 22px;
+    inset-inline: 0;
+    inset-block-end: 0;
+    z-index: 25;
+    padding: 10px 16px 20px;
+    border-radius: 26px 26px 0 0;
     background: var(--surface);
-    border: 1px solid var(--outline-strong);
+    border-block-start: 1px solid var(--outline-strong);
     box-shadow: var(--shadow-elevated);
   }
 
-  .sim-sheet-handle {
+  .apkup-sheet-handle {
     width: 36px;
     height: 4px;
     border-radius: 999px;
     background: var(--outline-strong);
-    margin: 0 auto 10px;
+    margin: 0 auto 12px;
   }
 
-  .sim-sheet-head {
+  .apkup-sheet-top {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    margin-block-end: 4px;
+    gap: 10px;
+    margin-block-end: 10px;
   }
 
-  .sim-sheet-sub {
-    margin: 0 0 8px;
-    font-size: 0.7rem;
-    color: var(--accent);
-  }
-
-  .sim-sheet-body {
-    margin: 0;
-    font-size: 0.8rem;
+  .apkup-pkg {
+    font-size: 0.68rem;
     color: var(--text-muted);
-    line-height: 1.5;
   }
 
-  .sim-dock {
+  .apkup-sheet-ver-pill {
+    padding: 8px 12px;
+    border-radius: 14px;
+    background: var(--accent-soft);
+    color: var(--accent-soft-ink);
+    font-size: 0.74rem;
+    font-weight: 700;
+    margin-block-end: 8px;
+  }
+
+  .apkup-sheet-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .apkup-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+
+  .apkup-history-item {
+    padding: 10px;
+    border-radius: 14px;
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.84rem;
+  }
+
+  .apkup-rollback-pill {
+    padding: 6px 10px;
+    border-radius: 10px;
+    background: var(--accent-soft);
+    color: var(--accent-soft-ink);
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  /* Floating Capsule Bottom Navigation */
+  .apkup-dock {
     position: absolute;
-    inset-inline: 22px;
-    inset-block-end: 14px;
-    height: 50px;
+    inset-inline: 18px;
+    inset-block-end: 12px;
+    height: 54px;
     padding: 4px;
     border-radius: var(--radius-pill);
     background: var(--surface);
@@ -1116,36 +1502,42 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 4px;
-    z-index: 10;
+    z-index: 15;
   }
 
-  .sim-dock-btn {
+  .apkup-dock-btn {
     border: none;
     border-radius: var(--radius-pill);
     background: transparent;
     color: var(--text-muted);
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 700;
-    display: inline-flex;
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: 2px;
+    position: relative;
   }
 
-  .sim-dock-btn.is-active {
+  .apkup-dock-btn.is-active {
     background: var(--accent-soft);
-    color: var(--accent-soft-ink);
+    color: var(--accent);
   }
 
-  .sim-dock-badge {
-    padding: 1px 6px;
+  .apkup-dock-badge {
+    position: absolute;
+    inset-block-start: 4px;
+    inset-inline-end: 20px;
+    padding: 1px 5px;
     border-radius: 999px;
-    background: var(--accent);
-    color: var(--accent-ink);
-    font-size: 0.68rem;
+    background: #f87171;
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 800;
   }
 
-  /* Real Screenshots View */
+  /* Real Screenshots Gallery */
   .tab-list {
     display: flex;
     flex-wrap: wrap;
@@ -1181,7 +1573,6 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     margin: 0 0 12px;
     font-size: clamp(1.25rem, 2vw, 1.6rem);
     font-weight: 800;
-    line-height: 1.25;
   }
 
   .tab-panel p {
@@ -1206,7 +1597,7 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     outline-offset: -1px;
   }
 
-  @media (max-width: 900px) {
+  @media (max-width: 920px) {
     .showcase-shell {
       grid-template-columns: minmax(0, 1fr);
     }

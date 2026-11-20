@@ -6,7 +6,9 @@ import FeatureBento from '../components/FeatureBento.astro';
 import ScreenShowcase from '../components/ScreenShowcase.astro';
 import SourcesAndSilent from '../components/SourcesAndSilent.astro';
 import DownloadsAndSupport from '../components/DownloadsAndSupport.astro';
+import PermissionsSection from '../components/PermissionsSection.astro';
 import FaqAndFooter from '../components/FaqAndFooter.astro';
+import QrModal from '../components/QrModal.astro';
 ---
 
 <BaseLayout>
@@ -17,8 +19,10 @@ import FaqAndFooter from '../components/FaqAndFooter.astro';
     <ScreenShowcase />
     <SourcesAndSilent />
     <DownloadsAndSupport />
+    <PermissionsSection />
     <FaqAndFooter />
   </main>
+  <QrModal />
 
   <script is:inline>
     (function () {

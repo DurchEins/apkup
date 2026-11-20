@@ -1,0 +1,88 @@
+---
+import { SITE } from '../data/content';
+
+const base = import.meta.env.BASE_URL.endsWith('/')
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+---
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <img src={`${base}assets/logo.png`} alt="" width="32" height="32" class="footer-icon" />
+      <div>
+        <strong>ApkUp</strong>
+        <p class="footer-copy">
+          Copyright © 2026 DurchEins • GPL-3.0 •{' '}
+          <span class="i18n-en">Based on APKUpdater by rumboalla</span>
+          <span class="i18n-de">Basiert auf APKUpdater von rumboalla</span>
+        </p>
+      </div>
+    </div>
+
+    <nav class="footer-links" aria-label="Footer links">
+      <a href={`${base}changelog/`}>Changelog</a>
+      <a href={`${base}compatibility/`}>
+        <span class="i18n-en">Compatibility</span>
+        <span class="i18n-de">Kompatibilität</span>
+      </a>
+      <a href={`${base}privacy/`}>Privacy</a>
+      <a href={SITE.repoUrl} target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href={SITE.wikiUrl} target="_blank" rel="noopener noreferrer">Wiki</a>
+      <a href={SITE.securityUrl} target="_blank" rel="noopener noreferrer">Security</a>
+      <a href={SITE.licenseUrl} target="_blank" rel="noopener noreferrer">GPL-3.0</a>
+    </nav>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-block-start: 1px solid var(--outline);
+    background: var(--surface-lowest);
+    padding-block: 32px;
+  }
+
+  .footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .footer-icon {
+    border-radius: 8px;
+  }
+
+  .footer-copy {
+    margin: 2px 0 0;
+    font-size: 0.86rem;
+    color: var(--text-muted);
+  }
+
+  .footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+  }
+
+  .footer-links a {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: none;
+    padding-block: 6px;
+  }
+
+  @media (hover: hover) {
+    .footer-links a:hover {
+      color: var(--accent);
+    }
+  }
+</style>

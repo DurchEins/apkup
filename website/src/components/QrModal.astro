@@ -1,0 +1,234 @@
+---
+import { SITE } from '../data/content';
+
+const base = import.meta.env.BASE_URL.endsWith('/')
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+---
+
+<dialog id="qr-modal" class="qr-dialog" aria-labelledby="qr-modal-title">
+  <div class="qr-card">
+    <div class="qr-header">
+      <div>
+        <span class="pill-badge pill-amber mono" id="qr-version-pill">v{SITE.fallbackVersion}</span>
+        <h3 id="qr-modal-title">
+          <span class="i18n-en">Scan to download on Android</span>
+          <span class="i18n-de">Per Smartphone-Kamera laden</span>
+        </h3>
+      </div>
+      <button type="button" class="qr-close" id="qr-close-btn" aria-label="Close QR dialog">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M18 6 6 18M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="qr-frame" id="qr-svg-host" aria-live="polite"></div>
+
+    <p class="qr-url mono" id="qr-target-url">{SITE.releasesUrl}</p>
+    <p class="qr-hint">
+      <span class="i18n-en">
+        Points directly to the latest signed GitHub Release APK. Error-correction level H with
+        custom ApkUp styling.
+      </span>
+      <span class="i18n-de">
+        Verweist automatisch auf das aktuellste signierte GitHub-Release-APK. Fehlerkorrektur H im
+        ApkUp-Design.
+      </span>
+    </p>
+  </div>
+</dialog>
+
+<script is:inline src={`${base}assets/qrcode.js`}></script>
+<script is:inline define:vars={{ baseUrl: base, fallbackUrl: SITE.releasesUrl }}>
+  (function () {
+    var dialog = document.getElementById('qr-modal');
+    var closeBtn = document.getElementById('qr-close-btn');
+    var host = document.getElementById('qr-svg-host');
+    var urlEl = document.getElementById('qr-target-url');
+    var verEl = document.getElementById('qr-version-pill');
+
+    if (!dialog || !host) return;
+
+    function isFinderZone(r, c, count) {
+      var topLeft = r < 7 && c < 7;
+      var topRight = r < 7 && c >= count - 7;
+      var bottomLeft = r >= count - 7 && c < 7;
+      return topLeft || topRight || bottomLeft;
+    }
+
+    function isCenterLogoZone(r, c, count) {
+      var mid = (count - 1) / 2;
+      return Math.abs(r - mid) <= 3.2 && Math.abs(c - mid) <= 3.2;
+    }
+
+    function renderCustomQr(targetUrl) {
+      if (typeof window.qrcode !== 'function') {
+        host.textContent = targetUrl;
+        return;
+      }
+      var qr = window.qrcode(0, 'H');
+      qr.addData(targetUrl);
+      qr.make();
+      var count = qr.getModuleCount();
+      var pad = 3;
+      var size = count + pad * 2;
+      var dots = [];
+
+      for (var r = 0; r < count; r++) {
+        for (var c = 0; c < count; c++) {
+          if (!qr.isDark(r, c)) continue;
+          if (isCenterLogoZone(r, c, count)) continue;
+          var x = c + pad;
+          var y = r + pad;
+          if (isFinderZone(r, c, count)) {
+            dots.push('<rect x="' + x + '" y="' + y + '" width="1.02" height="1.02" rx="0.22" fill="#B45309" />');
+          } else {
+            dots.push('<circle cx="' + (x + 0.5) + '" cy="' + (y + 0.5) + '" r="0.42" fill="#121316" />');
+          }
+        }
+      }
+
+      var logoSize = Math.max(5.6, count * 0.17);
+      var logoPos = (size - logoSize) / 2;
+      var bgSize = logoSize + 1.4;
+      var bgPos = (size - bgSize) / 2;
+
+      host.innerHTML =
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' +
+        size +
+        ' ' +
+        size +
+        '" width="248" height="248" role="img" aria-label="ApkUp Download QR Code">' +
+        '<rect width="' +
+        size +
+        '" height="' +
+        size +
+        '" rx="2.4" fill="#FAF8F4" />' +
+        dots.join('') +
+        '<rect x="' +
+        bgPos +
+        '" y="' +
+        bgPos +
+        '" width="' +
+        bgSize +
+        '" height="' +
+        bgSize +
+        '" rx="1.6" fill="#FAF8F4" stroke="#F59E0B" stroke-width="0.35" />' +
+        '<image href="' +
+        baseUrl +
+        'assets/logo.png" x="' +
+        logoPos +
+        '" y="' +
+        logoPos +
+        '" width="' +
+        logoSize +
+        '" height="' +
+        logoSize +
+        '" />' +
+        '</svg>';
+    }
+
+    function openQrModal() {
+      var primaryLink = document.querySelector('[data-apk-link]');
+      var currentUrl = primaryLink ? primaryLink.getAttribute('href') || fallbackUrl : fallbackUrl;
+      var heroPill = document.getElementById('hero-version-pill');
+      if (verEl && heroPill) verEl.textContent = heroPill.textContent;
+      if (urlEl) urlEl.textContent = currentUrl;
+      renderCustomQr(currentUrl);
+      if (typeof dialog.showModal === 'function') {
+        dialog.showModal();
+      } else {
+        dialog.setAttribute('open', '');
+      }
+    }
+
+    document.querySelectorAll('[data-open-qr]').forEach(function (btn) {
+      btn.addEventListener('click', openQrModal);
+    });
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function () {
+        dialog.close();
+      });
+    }
+
+    dialog.addEventListener('click', function (e) {
+      if (e.target === dialog) dialog.close();
+    });
+  })();
+</script>
+
+<style>
+  .qr-dialog {
+    padding: 0;
+    border: 1px solid var(--outline-strong);
+    border-radius: var(--radius-lg);
+    background: var(--surface-low);
+    color: var(--text);
+    max-width: min(400px, 92vw);
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .qr-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(6px);
+  }
+
+  .qr-card {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    text-align: center;
+  }
+
+  .qr-header {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    text-align: start;
+  }
+
+  .qr-header h3 {
+    margin: 8px 0 0;
+    font-size: 1.18rem;
+    font-weight: 800;
+  }
+
+  .qr-close {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--outline);
+    background: var(--surface);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+
+  .qr-frame {
+    padding: 12px;
+    border-radius: 22px;
+    background: #faf8f4;
+    border: 2px solid var(--accent);
+  }
+
+  .qr-url {
+    margin: 0;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    word-break: break-all;
+    max-width: 100%;
+  }
+
+  .qr-hint {
+    margin: 0;
+    font-size: 0.84rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+</style>

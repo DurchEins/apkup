@@ -7,13 +7,15 @@ const chunks = [
   readFileSync(join(root, 'src/styles/global.css'), 'utf8'),
 ];
 
-const compDir = join(root, 'src/components');
-for (const file of readdirSync(compDir).sort()) {
-  if (!file.endsWith('.astro')) continue;
-  const src = readFileSync(join(compDir, file), 'utf8');
-  const match = src.match(/<style>([\s\S]*?)<\/style>/);
-  if (match) {
-    chunks.push(`/* ${file} */\n${match[1].trim()}`);
+for (const dir of ['src/components', 'src/pages']) {
+  const fullDir = join(root, dir);
+  for (const file of readdirSync(fullDir).sort()) {
+    if (!file.endsWith('.astro')) continue;
+    const src = readFileSync(join(fullDir, file), 'utf8');
+    const match = src.match(/<style>([\s\S]*?)<\/style>/);
+    if (match) {
+      chunks.push(`/* ${dir}/${file} */\n${match[1].trim()}`);
+    }
   }
 }
 
