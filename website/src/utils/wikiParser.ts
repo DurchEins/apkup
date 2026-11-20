@@ -39,9 +39,17 @@ function formatInline(raw: string): string {
   return s;
 }
 
-export function renderFullWikiHtml(md: string): string {
+export interface WikiHeading {
+  id: string;
+  text: string;
+  level: 2 | 3;
+}
+
+export function renderFullWikiHtml(md: string, slugPrefix: string): { html: string; headings: WikiHeading[] } {
   const lines = md.split(/\r?\n/);
   const out: string[] = [];
+  const headings: WikiHeading[] = [];
+  const usedIds = new Set<string>();
   let skipSection = false;
   let inFaqDetails = false;
   let inCode = false;
@@ -140,6 +148,21 @@ export function renderFullWikiHtml(md: string): string {
       continue;
     }
 
+    function makeId(text: string): string {
+      const base = text
+        .toLowerCase()
+        .replace(/[`*_~()[\]{}:.!?,/\\+]/g, '')
+        .trim()
+        .replace(/\s+/g, '-');
+      let candidate = `${slugPrefix}-${base || 'sec'}`;
+      let n = 2;
+      while (usedIds.has(candidate)) {
+        candidate = `${slugPrefix}-${base}-${n++}`;
+      }
+      usedIds.add(candidate);
+      return candidate;
+    }
+
     // Top H1 is already shown in the chapter header
     if (line.startsWith('# ')) {
       continue;
@@ -155,6 +178,8 @@ export function renderFullWikiHtml(md: string): string {
       }
       skipSection = false;
       inFaqPart = /frequently asked questions|faq/i.test(clean);
+      const id = makeId(clean);
+      headings.push({ id, text: clean, level: 2 });
       const badgeClass = /part 1/i.test(clean)
         ? 'wk-part-green'
         : /part 2/i.test(clean)
@@ -162,7 +187,7 @@ export function renderFullWikiHtml(md: string): string {
           : /part 3/i.test(clean)
             ? 'wk-part-amber'
             : 'wk-part-neutral';
-      out.push(`<h3 class="wk-h2 ${badgeClass}">${formatInline(clean)}</h3>`);
+      out.push(`<h3 id="${id}" class="wk-h2 ${badgeClass}">${formatInline(clean)}</h3>`);
       continue;
     }
 
@@ -172,13 +197,15 @@ export function renderFullWikiHtml(md: string): string {
     if (h3Match) {
       closeFaqItem();
       const clean = stripLeadingEmoji(h3Match[1]);
+      const id = makeId(clean);
+      headings.push({ id, text: clean, level: 3 });
       if (inFaqPart) {
         inFaqDetails = true;
         out.push(
-          `<details class="wk-faq"><summary><span>${formatInline(clean)}</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="wk-faq-body">`
+          `<details id="${id}" class="wk-faq"><summary><span>${formatInline(clean)}</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="wk-faq-body">`
         );
       } else {
-        out.push(`<h4 class="wk-h3">${formatInline(clean)}</h4>`);
+        out.push(`<h4 id="${id}" class="wk-h3">${formatInline(clean)}</h4>`);
       }
       continue;
     }
@@ -251,5 +278,5 @@ export function renderFullWikiHtml(md: string): string {
   }
 
   closeFaqItem();
-  return out.join('\n');
+  return { html: out.join('\n'), headings };
 }
