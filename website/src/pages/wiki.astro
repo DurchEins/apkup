@@ -724,25 +724,25 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
             </span>
           </p>
         </div>
+      </div>
 
-        <div class="wiki-search-bar">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <circle cx="11" cy="11" r="7" />
-            <path d="m20 20-3.5-3.5" />
-          </svg>
-          <input
-            type="search"
-            id="wiki-search-input"
-            placeholder="Search all 10 guides (e.g. Shizuku, SHA-256, Cloudflare, 403, TOFU, Obtainium)…"
-            data-placeholder-en="Search all 10 guides (e.g. Shizuku, SHA-256, Cloudflare, 403, TOFU, Obtainium)…"
-            data-placeholder-de="Alle 10 Anleitungen durchsuchen (englische Begriffe bevorzugt, z. B. Shizuku, Rollback, Verification, Token)…"
-            aria-label="Search wiki guides"
-          />
-          <span class="wiki-search-count mono" id="wiki-search-count" hidden></span>
-          <div class="wiki-search-nav" id="wiki-search-nav" hidden>
-            <button type="button" id="wiki-search-prev" aria-label="Previous match" title="Previous (Shift+Enter)">▲</button>
-            <button type="button" id="wiki-search-next" aria-label="Next match" title="Next (Enter)">▼</button>
-          </div>
+      <div class="wiki-search-bar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" />
+        </svg>
+        <input
+          type="search"
+          id="wiki-search-input"
+          placeholder="Search all 10 guides (e.g. Shizuku, SHA-256, Cloudflare, 403, TOFU, Obtainium)…"
+          data-placeholder-en="Search all 10 guides (e.g. Shizuku, SHA-256, Cloudflare, 403, TOFU, Obtainium)…"
+          data-placeholder-de="Alle 10 Anleitungen durchsuchen (englische Begriffe bevorzugt, z. B. Shizuku, Rollback, Verification, Token)…"
+          aria-label="Search wiki guides"
+        />
+        <span class="wiki-search-count mono" id="wiki-search-count" hidden></span>
+        <div class="wiki-search-nav" id="wiki-search-nav" hidden>
+          <button type="button" id="wiki-search-prev" aria-label="Previous match" title="Previous (Shift+Enter)">▲</button>
+          <button type="button" id="wiki-search-next" aria-label="Next match" title="Next (Enter)">▼</button>
         </div>
       </div>
 
@@ -1223,14 +1223,15 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
   .wiki-top {
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    margin-block-end: 28px;
+    gap: 16px;
+    margin-block-end: 18px;
   }
 
   .wiki-search-bar {
     position: sticky;
     top: calc(var(--header-height) + 10px);
     z-index: 30;
+    margin-block-end: 24px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -1312,8 +1313,8 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
 
   .wiki-sidebar {
     position: sticky;
-    top: calc(var(--header-height) + 18px);
-    max-height: calc(100vh - var(--header-height) - 32px);
+    top: calc(var(--header-height) + 74px);
+    max-height: calc(100vh - var(--header-height) - 90px);
     overflow-y: auto;
     overflow-x: hidden;
   }
