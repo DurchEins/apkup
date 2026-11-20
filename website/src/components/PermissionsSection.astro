@@ -14,13 +14,22 @@ const PERMISSIONS = [
       'Wird ausschließlich lokal auf dem Gerät genutzt, um Paketnamen, Versionscodes und v2/v3-Signaturzertifikate auszulesen – damit ApkUp Updates erkennt und Signaturkonflikte blockiert.',
   },
   {
-    name: 'REQUEST_INSTALL_PACKAGES',
-    enTitle: 'Hand off verified APKs to Android or Shizuku',
-    deTitle: 'Geprüfte APKs an Android oder Shizuku übergeben',
+    name: 'REQUEST_INSTALL_PACKAGES & UPDATE_PACKAGES_WITHOUT_USER_ACTION',
+    enTitle: 'Install verified APKs & seamless updates',
+    deTitle: 'Geprüfte APKs installieren & nahtlose Updates',
     enDesc:
-      'Required to launch the system PackageInstaller or delegate silent installation to your authorized Shizuku session after cryptographic checks pass.',
+      'Required to hand over verified packages to the system PackageInstaller or an authorized Shizuku session, and to apply unattended updates smoothly on Android 12+.',
     deDesc:
-      'Erforderlich, um den Android-PackageInstaller zu starten oder lautlose Updates nach bestandener Signaturprüfung an Shizuku zu übergeben.',
+      'Erforderlich, um geprüfte Pakete an den Android-PackageInstaller oder Shizuku zu übergeben und bestätigungsfreie Updates ab Android 12+ auszuführen.',
+  },
+  {
+    name: 'REQUEST_DELETE_PACKAGES',
+    enTitle: 'Uninstall apps & guided non-Root rollbacks',
+    deTitle: 'Apps deinstallieren & geführter Non-Root-Rollback',
+    enDesc:
+      'Used only when you explicitly trigger an app uninstall or a two-step non-Root rollback to restore an older backed-up APK version.',
+    deDesc:
+      'Wird nur genutzt, wenn du aktiv eine Deinstallation oder einen geführten Zweischritt-Rollback ohne Root auf eine gesicherte Vorgängerversion startest.',
   },
   {
     name: 'INTERNET & ACCESS_NETWORK_STATE',
@@ -32,13 +41,40 @@ const PERMISSIONS = [
       'Vor der Quellenauswahl beim Erststart finden null Netzwerkabfragen statt. Dient ausschließlich HTTPS-Abfragen an aktivierte Quellen sowie der WLAN-Prüfung.',
   },
   {
-    name: 'FOREGROUND_SERVICE_DATA_SYNC & POST_NOTIFICATIONS',
-    enTitle: 'Reliable batch downloads & update alerts',
-    deTitle: 'Zuverlässige Batch-Downloads & Benachrichtigungen',
+    name: 'FOREGROUND_SERVICE & RUN_USER_INITIATED_JOBS',
+    enTitle: 'Reliable batch downloads with live ETA',
+    deTitle: 'Zuverlässige Batch-Downloads samt Restzeit',
     enDesc:
-      'Powers AndroidX WorkManager user-initiated data transfers with live overall ETA progress and optional notifications when updates are ready.',
+      'Powers AndroidX WorkManager data-sync foreground services and user-initiated transfer jobs so large multi-app update batches finish reliably.',
     deDesc:
-      'Ermöglicht zuverlässige WorkManager-Downloads samt Gesamtfortschritt und optionalen Benachrichtigungen bei neuen Updates.',
+      'Ermöglicht AndroidX-WorkManager-Datentransfers im Vordergrund, damit auch große Sammel-Updates mit Gesamtfortschritt sauber durchlaufen.',
+  },
+  {
+    name: 'POST_NOTIFICATIONS & VIBRATE',
+    enTitle: 'Optional update alerts & haptic feedback',
+    deTitle: 'Optionale Update-Hinweise & haptisches Feedback',
+    enDesc:
+      'Optional permission to notify you about available updates, background install summaries, and download progress with subtle haptic feedback.',
+    deDesc:
+      'Optionale Berechtigung für Benachrichtigungen über verfügbare Updates, Sammel-Zusammenfassungen und dezentes haptisches Feedback.',
+  },
+  {
+    name: 'REQUEST_IGNORE_BATTERY_OPTIMIZATIONS',
+    enTitle: 'Optional background check reliability',
+    deTitle: 'Optionale Hintergrund-Zuverlässigkeit',
+    enDesc:
+      'Optional exemption you can grant in Setup so scheduled background checks and quiet-hour catch-up jobs are not deferred by aggressive OEM battery savers.',
+    deDesc:
+      'Optionale Freigabe im Setup, damit geplante Hintergrundprüfungen nicht durch strenge Hersteller-Energiesparmodi blockiert werden.',
+  },
+  {
+    name: 'HIDE_OVERLAY_WINDOWS',
+    enTitle: 'Tapjacking protection during installs',
+    deTitle: 'Tapjacking-Schutz bei Installationen',
+    enDesc:
+      'Prevents malicious third-party screen overlays from obscuring sensitive installation or permission dialogs while ApkUp is active.',
+    deDesc:
+      'Verhindert, dass fremde Overlay-Fenster sensible Installations- oder Berechtigungsdialoge überdecken, während ApkUp aktiv ist.',
   },
 ];
 ---
@@ -53,12 +89,12 @@ const PERMISSIONS = [
         </h2>
         <p class="section-subtitle">
           <span class="i18n-en">
-            Every Android permission explained in plain language. Preferences and optional tokens are
-            encrypted at rest via Google Tink (AES-256-GCM) with cloud backups disabled.
+            Every Android permission from AndroidManifest.xml explained in plain language.
+            Preferences and optional tokens are encrypted via Google Tink (AES-256-GCM).
           </span>
           <span class="i18n-de">
-            Jede Android-Berechtigung verständlich erklärt. Einstellungen und optionale Tokens
-            liegen per Google Tink (AES-256-GCM) verschlüsselt lokal – ohne Cloud-Backup.
+            Alle Android-Berechtigungen aus der AndroidManifest.xml verständlich erklärt.
+            Einstellungen und Tokens liegen per Google Tink (AES-256-GCM) lokal verschlüsselt.
           </span>
         </p>
       </div>

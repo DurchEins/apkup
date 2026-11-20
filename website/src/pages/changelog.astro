@@ -73,21 +73,23 @@ const enMonths = parseChangelog(loadReleasedMarkdown('app/src/main/assets/change
 const deMonths = parseChangelog(loadReleasedMarkdown('app/src/main/assets/changelog/1.45_de.md', repoRoot));
 ---
 
-<BaseLayout title="Changelog — ApkUp">
+<BaseLayout title="What’s New? — ApkUp">
   <Navbar />
   <main id="main-content" class="section">
     <div class="container subpage-wrap">
       <div class="section-header">
         <h1 class="section-title">
-          <span class="i18n-en">Release Changelog</span>
-          <span class="i18n-de">Release-Verlauf &amp; Neuerungen</span>
+          <span class="i18n-en">What’s New?</span>
+          <span class="i18n-de">Was ist neu?</span>
         </h1>
         <p class="section-subtitle">
           <span class="i18n-en">
-            Synced directly from ApkUp’s in-app monthly changelog files.
+            Monthly release history synced from ApkUp’s published in-app changelog. Click any
+            month below to expand or collapse.
           </span>
           <span class="i18n-de">
-            Direkt aus den monatlichen In-App-Changelog-Dateien von ApkUp generiert.
+            Monatlicher Release-Verlauf aus dem veröffentlichten In-App-Changelog von ApkUp. Klicke
+            auf einen Monat zum Auf- oder Zuklappen.
           </span>
         </p>
       </div>
@@ -98,7 +100,12 @@ const deMonths = parseChangelog(loadReleasedMarkdown('app/src/main/assets/change
             <details class="cl-month" open={idx === 0}>
               <summary class="cl-month-head">
                 <h2>{group.month}</h2>
-                <span class="pill-badge pill-neutral mono">{group.releases.length} releases</span>
+                <div class="cl-month-right">
+                  <span class="pill-badge pill-neutral mono">{group.releases.length} releases</span>
+                  <svg class="cl-chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </div>
               </summary>
               <div class="cl-releases">
                 {group.releases.map((rel) => (
@@ -114,8 +121,13 @@ const deMonths = parseChangelog(loadReleasedMarkdown('app/src/main/assets/change
                     </div>
                     {rel.bannerTitle && (
                       <div class="cl-banner">
-                        <strong>{rel.bannerTitle}</strong>
-                        {rel.bannerTag && <span class="mono">{rel.bannerTag}</span>}
+                        <div class="cl-banner-left">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 3l1.9 4.5L18.5 9l-4.6 1.5L12 15l-1.9-4.5L5.5 9l4.6-1.5L12 3z" />
+                          </svg>
+                          <strong>{rel.bannerTitle}</strong>
+                        </div>
+                        {rel.bannerTag && <span class="mono cl-banner-tag">{rel.bannerTag}</span>}
                       </div>
                     )}
                     <ul class="cl-list">
@@ -139,7 +151,12 @@ const deMonths = parseChangelog(loadReleasedMarkdown('app/src/main/assets/change
             <details class="cl-month" open={idx === 0}>
               <summary class="cl-month-head">
                 <h2>{group.month}</h2>
-                <span class="pill-badge pill-neutral mono">{group.releases.length} Releases</span>
+                <div class="cl-month-right">
+                  <span class="pill-badge pill-neutral mono">{group.releases.length} Releases</span>
+                  <svg class="cl-chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </div>
               </summary>
               <div class="cl-releases">
                 {group.releases.map((rel) => (
@@ -155,8 +172,13 @@ const deMonths = parseChangelog(loadReleasedMarkdown('app/src/main/assets/change
                     </div>
                     {rel.bannerTitle && (
                       <div class="cl-banner">
-                        <strong>{rel.bannerTitle}</strong>
-                        {rel.bannerTag && <span class="mono">{rel.bannerTag}</span>}
+                        <div class="cl-banner-left">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 3l1.9 4.5L18.5 9l-4.6 1.5L12 15l-1.9-4.5L5.5 9l4.6-1.5L12 3z" />
+                          </svg>
+                          <strong>{rel.bannerTitle}</strong>
+                        </div>
+                        {rel.bannerTag && <span class="mono cl-banner-tag">{rel.bannerTag}</span>}
                       </div>
                     )}
                     <ul class="cl-list">
@@ -215,6 +237,22 @@ const deMonths = parseChangelog(loadReleasedMarkdown('app/src/main/assets/change
     font-weight: 800;
   }
 
+  .cl-month-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .cl-chev {
+    color: var(--text-muted);
+    transition: transform 150ms ease-out, color 150ms ease-out;
+  }
+
+  .cl-month[open] .cl-chev {
+    transform: rotate(180deg);
+    color: var(--accent);
+  }
+
   .cl-releases {
     display: flex;
     flex-direction: column;
@@ -266,11 +304,24 @@ const deMonths = parseChangelog(loadReleasedMarkdown('app/src/main/assets/change
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 8px;
-    padding: 12px 14px;
+    padding: 13px 16px;
     border-radius: var(--radius-sm);
-    background: var(--accent-soft);
+    background: linear-gradient(135deg, var(--accent-soft), rgba(245, 158, 11, 0.12));
+    border: 1px solid rgba(245, 158, 11, 0.35);
     color: var(--accent-soft-ink);
     margin-bottom: 14px;
+  }
+
+  .cl-banner-left {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .cl-banner-tag {
+    font-size: 0.82rem;
+    font-weight: 700;
+    opacity: 0.9;
   }
 
   .cl-list {

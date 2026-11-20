@@ -1,0 +1,265 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import { SITE } from '../data/content';
+---
+
+<BaseLayout title="Wiki & Guides — ApkUp">
+  <Navbar />
+  <main id="main-content" class="section">
+    <div class="container wiki-layout">
+      <aside class="wiki-sidebar" aria-label="Wiki navigation">
+        <div class="wiki-nav-card">
+          <strong class="wiki-nav-title">
+            <span class="i18n-en">Documentation</span>
+            <span class="i18n-de">Dokumentation</span>
+          </strong>
+          <a href="#shizuku">Shizuku &amp; Root (su)</a>
+          <a href="#fdroid">F-Droid &amp; Index V2</a>
+          <a href="#tokens">GitHub, GitLab &amp; Codeberg</a>
+          <a href="#obtainium">Obtainium Migration</a>
+          <a href="#troubleshooting">
+            <span class="i18n-en">Troubleshooting</span>
+            <span class="i18n-de">Fehlerbehebung</span>
+          </a>
+        </div>
+      </aside>
+
+      <div class="wiki-content">
+        <div class="section-header">
+          <h1 class="section-title">
+            <span class="i18n-en">ApkUp Wiki &amp; Setup Guides</span>
+            <span class="i18n-de">ApkUp Wiki &amp; Anleitungen</span>
+          </h1>
+          <p class="section-subtitle">
+            <span class="i18n-en">
+              Clear, step-by-step guides for optional silent updates, custom repositories, tokens,
+              and Obtainium migration.
+            </span>
+            <span class="i18n-de">
+              Übersichtliche Schritt-für-Schritt-Anleitungen für optionale Hintergrund-Updates,
+              eigene Repositories, Tokens und den Umstieg von Obtainium.
+            </span>
+          </p>
+        </div>
+
+        <article class="wiki-card" id="shizuku">
+          <span class="pill-badge pill-emerald">Optional</span>
+          <h2>
+            <span class="i18n-en">Setting up Shizuku &amp; Optional Root (su)</span>
+            <span class="i18n-de">Shizuku &amp; optionales Root (su) einrichten</span>
+          </h2>
+          <p>
+            <span class="i18n-en">
+              Standard Android installs work immediately without Shizuku or Root. Enable Shizuku if
+              you want unattended background installs without repetitive system prompts.
+            </span>
+            <span class="i18n-de">
+              Die normale Installation funktioniert jederzeit ohne Shizuku oder Root. Mit Shizuku
+              oder Root laufen geprüfte Updates auf Wunsch lautlos im Hintergrund.
+            </span>
+          </p>
+          <ol>
+            <li>
+              <span class="i18n-en">Install Shizuku and start it via Wireless Debugging (Android 11+) or ADB.</span>
+              <span class="i18n-de">Installiere Shizuku und starte den Dienst per Wireless Debugging (ab Android 11) oder ADB.</span>
+            </li>
+            <li>
+              <span class="i18n-en">Open ApkUp → Setup → Background Installation and grant Shizuku permission (or enable Root su).</span>
+              <span class="i18n-de">Öffne in ApkUp Setup → Hintergrund-Installation und erteile Shizuku die Freigabe (oder aktiviere Root su).</span>
+            </li>
+            <li>
+              <span class="i18n-en">Optionally enable Wi-Fi only, While charging, and active time windows.</span>
+              <span class="i18n-de">Lege optional Regeln für Nur über WLAN, Nur beim Laden sowie Ruhezeiten fest.</span>
+            </li>
+          </ol>
+        </article>
+
+        <article class="wiki-card" id="fdroid">
+          <span class="pill-badge pill-amber mono">RFC 7396 + TOFU</span>
+          <h2>F-Droid &amp; Index V2 Repositories</h2>
+          <p>
+            <span class="i18n-en">
+              ApkUp supports official F-Droid, IzzyOnDroid, and custom HTTPS repositories with
+              cryptographic JAR certificate verification and incremental Index V2 diffs.
+            </span>
+            <span class="i18n-de">
+              ApkUp unterstützt das offizielle F-Droid, IzzyOnDroid sowie eigene HTTPS-Repositories
+              inklusive kryptografischer JAR-Prüfung und sparsamen Index-V2-Diffs.
+            </span>
+          </p>
+          <ul>
+            <li>
+              <span class="i18n-en">Add custom repos under Setup → Update Sources → IzzyOnDroid / F-Droid using presets or a ?fingerprint= URL.</span>
+              <span class="i18n-de">Eigene Repos fügst du unter Setup → Update-Quellen → IzzyOnDroid / F-Droid per Preset oder ?fingerprint=-URL hinzu.</span>
+            </li>
+            <li>
+              <span class="i18n-en">Your installed app list is never sent to F-Droid or IzzyOnDroid — comparisons run strictly on-device.</span>
+              <span class="i18n-de">Deine App-Liste wird niemals an F-Droid oder IzzyOnDroid gesendet – der Abgleich erfolgt rein lokal.</span>
+            </li>
+          </ul>
+        </article>
+
+        <article class="wiki-card" id="tokens">
+          <span class="pill-badge pill-neutral mono">AES-256-GCM</span>
+          <h2>
+            <span class="i18n-en">GitHub, GitLab &amp; Codeberg Tokens</span>
+            <span class="i18n-de">Zugangs-Tokens für GitHub, GitLab &amp; Codeberg</span>
+          </h2>
+          <p>
+            <span class="i18n-en">
+              Public repositories work without a token. Adding a GitHub Personal Access Token raises
+              rate limits and unlocks batched GraphQL update checks. All tokens are encrypted via
+              Google Tink and strictly host-isolated across redirects.
+            </span>
+            <span class="i18n-de">
+              Öffentliche Repositories funktionieren ohne Token. Ein GitHub-Token erhöht das
+              Abfragelimit und aktiviert gebündelte GraphQL-Checks. Alle Tokens werden per Google
+              Tink verschlüsselt und niemals über Redirects an fremde Hosts gesendet.
+            </span>
+          </p>
+        </article>
+
+        <article class="wiki-card" id="obtainium">
+          <span class="pill-badge pill-neutral mono">JSON Import/Export</span>
+          <h2>Obtainium Migration &amp; Sync</h2>
+          <p>
+            <span class="i18n-en">
+              Import your Obtainium JSON backup in Setup → Backup &amp; Import to preview matched
+              apps, multi-level GitLab subgroups, custom F-Droid repos, and watchlist entries before
+              applying.
+            </span>
+            <span class="i18n-de">
+              Importiere dein Obtainium-JSON-Backup unter Setup → Sicherung &amp; Import, prüfe
+              erkannte Apps, GitLab-Subgroups, eigene F-Droid-Repos und Merklisten-Einträge in der
+              Vorschau und übernehme sie mit einem Tipp.
+            </span>
+          </p>
+        </article>
+
+        <article class="wiki-card" id="troubleshooting">
+          <h2>
+            <span class="i18n-en">Troubleshooting Source Errors</span>
+            <span class="i18n-de">Fehlerbehebung bei Quellen</span>
+          </h2>
+          <ul>
+            <li>
+              <span class="i18n-en">HTTP 403 / 429 on GitHub: Add a read-only Personal Access Token in Setup.</span>
+              <span class="i18n-de">HTTP 403 / 429 bei GitHub: Hinterlege im Setup ein Read-Only Personal Access Token.</span>
+            </li>
+            <li>
+              <span class="i18n-en">APKMirror Cloudflare challenge: ApkUp automatically opens an in-app WebView or browser fallback.</span>
+              <span class="i18n-de">APKMirror-Cloudflare-Prüfung: ApkUp öffnet automatisch eine In-App-WebView oder den Browser-Fallback.</span>
+            </li>
+            <li>
+              <span class="i18n-en">Signature mismatch warning: The downloaded APK uses a different signing key than the installed app and is blocked for your safety.</span>
+              <span class="i18n-de">Signatur-Warnung: Die neue APK nutzt einen anderen Signaturschlüssel als die installierte App und wird zu deinem Schutz blockiert.</span>
+            </li>
+          </ul>
+          <div style="margin-top: 14px;">
+            <a class="btn btn-secondary" href={SITE.wikiUrl} target="_blank" rel="noopener noreferrer">
+              <span class="i18n-en">Full GitHub Wiki</span>
+              <span class="i18n-de">Vollständiges GitHub-Wiki öffnen</span>
+            </a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .wiki-layout {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+  }
+
+  .wiki-nav-card {
+    position: sticky;
+    top: calc(var(--header-height) + 20px);
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .wiki-nav-title {
+    font-size: 0.85rem;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  .wiki-nav-card a {
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 6px 10px;
+    border-radius: 10px;
+  }
+
+  @media (hover: hover) {
+    .wiki-nav-card a:hover {
+      background: var(--surface);
+      color: var(--text);
+    }
+  }
+
+  .wiki-content {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .wiki-card {
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .wiki-card h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 800;
+  }
+
+  .wiki-card p,
+  .wiki-card li {
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .wiki-card p {
+    margin: 0;
+  }
+
+  .wiki-card ol,
+  .wiki-card ul {
+    margin: 0;
+    padding-inline-start: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  @media (max-width: 860px) {
+    .wiki-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .wiki-nav-card {
+      position: static;
+    }
+  }
+</style>

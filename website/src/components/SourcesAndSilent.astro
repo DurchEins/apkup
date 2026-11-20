@@ -59,8 +59,8 @@ const base = import.meta.env.BASE_URL.endsWith('/')
           </p>
         </div>
         <a class="btn btn-secondary" href={`${base}compatibility/`}>
-          <span class="i18n-en">Obtainium JSON Checker →</span>
-          <span class="i18n-de">Obtainium-JSON-Tester →</span>
+          <span class="i18n-en">Source &amp; Obtainium Checker →</span>
+          <span class="i18n-de">Quellen- &amp; Obtainium-Check →</span>
         </a>
       </div>
 
@@ -282,9 +282,21 @@ const base = import.meta.env.BASE_URL.endsWith('/')
 <style>
   .sources-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 16px;
     margin-block-end: 40px;
+  }
+
+  @media (max-width: 1024px) {
+    .sources-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 600px) {
+    .sources-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
 
   .source-card {
