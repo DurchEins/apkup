@@ -91,9 +91,89 @@ const base = import.meta.env.BASE_URL.endsWith('/')
         <span class="i18n-en">Download</span>
         <span class="i18n-de">Herunterladen</span>
       </a>
+
+      <button
+        id="mobile-menu-toggle"
+        type="button"
+        class="icon-pill icon-only mobile-menu-btn"
+        aria-expanded="false"
+        aria-controls="mobile-nav-panel"
+        aria-label="Toggle navigation menu"
+      >
+        <svg class="menu-icon-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <line x1="4" y1="7" x2="20" y2="7" />
+          <line x1="4" y1="12" x2="20" y2="12" />
+          <line x1="4" y1="17" x2="20" y2="17" />
+        </svg>
+        <svg class="menu-icon-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M18 6 6 18M6 6l12 12" />
+        </svg>
+      </button>
     </div>
   </div>
+
+  <nav id="mobile-nav-panel" class="mobile-nav-panel" aria-label="Mobile navigation" hidden>
+    <div class="container mobile-nav-list">
+      <a href={`${base}#features`}>
+        <span class="i18n-en">Features</span>
+        <span class="i18n-de">Funktionen</span>
+      </a>
+      <a href={`${base}#showcase`}>
+        <span class="i18n-en">Showcase</span>
+        <span class="i18n-de">Einblicke</span>
+      </a>
+      <a href={`${base}#sources`}>
+        <span class="i18n-en">Sources</span>
+        <span class="i18n-de">Quellen</span>
+      </a>
+      <a href={`${base}changelog/`}>
+        <span class="i18n-en">What’s New?</span>
+        <span class="i18n-de">Was ist neu?</span>
+      </a>
+      <a href={`${base}wiki/`}>Wiki</a>
+      <a href={`${base}privacy/`}>Privacy</a>
+      <a href={`${base}downloads/`}>Downloads</a>
+      <a class="btn btn-primary mobile-nav-cta" href={`${base}#downloads`}>
+        <span class="i18n-en">Download</span>
+        <span class="i18n-de">Herunterladen</span>
+      </a>
+    </div>
+  </nav>
 </header>
+
+<script is:inline>
+  (function () {
+    var btn = document.getElementById('mobile-menu-toggle');
+    var panel = document.getElementById('mobile-nav-panel');
+    if (!btn || !panel) return;
+
+    function closeMenu() {
+      panel.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
+    }
+
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var nextOpen = panel.hidden;
+      panel.hidden = !nextOpen;
+      btn.setAttribute('aria-expanded', String(nextOpen));
+    });
+
+    panel.querySelectorAll('a').forEach(function (a) {
+      a.addEventListener('click', closeMenu);
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !panel.hidden) closeMenu();
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!panel.hidden && !panel.contains(e.target) && !btn.contains(e.target)) {
+        closeMenu();
+      }
+    });
+  })();
+</script>
 
 <style>
   .site-header {
@@ -202,15 +282,77 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     font-size: 0.9rem;
   }
 
+  .mobile-menu-btn {
+    display: none;
+  }
+
+  .mobile-menu-btn .menu-icon-close {
+    display: none;
+  }
+
+  .mobile-menu-btn[aria-expanded='true'] .menu-icon-open {
+    display: none;
+  }
+
+  .mobile-menu-btn[aria-expanded='true'] .menu-icon-close {
+    display: block;
+  }
+
+  .mobile-nav-panel {
+    position: absolute;
+    inset-block-start: 100%;
+    inset-inline: 0;
+    background: var(--surface-low);
+    border-block-end: 1px solid var(--outline-strong);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+    padding-block: 12px 18px;
+  }
+
+  .mobile-nav-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .mobile-nav-list a:not(.btn) {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 8px 14px;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .mobile-nav-list a:not(.btn):hover,
+  .mobile-nav-list a:not(.btn):focus-visible {
+    background: var(--surface-high);
+  }
+
+  .mobile-nav-cta {
+    display: none;
+    margin-top: 8px;
+    justify-content: center;
+  }
+
   @media (max-width: 860px) {
     .nav-links {
       display: none;
+    }
+
+    .mobile-menu-btn {
+      display: inline-flex;
     }
   }
 
   @media (max-width: 400px) {
     .nav-cta {
       display: none;
+    }
+
+    .mobile-nav-cta {
+      display: inline-flex;
     }
   }
 </style>

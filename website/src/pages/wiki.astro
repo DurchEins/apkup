@@ -748,7 +748,22 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
 
       <div class="wiki-layout">
         <aside class="wiki-sidebar" aria-label="Wiki chapters">
-          <nav class="wiki-nav-card" aria-label="Wiki table of contents">
+          <button
+            type="button"
+            class="wiki-mobile-toc-btn"
+            id="wiki-mobile-toc-btn"
+            aria-expanded="false"
+            aria-controls="wiki-nav-card"
+          >
+            <span>
+              <span class="i18n-en">Table of Contents (10 Chapters)</span>
+              <span class="i18n-de">Inhaltsverzeichnis (10 Kapitel)</span>
+            </span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </button>
+          <nav id="wiki-nav-card" class="wiki-nav-card" aria-label="Wiki table of contents">
             {
               RENDERED_CHAPTERS.map((ch, idx) => (
                 <details class="wiki-nav-group" data-wiki-group={ch.slug} open={idx === 0}>
@@ -967,10 +982,24 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
       }
     }
 
+    var mobileTocBtn = document.getElementById('wiki-mobile-toc-btn');
+    var sidebarEl = document.querySelector('.wiki-sidebar');
+
+    if (mobileTocBtn && sidebarEl) {
+      mobileTocBtn.addEventListener('click', function () {
+        var open = sidebarEl.classList.toggle('is-mobile-open');
+        mobileTocBtn.setAttribute('aria-expanded', String(open));
+      });
+    }
+
     document.querySelectorAll('[data-wiki-chapter-link]').forEach(function (link) {
       link.addEventListener('click', function () {
         var slug = link.getAttribute('data-wiki-chapter-link');
         if (slug) setActiveNav(slug, true);
+        if (sidebarEl && mobileTocBtn) {
+          sidebarEl.classList.remove('is-mobile-open');
+          mobileTocBtn.setAttribute('aria-expanded', 'false');
+        }
       });
     });
 
@@ -980,6 +1009,10 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
         var target = targetId ? document.getElementById(targetId) : null;
         if (target && target.tagName === 'DETAILS') {
           target.open = true;
+        }
+        if (sidebarEl && mobileTocBtn) {
+          sidebarEl.classList.remove('is-mobile-open');
+          mobileTocBtn.setAttribute('aria-expanded', 'false');
         }
       });
     });
@@ -1362,6 +1395,7 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
   }
 
   .wiki-search-nav button {
+    position: relative;
     width: 28px;
     height: 28px;
     border-radius: 999px;
@@ -1374,6 +1408,12 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
     justify-content: center;
     cursor: pointer;
     transition: border-color 140ms ease-out, color 140ms ease-out;
+  }
+
+  .wiki-search-nav button::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
   }
 
   .wiki-search-nav button:hover {
@@ -1395,7 +1435,12 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
     border-radius: 5px;
     padding: 1px 5px;
     box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85), 0 0 14px rgba(249, 115, 22, 0.7);
-    animation: wkHitPulse 450ms ease-out;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    mark.wk-hit.is-current {
+      animation: wkHitPulse 450ms ease-out;
+    }
   }
 
   @keyframes wkHitPulse {
@@ -2001,6 +2046,26 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
     line-height: 1.6;
   }
 
+  .wiki-mobile-toc-btn {
+    display: none;
+    width: 100%;
+    min-height: 46px;
+    padding: 10px 16px;
+    border-radius: var(--radius-lg);
+    background: var(--surface-low);
+    border: 1px solid var(--outline-strong);
+    color: var(--text);
+    font-weight: 700;
+    font-size: 0.92rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .wiki-sidebar.is-mobile-open .wiki-mobile-toc-btn svg {
+    transform: rotate(180deg);
+  }
+
   @media (max-width: 920px) {
     .wiki-layout {
       grid-template-columns: minmax(0, 1fr);
@@ -2008,6 +2073,16 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
     .wiki-sidebar {
       position: static;
       max-height: none;
+    }
+    .wiki-mobile-toc-btn {
+      display: flex;
+    }
+    .wiki-nav-card {
+      display: none;
+      margin-top: 10px;
+    }
+    .wiki-sidebar.is-mobile-open .wiki-nav-card {
+      display: flex;
     }
     .wiki-cards-grid {
       grid-template-columns: minmax(0, 1fr);

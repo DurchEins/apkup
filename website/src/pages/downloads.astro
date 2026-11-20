@@ -791,6 +791,7 @@ const downloadSchema = {
   }
 
   .dl-help-btn {
+    position: relative;
     width: 22px;
     height: 22px;
     border-radius: 999px;
@@ -805,6 +806,12 @@ const downloadSchema = {
     cursor: pointer;
     flex-shrink: 0;
     transition: border-color 140ms ease-out, color 140ms ease-out, background-color 140ms ease-out;
+  }
+
+  .dl-help-btn::after {
+    content: '';
+    position: absolute;
+    inset: -11px;
   }
 
   .dl-help-btn:hover,
