@@ -208,6 +208,15 @@ const base = import.meta.env.BASE_URL.endsWith('/')
 
   .brand-icon {
     border-radius: 10px;
+    transition: transform 220ms cubic-bezier(0.2, 0, 0, 1), filter 220ms ease-out;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .brand:hover .brand-icon,
+    .brand:focus-visible .brand-icon {
+      transform: rotate(-7deg) scale(1.07);
+      filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.45));
+    }
   }
 
   .nav-links {

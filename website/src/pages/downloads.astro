@@ -390,8 +390,10 @@ const downloadSchema = {
     function flashBtn(btn) {
       var orig = btn.innerHTML;
       btn.textContent = '✓';
+      btn.classList.add('is-copied');
       setTimeout(function () {
         btn.innerHTML = orig;
+        btn.classList.remove('is-copied');
       }, 1600);
     }
 
@@ -867,6 +869,20 @@ const downloadSchema = {
   .dl-arrow {
     color: var(--text-muted);
     flex-shrink: 0;
+    transition: transform 180ms cubic-bezier(0.2, 0, 0, 1), color 150ms ease-out;
+  }
+
+  .dl-mirror-card:hover .dl-arrow,
+  .dl-mirror-card:focus-visible .dl-arrow {
+    transform: translate(3px, -3px);
+    color: var(--accent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dl-mirror-card:hover .dl-arrow,
+    .dl-mirror-card:focus-visible .dl-arrow {
+      transform: none;
+    }
   }
 
   .dl-mirror-card p {

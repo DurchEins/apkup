@@ -143,10 +143,12 @@ const ogImage = new URL(`${base}og-card.png`, Astro.site).toString();
           if (!lbl || !copied) return;
           lbl.hidden = true;
           copied.hidden = false;
+          btn.classList.add('is-copied');
           clearTimeout(btn._shareTimer);
           btn._shareTimer = setTimeout(function () {
             lbl.hidden = false;
             copied.hidden = true;
+            btn.classList.remove('is-copied');
           }, 2000);
         }
 

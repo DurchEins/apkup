@@ -242,8 +242,54 @@ p {
 }
 
 .btn-primary {
+  position: relative;
+  overflow: hidden;
   background-color: var(--accent);
   color: var(--accent-ink);
+}
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset-block: -20%;
+  inset-inline-start: 0;
+  width: 45%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.34),
+    transparent
+  );
+  transform: translateX(-160%) skewX(-20deg);
+  pointer-events: none;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .btn-primary:hover::after,
+  .btn-primary:focus-visible::after {
+    transform: translateX(340%) skewX(-20deg);
+    transition: transform 620ms cubic-bezier(0.2, 0, 0, 1);
+  }
+}
+
+.btn:active {
+  transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn:active {
+    transform: none;
+  }
+}
+
+.is-copied {
+  border-color: rgba(16, 185, 129, 0.72) !important;
+  background-color: rgba(16, 185, 129, 0.14) !important;
+  color: #6ee7b7 !important;
+}
+
+[data-theme='light'] .is-copied {
+  color: #047857 !important;
 }
 
 .btn-primary .apk-light {
@@ -879,6 +925,15 @@ p {
 
   .brand-icon {
     border-radius: 10px;
+    transition: transform 220ms cubic-bezier(0.2, 0, 0, 1), filter 220ms ease-out;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .brand:hover .brand-icon,
+    .brand:focus-visible .brand-icon {
+      transform: rotate(-7deg) scale(1.07);
+      filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.45));
+    }
   }
 
   .nav-links {
@@ -1145,9 +1200,30 @@ p {
     box-shadow: var(--shadow-elevated);
   }
 
+  .qr-dialog[open] {
+    animation: qrDialogIn 220ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
   .qr-dialog::backdrop {
-    background: rgba(0, 0, 0, 0.65);
+    background: rgba(10, 11, 14, 0.72);
     backdrop-filter: blur(6px);
+  }
+
+  @keyframes qrDialogIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .qr-dialog[open] {
+      animation: none;
+    }
   }
 
   .qr-card {
@@ -2168,6 +2244,20 @@ p {
   .dl-arrow {
     color: var(--text-muted);
     flex-shrink: 0;
+    transition: transform 180ms cubic-bezier(0.2, 0, 0, 1), color 150ms ease-out;
+  }
+
+  .dl-mirror-card:hover .dl-arrow,
+  .dl-mirror-card:focus-visible .dl-arrow {
+    transform: translate(3px, -3px);
+    color: var(--accent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dl-mirror-card:hover .dl-arrow,
+    .dl-mirror-card:focus-visible .dl-arrow {
+      transform: none;
+    }
   }
 
   .dl-mirror-card p {

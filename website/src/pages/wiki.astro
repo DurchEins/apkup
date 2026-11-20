@@ -1040,8 +1040,10 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
         if (!pre) return;
         navigator.clipboard.writeText(pre.textContent || '').then(function () {
           btn.textContent = 'Copied ✓';
+          btn.classList.add('is-copied');
           setTimeout(function () {
             btn.textContent = 'Copy';
+            btn.classList.remove('is-copied');
           }, 1400);
         });
       });

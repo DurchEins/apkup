@@ -258,10 +258,12 @@ const fallbackUrl = "https://github.com/DurchEins/apkup/releases/latest";
           if (!lbl || !copied) return;
           lbl.hidden = true;
           copied.hidden = false;
+          btn.classList.add('is-copied');
           clearTimeout(btn._shareTimer);
           btn._shareTimer = setTimeout(function () {
             lbl.hidden = false;
             copied.hidden = true;
+            btn.classList.remove('is-copied');
           }, 2000);
         }
 
@@ -298,8 +300,10 @@ const fallbackUrl = "https://github.com/DurchEins/apkup/releases/latest";
     function flashBtn(btn) {
       var orig = btn.innerHTML;
       btn.textContent = '✓';
+      btn.classList.add('is-copied');
       setTimeout(function () {
         btn.innerHTML = orig;
+        btn.classList.remove('is-copied');
       }, 1600);
     }
 

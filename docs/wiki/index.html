@@ -1050,10 +1050,12 @@ Copyright © 2026 DurchEins • GPL-3.0 •  <span class="i18n-en" data-astro-ci
           if (!lbl || !copied) return;
           lbl.hidden = true;
           copied.hidden = false;
+          btn.classList.add('is-copied');
           clearTimeout(btn._shareTimer);
           btn._shareTimer = setTimeout(function () {
             lbl.hidden = false;
             copied.hidden = true;
+            btn.classList.remove('is-copied');
           }, 2000);
         }
 
@@ -1159,8 +1161,10 @@ Copyright © 2026 DurchEins • GPL-3.0 •  <span class="i18n-en" data-astro-ci
         if (!pre) return;
         navigator.clipboard.writeText(pre.textContent || '').then(function () {
           btn.textContent = 'Copied ✓';
+          btn.classList.add('is-copied');
           setTimeout(function () {
             btn.textContent = 'Copy';
+            btn.classList.remove('is-copied');
           }, 1400);
         });
       });
