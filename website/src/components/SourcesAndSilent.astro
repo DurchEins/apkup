@@ -468,6 +468,20 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     font-weight: 700;
   }
 
+  .quick-compat-result.is-ok {
+    animation: quickBounce 260ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  @keyframes quickBounce {
+    0% { opacity: 0.5; transform: scale(0.97); }
+    70% { transform: scale(1.015); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .quick-compat-result.is-ok { animation: none; }
+  }
+
   .quick-compat-result {
     padding: 14px 16px;
     border-radius: var(--radius-md);

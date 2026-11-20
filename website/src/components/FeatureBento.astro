@@ -187,6 +187,19 @@
   </div>
 </section>
 
+<script is:inline>
+  (function () {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    document.querySelectorAll('.bento-card').forEach(function (card) {
+      card.addEventListener('pointermove', function (e) {
+        var r = card.getBoundingClientRect();
+        card.style.setProperty('--mx', e.clientX - r.left + 'px');
+        card.style.setProperty('--my', e.clientY - r.top + 'px');
+      });
+    });
+  })();
+</script>
+
 <style>
   .bento-grid {
     display: grid;
@@ -195,6 +208,8 @@
   }
 
   .bento-card {
+    position: relative;
+    overflow: hidden;
     background: var(--surface-low);
     border: 1px solid var(--outline);
     border-radius: var(--radius-lg);
@@ -202,6 +217,26 @@
     display: flex;
     flex-direction: column;
     gap: 14px;
+  }
+
+  .bento-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      280px circle at var(--mx, 50%) var(--my, 50%),
+      rgba(245, 158, 11, 0.11),
+      transparent 70%
+    );
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 220ms ease-out;
+  }
+
+  @media (hover: hover) {
+    .bento-card:hover::before {
+      opacity: 1;
+    }
   }
 
   .bento-wide {

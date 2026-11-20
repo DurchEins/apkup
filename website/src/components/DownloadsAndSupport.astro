@@ -303,6 +303,20 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     justify-content: center;
     border: 2px solid var(--bg);
     margin-inline-start: -8px;
+    transition: margin 220ms cubic-bezier(0.2, 0, 0, 1), transform 220ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .mirrors-banner-card:hover .mini-mirror-dot:not(:first-child) {
+      margin-inline-start: 3px;
+    }
+    .support-pill:hover svg {
+      transform: rotate(18deg) scale(1.12);
+    }
+  }
+
+  .support-pill svg {
+    transition: transform 220ms cubic-bezier(0.2, 0, 0, 1);
   }
 
   .mini-mirror-dot:first-child {

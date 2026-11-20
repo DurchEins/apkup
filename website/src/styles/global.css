@@ -229,6 +229,39 @@ p {
   font-weight: 900;
 }
 
+.back-to-top-pill {
+  position: fixed;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 90;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid var(--outline-strong);
+  background: var(--surface-high);
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.36);
+  opacity: 0;
+  transform: translateY(12px) scale(0.92);
+  pointer-events: none;
+  transition: opacity 200ms ease-out, transform 200ms cubic-bezier(0.2, 0, 0, 1), border-color 150ms ease-out, color 150ms ease-out;
+}
+
+.back-to-top-pill.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.back-to-top-pill:hover,
+.back-to-top-pill:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .btn-secondary {
   background-color: var(--surface);
   color: var(--text);

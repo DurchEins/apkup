@@ -23,7 +23,10 @@ const base = import.meta.env.BASE_URL.endsWith('/')
       </button>
     </div>
 
-    <div class="qr-frame" id="qr-svg-host" aria-live="polite"></div>
+    <div class="qr-frame-wrap">
+      <div class="qr-frame" id="qr-svg-host" aria-live="polite"></div>
+      <span class="qr-scan-line" aria-hidden="true"></span>
+    </div>
 
     <a
       class="qr-url mono"
@@ -180,18 +183,44 @@ const base = import.meta.env.BASE_URL.endsWith('/')
   }
 
   .qr-dialog[open] {
-    animation: qrDialogIn 220ms cubic-bezier(0.2, 0, 0, 1);
+    animation: qrDialogIn 280ms cubic-bezier(0.2, 0, 0, 1);
   }
 
   .qr-dialog::backdrop {
-    background: rgba(10, 11, 14, 0.72);
-    backdrop-filter: blur(6px);
+    background: rgba(10, 11, 14, 0.76);
+    backdrop-filter: blur(8px);
+  }
+
+  .qr-dialog[open]::backdrop {
+    animation: qrBackdropIn 240ms ease-out;
+  }
+
+  .qr-frame-wrap {
+    position: relative;
+    overflow: hidden;
+    border-radius: 22px;
+  }
+
+  .qr-scan-line {
+    position: absolute;
+    inset-inline: 12px;
+    top: 12px;
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, #f59e0b, #fbbf24, #f59e0b, transparent);
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.85);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .qr-dialog[open] .qr-scan-line {
+    animation: qrScanSweep 1.15s cubic-bezier(0.4, 0, 0.2, 1) 180ms 1;
   }
 
   @keyframes qrDialogIn {
     from {
       opacity: 0;
-      transform: scale(0.95) translateY(8px);
+      transform: scale(0.92) translateY(16px);
     }
     to {
       opacity: 1;
@@ -199,8 +228,32 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     }
   }
 
+  @keyframes qrBackdropIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes qrScanSweep {
+    0% {
+      opacity: 0;
+      transform: translateY(0);
+    }
+    15% {
+      opacity: 1;
+    }
+    85% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(242px);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .qr-dialog[open] {
+    .qr-dialog[open],
+    .qr-dialog[open]::backdrop,
+    .qr-dialog[open] .qr-scan-line {
       animation: none;
     }
   }

@@ -481,6 +481,16 @@ const COMPARE_ROWS = [
     border-block-end: none;
   }
 
+  .compare-table tbody tr {
+    transition: background-color 140ms ease-out;
+  }
+
+  @media (hover: hover) {
+    .compare-table tbody tr:hover {
+      background-color: var(--surface);
+    }
+  }
+
   .compare-table th {
     font-size: 0.82rem;
     color: var(--text-muted);

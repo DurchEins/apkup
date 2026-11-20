@@ -140,12 +140,12 @@ const base = import.meta.env.BASE_URL.endsWith('/')
   <div class="trust-strip">
     <div class="container trust-grid">
       <div class="trust-item">
-        <strong>100%</strong>
+        <strong class="mono" data-count-to="100" data-count-suffix="%">100%</strong>
         <span class="i18n-en">Zero Ads &amp; Zero Telemetry</span>
         <span class="i18n-de">Werbefrei &amp; ohne Tracking</span>
       </div>
       <div class="trust-item">
-        <strong>7+</strong>
+        <strong class="mono" data-count-to="7" data-count-suffix="+">7+</strong>
         <span class="i18n-en">Independent Update Sources</span>
         <span class="i18n-de">Unabhängige Update-Quellen</span>
       </div>
@@ -162,6 +162,35 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     </div>
   </div>
 </section>
+
+<script is:inline>
+  (function () {
+    var els = document.querySelectorAll('[data-count-to]');
+    if (!els.length || !('IntersectionObserver' in window)) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        var el = entry.target;
+        io.unobserve(el);
+        var target = parseInt(el.getAttribute('data-count-to') || '0', 10);
+        var suffix = el.getAttribute('data-count-suffix') || '';
+        var start = performance.now();
+        var dur = 420;
+        function tick(now) {
+          var p = Math.min(1, (now - start) / dur);
+          var eased = 1 - Math.pow(1 - p, 3);
+          el.textContent = Math.round(target * eased) + suffix;
+          if (p < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      });
+    }, { threshold: 0.4 });
+
+    els.forEach(function (el) { io.observe(el); });
+  })();
+</script>
 
 <style>
   .hero {

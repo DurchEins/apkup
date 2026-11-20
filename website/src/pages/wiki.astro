@@ -680,9 +680,12 @@ const CHAPTERS: WikiChapter[] = [
 
 const wikiDir = join(process.cwd(), 'src/data/wiki');
 const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
-  const parsed = renderFullWikiHtml(readFileSync(join(wikiDir, ch.mdFile), 'utf8'), ch.slug);
+  const rawMd = readFileSync(join(wikiDir, ch.mdFile), 'utf8');
+  const parsed = renderFullWikiHtml(rawMd, ch.slug);
+  const readMin = Math.max(1, Math.round(rawMd.trim().split(/\s+/).length / 200));
   return {
     ...ch,
+    readMin,
     fullHtml: parsed.html,
     headings: parsed.headings,
   };
@@ -808,6 +811,10 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
               >
                 <div class="wiki-chapter-top">
                   <span class="pill-badge pill-amber mono">{ch.tag}</span>
+                  <span class="pill-badge pill-neutral mono">
+                    <span class="i18n-en">~{ch.readMin} min read</span>
+                    <span class="i18n-de">~{ch.readMin} Min. Lesezeit</span>
+                  </span>
                 </div>
 
                 <h2 class="wiki-chapter-title">

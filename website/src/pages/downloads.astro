@@ -149,6 +149,7 @@ const downloadSchema = {
         <div class="dl-bento-card">
           <div class="dl-bento-head">
             <div class="dl-title-with-help" data-help-wrap="help-sha256">
+              <span class="dl-live-dot" id="sha256-live-dot" aria-hidden="true" title="Live"></span>
               <h2 id="dl-verify-title">
                 <span class="i18n-en">Live SHA-256 Checksum</span>
                 <span class="i18n-de">Live-SHA-256-Prüfsumme</span>
@@ -202,6 +203,17 @@ const downloadSchema = {
               <span class="i18n-en">Copy</span>
               <span class="i18n-de">Kopieren</span>
             </button>
+          </div>
+          <div class="dl-compare-wrap">
+            <input
+              type="text"
+              id="sha256-compare-input"
+              class="dl-compare-input mono"
+              placeholder="Paste local SHA-256 to verify…"
+              aria-label="Paste local SHA-256 hash to verify"
+              spellcheck="false"
+            />
+            <span class="dl-compare-badge mono" id="sha256-compare-badge" hidden></span>
           </div>
         </div>
 
@@ -408,14 +420,38 @@ const downloadSchema = {
 
     function renderSha(text) {
       shaText = (text || '').trim();
+      var liveDot = document.getElementById('sha256-live-dot');
       if (!out) return;
       if (shaText) {
         out.textContent = shaText;
         if (copyBtn) copyBtn.hidden = false;
+        if (liveDot) liveDot.classList.add('is-live');
       } else {
         out.textContent = 'SHA256SUMS available on GitHub Releases.';
         if (copyBtn) copyBtn.hidden = true;
       }
+    }
+
+    var cmpInput = document.getElementById('sha256-compare-input');
+    var cmpBadge = document.getElementById('sha256-compare-badge');
+    if (cmpInput && cmpBadge) {
+      cmpInput.addEventListener('input', function () {
+        var val = (cmpInput.value || '').trim().toLowerCase();
+        var liveHash = (shaText.split(/\s+/)[0] || '').toLowerCase();
+        if (!val) {
+          cmpBadge.hidden = true;
+          cmpBadge.className = 'dl-compare-badge mono';
+          return;
+        }
+        cmpBadge.hidden = false;
+        if (liveHash && val === liveHash) {
+          cmpBadge.textContent = 'Match ✓';
+          cmpBadge.className = 'dl-compare-badge mono is-match';
+        } else {
+          cmpBadge.textContent = 'Mismatch ✕';
+          cmpBadge.className = 'dl-compare-badge mono is-mismatch';
+        }
+      });
     }
 
     if (copyBtn) {
@@ -724,6 +760,74 @@ const downloadSchema = {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
+  }
+
+  .dl-live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--text-muted);
+    opacity: 0.4;
+    flex-shrink: 0;
+  }
+
+  .dl-live-dot.is-live {
+    background: #10b981;
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.65);
+    animation: dlLivePulse 2.2s infinite;
+  }
+
+  @keyframes dlLivePulse {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.65); }
+    70% { box-shadow: 0 0 0 7px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dl-live-dot.is-live { animation: none; }
+  }
+
+  .dl-compare-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dl-compare-input {
+    flex: 1;
+    min-width: 0;
+    padding: 7px 11px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--outline);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.78rem;
+    outline: none;
+  }
+
+  .dl-compare-input:focus {
+    border-color: var(--accent);
+  }
+
+  .dl-compare-badge {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .dl-compare-badge.is-match {
+    background: rgba(16, 185, 129, 0.16);
+    color: #6ee7b7;
+    border: 1px solid rgba(16, 185, 129, 0.45);
+  }
+
+  .dl-compare-badge.is-mismatch {
+    background: rgba(239, 68, 68, 0.16);
+    color: #fca5a5;
+    border: 1px solid rgba(239, 68, 68, 0.45);
   }
 
   .dl-mirror-card {
