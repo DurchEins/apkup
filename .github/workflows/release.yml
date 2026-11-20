@@ -294,6 +294,7 @@ jobs:
           echo "VirusTotal report: https://www.virustotal.com/gui/file/${APK_SHA256}/detection"
 
       - name: Publish to Zapstore (Optional)
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SIGN_WITH: ${{ secrets.ZAPSTORE_SIGN_WITH }}
