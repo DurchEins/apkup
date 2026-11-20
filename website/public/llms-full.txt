@@ -23,6 +23,28 @@
 
 ---
 
+## Frequently Asked Questions (FAQ)
+
+### Do I need Root for silent background updates?
+No. ApkUp supports Shizuku out of the box, which grants elevated PackageInstaller permissions on stock Android (Android 11+ via Wireless Debugging or ADB) without rooting your device. Optional Root (su) is also supported for users who already run rooted devices or want single-tap in-place rollbacks.
+
+### Does Google Play Store checking require my Google account?
+No. ApkUp uses anonymous session tokens from the community Aurora Dispenser together with a privacy-minimized device compatibility profile (CPU ABI, Android SDK, density, and language) to fetch compatible updates without any personal login.
+
+### How does ApkUp protect me from tampered or incompatible APKs?
+Before any installer runs, ApkUp cryptographically verifies APK Signature Scheme v2/v3 certificates against the installed app, validates SHA-256 digests and signed F-Droid indexes, blocks version downgrades, checks minSdk/ABI compatibility, and isolates .apkm extraction against Zip-Slip and decompression bombs.
+
+### Can I migrate my tracked apps from Obtainium or App Watcher?
+Yes. ApkUp includes an interactive Obtainium JSON import preview (for app bindings, custom F-Droid repos, and watchlist candidates) as well as Obtainium JSON export and direct App Watcher watchlist import.
+
+### How do ApkUp self-updates and the Beta channel work?
+ApkUp checks official GitHub releases (stable-only by default) and validates SHA256SUMS digests plus signing certificates before updating itself. Under Setup → About, you can opt into the Beta channel at any time and cleanly return to stable on opt-out.
+
+### Does ApkUp collect any analytics, crash logs, or telemetry?
+Zero. ApkUp has no developer backend, no ads, no analytics SDKs, and no telemetry. First-launch source consent ensures zero network requests run until you choose your sources, and preferences/tokens are encrypted at rest with Google Tink (AES-256-GCM).
+
+---
+
 ## Latest Release Notes (v1.45.0)
 
 # What's New

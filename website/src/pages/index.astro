@@ -60,10 +60,10 @@ const homeSchemas = [
     '@type': 'FAQPage',
     mainEntity: FAQS.map((item) => ({
       '@type': 'Question',
-      name: item.en.q,
+      name: item.qEn,
       acceptedAnswer: {
         '@type': 'Answer',
-        text: item.en.a,
+        text: item.aEn,
       },
     })),
   },

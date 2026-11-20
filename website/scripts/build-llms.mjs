@@ -22,13 +22,11 @@ const buildMatch = contentTs.match(/fallbackBuild:\s*'([^']+)'/);
 const version = verMatch ? verMatch[1] : '1.45.0';
 const build = buildMatch ? buildMatch[1] : '211';
 
-// Extract FAQS (en q/a) from content.ts
+// Extract FAQS (qEn / aEn) from content.ts
 const faqPairs = [];
 const faqBlockMatch = contentTs.match(/export const FAQS[^=]*=\s*\[([\s\S]*?)\n\];/);
 if (faqBlockMatch) {
-  const qRegex = /q:\s*'((?:\\'|[^'])*)'[\s\S]*?a:\s*'((?:\\'|[^'])*)'/g;
-  // Extract only the en block inside each item
-  const itemRegex = /en:\s*\{\s*q:\s*'((?:\\'|[^'])*)',\s*a:\s*'((?:\\'|[^'])*)'/g;
+  const itemRegex = /qEn:\s*'((?:\\'|[^'])*)',[\s\S]*?aEn:\s*'((?:\\'|[^'])*)'/g;
   let m;
   while ((m = itemRegex.exec(faqBlockMatch[1])) !== null) {
     faqPairs.push({
