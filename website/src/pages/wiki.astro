@@ -1,8 +1,11 @@
 ---
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
 import { SITE } from '../data/content';
+import { renderFullWikiHtml } from '../utils/wikiParser';
 
 interface WikiStep {
   enTitle: string;
@@ -31,6 +34,7 @@ interface WikiChapter {
   slug: string;
   tag: string;
   ghPage: string;
+  mdFile: string;
   enTitle: string;
   deTitle: string;
   enLead: string;
@@ -49,6 +53,7 @@ const CHAPTERS: WikiChapter[] = [
     slug: 'home',
     tag: 'Start',
     ghPage: 'Home',
+    mdFile: 'Home.md',
     enTitle: 'Overview & Quick Start',
     deTitle: 'Übersicht & Schnellstart',
     enLead:
@@ -126,6 +131,7 @@ const CHAPTERS: WikiChapter[] = [
     slug: 'sources',
     tag: 'Core',
     ghPage: 'Update-Sources,-Repository-Linking-&-Signature-Protection',
+    mdFile: 'Update-Sources,-Repository-Linking-&-Signature-Protection.md',
     enTitle: 'Update Sources, Repository Linking & Signature Protection',
     deTitle: 'Update-Quellen, Repository-Verknüpfung & Signaturschutz',
     enLead:
@@ -226,6 +232,7 @@ const CHAPTERS: WikiChapter[] = [
     slug: 'fdroid',
     tag: 'Index V2',
     ghPage: 'F-Droid-&-Index-V2-Repositories',
+    mdFile: 'F-Droid-&-Index-V2-Repositories.md',
     enTitle: 'F-Droid & Index V2 Repositories',
     deTitle: 'F-Droid & Index-V2-Repositories',
     enLead:
@@ -309,6 +316,7 @@ const CHAPTERS: WikiChapter[] = [
     slug: 'tokens',
     tag: 'API / PAT',
     ghPage: 'Configuring-GitHub-&-GitLab-Tokens',
+    mdFile: 'Configuring-GitHub-&-GitLab-Tokens.md',
     enTitle: 'Configuring GitHub, GitLab & Codeberg Personal Access Tokens',
     deTitle: 'Zugangs-Tokens (PAT) für GitHub, GitLab & Codeberg einrichten',
     enLead:
@@ -358,6 +366,7 @@ const CHAPTERS: WikiChapter[] = [
     slug: 'shizuku-setup',
     tag: 'Shizuku',
     ghPage: 'Setting-up-Shizuku',
+    mdFile: 'Setting-up-Shizuku.md',
     enTitle: 'Setting up Shizuku (Quick Guide)',
     deTitle: 'Shizuku einrichten (Kurzanleitung)',
     enLead:
@@ -405,6 +414,7 @@ const CHAPTERS: WikiChapter[] = [
     slug: 'shizuku-deep',
     tag: 'Shizuku + su',
     ghPage: 'Shizuku-&-Background-Installation',
+    mdFile: 'Shizuku-&-Background-Installation.md',
     enTitle: 'Shizuku & Background Installation (Architecture & Guards)',
     deTitle: 'Shizuku & Hintergrund-Installation (Architektur & Schutzregeln)',
     enLead:
@@ -462,6 +472,7 @@ const CHAPTERS: WikiChapter[] = [
     slug: 'obtainium',
     tag: 'JSON Sync',
     ghPage: 'Obtainium-Migration-&-Sync-Guide',
+    mdFile: 'Obtainium-Migration-&-Sync-Guide.md',
     enTitle: 'Obtainium Migration & Sync Guide',
     deTitle: 'Obtainium-Migration & Sync-Anleitung',
     enLead:
@@ -501,6 +512,7 @@ const CHAPTERS: WikiChapter[] = [
     slug: 'management',
     tag: 'Setup',
     ghPage: 'App-Management,-Filters,-Background-Checks-&-Backup',
+    mdFile: 'App-Management,-Filters,-Background-Checks-&-Backup.md',
     enTitle: 'App Management, Watchlist, Filters, Schedules & Backup',
     deTitle: 'App-Verwaltung, Merkliste, Filter, Zeitpläne & Datensicherung',
     enLead:
@@ -550,6 +562,7 @@ const CHAPTERS: WikiChapter[] = [
     slug: 'troubleshooting',
     tag: 'Help',
     ghPage: 'Troubleshooting-Source-Errors',
+    mdFile: 'Troubleshooting-Source-Errors.md',
     enTitle: 'Troubleshooting Source Errors & Common Questions',
     deTitle: 'Fehlerbehebung bei Quellen-Fehlern & häufige Probleme',
     enLead:
@@ -631,6 +644,12 @@ const CHAPTERS: WikiChapter[] = [
     ],
   },
 ];
+
+const wikiDir = join(process.cwd(), 'src/data/wiki');
+const RENDERED_CHAPTERS = CHAPTERS.map((ch) => ({
+  ...ch,
+  fullHtml: renderFullWikiHtml(readFileSync(join(wikiDir, ch.mdFile), 'utf8')),
+}));
 ---
 
 <BaseLayout title="Wiki & Guides — ApkUp">
@@ -693,9 +712,9 @@ const CHAPTERS: WikiChapter[] = [
           </div>
         </aside>
 
-        <div class="wiki-content">
+        <div class="wiki-content" id="wiki-content-top">
           {
-            CHAPTERS.map((ch, idx) => (
+            RENDERED_CHAPTERS.map((ch, idx) => (
               <article
                 class="wiki-chapter-card"
                 id={`doc-${ch.slug}`}
@@ -826,6 +845,15 @@ const CHAPTERS: WikiChapter[] = [
                     ))}
                   </div>
                 )}
+                <div class="wk-full-section">
+                  <div class="wk-full-divider">
+                    <span class="pill-badge pill-neutral mono">
+                      <span class="i18n-en">Complete Reference Guide (Full Wiki)</span>
+                      <span class="i18n-de">Vollständiges Referenz-Kapitel (Englisch • 100 % Wiki-Inhalt)</span>
+                    </span>
+                  </div>
+                  <div class="wk-full-body" set:html={ch.fullHtml} />
+                </div>
               </article>
             ))
           }
@@ -859,13 +887,39 @@ const CHAPTERS: WikiChapter[] = [
         art.hidden = art.getAttribute('data-wiki-article') !== slug;
       });
       if (scrollToTop) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        var targetEl = document.getElementById('wiki-content-top');
+        if (targetEl) {
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       }
     }
 
     tabBtns.forEach(function (btn) {
       btn.addEventListener('click', function () {
         selectChapter(btn.getAttribute('data-wiki-tab'), true);
+      });
+    });
+
+    document.querySelectorAll('[data-wiki-jump]').forEach(function (link) {
+      link.addEventListener('click', function (e) {
+        var t = link.getAttribute('data-wiki-jump');
+        if (t) {
+          e.preventDefault();
+          selectChapter(t, true);
+        }
+      });
+    });
+
+    document.querySelectorAll('[data-copy-code]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var pre = btn.nextElementSibling;
+        if (!pre) return;
+        navigator.clipboard.writeText(pre.textContent || '').then(function () {
+          btn.textContent = 'Copied ✓';
+          setTimeout(function () {
+            btn.textContent = 'Copy';
+          }, 1400);
+        });
       });
     });
 
@@ -1006,6 +1060,200 @@ const CHAPTERS: WikiChapter[] = [
     flex-direction: column;
     gap: 24px;
     min-width: 0;
+    scroll-margin-block-start: calc(var(--header-height) + 18px);
+  }
+
+  .wk-full-section {
+    margin-block-start: 10px;
+    padding-block-start: 20px;
+    border-block-start: 1px solid var(--outline);
+  }
+
+  .wk-full-divider {
+    margin-block-end: 16px;
+  }
+
+  .wk-h2 {
+    margin: 26px 0 12px;
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-size: 1.08rem;
+    font-weight: 800;
+    background: var(--surface);
+    border: 1px solid var(--outline);
+  }
+
+  .wk-part-green {
+    border-color: rgba(16, 185, 129, 0.35);
+    color: var(--tertiary);
+  }
+
+  .wk-part-blue {
+    border-color: rgba(56, 189, 248, 0.35);
+    color: #38bdf8;
+  }
+
+  .wk-part-amber {
+    border-color: rgba(245, 158, 11, 0.35);
+    color: var(--accent);
+  }
+
+  .wk-h3 {
+    margin: 20px 0 8px;
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .wk-p {
+    margin: 0 0 12px;
+    color: var(--text-muted);
+    font-size: 0.94rem;
+    line-height: 1.65;
+  }
+
+  .wk-ul,
+  .wk-ol {
+    margin: 0 0 14px;
+    padding-inline-start: 22px;
+    color: var(--text-muted);
+    font-size: 0.94rem;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .wk-full-body strong {
+    color: var(--text);
+  }
+
+  .wk-full-body a {
+    color: var(--accent);
+  }
+
+  .wk-code {
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--accent);
+    font-size: 0.84em;
+  }
+
+  .wk-codeblock {
+    position: relative;
+    margin: 0 0 14px;
+  }
+
+  .wk-copy-btn {
+    position: absolute;
+    inset-block-start: 8px;
+    inset-inline-end: 8px;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--outline-strong);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .wk-pre {
+    margin: 0;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    border: 1px solid var(--outline);
+    overflow-x: auto;
+    font-size: 0.82rem;
+    line-height: 1.55;
+  }
+
+  .wk-table-wrap {
+    overflow-x: auto;
+    margin: 0 0 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--outline);
+    background: var(--bg);
+  }
+
+  .wk-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.86rem;
+  }
+
+  .wk-table th,
+  .wk-table td {
+    padding: 10px 12px;
+    border-block-end: 1px solid var(--outline);
+    text-align: start;
+  }
+
+  .wk-table th {
+    background: var(--surface);
+    font-weight: 700;
+  }
+
+  .wk-faq {
+    background: var(--bg);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-md);
+    padding: 4px 16px;
+    margin-block-end: 10px;
+  }
+
+  .wk-faq[open] {
+    border-color: var(--outline-strong);
+  }
+
+  .wk-faq summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-block: 12px;
+    font-weight: 700;
+    font-size: 0.94rem;
+    cursor: pointer;
+  }
+
+  .wk-faq summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .wk-faq-body {
+    padding-block-end: 12px;
+  }
+
+  .wk-callout,
+  .wk-quote {
+    margin: 0 0 14px;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    border: 1px solid var(--outline-strong);
+  }
+
+  .wk-callout strong {
+    display: block;
+    font-size: 0.74rem;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  .wk-callout p,
+  .wk-quote p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+
+  .wk-hr {
+    border: none;
+    border-block-start: 1px solid var(--outline);
+    margin-block: 20px;
   }
 
   .wiki-chapter-card {

@@ -44,12 +44,10 @@ const base = import.meta.env.BASE_URL.endsWith('/')
 
     <div class="quick-compat-box">
       <div class="quick-compat-row">
-        <div class="quick-compat-title">
-          <strong>
-            <span class="i18n-en">Quick URL Test:</span>
-            <span class="i18n-de">Schneller URL-Test:</span>
-          </strong>
-        </div>
+        <strong class="quick-compat-title">
+          <span class="i18n-en">Quick URL Test:</span>
+          <span class="i18n-de">Schneller URL-Test:</span>
+        </strong>
         <input
           type="url"
           id="quick-compat-input"
@@ -57,6 +55,12 @@ const base = import.meta.env.BASE_URL.endsWith('/')
           placeholder="https://github.com/owner/repo or https://gitlab.com/group/sub/repo"
           aria-label="Repository or store URL"
         />
+        <a class="quick-compat-link" href={`${base}compatibility/#checker`}>
+          <span class="i18n-en">Obtainium JSON Checker →</span>
+          <span class="i18n-de">Obtainium-JSON-Tester →</span>
+        </a>
+      </div>
+      <div class="quick-compat-bottom">
         <div class="quick-compat-presets">
           <button type="button" class="preset-chip mono" data-preset-url="https://github.com/DurchEins/apkup">GitHub</button>
           <button type="button" class="preset-chip mono" data-preset-url="https://gitlab.com/AuroraOSS/AuroraStore">GitLab</button>
@@ -65,10 +69,10 @@ const base = import.meta.env.BASE_URL.endsWith('/')
           <button type="button" class="preset-chip mono" data-preset-url="https://www.apkmirror.com/apk/google-inc/android-auto/">APKMirror</button>
           <button type="button" class="preset-chip mono" data-preset-url="https://play.google.com/store/apps/details?id=org.thoughtcrime.securesms">Play Store</button>
         </div>
-        <a class="quick-compat-link" href={`${base}compatibility/#checker`}>
-          <span class="i18n-en">Obtainium JSON Checker →</span>
-          <span class="i18n-de">Obtainium-JSON-Tester →</span>
-        </a>
+        <span class="quick-compat-hint">
+          <span class="i18n-en">Click a preset or paste any repo URL</span>
+          <span class="i18n-de">Beispiel wählen oder eigene Repo-URL einfügen</span>
+        </span>
       </div>
       <div class="quick-compat-result" id="quick-compat-result" role="status" hidden></div>
     </div>
@@ -437,10 +441,23 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     white-space: nowrap;
   }
 
+  .quick-compat-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+  }
+
   .quick-compat-presets {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
+  }
+
+  .quick-compat-hint {
+    font-size: 0.8rem;
+    color: var(--text-muted);
   }
 
   .preset-chip {
