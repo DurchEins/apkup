@@ -29,9 +29,6 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     <div class="primary-download-card">
       <div class="primary-info">
         <div class="primary-badges">
-          <span class="pill-badge pill-amber mono" id="dl-version-badge">
-            v{SITE.fallbackVersion}
-          </span>
           <span class="pill-badge pill-emerald">
             <span class="i18n-en">Recommended</span>
             <span class="i18n-de">Empfohlen</span>
@@ -52,8 +49,8 @@ const base = import.meta.env.BASE_URL.endsWith('/')
 
       <div class="primary-actions">
         <a class="btn btn-primary" href={SITE.releasesUrl} data-apk-link>
-          <span class="i18n-en" data-apk-label-en>Download Latest APK</span>
-          <span class="i18n-de" data-apk-label-de>Aktuelle APK herunterladen</span>
+          <span class="i18n-en">Download <span class="apk-light">Apk</span><strong class="apk-up">Up</strong> <span data-apk-meta>(v{SITE.fallbackVersion})</span></span>
+          <span class="i18n-de"><span class="apk-light">Apk</span><strong class="apk-up">Up</strong> laden <span data-apk-meta>(v{SITE.fallbackVersion})</span></span>
         </a>
         <button type="button" class="btn btn-secondary" data-open-qr>
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -73,7 +70,7 @@ const base = import.meta.env.BASE_URL.endsWith('/')
       <div class="primary-req-line mono">
         <span>Android 10.0 – 17 (API 29+) • ABIs: arm64-v8a, armeabi-v7a, x86_64</span>
         <span class="req-sep" aria-hidden="true">|</span>
-        <a href={`${base}compatibility/#comparison`} class="why-apkup-link">
+        <a href={`${base}compare/#comparison`} class="why-apkup-link">
           <span class="i18n-en">Why ApkUp?</span>
           <span class="i18n-de">Warum ApkUp?</span>
         </a>

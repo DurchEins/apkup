@@ -25,7 +25,15 @@ const base = import.meta.env.BASE_URL.endsWith('/')
 
     <div class="qr-frame" id="qr-svg-host" aria-live="polite"></div>
 
-    <p class="qr-url mono" id="qr-target-url">{SITE.releasesUrl}</p>
+    <a
+      class="qr-url mono"
+      id="qr-target-url"
+      href={SITE.releasesUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {SITE.releasesUrl}
+    </a>
     <p class="qr-hint">
       <span class="i18n-en">
         Points directly to the latest signed GitHub Release APK.
@@ -132,7 +140,10 @@ const base = import.meta.env.BASE_URL.endsWith('/')
       var currentUrl = primaryLink ? primaryLink.getAttribute('href') || fallbackUrl : fallbackUrl;
       var heroPill = document.getElementById('hero-version-pill');
       if (verEl && heroPill) verEl.textContent = heroPill.textContent;
-      if (urlEl) urlEl.textContent = currentUrl;
+      if (urlEl) {
+        urlEl.textContent = currentUrl;
+        urlEl.setAttribute('href', currentUrl);
+      }
       renderCustomQr(currentUrl);
       if (typeof dialog.showModal === 'function') {
         dialog.showModal();

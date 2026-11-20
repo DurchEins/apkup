@@ -218,6 +218,14 @@ button {
   color: var(--accent-ink);
 }
 
+.btn-primary .apk-light {
+  font-weight: 500;
+}
+
+.btn-primary .apk-up {
+  font-weight: 900;
+}
+
 .btn-secondary {
   background-color: var(--surface);
   color: var(--text);
@@ -1579,7 +1587,7 @@ button {
     color: var(--text);
   }
 
-/* src/pages/compatibility.astro */
+/* src/pages/compare.astro */
 .subpage-wrap {
     max-width: 1060px;
   }

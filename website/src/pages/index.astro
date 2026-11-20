@@ -91,24 +91,19 @@ const homeSchemas = [
       function applyRelease(data) {
         if (!data || !data.version) return;
         var links = document.querySelectorAll('[data-apk-link]');
-        var enLabels = document.querySelectorAll('[data-apk-label-en]');
-        var deLabels = document.querySelectorAll('[data-apk-label-de]');
+        var metaSpans = document.querySelectorAll('[data-apk-meta]');
         var heroPill = document.getElementById('hero-version-pill');
-        var dlBadge = document.getElementById('dl-version-badge');
 
         if (data.apkUrl) {
           links.forEach(function (el) {
             el.setAttribute('href', data.apkUrl);
           });
         }
-        enLabels.forEach(function (el) {
-          el.textContent = 'Download APK (' + data.version + (data.sizeMb ? ' • ' + data.sizeMb + ' MB' : '') + ')';
-        });
-        deLabels.forEach(function (el) {
-          el.textContent = 'APK laden (' + data.version + (data.sizeMb ? ' • ' + data.sizeMb + ' MB' : '') + ')';
+        var metaText = '(' + data.version + (data.sizeMb ? ' • ' + data.sizeMb + ' MB' : '') + ')';
+        metaSpans.forEach(function (el) {
+          el.textContent = metaText;
         });
         if (heroPill) heroPill.textContent = data.version;
-        if (dlBadge) dlBadge.textContent = data.version;
       }
 
       try {

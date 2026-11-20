@@ -54,8 +54,8 @@ const base = import.meta.env.BASE_URL.endsWith('/')
             <path d="m7 10 5 5 5-5" />
             <path d="M5 21h14" />
           </svg>
-          <span class="i18n-en" data-apk-label-en>Download APK (v{SITE.fallbackVersion})</span>
-          <span class="i18n-de" data-apk-label-de>APK laden (v{SITE.fallbackVersion})</span>
+          <span class="i18n-en">Download <span class="apk-light">Apk</span><strong class="apk-up">Up</strong> <span data-apk-meta>(v{SITE.fallbackVersion})</span></span>
+          <span class="i18n-de"><span class="apk-light">Apk</span><strong class="apk-up">Up</strong> laden <span data-apk-meta>(v{SITE.fallbackVersion})</span></span>
         </a>
 
         <button type="button" class="btn btn-secondary" data-open-qr>

@@ -66,7 +66,7 @@ const llmsTxt = `# ApkUp
 - [Home & Feature Overview](${BASE_URL}/): Overview of all 8 update sources, 10 app screenshots, Shizuku/Root silent updates, signed APK download, SHA-256 verification, and Android permissions matrix.
 - [Downloads, Mirrors & SHA-256 Verification](${BASE_URL}/downloads/): Canonical signed APK download, live SHA256SUMS checksums, ABI/Android requirements, and all 8 official & community mirrors.
 - [Wiki & Reference Guides](${BASE_URL}/wiki/): Complete 9-chapter documentation covering source priority, F-Droid Index V2, PAT tokens, Shizuku & Root setup, Obtainium JSON import, and error troubleshooting.
-- [Source Compatibility & Comparison](${BASE_URL}/compatibility/): Feature comparison (ApkUp vs. Obtainium vs. Aurora Store vs. F-Droid) and 100% offline Obtainium JSON compatibility checker.
+- [Source Compatibility & Comparison](${BASE_URL}/compare/): Feature comparison (ApkUp vs. Obtainium vs. Aurora Store vs. F-Droid) and 100% offline Obtainium JSON compatibility checker.
 - [What's New / Changelog](${BASE_URL}/changelog/): Release history and feature highlights.
 - [Privacy Policy](${BASE_URL}/privacy/): Zero-telemetry, on-device storage, and encrypted credential details.
 - [Security Policy](${BASE_URL}/security/): Supported versions, SHA-256 verification, and vulnerability disclosure.
