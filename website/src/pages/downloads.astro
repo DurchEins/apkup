@@ -146,7 +146,7 @@ const downloadSchema = {
 
       <!-- 2. Compact 2-Column Bento Verification Grid -->
       <section class="dl-bento-grid" aria-labelledby="dl-verify-title">
-        <div class="dl-bento-card">
+        <div class="dl-bento-card has-spotlight">
           <div class="dl-bento-head">
             <div class="dl-title-with-help" data-help-wrap="help-sha256">
               <span class="dl-live-dot" id="sha256-live-dot" aria-hidden="true" title="Live"></span>
@@ -217,7 +217,7 @@ const downloadSchema = {
           </div>
         </div>
 
-        <div class="dl-bento-card">
+        <div class="dl-bento-card has-spotlight">
           <div class="dl-bento-head">
             <div class="dl-title-with-help" data-help-wrap="help-cmd">
               <h2>
@@ -301,7 +301,7 @@ const downloadSchema = {
             officialMirrors.map((m) => {
               const meta = MIRROR_DESCRIPTIONS[m.name];
               return (
-                <a class="dl-mirror-card" href={m.url} target="_blank" rel="noopener noreferrer">
+                <a class="dl-mirror-card has-spotlight" href={m.url} target="_blank" rel="noopener noreferrer">
                   <div class="dl-mirror-head">
                     <div class="dl-mirror-brand">
                       <span
@@ -312,7 +312,10 @@ const downloadSchema = {
                       </span>
                       <div>
                         <strong>{m.name}</strong>
-                        <span class="pill-badge pill-green mono">
+                        <span
+                          class="pill-badge pill-green mono"
+                          title="Canonical / Officially synced channel"
+                        >
                           <span class="i18n-en">{m.badgeEn}</span>
                           <span class="i18n-de">{m.badgeDe}</span>
                         </span>
@@ -352,7 +355,7 @@ const downloadSchema = {
               const meta = MIRROR_DESCRIPTIONS[m.name];
               return (
                 <a
-                  class={`dl-mirror-card ${m.outdated ? 'is-outdated' : ''}`}
+                  class={`dl-mirror-card has-spotlight ${m.outdated ? 'is-outdated' : ''}`}
                   href={m.url}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -367,7 +370,10 @@ const downloadSchema = {
                       </span>
                       <div>
                         <strong>{m.name}</strong>
-                        <span class={`pill-badge ${m.outdated ? 'pill-warn' : 'pill-neutral'} mono`}>
+                        <span
+                          class={`pill-badge ${m.outdated ? 'pill-warn' : 'pill-neutral'} mono`}
+                          title={m.outdated ? 'Legacy listing — use GitHub Releases' : 'Community-indexed mirror'}
+                        >
                           <span class="i18n-en">{m.badgeEn}</span>
                           <span class="i18n-de">{m.badgeDe}</span>
                         </span>

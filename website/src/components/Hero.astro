@@ -177,7 +177,7 @@ const base = import.meta.env.BASE_URL.endsWith('/')
         var target = parseInt(el.getAttribute('data-count-to') || '0', 10);
         var suffix = el.getAttribute('data-count-suffix') || '';
         var start = performance.now();
-        var dur = 420;
+        var dur = 1150;
         function tick(now) {
           var p = Math.min(1, (now - start) / dur);
           var eased = 1 - Math.pow(1 - p, 3);
@@ -189,6 +189,20 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     }, { threshold: 0.4 });
 
     els.forEach(function (el) { io.observe(el); });
+
+    // Subtle ±2deg parallax tilt on hero phone mockup
+    var frame = document.querySelector('.hero-visual .phone-frame');
+    if (frame && window.matchMedia('(hover: hover)').matches) {
+      frame.addEventListener('pointermove', function (e) {
+        var r = frame.getBoundingClientRect();
+        var nx = ((e.clientX - r.left) / r.width - 0.5) * 2;
+        var ny = ((e.clientY - r.top) / r.height - 0.5) * 2;
+        frame.style.transform = 'perspective(900px) rotateY(' + (nx * 2.2).toFixed(2) + 'deg) rotateX(' + (-ny * 2.2).toFixed(2) + 'deg)';
+      });
+      frame.addEventListener('pointerleave', function () {
+        frame.style.transform = '';
+      });
+    }
   })();
 </script>
 
@@ -199,6 +213,35 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     background:
       radial-gradient(640px 420px at 82% 14%, rgba(245, 158, 11, 0.14), transparent 70%),
       radial-gradient(520px 380px at 14% 72%, rgba(110, 231, 183, 0.08), transparent 70%);
+  }
+
+  .hero-visual .phone-frame {
+    transition: transform 220ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-copy > * {
+      animation: heroStaggerIn 420ms cubic-bezier(0.2, 0, 0, 1) both;
+    }
+    .hero-copy > :nth-child(1) { animation-delay: 0ms; }
+    .hero-copy > :nth-child(2) { animation-delay: 60ms; }
+    .hero-copy > :nth-child(3) { animation-delay: 120ms; }
+    .hero-copy > :nth-child(4) { animation-delay: 180ms; }
+    .hero-copy > :nth-child(5) { animation-delay: 240ms; }
+    .hero-visual {
+      animation: heroStaggerIn 480ms cubic-bezier(0.2, 0, 0, 1) 140ms both;
+    }
+  }
+
+  @keyframes heroStaggerIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .hero-grid {

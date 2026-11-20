@@ -152,6 +152,7 @@ const homeSchemas = [
         document.querySelectorAll('[data-gh-stars]').forEach(function (el) {
           el.textContent = String(count);
           el.hidden = false;
+          el.classList.add('is-popped');
         });
       }
       try {

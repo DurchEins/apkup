@@ -10,6 +10,12 @@ import { SITE } from '../data/content';
   <main id="main-content" class="section">
     <div class="container subpage-wrap">
       <div class="section-header">
+        <span class="sec-shield-pill mono">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+          <span>Zero Tracking • APK Signature v2/v3</span>
+        </span>
         <h1 class="section-title">
           <span class="i18n-en">Security Policy &amp; Architecture</span>
           <span class="i18n-de">Sicherheitsrichtlinie &amp; Architektur</span>
@@ -225,6 +231,42 @@ import { SITE } from '../data/content';
 </BaseLayout>
 
 <style>
+  .sec-shield-pill {
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 14px;
+    border-radius: var(--radius-pill);
+    background: var(--tertiary-soft);
+    color: var(--tertiary-soft-ink);
+    border: 1px solid rgba(110, 231, 183, 0.35);
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+
+  .sec-shield-pill::after {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    width: 40%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+    transform: translateX(-140%);
+    animation: secGleam 3.2s ease-in-out infinite;
+  }
+
+  @keyframes secGleam {
+    0%, 70% { transform: translateX(-140%); }
+    100% { transform: translateX(320%); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sec-shield-pill::after { animation: none; }
+  }
+
   .subpage-wrap {
     max-width: 900px;
   }

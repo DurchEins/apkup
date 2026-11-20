@@ -337,6 +337,28 @@ const COMPARE_ROWS = [
     var sampleBtn = document.getElementById('obt-sample-btn');
     var report = document.getElementById('obt-report');
 
+    if (textarea) {
+      textarea.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        textarea.classList.add('is-dragover');
+      });
+      textarea.addEventListener('dragleave', function () {
+        textarea.classList.remove('is-dragover');
+      });
+      textarea.addEventListener('drop', function (e) {
+        e.preventDefault();
+        textarea.classList.remove('is-dragover');
+        var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function () {
+          textarea.value = String(reader.result || '');
+          textarea.dispatchEvent(new Event('input', { bubbles: true }));
+        };
+        reader.readAsText(file);
+      });
+    }
+
     function classifyUrl(url) {
       var u = (url || '').toLowerCase();
       if (u.includes('github.com')) return 'GitHub';
@@ -497,9 +519,10 @@ const COMPARE_ROWS = [
     font-weight: 800;
   }
 
-  .compare-table .is-apkup {
+  .compare-table td.is-apkup {
     color: var(--accent);
     font-weight: 700;
+    background: rgba(245, 158, 11, 0.05);
   }
 
   @media (max-width: 720px) {

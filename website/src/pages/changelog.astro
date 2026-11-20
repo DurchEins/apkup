@@ -94,6 +94,21 @@ const deMonths = parseChangelog(loadReleasedMarkdown('app/src/main/assets/change
         </p>
       </div>
 
+      <div class="cl-filter-bar" role="group" aria-label="Filter releases">
+        <button type="button" class="cl-filter-chip is-active" data-cl-filter="all">
+          <span class="i18n-en">All Releases</span>
+          <span class="i18n-de">Alle Releases</span>
+        </button>
+        <button type="button" class="cl-filter-chip" data-cl-filter="feature">
+          <span class="i18n-en">Feature Update</span>
+          <span class="i18n-de">Feature-Update</span>
+        </button>
+        <button type="button" class="cl-filter-chip" data-cl-filter="patch">
+          <span class="i18n-en">Patch &amp; Fix</span>
+          <span class="i18n-de">Patch &amp; Bugfix</span>
+        </button>
+      </div>
+
       <div class="i18n-en cl-months">
         {
           enMonths.map((group, idx) => (
@@ -109,7 +124,7 @@ const deMonths = parseChangelog(loadReleasedMarkdown('app/src/main/assets/change
               </summary>
               <div class="cl-releases">
                 {group.releases.map((rel) => (
-                  <article class="cl-card">
+                  <article class="cl-card" data-cl-type={rel.isFeature ? 'feature' : 'patch'}>
                     <div class="cl-card-head">
                       <div>
                         <span class="cl-date">{rel.date}</span>
@@ -160,7 +175,7 @@ const deMonths = parseChangelog(loadReleasedMarkdown('app/src/main/assets/change
               </summary>
               <div class="cl-releases">
                 {group.releases.map((rel) => (
-                  <article class="cl-card">
+                  <article class="cl-card" data-cl-type={rel.isFeature ? 'feature' : 'patch'}>
                     <div class="cl-card-head">
                       <div>
                         <span class="cl-date">{rel.date}</span>
@@ -200,7 +215,56 @@ const deMonths = parseChangelog(loadReleasedMarkdown('app/src/main/assets/change
   <Footer />
 </BaseLayout>
 
+<script is:inline>
+  (function () {
+    var btns = document.querySelectorAll('[data-cl-filter]');
+    var cards = document.querySelectorAll('.cl-card[data-cl-type]');
+    var months = document.querySelectorAll('.cl-month');
+    btns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var f = btn.getAttribute('data-cl-filter');
+        btns.forEach(function (b) {
+          b.classList.toggle('is-active', b.getAttribute('data-cl-filter') === f);
+        });
+        cards.forEach(function (c) {
+          c.hidden = f !== 'all' && c.getAttribute('data-cl-type') !== f;
+        });
+        months.forEach(function (m) {
+          var visible = m.querySelectorAll('.cl-card:not([hidden])').length;
+          m.hidden = visible === 0;
+          if (f !== 'all' && visible > 0) m.open = true;
+        });
+      });
+    });
+  })();
+</script>
+
 <style>
+  .cl-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-block-end: 20px;
+  }
+
+  .cl-filter-chip {
+    min-height: 36px;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--outline);
+    background: var(--surface-low);
+    color: var(--text-muted);
+    font-size: 0.84rem;
+    font-weight: 700;
+    transition: border-color 150ms ease-out, background-color 150ms ease-out, color 150ms ease-out;
+  }
+
+  .cl-filter-chip.is-active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+
   .subpage-wrap {
     max-width: 900px;
   }

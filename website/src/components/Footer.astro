@@ -36,6 +36,15 @@ const base = import.meta.env.BASE_URL.endsWith('/')
       <a href={SITE.repoUrl} target="_blank" rel="noopener noreferrer">GitHub</a>
       <a href={SITE.wikiUrl} target="_blank" rel="noopener noreferrer">GitHub Wiki</a>
       <a href={SITE.licenseUrl} target="_blank" rel="noopener noreferrer">GPL-3.0</a>
+      <a
+        href={SITE.releasesUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="footer-build-pill mono"
+        title="Canonical Release"
+      >
+        v{SITE.fallbackVersion} ({SITE.fallbackBuild})
+      </a>
     </nav>
   </div>
 </footer>
@@ -92,5 +101,18 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     .footer-links a:hover {
       color: var(--accent);
     }
+  }
+  .footer-build-pill {
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--outline);
+    background: var(--surface);
+    font-size: 0.76rem;
+    color: var(--text-muted);
+  }
+
+  .footer-build-pill:hover {
+    border-color: var(--accent);
+    color: var(--accent);
   }
 </style>

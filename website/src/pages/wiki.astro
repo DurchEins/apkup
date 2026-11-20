@@ -830,7 +830,7 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
                 {ch.cards && ch.cards.length > 0 && (
                   <div class="wiki-cards-grid">
                     {ch.cards.map((c) => (
-                      <div class="wiki-subcard">
+                      <div class="wiki-subcard has-spotlight">
                         {c.badge && <span class="pill-badge pill-neutral mono">{c.badge}</span>}
                         <h3>
                           <span class="i18n-en">{c.enTitle}</span>

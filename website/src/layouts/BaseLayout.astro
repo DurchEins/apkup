@@ -121,6 +121,7 @@ const ogImage = new URL(`${base}og-card.png`, Astro.site).toString();
         }
 
         function applyLang(next) {
+          root.classList.add('lang-switching');
           root.setAttribute('data-lang', next);
           root.setAttribute('lang', next);
           try {
@@ -130,6 +131,9 @@ const ogImage = new URL(`${base}og-card.png`, Astro.site).toString();
             langBtn.setAttribute('aria-pressed', String(next === 'de'));
           }
           window.dispatchEvent(new CustomEvent('apkup:langchange', { detail: { lang: next } }));
+          setTimeout(function () {
+            root.classList.remove('lang-switching');
+          }, 130);
         }
 
         if (themeBtn) {
@@ -172,6 +176,27 @@ const ogImage = new URL(`${base}og-card.png`, Astro.site).toString();
           syncTopBtn();
           topBtn.addEventListener('click', function () {
             window.scrollTo({ top: 0, behavior: 'smooth' });
+          });
+        }
+
+        // TV/D-Pad keyboard focus mode
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Tab' || e.key.indexOf('Arrow') === 0) {
+            root.classList.add('kbd-nav');
+          }
+        });
+        document.addEventListener('pointerdown', function () {
+          root.classList.remove('kbd-nav');
+        });
+
+        // Global mouse-tracking spotlight on .has-spotlight cards
+        if (!window.matchMedia || !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          document.querySelectorAll('.has-spotlight').forEach(function (card) {
+            card.addEventListener('pointermove', function (e) {
+              var r = card.getBoundingClientRect();
+              card.style.setProperty('--mx', e.clientX - r.left + 'px');
+              card.style.setProperty('--my', e.clientY - r.top + 'px');
+            });
           });
         }
 

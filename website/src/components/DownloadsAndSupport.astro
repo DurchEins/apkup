@@ -319,6 +319,16 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     transition: transform 220ms cubic-bezier(0.2, 0, 0, 1);
   }
 
+  .star-count.is-popped {
+    animation: starPop 380ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  @keyframes starPop {
+    0% { opacity: 0; transform: scale(0.75); }
+    70% { transform: scale(1.12); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
   .mini-mirror-dot:first-child {
     margin-inline-start: 0;
   }

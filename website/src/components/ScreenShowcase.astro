@@ -160,8 +160,58 @@ const base = import.meta.env.BASE_URL.endsWith('/')
         activate(tabs[nextIndex].getAttribute('data-screen-tab'), true);
       });
     });
+
+    // Auto-play (5s per slide, paused on hover/focus/user click)
+    var showcaseEl = document.getElementById('showcase');
+    var autoIdx = 0;
+    var paused = false;
+    var autoTimer = null;
+    if (showcaseEl && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      function startAuto() {
+        clearInterval(autoTimer);
+        autoTimer = setInterval(function () {
+          if (paused) return;
+          autoIdx = (autoIdx + 1) % tabs.length;
+          activate(tabs[autoIdx].getAttribute('data-screen-tab'), false);
+        }, 5000);
+      }
+      showcaseEl.addEventListener('mouseenter', function () { paused = true; });
+      showcaseEl.addEventListener('mouseleave', function () { paused = false; });
+      tabs.forEach(function (t, i) {
+        t.addEventListener('click', function () { autoIdx = i; paused = true; });
+      });
+      startAuto();
+    }
+
+    // Lightbox Zoom-In on phone screen click
+    var lightbox = document.getElementById('shot-lightbox');
+    var lightboxImg = document.getElementById('shot-lightbox-img');
+    var lightboxClose = document.getElementById('shot-lightbox-close');
+    var phoneStage = document.querySelector('#showcase .phone-frame');
+    if (phoneStage && lightbox && lightboxImg) {
+      phoneStage.style.cursor = 'zoom-in';
+      phoneStage.addEventListener('click', function () {
+        var isDe = document.documentElement.getAttribute('data-lang') === 'de';
+        var activeSlot = document.querySelector('[data-screen-media].is-active');
+        if (!activeSlot) return;
+        var img = activeSlot.querySelector(isDe ? 'img.i18n-de' : 'img.i18n-en') || activeSlot.querySelector('img');
+        if (!img) return;
+        lightboxImg.src = img.src;
+        lightboxImg.alt = img.alt || 'ApkUp Screenshot';
+        if (typeof lightbox.showModal === 'function') lightbox.showModal();
+      });
+      if (lightboxClose) lightboxClose.addEventListener('click', function () { lightbox.close(); });
+      lightbox.addEventListener('click', function (e) {
+        if (e.target === lightbox) lightbox.close();
+      });
+    }
   })();
 </script>
+
+<dialog id="shot-lightbox" class="shot-lightbox" aria-label="Screenshot preview">
+  <button type="button" id="shot-lightbox-close" class="shot-lightbox-close" aria-label="Close preview">✕</button>
+  <img id="shot-lightbox-img" src="" alt="" />
+</dialog>
 
 <style>
   .showcase-section {
@@ -184,10 +234,70 @@ const base = import.meta.env.BASE_URL.endsWith('/')
   }
 
   .tab-btn {
+    position: relative;
+    overflow: hidden;
     min-height: 44px;
     padding: 10px 18px;
     border-radius: var(--radius-pill);
     border: 1px solid var(--outline);
+  }
+
+  .tab-btn.is-active::after {
+    content: '';
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 2px;
+    height: 2px;
+    border-radius: 999px;
+    background: rgba(18, 19, 22, 0.45);
+    transform-origin: left;
+    animation: tabProgress 5s linear infinite;
+  }
+
+  #showcase:hover .tab-btn.is-active::after {
+    animation-play-state: paused;
+  }
+
+  @keyframes tabProgress {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+
+  .shot-lightbox {
+    padding: 12px;
+    border: 1px solid var(--outline-strong);
+    border-radius: var(--radius-lg);
+    background: var(--surface-low);
+    max-width: min(440px, 92vw);
+    max-height: 90vh;
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .shot-lightbox::backdrop {
+    background: rgba(10, 11, 14, 0.84);
+    backdrop-filter: blur(8px);
+  }
+
+  .shot-lightbox img {
+    max-height: 82vh;
+    width: auto;
+    margin: 0 auto;
+    border-radius: 18px;
+  }
+
+  .shot-lightbox-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    border: 1px solid var(--outline-strong);
+    background: var(--surface-high);
+    color: var(--text);
+    font-weight: 700;
+  }
     background: var(--surface);
     color: var(--text-muted);
     font-weight: 700;

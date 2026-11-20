@@ -145,6 +145,16 @@ const base = import.meta.env.BASE_URL.endsWith('/')
   (function () {
     var btn = document.getElementById('mobile-menu-toggle');
     var panel = document.getElementById('mobile-nav-panel');
+
+    // Highlight active nav link
+    var path = window.location.pathname;
+    document.querySelectorAll('.nav-links a').forEach(function (a) {
+      var href = a.getAttribute('href') || '';
+      if (href.indexOf('#') === -1 && path.indexOf(href) === 0 && href.length > 6) {
+        a.classList.add('is-current');
+      }
+    });
+
     if (!btn || !panel) return;
 
     function closeMenu() {
@@ -260,6 +270,7 @@ const base = import.meta.env.BASE_URL.endsWith('/')
   }
 
   .nav-links a {
+    position: relative;
     padding: 8px 14px;
     border-radius: var(--radius-pill);
     text-decoration: none;
@@ -267,6 +278,22 @@ const base = import.meta.env.BASE_URL.endsWith('/')
     font-size: 0.92rem;
     color: var(--text-muted);
     transition: background-color 150ms ease-out, color 150ms ease-out;
+  }
+
+  .nav-links a.is-current {
+    color: var(--text);
+    background-color: var(--surface);
+  }
+
+  .nav-links a.is-current::after {
+    content: '';
+    position: absolute;
+    inset-inline: 18px;
+    bottom: 2px;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--accent);
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.7);
   }
 
   @media (hover: hover) {

@@ -66,6 +66,40 @@ button {
   outline-offset: 3px;
 }
 
+html.kbd-nav :focus-visible {
+  box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.22);
+}
+
+html.lang-switching main {
+  opacity: 0.72;
+  transition: opacity 120ms ease-out;
+}
+
+.has-spotlight {
+  position: relative;
+  overflow: hidden;
+}
+
+.has-spotlight::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    280px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(245, 158, 11, 0.1),
+    transparent 70%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms ease-out;
+}
+
+@media (hover: hover) {
+  .has-spotlight:hover::before {
+    opacity: 1;
+  }
+}
+
 h1,
 h2,
 h3 {
