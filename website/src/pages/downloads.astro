@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
 import QrModal from '../components/QrModal.astro';
+import MirrorIcon from '../components/MirrorIcon.astro';
 import { SITE, MIRRORS } from '../data/content';
 
 const base = import.meta.env.BASE_URL.endsWith('/')
@@ -15,7 +16,7 @@ const MIRROR_DESCRIPTIONS: Record<string, { en: string; de: string; tier: 'offic
     de: 'Dezentraler Nostr-App-Store mit kryptografischer Entwickler-Signatur.',
     tier: 'official',
   },
-  GitLab: {
+  'GitLab Releases': {
     en: 'Full source-code mirror & automated release mirror synchronized from main.',
     de: 'Vollständiger Quellcode- und Release-Mirror, synchronisiert mit main.',
     tier: 'official',
@@ -52,6 +53,9 @@ const MIRROR_DESCRIPTIONS: Record<string, { en: string; de: string; tier: 'offic
   },
 };
 
+const officialMirrors = MIRRORS.filter((m) => MIRROR_DESCRIPTIONS[m.name]?.tier === 'official');
+const communityMirrors = MIRRORS.filter((m) => MIRROR_DESCRIPTIONS[m.name]?.tier !== 'official');
+
 const downloadSchema = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
@@ -73,39 +77,41 @@ const downloadSchema = {
   jsonLd={downloadSchema}
 >
   <Navbar />
-  <main id="main-content" class="subpage-main">
+  <main id="main-content" class="dl-page">
     <div class="container">
-      <div class="subpage-header">
-        <span class="pill-badge pill-amber mono">v{SITE.fallbackVersion} ({SITE.fallbackBuild})</span>
-        <h1 class="subpage-title">
+      <header class="dl-header">
+        <span class="pill-badge pill-amber mono" id="dl-page-version">
+          v{SITE.fallbackVersion} ({SITE.fallbackBuild})
+        </span>
+        <h1 class="dl-title">
           <span class="i18n-en">Downloads, Mirrors &amp; Verification</span>
           <span class="i18n-de">Downloads, Mirrors &amp; Verifizierung</span>
         </h1>
-        <p class="subpage-lead">
+        <p class="dl-lead">
           <span class="i18n-en">
-            Single-Artifact Principle: GitHub Releases provides the canonical CI-signed APK and
-            SHA256SUMS checksum. All mirrors below link to ApkUp’s official or community listings.
+            Single-Artifact Principle: GitHub Releases delivers the canonical CI-signed APK and
+            SHA256SUMS checksum. Below you’ll find live integrity verification and all 8 mirrors.
           </span>
           <span class="i18n-de">
             Single-Artifact-Prinzip: GitHub Releases liefert die kanonische, per CI signierte APK
-            samt SHA256SUMS-Prüfsumme. Unten findest du alle 8 offiziellen und Community-Mirrors.
+            samt SHA256SUMS-Prüfsumme. Unten findest du Live-Verifizierung und alle 8 Mirrors.
           </span>
         </p>
-      </div>
+      </header>
 
       <!-- 1. Canonical Release Card -->
-      <section class="dl-card" aria-labelledby="dl-canonical-title">
-        <div class="dl-card-top">
+      <section class="dl-hero-card" aria-labelledby="dl-canonical-title">
+        <div class="dl-hero-top">
           <div>
             <div class="dl-badges">
-              <span class="pill-badge pill-amber mono" id="dl-page-version">v{SITE.fallbackVersion}</span>
+              <span class="pill-badge pill-amber mono" data-gh-version>v{SITE.fallbackVersion}</span>
               <span class="pill-badge pill-green">
                 <span class="i18n-en">Canonical Signed CI Build</span>
                 <span class="i18n-de">Kanonischer Signierter CI-Build</span>
               </span>
             </div>
             <h2 id="dl-canonical-title">GitHub Releases (Direct Signed APK)</h2>
-            <p class="dl-subtext">
+            <p class="dl-muted">
               <span class="i18n-en">
                 Universal APK with built-in self-updater, reproducible GitHub Actions build, and
                 cryptographic SHA-256 verification.
@@ -122,6 +128,12 @@ const downloadSchema = {
               <span class="i18n-de" data-apk-label-de>Aktuelle APK herunterladen</span>
             </a>
             <button type="button" class="btn btn-secondary" data-open-qr>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+                <path d="M14 14h3v3h-3zM18 18h3v3h-3zM18 14h3M14 18v3" />
+              </svg>
               <span>QR-Code</span>
             </button>
             <a class="btn btn-ghost" href={`${base}changelog/`}>
@@ -131,135 +143,183 @@ const downloadSchema = {
           </div>
         </div>
 
-        <div class="dl-specs-grid mono">
-          <div class="dl-spec-item">
-            <span class="dl-spec-label">
-              <span class="i18n-en">Android Version</span>
-              <span class="i18n-de">Android-Version</span>
-            </span>
+        <div class="dl-specs-strip mono">
+          <div class="dl-spec">
+            <span>Android</span>
             <strong>10.0 – 17 (API 29+)</strong>
           </div>
-          <div class="dl-spec-item">
-            <span class="dl-spec-label">
-              <span class="i18n-en">Supported ABIs</span>
-              <span class="i18n-de">Unterstützte ABIs</span>
-            </span>
+          <div class="dl-spec">
+            <span>ABIs</span>
             <strong>arm64-v8a • armeabi-v7a • x86_64</strong>
           </div>
-          <div class="dl-spec-item">
-            <span class="dl-spec-label">
+          <div class="dl-spec">
+            <span>
               <span class="i18n-en">License</span>
               <span class="i18n-de">Lizenz</span>
             </span>
             <strong>GPL-3.0 Open Source</strong>
           </div>
-          <div class="dl-spec-item">
-            <span class="dl-spec-label">
-              <span class="i18n-en">Signature Scheme</span>
-              <span class="i18n-de">Signatur-Verfahren</span>
+          <div class="dl-spec">
+            <span>
+              <span class="i18n-en">Signature</span>
+              <span class="i18n-de">Signatur</span>
             </span>
             <strong>APK Signature v2 / v3</strong>
           </div>
         </div>
       </section>
 
-      <!-- 2. Live SHA256SUMS & Verification -->
-      <section class="dl-verify-card" aria-labelledby="dl-verify-title">
-        <div class="dl-verify-head">
-          <div>
+      <!-- 2. 2-Column Bento Verification Grid -->
+      <section class="dl-bento-grid" aria-labelledby="dl-verify-title">
+        <div class="dl-bento-card">
+          <div class="dl-bento-head">
             <h2 id="dl-verify-title">
-              <span class="i18n-en">SHA-256 Checksum &amp; Integrity Verification</span>
-              <span class="i18n-de">SHA-256-Prüfsumme &amp; Integritätsprüfung</span>
+              <span class="i18n-en">Live SHA-256 Checksum</span>
+              <span class="i18n-de">Live-SHA-256-Prüfsumme</span>
             </h2>
-            <p class="dl-subtext">
-              <span class="i18n-en">
-                Verify your downloaded APK matches the official GitHub Actions release artifact
-                before installing.
-              </span>
-              <span class="i18n-de">
-                Prüfe vor der Installation, ob deine heruntergeladene APK exakt mit dem offiziellen
-                GitHub-Actions-Artefakt übereinstimmt.
-              </span>
-            </p>
+            <a
+              class="dl-ext-link mono"
+              href="https://github.com/DurchEins/apkup/releases/latest"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              SHA256SUMS ↗
+            </a>
           </div>
-          <a
-            class="btn btn-secondary"
-            href="https://github.com/DurchEins/apkup/releases/latest"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <span class="i18n-en">View SHA256SUMS on GitHub ↗</span>
-            <span class="i18n-de">SHA256SUMS auf GitHub öffnen ↗</span>
-          </a>
-        </div>
-
-        <div class="dl-hash-box">
-          <div class="dl-hash-row">
-            <code class="mono" id="sha256-output">
-              Loading live SHA256SUMS from GitHub Releases…
-            </code>
-            <button type="button" class="btn btn-ghost dl-copy-btn" id="copy-sha256-btn" hidden>
+          <p class="dl-muted">
+            <span class="i18n-en">
+              Fetched live from the latest GitHub Release so you can verify your APK matches the
+              exact CI build artifact.
+            </span>
+            <span class="i18n-de">
+              Live vom neuesten GitHub Release geladen, damit du deine APK exakt mit dem CI-Build
+              abgleichen kannst.
+            </span>
+          </p>
+          <div class="dl-code-box">
+            <code class="mono" id="sha256-output">Loading SHA256SUMS…</code>
+            <button type="button" class="btn btn-secondary dl-copy-sm" id="copy-sha256-btn" hidden>
               <span class="i18n-en">Copy</span>
               <span class="i18n-de">Kopieren</span>
             </button>
           </div>
         </div>
 
-        <div class="dl-cmd-grid">
-          <div class="dl-cmd-box">
-            <span class="mono dl-cmd-label">Linux / macOS (Terminal)</span>
-            <code class="mono">sha256sum -c SHA256SUMS</code>
-          </div>
-          <div class="dl-cmd-box">
-            <span class="mono dl-cmd-label">Windows (PowerShell)</span>
-            <code class="mono">Get-FileHash .\ApkUp-*.apk -Algorithm SHA256</code>
+        <div class="dl-bento-card">
+          <h2>
+            <span class="i18n-en">Local Verification Commands</span>
+            <span class="i18n-de">Lokale Prüfbefehle</span>
+          </h2>
+          <p class="dl-muted">
+            <span class="i18n-en">
+              Run either command in your download folder to compare your local APK hash against the
+              official release checksum.
+            </span>
+            <span class="i18n-de">
+              Führe einen der Befehle im Download-Ordner aus, um deine APK-Datei lokal gegen die
+              offizielle Prüfsumme zu testen.
+            </span>
+          </p>
+          <div class="dl-cmd-stack">
+            <div class="dl-cmd-row">
+              <span class="mono dl-cmd-os">Linux / macOS</span>
+              <code class="mono">sha256sum -c SHA256SUMS</code>
+            </div>
+            <div class="dl-cmd-row">
+              <span class="mono dl-cmd-os">Windows PowerShell</span>
+              <code class="mono">Get-FileHash .\ApkUp-*.apk -Algorithm SHA256</code>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- 3. All 8 Mirrors -->
-      <section class="dl-mirrors-section" aria-labelledby="dl-mirrors-title">
-        <div class="dl-section-head">
-          <h2 id="dl-mirrors-title">
-            <span class="i18n-en">All 8 Mirrors &amp; Distribution Channels</span>
-            <span class="i18n-de">Alle 8 Mirrors &amp; Distributionskanäle</span>
+      <!-- 3. Official Mirrors (2-column symmetrical) -->
+      <section class="dl-mirrors-group" aria-labelledby="dl-official-title">
+        <div class="dl-group-head">
+          <h2 id="dl-official-title">
+            <span class="i18n-en">Official Mirrors</span>
+            <span class="i18n-de">Offizielle Mirrors</span>
           </h2>
-          <p class="dl-subtext">
-            <span class="i18n-en">
-              Official mirrors receive updates alongside GitHub Releases. Community mirrors are
-              indexed externally; Amazon Appstore is no longer updated.
-            </span>
-            <span class="i18n-de">
-              Offizielle Mirrors werden direkt mit den Releases gepflegt. Community-Mirrors
-              spiegeln öffentliche Releases; der Amazon Appstore wird nicht mehr aktualisiert.
-            </span>
+          <p class="dl-muted">
+            <span class="i18n-en">Directly maintained alongside GitHub Releases.</span>
+            <span class="i18n-de">Direkt parallel zu GitHub Releases gepflegt.</span>
           </p>
         </div>
 
-        <div class="dl-mirrors-grid">
+        <div class="dl-mirror-grid">
           {
-            MIRRORS.map((m) => {
-              const meta = MIRROR_DESCRIPTIONS[m.name] ?? {
-                en: m.badgeEn,
-                de: m.badgeDe,
-                tier: 'community' as const,
-              };
+            officialMirrors.map((m) => {
+              const meta = MIRROR_DESCRIPTIONS[m.name];
+              return (
+                <a class="dl-mirror-card" href={m.url} target="_blank" rel="noopener noreferrer">
+                  <div class="dl-mirror-head">
+                    <div class="dl-mirror-brand">
+                      <span class="dl-mirror-icon" style={`background: ${m.color};`}>
+                        <MirrorIcon name={m.name} size={22} />
+                      </span>
+                      <div>
+                        <strong>{m.name}</strong>
+                        <span class="pill-badge pill-green mono">
+                          <span class="i18n-en">{m.badgeEn}</span>
+                          <span class="i18n-de">{m.badgeDe}</span>
+                        </span>
+                      </div>
+                    </div>
+                    <svg class="dl-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M7 17 17 7M7 7h10v10" />
+                    </svg>
+                  </div>
+                  <p>
+                    <span class="i18n-en">{meta.en}</span>
+                    <span class="i18n-de">{meta.de}</span>
+                  </p>
+                </a>
+              );
+            })
+          }
+        </div>
+      </section>
+
+      <!-- 4. Community Stores & Legacy (3x2 symmetrical) -->
+      <section class="dl-mirrors-group" aria-labelledby="dl-community-title">
+        <div class="dl-group-head">
+          <h2 id="dl-community-title">
+            <span class="i18n-en">Community Stores &amp; Directory</span>
+            <span class="i18n-de">Community-Stores &amp; Verzeichnis</span>
+          </h2>
+          <p class="dl-muted">
+            <span class="i18n-en">Third-party APK mirrors, indie catalogs, and legacy listings.</span>
+            <span class="i18n-de">Drittanbieter-Mirrors, Indie-Kataloge und archivierte Einträge.</span>
+          </p>
+        </div>
+
+        <div class="dl-mirror-grid">
+          {
+            communityMirrors.map((m) => {
+              const meta = MIRROR_DESCRIPTIONS[m.name];
               return (
                 <a
-                  class={`dl-mirror-item ${m.outdated ? 'is-outdated' : ''}`}
+                  class={`dl-mirror-card ${m.outdated ? 'is-outdated' : ''}`}
                   href={m.url}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <div class="dl-mirror-top">
-                    <div class="dl-mirror-title-wrap">
-                      <span class="dl-mirror-dot" style={`background: ${m.color};`} aria-hidden="true" />
-                      <strong>{m.name}</strong>
+                  <div class="dl-mirror-head">
+                    <div class="dl-mirror-brand">
+                      <span class="dl-mirror-icon" style={`background: ${m.color};`}>
+                        <MirrorIcon name={m.name} size={22} />
+                      </span>
+                      <div>
+                        <strong>{m.name}</strong>
+                        <span class={`pill-badge ${m.outdated ? 'pill-warn' : 'pill-neutral'} mono`}>
+                          <span class="i18n-en">{m.badgeEn}</span>
+                          <span class="i18n-de">{m.badgeDe}</span>
+                        </span>
+                      </div>
                     </div>
-                    <span class={`pill-badge ${m.outdated ? 'pill-warn' : meta.tier === 'official' ? 'pill-green' : 'pill-neutral'} mono`}>
-                      <span class="i18n-en">{m.badgeEn}</span>
-                      <span class="i18n-de">{m.badgeDe}</span>
-                    </span>
+                    <svg class="dl-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M7 17 17 7M7 7h10v10" />
+                    </svg>
                   </div>
                   <p>
                     <span class="i18n-en">{meta.en}</span>
@@ -291,7 +351,7 @@ const downloadSchema = {
         out.textContent = shaText;
         if (copyBtn) copyBtn.hidden = false;
       } else {
-        out.textContent = 'SHA256SUMS available on GitHub Releases (api rate-limited or offline).';
+        out.textContent = 'SHA256SUMS available on GitHub Releases.';
       }
     }
 
@@ -328,39 +388,44 @@ const downloadSchema = {
 </script>
 
 <style>
-  .subpage-main {
+  .dl-page {
     padding-block: 48px 80px;
   }
 
-  .subpage-header {
+  .dl-header {
+    max-width: 740px;
     margin-bottom: 32px;
-    max-width: 760px;
   }
 
-  .subpage-title {
+  .dl-title {
     margin-top: 14px;
     font-size: clamp(1.9rem, 3.8vw, 2.7rem);
     letter-spacing: -0.025em;
   }
 
-  .subpage-lead {
+  .dl-lead {
     margin-top: 10px;
     color: var(--text-muted);
-    font-size: 1.02rem;
+    font-size: 1rem;
     line-height: 1.6;
   }
 
-  .dl-card,
-  .dl-verify-card {
+  .dl-muted {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+
+  .dl-hero-card {
     background: var(--surface-low);
     border: 1px solid var(--outline);
     border-radius: var(--radius-lg);
     padding: clamp(22px, 3vw, 32px);
-    margin-bottom: 24px;
+    margin-bottom: 20px;
   }
 
-  .dl-card-top,
-  .dl-verify-head {
+  .dl-hero-top {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -375,18 +440,9 @@ const downloadSchema = {
     margin-bottom: 12px;
   }
 
-  .dl-card h2,
-  .dl-verify-card h2,
-  .dl-section-head h2 {
-    font-size: 1.35rem;
+  .dl-hero-card h2 {
     margin: 0 0 8px;
-  }
-
-  .dl-subtext {
-    color: var(--text-muted);
-    font-size: 0.94rem;
-    margin: 0;
-    max-width: 68ch;
+    font-size: 1.38rem;
   }
 
   .dl-actions {
@@ -395,140 +451,203 @@ const downloadSchema = {
     gap: 10px;
   }
 
-  .dl-specs-grid {
+  .dl-specs-strip {
     margin-top: 22px;
     padding-top: 18px;
     border-top: 1px solid var(--outline);
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
     gap: 14px;
   }
 
-  .dl-spec-item {
+  .dl-spec {
     display: flex;
     flex-direction: column;
     gap: 4px;
     font-size: 0.84rem;
   }
 
-  .dl-spec-label {
+  .dl-spec span {
     color: var(--text-muted);
-    font-size: 0.76rem;
+    font-size: 0.74rem;
   }
 
-  .dl-hash-box {
-    margin-top: 18px;
-    background: var(--bg);
+  .dl-bento-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+
+  .dl-bento-card {
+    background: var(--surface-low);
     border: 1px solid var(--outline);
-    border-radius: var(--radius-md);
-    padding: 14px 16px;
+    border-radius: var(--radius-lg);
+    padding: 22px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
 
-  .dl-hash-row {
+  .dl-bento-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    flex-wrap: wrap;
   }
 
-  .dl-hash-row code {
-    font-size: 0.82rem;
+  .dl-bento-card h2 {
+    margin: 0;
+    font-size: 1.12rem;
+  }
+
+  .dl-ext-link {
+    font-size: 0.78rem;
     color: var(--accent);
-    word-break: break-all;
-    white-space: pre-wrap;
+    text-decoration: none;
+    white-space: nowrap;
   }
 
-  .dl-copy-btn {
-    min-height: 34px;
-    padding: 4px 12px;
-    font-size: 0.8rem;
+  .dl-ext-link:hover {
+    text-decoration: underline;
   }
 
-  .dl-cmd-grid {
-    margin-top: 14px;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 12px;
-  }
-
-  .dl-cmd-box {
+  .dl-code-box {
+    margin-top: auto;
     background: var(--bg);
     border: 1px solid var(--outline);
     border-radius: var(--radius-md);
     padding: 12px 14px;
     display: flex;
-    flex-direction: column;
-    gap: 6px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
   }
 
-  .dl-cmd-label {
+  .dl-code-box code {
+    font-size: 0.8rem;
+    color: var(--accent);
+    word-break: break-all;
+    white-space: pre-wrap;
+  }
+
+  .dl-copy-sm {
+    min-height: 32px;
+    padding: 4px 12px;
+    font-size: 0.78rem;
+    flex-shrink: 0;
+  }
+
+  .dl-cmd-stack {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .dl-cmd-row {
+    background: var(--bg);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .dl-cmd-os {
     font-size: 0.74rem;
     color: var(--text-muted);
   }
 
-  .dl-cmd-box code {
-    font-size: 0.82rem;
+  .dl-cmd-row code {
+    font-size: 0.8rem;
     word-break: break-all;
   }
 
-  .dl-mirrors-section {
-    margin-top: 36px;
+  .dl-mirrors-group {
+    margin-top: 32px;
   }
 
-  .dl-section-head {
-    margin-bottom: 18px;
+  .dl-group-head {
+    margin-bottom: 16px;
   }
 
-  .dl-mirrors-grid {
+  .dl-group-head h2 {
+    margin: 0 0 4px;
+    font-size: 1.28rem;
+  }
+
+  .dl-mirror-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
   }
 
-  .dl-mirror-item {
+  .dl-mirror-card {
     background: var(--surface-low);
     border: 1px solid var(--outline);
-    border-radius: var(--radius-md);
-    padding: 18px;
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
     text-decoration: none;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    transition: border-color 150ms ease-out, transform 150ms ease-out;
+    gap: 12px;
+    transition: border-color 150ms ease-out, transform 150ms ease-out, background-color 150ms ease-out;
   }
 
-  .dl-mirror-item:hover {
+  .dl-mirror-card:hover {
     border-color: var(--accent);
+    background: var(--surface-high);
     transform: translateY(-2px);
   }
 
-  .dl-mirror-item.is-outdated {
+  .dl-mirror-card.is-outdated {
     opacity: 0.78;
   }
 
-  .dl-mirror-top {
+  .dl-mirror-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 12px;
+  }
+
+  .dl-mirror-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .dl-mirror-brand > div {
+    display: flex;
+    align-items: center;
     gap: 10px;
     flex-wrap: wrap;
   }
 
-  .dl-mirror-title-wrap {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  .dl-mirror-brand strong {
+    font-size: 1rem;
   }
 
-  .dl-mirror-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 999px;
+  .dl-mirror-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
   }
 
-  .dl-mirror-item p {
+  .dl-arrow {
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .dl-mirror-card p {
     margin: 0;
     color: var(--text-muted);
     font-size: 0.88rem;
@@ -539,5 +658,12 @@ const downloadSchema = {
     background: rgba(239, 68, 68, 0.14);
     color: #fca5a5;
     border: 1px solid rgba(239, 68, 68, 0.35);
+  }
+
+  @media (max-width: 820px) {
+    .dl-bento-grid,
+    .dl-mirror-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

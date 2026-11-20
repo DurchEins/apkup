@@ -351,84 +351,56 @@ button {
     gap: 12px;
   }
 
-  .downloads-subpage-cta {
-    display: flex;
-    justify-content: center;
-    margin-block: 4px 20px;
-  }
-
-  .mirrors-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 12px;
-    margin-block-end: 40px;
-  }
-
-  .mirror-card {
+  .mirrors-banner-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    min-height: 68px;
-    padding: 14px 16px;
-    border-radius: var(--radius-md);
+    gap: 20px;
+    flex-wrap: wrap;
     background: var(--bg);
     border: 1px solid var(--outline);
-    text-decoration: none;
-    transition: background-color 150ms ease-out, border-color 150ms ease-out, transform 150ms ease-out;
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    margin-block-end: 24px;
   }
 
-  .mirror-card:active {
-    transform: scale(0.98);
-  }
-
-  @media (hover: hover) {
-    .mirror-card:hover {
-      background: var(--surface);
-      border-color: var(--outline-strong);
-    }
-  }
-
-  .mirror-left {
+  .mirrors-banner-left {
     display: flex;
     align-items: center;
-    gap: 12px;
-    min-width: 0;
+    gap: 18px;
+    flex-wrap: wrap;
   }
 
-  .mirror-icon {
-    width: 40px;
-    height: 40px;
-    flex-shrink: 0;
-    border-radius: 12px;
-    display: grid;
-    place-items: center;
-  }
-
-  .mirror-main {
+  .mirrors-icon-stack {
     display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 0;
+    align-items: center;
   }
 
-  .mirror-badge {
-    font-size: 0.82rem;
+  .mini-mirror-dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--bg);
+    margin-inline-start: -8px;
+  }
+
+  .mini-mirror-dot:first-child {
+    margin-inline-start: 0;
+  }
+
+  .mirrors-banner-left h3 {
+    margin: 0 0 3px;
+    font-size: 1.04rem;
+    font-weight: 700;
+  }
+
+  .mirrors-banner-left p {
+    margin: 0;
+    font-size: 0.88rem;
     color: var(--text-muted);
-    font-weight: 600;
-  }
-
-  .mirror-arrow {
-    flex-shrink: 0;
-    color: var(--text-muted);
-  }
-
-  .mirror-card.is-outdated {
-    opacity: 0.78;
-  }
-
-  .badge-warn {
-    color: var(--danger);
   }
 
   .support-card {
@@ -1748,39 +1720,44 @@ button {
   }
 
 /* src/pages/downloads.astro */
-.subpage-main {
+.dl-page {
     padding-block: 48px 80px;
   }
 
-  .subpage-header {
+  .dl-header {
+    max-width: 740px;
     margin-bottom: 32px;
-    max-width: 760px;
   }
 
-  .subpage-title {
+  .dl-title {
     margin-top: 14px;
     font-size: clamp(1.9rem, 3.8vw, 2.7rem);
     letter-spacing: -0.025em;
   }
 
-  .subpage-lead {
+  .dl-lead {
     margin-top: 10px;
     color: var(--text-muted);
-    font-size: 1.02rem;
+    font-size: 1rem;
     line-height: 1.6;
   }
 
-  .dl-card,
-  .dl-verify-card {
+  .dl-muted {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+
+  .dl-hero-card {
     background: var(--surface-low);
     border: 1px solid var(--outline);
     border-radius: var(--radius-lg);
     padding: clamp(22px, 3vw, 32px);
-    margin-bottom: 24px;
+    margin-bottom: 20px;
   }
 
-  .dl-card-top,
-  .dl-verify-head {
+  .dl-hero-top {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -1795,18 +1772,9 @@ button {
     margin-bottom: 12px;
   }
 
-  .dl-card h2,
-  .dl-verify-card h2,
-  .dl-section-head h2 {
-    font-size: 1.35rem;
+  .dl-hero-card h2 {
     margin: 0 0 8px;
-  }
-
-  .dl-subtext {
-    color: var(--text-muted);
-    font-size: 0.94rem;
-    margin: 0;
-    max-width: 68ch;
+    font-size: 1.38rem;
   }
 
   .dl-actions {
@@ -1815,140 +1783,203 @@ button {
     gap: 10px;
   }
 
-  .dl-specs-grid {
+  .dl-specs-strip {
     margin-top: 22px;
     padding-top: 18px;
     border-top: 1px solid var(--outline);
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
     gap: 14px;
   }
 
-  .dl-spec-item {
+  .dl-spec {
     display: flex;
     flex-direction: column;
     gap: 4px;
     font-size: 0.84rem;
   }
 
-  .dl-spec-label {
+  .dl-spec span {
     color: var(--text-muted);
-    font-size: 0.76rem;
+    font-size: 0.74rem;
   }
 
-  .dl-hash-box {
-    margin-top: 18px;
-    background: var(--bg);
+  .dl-bento-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+
+  .dl-bento-card {
+    background: var(--surface-low);
     border: 1px solid var(--outline);
-    border-radius: var(--radius-md);
-    padding: 14px 16px;
+    border-radius: var(--radius-lg);
+    padding: 22px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
 
-  .dl-hash-row {
+  .dl-bento-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    flex-wrap: wrap;
   }
 
-  .dl-hash-row code {
-    font-size: 0.82rem;
+  .dl-bento-card h2 {
+    margin: 0;
+    font-size: 1.12rem;
+  }
+
+  .dl-ext-link {
+    font-size: 0.78rem;
     color: var(--accent);
-    word-break: break-all;
-    white-space: pre-wrap;
+    text-decoration: none;
+    white-space: nowrap;
   }
 
-  .dl-copy-btn {
-    min-height: 34px;
-    padding: 4px 12px;
-    font-size: 0.8rem;
+  .dl-ext-link:hover {
+    text-decoration: underline;
   }
 
-  .dl-cmd-grid {
-    margin-top: 14px;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 12px;
-  }
-
-  .dl-cmd-box {
+  .dl-code-box {
+    margin-top: auto;
     background: var(--bg);
     border: 1px solid var(--outline);
     border-radius: var(--radius-md);
     padding: 12px 14px;
     display: flex;
-    flex-direction: column;
-    gap: 6px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
   }
 
-  .dl-cmd-label {
+  .dl-code-box code {
+    font-size: 0.8rem;
+    color: var(--accent);
+    word-break: break-all;
+    white-space: pre-wrap;
+  }
+
+  .dl-copy-sm {
+    min-height: 32px;
+    padding: 4px 12px;
+    font-size: 0.78rem;
+    flex-shrink: 0;
+  }
+
+  .dl-cmd-stack {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .dl-cmd-row {
+    background: var(--bg);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .dl-cmd-os {
     font-size: 0.74rem;
     color: var(--text-muted);
   }
 
-  .dl-cmd-box code {
-    font-size: 0.82rem;
+  .dl-cmd-row code {
+    font-size: 0.8rem;
     word-break: break-all;
   }
 
-  .dl-mirrors-section {
-    margin-top: 36px;
+  .dl-mirrors-group {
+    margin-top: 32px;
   }
 
-  .dl-section-head {
-    margin-bottom: 18px;
+  .dl-group-head {
+    margin-bottom: 16px;
   }
 
-  .dl-mirrors-grid {
+  .dl-group-head h2 {
+    margin: 0 0 4px;
+    font-size: 1.28rem;
+  }
+
+  .dl-mirror-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
   }
 
-  .dl-mirror-item {
+  .dl-mirror-card {
     background: var(--surface-low);
     border: 1px solid var(--outline);
-    border-radius: var(--radius-md);
-    padding: 18px;
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
     text-decoration: none;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    transition: border-color 150ms ease-out, transform 150ms ease-out;
+    gap: 12px;
+    transition: border-color 150ms ease-out, transform 150ms ease-out, background-color 150ms ease-out;
   }
 
-  .dl-mirror-item:hover {
+  .dl-mirror-card:hover {
     border-color: var(--accent);
+    background: var(--surface-high);
     transform: translateY(-2px);
   }
 
-  .dl-mirror-item.is-outdated {
+  .dl-mirror-card.is-outdated {
     opacity: 0.78;
   }
 
-  .dl-mirror-top {
+  .dl-mirror-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 12px;
+  }
+
+  .dl-mirror-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .dl-mirror-brand > div {
+    display: flex;
+    align-items: center;
     gap: 10px;
     flex-wrap: wrap;
   }
 
-  .dl-mirror-title-wrap {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  .dl-mirror-brand strong {
+    font-size: 1rem;
   }
 
-  .dl-mirror-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 999px;
+  .dl-mirror-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
   }
 
-  .dl-mirror-item p {
+  .dl-arrow {
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .dl-mirror-card p {
     margin: 0;
     color: var(--text-muted);
     font-size: 0.88rem;
@@ -1959,6 +1990,13 @@ button {
     background: rgba(239, 68, 68, 0.14);
     color: #fca5a5;
     border: 1px solid rgba(239, 68, 68, 0.35);
+  }
+
+  @media (max-width: 820px) {
+    .dl-bento-grid,
+    .dl-mirror-grid {
+      grid-template-columns: 1fr;
+    }
   }
 
 /* src/pages/privacy.astro */
