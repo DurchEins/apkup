@@ -82,8 +82,11 @@ const base = import.meta.env.BASE_URL.endsWith('/')
         <div class="mirrors-icon-stack" aria-hidden="true">
           {
             MIRRORS.slice(0, 6).map((mirror) => (
-              <span class="mini-mirror-dot" style={`background: ${mirror.color};`}>
-                <MirrorIcon name={mirror.name} size={14} />
+              <span
+                class="mini-mirror-dot"
+                style={mirror.name === 'itch.io' ? `background: ${mirror.color};` : 'background: #fff;'}
+              >
+                <MirrorIcon name={mirror.name} size={18} />
               </span>
             ))
           }
@@ -293,6 +296,7 @@ const base = import.meta.env.BASE_URL.endsWith('/')
   .mini-mirror-dot {
     width: 30px;
     height: 30px;
+    padding: 4px;
     border-radius: 9px;
     display: inline-flex;
     align-items: center;

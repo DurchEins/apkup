@@ -47,6 +47,7 @@ const WIKI_ORDER = [
   { file: 'Obtainium-Migration-&-Sync-Guide.md', title: 'Obtainium Migration & Sync Guide' },
   { file: 'App-Management,-Filters,-Background-Checks-&-Backup.md', title: 'App Management, Filters, Background Checks & Backup' },
   { file: 'Troubleshooting-Source-Errors.md', title: 'Troubleshooting Source Errors & Error Codes' },
+  { file: 'SHA-256-&-Signature-Verification.md', title: 'SHA-256 Checksums & APK Signature Verification' },
 ];
 
 // 1. Build llms.txt (compact llmstxt.org-compliant directory)

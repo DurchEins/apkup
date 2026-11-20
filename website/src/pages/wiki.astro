@@ -643,6 +643,38 @@ const CHAPTERS: WikiChapter[] = [
       },
     ],
   },
+  {
+    slug: 'sha256',
+    ghPage: 'SHA-256-&-Signature-Verification',
+    mdFile: 'SHA-256-&-Signature-Verification.md',
+    tag: 'SHA-256',
+    enTitle: 'SHA-256 Checksums & APK Signature Verification',
+    deTitle: 'SHA-256-Prüfsummen & APK-Signaturprüfung',
+    enLead:
+      'What SHA-256 checksums are, why they protect you from tampered downloads, and how to verify APKs on Windows, macOS, Linux, and Android.',
+    deLead:
+      'Was SHA-256-Prüfsummen sind, warum sie dich vor manipulierten Downloads schützen und wie du APKs unter Windows, macOS, Linux und Android prüfst.',
+    cards: [
+      {
+        badge: 'Fingerprint',
+        enTitle: 'What is SHA-256?',
+        deTitle: 'Was ist SHA-256?',
+        enBody:
+          'A 64-character cryptographic fingerprint of an APK file. Changing even 1 byte produces a completely different hash.',
+        deBody:
+          'Ein 64-stelliger kryptografischer Fingerabdruck einer APK-Datei. Schon 1 geändertes Byte verändert den gesamten Hash.',
+      },
+      {
+        badge: 'Automatic',
+        enTitle: 'APK Signature v2/v3',
+        deTitle: 'APK-Signatur v2/v3',
+        enBody:
+          'Inside ApkUp, every update’s signing certificate is verified automatically against the installed app before installation.',
+        deBody:
+          'In ApkUp wird bei jedem Update automatisch das Signaturzertifikat gegen die installierte App geprüft.',
+      },
+    ],
+  },
 ];
 
 const wikiDir = join(process.cwd(), 'src/data/wiki');

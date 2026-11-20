@@ -148,10 +148,22 @@ const downloadSchema = {
       <section class="dl-bento-grid" aria-labelledby="dl-verify-title">
         <div class="dl-bento-card">
           <div class="dl-bento-head">
-            <h2 id="dl-verify-title">
-              <span class="i18n-en">Live SHA-256 Checksum</span>
-              <span class="i18n-de">Live-SHA-256-Prüfsumme</span>
-            </h2>
+            <div class="dl-title-with-help">
+              <h2 id="dl-verify-title">
+                <span class="i18n-en">Live SHA-256 Checksum</span>
+                <span class="i18n-de">Live-SHA-256-Prüfsumme</span>
+              </h2>
+              <button
+                type="button"
+                class="dl-help-btn"
+                aria-expanded="false"
+                aria-controls="help-sha256"
+                aria-label="What is SHA-256?"
+                data-help-toggle="help-sha256"
+              >
+                ?
+              </button>
+            </div>
             <a
               class="dl-ext-link mono"
               href="https://github.com/DurchEins/apkup/releases/latest"
@@ -161,6 +173,22 @@ const downloadSchema = {
               SHA256SUMS ↗
             </a>
           </div>
+
+          <div class="dl-help-popover" id="help-sha256" hidden>
+            <p>
+              <span class="i18n-en">
+                A SHA-256 checksum is a unique 64-character digital fingerprint of the APK. If even a single byte was altered or corrupted, the hash won’t match.
+              </span>
+              <span class="i18n-de">
+                Eine SHA-256-Prüfsumme ist der eindeutige 64-stellige Fingerabdruck der APK. Wurde auch nur ein einzelnes Byte verändert oder beschädigt, stimmt der Hash nicht mehr überein.
+              </span>
+            </p>
+            <a href={`${base}wiki/#doc-sha256`} class="dl-help-wiki-link">
+              <span class="i18n-en">Read full guide in Wiki →</span>
+              <span class="i18n-de">Ausführlich im Wiki lesen →</span>
+            </a>
+          </div>
+
           <p class="dl-muted">
             <span class="i18n-en">
               Live SHA-256 digest of the latest signed APK asset from GitHub Releases.
@@ -179,10 +207,39 @@ const downloadSchema = {
         </div>
 
         <div class="dl-bento-card">
-          <h2>
-            <span class="i18n-en">Local Verification Commands</span>
-            <span class="i18n-de">Lokale Prüfbefehle</span>
-          </h2>
+          <div class="dl-bento-head">
+            <div class="dl-title-with-help">
+              <h2>
+                <span class="i18n-en">Local Verification Commands</span>
+                <span class="i18n-de">Lokale Prüfbefehle</span>
+              </h2>
+              <button
+                type="button"
+                class="dl-help-btn"
+                aria-expanded="false"
+                aria-controls="help-cmd"
+                aria-label="How do local verification commands work?"
+                data-help-toggle="help-cmd"
+              >
+                ?
+              </button>
+            </div>
+          </div>
+
+          <div class="dl-help-popover" id="help-cmd" hidden>
+            <p>
+              <span class="i18n-en">
+                Run the command for your OS in your Downloads folder to calculate your file’s SHA-256 hash and compare it with the official checksum on the left.
+              </span>
+              <span class="i18n-de">
+                Führe den Befehl für dein System im Download-Ordner aus, um den SHA-256-Hash deiner APK zu berechnen und mit der offiziellen Prüfsumme links zu vergleichen.
+              </span>
+            </p>
+            <a href={`${base}wiki/#sha256-local-verification-step-by-step`} class="dl-help-wiki-link">
+              <span class="i18n-en">Step-by-step guide in Wiki →</span>
+              <span class="i18n-de">Schritt-für-Schritt im Wiki →</span>
+            </a>
+          </div>
           <div class="dl-cmd-stack">
             <div class="dl-cmd-row">
               <div class="dl-cmd-text">
@@ -237,8 +294,11 @@ const downloadSchema = {
                 <a class="dl-mirror-card" href={m.url} target="_blank" rel="noopener noreferrer">
                   <div class="dl-mirror-head">
                     <div class="dl-mirror-brand">
-                      <span class="dl-mirror-icon" style={`background: ${m.color};`}>
-                        <MirrorIcon name={m.name} size={22} />
+                      <span
+                        class={`dl-mirror-icon ${m.name === 'itch.io' ? 'is-svg' : ''}`}
+                        style={m.name === 'itch.io' ? `background: ${m.color};` : 'background: #fff;'}
+                      >
+                        <MirrorIcon name={m.name} size={24} />
                       </span>
                       <div>
                         <strong>{m.name}</strong>
@@ -289,8 +349,11 @@ const downloadSchema = {
                 >
                   <div class="dl-mirror-head">
                     <div class="dl-mirror-brand">
-                      <span class="dl-mirror-icon" style={`background: ${m.color};`}>
-                        <MirrorIcon name={m.name} size={22} />
+                      <span
+                        class={`dl-mirror-icon ${m.name === 'itch.io' ? 'is-svg' : ''}`}
+                        style={m.name === 'itch.io' ? `background: ${m.color};` : 'background: #fff;'}
+                      >
+                        <MirrorIcon name={m.name} size={24} />
                       </span>
                       <div>
                         <strong>{m.name}</strong>
@@ -365,6 +428,35 @@ const downloadSchema = {
       btn.addEventListener('click', function () {
         copyText(btn.getAttribute('data-copy-cmd') || '', btn);
       });
+    });
+
+    document.querySelectorAll('[data-help-toggle]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var id = btn.getAttribute('data-help-toggle');
+        var panel = id ? document.getElementById(id) : null;
+        if (!panel) return;
+        var nextOpen = panel.hidden;
+        document.querySelectorAll('.dl-help-popover').forEach(function (p) {
+          p.hidden = true;
+        });
+        document.querySelectorAll('[data-help-toggle]').forEach(function (b) {
+          b.setAttribute('aria-expanded', 'false');
+        });
+        panel.hidden = !nextOpen;
+        btn.setAttribute('aria-expanded', String(nextOpen));
+      });
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.dl-help-popover') && !e.target.closest('[data-help-toggle]')) {
+        document.querySelectorAll('.dl-help-popover').forEach(function (p) {
+          p.hidden = true;
+        });
+        document.querySelectorAll('[data-help-toggle]').forEach(function (b) {
+          b.setAttribute('aria-expanded', 'false');
+        });
+      }
     });
 
     fetch('https://api.github.com/repos/DurchEins/apkup/releases/latest', {
@@ -656,11 +748,81 @@ const downloadSchema = {
   .dl-mirror-icon {
     width: 42px;
     height: 42px;
+    padding: 5px;
+    border: 1px solid var(--outline);
     border-radius: 12px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+  }
+
+  .dl-mirror-icon.is-svg {
+    padding: 8px;
+    border-color: transparent;
+  }
+
+  .dl-title-with-help {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dl-help-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    border: 1px solid var(--outline-strong);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 0.76rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: border-color 140ms ease-out, color 140ms ease-out, background-color 140ms ease-out;
+  }
+
+  .dl-help-btn:hover,
+  .dl-help-btn[aria-expanded='true'] {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--surface-high);
+  }
+
+  .dl-help-popover {
+    background: var(--bg);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .dl-help-popover[hidden] {
+    display: none;
+  }
+
+  .dl-help-popover p {
+    margin: 0;
+    font-size: 0.84rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .dl-help-wiki-link {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--accent);
+    text-decoration: none;
+    align-self: flex-start;
+  }
+
+  .dl-help-wiki-link:hover {
+    text-decoration: underline;
   }
 
   .dl-arrow {

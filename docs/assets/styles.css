@@ -387,6 +387,7 @@ button {
   .mini-mirror-dot {
     width: 30px;
     height: 30px;
+    padding: 4px;
     border-radius: 9px;
     display: inline-flex;
     align-items: center;
@@ -1983,11 +1984,81 @@ button {
   .dl-mirror-icon {
     width: 42px;
     height: 42px;
+    padding: 5px;
+    border: 1px solid var(--outline);
     border-radius: 12px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+  }
+
+  .dl-mirror-icon.is-svg {
+    padding: 8px;
+    border-color: transparent;
+  }
+
+  .dl-title-with-help {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dl-help-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    border: 1px solid var(--outline-strong);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 0.76rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: border-color 140ms ease-out, color 140ms ease-out, background-color 140ms ease-out;
+  }
+
+  .dl-help-btn:hover,
+  .dl-help-btn[aria-expanded='true'] {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--surface-high);
+  }
+
+  .dl-help-popover {
+    background: var(--bg);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .dl-help-popover[hidden] {
+    display: none;
+  }
+
+  .dl-help-popover p {
+    margin: 0;
+    font-size: 0.84rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .dl-help-wiki-link {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--accent);
+    text-decoration: none;
+    align-self: flex-start;
+  }
+
+  .dl-help-wiki-link:hover {
+    text-decoration: underline;
   }
 
   .dl-arrow {
