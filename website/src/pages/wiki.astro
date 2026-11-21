@@ -758,7 +758,7 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
 
 <BaseLayout
   title="Wiki & Guides — ApkUp"
-  description="Complete 9-chapter ApkUp reference documentation covering update sources, F-Droid Index V2, PAT tokens, Shizuku & Root silent updates, Obtainium JSON import, and troubleshooting."
+  description="Complete 12-chapter ApkUp reference documentation covering update sources, F-Droid Index V2, PAT tokens, Shizuku & Root silent updates, Obtainium JSON import, sideloading, Google's 24h lock, and troubleshooting."
   jsonLd={{
     '@context': 'https://schema.org',
     '@type': 'TechArticle',
@@ -1063,9 +1063,9 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
       });
     }
 
-    document.querySelectorAll('[data-wiki-chapter-link]').forEach(function (link) {
+    document.querySelectorAll('[data-wiki-chapter-link], [data-wiki-jump]').forEach(function (link) {
       link.addEventListener('click', function () {
-        var slug = link.getAttribute('data-wiki-chapter-link');
+        var slug = link.getAttribute('data-wiki-chapter-link') || link.getAttribute('data-wiki-jump');
         if (slug) setActiveNav(slug, true);
         if (sidebarEl && mobileTocBtn) {
           sidebarEl.classList.remove('is-mobile-open');
@@ -1180,7 +1180,7 @@ const RENDERED_CHAPTERS = CHAPTERS.map((ch) => {
       var slug = art ? art.getAttribute('data-wiki-article') : '';
       var subId = '';
       if (art) {
-        var headings = art.querySelectorAll('.wk-full-body h2[id], .wk-full-body h3[id], .wk-full-body details[id]');
+        var headings = art.querySelectorAll('.wk-full-body h2[id], .wk-full-body h3[id], .wk-full-body h4[id], .wk-full-body details[id]');
         for (var i = 0; i < headings.length; i++) {
           var h = headings[i];
           if (h === mark || h.contains(mark) || (h.compareDocumentPosition(mark) & Node.DOCUMENT_POSITION_FOLLOWING)) {

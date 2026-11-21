@@ -371,6 +371,15 @@ const COMPARE_ROWS = [
       return 'Custom / HTML';
     }
 
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     function analyze(raw) {
       if (!report) return;
       var text = (raw || '').trim();
@@ -387,9 +396,10 @@ const COMPARE_ROWS = [
           return;
         }
         var rows = apps.map(function (a) {
-          var name = a.name || a.id || 'Unknown App';
-          var url = a.url || '';
-          var src = classifyUrl(url);
+          var name = escapeHtml(a.name || a.id || 'Unknown App');
+          var rawUrl = String(a.url || '');
+          var url = escapeHtml(rawUrl);
+          var src = classifyUrl(rawUrl);
           var ok = src !== 'Custom / HTML';
           return (
             '<div class="compat-row">' +

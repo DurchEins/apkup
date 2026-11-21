@@ -41,7 +41,7 @@ const WIKI_ORDER = [
   { file: 'Home.md', title: 'Overview & Quick Start' },
   { file: 'Update-Sources,-Repository-Linking-&-Signature-Protection.md', title: 'Update Sources, Repository Linking & Signature Protection' },
   { file: 'F-Droid-&-Index-V2-Repositories.md', title: 'F-Droid & Index V2 Repositories' },
-  { file: 'Authentication-Tokens-(PAT)-for-GitHub,-GitLab-&-Codeberg.md', title: 'Authentication Tokens (PAT) for GitHub, GitLab & Codeberg' },
+  { file: 'Configuring-GitHub-&-GitLab-Tokens.md', title: 'Authentication Tokens (PAT) for GitHub, GitLab & Codeberg' },
   { file: 'Setting-up-Shizuku.md', title: 'Setting up Shizuku (Quick Guide)' },
   { file: 'Shizuku-&-Background-Installation.md', title: 'Shizuku & Background Installation (Architecture & Safeguards)' },
   { file: 'Obtainium-Migration-&-Sync-Guide.md', title: 'Obtainium Migration & Sync Guide' },
@@ -68,7 +68,9 @@ const llmsTxt = `# ApkUp
 
 - [Home & Feature Overview](${BASE_URL}/): Overview of all 8 update sources, 10 app screenshots, Shizuku/Root silent updates, signed APK download, SHA-256 verification, and Android permissions matrix.
 - [Downloads, Mirrors & SHA-256 Verification](${BASE_URL}/downloads/): Canonical signed APK download, live SHA256SUMS checksums, ABI/Android requirements, and all 8 official & community mirrors.
-- [Wiki & Reference Guides](${BASE_URL}/wiki/): Complete 9-chapter documentation covering source priority, F-Droid Index V2, PAT tokens, Shizuku & Root setup, Obtainium JSON import, and error troubleshooting.
+- [Install Unknown Apps (APK Sideloading Guide)](${BASE_URL}/sideloading/): Step-by-step Android 10–17 sideloading instructions and power-user paths via Shizuku, ADB, and Root.
+- [Google's 24h Sideloading Lock & Keep Android Open](${BASE_URL}/sideloading/google-lock/): Permanent unlock guide for Google's 2026/2027 24-hour Developer Options cooldown, user impact, and Keep Android Open campaign.
+- [Wiki & Reference Guides](${BASE_URL}/wiki/): Complete 12-chapter documentation covering source priority, F-Droid Index V2, PAT tokens, Shizuku & Root setup, Obtainium JSON import, sideloading, Google's 24h lock, and error troubleshooting.
 - [Source Compatibility & Comparison](${BASE_URL}/compare/): Feature comparison (ApkUp vs. Obtainium vs. Aurora Store vs. F-Droid) and 100% offline Obtainium JSON compatibility checker.
 - [What's New / Changelog](${BASE_URL}/changelog/): Release history and feature highlights.
 - [Privacy Policy](${BASE_URL}/privacy/): Zero-telemetry, on-device storage, and encrypted credential details.

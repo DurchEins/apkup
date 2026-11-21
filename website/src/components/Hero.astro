@@ -203,40 +203,40 @@ const base = getBaseUrl();
 
 <script is:inline>
   (function () {
-    var els = document.querySelectorAll('[data-count-to]');
-    if (!els.length || !('IntersectionObserver' in window)) return;
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        var el = entry.target;
-        io.unobserve(el);
-        var target = parseInt(el.getAttribute('data-count-to') || '0', 10);
-        var suffix = el.getAttribute('data-count-suffix') || '';
-        var start = performance.now();
-        var dur = 1150;
-        function tick(now) {
-          var p = Math.min(1, (now - start) / dur);
-          var eased = 1 - Math.pow(1 - p, 3);
-          el.textContent = Math.round(target * eased) + suffix;
-          if (p < 1) requestAnimationFrame(tick);
-        }
-        requestAnimationFrame(tick);
-      });
-    }, { threshold: 0.4 });
-
-    els.forEach(function (el) { io.observe(el); });
-
     // Auto-detect Android visitor
     var androidPill = document.getElementById('android-detected-pill');
     if (androidPill && /android/i.test(navigator.userAgent || '')) {
       androidPill.hidden = false;
     }
 
+    var els = document.querySelectorAll('[data-count-to]');
+    var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (els.length && 'IntersectionObserver' in window && !reducedMotion) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          var el = entry.target;
+          io.unobserve(el);
+          var target = parseInt(el.getAttribute('data-count-to') || '0', 10);
+          var suffix = el.getAttribute('data-count-suffix') || '';
+          var start = performance.now();
+          var dur = 1150;
+          function tick(now) {
+            var p = Math.min(1, (now - start) / dur);
+            var eased = 1 - Math.pow(1 - p, 3);
+            el.textContent = Math.round(target * eased) + suffix;
+            if (p < 1) requestAnimationFrame(tick);
+          }
+          requestAnimationFrame(tick);
+        });
+      }, { threshold: 0.4 });
+
+      els.forEach(function (el) { io.observe(el); });
+    }
+
     // Subtle ±2deg parallax tilt on hero phone mockup
     var frame = document.querySelector('.hero-visual .phone-frame');
-    if (frame && window.matchMedia('(hover: hover)').matches) {
+    if (frame && !reducedMotion && window.matchMedia('(hover: hover)').matches) {
       frame.addEventListener('pointermove', function (e) {
         var r = frame.getBoundingClientRect();
         var nx = ((e.clientX - r.left) / r.width - 0.5) * 2;

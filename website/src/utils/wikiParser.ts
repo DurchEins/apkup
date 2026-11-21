@@ -3,15 +3,35 @@ const SLUG_BY_WIKI_NAME: Record<string, string> = {
   'update-sources,-repository-linking-&-signature-protection': 'sources',
   'f-droid-&-index-v2-repositories': 'fdroid',
   'configuring-github-&-gitlab-tokens': 'tokens',
+  'authentication-tokens-(pat)-for-github,-gitlab-&-codeberg': 'tokens',
   'setting-up-shizuku': 'shizuku-setup',
   'shizuku-&-background-installation': 'shizuku-deep',
   'obtainium-migration-&-sync-guide': 'obtainium',
   'app-management,-filters,-background-checks-&-backup': 'management',
   'troubleshooting-source-errors': 'troubleshooting',
+  'sha-256-&-signature-verification': 'sha256',
+  'installing-unknown-apps': 'sideloading',
+  'google-24h-lock-&-keep-android-open': 'google-lock',
 };
 
 function escapeHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function slugifySegment(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/&amp;/g, ' ')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
 }
 
 function stripLeadingEmoji(s: string): string {
@@ -26,7 +46,12 @@ function plainHeadingText(s: string): string {
   );
 }
 
-function formatInline(raw: string): string {
+function resolveWikiSlug(rawPageName: string): string | undefined {
+  const decoded = decodeURIComponent(rawPageName.replace(/&amp;/g, '&')).toLowerCase();
+  return SLUG_BY_WIKI_NAME[decoded];
+}
+
+function formatInline(raw: string, slugPrefix = 'home'): string {
   let s = escapeHtml(raw);
   s = s.replace(/`([^`]+)`/g, '<code class="wk-code mono">$1</code>');
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
@@ -35,12 +60,30 @@ function formatInline(raw: string): string {
     const cleanLabel = stripLeadingEmoji(label);
     const wikiMatch = url.match(/github\.com\/DurchEins\/apkup\/wiki(?:\/([^#?]+))?(#.*)?$/i);
     if (wikiMatch) {
-      const rawName = wikiMatch[1] ? decodeURIComponent(wikiMatch[1]).toLowerCase() : 'home';
-      const targetSlug = SLUG_BY_WIKI_NAME[rawName] || 'home';
+      const targetSlug = (wikiMatch[1] && resolveWikiSlug(wikiMatch[1])) || 'home';
       return `<a href="#doc-${targetSlug}" data-wiki-jump="${targetSlug}">${cleanLabel}</a>`;
     }
-    if (url.startsWith('#')) {
+    const localWikiMatch = url.match(/^\/apkup\/wiki\/#doc-([a-z0-9-]+)$/i);
+    if (localWikiMatch) {
+      const targetSlug = localWikiMatch[1];
+      return `<a href="#doc-${targetSlug}" data-wiki-jump="${targetSlug}">${cleanLabel}</a>`;
+    }
+    if (url.startsWith('/apkup/')) {
       return `<a href="${url}">${cleanLabel}</a>`;
+    }
+    if (url.startsWith('#')) {
+      const cleanHash = slugifySegment(url.slice(1));
+      if (!cleanHash || cleanHash === 'table-of-contents' || cleanHash === 'quick-navigation') {
+        return `<a href="#doc-${slugPrefix}">${cleanLabel}</a>`;
+      }
+      return `<a href="#${slugPrefix}-${cleanHash}">${cleanLabel}</a>`;
+    }
+    if (!/^(https?:|mailto:|\/)/i.test(url)) {
+      const [pagePart] = url.split('#');
+      const targetSlug = resolveWikiSlug(pagePart);
+      if (targetSlug) {
+        return `<a href="#doc-${targetSlug}" data-wiki-jump="${targetSlug}">${cleanLabel}</a>`;
+      }
     }
     return `<a href="${url}" target="_blank" rel="noopener noreferrer">${cleanLabel}</a>`;
   });
@@ -71,6 +114,10 @@ export function renderFullWikiHtml(md: string, slugPrefix: string): { html: stri
   let quoteBuf: string[] = [];
   let inFaqPart = false;
 
+  function fmt(raw: string): string {
+    return formatInline(raw, slugPrefix);
+  }
+
   function flushLists() {
     if (inUl) {
       out.push('</ul>');
@@ -89,11 +136,11 @@ export function renderFullWikiHtml(md: string, slugPrefix: string): { html: stri
     const header = tableRows[0];
     const body = tableRows.slice(1).filter((r) => !r.every((c) => /^[-:\s]+$/.test(c)));
     let html = '<div class="wk-table-wrap"><table class="wk-table"><thead><tr>';
-    for (const h of header) html += `<th>${formatInline(h)}</th>`;
+    for (const h of header) html += `<th>${fmt(h)}</th>`;
     html += '</tr></thead><tbody>';
     for (const row of body) {
       html += '<tr>';
-      for (const cell of row) html += `<td>${formatInline(cell)}</td>`;
+      for (const cell of row) html += `<td>${fmt(cell)}</td>`;
       html += '</tr>';
     }
     html += '</tbody></table></div>';
@@ -109,10 +156,10 @@ export function renderFullWikiHtml(md: string, slugPrefix: string): { html: stri
     if (alertMatch) {
       const kind = alertMatch[1].toUpperCase();
       out.push(
-        `<div class="wk-callout wk-callout-${kind.toLowerCase()}"><strong class="mono">${kind}</strong><p>${formatInline(alertMatch[2])}</p></div>`
+        `<div class="wk-callout wk-callout-${kind.toLowerCase()}"><strong class="mono">${kind}</strong><p>${fmt(alertMatch[2])}</p></div>`
       );
     } else if (joined) {
-      out.push(`<blockquote class="wk-quote"><p>${formatInline(joined)}</p></blockquote>`);
+      out.push(`<blockquote class="wk-quote"><p>${fmt(joined)}</p></blockquote>`);
     }
     quoteBuf = [];
   }
@@ -157,11 +204,7 @@ export function renderFullWikiHtml(md: string, slugPrefix: string): { html: stri
     }
 
     function makeId(text: string): string {
-      const base = text
-        .toLowerCase()
-        .replace(/[`*_~()[\]{}:.!?,/\\+]/g, '')
-        .trim()
-        .replace(/\s+/g, '-');
+      const base = slugifySegment(text);
       let candidate = `${slugPrefix}-${base || 'sec'}`;
       let n = 2;
       while (usedIds.has(candidate)) {
@@ -200,7 +243,7 @@ export function renderFullWikiHtml(md: string, slugPrefix: string): { html: stri
           : /part 3/i.test(clean)
             ? 'wk-part-amber'
             : 'wk-part-neutral';
-      out.push(`<h3 id="${id}" class="wk-h2 ${badgeClass}">${formatInline(stripLeadingEmoji(h2Match[1]))}</h3>`);
+      out.push(`<h3 id="${id}" class="wk-h2 ${badgeClass}">${fmt(stripLeadingEmoji(h2Match[1]))}</h3>`);
       continue;
     }
 
@@ -215,10 +258,10 @@ export function renderFullWikiHtml(md: string, slugPrefix: string): { html: stri
       if (inFaqPart) {
         inFaqDetails = true;
         out.push(
-          `<details id="${id}" class="wk-faq"><summary><span>${formatInline(stripLeadingEmoji(h3Match[1]))}</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="wk-faq-body">`
+          `<details id="${id}" class="wk-faq"><summary><span>${fmt(stripLeadingEmoji(h3Match[1]))}</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="wk-faq-body">`
         );
       } else {
-        out.push(`<h4 id="${id}" class="wk-h3">${formatInline(stripLeadingEmoji(h3Match[1]))}</h4>`);
+        out.push(`<h4 id="${id}" class="wk-h3">${fmt(stripLeadingEmoji(h3Match[1]))}</h4>`);
       }
       continue;
     }
@@ -268,7 +311,7 @@ export function renderFullWikiHtml(md: string, slugPrefix: string): { html: stri
         out.push('<ul class="wk-ul">');
         inUl = true;
       }
-      out.push(`<li>${formatInline(ulMatch[1])}</li>`);
+      out.push(`<li>${fmt(ulMatch[1])}</li>`);
       continue;
     }
 
@@ -282,12 +325,12 @@ export function renderFullWikiHtml(md: string, slugPrefix: string): { html: stri
         out.push('<ol class="wk-ol">');
         inOl = true;
       }
-      out.push(`<li>${formatInline(olMatch[1])}</li>`);
+      out.push(`<li>${fmt(olMatch[1])}</li>`);
       continue;
     }
 
     flushLists();
-    out.push(`<p class="wk-p">${formatInline(line.trim())}</p>`);
+    out.push(`<p class="wk-p">${fmt(line.trim())}</p>`);
   }
 
   closeFaqItem();

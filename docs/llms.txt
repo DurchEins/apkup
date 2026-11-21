@@ -13,7 +13,9 @@
 
 - [Home & Feature Overview](https://durcheins.github.io/apkup/): Overview of all 8 update sources, 10 app screenshots, Shizuku/Root silent updates, signed APK download, SHA-256 verification, and Android permissions matrix.
 - [Downloads, Mirrors & SHA-256 Verification](https://durcheins.github.io/apkup/downloads/): Canonical signed APK download, live SHA256SUMS checksums, ABI/Android requirements, and all 8 official & community mirrors.
-- [Wiki & Reference Guides](https://durcheins.github.io/apkup/wiki/): Complete 9-chapter documentation covering source priority, F-Droid Index V2, PAT tokens, Shizuku & Root setup, Obtainium JSON import, and error troubleshooting.
+- [Install Unknown Apps (APK Sideloading Guide)](https://durcheins.github.io/apkup/sideloading/): Step-by-step Android 10–17 sideloading instructions and power-user paths via Shizuku, ADB, and Root.
+- [Google's 24h Sideloading Lock & Keep Android Open](https://durcheins.github.io/apkup/sideloading/google-lock/): Permanent unlock guide for Google's 2026/2027 24-hour Developer Options cooldown, user impact, and Keep Android Open campaign.
+- [Wiki & Reference Guides](https://durcheins.github.io/apkup/wiki/): Complete 12-chapter documentation covering source priority, F-Droid Index V2, PAT tokens, Shizuku & Root setup, Obtainium JSON import, sideloading, Google's 24h lock, and error troubleshooting.
 - [Source Compatibility & Comparison](https://durcheins.github.io/apkup/compare/): Feature comparison (ApkUp vs. Obtainium vs. Aurora Store vs. F-Droid) and 100% offline Obtainium JSON compatibility checker.
 - [What's New / Changelog](https://durcheins.github.io/apkup/changelog/): Release history and feature highlights.
 - [Privacy Policy](https://durcheins.github.io/apkup/privacy/): Zero-telemetry, on-device storage, and encrypted credential details.

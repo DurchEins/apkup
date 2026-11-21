@@ -94,7 +94,7 @@ const homeSchemas = [
         var metaSpans = document.querySelectorAll('[data-apk-meta]');
         var heroPill = document.getElementById('hero-version-pill');
 
-        if (data.apkUrl) {
+        if (data.apkUrl && /^https:\/\/github\.com\/DurchEins\/apkup\//i.test(data.apkUrl)) {
           links.forEach(function (el) {
             el.setAttribute('href', data.apkUrl);
           });
@@ -106,44 +106,46 @@ const homeSchemas = [
         if (heroPill) heroPill.textContent = data.version;
       }
 
-      try {
-        var cached = sessionStorage.getItem(CACHE_KEY);
-        if (cached) {
-          var parsed = JSON.parse(cached);
-          if (parsed && Date.now() - parsed.ts < 15 * 60 * 1000) {
-            applyRelease(parsed);
-            return;
+      function initReleaseFetch() {
+        try {
+          var cached = sessionStorage.getItem(CACHE_KEY);
+          if (cached) {
+            var parsed = JSON.parse(cached);
+            if (parsed && Date.now() - parsed.ts < 15 * 60 * 1000) {
+              applyRelease(parsed);
+              return;
+            }
           }
-        }
-      } catch (e) {}
+        } catch (e) {}
 
-      fetch(API_URL, { headers: { Accept: 'application/vnd.github+json' } })
-        .then(function (res) {
-          if (!res.ok) throw new Error('HTTP ' + res.status);
-          return res.json();
-        })
-        .then(function (release) {
-          var version = release.tag_name || '';
-          var apkAsset = null;
-          if (Array.isArray(release.assets)) {
-            apkAsset = release.assets.find(function (a) {
-              return typeof a.name === 'string' && a.name.toLowerCase().endsWith('.apk');
-            });
-          }
-          var payload = {
-            ts: Date.now(),
-            version: version.startsWith('v') ? version : 'v' + version,
-            apkUrl: apkAsset ? apkAsset.browser_download_url : release.html_url,
-            sizeMb: apkAsset && apkAsset.size ? (apkAsset.size / (1024 * 1024)).toFixed(1) : '',
-          };
-          try {
-            sessionStorage.setItem(CACHE_KEY, JSON.stringify(payload));
-          } catch (e) {}
-          applyRelease(payload);
-        })
-        .catch(function () {
-          // Graceful fallback to static /releases/latest already rendered in HTML
-        });
+        fetch(API_URL, { headers: { Accept: 'application/vnd.github+json' } })
+          .then(function (res) {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.json();
+          })
+          .then(function (release) {
+            var version = release.tag_name || '';
+            var apkAsset = null;
+            if (Array.isArray(release.assets)) {
+              apkAsset = release.assets.find(function (a) {
+                return typeof a.name === 'string' && a.name.toLowerCase().endsWith('.apk');
+              });
+            }
+            var payload = {
+              ts: Date.now(),
+              version: version.startsWith('v') ? version : 'v' + version,
+              apkUrl: apkAsset ? apkAsset.browser_download_url : release.html_url,
+              sizeMb: apkAsset && apkAsset.size ? (apkAsset.size / (1024 * 1024)).toFixed(1) : '',
+            };
+            try {
+              sessionStorage.setItem(CACHE_KEY, JSON.stringify(payload));
+            } catch (e) {}
+            applyRelease(payload);
+          })
+          .catch(function () {});
+      }
+
+      initReleaseFetch();
 
       // Fetch live GitHub Star count
       var STAR_KEY = 'apkup-gh-stars-v1';
