@@ -145,11 +145,105 @@ object ReleaseAssetFilter {
         "arm64-v8a" to setOf("arm64-v8a", "arm64", "aarch64")
     )
 
+    /**
+     * Compiles [pattern] into a case-insensitive [Regex] after enforcing [MAX_REGEX_LENGTH] and
+     * rejecting nested unbounded quantifiers (e.g. `(a+)+`, `(.*)*`) that can trigger ReDoS.
+     */
+    fun compileSafeRegex(pattern: String?): Regex? {
+        val trimmed = pattern?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        if (trimmed.length > MAX_REGEX_LENGTH) return null
+        if (hasNestedQuantifierRisk(trimmed)) return null
+        return runCatching { Regex(trimmed, RegexOption.IGNORE_CASE) }.getOrNull()
+    }
+
     fun isValidRegex(pattern: String): Boolean {
         val trimmed = pattern.trim()
         if (trimmed.isEmpty()) return true
-        if (trimmed.length > MAX_REGEX_LENGTH) return false
-        return runCatching { Regex(trimmed, RegexOption.IGNORE_CASE) }.isSuccess
+        return compileSafeRegex(trimmed) != null
+    }
+
+    private fun hasNestedQuantifierRisk(pattern: String): Boolean {
+        val groupHasQuantifier = ArrayDeque<Boolean>()
+        var inCharClass = false
+        var i = 0
+        while (i < pattern.length) {
+            val ch = pattern[i]
+            if (ch == '\\') {
+                i += 2
+                continue
+            }
+            if (inCharClass) {
+                if (ch == ']') inCharClass = false
+                i++
+                continue
+            }
+            when (ch) {
+                '[' -> inCharClass = true
+                '(' -> groupHasQuantifier.addLast(false)
+                ')' -> {
+                    val innerQuantified = if (groupHasQuantifier.isEmpty()) false else groupHasQuantifier.removeLast()
+                    val (outerQuantified, nextIdx) = consumeQuantifier(pattern, i + 1)
+                    if (innerQuantified && outerQuantified) return true
+                    if (outerQuantified || innerQuantified) {
+                        markParentQuantified(groupHasQuantifier)
+                    }
+                    i = nextIdx
+                    continue
+                }
+                '*', '+' -> markParentQuantified(groupHasQuantifier)
+                '{' -> {
+                    val (boundedQuantified, nextIdx) = consumeBraceQuantifier(pattern, i)
+                    if (boundedQuantified) {
+                        markParentQuantified(groupHasQuantifier)
+                        i = nextIdx
+                        continue
+                    }
+                }
+            }
+            i++
+        }
+        return false
+    }
+
+    private fun markParentQuantified(stack: ArrayDeque<Boolean>) {
+        if (stack.isNotEmpty()) {
+            stack[stack.lastIndex] = true
+        }
+    }
+
+    private fun consumeQuantifier(pattern: String, startIndex: Int): Pair<Boolean, Int> {
+        if (startIndex >= pattern.length) return false to startIndex
+        return when (pattern[startIndex]) {
+            '*', '+' -> true to skipQuantifierModifier(pattern, startIndex + 1)
+            '{' -> {
+                val (isRepeat, nextIdx) = consumeBraceQuantifier(pattern, startIndex)
+                if (isRepeat) true to skipQuantifierModifier(pattern, nextIdx) else false to startIndex
+            }
+            else -> false to startIndex
+        }
+    }
+
+    private fun consumeBraceQuantifier(pattern: String, startIndex: Int): Pair<Boolean, Int> {
+        if (startIndex >= pattern.length || pattern[startIndex] != '{') return false to startIndex
+        val close = pattern.indexOf('}', startIndex + 1)
+        if (close == -1) return false to startIndex
+        val body = pattern.substring(startIndex + 1, close)
+        val parts = body.split(',')
+        if (parts.size > 2) return false to startIndex
+        val min = parts[0].toIntOrNull() ?: return false to startIndex
+        val max = if (parts.size == 2) {
+            if (parts[1].isEmpty()) Int.MAX_VALUE else parts[1].toIntOrNull() ?: return false to startIndex
+        } else {
+            min
+        }
+        return (max > 1) to (close + 1)
+    }
+
+    private fun skipQuantifierModifier(pattern: String, index: Int): Int {
+        if (index < pattern.length && (pattern[index] == '?' || pattern[index] == '+')) {
+            return index + 1
+        }
+        return index
     }
 
     fun <T> findBestApk(
@@ -161,13 +255,7 @@ object ReleaseAssetFilter {
         preferFossFlavor: Boolean = false
     ): T? {
         val requiredLower = requiredSubstring?.trim()?.lowercase(Locale.ROOT)?.takeIf { it.isNotEmpty() }
-        val compiledRegex = assetFilterRegex
-            ?.trim()
-            ?.takeIf { it.isNotEmpty() }
-            ?.let { pattern ->
-                if (pattern.length > MAX_REGEX_LENGTH) return null
-                runCatching { Regex(pattern, RegexOption.IGNORE_CASE) }.getOrNull() ?: return null
-            }
+        val compiledRegex = if (assetFilterRegex.isNullOrBlank()) null else compileSafeRegex(assetFilterRegex) ?: return null
 
         val apkAssets = assets.filter { asset ->
             val fname = getFilename(asset)

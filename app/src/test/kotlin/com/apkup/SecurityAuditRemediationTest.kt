@@ -312,4 +312,32 @@ class SecurityAuditRemediationTest {
         assertEquals("split_3.apk", fourth)
         assertEquals(4, setOf(first.lowercase(), second.lowercase(), third.lowercase(), fourth.lowercase()).size)
     }
+
+    @Test
+    fun `SEC-M03 ReleaseAssetFilter blocks nested quantifier ReDoS patterns while keeping valid filters`() {
+        assertFalse(com.apkup.data.repomapping.ReleaseAssetFilter.isValidRegex("(a+)+$"))
+        assertFalse(com.apkup.data.repomapping.ReleaseAssetFilter.isValidRegex("(.*)*\\.apk$"))
+        assertFalse(com.apkup.data.repomapping.ReleaseAssetFilter.isValidRegex("([a-z0-9]+){2,}"))
+        assertNull(
+            com.apkup.data.repomapping.ReleaseAssetFilter.findBestApk(
+                assets = listOf("aaaaaaaaaaaaaaaaaaaaaaaaa!.apk"),
+                getFilename = { it },
+                supportedAbis = arrayOf("arm64-v8a"),
+                assetFilterRegex = "(a+)+$"
+            )
+        )
+
+        assertTrue(com.apkup.data.repomapping.ReleaseAssetFilter.isValidRegex("^(?!.*debug).*\\.apk$"))
+        assertTrue(com.apkup.data.repomapping.ReleaseAssetFilter.isValidRegex(".*(arm64|universal).*\\.apk$"))
+        assertTrue(com.apkup.data.repomapping.ReleaseAssetFilter.isValidRegex("(?:[a-z]+)\\.apk"))
+        assertEquals(
+            "app-arm64-release.apk",
+            com.apkup.data.repomapping.ReleaseAssetFilter.findBestApk(
+                assets = listOf("app-arm64-debug.apk", "app-arm64-release.apk"),
+                getFilename = { it },
+                supportedAbis = arrayOf("arm64-v8a"),
+                assetFilterRegex = "^(?!.*debug).*\\.apk$"
+            )
+        )
+    }
 }
