@@ -128,6 +128,16 @@ fun rememberCustomTabOpener(): (String) -> Unit {
 	}
 }
 
+@Composable
+fun rememberCustomTabUriHandler(): androidx.compose.ui.platform.UriHandler {
+	val openCustomTab = rememberCustomTabOpener()
+	return remember(openCustomTab) {
+		object : androidx.compose.ui.platform.UriHandler {
+			override fun openUri(uri: String) = openCustomTab(uri)
+		}
+	}
+}
+
 /**
  * Shared Material 3 Expressive bottom sheet presenting voluntary funding links (Buy Me a Coffee & Coindrop)
  * alongside free community support links (GitHub/GitLab stars and store reviews).

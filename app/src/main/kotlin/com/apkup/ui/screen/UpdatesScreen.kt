@@ -631,10 +631,12 @@ fun UpdatesScreenSuccess(
 		mutableStateOf<Pair<List<AppUpdate>, () -> Unit>?>(null)
 	}
 
+	val customTabHandler = com.apkup.ui.component.rememberCustomTabUriHandler()
+
 	val requestInstallSingle: (AppUpdate) -> Unit = { target ->
 		val execute = {
 			requestNotificationPermissionIfNeeded()
-			viewModel.install(target, handler)
+			viewModel.install(target, customTabHandler)
 		}
 		if (target.isWatchedApp() && target.source == ApkMirrorSource) {
 			pendingWatchedApkMirrorConfirm = listOf(target) to execute
@@ -645,7 +647,7 @@ fun UpdatesScreenSuccess(
 
 	val requestSaveApkSingle: (AppUpdate) -> Unit = { target ->
 		val execute = {
-			viewModel.saveApk(target, handler)
+			viewModel.saveApk(target, customTabHandler)
 		}
 		if (target.isWatchedApp() && target.source == ApkMirrorSource) {
 			pendingWatchedApkMirrorConfirm = listOf(target) to execute
