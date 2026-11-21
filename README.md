@@ -335,16 +335,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 </p>
 
 <p align="center">
-  <a href="https://github.com/DurchEins/apkup">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://github-readme-stats.vercel.app/api/pin/?username=DurchEins&repo=apkup&bg_color=161B22&border_color=30363D&title_color=F59E0B&icon_color=F59E0B&text_color=E6EDF3&show_owner=true" />
-      <source media="(prefers-color-scheme: light)" srcset="https://github-readme-stats.vercel.app/api/pin/?username=DurchEins&repo=apkup&bg_color=FFFDF8&border_color=E7E0D3&title_color=B45309&icon_color=D97706&text_color=1C1917&show_owner=true" />
-      <img src="https://github-readme-stats.vercel.app/api/pin/?username=DurchEins&repo=apkup&bg_color=161B22&border_color=30363D&title_color=F59E0B&icon_color=F59E0B&text_color=E6EDF3&show_owner=true" alt="ApkUp GitHub Repository Card" />
-    </picture>
-  </a>
-</p>
-
-<p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset=".github/assets/footer-pill-dark.svg">
     <source media="(prefers-color-scheme: light)" srcset=".github/assets/footer-pill-light.svg">
