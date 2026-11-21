@@ -1,4 +1,9 @@
 <svg viewBox="0 0 900 180" width="900" height="180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ApkUp — Multi-Source • Verified • Silent">
+  <style>
+    @media (prefers-reduced-motion: reduce) {
+      animate { display: none; }
+    }
+  </style>
   <defs>
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#14161B" />

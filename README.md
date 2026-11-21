@@ -1,5 +1,9 @@
 <p align="center">
-  <img src=".github/assets/header-banner.svg" width="100%" alt="ApkUp — Multi-Source • Verified • Silent" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/header-banner.svg">
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/header-banner-light.svg">
+    <img src=".github/assets/header-banner.svg" width="100%" alt="ApkUp — Multi-Source • Verified • Silent" />
+  </picture>
 </p>
 <p align="center">
   <b>A modern open-source Android application for discovering, verifying, and autonomously installing app updates across multiple sources (Google Play, F-Droid &amp; IzzyOnDroid, APKMirror, GitHub, GitLab &amp; Codeberg/Forgejo) featuring Material 3 Expressive design, cryptographic APK signature verification, Watchlist tracking, APK export, and unattended Shizuku &amp; optional Root background updates.</b>
@@ -111,29 +115,28 @@ Get the latest release of ApkUp from your preferred platform:
 
 ## 📸 Screenshots
 
-<p align="center">
-  <img src=".github/assets/screenshots/01_en_updates.png" width="260" alt="Updates Screen" />
-  &nbsp;&nbsp;
-  <img src=".github/assets/screenshots/02_en_update_details.png" width="260" alt="Update Details Sheet" />
-  &nbsp;&nbsp;
-  <img src=".github/assets/screenshots/03_en_apps_list.png" width="260" alt="Installed Apps List" />
-</p>
+| 🚀 Multi-Source Updates | 🛡️ Update Details & Verification | ⚙️ Setup & Update Sources |
+| :---: | :---: | :---: |
+| <img src=".github/assets/screenshots/01_en_updates.png" width="250" alt="Updates Screen" /> | <img src=".github/assets/screenshots/02_en_update_details.png" width="250" alt="Update Details Sheet" /> | <img src=".github/assets/screenshots/06_en_settings_sources.png" width="250" alt="Settings & Sources" /> |
 
-<p align="center">
-  <img src=".github/assets/screenshots/04_en_apps_grid.png" width="260" alt="Apps Search & Grid" />
-  &nbsp;&nbsp;
-  <img src=".github/assets/screenshots/05_en_apps_menu.png" width="260" alt="App Details & Context Actions" />
-  &nbsp;&nbsp;
-  <img src=".github/assets/screenshots/06_en_settings_sources.png" width="260" alt="Settings & Sources" />
-</p>
+<details>
+<summary><b>📸 View all 12 screenshots (Apps, Batch Selection, Custom Repos, Rollbacks &amp; Support)</b></summary>
 
-<p align="center">
-  <img src=".github/assets/screenshots/07_en_settings_about.png" width="260" alt="About ApkUp & Backup" />
-  &nbsp;&nbsp;
-  <img src=".github/assets/screenshots/08_en_update_history.png" width="260" alt="Update History & Rollback Logs" />
-  &nbsp;&nbsp;
-  <img src=".github/assets/screenshots/09_en_whats_new.png" width="260" alt="What's New & Changelog" />
-</p>
+<br>
+
+| 📦 Installed Apps (Detailed List) | 🔲 Installed Apps (Compact Grid) | 🔍 App Actions & Signer SHA-256 |
+| :---: | :---: | :---: |
+| <img src=".github/assets/screenshots/03_en_apps_list.png" width="250" alt="Installed Apps List" /> | <img src=".github/assets/screenshots/04_en_apps_grid.png" width="250" alt="Apps Search & Grid" /> | <img src=".github/assets/screenshots/05_en_apps_menu.png" width="250" alt="App Details & Context Actions" /> |
+
+| ✅ Multi-Select Batch Mode | 🔗 Link Custom Repository | ⏪ Update History & Rollback |
+| :---: | :---: | :---: |
+| <img src=".github/assets/screenshots/10_en_batch_selection.png" width="250" alt="Multi-Select Batch Mode" /> | <img src=".github/assets/screenshots/11_en_link_repo.png" width="250" alt="Link Custom Repository" /> | <img src=".github/assets/screenshots/08_en_update_history.png" width="250" alt="Update History & Rollback Logs" /> |
+
+| ℹ️ About & Self-Updater | 📰 Monthly In-App Changelog | ❤️ Support & Community |
+| :---: | :---: | :---: |
+| <img src=".github/assets/screenshots/07_en_settings_about.png" width="250" alt="About ApkUp & Backup" /> | <img src=".github/assets/screenshots/09_en_whats_new.png" width="250" alt="What's New & Changelog" /> | <img src=".github/assets/screenshots/12_en_support_community.png" width="250" alt="Support & Community Sheet" /> |
+
+</details>
 
 ---
 
