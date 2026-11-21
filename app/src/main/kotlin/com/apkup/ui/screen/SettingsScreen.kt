@@ -2872,6 +2872,11 @@ fun Settings(
 			onDismiss = {
 				showChangelogSheet = false
 				mainViewModel.dismissChangelogSheet(BuildConfig.VERSION_CODE.toLong())
+			},
+			onOpenSupport = {
+				showChangelogSheet = false
+				mainViewModel.dismissChangelogSheet(BuildConfig.VERSION_CODE.toLong())
+				showSupportCommunitySheet = true
 			}
 		)
 	}

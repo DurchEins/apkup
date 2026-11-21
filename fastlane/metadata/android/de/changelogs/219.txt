@@ -1,5 +1,5 @@
-1.45.1 (218) – Patch & Bugfix:
-• Neue ApkUp-Website (durcheins.github.io/apkup) mit Anleitungen, Downloads & direktem Hilfe-Link im Über-Bereich
+1.45.1 (219) – Patch & Bugfix:
+• Neue ApkUp-Website (https://durcheins.github.io/apkup) mit Anleitungen, Downloads & direktem Hilfe-Link im Über-Bereich
 • Neuer „ApkUp unterstützen“-Bereich unter Über mit Unterstützungsoptionen sowie Stern- und Bewertungslinks für GitHub, GitLab & App-Stores
 • Externe Projekt-, Hilfe- und Store-Links öffnen sich jetzt nahtlos direkt in der App
 • Verbesserte Sicherheitsprüfungen bei Root-Rollbacks, Split-APKs, Filter-Mustern & bereinigte Diagnose-Protokolle

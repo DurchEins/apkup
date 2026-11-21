@@ -108,8 +108,19 @@ data class ChangelogDocument(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChangelogBottomSheet(
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onOpenSupport: (() -> Unit)? = null
 ) {
+    val openCustomTab = rememberCustomTabOpener()
+    val handleChangelogLink: (String) -> Unit = { target ->
+        when {
+            target == "apkup://support" -> {
+                onDismiss()
+                onOpenSupport?.invoke()
+            }
+            com.apkup.util.isSafeHttpsUrl(target) -> openCustomTab(target)
+        }
+    }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val context = LocalContext.current
     val fallbackTitle = stringResource(R.string.changelog_title)
@@ -239,7 +250,8 @@ fun ChangelogBottomSheet(
                         isExpanded = isExpanded,
                         onToggle = {
                             expandedMonths[monthIndex] = !isExpanded
-                        }
+                        },
+                        onLinkClick = handleChangelogLink
                     )
                     if (monthIndex < changelogDoc.monthSections.lastIndex) {
                         HorizontalDivider(
@@ -276,7 +288,8 @@ fun ChangelogBottomSheet(
 private fun ChangelogMonthAccordion(
     section: ChangelogMonthSection,
     isExpanded: Boolean,
-    onToggle: () -> Unit
+    onToggle: () -> Unit,
+    onLinkClick: (String) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -313,7 +326,7 @@ private fun ChangelogMonthAccordion(
                     .padding(bottom = 20.dp)
             ) {
                 section.releases.forEachIndexed { releaseIndex, release ->
-                    ChangelogReleaseBlock(release = release)
+                    ChangelogReleaseBlock(release = release, onLinkClick = onLinkClick)
                     if (releaseIndex < section.releases.lastIndex) {
                         HorizontalDivider(
                             modifier = Modifier.padding(vertical = 20.dp),
@@ -328,7 +341,10 @@ private fun ChangelogMonthAccordion(
 }
 
 @Composable
-private fun ChangelogReleaseBlock(release: ChangelogRelease) {
+private fun ChangelogReleaseBlock(
+    release: ChangelogRelease,
+    onLinkClick: (String) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -371,7 +387,7 @@ private fun ChangelogReleaseBlock(release: ChangelogRelease) {
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             release.entries.forEach { entry ->
-                ChangelogBulletRow(entry = entry)
+                ChangelogBulletRow(entry = entry, onLinkClick = onLinkClick)
             }
         }
     }
@@ -499,8 +515,21 @@ private fun ChangelogFeatureBannerCard(banner: ChangelogBanner) {
     }
 }
 
+private val CHANGELOG_LINK_REGEX = Regex("""\[([^\]]+)\]\(([^)]+)\)""")
+
 @Composable
-private fun ChangelogBulletRow(entry: ChangelogEntry) {
+private fun ChangelogBulletRow(
+    entry: ChangelogEntry,
+    onLinkClick: (String) -> Unit
+) {
+    val linkColor = MaterialTheme.colorScheme.primary
+    val linkStyle = androidx.compose.ui.text.TextLinkStyles(
+        style = SpanStyle(
+            color = linkColor,
+            fontWeight = FontWeight.SemiBold,
+            textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline
+        )
+    )
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -527,12 +556,30 @@ private fun ChangelogBulletRow(entry: ChangelogEntry) {
                         }
                     }
                 }
-                withStyle(
-                    SpanStyle(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                val desc = entry.description
+                var cursor = 0
+                for (match in CHANGELOG_LINK_REGEX.findAll(desc)) {
+                    if (match.range.first > cursor) {
+                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
+                            append(desc.substring(cursor, match.range.first))
+                        }
+                    }
+                    val label = match.groupValues[1]
+                    val target = match.groupValues[2].trim()
+                    pushLink(
+                        androidx.compose.ui.text.LinkAnnotation.Clickable(
+                            tag = target,
+                            styles = linkStyle
+                        ) { onLinkClick(target) }
                     )
-                ) {
-                    append(entry.description)
+                    append(label)
+                    pop()
+                    cursor = match.range.last + 1
+                }
+                if (cursor < desc.length) {
+                    withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
+                        append(desc.substring(cursor))
+                    }
                 }
             },
             style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 20.sp),

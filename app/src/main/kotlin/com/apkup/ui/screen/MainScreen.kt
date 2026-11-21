@@ -342,6 +342,10 @@ fun MainScreen(
                 onDismiss = {
                     mainViewModel.dismissChangelogSheet(currentVersionCode)
                     mainViewModel.checkSupportPrompt()
+                },
+                onOpenSupport = {
+                    mainViewModel.dismissChangelogSheet(currentVersionCode)
+                    showSupportCommunitySheet = true
                 }
             )
         }
