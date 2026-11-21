@@ -219,7 +219,8 @@ jobs:
           APK_NAME=$(basename "$APK_PATH")
           SHA_NAME=$(basename "$SHA_PATH")
 
-          git push "https://oauth2:${GITLAB_TOKEN}@gitlab.com/DurchEins1/apkup.git" "${GITHUB_SHA}:refs/tags/${SAFE_TAG}" || true
+          AUTH_HEADER="Authorization: Basic $(printf 'oauth2:%s' "$GITLAB_TOKEN" | base64 -w0)"
+          git -c "http.https://gitlab.com/.extraHeader=${AUTH_HEADER}" push "https://gitlab.com/DurchEins1/apkup.git" "${GITHUB_SHA}:refs/tags/${SAFE_TAG}" || echo "::warning::GitLab tag push skipped or already exists."
 
           PKG_BASE="https://gitlab.com/api/v4/projects/${PROJECT_ID}/packages/generic/apkup/${SAFE_TAG}"
           curl -fsSL -X PUT -H "PRIVATE-TOKEN: ${GITLAB_TOKEN}" --upload-file "$APK_PATH" "${PKG_BASE}/${APK_NAME}" > /dev/null
@@ -303,7 +304,7 @@ jobs:
             echo "ZAPSTORE_SIGN_WITH not set; skipping Zapstore publish."
             exit 0
           fi
-          go install github.com/zapstore/zsp/v2/cmd/zsp@latest
+          go install github.com/zapstore/zsp/v2/cmd/zsp@v2.0.1
           "$(go env GOPATH)/bin/zsp" publish -q zapstore.yaml
 
       - name: Publish to itch.io (Optional)
@@ -329,7 +330,10 @@ jobs:
           SAFE_CHANNEL=$(printf '%s' "$RAW_CHANNEL" | tr -cd 'a-z0-9-')
           SAFE_CHANNEL="${SAFE_CHANNEL:-android}"
 
-          curl -fsSL -o butler.zip "https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default"
+          BUTLER_VERSION="15.32.0"
+          BUTLER_SHA256="2335971394ef6596f95ded0833e85ee28755e13761716ef4c91d6b11f69162f5"
+          curl -fsSL -o butler.zip "https://broth.itch.zone/butler/linux-amd64/${BUTLER_VERSION}/archive/default"
+          echo "${BUTLER_SHA256}  butler.zip" | sha256sum -c -
           unzip -q butler.zip -d "${RUNNER_TEMP}/butler_bin"
           chmod +x "${RUNNER_TEMP}/butler_bin/butler"
           "${RUNNER_TEMP}/butler_bin/butler" push "$APK_PATH" "durcheins/apkup:${SAFE_CHANNEL}" --userversion "$SAFE_VERSION"
