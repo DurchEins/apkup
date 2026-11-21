@@ -304,6 +304,10 @@ class Prefs(
     val backgroundCheckWifiOnly: PrefSlot<Boolean> = booleanSlot("backgroundCheckWifiOnly", defValue = false)
 
     val lastSeenVersionCode: PrefSlot<Long> = longSlot("last_seen_version_code", defValue = 0L)
+    val firstLaunchTimestampMillis: PrefSlot<Long> = longSlot("first_launch_timestamp_millis", defValue = 0L)
+    val successfulUpdatesCount: PrefSlot<Int> = intSlot("successful_updates_count", defValue = 0)
+    val supportPromptDismissedPermanently: PrefSlot<Boolean> = booleanSlot("support_prompt_dismissed_permanently", defValue = false)
+    val supportPromptSnoozedUntilMillis: PrefSlot<Long> = longSlot("support_prompt_snoozed_until_millis", defValue = 0L)
 
     val cachedUpdateSnapshot: PrefSlot<CachedUpdateSnapshot> = jsonSlot(
         key = "cachedUpdateSnapshot",
@@ -538,7 +542,15 @@ class Prefs(
         current.add(0, entry)
         val trimmed = current.take(maxEntries.coerceAtLeast(1))
         runCatching { updateHistoryEntries.put(trimmed) }
+        runCatching { successfulUpdatesCount.put(successfulUpdatesCount.get() + 1) }
         _updateHistoryFlow.value = trimmed
+    }
+
+    fun ensureFirstLaunchTimestamp(nowMillis: Long = System.currentTimeMillis()): Long = synchronized(lock) {
+        val existing = firstLaunchTimestampMillis.get()
+        if (existing > 0L) return@synchronized existing
+        firstLaunchTimestampMillis.put(nowMillis)
+        nowMillis
     }
 
     fun replaceUpdateHistory(

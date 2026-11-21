@@ -601,4 +601,19 @@
     <string name="self_update_prerelease_notice">这是用于抢先测试的 ApkUp 预发布版本。</string>
     <string name="dynamic_color_title">动态配色 (Material You)</string>
     <string name="dynamic_color_subtitle">根据壁纸自动调整应用色彩</string>
+    <string name="about_support_bento_title">支持 ApkUp</string>
+    <string name="about_support_bento_subtitle">星标、评价 · Buy Me a Coffee 与 Coindrop</string>
+    <string name="support_sheet_title">支持 ApkUp</string>
+    <string name="support_sheet_description" formatted="false">ApkUp 永远保持免费、开源、无广告且无任何追踪。如果这款应用为您节省了时间，欢迎自愿支持！</string>
+    <string name="support_section_direct">直接支持</string>
+    <string name="support_bmac_title">Buy Me a Coffee</string>
+    <string name="support_coindrop_title">Coindrop</string>
+    <string name="support_section_free">免费支持：星标与商店评价</string>
+    <string name="support_section_free_desc">在 GitHub 或 GitLab 点亮星标，或在以下应用商店留下评价：</string>
+    <string name="support_prompt_title">喜欢 ApkUp 吗？</string>
+    <string name="support_prompt_message" formatted="false">ApkUp 100% 开源且无广告。如果对您有帮助，欢迎在 GitHub 点星标、留下评价或请开发者喝杯咖啡！</string>
+    <string name="support_prompt_cta_github">在 GitHub 点星标</string>
+    <string name="support_prompt_cta_options">查看支持与商店</string>
+    <string name="support_prompt_later">稍后</string>
+    <string name="support_prompt_never">不再提示</string>
 </resources>

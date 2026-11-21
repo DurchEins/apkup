@@ -616,4 +616,19 @@
     <string name="self_update_prerelease_subtitle">Bezieht Vorabversionen von ApkUp ein. Beim Deaktivieren wechselst du mit dem nächsten regulären Release automatisch zurück auf Stable.</string>
     <string name="self_update_prerelease_badge">Beta / Vorabversion</string>
     <string name="self_update_prerelease_notice">Dies ist eine Vorabversion von ApkUp zum frühzeitigen Testen.</string>
+    <string name="about_support_bento_title">ApkUp unterstützen</string>
+    <string name="about_support_bento_subtitle">Stern, Review · Buy Me a Coffee &amp; Coindrop</string>
+    <string name="support_sheet_title">ApkUp unterstützen</string>
+    <string name="support_sheet_description" formatted="false">ApkUp bleibt dauerhaft kostenlos, werbe- und trackingfrei. Wenn dir die App Zeit spart, freue ich mich über jede freiwillige Unterstützung!</string>
+    <string name="support_section_direct">Direkt unterstützen</string>
+    <string name="support_bmac_title">Buy Me a Coffee</string>
+    <string name="support_coindrop_title">Coindrop</string>
+    <string name="support_section_free">Kostenlos helfen: Stern &amp; Store-Reviews</string>
+    <string name="support_section_free_desc">Vergib einen Stern auf GitHub oder GitLab oder hinterlasse eine Bewertung in den Stores:</string>
+    <string name="support_prompt_title">Gefällt dir ApkUp?</string>
+    <string name="support_prompt_message" formatted="false">ApkUp ist 100 % Open Source und werbefrei. Wenn dir die App hilft, unterstützt du das Projekt enorm mit einem Stern auf GitHub, einer Bewertung oder einem kleinen Kaffee!</string>
+    <string name="support_prompt_cta_github">Auf GitHub bewerten</string>
+    <string name="support_prompt_cta_options">Support &amp; Stores ansehen</string>
+    <string name="support_prompt_later">Später</string>
+    <string name="support_prompt_never">Nicht mehr fragen</string>
 </resources>

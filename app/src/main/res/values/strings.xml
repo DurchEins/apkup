@@ -625,4 +625,19 @@
     <string name="self_update_prerelease_subtitle">Includes pre-release versions of ApkUp. Turn off anytime to automatically return to stable with the next regular release.</string>
     <string name="self_update_prerelease_badge">Beta / Pre-Release</string>
     <string name="self_update_prerelease_notice">This is a pre-release build of ApkUp intended for early testing.</string>
+    <string name="about_support_bento_title">Support ApkUp</string>
+    <string name="about_support_bento_subtitle">Star, Review · Buy Me a Coffee &amp; Coindrop</string>
+    <string name="support_sheet_title">Support ApkUp</string>
+    <string name="support_sheet_description" formatted="false">ApkUp stays 100% free, open source, and free of ads or tracking. If the app saves you time, every bit of voluntary support helps!</string>
+    <string name="support_section_direct">Direct support</string>
+    <string name="support_bmac_title">Buy Me a Coffee</string>
+    <string name="support_coindrop_title">Coindrop</string>
+    <string name="support_section_free">Help for free: Star &amp; store reviews</string>
+    <string name="support_section_free_desc">Leave a star on GitHub or GitLab, or share a review on your favorite platform:</string>
+    <string name="support_prompt_title">Enjoying ApkUp?</string>
+    <string name="support_prompt_message" formatted="false">ApkUp is 100% open source and ad-free. If the app helps you, you can support the project with a star on GitHub, a store review, or a small coffee!</string>
+    <string name="support_prompt_cta_github">Star on GitHub</string>
+    <string name="support_prompt_cta_options">View support &amp; stores</string>
+    <string name="support_prompt_later">Later</string>
+    <string name="support_prompt_never">Don\'t ask again</string>
 </resources>

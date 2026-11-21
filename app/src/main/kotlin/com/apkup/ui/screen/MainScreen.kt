@@ -107,6 +107,9 @@ import com.apkup.data.ui.UpdatesUiState
 import com.apkup.ui.component.ChangelogBottomSheet
 import com.apkup.ui.component.InstallPermissionDialog
 import com.apkup.ui.component.SelfUpdateDialog
+import com.apkup.ui.component.SupportCommunityBottomSheet
+import com.apkup.ui.component.SupportLinks
+import com.apkup.ui.component.SupportReminderDialog
 import com.apkup.ui.theme.ApkUpTheme
 import com.apkup.ui.theme.AppTheme
 import com.apkup.util.Badger
@@ -187,16 +190,22 @@ fun MainScreen(
     val isUpdatesScreen = !shouldShowDefaultPullToRefreshIndicator(currentDestinationRoute)
     val currentVersionCode = BuildConfig.VERSION_CODE.toLong()
     val showChangelogSheet by mainViewModel.showChangelogSheet.collectAsStateWithLifecycle()
+    val showSupportPrompt by mainViewModel.showSupportPrompt.collectAsStateWithLifecycle()
+    var showSupportCommunitySheet by rememberSaveable { mutableStateOf(false) }
     val selfUpdateState by mainViewModel.selfUpdateState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         mainViewModel.checkChangelogPrompt(context, currentVersionCode)
         mainViewModel.initializeOnStart(appsViewModel, updatesViewModel, isColdStart)
+        mainViewModel.checkSupportPrompt()
     }
 
     LaunchedEffect(isColdStart, showOnboardingConsent) {
         if (isColdStart && !showOnboardingConsent) {
             mainViewModel.checkAndMarkInstallPermissionPrompt(updatesViewModel)
+        }
+        if (!showOnboardingConsent) {
+            mainViewModel.checkSupportPrompt()
         }
     }
 
@@ -331,7 +340,34 @@ fun MainScreen(
             ChangelogBottomSheet(
                 onDismiss = {
                     mainViewModel.dismissChangelogSheet(currentVersionCode)
+                    mainViewModel.checkSupportPrompt()
                 }
+            )
+        }
+
+        if (showSupportPrompt && !showOnboardingConsent && !showChangelogSheet) {
+            val openUrl = com.apkup.ui.component.rememberCustomTabOpener()
+            SupportReminderDialog(
+                onStarOnGitHub = {
+                    mainViewModel.dismissSupportPrompt()
+                    openUrl(SupportLinks.GITHUB)
+                },
+                onOpenSupportSheet = {
+                    mainViewModel.dismissSupportPrompt()
+                    showSupportCommunitySheet = true
+                },
+                onSnooze = {
+                    mainViewModel.snoozeSupportPrompt()
+                },
+                onDismissPermanently = {
+                    mainViewModel.dismissSupportPrompt()
+                }
+            )
+        }
+
+        if (showSupportCommunitySheet) {
+            SupportCommunityBottomSheet(
+                onDismiss = { showSupportCommunitySheet = false }
             )
         }
 

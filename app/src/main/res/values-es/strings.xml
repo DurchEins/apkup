@@ -604,4 +604,19 @@
     <string name="self_update_prerelease_notice">Esta es una versión preliminar de ApkUp destinada a pruebas anticipadas.</string>
     <string name="dynamic_color_title">Color dinámico (Material You)</string>
     <string name="dynamic_color_subtitle">Adaptar los colores de la app a tu fondo de pantalla</string>
+    <string name="about_support_bento_title">Apoyar a ApkUp</string>
+    <string name="about_support_bento_subtitle">Estrella, reseña · Buy Me a Coffee y Coindrop</string>
+    <string name="support_sheet_title">Apoyar a ApkUp</string>
+    <string name="support_sheet_description" formatted="false">ApkUp es 100 % gratuito, de código abierto y sin anuncios ni rastreo. Si la app te ahorra tiempo, ¡cualquier apoyo voluntario ayuda!</string>
+    <string name="support_section_direct">Apoyo directo</string>
+    <string name="support_bmac_title">Buy Me a Coffee</string>
+    <string name="support_coindrop_title">Coindrop</string>
+    <string name="support_section_free">Ayuda gratis: estrella y reseñas</string>
+    <string name="support_section_free_desc">Deja una estrella en GitHub o GitLab, o escribe una reseña en tu tienda favorita:</string>
+    <string name="support_prompt_title">¿Te gusta ApkUp?</string>
+    <string name="support_prompt_message" formatted="false">ApkUp es 100 % código abierto y sin anuncios. ¡Si te resulta útil, puedes apoyar el proyecto con una estrella en GitHub, una reseña o un café!</string>
+    <string name="support_prompt_cta_github">Dar estrella en GitHub</string>
+    <string name="support_prompt_cta_options">Ver apoyo y tiendas</string>
+    <string name="support_prompt_later">Más tarde</string>
+    <string name="support_prompt_never">No volver a preguntar</string>
 </resources>

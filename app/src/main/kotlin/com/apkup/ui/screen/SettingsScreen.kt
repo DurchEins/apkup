@@ -85,6 +85,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -284,6 +285,7 @@ fun Settings(
 	var showGitLabTokenDialog by remember { mutableStateOf(false) }
 	var showCodebergTokenDialog by remember { mutableStateOf(false) }
 	var showRootSetupSheet by rememberSaveable { mutableStateOf(false) }
+	var showSupportCommunitySheet by rememberSaveable { mutableStateOf(false) }
 	var obtainiumImportPreview by remember { mutableStateOf<ObtainiumImportPreview?>(null) }
 	var isAdvancedExpanded by rememberSaveable { mutableStateOf(false) }
 	var includeLogcatInDiagnostics by rememberSaveable { mutableStateOf(false) }
@@ -2503,7 +2505,7 @@ fun Settings(
 						}
 
 						Surface(
-							onClick = { runCatching { handler.openUri("https://github.com/DurchEins/apkup/wiki") } },
+							onClick = { runCatching { handler.openUri("https://durcheins.github.io/apkup/wiki/") } },
 							modifier = Modifier
 								.weight(1f)
 								.fillMaxHeight(),
@@ -2560,6 +2562,70 @@ fun Settings(
 								)
 							}
 						}
+					}
+
+					// 3c. Dezente Vollbreite-Support-Karte (Buy Me a Coffee, Coindrop, GitHub/GitLab Stars & Store-Reviews)
+					Surface(
+						onClick = { showSupportCommunitySheet = true },
+						modifier = Modifier.fillMaxWidth(),
+						shape = RoundedCornerShape(14.dp),
+						color = MaterialTheme.colorScheme.surfaceContainerHigh,
+						border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+					) {
+						Row(
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(horizontal = 12.dp, vertical = 10.dp),
+							verticalAlignment = CenterVertically,
+							horizontalArrangement = Arrangement.spacedBy(10.dp)
+						) {
+							Box(
+								modifier = Modifier
+									.size(28.dp)
+									.clip(RoundedCornerShape(8.dp))
+									.background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.65f)),
+								contentAlignment = Alignment.Center
+							) {
+								Icon(
+									imageVector = Icons.Rounded.Favorite,
+									contentDescription = null,
+									tint = MaterialTheme.colorScheme.primary,
+									modifier = Modifier.size(15.dp)
+								)
+							}
+							Column(
+								modifier = Modifier.weight(1f),
+								verticalArrangement = Arrangement.spacedBy(1.dp)
+							) {
+								Text(
+									text = stringResource(R.string.about_support_bento_title),
+									style = MaterialTheme.typography.labelMedium,
+									fontWeight = FontWeight.SemiBold,
+									color = MaterialTheme.colorScheme.onSurface,
+									maxLines = 1,
+									overflow = TextOverflow.Ellipsis
+								)
+								Text(
+									text = stringResource(R.string.about_support_bento_subtitle),
+									style = MaterialTheme.typography.labelSmall,
+									color = MaterialTheme.colorScheme.onSurfaceVariant,
+									maxLines = 1,
+									overflow = TextOverflow.Ellipsis
+								)
+							}
+							Icon(
+								imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+								contentDescription = null,
+								tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+								modifier = Modifier.size(16.dp)
+							)
+						}
+					}
+
+					if (showSupportCommunitySheet) {
+						com.apkup.ui.component.SupportCommunityBottomSheet(
+							onDismiss = { showSupportCommunitySheet = false }
+						)
 					}
 
 					// 4. Dezenter rahmenloser Footer-Link für das rumboalla-Originalprojekt

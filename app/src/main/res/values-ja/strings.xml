@@ -600,4 +600,19 @@
     <string name="self_update_prerelease_notice">これは早期テスト向けの ApkUp プレリリース版です。</string>
     <string name="dynamic_color_title">ダイナミック カラー (Material You)</string>
     <string name="dynamic_color_subtitle">壁紙に合わせてアプリの色を自動調整します</string>
+    <string name="about_support_bento_title">ApkUp を支援</string>
+    <string name="about_support_bento_subtitle">スター、レビュー · Buy Me a Coffee &amp; Coindrop</string>
+    <string name="support_sheet_title">ApkUp を支援</string>
+    <string name="support_sheet_description" formatted="false">ApkUp は完全無料・オープンソース・広告やトラッキングなしです。お役に立ちましたら、任意のご支援をいただけると励みになります！</string>
+    <string name="support_section_direct">直接支援する</string>
+    <string name="support_bmac_title">Buy Me a Coffee</string>
+    <string name="support_coindrop_title">Coindrop</string>
+    <string name="support_section_free">無料で応援：スターとレビュー</string>
+    <string name="support_section_free_desc">GitHub や GitLab でスターを付けたり、各ストアでレビューを残したりできます：</string>
+    <string name="support_prompt_title">ApkUp をお楽しみですか？</string>
+    <string name="support_prompt_message" formatted="false">ApkUp は 100% オープンソースで広告なしです。お気に入りいただけたら、GitHub のスターやストアレビュー、コーヒー1杯で応援していただけます！</string>
+    <string name="support_prompt_cta_github">GitHub でスターを付ける</string>
+    <string name="support_prompt_cta_options">支援とストアを見る</string>
+    <string name="support_prompt_later">あとで</string>
+    <string name="support_prompt_never">今後表示しない</string>
 </resources>
