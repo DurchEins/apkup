@@ -1,0 +1,252 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import { SITE } from '../data/content';
+import { DEFAULT_LOCALE, getTranslations, type Locale } from '../i18n';
+
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = DEFAULT_LOCALE } = Astro.props;
+const t = getTranslations(lang);
+const s = t.securityPage;
+---
+
+<BaseLayout lang={lang} subPath="security/" title={s.title} description={s.metaDesc}>
+  <Navbar lang={lang} />
+  <main id="main-content" class="section">
+    <div class="container subpage-wrap">
+      <div class="section-header">
+        <span class="sec-shield-pill mono">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+          <span>{s.shieldBadge}</span>
+        </span>
+        <h1 class="section-title">{s.h1}</h1>
+        <p class="section-subtitle">{s.lead}</p>
+      </div>
+
+      <div class="sec-grid">
+        <article class="sec-card">
+          <h2>{s.supportedTitle}</h2>
+          <p>{s.supportedLead}</p>
+          <div class="sec-table-wrap">
+            <table class="sec-table">
+              <thead>
+                <tr>
+                  <th>{s.thVersion}</th>
+                  <th>{s.thStatus}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="mono">1.45.x ({s.orNewer})</td>
+                  <td><span class="pill-badge pill-emerald">{s.statusSupported}</span></td>
+                </tr>
+                <tr>
+                  <td class="mono">1.44.x</td>
+                  <td><span class="pill-badge pill-emerald">{s.statusSupported}</span></td>
+                </tr>
+                <tr>
+                  <td class="mono">&lt; 1.44</td>
+                  <td><span class="pill-badge pill-danger">{s.statusEol}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="sec-card">
+          <h2>{s.archTitle}</h2>
+          <p>{s.archLead}</p>
+
+          <div class="sec-pillars">
+            {s.pillars.map((pillar, idx) => (
+              <div class="sec-pillar">
+                <div class="sec-pillar-head">
+                  <span class={`pill-badge mono ${idx === 2 ? 'pill-neutral' : idx === 3 ? 'pill-emerald' : 'pill-amber'}`}>
+                    {pillar.badge}
+                  </span>
+                  <h3>{pillar.title}</h3>
+                </div>
+                <p>{pillar.body}</p>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article class="sec-card sec-report-card">
+          <h2>{s.disclosureTitle}</h2>
+          <p>{s.disclosureBody}</p>
+          <ol class="sec-steps">
+            {s.disclosureSteps.map((step) => <li>{step}</li>)}
+          </ol>
+          <div class="sec-actions">
+            <a
+              class="btn btn-primary"
+              href="https://github.com/DurchEins/apkup/security/advisories/new"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {s.reportBtn}
+            </a>
+            <a class="btn btn-secondary" href={SITE.securityUrl} target="_blank" rel="noopener noreferrer">
+              {s.viewGithub}
+            </a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </main>
+  <Footer lang={lang} subPath="security/" />
+</BaseLayout>
+
+<style>
+  .sec-shield-pill {
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 14px;
+    border-radius: var(--radius-pill);
+    background: var(--tertiary-soft);
+    color: var(--tertiary-soft-ink);
+    border: 1px solid rgba(110, 231, 183, 0.35);
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+
+  .sec-shield-pill::after {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    width: 40%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+    transform: translateX(-140%);
+    animation: secGleam 3.2s ease-in-out infinite;
+  }
+
+  @keyframes secGleam {
+    0%, 70% { transform: translateX(-140%); }
+    100% { transform: translateX(320%); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sec-shield-pill::after { animation: none; }
+  }
+
+  .subpage-wrap {
+    max-width: 900px;
+  }
+
+  .sec-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .sec-card {
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-lg);
+    padding: clamp(22px, 3vw, 30px);
+  }
+
+  .sec-card h2 {
+    margin: 0 0 10px;
+    font-size: 1.3rem;
+    font-weight: 800;
+  }
+
+  .sec-card > p {
+    margin: 0 0 16px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .sec-table-wrap {
+    overflow-x: auto;
+  }
+
+  .sec-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: start;
+  }
+
+  .sec-table th,
+  .sec-table td {
+    padding: 12px 14px;
+    border-block-end: 1px solid var(--outline);
+  }
+
+  .sec-table th {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 700;
+  }
+
+  .sec-pillars {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .sec-pillar {
+    background: var(--bg);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .sec-pillar-head {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .sec-pillar h3 {
+    margin: 0;
+    font-size: 1.04rem;
+    font-weight: 700;
+  }
+
+  .sec-pillar p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+
+  .sec-steps {
+    margin: 0 0 20px;
+    padding-inline-start: 20px;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    line-height: 1.55;
+  }
+
+  .sec-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  @media (max-width: 760px) {
+    .sec-pillars {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

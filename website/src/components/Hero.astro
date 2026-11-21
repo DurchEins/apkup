@@ -1,8 +1,17 @@
 ---
 import { getBaseUrl } from '../utils/site';
 import { SITE } from '../data/content';
+import { DEFAULT_LOCALE, LOCALE_META, getTranslations, localePath, type Locale } from '../i18n';
 
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = DEFAULT_LOCALE } = Astro.props;
+const t = getTranslations(lang);
 const base = getBaseUrl();
+const screenshotDir = LOCALE_META[lang].screenshotDir;
+const trustValues = ['100%', '7+', 'v2 / v3', 'AES-256'];
 ---
 
 <section id="top" class="hero">
@@ -13,28 +22,13 @@ const base = getBaseUrl();
           v{SITE.fallbackVersion} ({SITE.fallbackBuild})
         </span>
         <span class="pill-badge pill-emerald">
-          <span class="i18n-en">GPL-3.0 Open Source</span>
-          <span class="i18n-de">GPL-3.0 Open Source</span>
+          {t.hero.openSourceBadge}
         </span>
       </div>
 
-      <h1 class="hero-title">
-        <span class="i18n-en">Every Android app update. One privacy-first hub.</span>
-        <span class="i18n-de">Alle Android-App-Updates. Eine sichere App.</span>
-      </h1>
+      <h1 class="hero-title">{t.hero.title}</h1>
 
-      <p class="hero-lead">
-        <span class="i18n-en">
-          ApkUp discovers, verifies, and autonomously installs app updates across Google Play,
-          F-Droid Index V2, IzzyOnDroid, APKMirror, GitHub, GitLab, and Codeberg — with zero ads,
-          zero tracking, and silent Shizuku or Root background installs.
-        </span>
-        <span class="i18n-de">
-          ApkUp findet, prüft und installiert App-Updates über Google Play, F-Droid Index V2,
-          IzzyOnDroid, APKMirror, GitHub, GitLab und Codeberg – komplett werbefrei, ohne Tracking
-          und auf Wunsch lautlos im Hintergrund per Shizuku oder Root.
-        </span>
-      </p>
+      <p class="hero-lead">{t.hero.lead}</p>
 
       <div class="hero-actions">
         <a class="btn btn-primary hero-download" href={SITE.releasesUrl} data-apk-link>
@@ -53,8 +47,12 @@ const base = getBaseUrl();
             <path d="m7 10 5 5 5-5" />
             <path d="M5 21h14" />
           </svg>
-          <span class="i18n-en">Download <span class="apk-light">Apk</span><strong class="apk-up">Up</strong> <span data-apk-meta>(v{SITE.fallbackVersion})</span></span>
-          <span class="i18n-de"><span class="apk-light">Apk</span><strong class="apk-up">Up</strong> laden <span data-apk-meta>(v{SITE.fallbackVersion})</span></span>
+          <span>
+            {t.hero.downloadPrefix ? `${t.hero.downloadPrefix} ` : ''}
+            <span class="apk-light">Apk</span><strong class="apk-up">Up</strong>
+            {t.hero.downloadSuffix ? ` ${t.hero.downloadSuffix}` : ''}{' '}
+            <span data-apk-meta>(v{SITE.fallbackVersion})</span>
+          </span>
         </a>
 
         <button type="button" class="btn btn-secondary" data-open-qr>
@@ -74,7 +72,7 @@ const base = getBaseUrl();
             <rect x="3" y="14" width="7" height="7" rx="1" />
             <path d="M14 14h3v3h-3zM18 18h3v3h-3zM18 14h3M14 18v3" />
           </svg>
-          <span>QR-Code</span>
+          <span>{t.hero.qrCode}</span>
         </button>
 
         <button class="btn btn-ghost" type="button" data-share-btn>
@@ -95,55 +93,33 @@ const base = getBaseUrl();
             <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
             <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
           </svg>
-          <span data-share-label>
-            <span class="i18n-en">Share</span>
-            <span class="i18n-de">Teilen</span>
-          </span>
-          <span data-share-copied hidden>
-            <span class="i18n-en">Link copied!</span>
-            <span class="i18n-de">Link kopiert!</span>
-          </span>
+          <span data-share-label>{t.hero.share}</span>
+          <span data-share-copied hidden>{t.hero.linkCopied}</span>
         </button>
       </div>
 
-      <p class="hero-meta mono" id="hero-meta">
-        <span class="i18n-en">Android 10.0 – 17 (API 29+) • Verified SHA-256 • 9 Languages</span>
-        <span class="i18n-de">Android 10.0 – 17 (API 29+) • SHA-256-geprüft • 9 Sprachen</span>
-      </p>
+      <p class="hero-meta mono" id="hero-meta">{t.hero.meta}</p>
 
       <div class="hero-install-hint" id="hero-install-hint">
         <span class="android-detected-pill mono" id="android-detected-pill" hidden>
-          <span class="i18n-en">📱 Install directly on this Android device</span>
-          <span class="i18n-de">📱 Direkt auf diesem Android-Gerät installieren</span>
+          {t.hero.androidDetected}
         </span>
         <div class="sideload-pop-wrap">
-          <a href={`${base}sideloading/`} class="sideload-trigger">
-            <span class="i18n-en">How to install unknown APKs &amp; unlock Google’s 24h lock?</span>
-            <span class="i18n-de">Unbekannte Apps installieren &amp; Googles 24h-Sperre lösen?</span>
+          <a href={localePath(lang, 'sideloading/')} class="sideload-trigger">
+            {t.hero.sideloadTrigger}
           </a>
           <div class="sideload-popover">
-            <strong>
-              <span class="i18n-en">Quick Install Guide (Android 10–17)</span>
-              <span class="i18n-de">Kurzanleitung zur APK-Installation</span>
-            </strong>
+            <strong>{t.hero.popoverTitle}</strong>
             <ol class="sideload-pop-list">
-              <li>
-                <span class="i18n-en">Tap the downloaded APK and enable <em>“Allow from this source”</em>.</span>
-                <span class="i18n-de">Heruntergeladene APK antippen &amp; <em>„Aus dieser Quelle zulassen“</em> aktivieren.</span>
-              </li>
-              <li>
-                <span class="i18n-en"><strong>New 24h Play Protect Lock (2026/27):</strong> Developer Options (7× Build No.) → <em>Apps from unverified developers</em> → Restart → After 24h pick <em>Allow indefinitely</em>.</span>
-                <span class="i18n-de"><strong>Neue 24h-Sperre (2026/27):</strong> Entwickleroptionen (7× Build-Nr.) → <em>Apps von nicht verifizierten Entwicklern</em> → Neustart → Nach 24h <em>Dauerhaft erlauben</em> wählen.</span>
-              </li>
+              <li>{t.hero.popoverStep1}</li>
+              <li>{t.hero.popoverStep2}</li>
             </ol>
             <div class="sideload-pop-links">
-              <a href={`${base}sideloading/`} class="sideload-pop-link">
-                <span class="i18n-en">Install guide →</span>
-                <span class="i18n-de">Installationshilfe →</span>
+              <a href={localePath(lang, 'sideloading/')} class="sideload-pop-link">
+                {t.hero.popoverInstallGuide}
               </a>
-              <a href={`${base}sideloading/google-lock/`} class="sideload-pop-link">
-                <span class="i18n-en">Google 24h lock →</span>
-                <span class="i18n-de">24h-Sperre &amp; Keep Android Open →</span>
+              <a href={localePath(lang, 'sideloading/google-lock/')} class="sideload-pop-link">
+                {t.hero.popoverGoogleLock}
               </a>
             </div>
           </div>
@@ -154,18 +130,9 @@ const base = getBaseUrl();
     <div class="hero-visual">
       <div class="phone-frame">
         <img
-          class="phone-screen i18n-en"
-          src={`${base}assets/screenshots/en/01_updates.png`}
-          alt="ApkUp Updates screen showing available app updates and batch install button"
-          width="360"
-          height="780"
-          loading="eager"
-          decoding="async"
-        />
-        <img
-          class="phone-screen i18n-de"
-          src={`${base}assets/screenshots/de/01_updates.png`}
-          alt="ApkUp-Update-Ansicht mit verfügbaren App-Updates und Sammel-Installation"
+          class="phone-screen"
+          src={`${base}assets/screenshots/${screenshotDir}/01_updates.png`}
+          alt={t.hero.screenAlt}
           width="360"
           height="780"
           loading="eager"
@@ -178,24 +145,20 @@ const base = getBaseUrl();
   <div class="trust-strip">
     <div class="container trust-grid">
       <div class="trust-item">
-        <strong class="mono" data-count-to="100" data-count-suffix="%">100%</strong>
-        <span class="i18n-en">Zero Ads &amp; Zero Telemetry</span>
-        <span class="i18n-de">Werbefrei &amp; ohne Tracking</span>
+        <strong class="mono" data-count-to="100" data-count-suffix="%">{trustValues[0]}</strong>
+        <span>{t.hero.trust[0]}</span>
       </div>
       <div class="trust-item">
-        <strong class="mono" data-count-to="7" data-count-suffix="+">7+</strong>
-        <span class="i18n-en">Independent Update Sources</span>
-        <span class="i18n-de">Unabhängige Update-Quellen</span>
+        <strong class="mono" data-count-to="7" data-count-suffix="+">{trustValues[1]}</strong>
+        <span>{t.hero.trust[1]}</span>
       </div>
       <div class="trust-item">
-        <strong>v2 / v3</strong>
-        <span class="i18n-en">APK Signature Verification</span>
-        <span class="i18n-de">APK-Signaturprüfung</span>
+        <strong>{trustValues[2]}</strong>
+        <span>{t.hero.trust[2]}</span>
       </div>
       <div class="trust-item">
-        <strong>AES-256</strong>
-        <span class="i18n-en">Google Tink Local Keystore</span>
-        <span class="i18n-de">Google-Tink-Verschlüsselung</span>
+        <strong>{trustValues[3]}</strong>
+        <span>{t.hero.trust[3]}</span>
       </div>
     </div>
   </div>
@@ -203,7 +166,6 @@ const base = getBaseUrl();
 
 <script is:inline>
   (function () {
-    // Auto-detect Android visitor
     var androidPill = document.getElementById('android-detected-pill');
     if (androidPill && /android/i.test(navigator.userAgent || '')) {
       androidPill.hidden = false;
@@ -234,7 +196,6 @@ const base = getBaseUrl();
       els.forEach(function (el) { io.observe(el); });
     }
 
-    // Subtle ±2deg parallax tilt on hero phone mockup
     var frame = document.querySelector('.hero-visual .phone-frame');
     if (frame && !reducedMotion && window.matchMedia('(hover: hover)').matches) {
       frame.addEventListener('pointermove', function (e) {
