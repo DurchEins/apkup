@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://durcheins.github.io/apkup/">Homepage</a> • <a href="#-features">Features</a> • <a href="#-screenshots">Screenshots</a> • <a href="#-features">Sources</a> • <a href="#-quick-guides">Security</a> • <a href="#-downloads">Install</a> • <a href="#-troubleshooting--wiki">Wiki</a>
+  <a href="https://durcheins.github.io/apkup/"><i>Homepage</i></a> • <a href="#-features">Features</a> • <a href="#-screenshots">Screenshots</a> • <a href="#-features">Sources</a> • <a href="#-quick-guides">Security</a> • <a href="#-downloads">Install</a> • <a href="#-troubleshooting--wiki">Wiki</a>
 </p>
 
 <p align="center">
@@ -166,7 +166,7 @@ cd apkup
 
 ## 📖 Troubleshooting & Wiki
 
-Need help configuring update sources, resolving errors, or setting up silent background installs? Browse the **[GitHub Wiki](https://github.com/DurchEins/apkup/wiki)** or the **[Web Wiki](https://durcheins.github.io/apkup/wiki/)** (available in 9 languages):
+Need help configuring update sources, resolving errors, or setting up silent background installs? Browse the **[GitHub Wiki](https://github.com/DurchEins/apkup/wiki)** or the **[Web Wiki](https://durcheins.github.io/apkup/wiki/)**:
 
 | Category | Guides |
 | :--- | :--- |
