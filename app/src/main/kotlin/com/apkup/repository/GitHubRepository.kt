@@ -17,6 +17,7 @@ import com.apkup.data.ui.SourceUpdateResult
 import com.apkup.data.ui.isMeaningfulVersionUpgrade
 import com.apkup.prefs.Prefs
 import com.apkup.util.ApkIntegrityVerifier
+import com.apkup.util.readUtf8Bounded
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -209,9 +210,7 @@ class GitHubRepository(
             okHttpClient.newCall(req).execute().use { resp ->
                 if (!resp.isSuccessful) return@use null
                 val snippet = resp.body.byteStream().use { input ->
-                    val buf = ByteArray(MAX_SIDECAR_SHA256_BYTES)
-                    val n = input.read(buf)
-                    if (n <= 0) "" else String(buf, 0, n, Charsets.UTF_8)
+                    readUtf8Bounded(input, MAX_SIDECAR_SHA256_BYTES)
                 }
                 val token = Regex("\\b([0-9a-fA-F]{64})\\b").find(snippet)?.groupValues?.getOrNull(1)
                 ApkIntegrityVerifier.normalizeSha256Hex(token)

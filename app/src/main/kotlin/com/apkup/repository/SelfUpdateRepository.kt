@@ -6,6 +6,7 @@ import com.apkup.data.selfupdate.GitHubAsset
 import com.apkup.data.selfupdate.GitHubRelease
 import com.apkup.data.selfupdate.SelfUpdateInfo
 import com.apkup.util.ApkIntegrityVerifier
+import com.apkup.util.readUtf8Bounded
 import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
@@ -26,6 +27,7 @@ class SelfUpdateRepository(
         const val GITHUB_RELEASES_LIST_URL =
             "https://api.github.com/repos/DurchEins/apkup/releases?per_page=20"
         private const val MAX_SHA256_SIDECAR_BYTES = 4096
+        private const val MAX_RELEASES_JSON_BYTES = 4 * 1024 * 1024 // 4 MB cap
         private val ALLOWED_SELF_UPDATE_HOSTS = setOf(
             "github.com",
             "objects.githubusercontent.com",
@@ -48,7 +50,10 @@ class SelfUpdateRepository(
                 if (!response.isSuccessful) {
                     throw IOException("HTTP ${response.code} when checking GitHub releases")
                 }
-                val releases = parseReleasesPayload(response.body.charStream().readText())
+                val rawJson = response.body.byteStream().use { input ->
+                    readUtf8Bounded(input, MAX_RELEASES_JSON_BYTES)
+                }
+                val releases = parseReleasesPayload(rawJson)
                 val bestCandidate = selectNewestEligibleRelease(
                     releases = releases,
                     currentVersionName = currentVersionName,
@@ -138,7 +143,10 @@ class SelfUpdateRepository(
 
         val sidecar = release.safeAssets.firstOrNull { asset ->
             asset.safeName.equals("${apkAsset.safeName}.sha256", ignoreCase = true) ||
-                asset.safeName.endsWith(".sha256", ignoreCase = true)
+                asset.safeName.equals("${apkAsset.safeName}.sha256sum", ignoreCase = true)
+        } ?: release.safeAssets.firstOrNull { asset ->
+            asset.safeName.endsWith(".sha256", ignoreCase = true) ||
+                asset.safeName.endsWith(".sha256sum", ignoreCase = true)
         } ?: return null
 
         if (!isTrustedDownloadUrl(sidecar.safeDownloadUrl)) return null
@@ -150,9 +158,7 @@ class SelfUpdateRepository(
             okHttpClient.newCall(req).execute().use { resp ->
                 if (!resp.isSuccessful) return@use null
                 val snippet = resp.body.byteStream().use { input ->
-                    val bytes = ByteArray(MAX_SHA256_SIDECAR_BYTES)
-                    val n = input.read(bytes)
-                    if (n <= 0) "" else String(bytes, 0, n, Charsets.UTF_8)
+                    readUtf8Bounded(input, MAX_SHA256_SIDECAR_BYTES)
                 }
                 val token = Regex("\\b([0-9a-fA-F]{64})\\b").find(snippet)?.groupValues?.getOrNull(1)
                 ApkIntegrityVerifier.normalizeSha256Hex(token)

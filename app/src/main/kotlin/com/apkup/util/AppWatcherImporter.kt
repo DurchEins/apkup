@@ -98,12 +98,11 @@ object AppWatcherImporter {
             return null
         }
 
-        val netNewCount = toUpsert.size - updatedSeenCount
         AppWatcherImportSummary(
             addedEntries = toUpsert.values.toList(),
             updatedSeenCount = updatedSeenCount.coerceAtLeast(0),
             skippedInstalledCount = skippedInstalled,
-            alreadyWatchedCount = alreadyWatched + (if (netNewCount < 0) 0 else 0)
+            alreadyWatchedCount = alreadyWatched
         )
     }.getOrNull()
 

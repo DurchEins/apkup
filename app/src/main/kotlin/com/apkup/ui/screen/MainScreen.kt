@@ -167,10 +167,10 @@ fun MainScreen(
                         val isBatteryIgnoring = powerManager?.isIgnoringBatteryOptimizations(context.packageName) == true
                         val areNotificationsEnabled = NotificationManagerCompat.from(context).areNotificationsEnabled()
                         val hasInstallPermission = context.packageManager.canRequestPackageInstalls()
-                        val hasWarning = !isBatteryIgnoring || !areNotificationsEnabled || !hasInstallPermission
-                        if (hasWarning) {
-                            badger.changeSettingsBadge("!")
-                        }
+                        val shizukuIssue = settingsViewModel.shizukuEnabled().value &&
+                            !settingsViewModel.shizukuSetupStatus().value.isBinderRunning
+                        val hasWarning = !isBatteryIgnoring || !areNotificationsEnabled || !hasInstallPermission || shizukuIssue
+                        badger.changeSettingsBadge(if (hasWarning) "!" else "")
                     }
                 }
                 Lifecycle.Event.ON_STOP -> {
