@@ -1,6 +1,5 @@
 <resources>
 
-    <string name="app_disabled">Отключено</string>
     <string name="tab_apps">Apps</string>
     <string name="tab_updates">Updates</string>
     <string name="tab_settings">Настройки</string>
@@ -67,11 +66,6 @@
     <string name="apps_filter_recent">Недавние</string>
     <string name="apps_search_empty_title">Приложения не найдены</string>
     <string name="apps_search_empty_message">Попробуйте изменить поисковый запрос или фильтр.</string>
-    <string name="app_action_system_details">О приложении (Система)</string>
-    <string name="app_action_open_play_store">Открыть в Google Play Store</string>
-    <string name="app_action_open_play_store_unavailable">Установлено не из Google Play Store</string>
-    <string name="app_action_uninstall">Удалить</string>
-    <string name="app_action_toggle_ignore">Переключить статус игнорирования</string>
     <string name="apps_scroll_to_bottom">Прокрутить вниз</string>
     <string name="apps_scroll_to_top">Прокрутить вверх</string>
 

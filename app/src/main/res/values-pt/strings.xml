@@ -1,6 +1,5 @@
 <resources>
 
-    <string name="app_disabled">Desativado</string>
     <string name="tab_apps">Apps</string>
     <string name="tab_updates">Updates</string>
     <string name="tab_settings">Ajustes</string>
@@ -67,11 +66,6 @@
     <string name="apps_filter_recent">Recentes</string>
     <string name="apps_search_empty_title">Nenhum app encontrado</string>
     <string name="apps_search_empty_message">Tente outro termo de pesquisa ou filtro.</string>
-    <string name="app_action_system_details">Informações do app (Sistema)</string>
-    <string name="app_action_open_play_store">Abrir na Google Play Store</string>
-    <string name="app_action_open_play_store_unavailable">Não instalado pela Google Play Store</string>
-    <string name="app_action_uninstall">Desinstalar</string>
-    <string name="app_action_toggle_ignore">Alternar status de ignorado</string>
     <string name="apps_scroll_to_bottom">Rolar até o final</string>
     <string name="apps_scroll_to_top">Rolar até o topo</string>
 

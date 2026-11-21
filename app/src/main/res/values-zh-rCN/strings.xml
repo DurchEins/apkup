@@ -1,6 +1,5 @@
 <resources>
 
-    <string name="app_disabled">已停用</string>
     <string name="tab_apps">应用</string>
     <string name="tab_updates">更新</string>
     <string name="tab_settings">设置</string>
@@ -67,11 +66,6 @@
     <string name="apps_filter_recent">最近更新</string>
     <string name="apps_search_empty_title">未找到匹配应用</string>
     <string name="apps_search_empty_message">请尝试使用不同的关键词或筛选条件。</string>
-    <string name="app_action_system_details">应用信息（系统）</string>
-    <string name="app_action_open_play_store">在 Google Play 商店中查看</string>
-    <string name="app_action_open_play_store_unavailable">未从 Google Play 商店安装</string>
-    <string name="app_action_uninstall">卸载</string>
-    <string name="app_action_toggle_ignore">切换忽略状态</string>
     <string name="apps_scroll_to_bottom">滚动到底部</string>
     <string name="apps_scroll_to_top">滚动到顶部</string>
 

@@ -3,7 +3,6 @@
     <string name="tab_apps">Apps</string>
     <string name="tab_updates">Updates</string>
     <string name="tab_settings">Setup</string>
-    <string name="app_disabled">Deaktiviert</string>
     <string name="something_went_wrong">"Etwas ist schiefgelaufen\n\uD83E\uDD26"</string>
     <string name="action_back">← Zurück</string>
     <string name="refresh_updates">Suche nach Updates</string>
@@ -68,11 +67,6 @@
     <string name="apps_filter_recent">Kürzlich aktualisiert</string>
     <string name="apps_search_empty_title">Keine passenden Apps</string>
     <string name="apps_search_empty_message">Versuche einen anderen Suchbegriff oder Schnellfilter.</string>
-    <string name="app_action_system_details">App-Details (System)</string>
-    <string name="app_action_open_play_store">Im Google Play Store öffnen</string>
-    <string name="app_action_open_play_store_unavailable">Nicht aus dem Google Play Store installiert</string>
-    <string name="app_action_uninstall">Deinstallieren</string>
-    <string name="app_action_toggle_ignore">Ignorier-Status umschalten</string>
     <string name="apps_scroll_to_bottom">Nach ganz unten scrollen</string>
     <string name="apps_scroll_to_top">Nach ganz oben scrollen</string>
 
