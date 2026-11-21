@@ -1,0 +1,44 @@
+name: Translation Improvement
+description: Report a typo, awkward phrasing, or missing translation in any of ApkUp's 9 languages
+title: "[Translation]: "
+labels:
+  - translation
+  - documentation
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Spot a typo or unnatural phrasing? Let us know below and we'll fix it in the next release!
+
+  - type: dropdown
+    id: language
+    attributes:
+      label: Language
+      options:
+        - English (en)
+        - German (de)
+        - Spanish (es)
+        - French (fr)
+        - Italian (it)
+        - Japanese (ja)
+        - Portuguese (pt)
+        - Russian (ru)
+        - Chinese Simplified (zh-rCN)
+    validations:
+      required: true
+
+  - type: textarea
+    id: original
+    attributes:
+      label: Current Text (or Screen / Setting Name)
+      placeholder: e.g. Setup → Installation → ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested Correction
+      placeholder: What should it say instead?
+    validations:
+      required: true

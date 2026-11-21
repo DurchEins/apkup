@@ -28,6 +28,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -1336,10 +1337,10 @@ private fun UpdatesPullToRefreshBox(
 		state = pullToRefreshState,
 		modifier = modifier,
 		indicator = {
-			if (pullToRefreshState.distanceFraction > 0.05f) {
+			if (!isChecking && pullToRefreshState.distanceFraction > 0.05f) {
 				androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator(
 					state = pullToRefreshState,
-					isRefreshing = isChecking,
+					isRefreshing = false,
 					modifier = Modifier.align(Alignment.TopCenter)
 				)
 			}
@@ -2568,16 +2569,16 @@ private fun StaggeredCascadeItem(
 ) {
 	val isReducedMotion = ApkUpTheme.isReducedMotion
 	val shouldAnimate = !isReducedMotion && index < 12
-	val progress = remember(index) { Animatable(if (shouldAnimate) 0f else 1f) }
-	LaunchedEffect(index, isReducedMotion) {
-		if (shouldAnimate) {
+	val progress = remember { Animatable(if (shouldAnimate) 0f else 1f) }
+	LaunchedEffect(isReducedMotion) {
+		if (isReducedMotion) {
+			progress.snapTo(1f)
+		} else if (progress.value < 1f) {
 			kotlinx.coroutines.delay(index * 25L)
 			progress.animateTo(
 				targetValue = 1f,
 				animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing)
 			)
-		} else {
-			progress.snapTo(1f)
 		}
 	}
 	Box(
@@ -2639,7 +2640,9 @@ private fun LiveInstallStepperPill(
 					fontWeight = if (isCurrent || isCompleted) FontWeight.Bold else FontWeight.Normal,
 					color = textColor,
 					maxLines = 1,
-					overflow = TextOverflow.Ellipsis
+					softWrap = false,
+					overflow = TextOverflow.Ellipsis,
+					modifier = Modifier.weight(1f, fill = false)
 				)
 				if (idx < steps.lastIndex) {
 					Text(
@@ -2704,8 +2707,7 @@ private fun SourceIconWithCooldown(
 				}
 				val rem = entry?.remainingCooldownSeconds()?.toInt() ?: 0
 				remainingSeconds = rem
-				if (rem <= 0) break
-				kotlinx.coroutines.delay(1000L)
+				kotlinx.coroutines.delay(if (rem > 0) 1000L else 2500L)
 			}
 		}
 	}
@@ -3499,18 +3501,15 @@ private fun CompactUpdatesGrid(
 									verticalAlignment = Alignment.CenterVertically,
 									horizontalArrangement = Arrangement.spacedBy(4.dp)
 								) {
-									Icon(
-										painter = painterResource(card.source.resourceId),
-										contentDescription = null,
-										tint = MaterialTheme.colorScheme.onSurfaceVariant,
-										modifier = Modifier.size(10.dp)
-									)
+									SourceIconWithCooldown(source = card.source)
 									Text(
 										text = resolvedSourceLabel,
 										style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
 										color = MaterialTheme.colorScheme.onSurfaceVariant,
 										maxLines = 1
 									)
+									val isVerifiedReady = isCachedReady || (liveTask != null && liveTask.total > 0L && liveTask.progress >= liveTask.total)
+									TrustShieldBadge(isVerified = isVerifiedReady)
 									if (card.additionalSourcesCount > 0) {
 										Surface(
 											shape = RoundedCornerShape(4.dp),
@@ -4100,6 +4099,11 @@ private fun UpdateDetailsSheet(
 			Box(
 				modifier = Modifier
 					.fillMaxSize()
+					.clickable(
+						interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+						indication = null,
+						onClick = onDismiss
+					)
 					.padding(16.dp),
 				contentAlignment = Alignment.CenterEnd
 			) {
@@ -4115,7 +4119,13 @@ private fun UpdateDetailsSheet(
 						color = MaterialTheme.colorScheme.surfaceContainerLow,
 						tonalElevation = 6.dp,
 						shadowElevation = 12.dp,
-						modifier = Modifier.width(420.dp)
+						modifier = Modifier
+							.width(420.dp)
+							.clickable(
+								interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+								indication = null,
+								onClick = {}
+							)
 					) {
 						sheetBody()
 					}

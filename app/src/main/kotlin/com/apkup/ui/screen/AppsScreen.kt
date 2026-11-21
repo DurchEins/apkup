@@ -31,6 +31,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -815,18 +816,39 @@ fun AppsScreenSuccess(
 
 	if (isWideScreen) {
 		val isReducedMotion = ApkUpTheme.isReducedMotion
-		AnimatedVisibility(
-			visible = peekTargetApp != null,
-			enter = if (isReducedMotion) fadeIn(tween(80)) else slideInHorizontally(spring(dampingRatio = 0.85f, stiffness = 400f)) { it } + fadeIn(),
-			exit = if (isReducedMotion) fadeOut(tween(80)) else slideOutHorizontally(spring(dampingRatio = 0.85f, stiffness = 400f)) { it } + fadeOut()
-		) {
-			peekTargetApp?.let { peekApp ->
-				androidx.compose.ui.window.Dialog(onDismissRequest = { peekTargetApp = null }) {
-					Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+		peekTargetApp?.let { peekApp ->
+			androidx.compose.ui.window.Dialog(
+				onDismissRequest = { peekTargetApp = null },
+				properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+			) {
+				Box(
+					modifier = Modifier
+						.fillMaxSize()
+						.clickable(
+							interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+							indication = null,
+							onClick = { peekTargetApp = null }
+						)
+						.padding(16.dp),
+					contentAlignment = Alignment.CenterEnd
+				) {
+					var paneVisible by remember { mutableStateOf(false) }
+					LaunchedEffect(Unit) { paneVisible = true }
+					androidx.compose.animation.AnimatedVisibility(
+						visible = paneVisible,
+						enter = if (isReducedMotion) fadeIn(tween(80)) else slideInHorizontally(spring(dampingRatio = 0.85f, stiffness = 400f)) { it } + fadeIn(),
+						exit = if (isReducedMotion) fadeOut(tween(80)) else slideOutHorizontally(spring(dampingRatio = 0.85f, stiffness = 400f)) { it } + fadeOut()
+					) {
 						AppPeekDetailsCard(
 							app = peekApp,
 							onDismiss = { peekTargetApp = null },
-							modifier = Modifier.width(380.dp)
+							modifier = Modifier
+								.width(380.dp)
+								.clickable(
+									interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+									indication = null,
+									onClick = {}
+								)
 						)
 					}
 				}
@@ -1924,19 +1946,27 @@ private fun AppsQuickFilterRow(
 			val isReducedMotion = ApkUpTheme.isReducedMotion
 			val chipScale = remember { Animatable(1f) }
 			val iconRotation = remember { Animatable(0f) }
+			var wasSelected by remember { mutableStateOf(selected) }
 			LaunchedEffect(selected) {
-				if (selected && !isReducedMotion) {
+				if (selected && !wasSelected && !isReducedMotion) {
 					chipScale.snapTo(0.94f)
 					iconRotation.snapTo(-28f)
-					chipScale.animateTo(
-						targetValue = 1f,
-						animationSpec = spring(dampingRatio = 0.52f, stiffness = 560f)
-					)
-					iconRotation.animateTo(
-						targetValue = 0f,
-						animationSpec = spring(dampingRatio = 0.65f, stiffness = 480f)
-					)
+					kotlinx.coroutines.coroutineScope {
+						launch {
+							chipScale.animateTo(
+								targetValue = 1f,
+								animationSpec = spring(dampingRatio = 0.52f, stiffness = 560f)
+							)
+						}
+						launch {
+							iconRotation.animateTo(
+								targetValue = 0f,
+								animationSpec = spring(dampingRatio = 0.65f, stiffness = 480f)
+							)
+						}
+					}
 				}
+				wasSelected = selected
 			}
 			FilterChip(
 				selected = selected,

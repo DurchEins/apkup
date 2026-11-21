@@ -169,7 +169,7 @@ fun SupportCommunityBottomSheet(
 					Icon(
 						imageVector = Icons.Rounded.Favorite,
 						contentDescription = null,
-						tint = MaterialTheme.colorScheme.primary.copy(alpha = driftAlpha),
+						tint = androidx.compose.ui.graphics.Color(0xFFF59E0B).copy(alpha = driftAlpha),
 						modifier = Modifier
 							.align(Alignment.CenterStart)
 							.offset(x = 12.dp)
