@@ -156,10 +156,19 @@ If ApkUp saves you time keeping your apps up to date, consider supporting its on
 
 ## 🌍 Translations & Contributing
 
-ApkUp and its website are available in **9 languages** (`en`, `de`, `es`, `fr`, `it`, `ja`, `pt`, `ru`, `zh-cn`). Several base translations are AI-assisted and native-speaker polish is always welcome!
+Help **[translate ApkUp via Hosted Weblate](https://hosted.weblate.org/engage/apkup/)**!
 
-* **No Git skills needed:** Use the **[Translation Issue Form](https://github.com/DurchEins/apkup/issues/new?template=translation.yml)** to report typos, suggest more natural phrasing, or volunteer for a new language.
-* **Pull Requests:** Edit the Android string resources in `app/src/main/res/values-*/strings.xml` and/or the Weblate-ready website JSON files in `website/src/i18n/*.json`.
+<p align="center">
+  <a href="https://hosted.weblate.org/engage/apkup/">
+    <img src="https://hosted.weblate.org/widgets/apkup/-/multi-auto.svg" alt="Translation status" />
+  </a>
+</p>
+
+ApkUp and its website are available in **9 languages** (`en`, `de`, `es`, `fr`, `it`, `ja`, `pt`, `ru`, `zh-cn`). Base translations are AI-assisted, so native-speaker polish is warmly welcomed!
+
+* **Translate in your browser (recommended):** Join **[ApkUp on Hosted Weblate](https://hosted.weblate.org/engage/apkup/)** — no Git knowledge required.
+* **Quick feedback:** Use the **[Translation Issue Form](https://github.com/DurchEins/apkup/issues/new?template=translation.yml)** to report typos or request a new language.
+* **Pull Requests:** Edit Android strings in `app/src/main/res/values-*/strings.xml` or website JSON files in `website/src/i18n/*.json`.
 
 ---
 
