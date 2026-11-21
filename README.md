@@ -1,7 +1,9 @@
-# ApkUp
+<p align="center">
+  <img src=".github/assets/header-banner.svg" width="100%" alt="ApkUp — Multi-Source • Verified • Silent" />
+</p>
 
 <p align="center">
-  <img src=".github/assets/logo.png" width="96" height="96" alt="ApkUp Icon" />
+  <img src=".github/assets/logo.png" width="84" height="84" alt="ApkUp Icon" />
 </p>
 
 <p align="center">
