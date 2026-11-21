@@ -13,6 +13,8 @@
 ---
 
 ### ⚡ Installation & Automation
+* 📲 **[Installing Unknown Apps](https://github.com/DurchEins/apkup/wiki/Installing-Unknown-Apps)**
+* ⚠️ **[Google’s 24h Lock & Keep Android Open](https://github.com/DurchEins/apkup/wiki/Google-24h-Lock-&-Keep-Android-Open)**
 * ⚡ **[Shizuku & Background Installation](https://github.com/DurchEins/apkup/wiki/Shizuku-&-Background-Installation)**
   * [⚡ Quick Setup (Setting up Shizuku)](https://github.com/DurchEins/apkup/wiki/Setting-up-Shizuku)
   * [🔑 Optional Root Installer (`su`)](https://github.com/DurchEins/apkup/wiki/Shizuku-&-Background-Installation#310-optional-root-installer-su-fallback)

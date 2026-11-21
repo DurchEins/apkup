@@ -382,6 +382,12 @@ Every main guide is structured into clear layers:
 
 ---
 
+### 5. [📲 Installing Unknown Apps](https://github.com/DurchEins/apkup/wiki/Installing-Unknown-Apps) & [⚠️ Google’s 24h Lock](https://github.com/DurchEins/apkup/wiki/Google-24h-Lock-&-Keep-Android-Open)
+* **Installing Unknown Apps:** Step-by-step instructions for Android’s classic *“Allow from this source”* permission plus power-user installation via **Shizuku**, **ADB**, and **Root (`su`)**.
+* **Google’s 24h Lock & Keep Android Open:** How to permanently unlock *“Apps from unverified developers”* (*Allow indefinitely*, avoiding the 7-day reset trap) for the 2026/2027 Play Protect rollout, and why ApkUp supports [Keep Android Open](https://keepandroidopen.org).
+
+---
+
 ## 🔗 Quick Project Links
 - 🏠 **[ApkUp GitHub Repository & README](https://github.com/DurchEins/apkup)**
 - 📦 **[Latest Releases & Checksums](https://github.com/DurchEins/apkup/releases)**
