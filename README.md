@@ -1,3 +1,16 @@
+﻿<!--
+   ╔══════════════════════════════════════════════════════════════════╗
+   ║     _          _    _   _                                        ║
+   ║    / \   _ __ | | _| | | |_ __                                   ║
+   ║   / _ \ | '_ \| |/ / | | | '_ \                                  ║
+   ║  / ___ \| |_) |   <| |_| | |_) |                                 ║
+   ║ /_/   \_\ .__/|_|\_\\___/| .__/   Multi-Source • Verified •      ║
+   ║         |_|              |_|      Silent Android Updates         ║
+   ║                                                                  ║
+   ║  Thanks for peeking under the hood! Contributions welcome :)     ║
+   ╚══════════════════════════════════════════════════════════════════╝
+-->
+<a name="top"></a>
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset=".github/assets/header-banner.svg">
@@ -10,18 +23,24 @@
 </p>
 
 <p align="center">
-  <a href="https://durcheins.github.io/apkup/"><i>Homepage</i></a> • <a href="#-features">Features</a> • <a href="#-screenshots">Screenshots</a> • <a href="#-features">Sources</a> • <a href="#-quick-guides">Security</a> • <a href="#-downloads">Install</a> • <a href="#-troubleshooting--wiki">Wiki</a>
+  <a href="https://durcheins.github.io/apkup/"><i>Homepage</i></a> • <a href="#-features">Features</a> • <a href="#-downloads">Downloads</a> • <a href="#-requirements">Requirements</a> • <a href="#%EF%B8%8F-tech-stack">Tech Stack</a> • <a href="#-screenshots">Screenshots</a> • <a href="#-quick-guides">Quick-Guides</a> • <a href="#-troubleshooting--wiki">Wiki</a> • <a href="#-support-apkup">Support</a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/github/downloads/DurchEins/apkup/total?style=flat&label=GitHub%20Downloads&color=F59E0B&logo=github" alt="GitHub Downloads" /></a>
-  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.45.1%20(223)-38BDF8?style=flat" alt="Version" /></a>
-  <img src="https://img.shields.io/badge/Min%20SDK-29%20(Android%2010%2B)-3DDC84?style=flat&logo=android" alt="Min SDK 29" />
-  <img src="https://img.shields.io/badge/Privacy-No%20Ads%20%7C%20No%20Tracking-2EA44F?style=flat" alt="Privacy: No Ads | No Tracking" />
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-blue?style=flat" alt="License GPL-3.0" /></a>
+  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/github/downloads/DurchEins/apkup/total?style=flat&label=GitHub%20Downloads&color=F59E0B&logo=github" alt="Total GitHub Downloads" /></a>
+  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.45.1%20(223)-38BDF8?style=flat" alt="Current Version: 1.45.1 (223)" /></a>
+  <img src="https://img.shields.io/badge/Min%20SDK-29%20(Android%2010%2B)-3DDC84?style=flat&logo=android" alt="Minimum Android SDK 29 (Android 10 or higher)" />
+  <img src="https://img.shields.io/badge/Privacy-No%20Ads%20%7C%20No%20Tracking-2EA44F?style=flat" alt="Privacy: No Ads, No Tracking" />
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-blue?style=flat" alt="License: GNU GPL-3.0" /></a>
 </p>
 
----
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/divider-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/divider-light.svg">
+    <img src=".github/assets/divider-dark.svg" width="100%" alt="" />
+  </picture>
+</p>
 
 ## ✨ Features
 
@@ -66,16 +85,23 @@
 
 </details>
 
----
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/divider-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/divider-light.svg">
+    <img src=".github/assets/divider-dark.svg" width="100%" alt="" />
+  </picture>
+</p>
 
 ## 📲 Downloads
 
 Get the latest release of ApkUp from your preferred platform:
 
 <p align="center">
-  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/GitHub-Direct%20APK%20(Recommended)-181717?style=flat&logo=github" alt="GitHub Releases" /></a>&nbsp;&nbsp;
-  <a href="https://zapstore.dev/apps/com.apkup"><img src="https://img.shields.io/badge/Zapstore-Available-7C3AED?style=flat&logo=lightning&logoColor=white" alt="Zapstore" /></a>&nbsp;&nbsp;
-  <a href="https://gitlab.com/DurchEins1/apkup/-/releases"><img src="https://img.shields.io/badge/GitLab-Releases-FC6D26?style=flat&logo=gitlab&logoColor=white" alt="GitLab Releases" /></a>&nbsp;&nbsp;
+  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/GitHub-Direct%20APK%20(Recommended)-181717?style=flat&logo=github" alt="Download from GitHub Releases (Recommended)" /></a>&nbsp;&nbsp;
+  <a href="https://zapstore.dev/apps/com.apkup"><img src="https://img.shields.io/badge/Zapstore-Available-7C3AED?style=flat&logo=lightning&logoColor=white" alt="Available on Zapstore" /></a>&nbsp;&nbsp;
+  <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22com.apkup%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2FDurchEins%2Fapkup%22%2C%22author%22%3A%22DurchEins%22%2C%22name%22%3A%22ApkUp%22%7D"><img src="https://img.shields.io/badge/Obtainium-1--Click%20Import-6750A4?style=flat&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjY5IDk3IDY1IDU4IiBmaWxsPSJ3aGl0ZSI%2BPHBhdGggZD0ibSAxMDkuODgsMTUzLjIzIGMgLTAuNzMsLTAuMzkgLTUuMDEsLTIuNzYgLTI1LjAzLC0xMy44NyAtNS41NywtMy4wOSAtMTAuOTQsLTYuMDcgLTExLjkyLC02LjYxIC0yLjI0LC0xLjIzIC0yLjU4LC0xLjUzIC0yLjU4LC0yLjI4IDAsLTAuMzkgMC44OSwtMi44NyAyLjk5LC04LjMxIDEuNjQsLTQuMjYgMy4wOSwtOC4wMCAzLjIzLC04LjMwIDAuMzAsLTAuNjkgMC43OSwtMS4yOCAxLjI3LC0xLjUyIDAuNDUsLTAuMjMgMTEuNTgsLTQuMzAgMTIuMTUsLTQuNDQgMC42MSwtMC4xNSAxLjE0LDAuMTQgMS40NSwwLjgwIDAuMTUsMC4zMiAwLjc3LDEuOTUgMS4zOCwzLjYzIDAuNjEsMS42OCAxLjUyLDQuMTYgMi4wMiw1LjUyIDEuMTUsMy4xMSAxLjE5LDMuNTUgMC4zOSw0LjAyIC0wLjIxLDAuMTMgLTEuNTksMC42NyAtMy4wNiwxLjIwIC0xLjQ3LDAuNTQgLTIuODgsMS4wOSAtMy4xMiwxLjIzIC0wLjU2LDAuMzMgLTAuNjUsMC44NCAtMC4yMSwxLjI0IDAuMTgsMC4xNiAzLjAwLDEuNzggNi4yOSwzLjU5IDkuMTcsNS4wNiA4LjY3LDQuODMgOS4yOCw0LjE3IDAuMzAsLTAuMzIgNS43OCwtMTQuMjcgNi4xMCwtMTUuNTEgMC4xMywtMC41MyAwLjEyLC0wLjYwIC0wLjE3LC0wLjg0IC0wLjM5LC0wLjMyIC0wLjM0LC0wLjMzIC0zLjk0LDAuOTQgLTMuNTcsMS4yNiAtMy45MSwxLjI5IC00LjM5LDAuMzQgLTAuMjUsLTAuNTAgLTQuMTAsLTExLjA1IC00LjMzLC0xMS45MCAtMC4xNSwtMC41NSAwLjAzLC0xLjA3IDAuNTAsLTEuMzcgMC4xOSwtMC4xMyAyLjk5LC0xLjIwIDYuMjIsLTIuMzkgNC43OSwtMS43NiA2LjAxLC0yLjE2IDYuNjMsLTIuMTcgMC44MCwtMC4wMSAwLjkxLDAuMDQgMTUuNjUsOC4yMCAxLjAyLDAuNTYgMS41NywxLjE2IDEuNTcsMS43MSAwLDAuMjIgLTMuNjUsOS45MSAtOC4xMiwyMS41NCAtNi4zMCwxNi40MCAtOC4yMCwyMS4yMSAtOC40NywyMS40NSAtMC40NywwLjQxIC0wLjg1LDAuMzkgLTEuNzUsLTAuMDggeiIvPjwvc3ZnPg%3D%3D" alt="1-Click Import into Obtainium" /></a>&nbsp;&nbsp;
+  <a href="https://gitlab.com/DurchEins1/apkup/-/releases"><img src="https://img.shields.io/badge/GitLab-Releases-FC6D26?style=flat&logo=gitlab&logoColor=white" alt="Download from GitLab Releases" /></a>&nbsp;&nbsp;
   <a href="https://apkpure.com/apkup/com.apkup"><img src="https://img.shields.io/badge/APKPure-Available-24C270?style=flat&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPjxwYXRoIGQ9Ik01LjIgMi40QzQuMiAxLjggMyAyLjUgMyAzLjd2MTYuNmMwIDEuMiAxLjIgMS45IDIuMiAxLjNsMTQuNi04LjNjMS0uNiAxLTIgMC0yLjZMNS4yIDIuNHptNC45IDUuNWw0LjkgNC4xLTQuOSA0LjFWNy45eiIvPjwvc3ZnPg%3D%3D" alt="APKPure" /></a>&nbsp;&nbsp;
   <a href="https://alternativeto.net/software/apkup/about/"><img src="https://img.shields.io/badge/AlternativeTo-Listed-0066CC?style=flat&logo=alternativeto&logoColor=white" alt="AlternativeTo" /></a>&nbsp;&nbsp;
   <a href="https://durcheins.itch.io/apkup"><img src="https://img.shields.io/badge/itch.io-Available-FA5C5C?style=flat&logo=itchdotio&logoColor=white" alt="itch.io" /></a>&nbsp;&nbsp;
@@ -84,7 +110,13 @@ Get the latest release of ApkUp from your preferred platform:
   <a href="https://www.amazon.com/gp/product/B0HR5TXL8R"><img src="https://img.shields.io/badge/Amazon%20Appstore-Outdated-B91C1C?style=flat&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPjxwYXRoIGQ9Ik0xMy45NTggMTAuMDljMCAxLjIzMi4wMjkgMi4yNTYtLjU5MSAzLjM1MS0uNTAyLjg5MS0xLjMwMSAxLjQzOC0yLjE4NiAxLjQzOC0xLjIxNCAwLTEuOTIyLS45MjQtMS45MjItMi4yOTIgMC0yLjY5MiAyLjQxNS0zLjE4MiA0LjctMy4xODJ2LjY4NXptMy4xODYgNy43MDVhLjY2LjY2IDAgMCAxLS43NTMuMDc3Yy0xLjA1OS0uODc5LTEuMjQ4LTEuMjg3LTEuODI5LTIuMTI1LTEuNzQ3IDEuNzgxLTIuOTg0IDIuMzEzLTUuMjQ5IDIuMzEzLTIuNjc5IDAtNC43NjUtMS42NTMtNC43NjUtNC45NjIgMC0yLjU4NSAxLjQwMi00LjM0NSAzLjM5Ny01LjIwNiAxLjcyOS0uNzU5IDQuMTQ3LS44OTYgNS45OTktMS4xMDZ2LS40MTNjMC0uNzU5LjA1OC0xLjY1Ni0uMzg5LTIuMzEzLS4zODktLjU4OC0xLjEzMi0uODI5LTEuNzg3LS44MjktMS4yMTQgMC0yLjI5Ny42MjItMi41NjEgMS45MTItLjA1NC4yODctLjI2NS41Ny0uNTUzLjU4NGwtMy4wOTEtLjMzMmMtLjI2LS4wNTgtLjU0OS0uMjY5LS40NzYtLjY2OUM1Ljc2NCAxLjY1MyA5LjIxOC41IDEyLjIzOC41YzEuNTQ2IDAgMy41NjcuNDEyIDQuNzg2IDEuNTg0IDEuNTQ2IDEuNDQ1IDEuMzk4IDMuMzcgMS4zOTggNS40Njl2NC45NTNjMCAxLjQ5LjYxOSAyLjE0MiAxLjIwMSAyLjk0OC4yMDQuMjg3LjI0OS42MzEtLjAxMS44NDYtLjY1LjU0My0xLjgwNSAxLjU1MS0yLjQ0MSAyLjExNGwtLjAyNy0uMDE5em0yLjUxNSAyLjA5NEMxNy4wNzggMjEuNzk3IDEzLjM0IDIyLjggMTAuMTIzIDIyLjhjLTQuNTEzIDAtOC41NzMtMS42NjktMTEuNjQ0LTQuNDQ0LS4yNDEtLjIxOC0uMDI2LS41MTUuMjY1LS4zNDYgMy4zMTQgMS45MyA3LjQxMiAzLjA5MSAxMS42NDUgMy4wOTEgMi44NTUgMCA1Ljk5NS0uNTkxIDguODgxLTEuODE3LjQzNi0uMTg2LjgwMS4yODYuMzg5LjYwNXpNMjEuNDgzIDE4Ljg4NmMtLjMzLS40MjItMi4xODYtLjItMy4wMTktLjEwMS0uMjU0LjAzLS4yOTMtLjE5LS4wNjQtLjM1IDEuNDc3LTEuMDM5IDMuOS0uNzM5IDQuMTgzLS4zOTEuMjgzLjM1LS4wNzUgMi43NzgtMS40NjIgMy45MzctLjIxMy4xNzgtLjQxNS4wODMtLjMyMS0uMTUzLjMxMi0uNzguOTgzLTIuNTIuNjgzLTIuOTQyeiIvPjwvc3ZnPg%3D%3D" alt="Amazon Appstore (Outdated)" /></a>
 </p>
 
----
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/divider-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/divider-light.svg">
+    <img src=".github/assets/divider-dark.svg" width="100%" alt="" />
+  </picture>
+</p>
 
 ## 📥 Requirements
 
@@ -92,7 +124,13 @@ Get the latest release of ApkUp from your preferred platform:
 * **Recommended:** Android 12+ for Dynamic Color theming and [Shizuku](https://shizuku.rikka.app/) for silent background installations.
 * **Sideloading Note:** Need help with Android restricted settings or Play Protect? See the [Google Lock & Sideloading Guide](https://durcheins.github.io/apkup/sideloading/google-lock/).
 
----
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/divider-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/divider-light.svg">
+    <img src=".github/assets/divider-dark.svg" width="100%" alt="" />
+  </picture>
+</p>
 
 ## 🛠️ Tech Stack
 
@@ -111,7 +149,13 @@ Get the latest release of ApkUp from your preferred platform:
 
 </details>
 
----
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/divider-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/divider-light.svg">
+    <img src=".github/assets/divider-dark.svg" width="100%" alt="" />
+  </picture>
+</p>
 
 ## 📸 Screenshots
 
@@ -138,7 +182,13 @@ Get the latest release of ApkUp from your preferred platform:
 
 </details>
 
----
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/divider-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/divider-light.svg">
+    <img src=".github/assets/divider-dark.svg" width="100%" alt="" />
+  </picture>
+</p>
 
 ## ⚡ Quick-Guides
 
@@ -156,8 +206,13 @@ Get the latest release of ApkUp from your preferred platform:
 
 1. Download the `.apk` and `SHA256SUMS.txt` from **[GitHub Releases](https://github.com/DurchEins/apkup/releases/latest)**.
 2. Verify locally:
+   **Linux / macOS:**
    ```bash
    sha256sum -c SHA256SUMS.txt --ignore-missing
+   ```
+   **Windows (PowerShell):**
+   ```powershell
+   Get-FileHash .\ApkUp-*.apk -Algorithm SHA256
    ```
 3. ApkUp also verifies APK Signature Scheme v2/v3 certificates and `SHA256SUMS` digests automatically during self-updates ([SHA-256 & Signature Verification Guide](https://github.com/DurchEins/apkup/wiki/SHA-256-%26-Signature-Verification)).
 
@@ -174,7 +229,13 @@ cd apkup
 
 </details>
 
----
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/divider-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/divider-light.svg">
+    <img src=".github/assets/divider-dark.svg" width="100%" alt="" />
+  </picture>
+</p>
 
 ## 📖 Troubleshooting & Wiki
 
@@ -187,7 +248,13 @@ Need help configuring update sources, resolving errors, or setting up silent bac
 | 🛠️ **Management & Migration** | [Apps, Filters, Rollbacks & Backup](https://github.com/DurchEins/apkup/wiki/App-Management,-Filters,-Background-Checks-&-Backup) • [Obtainium Migration & Sync Guide](https://github.com/DurchEins/apkup/wiki/Obtainium-Migration-&-Sync-Guide) |
 | 🚨 **Troubleshooting** | [Troubleshooting Source Errors](https://github.com/DurchEins/apkup/wiki/Troubleshooting-Source-Errors) *(DNS/Timeouts, 401/403/429 Rate Limits, Cloudflare, Signature Conflicts)* |
 
----
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/divider-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/divider-light.svg">
+    <img src=".github/assets/divider-dark.svg" width="100%" alt="" />
+  </picture>
+</p>
 
 ## ☕ Support ApkUp
 
@@ -209,7 +276,13 @@ If ApkUp saves you time keeping your apps up to date, consider supporting its on
 > * 💬 **Rate & review** ApkUp on **[Zapstore](https://zapstore.dev/apps/com.apkup)**, **[AlternativeTo](https://alternativeto.net/software/apkup/about/)**, **[APKPure](https://apkpure.com/apkup/com.apkup)**, **[itch.io](https://durcheins.itch.io/apkup)**, or **[Appteka](https://appteka.store/app/c0cr341070)**
 > * 🐛 **[Report bugs](https://github.com/DurchEins/apkup/issues)**, **[suggest features](https://github.com/DurchEins/apkup/issues)**, or share ApkUp with friends!
 
----
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/divider-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/divider-light.svg">
+    <img src=".github/assets/divider-dark.svg" width="100%" alt="" />
+  </picture>
+</p>
 
 ## 🌍 Translations
 
@@ -221,7 +294,13 @@ If ApkUp saves you time keeping your apps up to date, consider supporting its on
 | :--- | :--- |
 | Translate directly in your browser on **[Hosted Weblate](https://hosted.weblate.org/engage/apkup/)**, or report typos via the **[Translation Issue Form](https://github.com/DurchEins/apkup/issues/new?template=translation.yml)**. | Edit Android strings in `app/src/main/res/values-*/strings.xml` or website translations in `website/src/i18n/*.json`. |
 
----
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/divider-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/divider-light.svg">
+    <img src=".github/assets/divider-dark.svg" width="100%" alt="" />
+  </picture>
+</p>
 
 ## 📜 License & Credits
 
@@ -246,5 +325,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 ```
 
 <p align="center">
-  <sub><i>Special Thanks: Based on the original open-source project by <a href="https://github.com/rumboalla/apkupdater">rumboalla (APKUpdater)</a>.</i></sub>
+  <sub><i>Special Thanks: Based on the original open-source project by <a href="https://github.com/rumboalla/apkupdater">rumboalla (APKUpdater)</a>.</i></sub>&nbsp;&nbsp;<a href="#-quick-guides" title="Verified with apksig v2/v3 &amp; SHA-256 — zero blind installs.">🛡️</a>
+</p>
+
+<p align="center">
+  <a href="#top"><kbd>↑ Back to top</kbd></a>
 </p>
