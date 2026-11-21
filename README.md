@@ -1,11 +1,6 @@
 <p align="center">
   <img src=".github/assets/header-banner.svg" width="100%" alt="ApkUp — Multi-Source • Verified • Silent" />
 </p>
-
-<p align="center">
-  <img src=".github/assets/logo.png" width="84" height="84" alt="ApkUp Icon" />
-</p>
-
 <p align="center">
   <b>A modern open-source Android application for discovering, verifying, and autonomously installing app updates across multiple sources (Google Play, F-Droid &amp; IzzyOnDroid, APKMirror, GitHub, GitLab &amp; Codeberg/Forgejo) featuring Material 3 Expressive design, cryptographic APK signature verification, Watchlist tracking, APK export, and unattended Shizuku &amp; optional Root background updates.</b>
 </p>
