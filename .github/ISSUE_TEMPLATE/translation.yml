@@ -1,0 +1,57 @@
+name: Translation Improvement / New Language
+description: Report a translation typo, suggest a more natural phrasing, or contribute a new language
+title: "[Translation] "
+labels:
+  - translation
+  - needs-triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping make **ApkUp** sound natural in every language!
+        No Git or coding experience is required — simply describe the improvement below.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Where did you see the text?
+      options:
+        - Android App (UI / Settings)
+        - Website (durcheins.github.io/apkup)
+        - Both Android App & Website
+    validations:
+      required: true
+
+  - type: dropdown
+    id: language
+    attributes:
+      label: Language
+      options:
+        - English (en)
+        - Deutsch (de)
+        - Español (es)
+        - Français (fr)
+        - Italiano (it)
+        - 日本語 (ja)
+        - Português (pt)
+        - Русский (ru)
+        - 简体中文 (zh-cn)
+        - Request / Contribute a new language
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_text
+    attributes:
+      label: Current text (optional)
+      description: Paste the current text or screenshot description if you are fixing a typo or awkward phrasing.
+    validations:
+      required: false
+
+  - type: textarea
+    id: suggested_text
+    attributes:
+      label: Suggested translation or details
+      description: Write the improved translation, or let us know which new language you would like to help translate.
+    validations:
+      required: true
