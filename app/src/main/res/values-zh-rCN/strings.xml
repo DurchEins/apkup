@@ -588,4 +588,16 @@
     <string name="support_prompt_cta_options">查看支持与商店</string>
     <string name="support_prompt_later">稍后</string>
     <string name="support_prompt_never">不再提示</string>
+    <string name="updates_step_check">检查</string>
+    <string name="updates_step_download">下载</string>
+    <string name="updates_step_verify">校验</string>
+    <string name="updates_step_install">安装</string>
+    <string name="updates_selected_count_install">已选 %1$d 项 · 安装</string>
+    <string name="updates_jump_to_error">跳转到错误 ↑</string>
+    <string name="link_repo_preview_label">预览</string>
+    <string name="apps_peek_package">包名</string>
+    <string name="apps_peek_signature">签名 SHA-256</string>
+    <string name="apps_peek_last_updated">最近更新</string>
+    <string name="apps_fingerprint_copied">指纹已复制</string>
+    <string name="apps_newly_updated_badge">近期更新</string>
 </resources>

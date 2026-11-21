@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.os.Build
 import android.provider.Settings
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
@@ -252,6 +253,31 @@ fun AppTheme(
     val isReducedMotion = remember(context) { isSystemReducedMotion(context) }
     val motionScheme = if (isReducedMotion) ReducedApkUpMotionScheme else ExpressiveApkUpMotionScheme
 
+    val animatedColorScheme = if (isReducedMotion) {
+        colorScheme
+    } else {
+        val spec = tween<Color>(durationMillis = 260)
+        colorScheme.copy(
+            primary = animateColorAsState(colorScheme.primary, spec, label = "ThemePrimary").value,
+            onPrimary = animateColorAsState(colorScheme.onPrimary, spec, label = "ThemeOnPrimary").value,
+            primaryContainer = animateColorAsState(colorScheme.primaryContainer, spec, label = "ThemePrimaryContainer").value,
+            onPrimaryContainer = animateColorAsState(colorScheme.onPrimaryContainer, spec, label = "ThemeOnPrimaryContainer").value,
+            secondaryContainer = animateColorAsState(colorScheme.secondaryContainer, spec, label = "ThemeSecondaryContainer").value,
+            onSecondaryContainer = animateColorAsState(colorScheme.onSecondaryContainer, spec, label = "ThemeOnSecondaryContainer").value,
+            background = animateColorAsState(colorScheme.background, spec, label = "ThemeBackground").value,
+            onBackground = animateColorAsState(colorScheme.onBackground, spec, label = "ThemeOnBackground").value,
+            surface = animateColorAsState(colorScheme.surface, spec, label = "ThemeSurface").value,
+            onSurface = animateColorAsState(colorScheme.onSurface, spec, label = "ThemeOnSurface").value,
+            surfaceVariant = animateColorAsState(colorScheme.surfaceVariant, spec, label = "ThemeSurfaceVariant").value,
+            onSurfaceVariant = animateColorAsState(colorScheme.onSurfaceVariant, spec, label = "ThemeOnSurfaceVariant").value,
+            surfaceContainerLowest = animateColorAsState(colorScheme.surfaceContainerLowest, spec, label = "ThemeSCLL").value,
+            surfaceContainerLow = animateColorAsState(colorScheme.surfaceContainerLow, spec, label = "ThemeSCL").value,
+            surfaceContainer = animateColorAsState(colorScheme.surfaceContainer, spec, label = "ThemeSC").value,
+            surfaceContainerHigh = animateColorAsState(colorScheme.surfaceContainerHigh, spec, label = "ThemeSCH").value,
+            surfaceContainerHighest = animateColorAsState(colorScheme.surfaceContainerHighest, spec, label = "ThemeSCHH").value
+        )
+    }
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -268,7 +294,7 @@ fun AppTheme(
         LocalApkUpReducedMotion provides isReducedMotion
     ) {
         MaterialTheme(
-            colorScheme = colorScheme,
+            colorScheme = animatedColorScheme,
             shapes = AppShapes,
             typography = AppTypography,
             content = content

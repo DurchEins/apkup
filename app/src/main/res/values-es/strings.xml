@@ -591,4 +591,16 @@
     <string name="support_prompt_cta_options">Ver apoyo y tiendas</string>
     <string name="support_prompt_later">Más tarde</string>
     <string name="support_prompt_never">No volver a preguntar</string>
+    <string name="updates_step_check">Comprobar</string>
+    <string name="updates_step_download">Descargar</string>
+    <string name="updates_step_verify">Verificar</string>
+    <string name="updates_step_install">Instalar</string>
+    <string name="updates_selected_count_install">%1$d selecc. · Instalar</string>
+    <string name="updates_jump_to_error">Ir al error ↑</string>
+    <string name="link_repo_preview_label">Vista previa</string>
+    <string name="apps_peek_package">Paquete</string>
+    <string name="apps_peek_signature">SHA-256 del firmante</string>
+    <string name="apps_peek_last_updated">Última actualización</string>
+    <string name="apps_fingerprint_copied">Huella copiada</string>
+    <string name="apps_newly_updated_badge">Actualizado recientemente</string>
 </resources>

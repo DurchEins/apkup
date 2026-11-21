@@ -9,15 +9,15 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.45.1%20(220)-38BDF8?style=flat" alt="Version" /></a>
-  <img src="https://img.shields.io/badge/Android-10.0%2B%20(API%2029%2B)-3DDC84?style=flat&logo=android" alt="Android" />
-  <img src="https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat" alt="License: GPL v3" />
-  <img src="https://img.shields.io/badge/Shizuku%20%26%20Root-Supported-00897B?style=flat" alt="Shizuku & Root" />
-  <img src="https://img.shields.io/badge/Privacy-No%20Ads%20%7C%20No%20Tracking-brightgreen?style=flat" alt="Privacy" />
+  <a href="#-features">Features</a> • <a href="#-screenshots">Screenshots</a> • <a href="#-features">Sources</a> • <a href="#-quick-guides">Security</a> • <a href="#-downloads">Install</a> • <a href="#-troubleshooting--wiki">Wiki</a>
 </p>
 
 <p align="center">
-  <a href="#-features">Features</a> • <a href="#-requirements">Requirements</a> • <a href="#-tech-stack">Tech Stack</a> • <a href="#-screenshots">Screenshots</a> • <a href="#-downloads">Downloads</a> • <a href="#-troubleshooting--wiki">Wiki</a> • <a href="#-support-apkup">Support</a> • <a href="#-license--credits">License</a>
+  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/github/downloads/DurchEins/apkup/total?style=flat&label=Downloads&color=F59E0B&logo=github" alt="GitHub Release Downloads" /></a>
+  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.45.1%20(221)-38BDF8?style=flat" alt="Version" /></a>
+  <img src="https://img.shields.io/badge/Min%20SDK-29%20(Android%2010%2B)-3DDC84?style=flat&logo=android" alt="Min SDK 29" />
+  <a href="#-community-translations"><img src="https://img.shields.io/badge/Languages-9-6366F1?style=flat" alt="Languages (9)" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-blue?style=flat" alt="License GPL-3.0" /></a>
 </p>
 
 ---
@@ -120,6 +120,52 @@ Get the latest release of ApkUp from your preferred platform:
 
 ---
 
+## ⚡ Quick-Guides
+
+<details>
+<summary><b>⚡ Shizuku 3-Step Silent Update Setup</b></summary>
+
+1. Install **[Shizuku](https://shizuku.rikka.app/)** and start it via Wireless Debugging (Android 11+) or ADB.
+2. Open ApkUp **Setup ➔ Installation** and enable **Shizuku Auto-Update**.
+3. Grant Shizuku permission when prompted — ApkUp now installs updates silently in the background.
+
+</details>
+
+<details>
+<summary><b>🛡️ SHA-256 &amp; VirusTotal Verification</b></summary>
+
+1. Download the `.apk` and `SHA256SUMS.txt` from **[GitHub Releases](https://github.com/DurchEins/apkup/releases/latest)**.
+2. Verify locally:
+   ```bash
+   sha256sum -c SHA256SUMS.txt --ignore-missing
+   ```
+3. ApkUp also verifies APK Signature Scheme v2/v3 certificates and `SHA256SUMS` digests automatically during self-updates.
+
+</details>
+
+<details>
+<summary><b>🔨 Local Build from Source</b></summary>
+
+```bash
+git clone https://github.com/DurchEins/apkup.git
+cd apkup
+./gradlew testDebugUnitTest assembleDebug
+```
+
+</details>
+
+---
+
+## 🌍 Community Translations
+
+| `EN` | `DE` | `ES` | `FR` | `IT` | `JA` | `PT` | `RU` | `ZH-CN` |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% |
+
+> **Spot a typo? Fix it in 30 seconds:** [Submit a translation improvement](.github/ISSUE_TEMPLATE/translation.yml)
+
+---
+
 ## 📖 Troubleshooting & Wiki
 
 Need help configuring sources or resolving connection errors? Visit the official **[ApkUp Wiki](https://github.com/DurchEins/apkup/wiki)** for step-by-step guides:
@@ -178,3 +224,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 > **Special Thanks:**  
 > Based on the original open-source project by **[rumboalla (APKUpdater)](https://github.com/rumboalla/apkupdater)**.
+
+<p align="center">
+  <a href="https://buymeacoffee.com/durcheins"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Support-F59E0B?style=flat&logo=buymeacoffee&logoColor=black" alt="Buy Me a Coffee" /></a>&nbsp;
+  <a href="https://coindrop.to/durcheins"><img src="https://img.shields.io/badge/Coindrop-Tip%20Jar-10B981?style=flat" alt="Coindrop" /></a>&nbsp;
+  <a href="https://github.com/DurchEins/apkup"><img src="https://img.shields.io/github/stars/DurchEins/apkup?style=flat&label=Star%20on%20GitHub&color=6366F1&logo=github" alt="Star on GitHub" /></a>
+</p>

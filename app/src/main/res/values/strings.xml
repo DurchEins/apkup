@@ -612,4 +612,16 @@
     <string name="support_prompt_cta_options">View support &amp; stores</string>
     <string name="support_prompt_later">Later</string>
     <string name="support_prompt_never">Don\'t ask again</string>
+    <string name="updates_step_check">Check</string>
+    <string name="updates_step_download">Download</string>
+    <string name="updates_step_verify">Verify</string>
+    <string name="updates_step_install">Install</string>
+    <string name="updates_selected_count_install">%1$d selected · Install</string>
+    <string name="updates_jump_to_error">Jump to error ↑</string>
+    <string name="link_repo_preview_label">Preview</string>
+    <string name="apps_peek_package">Package</string>
+    <string name="apps_peek_signature">Signer SHA-256</string>
+    <string name="apps_peek_last_updated">Last updated</string>
+    <string name="apps_fingerprint_copied">Fingerprint copied</string>
+    <string name="apps_newly_updated_badge">Recently updated</string>
 </resources>

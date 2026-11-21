@@ -2,6 +2,9 @@ package com.apkup.ui.component
 
 import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -42,11 +45,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -247,6 +253,7 @@ fun ChangelogBottomSheet(
                     val isExpanded = expandedMonths[monthIndex] ?: (monthIndex == 0)
                     ChangelogMonthAccordion(
                         section = section,
+                        isLatestMonth = monthIndex == 0,
                         isExpanded = isExpanded,
                         onToggle = {
                             expandedMonths[monthIndex] = !isExpanded
@@ -287,6 +294,7 @@ fun ChangelogBottomSheet(
 @Composable
 private fun ChangelogMonthAccordion(
     section: ChangelogMonthSection,
+    isLatestMonth: Boolean,
     isExpanded: Boolean,
     onToggle: () -> Unit,
     onLinkClick: (String) -> Unit
@@ -326,7 +334,11 @@ private fun ChangelogMonthAccordion(
                     .padding(bottom = 20.dp)
             ) {
                 section.releases.forEachIndexed { releaseIndex, release ->
-                    ChangelogReleaseBlock(release = release, onLinkClick = onLinkClick)
+                    ChangelogReleaseBlock(
+                        release = release,
+                        isLatest = isLatestMonth && releaseIndex == 0,
+                        onLinkClick = onLinkClick
+                    )
                     if (releaseIndex < section.releases.lastIndex) {
                         HorizontalDivider(
                             modifier = Modifier.padding(vertical = 20.dp),
@@ -343,6 +355,7 @@ private fun ChangelogMonthAccordion(
 @Composable
 private fun ChangelogReleaseBlock(
     release: ChangelogRelease,
+    isLatest: Boolean = false,
     onLinkClick: (String) -> Unit
 ) {
     Column(
@@ -372,7 +385,8 @@ private fun ChangelogReleaseBlock(
 
         ChangelogPillBadge(
             label = release.badgeLabel,
-            type = release.badgeType
+            type = release.badgeType,
+            isLatest = isLatest
         )
 
         if (release.banner != null) {
@@ -396,17 +410,53 @@ private fun ChangelogReleaseBlock(
 @Composable
 private fun ChangelogPillBadge(
     label: String,
-    type: ChangelogBadgeType
+    type: ChangelogBadgeType,
+    isLatest: Boolean = false
 ) {
     val (containerColor, contentColor) = when (type) {
         ChangelogBadgeType.FEATURE -> MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
         ChangelogBadgeType.PATCH -> ApkUpTheme.colors.infoContainer to ApkUpTheme.colors.onInfoContainer
         ChangelogBadgeType.MAJOR -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
     }
+    val isReducedMotion = ApkUpTheme.isReducedMotion
+    val shimmerProgress = remember { Animatable(0f) }
+    LaunchedEffect(isLatest, isReducedMotion) {
+        if (isLatest && !isReducedMotion) {
+            shimmerProgress.snapTo(0f)
+            shimmerProgress.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = 2000, easing = LinearEasing)
+            )
+        }
+    }
 
     Surface(
         shape = CircleShape,
-        color = containerColor
+        color = containerColor,
+        modifier = if (isLatest && !isReducedMotion && shimmerProgress.value < 1f) {
+            val p = shimmerProgress.value
+            val fadeAlpha = ((1f - p) / 0.25f).coerceIn(0f, 1f) * 0.45f
+            val sweep = (p * 1.4f) % 1f
+            Modifier
+                .clip(CircleShape)
+                .drawWithContent {
+                    drawContent()
+                    val startX = size.width * (sweep * 2f - 0.5f)
+                    drawRect(
+                        brush = Brush.linearGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.White.copy(alpha = fadeAlpha),
+                                Color.Transparent
+                            ),
+                            start = Offset(startX, 0f),
+                            end = Offset(startX + size.width * 0.45f, size.height)
+                        )
+                    )
+                }
+        } else {
+            Modifier
+        }
     ) {
         Text(
             text = label,

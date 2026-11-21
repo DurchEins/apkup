@@ -587,4 +587,16 @@
     <string name="support_prompt_cta_options">支援とストアを見る</string>
     <string name="support_prompt_later">あとで</string>
     <string name="support_prompt_never">今後表示しない</string>
+    <string name="updates_step_check">確認</string>
+    <string name="updates_step_download">取得</string>
+    <string name="updates_step_verify">検証</string>
+    <string name="updates_step_install">導入</string>
+    <string name="updates_selected_count_install">%1$d 件選択 · インストール</string>
+    <string name="updates_jump_to_error">エラーへ移動 ↑</string>
+    <string name="link_repo_preview_label">プレビュー</string>
+    <string name="apps_peek_package">パッケージ</string>
+    <string name="apps_peek_signature">署名 SHA-256</string>
+    <string name="apps_peek_last_updated">最終更新</string>
+    <string name="apps_fingerprint_copied">フィンガープリントをコピーしました</string>
+    <string name="apps_newly_updated_badge">最近の更新</string>
 </resources>

@@ -1,6 +1,11 @@
 package com.apkup.ui.component
 
 import android.text.format.Formatter
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -51,8 +56,10 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.apkup.R
+import com.apkup.ui.theme.ApkUpTheme
 import com.apkup.data.repomapping.ReleaseAssetFilter
 import com.apkup.data.repomapping.RepoBinding
 import com.apkup.data.snack.TextSnack
@@ -259,6 +266,60 @@ fun LinkRepoDialog(
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
+
+                    val previewBinding = remember(repoInput, selectedType, hostInput) {
+                        buildBinding(repoMappingManager, selectedType, repoInput, hostInput, "")
+                    }
+                    val isReducedMotion = ApkUpTheme.isReducedMotion
+                    AnimatedVisibility(
+                        visible = previewBinding != null,
+                        enter = if (isReducedMotion) fadeIn() else fadeIn() + expandVertically(),
+                        exit = if (isReducedMotion) fadeOut() else fadeOut() + shrinkVertically()
+                    ) {
+                        previewBinding?.let { parsed ->
+                            val providerIcon = when (parsed.type) {
+                                "gitlab" -> R.drawable.ic_gitlab
+                                "codeberg" -> R.drawable.ic_codeberg
+                                else -> R.drawable.ic_github
+                            }
+                            val providerName = when (parsed.type) {
+                                "gitlab" -> "GitLab"
+                                "codeberg" -> "Codeberg"
+                                else -> "GitHub"
+                            }
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.secondaryContainer,
+                                modifier = Modifier.padding(top = 2.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(providerIcon),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.link_repo_preview_label),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.78f)
+                                    )
+                                    Text(
+                                        text = "$providerName · ${parsed.repo}",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                        }
+                    }
 
                     if (selectedType == "gitlab" || selectedType == "codeberg") {
                         OutlinedTextField(

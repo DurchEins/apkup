@@ -603,4 +603,16 @@
     <string name="support_prompt_cta_options">Support &amp; Stores ansehen</string>
     <string name="support_prompt_later">Später</string>
     <string name="support_prompt_never">Nicht mehr fragen</string>
+    <string name="updates_step_check">Prüfen</string>
+    <string name="updates_step_download">Laden</string>
+    <string name="updates_step_verify">Verifizieren</string>
+    <string name="updates_step_install">Installieren</string>
+    <string name="updates_selected_count_install">%1$d gewählt · Installieren</string>
+    <string name="updates_jump_to_error">Zum Fehler ↑</string>
+    <string name="link_repo_preview_label">Vorschau</string>
+    <string name="apps_peek_package">Paket</string>
+    <string name="apps_peek_signature">Signatur-SHA-256</string>
+    <string name="apps_peek_last_updated">Zuletzt aktualisiert</string>
+    <string name="apps_fingerprint_copied">Fingerabdruck kopiert</string>
+    <string name="apps_newly_updated_badge">Kürzlich aktualisiert</string>
 </resources>

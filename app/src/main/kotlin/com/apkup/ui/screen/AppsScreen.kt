@@ -9,15 +9,24 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -117,12 +126,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -190,6 +202,8 @@ fun AppsScreenSuccess(
 	val searchQuery by viewModel.searchQuery().collectAsStateWithLifecycle()
 	val pinnedAppSources by viewModel.pinnedAppSources().collectAsStateWithLifecycle()
 	var pinTargetApp by remember { mutableStateOf<AppInstalled?>(null) }
+	var peekTargetApp by remember { mutableStateOf<AppInstalled?>(null) }
+	val isWideScreen = LocalConfiguration.current.screenWidthDp >= 840
 	val quickFilter by viewModel.quickFilter().collectAsStateWithLifecycle()
 	val scopeTab by viewModel.scopeTab().collectAsStateWithLifecycle()
 	val viewMode by viewModel.viewMode().collectAsStateWithLifecycle()
@@ -547,6 +561,7 @@ fun AppsScreenSuccess(
 										app = app,
 										pinnedSourceKey = pinnedAppSources[app.packageName],
 										onOpenPinSource = { pinTargetApp = app },
+										onPeekApp = { peekTargetApp = app },
 										onIgnore = { pkg ->
 											viewModel.ignore(pkg)
 											updatesViewModel.syncIgnoredFromPrefs()
@@ -600,6 +615,7 @@ fun AppsScreenSuccess(
 											app = app,
 											pinnedSourceKey = pinnedAppSources[app.packageName],
 											onOpenPinSource = { pinTargetApp = app },
+											onPeekApp = { peekTargetApp = app },
 											onIgnore = { pkg ->
 												viewModel.ignore(pkg)
 												updatesViewModel.syncIgnoredFromPrefs()
@@ -636,6 +652,7 @@ fun AppsScreenSuccess(
 											app = app,
 											pinnedSourceKey = pinnedAppSources[app.packageName],
 											onOpenPinSource = { pinTargetApp = app },
+											onPeekApp = { peekTargetApp = app },
 											onIgnore = { pkg ->
 												viewModel.ignore(pkg)
 												updatesViewModel.syncIgnoredFromPrefs()
@@ -684,6 +701,7 @@ fun AppsScreenSuccess(
 												app = app,
 												pinnedSourceKey = pinnedAppSources[app.packageName],
 												onOpenPinSource = { pinTargetApp = app },
+												onPeekApp = { peekTargetApp = app },
 												onIgnore = { pkg ->
 													viewModel.ignore(pkg)
 													updatesViewModel.syncIgnoredFromPrefs()
@@ -794,6 +812,289 @@ fun AppsScreenSuccess(
 			}
 		)
 	}
+
+	if (isWideScreen) {
+		val isReducedMotion = ApkUpTheme.isReducedMotion
+		AnimatedVisibility(
+			visible = peekTargetApp != null,
+			enter = if (isReducedMotion) fadeIn(tween(80)) else slideInHorizontally(spring(dampingRatio = 0.85f, stiffness = 400f)) { it } + fadeIn(),
+			exit = if (isReducedMotion) fadeOut(tween(80)) else slideOutHorizontally(spring(dampingRatio = 0.85f, stiffness = 400f)) { it } + fadeOut()
+		) {
+			peekTargetApp?.let { peekApp ->
+				androidx.compose.ui.window.Dialog(onDismissRequest = { peekTargetApp = null }) {
+					Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+						AppPeekDetailsCard(
+							app = peekApp,
+							onDismiss = { peekTargetApp = null },
+							modifier = Modifier.width(380.dp)
+						)
+					}
+				}
+			}
+		}
+	} else {
+		peekTargetApp?.let { peekApp ->
+			androidx.compose.ui.window.Dialog(onDismissRequest = { peekTargetApp = null }) {
+				AppPeekDetailsCard(
+					app = peekApp,
+					onDismiss = { peekTargetApp = null }
+				)
+			}
+		}
+	}
+}
+
+@Composable
+private fun AppPeekDetailsCard(
+	app: AppInstalled,
+	onDismiss: () -> Unit,
+	modifier: Modifier = Modifier
+) {
+	val context = LocalContext.current
+	val lastUpdatedFormatted = remember(app.lastUpdateTime) {
+		if (app.lastUpdateTime > 0L) {
+			DateUtils.getRelativeTimeSpanString(
+				app.lastUpdateTime,
+				System.currentTimeMillis(),
+				DateUtils.MINUTE_IN_MILLIS
+			).toString()
+		} else {
+			"—"
+		}
+	}
+	Surface(
+		modifier = modifier.fillMaxWidth(),
+		shape = RoundedCornerShape(24.dp),
+		color = MaterialTheme.colorScheme.surfaceContainerHigh,
+		tonalElevation = 6.dp,
+		border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+	) {
+		Column(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(20.dp),
+			verticalArrangement = Arrangement.spacedBy(14.dp)
+		) {
+			Row(
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(12.dp)
+			) {
+				Box(
+					modifier = Modifier
+						.size(48.dp)
+						.clip(RoundedCornerShape(14.dp))
+						.background(MaterialTheme.colorScheme.surfaceContainer),
+					contentAlignment = Alignment.Center
+				) {
+					LoadingImageApp(app.packageName, Modifier.fillMaxSize())
+				}
+				Column(modifier = Modifier.weight(1f)) {
+					Row(
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(6.dp)
+					) {
+						Text(
+							text = app.name.ifBlank { app.packageName },
+							style = MaterialTheme.typography.titleMedium,
+							fontWeight = FontWeight.Bold,
+							color = MaterialTheme.colorScheme.onSurface,
+							maxLines = 1,
+							overflow = TextOverflow.Ellipsis,
+							modifier = Modifier.weight(1f, fill = false)
+						)
+						NewlyUpdatedPulseDot(lastUpdateTime = app.lastUpdateTime)
+					}
+					if (app.version.isNotBlank()) {
+						Text(
+							text = "v${app.version} (${app.versionCode})",
+							style = MaterialTheme.typography.labelMedium,
+							color = MaterialTheme.colorScheme.primary
+						)
+					}
+				}
+			}
+
+			HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+
+			Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+				Text(
+					text = stringResource(R.string.apps_peek_package),
+					style = MaterialTheme.typography.labelSmall,
+					color = MaterialTheme.colorScheme.onSurfaceVariant
+				)
+				Text(
+					text = app.packageName,
+					style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+					color = MaterialTheme.colorScheme.onSurface
+				)
+
+				Text(
+					text = stringResource(R.string.apps_peek_last_updated),
+					style = MaterialTheme.typography.labelSmall,
+					color = MaterialTheme.colorScheme.onSurfaceVariant,
+					modifier = Modifier.padding(top = 4.dp)
+				)
+				Text(
+					text = lastUpdatedFormatted,
+					style = MaterialTheme.typography.bodySmall,
+					color = MaterialTheme.colorScheme.onSurface
+				)
+
+				if (app.signatureSha256.isNotBlank()) {
+					Text(
+						text = stringResource(R.string.apps_peek_signature),
+						style = MaterialTheme.typography.labelSmall,
+						color = MaterialTheme.colorScheme.onSurfaceVariant,
+						modifier = Modifier.padding(top = 4.dp)
+					)
+					CopyableFingerprintPill(fingerprint = app.signatureSha256)
+				}
+			}
+
+			Row(
+				modifier = Modifier.fillMaxWidth(),
+				horizontalArrangement = Arrangement.End
+			) {
+				FilledTonalButton(
+					onClick = {
+						onDismiss()
+						context.openAppSystemSettings(app.packageName)
+					},
+					shape = CircleShape
+				) {
+					Text(stringResource(R.string.apps_context_details))
+				}
+			}
+		}
+	}
+}
+
+@Composable
+internal fun CopyableFingerprintPill(
+	fingerprint: String,
+	modifier: Modifier = Modifier
+) {
+	@Suppress("DEPRECATION")
+	val clipboard = LocalClipboardManager.current
+	val haptics = LocalHapticFeedback.current
+	val isReducedMotion = ApkUpTheme.isReducedMotion
+	var copied by remember(fingerprint) { mutableStateOf(false) }
+	LaunchedEffect(copied) {
+		if (copied) {
+			kotlinx.coroutines.delay(1500L)
+			copied = false
+		}
+	}
+	val shortFp = remember(fingerprint) {
+		val clean = fingerprint.trim()
+		if (clean.length > 20) "${clean.take(10)}…${clean.takeLast(8)}" else clean
+	}
+	Surface(
+		onClick = {
+			clipboard.setText(AnnotatedString(fingerprint.trim()))
+			haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+			copied = true
+		},
+		shape = RoundedCornerShape(10.dp),
+		color = if (copied) ApkUpTheme.colors.successContainer else MaterialTheme.colorScheme.surfaceContainer,
+		border = BorderStroke(
+			1.dp,
+			if (copied) ApkUpTheme.colors.success.copy(alpha = 0.45f)
+			else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)
+		),
+		modifier = modifier
+	) {
+		AnimatedContent(
+			targetState = copied,
+			transitionSpec = {
+				if (isReducedMotion) {
+					fadeIn(tween(80)) togetherWith fadeOut(tween(80))
+				} else {
+					(scaleIn(initialScale = 0.92f) + fadeIn(tween(160))) togetherWith
+						(scaleOut(targetScale = 0.92f) + fadeOut(tween(120)))
+				}
+			},
+			label = "FingerprintCopyMorph"
+		) { isCopied ->
+			Row(
+				modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(6.dp)
+			) {
+				if (isCopied) {
+					Icon(
+						imageVector = Icons.Filled.Check,
+						contentDescription = null,
+						tint = ApkUpTheme.colors.onSuccessContainer,
+						modifier = Modifier.size(14.dp)
+					)
+					Text(
+						text = stringResource(R.string.apps_fingerprint_copied),
+						style = MaterialTheme.typography.labelMedium,
+						fontWeight = FontWeight.SemiBold,
+						color = ApkUpTheme.colors.onSuccessContainer
+					)
+				} else {
+					Text(
+						text = shortFp,
+						style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+						color = MaterialTheme.colorScheme.onSurfaceVariant,
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis
+					)
+				}
+			}
+		}
+	}
+}
+
+@Composable
+private fun NewlyUpdatedPulseDot(
+	lastUpdateTime: Long,
+	modifier: Modifier = Modifier
+) {
+	val isRecent = remember(lastUpdateTime) {
+		lastUpdateTime > 0L && (System.currentTimeMillis() - lastUpdateTime) <= 24L * 60L * 60L * 1000L
+	}
+	if (!isRecent) return
+	val isReducedMotion = ApkUpTheme.isReducedMotion
+	val pulseScale: Float
+	val pulseAlpha: Float
+	if (isReducedMotion) {
+		pulseScale = 1f
+		pulseAlpha = 0.9f
+	} else {
+		val transition = rememberInfiniteTransition(label = "NewDotPulse")
+		pulseScale = transition.animateFloat(
+			initialValue = 0.85f,
+			targetValue = 1.15f,
+			animationSpec = infiniteRepeatable(
+				animation = tween(durationMillis = 1200, easing = LinearEasing),
+				repeatMode = RepeatMode.Reverse
+			),
+			label = "NewDotScale"
+		).value
+		pulseAlpha = transition.animateFloat(
+			initialValue = 0.55f,
+			targetValue = 1f,
+			animationSpec = infiniteRepeatable(
+				animation = tween(durationMillis = 1200, easing = LinearEasing),
+				repeatMode = RepeatMode.Reverse
+			),
+			label = "NewDotAlpha"
+		).value
+	}
+	Box(
+		modifier = modifier
+			.size(7.dp)
+			.graphicsLayer {
+				scaleX = pulseScale
+				scaleY = pulseScale
+				alpha = pulseAlpha
+			}
+			.clip(CircleShape)
+			.background(Color(0xFFF59E0B))
+	)
 }
 
 // -------------------------------------------------------------
@@ -840,6 +1141,7 @@ private fun AppListItem(
 	app: AppInstalled,
 	pinnedSourceKey: String? = null,
 	onOpenPinSource: () -> Unit = {},
+	onPeekApp: () -> Unit = {},
 	repoMappingManager: RepoMappingManager = koinInject(),
 	onIgnore: (String) -> Unit,
 	onRemoveWatched: ((String) -> Unit)? = null
@@ -879,7 +1181,7 @@ private fun AppListItem(
 				},
 				onLongClick = {
 					haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-					showMenu = true
+					onPeekApp()
 				}
 			)
 			.animateContentSize(animationSpec = ApkUpTheme.motion.defaultSpatialSpec()),
@@ -910,14 +1212,21 @@ private fun AppListItem(
 				modifier = Modifier.weight(1f),
 				verticalArrangement = Arrangement.spacedBy(3.dp)
 			) {
-				Text(
-					text = app.name.ifBlank { app.packageName },
-					style = MaterialTheme.typography.titleMedium.copy(fontSize = 14.sp),
-					fontWeight = FontWeight.Bold,
-					color = MaterialTheme.colorScheme.onSurface,
-					maxLines = 1,
-					overflow = TextOverflow.Ellipsis
-				)
+				Row(
+					verticalAlignment = Alignment.CenterVertically,
+					horizontalArrangement = Arrangement.spacedBy(6.dp)
+				) {
+					Text(
+						text = app.name.ifBlank { app.packageName },
+						style = MaterialTheme.typography.titleMedium.copy(fontSize = 14.sp),
+						fontWeight = FontWeight.Bold,
+						color = MaterialTheme.colorScheme.onSurface,
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis,
+						modifier = Modifier.weight(1f, fill = false)
+					)
+					NewlyUpdatedPulseDot(lastUpdateTime = app.lastUpdateTime)
+				}
 				Text(
 					text = app.packageName,
 					style = MaterialTheme.typography.bodySmall.copy(
@@ -1104,6 +1413,7 @@ private fun AppGridItem(
 	app: AppInstalled,
 	pinnedSourceKey: String? = null,
 	onOpenPinSource: () -> Unit = {},
+	onPeekApp: () -> Unit = {},
 	repoMappingManager: RepoMappingManager = koinInject(),
 	onIgnore: (String) -> Unit,
 	onRemoveWatched: ((String) -> Unit)? = null
@@ -1143,7 +1453,7 @@ private fun AppGridItem(
 				},
 				onLongClick = {
 					haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-					showMenu = true
+					onPeekApp()
 				}
 			)
 			.animateContentSize(animationSpec = ApkUpTheme.motion.defaultSpatialSpec()),
@@ -1226,15 +1536,25 @@ private fun AppGridItem(
 
 			// App Name & Package Name
 			Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-				Text(
-					text = app.name.ifBlank { app.packageName },
-					style = MaterialTheme.typography.titleMedium.copy(fontSize = 13.5.sp),
-					fontWeight = FontWeight.Bold,
-					color = MaterialTheme.colorScheme.onSurface,
-					maxLines = 2,
-					minLines = 2,
-					overflow = TextOverflow.Ellipsis
-				)
+				Row(
+					verticalAlignment = Alignment.Top,
+					horizontalArrangement = Arrangement.spacedBy(5.dp)
+				) {
+					Text(
+						text = app.name.ifBlank { app.packageName },
+						style = MaterialTheme.typography.titleMedium.copy(fontSize = 13.5.sp),
+						fontWeight = FontWeight.Bold,
+						color = MaterialTheme.colorScheme.onSurface,
+						maxLines = 2,
+						minLines = 2,
+						overflow = TextOverflow.Ellipsis,
+						modifier = Modifier.weight(1f)
+					)
+					NewlyUpdatedPulseDot(
+						lastUpdateTime = app.lastUpdateTime,
+						modifier = Modifier.padding(top = 5.dp)
+					)
+				}
 				Text(
 					text = app.packageName,
 					style = MaterialTheme.typography.bodySmall.copy(
@@ -1601,9 +1921,30 @@ private fun AppsQuickFilterRow(
 	) {
 		filters.forEach { (filter, label) ->
 			val selected = selectedFilter == filter
+			val isReducedMotion = ApkUpTheme.isReducedMotion
+			val chipScale = remember { Animatable(1f) }
+			val iconRotation = remember { Animatable(0f) }
+			LaunchedEffect(selected) {
+				if (selected && !isReducedMotion) {
+					chipScale.snapTo(0.94f)
+					iconRotation.snapTo(-28f)
+					chipScale.animateTo(
+						targetValue = 1f,
+						animationSpec = spring(dampingRatio = 0.52f, stiffness = 560f)
+					)
+					iconRotation.animateTo(
+						targetValue = 0f,
+						animationSpec = spring(dampingRatio = 0.65f, stiffness = 480f)
+					)
+				}
+			}
 			FilterChip(
 				selected = selected,
 				onClick = { onSelectFilter(filter) },
+				modifier = Modifier.graphicsLayer {
+					scaleX = chipScale.value
+					scaleY = chipScale.value
+				},
 				label = {
 					Text(
 						text = label,
@@ -1616,7 +1957,9 @@ private fun AppsQuickFilterRow(
 						Icon(
 							imageVector = Icons.Filled.Check,
 							contentDescription = null,
-							modifier = Modifier.size(FilterChipDefaults.IconSize)
+							modifier = Modifier
+								.size(FilterChipDefaults.IconSize)
+								.graphicsLayer { rotationZ = iconRotation.value }
 						)
 					}
 				} else null,

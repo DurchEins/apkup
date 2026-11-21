@@ -594,4 +594,16 @@
     <string name="support_prompt_cta_options">Поддержка и магазины</string>
     <string name="support_prompt_later">Позже</string>
     <string name="support_prompt_never">Больше не спрашивать</string>
+    <string name="updates_step_check">Проверка</string>
+    <string name="updates_step_download">Загрузка</string>
+    <string name="updates_step_verify">Сверка</string>
+    <string name="updates_step_install">Установка</string>
+    <string name="updates_selected_count_install">Выбрано %1$d · Установить</string>
+    <string name="updates_jump_to_error">К ошибке ↑</string>
+    <string name="link_repo_preview_label">Предпросмотр</string>
+    <string name="apps_peek_package">Пакет</string>
+    <string name="apps_peek_signature">SHA-256 подписи</string>
+    <string name="apps_peek_last_updated">Последнее обновление</string>
+    <string name="apps_fingerprint_copied">Отпечаток скопирован</string>
+    <string name="apps_newly_updated_badge">Недавно обновлено</string>
 </resources>

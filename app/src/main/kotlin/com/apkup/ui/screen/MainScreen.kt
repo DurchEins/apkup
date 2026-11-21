@@ -7,11 +7,20 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -72,7 +81,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -219,6 +230,21 @@ fun MainScreen(
     val snackBarHostState = handleSnackBar()
 
     AppTheme(darkTheme = theme, dynamicColor = dynamicColor) {
+        val isReducedMotion = ApkUpTheme.isReducedMotion
+        val themeRipple = remember { Animatable(1f) }
+        var themeRippleInitialized by remember { mutableStateOf(false) }
+        LaunchedEffect(theme, dynamicColor) {
+            if (!themeRippleInitialized) {
+                themeRippleInitialized = true
+            } else if (!isReducedMotion) {
+                themeRipple.snapTo(0f)
+                themeRipple.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(durationMillis = 420, easing = FastOutSlowInEasing)
+                )
+            }
+        }
+        Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             containerColor = MaterialTheme.colorScheme.background
         ) { padding ->
@@ -294,6 +320,19 @@ fun MainScreen(
                     }
                 }
             }
+        }
+        if (!isReducedMotion && themeRipple.value < 1f) {
+            val rippleProgress = themeRipple.value
+            val rippleColor = MaterialTheme.colorScheme.primary
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val maxRadius = kotlin.math.hypot(size.width.toDouble(), size.height.toDouble()).toFloat()
+                drawCircle(
+                    color = rippleColor.copy(alpha = (1f - rippleProgress) * 0.14f),
+                    radius = maxRadius * rippleProgress,
+                    center = Offset(size.width * 0.5f, size.height * 0.45f)
+                )
+            }
+        }
         }
 
         if (showOnboardingConsent) {
@@ -747,6 +786,17 @@ fun ApkUpNavigationRail(
                     unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                 ),
                 icon = {
+                    val isReducedMotion = ApkUpTheme.isReducedMotion
+                    val iconScale = remember { Animatable(1f) }
+                    LaunchedEffect(selected) {
+                        if (selected && !isReducedMotion) {
+                            iconScale.snapTo(0.84f)
+                            iconScale.animateTo(
+                                targetValue = 1f,
+                                animationSpec = spring(dampingRatio = 0.45f, stiffness = 560f)
+                            )
+                        }
+                    }
                     NavigationBadgeBox(
                         badge = badge,
                         isLoadingUpdates = isLiveChecking,
@@ -756,7 +806,12 @@ fun ApkUpNavigationRail(
                         Icon(
                             imageVector = if (selected) screen.iconSelected else screen.icon,
                             contentDescription = null,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier
+                                .size(24.dp)
+                                .graphicsLayer {
+                                    scaleX = iconScale.value
+                                    scaleY = iconScale.value
+                                }
                         )
                     }
                 },
@@ -786,17 +841,35 @@ private fun NavigationBadgeBox(
         badge = {
             if (badge.isNotEmpty()) {
                 val isWarning = badge == "!"
+                val displayText = if (isWarning) "!" else formatCapsuleBadge(badge)
+                val isReducedMotion = ApkUpTheme.isReducedMotion
                 Badge(
                     containerColor = if (isWarning) warningContainer else MaterialTheme.colorScheme.error,
                     contentColor = if (isWarning) onWarning else MaterialTheme.colorScheme.onError
                 ) {
-                    Text(
-                        text = if (isWarning) "!" else formatCapsuleBadge(badge),
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontSize = if (isWarning) 11.sp else 10.sp,
-                            fontWeight = FontWeight.Bold
+                    AnimatedContent(
+                        targetState = displayText,
+                        transitionSpec = {
+                            if (isReducedMotion) {
+                                fadeIn(tween(80)) togetherWith fadeOut(tween(80))
+                            } else {
+                                val prevNum = initialState.trimEnd('+').toIntOrNull()
+                                val nextNum = targetState.trimEnd('+').toIntOrNull()
+                                val goingUp = prevNum == null || nextNum == null || nextNum >= prevNum
+                                (slideInVertically(tween(220)) { if (goingUp) it else -it } + fadeIn(tween(180))) togetherWith
+                                    (slideOutVertically(tween(220)) { if (goingUp) -it else it } + fadeOut(tween(140)))
+                            }
+                        },
+                        label = "BadgeOdometer"
+                    ) { target ->
+                        Text(
+                            text = target,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontSize = if (isWarning) 11.sp else 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
                         )
-                    )
+                    }
                 }
             } else if (isLoadingUpdates) {
                 CircularProgressIndicator(
@@ -879,6 +952,17 @@ fun CapsuleDockItem(
                     .clip(CircleShape)
                     .background(indicatorColor)
             )
+            val isReducedMotion = ApkUpTheme.isReducedMotion
+            val iconScale = remember { Animatable(1f) }
+            LaunchedEffect(selected) {
+                if (selected && !isReducedMotion) {
+                    iconScale.snapTo(0.84f)
+                    iconScale.animateTo(
+                        targetValue = 1f,
+                        animationSpec = spring(dampingRatio = 0.45f, stiffness = 560f)
+                    )
+                }
+            }
             NavigationBadgeBox(
                 badge = badge,
                 isLoadingUpdates = isLoadingUpdates,
@@ -888,7 +972,12 @@ fun CapsuleDockItem(
                 Icon(
                     imageVector = if (selected) screen.iconSelected else screen.icon,
                     contentDescription = null,
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier
+                        .size(24.dp)
+                        .graphicsLayer {
+                            scaleX = iconScale.value
+                            scaleY = iconScale.value
+                        },
                     tint = iconColor
                 )
             }

@@ -5,6 +5,9 @@ import android.content.Intent
 import android.net.Uri
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -19,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -43,10 +47,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -56,6 +62,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.apkup.R
+import com.apkup.ui.theme.ApkUpTheme
 
 object SupportLinks {
 	const val BUY_ME_A_COFFEE = "https://buymeacoffee.com/durcheins"
@@ -128,6 +135,17 @@ fun SupportCommunityBottomSheet(
 	val openUrl = rememberCustomTabOpener()
 	val bmacTitle = stringResource(R.string.support_bmac_title)
 	val coindropTitle = stringResource(R.string.support_coindrop_title)
+	val isReducedMotion = ApkUpTheme.isReducedMotion
+	val heartDrift = remember { Animatable(0f) }
+	LaunchedEffect(isReducedMotion) {
+		if (!isReducedMotion) {
+			heartDrift.snapTo(0f)
+			heartDrift.animateTo(
+				targetValue = 1f,
+				animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing)
+			)
+		}
+	}
 
 	ModalBottomSheet(
 		onDismissRequest = onDismiss,
@@ -144,30 +162,52 @@ fun SupportCommunityBottomSheet(
 				.navigationBarsPadding(),
 			verticalArrangement = Arrangement.spacedBy(16.dp)
 		) {
-			Row(
-				verticalAlignment = Alignment.CenterVertically,
-				horizontalArrangement = Arrangement.spacedBy(12.dp)
-			) {
-				Box(
-					modifier = Modifier
-						.size(40.dp)
-						.clip(RoundedCornerShape(12.dp))
-						.background(MaterialTheme.colorScheme.primaryContainer),
-					contentAlignment = Alignment.Center
-				) {
+			Box(modifier = Modifier.fillMaxWidth()) {
+				if (!isReducedMotion && heartDrift.value < 1f) {
+					val p = heartDrift.value
+					val driftAlpha = (if (p < 0.2f) p / 0.2f else 1f - ((p - 0.2f) / 0.8f)).coerceIn(0f, 1f) * 0.42f
 					Icon(
 						imageVector = Icons.Rounded.Favorite,
 						contentDescription = null,
-						tint = MaterialTheme.colorScheme.primary,
-						modifier = Modifier.size(22.dp)
+						tint = MaterialTheme.colorScheme.primary.copy(alpha = driftAlpha),
+						modifier = Modifier
+							.align(Alignment.CenterStart)
+							.offset(x = 12.dp)
+							.size(18.dp)
+							.graphicsLayer {
+								translationY = -p * 34.dp.toPx()
+								translationX = p * 8.dp.toPx()
+								val s = 0.85f + 0.35f * p
+								scaleX = s
+								scaleY = s
+							}
 					)
 				}
-				Text(
-					text = stringResource(R.string.support_sheet_title),
-					style = MaterialTheme.typography.titleLarge,
-					fontWeight = FontWeight.Bold,
-					color = MaterialTheme.colorScheme.onSurface
-				)
+				Row(
+					verticalAlignment = Alignment.CenterVertically,
+					horizontalArrangement = Arrangement.spacedBy(12.dp)
+				) {
+					Box(
+						modifier = Modifier
+							.size(40.dp)
+							.clip(RoundedCornerShape(12.dp))
+							.background(MaterialTheme.colorScheme.primaryContainer),
+						contentAlignment = Alignment.Center
+					) {
+						Icon(
+							imageVector = Icons.Rounded.Favorite,
+							contentDescription = null,
+							tint = MaterialTheme.colorScheme.primary,
+							modifier = Modifier.size(22.dp)
+						)
+					}
+					Text(
+						text = stringResource(R.string.support_sheet_title),
+						style = MaterialTheme.typography.titleLarge,
+						fontWeight = FontWeight.Bold,
+						color = MaterialTheme.colorScheme.onSurface
+					)
+				}
 			}
 
 			Text(

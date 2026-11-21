@@ -139,8 +139,10 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedback
@@ -183,6 +185,7 @@ import com.apkup.data.fdroid.FDroidRepoConfig
 import com.apkup.data.obtainium.ObtainiumImportPreview
 import com.apkup.data.ui.AppsUiState
 import com.apkup.R
+import com.apkup.ui.theme.ApkUpTheme
 import com.apkup.data.selfupdate.SelfUpdateState
 import com.apkup.data.ui.AppInstalled
 import com.apkup.data.ui.BackgroundCheckInterval
@@ -313,6 +316,7 @@ fun Settings(
 		}
 	}
 	val iconTapTimestamps = remember { mutableStateListOf<Long>() }
+	var exportSuccessWaveTick by remember { mutableIntStateOf(0) }
 
 	val exportBackupLauncher = rememberLauncherForActivityResult(
 		ActivityResultContracts.CreateDocument("application/json")
@@ -328,6 +332,7 @@ fun Settings(
 				}.isSuccess
 				withContext(Dispatchers.Main) {
 					viewModel.notifyBackupExported(success)
+					if (success) exportSuccessWaveTick++
 				}
 			}
 		}
@@ -349,6 +354,7 @@ fun Settings(
 				}.isSuccess
 				withContext(Dispatchers.Main) {
 					viewModel.notifyObtainiumExported(success)
+					if (success) exportSuccessWaveTick++
 				}
 			}
 		}
@@ -1649,7 +1655,42 @@ fun Settings(
 							)
 
 							// 3. Datensicherung & Export
-							Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+							val isReducedMotionExport = ApkUpTheme.isReducedMotion
+							val exportWaveProgress = remember { Animatable(1f) }
+							LaunchedEffect(exportSuccessWaveTick) {
+								if (exportSuccessWaveTick > 0 && !isReducedMotionExport) {
+									exportWaveProgress.snapTo(0f)
+									exportWaveProgress.animateTo(
+										targetValue = 1f,
+										animationSpec = tween(durationMillis = 850, easing = FastOutSlowInEasing)
+									)
+								}
+							}
+							val exportWaveColor = MaterialTheme.colorScheme.primary
+							Column(
+								verticalArrangement = Arrangement.spacedBy(8.dp),
+								modifier = Modifier
+									.clip(RoundedCornerShape(14.dp))
+									.drawWithContent {
+										drawContent()
+										val p = exportWaveProgress.value
+										if (!isReducedMotionExport && p < 1f) {
+											val sweepX = size.width * (p * 1.4f - 0.2f)
+											val alpha = (1f - p).coerceIn(0f, 1f) * 0.24f
+											drawRect(
+												brush = Brush.linearGradient(
+													colors = listOf(
+														Color.Transparent,
+														exportWaveColor.copy(alpha = alpha),
+														Color.Transparent
+													),
+													start = Offset(sweepX - size.width * 0.2f, 0f),
+													end = Offset(sweepX + size.width * 0.2f, size.height)
+												)
+											)
+										}
+									}
+							) {
 								Text(
 									text = stringResource(R.string.settings_section_backup_restore),
 									style = MaterialTheme.typography.labelLarge,
@@ -4915,15 +4956,38 @@ private fun PermissionSettingItem(
 			)
 		}
 		val isDark = androidx.compose.foundation.isSystemInDarkTheme()
-		val badgeBg = if (isGranted) {
+		val isReducedMotion = ApkUpTheme.isReducedMotion
+		val targetBadgeBg = if (isGranted) {
 			if (isDark) Color(0xFF1B3820) else Color(0xFFE8F5E9)
 		} else {
 			if (isDark) Color(0xFF3E1A1A) else Color(0xFFFFEBEE)
 		}
-		val badgeColor = if (isGranted) {
+		val targetBadgeColor = if (isGranted) {
 			if (isDark) Color(0xFF81C784) else Color(0xFF2E7D32)
 		} else {
 			if (isDark) Color(0xFFFF8A80) else Color(0xFFC62828)
+		}
+		val badgeBg by animateColorAsState(
+			targetValue = targetBadgeBg,
+			animationSpec = if (isReducedMotion) tween(60) else tween(260),
+			label = "PermissionBadgeBg"
+		)
+		val badgeColor by animateColorAsState(
+			targetValue = targetBadgeColor,
+			animationSpec = if (isReducedMotion) tween(60) else tween(260),
+			label = "PermissionBadgeColor"
+		)
+		val checkScale = remember { Animatable(1f) }
+		var prevGranted by remember { mutableStateOf(isGranted) }
+		LaunchedEffect(isGranted) {
+			if (isGranted && !prevGranted && !isReducedMotion) {
+				checkScale.snapTo(0.25f)
+				checkScale.animateTo(
+					targetValue = 1f,
+					animationSpec = spring(dampingRatio = 0.45f, stiffness = 420f)
+				)
+			}
+			prevGranted = isGranted
 		}
 		Surface(
 			shape = CircleShape,
@@ -4934,12 +4998,30 @@ private fun PermissionSettingItem(
 				verticalAlignment = CenterVertically,
 				horizontalArrangement = Arrangement.spacedBy(4.dp)
 			) {
-				Icon(
-					imageVector = if (isGranted) Icons.Default.Check else Icons.Default.Close,
-					contentDescription = null,
-					tint = badgeColor,
-					modifier = Modifier.size(11.dp)
-				)
+				AnimatedContent(
+					targetState = isGranted,
+					transitionSpec = {
+						if (isReducedMotion) {
+							fadeIn(tween(60)) togetherWith fadeOut(tween(60))
+						} else {
+							(scaleIn(spring(dampingRatio = 0.55f, stiffness = 500f), initialScale = 0.5f) + fadeIn()) togetherWith
+								(scaleOut(targetScale = 0.5f) + fadeOut())
+						}
+					},
+					label = "PermissionCheckIcon"
+				) { granted ->
+					Icon(
+						imageVector = if (granted) Icons.Default.Check else Icons.Default.Close,
+						contentDescription = null,
+						tint = badgeColor,
+						modifier = Modifier
+							.size(11.dp)
+							.graphicsLayer {
+								scaleX = if (granted) checkScale.value else 1f
+								scaleY = if (granted) checkScale.value else 1f
+							}
+					)
+				}
 				Text(
 					text = statusText,
 					style = MaterialTheme.typography.labelSmall,
