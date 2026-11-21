@@ -799,6 +799,41 @@ fun AppsScreenSuccess(
 // -------------------------------------------------------------
 // 1-Spalten-Listenzeile („Die Symbiose“)
 // -------------------------------------------------------------
+@Composable
+private fun rememberRepoLinkGlowBorder(
+	repoBinding: RepoBinding?,
+	isDialogOpen: Boolean
+): BorderStroke {
+	val haptics = LocalHapticFeedback.current
+	var wasDialogOpen by remember { mutableStateOf(false) }
+	var previousRepo by remember { mutableStateOf(repoBinding?.repo) }
+	var isGlowing by remember { mutableStateOf(false) }
+
+	LaunchedEffect(isDialogOpen, repoBinding?.repo) {
+		val currentRepo = repoBinding?.repo
+		if (wasDialogOpen && !isDialogOpen && currentRepo != null && currentRepo != previousRepo) {
+			isGlowing = true
+			haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+			kotlinx.coroutines.delay(1400L)
+			isGlowing = false
+		}
+		wasDialogOpen = isDialogOpen
+		previousRepo = currentRepo
+	}
+
+	val borderColor by androidx.compose.animation.animateColorAsState(
+		targetValue = if (isGlowing) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+		animationSpec = ApkUpTheme.motion.fastEffectsSpec(),
+		label = "RepoLinkGlowBorderColor"
+	)
+	val borderWidth by androidx.compose.animation.core.animateDpAsState(
+		targetValue = if (isGlowing) 2.dp else 1.dp,
+		animationSpec = ApkUpTheme.motion.fastSpatialSpec(),
+		label = "RepoLinkGlowBorderWidth"
+	)
+	return BorderStroke(borderWidth, borderColor)
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun AppListItem(
@@ -816,6 +851,7 @@ private fun AppListItem(
 	val repoBinding = remember(app.packageName, showLinkRepoDialog) {
 		repoMappingManager.getBinding(app.packageName)
 	}
+	val cardBorder = rememberRepoLinkGlowBorder(repoBinding = repoBinding, isDialogOpen = showLinkRepoDialog)
 
 	val interactionSource = remember { MutableInteractionSource() }
 	val isPressed by interactionSource.collectIsPressedAsState()
@@ -849,7 +885,7 @@ private fun AppListItem(
 			.animateContentSize(animationSpec = ApkUpTheme.motion.defaultSpatialSpec()),
 		shape = cardShape,
 		color = MaterialTheme.colorScheme.surfaceContainerLow,
-		border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+		border = cardBorder
 	) {
 		Row(
 			modifier = Modifier
@@ -1079,6 +1115,7 @@ private fun AppGridItem(
 	val repoBinding = remember(app.packageName, showLinkRepoDialog) {
 		repoMappingManager.getBinding(app.packageName)
 	}
+	val cardBorder = rememberRepoLinkGlowBorder(repoBinding = repoBinding, isDialogOpen = showLinkRepoDialog)
 
 	val interactionSource = remember { MutableInteractionSource() }
 	val isPressed by interactionSource.collectIsPressedAsState()
@@ -1112,7 +1149,7 @@ private fun AppGridItem(
 			.animateContentSize(animationSpec = ApkUpTheme.motion.defaultSpatialSpec()),
 		shape = cardShape,
 		color = MaterialTheme.colorScheme.surfaceContainerLow,
-		border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+		border = cardBorder
 	) {
 		Column(
 			modifier = Modifier

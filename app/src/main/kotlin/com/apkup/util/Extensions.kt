@@ -211,6 +211,20 @@ fun openInCustomTab(
         return
     }
     val uri = runCatching { trimmed.toUri() }.getOrNull() ?: return
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        val nativeIntent = Intent(Intent.ACTION_VIEW, uri).apply {
+            addCategory(Intent.CATEGORY_BROWSABLE)
+            addFlags(Intent.FLAG_ACTIVITY_REQUIRE_NON_BROWSER)
+            if (context !is android.app.Activity) {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+        }
+        val openedNative = runCatching {
+            context.startActivity(nativeIntent)
+            true
+        }.getOrDefault(false)
+        if (openedNative) return
+    }
     val launchedCustomTab = runCatching {
         val builder = androidx.browser.customtabs.CustomTabsIntent.Builder()
             .setShowTitle(true)

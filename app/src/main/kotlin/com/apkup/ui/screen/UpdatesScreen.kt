@@ -986,40 +986,80 @@ fun UpdatesScreenSuccess(
 			),
 			modifier = Modifier.weight(1f)
 		)
-		displayMode == 1 -> CompactUpdatesGrid(
-			viewModel = viewModel,
-			appsViewModel = appsViewModel,
-			updates = displayedUpdates,
-			scrollResetKey = Triple(sortOrder, selectedSourceFilter, searchQuery.trim()),
-			activeTasksMap = activeTasksMap,
-			readyUpdateIds = readyUpdateIds,
-			handler = handler,
-			modifier = Modifier
-				.weight(1f)
-				.nestedScroll(collapsibleHeaderState.nestedScrollConnection),
-			onRequestInstall = requestInstallSingle,
-			onRequestSaveApk = requestSaveApkSingle,
-			isSelectionMode = isSelectionMode,
-			selectedUpdateIds = selectedUpdateIds,
-			onToggleSelection = toggleSelection
-		)
-		else -> UpdatesList(
-			viewModel = viewModel,
-			appsViewModel = appsViewModel,
-			updates = displayedUpdates,
-			scrollResetKey = Triple(sortOrder, selectedSourceFilter, searchQuery.trim()),
-			activeTasksMap = activeTasksMap,
-			readyUpdateIds = readyUpdateIds,
-			handler = handler,
-			modifier = Modifier
-				.weight(1f)
-				.nestedScroll(collapsibleHeaderState.nestedScrollConnection),
-			onRequestInstall = requestInstallSingle,
-			onRequestSaveApk = requestSaveApkSingle,
-			isSelectionMode = isSelectionMode,
-			selectedUpdateIds = selectedUpdateIds,
-			onToggleSelection = toggleSelection
-		)
+		displayMode == 1 -> {
+			val pullToRefreshState = androidx.compose.material3.pulltorefresh.rememberPullToRefreshState()
+			val pullHaptics = LocalHapticFeedback.current
+			var pullThresholdCrossed by remember { mutableStateOf(false) }
+			LaunchedEffect(pullToRefreshState.distanceFraction, isChecking) {
+				if (!isChecking && pullToRefreshState.distanceFraction >= 1f && !pullThresholdCrossed) {
+					pullThresholdCrossed = true
+					pullHaptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+				} else if (pullToRefreshState.distanceFraction < 0.75f) {
+					pullThresholdCrossed = false
+				}
+			}
+			androidx.compose.material3.pulltorefresh.PullToRefreshBox(
+				isRefreshing = isChecking,
+				onRefresh = { viewModel.refresh() },
+				state = pullToRefreshState,
+				modifier = Modifier.weight(1f)
+			) {
+				CompactUpdatesGrid(
+					viewModel = viewModel,
+					appsViewModel = appsViewModel,
+					updates = displayedUpdates,
+					scrollResetKey = Triple(sortOrder, selectedSourceFilter, searchQuery.trim()),
+					activeTasksMap = activeTasksMap,
+					readyUpdateIds = readyUpdateIds,
+					handler = handler,
+					modifier = Modifier
+						.fillMaxSize()
+						.nestedScroll(collapsibleHeaderState.nestedScrollConnection),
+					onRequestInstall = requestInstallSingle,
+					onRequestSaveApk = requestSaveApkSingle,
+					isSelectionMode = isSelectionMode,
+					selectedUpdateIds = selectedUpdateIds,
+					onToggleSelection = toggleSelection
+				)
+			}
+		}
+		else -> {
+			val pullToRefreshState = androidx.compose.material3.pulltorefresh.rememberPullToRefreshState()
+			val pullHaptics = LocalHapticFeedback.current
+			var pullThresholdCrossed by remember { mutableStateOf(false) }
+			LaunchedEffect(pullToRefreshState.distanceFraction, isChecking) {
+				if (!isChecking && pullToRefreshState.distanceFraction >= 1f && !pullThresholdCrossed) {
+					pullThresholdCrossed = true
+					pullHaptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+				} else if (pullToRefreshState.distanceFraction < 0.75f) {
+					pullThresholdCrossed = false
+				}
+			}
+			androidx.compose.material3.pulltorefresh.PullToRefreshBox(
+				isRefreshing = isChecking,
+				onRefresh = { viewModel.refresh() },
+				state = pullToRefreshState,
+				modifier = Modifier.weight(1f)
+			) {
+				UpdatesList(
+					viewModel = viewModel,
+					appsViewModel = appsViewModel,
+					updates = displayedUpdates,
+					scrollResetKey = Triple(sortOrder, selectedSourceFilter, searchQuery.trim()),
+					activeTasksMap = activeTasksMap,
+					readyUpdateIds = readyUpdateIds,
+					handler = handler,
+					modifier = Modifier
+						.fillMaxSize()
+						.nestedScroll(collapsibleHeaderState.nestedScrollConnection),
+					onRequestInstall = requestInstallSingle,
+					onRequestSaveApk = requestSaveApkSingle,
+					isSelectionMode = isSelectionMode,
+					selectedUpdateIds = selectedUpdateIds,
+					onToggleSelection = toggleSelection
+				)
+			}
+		}
 	}
 
 	if (showQueueSheet) {
@@ -1465,10 +1505,27 @@ private fun UpdatesHeroBanner(
 		return
 	}
 
+	val bannerHaptics = LocalHapticFeedback.current
+	var hadActiveTasks by remember { mutableStateOf(false) }
+	var showBatchCompletePop by remember { mutableStateOf(false) }
+	LaunchedEffect(activeTasks.isNotEmpty()) {
+		if (activeTasks.isNotEmpty()) {
+			hadActiveTasks = true
+			showBatchCompletePop = false
+		} else if (hadActiveTasks) {
+			hadActiveTasks = false
+			showBatchCompletePop = true
+			bannerHaptics.performHapticFeedback(HapticFeedbackType.LongPress)
+			kotlinx.coroutines.delay(1500L)
+			showBatchCompletePop = false
+		}
+	}
+
 	Surface(
 		modifier = Modifier
 			.fillMaxWidth()
-			.padding(horizontal = 12.dp, vertical = 4.dp),
+			.padding(horizontal = 12.dp, vertical = 4.dp)
+			.animateContentSize(animationSpec = ApkUpTheme.motion.defaultSpatialSpec()),
 		shape = shape,
 		color = MaterialTheme.colorScheme.surfaceContainerLow,
 		border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.24f)),
@@ -1518,31 +1575,55 @@ private fun UpdatesHeroBanner(
 			}
 			if (hasInstallable) {
 				Spacer(Modifier.width(8.dp))
-				ApkUpSplitActionButton(
-					label = stringResource(R.string.install_all),
-					iconRes = R.drawable.ic_install,
-					onClick = onInstallAll,
-					menuContent = { dismiss ->
-						if (onOpenHistory != null) {
-							DropdownMenuItem(
-								text = { Text(stringResource(R.string.update_history_title)) },
-								leadingIcon = {
-									Icon(
-										imageVector = Icons.Rounded.History,
-										contentDescription = null
-									)
-								},
-								onClick = {
-									dismiss()
-									onOpenHistory()
-								}
-							)
-						}
-						DropdownMenuItem(
-							text = { Text(stringResource(R.string.updates_select_all)) },
-							leadingIcon = {
+				androidx.compose.animation.AnimatedContent(
+					targetState = showBatchCompletePop,
+					label = "UpdateAllMorph"
+				) { completed ->
+					if (completed) {
+						Surface(
+							shape = CircleShape,
+							color = MaterialTheme.colorScheme.primaryContainer,
+							border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.45f))
+						) {
+							Row(
+								modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+								verticalAlignment = Alignment.CenterVertically,
+								horizontalArrangement = Arrangement.spacedBy(6.dp)
+							) {
 								Icon(
-									imageVector = Icons.Filled.Check,
+									imageVector = Icons.Rounded.CheckCircle,
+									contentDescription = null,
+									tint = MaterialTheme.colorScheme.primary,
+									modifier = Modifier.size(18.dp)
+								)
+							}
+						}
+					} else {
+						ApkUpSplitActionButton(
+							label = stringResource(R.string.install_all),
+							iconRes = R.drawable.ic_install,
+							onClick = onInstallAll,
+							menuContent = { dismiss ->
+								if (onOpenHistory != null) {
+									DropdownMenuItem(
+										text = { Text(stringResource(R.string.update_history_title)) },
+										leadingIcon = {
+											Icon(
+												imageVector = Icons.Rounded.History,
+												contentDescription = null
+											)
+										},
+										onClick = {
+											dismiss()
+											onOpenHistory()
+										}
+									)
+								}
+								DropdownMenuItem(
+									text = { Text(stringResource(R.string.updates_select_all)) },
+									leadingIcon = {
+										Icon(
+											imageVector = Icons.Filled.Check,
 									contentDescription = null
 								)
 							},
@@ -1553,6 +1634,8 @@ private fun UpdatesHeroBanner(
 						)
 					}
 				)
+					}
+				}
 			}
 		}
 	}
