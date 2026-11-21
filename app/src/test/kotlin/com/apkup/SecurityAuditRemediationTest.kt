@@ -273,4 +273,43 @@ class SecurityAuditRemediationTest {
         assertEquals("org.example.app", summary.addedEntries.single().packageName)
         assertEquals(0, summary.alreadyWatchedCount)
     }
+
+    @Test
+    fun `SEC-07 AppJournal redacts single-token URL userinfo and multi-clause cookies with colons`() {
+        val journal = AppJournal(journalFile = null, maxEntries = 10)
+        journal.log(
+            "Network",
+            "Clone https://ghp_singleTokenSecret99@github.com/org/repo.git with Cookie: session=abc; note: foo; secret=xyz\nX-Trace: safe"
+        )
+        journal.log(
+            "UI",
+            "Visit https://example.com/@handle?email=user@domain.com#frag@1"
+        )
+        val entries = journal.entries()
+        assertEquals(2, entries.size)
+        val netEntry = entries[0]
+        assertFalse(netEntry.contains("ghp_singleTokenSecret99"))
+        assertFalse(netEntry.contains("session=abc"))
+        assertFalse(netEntry.contains("secret=xyz"))
+        assertTrue(netEntry.contains("https://[REDACTED]@github.com/org/repo.git"))
+        assertTrue(netEntry.contains("Cookie: [REDACTED]"))
+        assertTrue(netEntry.contains("X-Trace: safe"))
+
+        val uiEntry = entries[1]
+        assertTrue(uiEntry.contains("https://example.com/@handle?email=user@domain.com#frag@1"))
+    }
+
+    @Test
+    fun `SEC-03 ApkIntegrityVerifier uniqueSafePartFileName disambiguates colliding part names`() {
+        val used = HashSet<String>()
+        val first = com.apkup.util.ApkIntegrityVerifier.uniqueSafePartFileName("../split.apk", 0, used)
+        val second = com.apkup.util.ApkIntegrityVerifier.uniqueSafePartFileName("split.apk", 1, used)
+        val third = com.apkup.util.ApkIntegrityVerifier.uniqueSafePartFileName("SPLIT.apk", 2, used)
+        val fourth = com.apkup.util.ApkIntegrityVerifier.uniqueSafePartFileName("SPLIT.APK", 3, used)
+        assertEquals("split.apk", first)
+        assertEquals("split_1.apk", second)
+        assertEquals("SPLIT_2.apk", third)
+        assertEquals("split_3.apk", fourth)
+        assertEquals(4, setOf(first.lowercase(), second.lowercase(), third.lowercase(), fourth.lowercase()).size)
+    }
 }

@@ -235,8 +235,11 @@ class AppJournal(
         private val AURORA_AUTH_REGEX = Regex("""(?<![?&A-Za-z0-9_])Auth=(?!\[REDACTED\])\S+""", RegexOption.IGNORE_CASE)
         private val AAS_ET_REGEX = Regex("""\baas_et/\S+""", RegexOption.IGNORE_CASE)
         private val PAT_TOKEN_REGEX = Regex("""\b(?:ghp|gho|ghu|ghs|ghr|github_pat)_[A-Za-z0-9_]+\b|\bglpat-[A-Za-z0-9_-]+\b""")
-        private val COOKIE_HEADER_REGEX = Regex("""\b(Set-Cookie|Cookie):\s*\S+(?:\s+[^\r\n]*?(?=\s+[A-Za-z-]+:\s|$))?""", RegexOption.IGNORE_CASE)
-        private val URL_USERINFO_REGEX = Regex("""(https?://)([^/\s:@]+:[^/\s@]+)@""", RegexOption.IGNORE_CASE)
+        private val COOKIE_HEADER_REGEX = Regex(
+            """\b(Set-Cookie|Cookie):[ \t]*\S+(?:[ \t]+[^\r\n]*?(?=[ \t]+(?:Set-Cookie|Cookie|Authorization|Proxy-Authorization|User-Agent|Host|Referer|Origin|Accept(?:-[A-Za-z-]+)?|Content-(?:Type|Length)|Connection|Cache-Control|Pragma|Upgrade-Insecure-Requests|X-[A-Za-z0-9-]+|Sec-[A-Za-z0-9-]+):[ \t]|\r|\n|$))?""",
+            RegexOption.IGNORE_CASE
+        )
+        private val URL_USERINFO_REGEX = Regex("""(https?://)([^/\s?#@]+)@""", RegexOption.IGNORE_CASE)
 
         @Volatile
         private var sharedInstance: AppJournal? = null
@@ -279,7 +282,8 @@ class AppJournal(
             TIMESTAMP_FORMATTER.format(Instant.ofEpochMilli(epochMillis))
 
         internal fun sanitizeJournalText(raw: String): String {
-            var clean = raw.replace('\r', ' ').replace('\n', ' ').trim()
+            var clean = COOKIE_HEADER_REGEX.replace(raw) { match -> "${match.groupValues[1]}: [REDACTED]" }
+            clean = clean.replace('\r', ' ').replace('\n', ' ').trim()
             clean = BEARER_REGEX.replace(clean, "Bearer [REDACTED]")
             clean = AUTHORIZATION_TOKEN_REGEX.replace(clean, "Authorization: token [REDACTED]")
             clean = PRIVATE_TOKEN_HEADER_REGEX.replace(clean, "PRIVATE-TOKEN: [REDACTED]")
@@ -289,7 +293,6 @@ class AppJournal(
             clean = AURORA_AUTH_REGEX.replace(clean, "Auth=[REDACTED]")
             clean = AAS_ET_REGEX.replace(clean, "aas_et/[REDACTED]")
             clean = PAT_TOKEN_REGEX.replace(clean, "[TOKEN_REDACTED]")
-            clean = COOKIE_HEADER_REGEX.replace(clean) { match -> "${match.groupValues[1]}: [REDACTED]" }
             clean = URL_USERINFO_REGEX.replace(clean) { match -> "${match.groupValues[1]}[REDACTED]@" }
             return clean
         }

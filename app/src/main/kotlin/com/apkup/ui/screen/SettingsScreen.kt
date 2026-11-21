@@ -198,6 +198,7 @@ import com.apkup.ui.component.NavigationSettingItem
 import com.apkup.util.AppJournal
 import com.apkup.util.DownloadStorageManager
 import com.apkup.util.SessionInstaller
+import com.apkup.util.openSafeHttpsUri
 import com.apkup.viewmodel.AppsViewModel
 import com.apkup.viewmodel.MainViewModel
 import com.apkup.viewmodel.SettingsViewModel
@@ -568,7 +569,6 @@ fun Settings(
 						addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 					})
 				}
-				Unit
 			}
 		}
 
@@ -2408,7 +2408,7 @@ fun Settings(
 						horizontalArrangement = Arrangement.spacedBy(8.dp)
 					) {
 						Surface(
-							onClick = { runCatching { handler.openUri("https://github.com/DurchEins/apkup") } },
+							onClick = { handler.openSafeHttpsUri("https://github.com/DurchEins/apkup") },
 							modifier = Modifier
 								.weight(1f)
 								.fillMaxHeight(),
@@ -2467,7 +2467,7 @@ fun Settings(
 						}
 
 						Surface(
-							onClick = { runCatching { handler.openUri("https://durcheins.github.io/apkup/wiki/") } },
+							onClick = { handler.openSafeHttpsUri("https://durcheins.github.io/apkup/wiki/") },
 							modifier = Modifier
 								.weight(1f)
 								.fillMaxHeight(),
@@ -2595,7 +2595,7 @@ fun Settings(
 						modifier = Modifier
 							.fillMaxWidth()
 							.clip(RoundedCornerShape(10.dp))
-							.clickable { runCatching { handler.openUri("https://github.com/rumboalla/apkupdater") } }
+							.clickable { handler.openSafeHttpsUri("https://github.com/rumboalla/apkupdater") }
 							.padding(horizontal = 8.dp, vertical = 6.dp),
 						verticalAlignment = CenterVertically,
 						horizontalArrangement = Arrangement.Center
@@ -3150,7 +3150,7 @@ private fun ApiTokenBottomSheet(
 								) {
 									if (!createTokenUrl.isNullOrBlank() && !createTokenButtonText.isNullOrBlank()) {
 										FilledTonalButton(
-											onClick = { runCatching { uriHandler.openUri(createTokenUrl) } },
+											onClick = { uriHandler.openSafeHttpsUri(createTokenUrl) },
 											modifier = Modifier.weight(1f),
 											shape = RoundedCornerShape(14.dp),
 											contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp)
@@ -3166,7 +3166,7 @@ private fun ApiTokenBottomSheet(
 									}
 									if (!guideUrl.isNullOrBlank()) {
 										OutlinedButton(
-											onClick = { runCatching { uriHandler.openUri(guideUrl) } },
+											onClick = { uriHandler.openSafeHttpsUri(guideUrl) },
 											modifier = Modifier.weight(1f),
 											shape = RoundedCornerShape(14.dp),
 											contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp)

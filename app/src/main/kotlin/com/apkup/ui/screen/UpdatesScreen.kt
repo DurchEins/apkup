@@ -170,6 +170,7 @@ import com.apkup.util.BatchProgressUnits
 import com.apkup.ui.component.toUpdateCardContent
 import com.apkup.ui.component.updateGridColumnCount
 import com.apkup.util.getAppName
+import com.apkup.util.openSafeHttpsUri
 import com.apkup.viewmodel.AppsViewModel
 import com.apkup.viewmodel.UpdatesViewModel
 import com.apkup.viewmodel.partitionInstallQueueCandidates
@@ -529,7 +530,7 @@ fun UpdatesScreenError(
 		message = stringResource(R.string.updates_error_message),
 		icon = Icons.Filled.Info,
 		actionLabel = stringResource(R.string.error_banner_wiki_help),
-		onAction = { runCatching { handler.openUri(resolveWikiUrlForSourceError(null)) } },
+		onAction = { handler.openSafeHttpsUri(resolveWikiUrlForSourceError(null)) },
 		modifier = Modifier.weight(1f)
 	)
 }
@@ -840,7 +841,7 @@ fun UpdatesScreenSuccess(
 				fdroidRepoNames = fdroidRepoNames
 			)
 			Surface(
-				onClick = { runCatching { handler.openUri(wikiUrl) } },
+				onClick = { handler.openSafeHttpsUri(wikiUrl) },
 				color = MaterialTheme.colorScheme.errorContainer,
 				shape = RoundedCornerShape(24.dp),
 				modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
@@ -891,7 +892,7 @@ fun UpdatesScreenSuccess(
 					fdroidRepoNames = fdroidRepoNames
 				)
 				Surface(
-					onClick = { runCatching { handler.openUri(wikiUrl) } },
+					onClick = { handler.openSafeHttpsUri(wikiUrl) },
 					color = MaterialTheme.colorScheme.errorContainer,
 					shape = RoundedCornerShape(24.dp),
 					modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
@@ -964,7 +965,7 @@ fun UpdatesScreenSuccess(
 			actionLabel = stringResource(R.string.error_banner_wiki_help),
 			onAction = {
 				val firstEntry = sourceErrors.entries.firstOrNull()
-				runCatching { handler.openUri(resolveWikiUrlForSourceError(firstEntry?.key, firstEntry?.value)) }
+				handler.openSafeHttpsUri(resolveWikiUrlForSourceError(firstEntry?.key, firstEntry?.value))
 			},
 			modifier = Modifier.weight(1f)
 		)
@@ -3364,7 +3365,7 @@ private fun UpdateDetailsSheet(
 
 			if (showSignatureWarning) {
 				Surface(
-					onClick = { runCatching { handler.openUri(resolveWikiUrlForSourceError("signature")) } },
+					onClick = { handler.openSafeHttpsUri(resolveWikiUrlForSourceError("signature")) },
 					shape = RoundedCornerShape(16.dp),
 					color = MaterialTheme.colorScheme.tertiaryContainer
 				) {

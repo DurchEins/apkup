@@ -56,7 +56,8 @@ function formatInline(raw: string, slugPrefix = 'home'): string {
   s = s.replace(/`([^`]+)`/g, '<code class="wk-code mono">$1</code>');
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   s = s.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label, url) => {
+  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label, rawUrl) => {
+    const url = rawUrl.replace(/[\u0000-\u001F\u007F]/g, '').trim();
     const cleanLabel = stripLeadingEmoji(label);
     const wikiMatch = url.match(/github\.com\/DurchEins\/apkup\/wiki(?:\/([^#?]+))?(#.*)?$/i);
     if (wikiMatch) {
@@ -78,13 +79,13 @@ function formatInline(raw: string, slugPrefix = 'home'): string {
       }
       return `<a href="#${slugPrefix}-${cleanHash}">${cleanLabel}</a>`;
     }
-    if (!/^(https?:|mailto:|\/)/i.test(url)) {
+    if (!/^(https?:\/\/|mailto:|\/(?!\/))/i.test(url)) {
       const [pagePart] = url.split('#');
       const targetSlug = resolveWikiSlug(pagePart);
       if (targetSlug) {
         return `<a href="#doc-${targetSlug}" data-wiki-jump="${targetSlug}">${cleanLabel}</a>`;
       }
-      // Reject unsafe/unknown schemes such as javascript:, data:, vbscript:, etc.
+      // Reject unsafe/unknown schemes (javascript:, data:, vbscript:, etc.) and protocol-relative URLs (//evil.com)
       return cleanLabel;
     }
     return `<a href="${url}" target="_blank" rel="noopener noreferrer">${cleanLabel}</a>`;

@@ -545,7 +545,11 @@ const downloadSchema = {
           return /\.apk$/i.test(a.name || '');
         });
         // Update primary download link & meta on /downloads/
-        if (apkAsset && apkAsset.browser_download_url && /^https:\/\//i.test(apkAsset.browser_download_url)) {
+        if (
+          apkAsset &&
+          apkAsset.browser_download_url &&
+          /^https:\/\/(github\.com\/DurchEins\/apkup\/|objects\.githubusercontent\.com\/|release-assets\.githubusercontent\.com\/)/i.test(apkAsset.browser_download_url)
+        ) {
           document.querySelectorAll('[data-apk-link]').forEach(function (el) {
             el.setAttribute('href', apkAsset.browser_download_url);
           });

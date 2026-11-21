@@ -170,8 +170,9 @@ class RootInstaller(
         var tempVerifyDir: File? = null
         try {
             val resolvedParts = mutableListOf<Triple<String, File, String?>>()
+            val usedNames = HashSet<String>(parts.size)
             parts.forEachIndexed { index, part ->
-                val safeName = sanitizePartName(part.name, index)
+                val safeName = ApkIntegrityVerifier.uniqueSafePartFileName(part.name, index, usedNames)
                 val backing = part.backingFile
                 if (backing != null && backing.isFile && backing.length() > 0L) {
                     resolvedParts += Triple(safeName, backing, part.expectedSha256)
@@ -320,8 +321,9 @@ class RootInstaller(
         try {
             val verifiedParts = mutableListOf<InstallPart>()
             val stagedFiles = mutableListOf<Pair<File, String?>>()
+            val usedNames = HashSet<String>(parts.size)
             parts.forEachIndexed { index, part ->
-                val safeName = sanitizePartName(part.name, index)
+                val safeName = ApkIntegrityVerifier.uniqueSafePartFileName(part.name, index, usedNames)
                 val backing = part.backingFile
                 val stagedFile = if (backing != null && backing.isFile && backing.length() > 0L) {
                     backing

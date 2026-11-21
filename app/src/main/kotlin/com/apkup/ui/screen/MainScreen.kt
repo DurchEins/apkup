@@ -162,6 +162,7 @@ fun MainScreen(
                 Lifecycle.Event.ON_START,
                 Lifecycle.Event.ON_RESUME -> {
                     updatesViewModel.setAppInForeground(true)
+                    settingsViewModel.refreshShizukuStatus()
                     runCatching {
                         val powerManager = context.getSystemService(android.content.Context.POWER_SERVICE) as? PowerManager
                         val isBatteryIgnoring = powerManager?.isIgnoringBatteryOptimizations(context.packageName) == true
