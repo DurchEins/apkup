@@ -26,6 +26,17 @@
 
 ## ✨ Features
 
+| 🚀 Multi-Source Engine | 🛡️ Security & Privacy |
+| :--- | :--- |
+| • **6+ Update Sources:** Google Play, F-Droid, IzzyOnDroid, APKMirror, GitHub, GitLab & Codeberg<br>• **Custom Repositories:** Link self-hosted GitLab/Forgejo repos & custom F-Droid feeds<br>• **Priority & Pinning:** Set preferred source order or pin apps to a specific source<br>• **Pre-Release Channels:** Track Beta, RC, Alpha, or Nightly releases per app or globally | • **Signature Protection:** Verifies app signing certificates before every install to block tampering<br>• **Checksums & Downgrade Guard:** Validates SHA-256 checksums and prevents accidental downgrades<br>• **Encrypted Credentials:** Protects local settings and optional API tokens on-device<br>• **Privacy First:** Choose your sources on first launch — zero ads, zero tracking |
+
+| ⚡ Downloads & Automation | 🎨 Design & Ecosystem |
+| :--- | :--- |
+| • **Batch Downloads & ETA:** Install multiple updates at once with live speed & remaining time<br>• **Silent Background Updates:** Hands-free updates via Shizuku or optional Root with Wi-Fi & charging rules<br>• **APK Export & Smart Cache:** Save `.apk` / `.apks` files or install cached downloads without re-downloading<br>• **Rollback Backups:** Optional pre-update backups & automatic device compatibility checks | • **Material 3 Expressive:** Brand-Amber theme, Dynamic Color, dark/light modes & smooth animations<br>• **9 Official Languages:** English, German, Spanish, French, Portuguese, Italian, Russian, Chinese & Japanese<br>• **Smart Link Routing:** Opens web links in matching installed apps first or in-app Chrome Custom Tabs<br>• **Watchlist & Obtainium Sync:** Track uninstalled apps and import/export Obtainium & App Watcher lists |
+
+<details>
+<summary><b>📋 Full Feature Breakdown</b></summary>
+
 * **🚀 Multi-Source Update Engine & Self-Updater:**
   * **F-Droid & IzzyOnDroid Multi-Repo Engine:** Native support for official F-Droid, IzzyOnDroid, and custom HTTPS F-Droid repositories (`?fingerprint=…`) with cryptographic JAR certificate verification (`entry.jar` / `index-v1.jar`), incremental Index-V2 diffs (`RFC 7396`) with per-diff SHA-256 verification, and per-APK SHA-256 checksum validation ([Index-V2 Guide](https://github.com/DurchEins/apkup/wiki/F-Droid-%26-Index-V2-Repositories)).
   * **Google Play Store:** Anonymous store delta queries with automatic HTTP 429 rate-limit recovery and privacy-minimized device compatibility profiles.
@@ -38,20 +49,23 @@
   * **Obtainium Interoperability with Preview:** Import app configurations, custom F-Droid repositories, and watchlist candidates from Obtainium exports via an interactive preview sheet, and export custom bindings back to Obtainium JSON ([Obtainium Sync Guide](https://github.com/DurchEins/apkup/wiki/Obtainium-Migration-%26-Sync-Guide)).
   * **Verified Self-Updater with Optional Beta Channel:** Checks official GitHub releases (stable-only by default, with an opt-in *Receive ApkUp beta updates* toggle under *Setup ➔ About* that cleanly returns to stable on opt-out) and validates `SHA256SUMS` digests plus APK signing certificates before installing updates.
 * **🛡️ Defense-in-Depth Security & Privacy:**
-  * **Pre-Install APK Signature & Downgrade Verification:** Cryptographically verifies APK Signature Scheme v2/v3 certificates against the installed app before launching `PackageInstaller`, Shizuku, or Root (`su`), blocking certificate mismatches and version downgrades ([SHA-256 & Signature Guide](https://github.com/DurchEins/apkup/wiki/SHA-256-%26-Signature-Verification)).
+  * **Pre-Install APK Signature & Downgrade Verification:** Cryptographically verifies APK Signature Scheme v2/v3 certificates against the installed app before launching `PackageInstaller`, Shizuku, or Root (`su`), blocking certificate mismatches and version downgrades ([Update Sources & Signature Protection](https://github.com/DurchEins/apkup/wiki/Update-Sources,-Repository-Linking-&-Signature-Protection)).
   * **Onboarding Source Consent:** Transparent first-launch source selection ensures zero external network requests happen before you choose your preferred update sources.
   * **Encrypted Local Storage:** Preferences and optional API tokens are encrypted at rest via **Google Tink (AES-256-GCM)** in Android Keystore, with cloud backups and cleartext HTTP strictly disabled.
   * **Tapjacking & Archive Hardening:** Touch events are filtered when obscured by overlays, and `.apkm` extraction enforces strict Zip-Slip and decompression-bomb limits inside private internal storage.
 * **🎨 Material 3 Expressive Design & 9 Official Languages:**
   * Unified Brand-Amber color scheme with a soft off-white light theme, optional Dynamic Color (Material You) toggle, dark/light/system themes, floating capsule navigation dock (with automatic `NavigationRail` on tablets/wider displays), wavy progress indicators, split-button actions, collapsible scroll headers, unified modal bottom sheets, and full reduced-motion accessibility support.
+  * **Native App Priority & Chrome Custom Tabs:** External links prefer matching installed native apps first and seamlessly fall back to in-app Chrome Custom Tabs.
   * Instant search bars and flexible sorting across both **Updates** (*Name A–Z / Z–A, Source, Newest Release Date*) and **Apps** (*Name A–Z / Z–A, Source, Recently Updated*).
   * Localized in **9 official languages**: English, German, Spanish, French, Portuguese, Italian, Russian, Simplified Chinese, and Japanese.
   * Multiple display modes (*Compact Grid Tiles* vs. *Detailed List*), quick-filter chips (including *GitHub / Sideload* and *Watched*), and monthly-grouped in-app changelogs.
 * **⚡ Reliable WorkManager Downloads, APK Export, 24h Cache & Autonomous Installs:**
-  * **User-Initiated Data Transfer Worker & Batch ETA:** Interactive downloads, multi-select batch installs (long-press any update card), and filtered batch updates (*Install All*) run reliably via AndroidX `WorkManager` (`UpdateDownloadWorker`) with live overall batch percentage, smoothed transfer speed, ETA, and instant per-item or global cancellation.
+  * **User-Initiated Data Transfer Worker & Batch ETA:** Interactive downloads, multi-select batch installs (TopAppBar selection mode), and filtered batch updates (*Install All*) run reliably via AndroidX `WorkManager` (`UpdateDownloadWorker`) with live overall batch percentage, smoothed transfer speed, ETA, and instant per-item or global cancellation.
   * **Save APK & Split `.apks` Bundles:** Export single `.apk` installers or bundled `.apks` split packages directly into `Download/ApkUp/` (or any custom SAF folder configured in Setup) without installing.
   * **Autonomous Background Updates (Shizuku & Optional Root `su`):** Optional zero-touch Shizuku or Root (`su`) pipeline with live availability checks, configurable **Wi-Fi only** and **While charging** guards, consolidated summary notifications, a sanitized **Diagnostic & Update Log** (`.txt`), and a persistent **Update History** sheet ([Background Install Guide](https://github.com/DurchEins/apkup/wiki/Shizuku-%26-Background-Installation)).
   * **24-Hour Smart Cache & Instant Resume:** Verified APKs in private cache can be installed without re-downloading, with automatic Android 14+ Background Activity Launch (BAL) prompt fallback.
+
+</details>
 
 ---
 
