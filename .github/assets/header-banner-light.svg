@@ -1,0 +1,33 @@
+<svg viewBox="0 0 900 180" width="900" height="180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ApkUp — Multi-Source • Verified • Silent">
+  <style>
+    @media (prefers-reduced-motion: reduce) {
+      animate { display: none; }
+    }
+  </style>
+  <defs>
+    <linearGradient id="bgGradLight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFDF8" />
+      <stop offset="55%" stop-color="#FEF7E6" />
+      <stop offset="100%" stop-color="#FAF6EE" />
+    </linearGradient>
+    <linearGradient id="amberSweepLight" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#D97706" stop-opacity="0" />
+      <stop offset="50%" stop-color="#F59E0B" stop-opacity="0.75" />
+      <stop offset="100%" stop-color="#D97706" stop-opacity="0" />
+      <animate attributeName="x1" values="-100%;100%" dur="4.5s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="0%;200%" dur="4.5s" repeatCount="indefinite" />
+    </linearGradient>
+    <radialGradient id="glowOrbLight" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.18" />
+      <stop offset="100%" stop-color="#F59E0B" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect x="0.5" y="0.5" width="899" height="179" rx="18" fill="url(#bgGradLight)" stroke="#F3E8D2" stroke-width="1" />
+  <ellipse cx="450" cy="90" rx="340" ry="90" fill="url(#glowOrbLight)">
+    <animate attributeName="rx" values="320;370;320" dur="5s" repeatCount="indefinite" />
+  </ellipse>
+  <rect x="0" y="0" width="900" height="3" fill="url(#amberSweepLight)" />
+  <text x="450" y="78" text-anchor="middle" fill="#1C1917" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="44" font-weight="800" letter-spacing="-1">ApkUp</text>
+  <text x="450" y="114" text-anchor="middle" fill="#B45309" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15" font-weight="600" letter-spacing="2.5">MULTI-SOURCE  •  VERIFIED  •  SILENT</text>
+  <text x="450" y="144" text-anchor="middle" fill="#57534E" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13">Google Play · F-Droid V2 · IzzyOnDroid · APKMirror · GitHub · GitLab · Codeberg</text>
+</svg>
