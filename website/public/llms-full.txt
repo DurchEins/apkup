@@ -51,12 +51,6 @@ Zero. ApkUp has no developer backend, no ads, no analytics SDKs, and no telemetr
 
 ## November 2026
 
-### November 20, 2026 | 1.45.1 (214) | Patch & Fix
-
-- **Support & Community Overview** The About section now includes a clean Support ApkUp sheet that opens Buy Me a Coffee, Coindrop, and star or review pages for GitHub, GitLab, and supported app stores directly inside the app.
-- **One-Time Support Reminder** After 5 days of usage or 5 successful app updates, ApkUp gently reminds you once about starring the project or leaving a review, with Later and Don't ask again options.
-- **General Improvements** Minor copy, localization, and layout refinements across all nine supported languages.
-
 ### November 19, 2026 | 1.45.0 (211) | Feature Update
 
 > [Banner] Beta Channel & M3 Expressive | + Updated Wiki

@@ -1,8 +1,24 @@
 ---
 import { getBaseUrl } from '../utils/site';
 import { SITE } from '../data/content';
+import {
+  DEFAULT_LOCALE,
+  LOCALES,
+  LOCALE_META,
+  getTranslations,
+  localePath,
+  type Locale,
+} from '../i18n';
 
+interface Props {
+  lang?: Locale;
+  subPath?: string;
+}
+
+const { lang = DEFAULT_LOCALE, subPath = '' } = Astro.props;
+const t = getTranslations(lang);
 const base = getBaseUrl();
+const activeMeta = LOCALE_META[lang];
 ---
 
 <footer class="site-footer">
@@ -20,26 +36,14 @@ const base = getBaseUrl();
     </div>
 
     <nav class="footer-links" aria-label="Footer links">
-      <a href={`${base}downloads/`}>Downloads</a>
-      <a href={`${base}sideloading/`}>
-        <span class="i18n-en">Install Unknown Apps</span>
-        <span class="i18n-de">Unbekannte Apps</span>
-      </a>
-      <a href={`${base}sideloading/google-lock/`}>
-        <span class="i18n-en">Google 24h Lock</span>
-        <span class="i18n-de">Googles 24h-Sperre</span>
-      </a>
-      <a href={`${base}changelog/`}>
-        <span class="i18n-en">What’s New?</span>
-        <span class="i18n-de">Was ist neu?</span>
-      </a>
-      <a href={`${base}wiki/`}>Wiki</a>
-      <a href={`${base}compare/`}>
-        <span class="i18n-en">Source Checker</span>
-        <span class="i18n-de">Quellen-Check</span>
-      </a>
-      <a href={`${base}privacy/`}>Privacy</a>
-      <a href={`${base}security/`}>Security</a>
+      <a href={localePath(lang, 'downloads/')}>{t.footer.downloads}</a>
+      <a href={localePath(lang, 'sideloading/')}>{t.footer.installUnknownApps}</a>
+      <a href={localePath(lang, 'sideloading/google-lock/')}>{t.footer.googleLock}</a>
+      <a href={localePath(lang, 'changelog/')}>{t.footer.whatsNew}</a>
+      <a href={localePath(lang, 'wiki/')}>{t.footer.wiki}</a>
+      <a href={localePath(lang, 'compare/')}>{t.footer.sourceChecker}</a>
+      <a href={localePath(lang, 'privacy/')}>{t.footer.privacy}</a>
+      <a href={localePath(lang, 'security/')}>{t.footer.security}</a>
       <a href={SITE.repoUrl} target="_blank" rel="noopener noreferrer">GitHub</a>
       <a href={SITE.wikiUrl} target="_blank" rel="noopener noreferrer">GitHub Wiki</a>
       <a href={SITE.licenseUrl} target="_blank" rel="noopener noreferrer">GPL-3.0</a>
@@ -48,13 +52,122 @@ const base = getBaseUrl();
         target="_blank"
         rel="noopener noreferrer"
         class="footer-build-pill mono"
-        title="Canonical Release"
+        title={t.footer.canonicalRelease}
       >
         v{SITE.fallbackVersion} ({SITE.fallbackBuild})
       </a>
     </nav>
+
+    <div class="footer-i18n-bar">
+      <div class="lang-picker-wrap" id="footer-lang-wrap">
+        <button
+          type="button"
+          id="footer-lang-btn"
+          class="lang-picker-btn"
+          aria-expanded="false"
+          aria-haspopup="menu"
+          aria-controls="footer-lang-menu"
+          aria-label={t.footer.langPickerAria}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+          </svg>
+          <span>{activeMeta.nativeName} <span class="mono lang-code">({activeMeta.code})</span></span>
+          <svg class="lang-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
+
+        <div id="footer-lang-menu" class="lang-picker-menu" role="menu" aria-label={t.footer.langPickerAria} hidden>
+          {LOCALES.map((loc) => {
+            const lm = LOCALE_META[loc];
+            const isCurrent = loc === lang;
+            return (
+              <a
+                href={localePath(loc, subPath)}
+                role="menuitemradio"
+                aria-checked={isCurrent ? 'true' : 'false'}
+                class={`lang-menu-item ${isCurrent ? 'is-active' : ''}`}
+                data-lang-option={loc}
+              >
+                <span class="lang-item-name">{lm.nativeName}</span>
+                <span class="lang-item-right mono">
+                  <span>{lm.code}</span>
+                  {isCurrent && <span aria-hidden="true">✓</span>}
+                </span>
+              </a>
+            );
+          })}
+        </div>
+      </div>
+
+      <a
+        href="https://github.com/DurchEins/apkup/issues/new?template=translation.yml"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="help-translate-link"
+      >
+        {t.footer.helpTranslate}
+      </a>
+    </div>
   </div>
 </footer>
+
+<script is:inline>
+  (function () {
+    var wrap = document.getElementById('footer-lang-wrap');
+    var btn = document.getElementById('footer-lang-btn');
+    var menu = document.getElementById('footer-lang-menu');
+    if (!wrap || !btn || !menu) return;
+
+    function closeMenu(focusBtn) {
+      if (menu.hidden) return;
+      menu.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
+      if (focusBtn) btn.focus();
+    }
+
+    function openMenu() {
+      menu.hidden = false;
+      btn.setAttribute('aria-expanded', 'true');
+    }
+
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (menu.hidden) openMenu();
+      else closeMenu(false);
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!menu.hidden && !wrap.contains(e.target)) {
+        closeMenu(false);
+      }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !menu.hidden) {
+        closeMenu(true);
+      }
+    });
+
+    menu.querySelectorAll('[data-lang-option]').forEach(function (link) {
+      link.addEventListener('click', function (e) {
+        var targetLang = link.getAttribute('data-lang-option');
+        if (targetLang) {
+          try {
+            localStorage.setItem('apkup-lang', targetLang);
+          } catch (err) {}
+        }
+        var dest = link.getAttribute('href');
+        if (dest && (window.location.search || window.location.hash)) {
+          e.preventDefault();
+          window.location.href = dest + window.location.search + window.location.hash;
+        }
+      });
+    });
+  })();
+</script>
 
 <style>
   .site-footer {
@@ -109,6 +222,7 @@ const base = getBaseUrl();
       color: var(--accent);
     }
   }
+
   .footer-author-link {
     color: var(--text);
     font-weight: 700;
@@ -135,6 +249,122 @@ const base = getBaseUrl();
     .footer-links a.footer-build-pill:hover {
       border-color: var(--accent);
       color: var(--accent);
+    }
+  }
+
+  .footer-i18n-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 12px 18px;
+    padding-top: 6px;
+  }
+
+  .lang-picker-wrap {
+    position: relative;
+    display: inline-block;
+  }
+
+  .lang-picker-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--outline-strong);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.86rem;
+    font-weight: 700;
+    transition: background-color 150ms ease-out, border-color 150ms ease-out;
+  }
+
+  @media (hover: hover) {
+    .lang-picker-btn:hover {
+      background: var(--surface-high);
+      border-color: var(--accent);
+    }
+  }
+
+  .lang-code {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+  }
+
+  .lang-chev {
+    color: var(--text-muted);
+    transition: transform 160ms ease-out;
+  }
+
+  .lang-picker-btn[aria-expanded='true'] .lang-chev {
+    transform: rotate(180deg);
+  }
+
+  .lang-picker-menu {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 60;
+    width: 240px;
+    padding: 6px;
+    border-radius: var(--radius-md);
+    background: var(--surface-high);
+    border: 1px solid var(--outline-strong);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.48);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: start;
+  }
+
+  .lang-menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.86rem;
+    font-weight: 600;
+  }
+
+  @media (hover: hover) {
+    .lang-menu-item:hover {
+      background: var(--surface);
+    }
+  }
+
+  .lang-menu-item.is-active {
+    background: var(--accent-soft);
+    color: var(--accent-soft-ink);
+    font-weight: 700;
+  }
+
+  .lang-item-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    opacity: 0.85;
+  }
+
+  .help-translate-link {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--accent);
+    text-decoration: none;
+    padding: 6px 10px;
+    border-radius: var(--radius-pill);
+  }
+
+  @media (hover: hover) {
+    .help-translate-link:hover {
+      text-decoration: underline;
     }
   }
 </style>

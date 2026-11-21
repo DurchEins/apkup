@@ -1,55 +1,40 @@
 ---
-import { getBaseUrl } from '../utils/site';
 import { MIRRORS, SITE } from '../data/content';
 import MirrorIcon from './MirrorIcon.astro';
+import { DEFAULT_LOCALE, getTranslations, localePath, type Locale } from '../i18n';
 
-const base = getBaseUrl();
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = DEFAULT_LOCALE } = Astro.props;
+const t = getTranslations(lang);
 ---
 
 <section id="downloads" class="section downloads-section">
   <div class="container">
     <div class="section-header">
-      <h2 class="section-title">
-        <span class="i18n-en">Download ApkUp</span>
-        <span class="i18n-de">ApkUp herunterladen</span>
-      </h2>
-      <p class="section-subtitle">
-        <span class="i18n-en">
-          Requires Android 10.0 (API 29) or higher. GitHub Releases is the primary canonical build
-          with matching SHA256SUMS.
-        </span>
-        <span class="i18n-de">
-          Erfordert mindestens Android 10.0 (API 29). GitHub Releases liefert den kanonischen Build
-          inklusive SHA256SUMS-Prüfsumme.
-        </span>
-      </p>
+      <h2 class="section-title">{t.downloadsSection.title}</h2>
+      <p class="section-subtitle">{t.downloadsSection.subtitle}</p>
     </div>
 
     <div class="primary-download-card">
       <div class="primary-info">
         <div class="primary-badges">
-          <span class="pill-badge pill-emerald">
-            <span class="i18n-en">Recommended</span>
-            <span class="i18n-de">Empfohlen</span>
-          </span>
+          <span class="pill-badge pill-emerald">{t.downloadsSection.recommended}</span>
         </div>
-        <h3>GitHub Releases (Direct Signed APK)</h3>
-        <p id="dl-release-meta">
-          <span class="i18n-en">
-            Official CI-signed release artifact with SHA256SUMS verification and built-in
-            self-updater support.
-          </span>
-          <span class="i18n-de">
-            Offiziell signiertes CI-Release-Artefakt mit SHA256SUMS-Prüfung und integriertem
-            Selbst-Updater.
-          </span>
-        </p>
+        <h3>{t.downloadsSection.cardTitle}</h3>
+        <p id="dl-release-meta">{t.downloadsSection.cardDesc}</p>
       </div>
 
       <div class="primary-actions">
         <a class="btn btn-primary" href={SITE.releasesUrl} data-apk-link>
-          <span class="i18n-en">Download <span class="apk-light">Apk</span><strong class="apk-up">Up</strong> <span data-apk-meta>(v{SITE.fallbackVersion})</span></span>
-          <span class="i18n-de"><span class="apk-light">Apk</span><strong class="apk-up">Up</strong> laden <span data-apk-meta>(v{SITE.fallbackVersion})</span></span>
+          <span>
+            {t.downloadsSection.downloadPrefix ? `${t.downloadsSection.downloadPrefix} ` : ''}
+            <span class="apk-light">Apk</span><strong class="apk-up">Up</strong>
+            {t.downloadsSection.downloadSuffix ? ` ${t.downloadsSection.downloadSuffix}` : ''}{' '}
+            <span data-apk-meta>(v{SITE.fallbackVersion})</span>
+          </span>
         </a>
         <button type="button" class="btn btn-secondary" data-open-qr>
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -58,30 +43,26 @@ const base = getBaseUrl();
             <rect x="3" y="14" width="7" height="7" rx="1" />
             <path d="M14 14h3v3h-3zM18 18h3v3h-3zM18 14h3M14 18v3" />
           </svg>
-          <span>QR-Code</span>
+          <span>{t.downloadsSection.qrCode}</span>
         </button>
-        <a class="btn btn-ghost" href={`${base}changelog/`}>
-          <span class="i18n-en">What’s New?</span>
-          <span class="i18n-de">Was ist neu?</span>
+        <a class="btn btn-ghost" href={localePath(lang, 'changelog/')}>
+          {t.downloadsSection.whatsNew}
         </a>
       </div>
 
       <div class="primary-req-line mono">
-        <span>Android 10.0 – 17 (API 29+) • ABIs: arm64-v8a, armeabi-v7a, x86_64</span>
+        <span>{t.downloadsSection.reqLine}</span>
         <span class="req-sep" aria-hidden="true">|</span>
-        <a href={`${base}compare/#comparison`} class="why-apkup-link">
-          <span class="i18n-en">Why ApkUp?</span>
-          <span class="i18n-de">Warum ApkUp?</span>
+        <a href={localePath(lang, 'compare/#comparison')} class="why-apkup-link">
+          {t.downloadsSection.whyApkUp}
         </a>
         <span class="req-sep" aria-hidden="true">|</span>
-        <a href={`${base}sideloading/`} class="why-apkup-link">
-          <span class="i18n-en">Install Unknown Apps</span>
-          <span class="i18n-de">Unbekannte Apps</span>
+        <a href={localePath(lang, 'sideloading/')} class="why-apkup-link">
+          {t.downloadsSection.installUnknownApps}
         </a>
         <span class="req-sep" aria-hidden="true">|</span>
-        <a href={`${base}sideloading/google-lock/`} class="why-apkup-link">
-          <span class="i18n-en">Google 24h Lock</span>
-          <span class="i18n-de">Googles 24h-Sperre</span>
+        <a href={localePath(lang, 'sideloading/google-lock/')} class="why-apkup-link">
+          {t.downloadsSection.googleLock}
         </a>
       </div>
     </div>
@@ -101,42 +82,19 @@ const base = getBaseUrl();
           }
         </div>
         <div>
-          <h3>
-            <span class="i18n-en">Alternative Mirrors &amp; Checksums</span>
-            <span class="i18n-de">Alternative Mirrors &amp; Prüfsummen</span>
-          </h3>
-          <p>
-            <span class="i18n-en">
-              Zapstore, GitLab, APKPure, itch.io, Appteka, Komi Store &amp; live SHA-256 verification.
-            </span>
-            <span class="i18n-de">
-              Zapstore, GitLab, APKPure, itch.io, Appteka, Komi Store &amp; Live-SHA-256-Prüfung.
-            </span>
-          </p>
+          <h3>{t.downloadsSection.mirrorsTitle}</h3>
+          <p>{t.downloadsSection.mirrorsDesc}</p>
         </div>
       </div>
-      <a href={`${base}downloads/`} class="btn btn-secondary">
-        <span class="i18n-en">All 8 Mirrors &amp; SHA-256 →</span>
-        <span class="i18n-de">Alle 8 Mirrors &amp; SHA-256 →</span>
+      <a href={localePath(lang, 'downloads/')} class="btn btn-secondary">
+        {t.downloadsSection.mirrorsBtn}
       </a>
     </div>
 
     <div class="support-card" id="support">
       <div class="support-copy">
-        <h3>
-          <span class="i18n-en">Support ApkUp’s development</span>
-          <span class="i18n-de">ApkUp unterstützen</span>
-        </h3>
-        <p>
-          <span class="i18n-en">
-            ApkUp is free, ad-free, and open source. If it saves you time keeping your apps up to
-            date, consider starring the repository on GitHub or buying a coffee.
-          </span>
-          <span class="i18n-de">
-            ApkUp ist kostenlos, werbefrei und Open Source. Wenn dir die App Zeit spart, freue ich
-            mich über einen Stern auf GitHub oder einen kleinen Kaffee.
-          </span>
-        </p>
+        <h3>{t.downloadsSection.supportTitle}</h3>
+        <p>{t.downloadsSection.supportDesc}</p>
       </div>
 
       <div class="support-actions">
@@ -149,8 +107,7 @@ const base = getBaseUrl();
           <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B" aria-hidden="true">
             <path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z" />
           </svg>
-          <span class="i18n-en">Star on GitHub</span>
-          <span class="i18n-de">Auf GitHub sternen</span>
+          <span>{t.downloadsSection.starOnGithub}</span>
           <span class="star-count mono" data-gh-stars hidden></span>
         </a>
         <a
@@ -199,14 +156,8 @@ const base = getBaseUrl();
             <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
             <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
           </svg>
-          <span data-share-label>
-            <span class="i18n-en">Share Website</span>
-            <span class="i18n-de">Website teilen</span>
-          </span>
-          <span data-share-copied hidden>
-            <span class="i18n-en">Link copied!</span>
-            <span class="i18n-de">Link kopiert!</span>
-          </span>
+          <span data-share-label>{t.downloadsSection.shareWebsite}</span>
+          <span data-share-copied hidden>{t.downloadsSection.linkCopied}</span>
         </button>
       </div>
     </div>

@@ -1,72 +1,68 @@
 ---
 import { getBaseUrl } from '../utils/site';
 import { SHOWCASE_SCREENS } from '../data/content';
+import { DEFAULT_LOCALE, LOCALE_META, getTranslations, type Locale } from '../i18n';
 
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = DEFAULT_LOCALE } = Astro.props;
+const t = getTranslations(lang);
 const base = getBaseUrl();
+const screenshotDir = LOCALE_META[lang].screenshotDir;
+type ScreenKey = keyof typeof t.showcase.screens;
 ---
 
 <section id="showcase" class="section showcase-section">
   <div class="container">
     <div class="section-header">
-      <h2 class="section-title">
-        <span class="i18n-en">Designed for thumb-zone ergonomics</span>
-        <span class="i18n-de">Optimiert für einhändige Bedienung</span>
-      </h2>
-      <p class="section-subtitle">
-        <span class="i18n-en">
-          Explore the real app interface in English or German — switch screens below or toggle the
-          site language above.
-        </span>
-        <span class="i18n-de">
-          Entdecke die echte App-Oberfläche auf Deutsch oder Englisch – wähle unten einen Bereich
-          oder schalte oben die Sprache um.
-        </span>
-      </p>
+      <h2 class="section-title">{t.showcase.title}</h2>
+      <p class="section-subtitle">{t.showcase.subtitle}</p>
     </div>
 
     <div class="showcase-shell">
       <div class="showcase-controls">
-        <div class="tab-list" role="tablist" aria-label="App screenshots">
+        <div class="tab-list" role="tablist" aria-label={t.showcase.tablistAria}>
           {
-            SHOWCASE_SCREENS.map((screen, idx) => (
-              <button
-                type="button"
-                role="tab"
-                class={`tab-btn ${idx === 0 ? 'is-active' : ''}`}
-                id={`tab-${screen.id}`}
-                aria-selected={idx === 0 ? 'true' : 'false'}
-                aria-controls={`panel-${screen.id}`}
-                tabindex={idx === 0 ? 0 : -1}
-                data-screen-tab={screen.id}
-              >
-                <span class="i18n-en">{screen.enLabel}</span>
-                <span class="i18n-de">{screen.deLabel}</span>
-              </button>
-            ))
+            SHOWCASE_SCREENS.map((screen, idx) => {
+              const s = t.showcase.screens[screen.id as ScreenKey];
+              return (
+                <button
+                  type="button"
+                  role="tab"
+                  class={`tab-btn ${idx === 0 ? 'is-active' : ''}`}
+                  id={`tab-${screen.id}`}
+                  aria-selected={idx === 0 ? 'true' : 'false'}
+                  aria-controls={`panel-${screen.id}`}
+                  tabindex={idx === 0 ? 0 : -1}
+                  data-screen-tab={screen.id}
+                >
+                  {s.label}
+                </button>
+              );
+            })
           }
         </div>
 
         <div class="showcase-panels">
           {
-            SHOWCASE_SCREENS.map((screen, idx) => (
-              <div
-                id={`panel-${screen.id}`}
-                role="tabpanel"
-                aria-labelledby={`tab-${screen.id}`}
-                class={`tab-panel ${idx === 0 ? 'is-active' : ''}`}
-                hidden={idx !== 0}
-                data-screen-panel={screen.id}
-              >
-                <h3>
-                  <span class="i18n-en">{screen.enTitle}</span>
-                  <span class="i18n-de">{screen.deTitle}</span>
-                </h3>
-                <p>
-                  <span class="i18n-en">{screen.enDesc}</span>
-                  <span class="i18n-de">{screen.deDesc}</span>
-                </p>
-              </div>
-            ))
+            SHOWCASE_SCREENS.map((screen, idx) => {
+              const s = t.showcase.screens[screen.id as ScreenKey];
+              return (
+                <div
+                  id={`panel-${screen.id}`}
+                  role="tabpanel"
+                  aria-labelledby={`tab-${screen.id}`}
+                  class={`tab-panel ${idx === 0 ? 'is-active' : ''}`}
+                  hidden={idx !== 0}
+                  data-screen-panel={screen.id}
+                >
+                  <h3>{s.title}</h3>
+                  <p>{s.desc}</p>
+                </div>
+              );
+            })
           }
         </div>
       </div>
@@ -74,32 +70,26 @@ const base = getBaseUrl();
       <div class="showcase-device">
         <div class="device-bezel">
           {
-            SHOWCASE_SCREENS.map((screen, idx) => (
-              <div
-                class={`screen-slot ${idx === 0 ? 'is-active' : ''}`}
-                data-screen-media={screen.id}
-                hidden={idx !== 0}
-              >
-                <img
-                  class="i18n-en"
-                  src={`${base}${screen.enImg}`}
-                  alt={`ApkUp ${screen.enLabel} screen`}
-                  width="360"
-                  height="780"
-                  loading="lazy"
-                  decoding="async"
-                />
-                <img
-                  class="i18n-de"
-                  src={`${base}${screen.deImg}`}
-                  alt={`ApkUp Ansicht ${screen.deLabel}`}
-                  width="360"
-                  height="780"
-                  loading="lazy"
-                  decoding="async"
-                />
-              </div>
-            ))
+            SHOWCASE_SCREENS.map((screen, idx) => {
+              const s = t.showcase.screens[screen.id as ScreenKey];
+              const imgRel = screen.enImg.replace('assets/screenshots/en/', `assets/screenshots/${screenshotDir}/`);
+              return (
+                <div
+                  class={`screen-slot ${idx === 0 ? 'is-active' : ''}`}
+                  data-screen-media={screen.id}
+                  hidden={idx !== 0}
+                >
+                  <img
+                    src={`${base}${imgRel}`}
+                    alt={s.alt}
+                    width="360"
+                    height="780"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+              );
+            })
           }
         </div>
       </div>
@@ -160,7 +150,6 @@ const base = getBaseUrl();
       });
     });
 
-    // Auto-play (5s per slide, paused on hover/focus/user click)
     var showcaseEl = document.getElementById('showcase');
     var autoIdx = 0;
     var paused = false;
@@ -182,18 +171,16 @@ const base = getBaseUrl();
       startAuto();
     }
 
-    // Lightbox Zoom-In on phone screen click
     var lightbox = document.getElementById('shot-lightbox');
     var lightboxImg = document.getElementById('shot-lightbox-img');
     var lightboxClose = document.getElementById('shot-lightbox-close');
-    var phoneStage = document.querySelector('#showcase .phone-frame');
+    var phoneStage = document.querySelector('#showcase .device-bezel');
     if (phoneStage && lightbox && lightboxImg) {
       phoneStage.style.cursor = 'zoom-in';
       phoneStage.addEventListener('click', function () {
-        var isDe = document.documentElement.getAttribute('data-lang') === 'de';
         var activeSlot = document.querySelector('[data-screen-media].is-active');
         if (!activeSlot) return;
-        var img = activeSlot.querySelector(isDe ? 'img.i18n-de' : 'img.i18n-en') || activeSlot.querySelector('img');
+        var img = activeSlot.querySelector('img');
         if (!img) return;
         lightboxImg.src = img.src;
         lightboxImg.alt = img.alt || 'ApkUp Screenshot';
@@ -207,8 +194,8 @@ const base = getBaseUrl();
   })();
 </script>
 
-<dialog id="shot-lightbox" class="shot-lightbox" aria-label="Screenshot preview">
-  <button type="button" id="shot-lightbox-close" class="shot-lightbox-close" aria-label="Close preview">✕</button>
+<dialog id="shot-lightbox" class="shot-lightbox" aria-label={t.showcase.lightboxAria}>
+  <button type="button" id="shot-lightbox-close" class="shot-lightbox-close" aria-label={t.showcase.closePreviewAria}>✕</button>
   <img id="shot-lightbox-img" src="" alt="" />
 </dialog>
 

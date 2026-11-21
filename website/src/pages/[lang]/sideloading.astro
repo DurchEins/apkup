@@ -1,0 +1,11 @@
+---
+import SideloadingPage from '../../views/SideloadingPage.astro';
+import { NON_DEFAULT_LOCALES, type Locale } from '../../i18n';
+
+export function getStaticPaths() {
+  return NON_DEFAULT_LOCALES.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Locale };
+---
+<SideloadingPage lang={lang} />

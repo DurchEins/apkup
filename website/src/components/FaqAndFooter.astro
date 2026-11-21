@@ -1,37 +1,28 @@
 ---
-import { getBaseUrl } from '../utils/site';
-import { FAQS } from '../data/content';
 import Footer from './Footer.astro';
+import { DEFAULT_LOCALE, getTranslations, localePath, type Locale } from '../i18n';
 
-const base = getBaseUrl();
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = DEFAULT_LOCALE } = Astro.props;
+const t = getTranslations(lang);
 ---
 
 <section id="faq" class="section">
   <div class="container faq-container">
     <div class="section-header">
-      <h2 class="section-title">
-        <span class="i18n-en">Frequently asked questions</span>
-        <span class="i18n-de">Häufige Fragen</span>
-      </h2>
-      <p class="section-subtitle">
-        <span class="i18n-en">
-          Clear answers on permissions, signature checks, privacy, and migrating from other
-          updaters.
-        </span>
-        <span class="i18n-de">
-          Klare Antworten zu Berechtigungen, Signaturprüfungen, Datenschutz und dem Umstieg von
-          anderen Updaters.
-        </span>
-      </p>
+      <h2 class="section-title">{t.faq.title}</h2>
+      <p class="section-subtitle">{t.faq.subtitle}</p>
     </div>
 
     <div class="faq-list">
       {
-        FAQS.map((item) => (
+        t.faq.items.map((item) => (
           <details class="faq-item">
             <summary class="faq-question">
-              <span class="i18n-en">{item.qEn}</span>
-              <span class="i18n-de">{item.qDe}</span>
+              <span>{item.q}</span>
               <svg
                 class="faq-chevron"
                 width="20"
@@ -48,23 +39,21 @@ const base = getBaseUrl();
               </svg>
             </summary>
             <div class="faq-answer">
-              <p class="i18n-en">{item.aEn}</p>
-              <p class="i18n-de">{item.aDe}</p>
+              <p>{item.a}</p>
             </div>
           </details>
         ))
       }
     </div>
     <div class="faq-wiki-cta">
-      <a href={`${base}wiki/`} class="btn btn-secondary">
-        <span class="i18n-en">Need step-by-step guides? Open ApkUp Wiki →</span>
-        <span class="i18n-de">Weitere Schritt-für-Schritt-Anleitungen im ApkUp-Wiki →</span>
+      <a href={localePath(lang, 'wiki/')} class="btn btn-secondary">
+        {t.faq.wikiCta}
       </a>
     </div>
   </div>
 </section>
 
-<Footer />
+<Footer lang={lang} subPath="" />
 
 <style>
   .faq-container {

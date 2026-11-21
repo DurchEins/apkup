@@ -1,59 +1,42 @@
 ---
 import { getBaseUrl } from '../utils/site';
-import { SITE } from '../data/content';
+import { DEFAULT_LOCALE, getTranslations, localePath, type Locale } from '../i18n';
 
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = DEFAULT_LOCALE } = Astro.props;
+const t = getTranslations(lang);
 const base = getBaseUrl();
+const homeHref = localePath(lang, '');
 ---
 
 <header class="site-header">
   <div class="container nav-inner">
-    <a class="brand" href={base} aria-label="ApkUp Home">
+    <a class="brand" href={homeHref} aria-label={t.nav.homeAria}>
       <img src={`${base}assets/logo.png`} alt="" width="36" height="36" class="brand-icon" />
       <span class="brand-name">ApkUp</span>
     </a>
 
-    <nav class="nav-links" aria-label="Primary navigation">
-      <a href={`${base}#features`}>
-        <span class="i18n-en">Features</span>
-        <span class="i18n-de">Funktionen</span>
-      </a>
-      <a href={`${base}#showcase`}>
-        <span class="i18n-en">Showcase</span>
-        <span class="i18n-de">Einblicke</span>
-      </a>
-      <a href={`${base}#sources`}>
-        <span class="i18n-en">Sources</span>
-        <span class="i18n-de">Quellen</span>
-      </a>
-      <a href={`${base}changelog/`}>
-        <span class="i18n-en">What’s New?</span>
-        <span class="i18n-de">Was ist neu?</span>
-      </a>
-      <a href={`${base}wiki/`}>Wiki</a>
-      <a href={`${base}privacy/`}>Privacy</a>
-      <a href={`${base}downloads/`}>Downloads</a>
+    <nav class="nav-links" aria-label={t.nav.primaryAria}>
+      <a href={`${homeHref}#features`}>{t.nav.features}</a>
+      <a href={`${homeHref}#showcase`}>{t.nav.showcase}</a>
+      <a href={`${homeHref}#sources`}>{t.nav.sources}</a>
+      <a href={localePath(lang, 'changelog/')}>{t.nav.whatsNew}</a>
+      <a href={localePath(lang, 'wiki/')}>{t.nav.wiki}</a>
+      <a href={localePath(lang, 'privacy/')}>{t.nav.privacy}</a>
+      <a href={localePath(lang, 'downloads/')}>{t.nav.downloads}</a>
     </nav>
 
     <div class="nav-actions">
       <button
-        id="lang-toggle"
-        type="button"
-        class="icon-pill"
-        aria-label="Switch language between English and German"
-        title="EN / DE"
-      >
-        <span class="i18n-en">DE</span>
-        <span class="i18n-de">EN</span>
-      </button>
-
-      <button
         id="theme-toggle"
         type="button"
         class="icon-pill icon-only"
-        aria-label="Toggle light and dark theme"
-        title="Toggle theme"
+        aria-label={t.nav.toggleThemeAria}
+        title={t.nav.toggleThemeAria}
       >
-        <!-- Sun icon (shown in dark mode to switch to light) -->
         <svg
           class="theme-icon-sun"
           width="18"
@@ -69,7 +52,6 @@ const base = getBaseUrl();
           <circle cx="12" cy="12" r="4" />
           <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
         </svg>
-        <!-- Moon icon (shown in light mode to switch to dark) -->
         <svg
           class="theme-icon-moon"
           width="18"
@@ -86,9 +68,8 @@ const base = getBaseUrl();
         </svg>
       </button>
 
-      <a class="btn btn-primary nav-cta" href={`${base}#downloads`}>
-        <span class="i18n-en">Download</span>
-        <span class="i18n-de">Herunterladen</span>
+      <a class="btn btn-primary nav-cta" href={`${homeHref}#downloads`}>
+        {t.nav.download}
       </a>
 
       <button
@@ -97,7 +78,7 @@ const base = getBaseUrl();
         class="icon-pill icon-only mobile-menu-btn"
         aria-expanded="false"
         aria-controls="mobile-nav-panel"
-        aria-label="Toggle navigation menu"
+        aria-label={t.nav.toggleMenuAria}
       >
         <svg class="menu-icon-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
           <line x1="4" y1="7" x2="20" y2="7" />
@@ -111,30 +92,17 @@ const base = getBaseUrl();
     </div>
   </div>
 
-  <nav id="mobile-nav-panel" class="mobile-nav-panel" aria-label="Mobile navigation" hidden>
+  <nav id="mobile-nav-panel" class="mobile-nav-panel" aria-label={t.nav.mobileAria} hidden>
     <div class="container mobile-nav-list">
-      <a href={`${base}#features`}>
-        <span class="i18n-en">Features</span>
-        <span class="i18n-de">Funktionen</span>
-      </a>
-      <a href={`${base}#showcase`}>
-        <span class="i18n-en">Showcase</span>
-        <span class="i18n-de">Einblicke</span>
-      </a>
-      <a href={`${base}#sources`}>
-        <span class="i18n-en">Sources</span>
-        <span class="i18n-de">Quellen</span>
-      </a>
-      <a href={`${base}changelog/`}>
-        <span class="i18n-en">What’s New?</span>
-        <span class="i18n-de">Was ist neu?</span>
-      </a>
-      <a href={`${base}wiki/`}>Wiki</a>
-      <a href={`${base}privacy/`}>Privacy</a>
-      <a href={`${base}downloads/`}>Downloads</a>
-      <a class="btn btn-primary mobile-nav-cta" href={`${base}#downloads`}>
-        <span class="i18n-en">Download</span>
-        <span class="i18n-de">Herunterladen</span>
+      <a href={`${homeHref}#features`}>{t.nav.features}</a>
+      <a href={`${homeHref}#showcase`}>{t.nav.showcase}</a>
+      <a href={`${homeHref}#sources`}>{t.nav.sources}</a>
+      <a href={localePath(lang, 'changelog/')}>{t.nav.whatsNew}</a>
+      <a href={localePath(lang, 'wiki/')}>{t.nav.wiki}</a>
+      <a href={localePath(lang, 'privacy/')}>{t.nav.privacy}</a>
+      <a href={localePath(lang, 'downloads/')}>{t.nav.downloads}</a>
+      <a class="btn btn-primary mobile-nav-cta" href={`${homeHref}#downloads`}>
+        {t.nav.download}
       </a>
     </div>
   </nav>
@@ -145,12 +113,11 @@ const base = getBaseUrl();
     var btn = document.getElementById('mobile-menu-toggle');
     var panel = document.getElementById('mobile-nav-panel');
 
-    // Highlight active nav link + Scroll-Spy on homepage sections
-    var path = window.location.pathname;
+    var path = window.location.pathname.replace(/\/$/, '');
     var navLinks = Array.prototype.slice.call(document.querySelectorAll('.nav-links a'));
     navLinks.forEach(function (a) {
-      var href = a.getAttribute('href') || '';
-      if (href.indexOf('#') === -1 && path.indexOf(href) === 0 && href.length > 6) {
+      var href = (a.getAttribute('href') || '').replace(/\/$/, '');
+      if (href.indexOf('#') === -1 && href && path === href) {
         a.classList.add('is-current');
       }
     });
@@ -295,6 +262,7 @@ const base = getBaseUrl();
     font-weight: 600;
     font-size: 0.92rem;
     color: var(--text-muted);
+    white-space: nowrap;
     transition: background-color 150ms ease-out, color 150ms ease-out;
   }
 
@@ -471,59 +439,12 @@ const base = getBaseUrl();
     justify-content: center;
   }
 
-  @media (max-width: 860px) {
+  @media (max-width: 960px) {
     .nav-links {
       display: none;
     }
 
-    #theme-toggle svg {
-    transition: transform 280ms cubic-bezier(0.2, 0, 0, 1);
-  }
-
-  #theme-toggle:active svg {
-    transform: rotate(180deg) scale(0.88);
-  }
-
-  .brand-spark {
-    position: fixed;
-    width: 6px;
-    height: 6px;
-    border-radius: 999px;
-    background: #f59e0b;
-    pointer-events: none;
-    z-index: 9999;
-    animation: brandSparkFly 650ms cubic-bezier(0.2, 0, 0, 1) forwards;
-  }
-
-  @keyframes brandSparkFly {
-    from {
-      opacity: 1;
-      transform: translate(0, 0) scale(1);
-    }
-    to {
-      opacity: 0;
-      transform: translate(var(--dx), var(--dy)) scale(0.3);
-    }
-  }
-
-  .brand-toast {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 9999;
-    padding: 8px 16px;
-    border-radius: 999px;
-    background: var(--surface-high);
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    font-size: 0.82rem;
-    font-weight: 700;
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
-    animation: qrDialogIn 220ms ease-out;
-  }
-
-  .mobile-menu-btn {
+    .mobile-menu-btn {
       display: inline-flex;
     }
   }

@@ -1,0 +1,1215 @@
+{
+  "meta": {
+    "defaultTitle": "ApkUp — Actualizador de aplicaciones Android multifuente",
+    "defaultDescription": "Actualizador de apps Android de código abierto y centrado en la privacidad para Google Play, F-Droid Index V2, IzzyOnDroid, APKMirror, GitHub, GitLab y Codeberg con actualizaciones silenciosas vía Shizuku.",
+    "skipToContent": "Saltar al contenido principal",
+    "backToTop": "Volver arriba",
+    "copiedToast": "✓ Copiado al portapapeles",
+    "shareTitle": "ApkUp — Actualizador Android multifuente",
+    "shareText": "ApkUp: actualizador Android de código abierto para Google Play, F-Droid, GitHub y más — sin anuncios y compatible con Shizuku.",
+    "devModeTitle": "⚡ Modo desarrollador de ApkUp"
+  },
+  "nav": {
+    "homeAria": "Inicio de ApkUp",
+    "primaryAria": "Navegación principal",
+    "mobileAria": "Navegación móvil",
+    "toggleMenuAria": "Alternar menú de navegación",
+    "toggleThemeAria": "Alternar tema claro y oscuro",
+    "features": "Funciones",
+    "showcase": "Vistas",
+    "sources": "Fuentes",
+    "whatsNew": "Novedades",
+    "wiki": "Wiki",
+    "privacy": "Privacidad",
+    "downloads": "Descargas",
+    "download": "Descargar"
+  },
+  "footer": {
+    "downloads": "Descargas",
+    "installUnknownApps": "Apps desconocidas",
+    "googleLock": "Bloqueo 24h de Google",
+    "whatsNew": "Novedades",
+    "wiki": "Wiki",
+    "sourceChecker": "Comprobador de fuentes",
+    "privacy": "Privacidad",
+    "security": "Seguridad",
+    "canonicalRelease": "Versión oficial",
+    "langPickerAria": "Seleccionar idioma",
+    "helpTranslate": "Ayudar a traducir →"
+  },
+  "kaoBanner": {
+    "warningLabel": "AVISO: EL SIDELOADING EN ANDROID EN PELIGRO (2026 / 2027)",
+    "normalText": "Google Play Protect está desplegando la verificación obligatoria de identidad para desarrolladores y un bloqueo de 24 horas en Opciones de desarrollador para APKs independientes.",
+    "miniText": "El bloqueo de 24h de Google amenaza la instalación libre de APKs.",
+    "ctaLabel": "Guía de desbloqueo 24h",
+    "learnMore": "keepandroidopen.org ↗",
+    "dismissAria": "Ocultar aviso en esta sesión"
+  },
+  "hero": {
+    "openSourceBadge": "Código abierto GPL-3.0",
+    "title": "Todas tus actualizaciones de Android. Un solo centro privado.",
+    "lead": "ApkUp descubre, verifica e instala actualizaciones desde Google Play, F-Droid Index V2, IzzyOnDroid, APKMirror, GitHub, GitLab y Codeberg — sin anuncios, sin rastreo y con instalación silenciosa en segundo plano vía Shizuku o Root.",
+    "downloadPrefix": "Descargar",
+    "downloadSuffix": "",
+    "qrCode": "Código QR",
+    "share": "Compartir",
+    "linkCopied": "¡Enlace copiado!",
+    "meta": "Android 10.0 – 17 (API 29+) • SHA-256 verificado • 9 idiomas",
+    "androidDetected": "📱 Instalar directamente en este dispositivo Android",
+    "sideloadTrigger": "¿Cómo instalar APKs desconocidas y quitar el bloqueo de 24h de Google?",
+    "popoverTitle": "Guía rápida de instalación (Android 10–17)",
+    "popoverStep1": "Toca el APK descargado y activa «Permitir desde esta fuente».",
+    "popoverStep2": "Nuevo bloqueo Play Protect 24h (2026/27): Opciones de desarrollador (7× N.º de compilación) → Apps de desarrolladores no verificados → Reiniciar → Tras 24h elegir Permitir indefinidamente.",
+    "popoverInstallGuide": "Guía de instalación →",
+    "popoverGoogleLock": "Bloqueo 24h de Google →",
+    "screenAlt": "Pantalla de actualizaciones de ApkUp con actualizaciones disponibles y botón de instalación por lotes",
+    "trust": [
+      "Sin anuncios ni telemetría",
+      "Fuentes independientes",
+      "Verificación de firma APK",
+      "Cifrado local Google Tink"
+    ]
+  },
+  "bento": {
+    "title": "Diseñado para actualizar sin esfuerzo y con confianza criptográfica",
+    "subtitle": "Interfaz Material 3 Expressive clara en la superficie, respaldada por comprobaciones de seguridad verificables y control avanzado debajo.",
+    "cards": [
+      {
+        "badge": "7+ Fuentes",
+        "title": "Motor multifuente con prioridad y fijado",
+        "desc": "Comprueba actualizaciones en Google Play, APKMirror (.apkm + respaldo Cloudflare), F-Droid Index V2 con diffs RFC 7396, IzzyOnDroid, GitHub, GitLab (incluidos subgrupos anidados) y Codeberg / Forgejo propio. Ordena prioridades y fija repositorios por app."
+      },
+      {
+        "badge": "Shizuku / su",
+        "title": "Instalaciones silenciosas en segundo plano",
+        "desc": "Instalaciones automáticas sin intervención vía Shizuku (sin Root) o Root opcional (su), protegidas por reglas de solo Wi-Fi, solo cargando y franjas horarias."
+      },
+      {
+        "badge": "apksig v2/v3",
+        "title": "Verificación multicapa",
+        "desc": "Verifica certificados de firma APK frente a la app instalada, valida sumas SHA-256, comprueba compatibilidad minSdk / ABI, bloquea downgrades y cifra tokens con Google Tink AES-256-GCM."
+      },
+      {
+        "badge": "JSON Sync",
+        "title": "Migración desde Obtainium y App Watcher",
+        "desc": "Importa configuraciones de apps, repositorios F-Droid personalizados y listas de seguimiento desde Obtainium con vista previa interactiva, o exporta tus enlaces a JSON de Obtainium."
+      },
+      {
+        "badge": "Rollback + SAF",
+        "title": "Copias de rollback, lista de seguimiento y exportar APK",
+        "desc": "Sigue apps no instaladas, haz copia de las APKs actuales (incluidos splits) antes de actualizar, usa la caché de 24h y exporta paquetes .apk o .apks a cualquier carpeta SAF."
+      },
+      {
+        "badge": "M3 Expressive",
+        "title": "Material 3 Expressive, canales Beta y autoactualizador",
+        "desc": "Temas Ámbar y Blanco hueso, Color dinámico (Material You) opcional, barra adaptativa para tablet, canales Beta/RC/Alpha/Nightly por app y autoactualizador verificado con SHA256SUMS."
+      }
+    ]
+  },
+  "showcase": {
+    "title": "Diseñado para usarse cómodamente con una mano",
+    "subtitle": "Explora la interfaz real de la app: cambia de pantalla abajo o toca el teléfono para ampliar.",
+    "tablistAria": "Capturas de la aplicación",
+    "lightboxAria": "Vista previa de captura",
+    "closePreviewAria": "Cerrar vista previa",
+    "screens": {
+      "updates": {
+        "label": "Actualizaciones",
+        "title": "Un toque para actualizar, o selección múltiple con pulsación larga",
+        "desc": "Consulta saltos de versión, notas de lanzamiento, fuentes y el progreso total en vivo con tiempo restante estimado.",
+        "alt": "Pantalla Actualizaciones de ApkUp"
+      },
+      "details": {
+        "label": "Detalles",
+        "title": "Transparencia total antes de cada instalación",
+        "desc": "Revisa notas de versión, guarda APKs sueltos o paquetes .apks, omite una versión concreta o ignora una app permanentemente.",
+        "alt": "Pantalla Detalles de actualización de ApkUp"
+      },
+      "apps-list": {
+        "label": "Lista de apps",
+        "title": "Gestiona apps de usuario y del sistema instaladas",
+        "desc": "Separación clara entre apps de usuario y sistema con búsqueda instantánea, secciones A–Z, lista de seguimiento y filtros.",
+        "alt": "Pantalla Lista de apps de ApkUp"
+      },
+      "apps-grid": {
+        "label": "Cuadrícula",
+        "title": "Cambia entre cuadrícula compacta y lista detallada",
+        "desc": "Alterna la densidad visual al instante y filtra por GitHub/Sideload, En seguimiento o Actualizadas recientemente.",
+        "alt": "Pantalla Cuadrícula de apps de ApkUp"
+      },
+      "app-actions": {
+        "label": "Acciones",
+        "title": "Enlaces personalizados, canales preliminares y fijado de fuente",
+        "desc": "Fija apps individuales a una fuente preferida, elige canales Beta/RC/Alpha/Nightly o vincula repositorios propios.",
+        "alt": "Pantalla Acciones de app de ApkUp"
+      },
+      "sources": {
+        "label": "Fuentes y tema",
+        "title": "Prioriza fuentes y personaliza Material 3 Expressive",
+        "desc": "Reordena fuentes arrastrando, activa Color dinámico (Material You) o elige entre tema Oscuro, Claro y Sistema.",
+        "alt": "Pantalla Fuentes y tema de ApkUp"
+      },
+      "schedule": {
+        "label": "Segundo plano",
+        "title": "Actualizaciones silenciosas opcionales con Shizuku y Root",
+        "desc": "Configura reglas de solo Wi-Fi y carga, franjas horarias activas, copias de rollback automáticas e instalación con Shizuku o Root.",
+        "alt": "Pantalla Segundo plano y Shizuku de ApkUp"
+      },
+      "about": {
+        "label": "Copias y Acerca de",
+        "title": "Sincronización Obtainium, autoactualizador y canal Beta",
+        "desc": "Importa/exporta JSON de Obtainium, haz copia de todos los ajustes, exporta registros limpios o únete al canal Beta.",
+        "alt": "Pantalla Copias y Acerca de de ApkUp"
+      },
+      "whats-new": {
+        "label": "Novedades",
+        "title": "Historial de cambios mensual integrado",
+        "desc": "Notas de versión agrupadas por meses reales de lanzamiento con banners destacados y explicaciones claras.",
+        "alt": "Pantalla Novedades de ApkUp"
+      },
+      "history": {
+        "label": "Historial",
+        "title": "Historial de actualizaciones con copias de rollback",
+        "desc": "Cada actualización queda registrada localmente con accesos rápidos para restaurar versiones anteriores si hace falta.",
+        "alt": "Pantalla Historial de actualizaciones de ApkUp"
+      }
+    }
+  },
+  "sources": {
+    "title": "Todas tus fuentes de apps, unificadas y priorizadas",
+    "subtitle": "El consentimiento inicial de fuentes garantiza cero peticiones externas hasta que elijas qué activar. Ordena prioridades globalmente o fija apps concretas.",
+    "items": {
+      "github": {
+        "tag": "GraphQL + Releases",
+        "desc": "Mapeos FOSS integrados, consultas GraphQL por lotes con PAT opcional, filtros regex y verificación SHA-256."
+      },
+      "gitlab": {
+        "tag": "Subgrupos anidados",
+        "desc": "Compatible con gitlab.com e instancias propias, incluidas rutas multinivel y tokens aislados por host."
+      },
+      "codeberg": {
+        "tag": "Self-Hosted Ready",
+        "desc": "Sigue lanzamientos directamente desde Codeberg, Forgejo o Gitea con detección automática de arquitectura."
+      },
+      "fdroid": {
+        "tag": "Diffs RFC 7396 + TOFU",
+        "desc": "Diffs incrementales nativos Index V2 con verificación criptográfica de certificados JAR y repos HTTPS propios."
+      },
+      "izzy": {
+        "tag": "Index V2 firmado",
+        "desc": "Comparación local sin fugas frente a índices firmados de IzzyOnDroid: tu lista de apps nunca sale del dispositivo."
+      },
+      "apkmirror": {
+        "tag": ".apkm + Cloudflare",
+        "desc": "Descargas directas en la app y extracción de paquetes .apkm con WebView automático de Cloudflare y respaldo en navegador."
+      },
+      "playstore": {
+        "tag": "Delta anónimo",
+        "desc": "Tokens de sesión anónimos mediante Aurora Dispenser con perfil de dispositivo minimizado, sin cuenta de Google."
+      },
+      "selfupdater": {
+        "tag": "SHA256SUMS + Beta",
+        "desc": "Comprueba lanzamientos oficiales en GitHub con validación SHA256SUMS y de certificado, más canal Beta opcional."
+      }
+    },
+    "quickTest": {
+      "title": "Prueba rápida de URL:",
+      "placeholder": "https://github.com/owner/repo o https://gitlab.com/group/sub/repo",
+      "ariaLabel": "URL del repositorio o tienda",
+      "checkerLink": "Comprobador JSON de Obtainium →",
+      "hint": "Elige un ejemplo o pega cualquier URL de repositorio",
+      "wikiLink": "Wiki →",
+      "detected": {
+        "github": {
+          "source": "GitHub Releases",
+          "msg": "Compatible de forma nativa — admite lotes GraphQL (con PAT), filtros regex y verificación SHA-256."
+        },
+        "gitlab": {
+          "source": "GitLab (incl. subgrupos)",
+          "msg": "Compatible de forma nativa — gestiona rutas de subgrupos multinivel y tokens aislados por host."
+        },
+        "codeberg": {
+          "source": "Codeberg / Forgejo",
+          "msg": "Compatible de forma nativa — detección automática de ABI e instancias propias de Forgejo/Gitea."
+        },
+        "fdroid": {
+          "source": "F-Droid Index V2 / IzzyOnDroid",
+          "msg": "Compatible de forma nativa — usa diffs incrementales RFC 7396 con verificación criptográfica JAR."
+        },
+        "apkmirror": {
+          "source": "APKMirror (.apkm)",
+          "msg": "Compatible de forma nativa — descargas directas, extracción de splits .apkm y respaldo Cloudflare."
+        },
+        "playstore": {
+          "source": "Google Play Store",
+          "msg": "Compatible de forma anónima — busca actualizaciones mediante Aurora Dispenser sin cuenta de Google."
+        },
+        "custom": {
+          "source": "Host personalizado",
+          "msg": "Podría ser un GitLab propio, Forgejo o repo F-Droid HTTPS — añádelo mediante enlace personalizado o ?fingerprint= en Ajustes."
+        }
+      }
+    },
+    "silent": {
+      "badge": "Opcional • Shizuku o Root (su)",
+      "title": "Actualizaciones silenciosas opcionales",
+      "desc": "La instalación estándar de Android funciona sin configurar nada. Si quieres instalaciones automáticas en segundo plano, vincula ApkUp con Shizuku (sin Root) o activa Root opcional (su) con reglas de Wi-Fi y carga.",
+      "modeAria": "Modo de instalación",
+      "shizukuBtn": "Shizuku (Sin Root)",
+      "rootBtn": "Root (su)",
+      "shizukuGuideBtn": "Guía de Shizuku en Wiki",
+      "rootGuideBtn": "Guía de Root y segundo plano",
+      "shizukuSteps": [
+        {
+          "title": "Inicia Shizuku vía Depuración inalámbrica",
+          "desc": "Activa Shizuku en Android 11+ en menos de un minuto sin desbloquear el bootloader."
+        },
+        {
+          "title": "Concede permiso a ApkUp y define reglas",
+          "desc": "Activa las actualizaciones silenciosas en Ajustes y configura solo Wi-Fi, carga y horas de silencio."
+        },
+        {
+          "title": "Autoinstalación verificada con respaldo de rollback",
+          "desc": "Cada APK pasa primero comprobaciones de firma v2/v3 y compatibilidad, con copia previa opcional."
+        }
+      ],
+      "rootSteps": [
+        {
+          "title": "Concede Superusuario (su) una vez",
+          "desc": "Selecciona Root (su) en Ajustes de ApkUp y confirma el aviso de Magisk / KernelSU / APatch."
+        },
+        {
+          "title": "Instalación directa pm sin servicio Shizuku",
+          "desc": "Funciona de inmediato tras cada reinicio sin necesidad de Depuración inalámbrica ni ADB."
+        },
+        {
+          "title": "Rollbacks directos en un toque",
+          "desc": "Root permite downgrades (-d) sin desinstalar desde el Historial de actualizaciones."
+        }
+      ]
+    }
+  },
+  "downloadsSection": {
+    "title": "Descargar ApkUp",
+    "subtitle": "Requiere Android 10.0 (API 29) o superior. GitHub Releases ofrece la compilación canónica con SHA256SUMS.",
+    "recommended": "Recomendado",
+    "cardTitle": "GitHub Releases (APK firmada directa)",
+    "cardDesc": "Artefacto oficial firmado por CI con verificación SHA256SUMS y autoactualizador integrado.",
+    "downloadPrefix": "Descargar",
+    "downloadSuffix": "",
+    "qrCode": "Código QR",
+    "whatsNew": "Novedades",
+    "reqLine": "Android 10.0 – 17 (API 29+) • ABIs: arm64-v8a, armeabi-v7a, x86_64",
+    "whyApkUp": "¿Por qué ApkUp?",
+    "installUnknownApps": "Apps desconocidas",
+    "googleLock": "Bloqueo 24h de Google",
+    "mirrorsTitle": "Mirrors alternativos y sumas de verificación",
+    "mirrorsDesc": "Zapstore, GitLab, APKPure, itch.io, Appteka, Komi Store y verificación SHA-256 en vivo.",
+    "mirrorsBtn": "Los 8 Mirrors y SHA-256 →",
+    "supportTitle": "Apoya el desarrollo de ApkUp",
+    "supportDesc": "ApkUp es gratuito, sin anuncios y de código abierto. Si te ahorra tiempo manteniendo tus apps al día, considera darle una estrella en GitHub o invitar a un café.",
+    "starOnGithub": "Estrella en GitHub",
+    "shareWebsite": "Compartir web",
+    "linkCopied": "¡Enlace copiado!"
+  },
+  "permissions": {
+    "title": "Permisos transparentes y cifrado local",
+    "subtitle": "Cada permiso de AndroidManifest.xml explicado en lenguaje claro. Los ajustes y tokens opcionales se cifran mediante Google Tink (AES-256-GCM).",
+    "privacyLink": "Política de privacidad →",
+    "securityLink": "Arquitectura de seguridad →",
+    "items": {
+      "QUERY_ALL_PACKAGES": {
+        "title": "Inspeccionar apps instaladas y certificados de firma",
+        "desc": "Usado estrictamente en el dispositivo para leer nombres de paquete, códigos de versión y certificados v2/v3 para detectar actualizaciones y bloquear firmas distintas."
+      },
+      "REQUEST_INSTALL_PACKAGES & UPDATE_PACKAGES_WITHOUT_USER_ACTION": {
+        "title": "Instalar APKs verificadas y actualizaciones fluidas",
+        "desc": "Necesario para entregar paquetes verificados al PackageInstaller del sistema o a una sesión Shizuku autorizada y aplicar actualizaciones en Android 12+."
+      },
+      "REQUEST_DELETE_PACKAGES": {
+        "title": "Desinstalar apps y rollbacks guiados sin Root",
+        "desc": "Solo se utiliza cuando inicias una desinstalación o un rollback en dos pasos sin Root para restaurar una versión anterior respaldada."
+      },
+      "INTERNET & ACCESS_NETWORK_STATE": {
+        "title": "Obtener actualizaciones solo de fuentes autorizadas",
+        "desc": "Cero peticiones externas antes del consentimiento inicial. Solo consulta fuentes activadas por HTTPS y verifica el estado de Wi-Fi."
+      },
+      "FOREGROUND_SERVICE & RUN_USER_INITIATED_JOBS": {
+        "title": "Descargas por lotes fiables con ETA en vivo",
+        "desc": "Impulsa servicios en primer plano de AndroidX WorkManager para que los lotes grandes de actualizaciones terminen sin cortes."
+      },
+      "POST_NOTIFICATIONS & VIBRATE": {
+        "title": "Alertas opcionales y respuesta háptica",
+        "desc": "Permiso opcional para notificarte actualizaciones disponibles, resúmenes en segundo plano y vibración sutil."
+      },
+      "REQUEST_IGNORE_BATTERY_OPTIMIZATIONS": {
+        "title": "Fiabilidad opcional en segundo plano",
+        "desc": "Exención opcional que puedes conceder en Ajustes para evitar que el ahorro agresivo de batería retrase comprobaciones programadas."
+      },
+      "HIDE_OVERLAY_WINDOWS": {
+        "title": "Protección contra tapjacking al instalar",
+        "desc": "Impide que superposiciones maliciosas de terceros oculten diálogos sensibles de instalación o permisos mientras ApkUp está activo."
+      }
+    }
+  },
+  "faq": {
+    "title": "Preguntas frecuentes",
+    "subtitle": "Respuestas claras sobre permisos, comprobación de firmas, privacidad y migración desde otros actualizadores.",
+    "wikiCta": "¿Necesitas guías paso a paso? Abre la Wiki de ApkUp →",
+    "items": [
+      {
+        "q": "¿Necesito Root para actualizaciones silenciosas en segundo plano?",
+        "a": "No. ApkUp es compatible con Shizuku de serie, lo que otorga permisos elevados de PackageInstaller en Android estándar (Android 11+ vía Depuración inalámbrica o ADB) sin hacer Root. También admite Root opcional (su)."
+      },
+      {
+        "q": "¿La comprobación de Google Play Store requiere mi cuenta de Google?",
+        "a": "No. ApkUp utiliza tokens de sesión anónimos de Aurora Dispenser junto con un perfil de compatibilidad minimizado (ABI, SDK, densidad e idioma) sin iniciar sesión con ninguna cuenta personal."
+      },
+      {
+        "q": "¿Cómo me protege ApkUp de APKs manipuladas o incompatibles?",
+        "a": "Antes de instalar, ApkUp verifica criptográficamente los certificados de firma v2/v3 frente a la app instalada, valida sumas SHA-256 e índices F-Droid firmados, bloquea downgrades, comprueba minSdk/ABI y protege la extracción .apkm contra Zip-Slip."
+      },
+      {
+        "q": "¿Puedo migrar mis apps seguidas desde Obtainium o App Watcher?",
+        "a": "Sí. ApkUp incluye una vista previa interactiva para importar JSON de Obtainium (enlaces, repos F-Droid propios y lista de seguimiento), exportación a Obtainium e importación directa desde App Watcher."
+      },
+      {
+        "q": "¿Cómo funcionan las autoactualizaciones y el canal Beta?",
+        "a": "ApkUp comprueba lanzamientos oficiales en GitHub (solo estables por defecto) y valida SHA256SUMS y certificados antes de actualizarse. En Ajustes → Acerca de puedes activar o desactivar el canal Beta en cualquier momento."
+      },
+      {
+        "q": "¿ApkUp recopila analíticas, registros de fallos o telemetría?",
+        "a": "Cero. ApkUp no tiene servidor propio, anuncios, SDKs de análisis ni telemetría. El diálogo inicial garantiza cero conexiones hasta que elijas fuentes, y tus ajustes y tokens se cifran localmente con Google Tink (AES-256-GCM)."
+      }
+    ]
+  },
+  "qrModal": {
+    "title": "Escanea para descargar en Android",
+    "closeAria": "Cerrar diálogo QR",
+    "whatsNewPrefix": "Novedades en",
+    "fullChangelog": "Historial completo →",
+    "hint": "Apunta directamente a la última APK firmada en GitHub Releases."
+  },
+  "downloadsPage": {
+    "title": "Descargas, Mirrors y Verificación SHA-256 — ApkUp",
+    "metaDesc": "Descarga la APK oficial firmada de ApkUp desde GitHub Releases, verifica sumas SHA256SUMS y explora los 8 mirrors oficiales y de la comunidad.",
+    "h1": "Descargas, Mirrors y Verificación",
+    "lead": "Principio de artefacto único: GitHub Releases entrega la APK canónica firmada por CI y su suma SHA-256. Abajo tienes verificación en vivo y los 8 mirrors.",
+    "canonicalBadge": "Compilación CI canónica firmada",
+    "cardTitle": "GitHub Releases (APK firmada directa)",
+    "cardDesc": "APK universal con autoactualizador integrado y verificación criptográfica SHA-256.",
+    "downloadPrefix": "Descargar",
+    "downloadSuffix": "",
+    "whatsNew": "Novedades",
+    "installUnknown": "Instalar apps desconocidas →",
+    "googleLock": "Bloqueo 24h de Google →",
+    "shaTitle": "Suma SHA-256 en vivo",
+    "shaHelpAria": "¿Qué es SHA-256?",
+    "shaHelpBody": "Una suma SHA-256 es la huella digital única de 64 caracteres del APK. Si cambia aunque sea un solo byte, el hash no coincidirá.",
+    "shaHelpWiki": "Leer guía completa en la Wiki →",
+    "shaLead": "Resumen SHA-256 en vivo del último APK firmado en GitHub Releases.",
+    "shaLoading": "Cargando SHA-256…",
+    "shaUnavailable": "Suma no disponible — abre SHA256SUMS en GitHub Releases.",
+    "shaComparePlaceholder": "Pega tu SHA-256 local para verificar…",
+    "shaCompareAria": "Pega un hash SHA-256 local para verificar",
+    "shaMatch": "Coincide ✓",
+    "shaMismatch": "No coincide ✕",
+    "copy": "Copiar",
+    "copied": "Copiado ✓",
+    "cmdTitle": "Comandos de verificación local",
+    "cmdHelpAria": "¿Cómo funcionan los comandos locales?",
+    "cmdHelpBody": "Ejecuta el comando de tu sistema en la carpeta de Descargas para calcular el hash SHA-256 de tu archivo y compararlo con el oficial de la izquierda.",
+    "cmdHelpWiki": "Guía paso a paso en la Wiki →",
+    "officialMirrorsTitle": "Mirrors oficiales",
+    "officialMirrorsLead": "Mantenidos directamente junto a GitHub Releases.",
+    "communityMirrorsTitle": "Tiendas comunitarias y directorios",
+    "communityMirrorsLead": "Plataformas y directorios de terceros que indexan o alojan ApkUp.",
+    "mirrorBadges": {
+      "Zapstore": "Releases Nostr firmados",
+      "GitLab Releases": "Mirror oficial",
+      "APKPure": "Ficha verificada",
+      "itch.io": "Descarga APK directa",
+      "Appteka": "Tienda alternativa",
+      "Komi Store": "Tienda FOSS",
+      "AlternativeTo": "Reseñas e info",
+      "Amazon Appstore": "Desactualizado"
+    },
+    "mirrorDescs": {
+      "Zapstore": "Tienda Android descentralizada basada en Nostr con firmas criptográficas.",
+      "GitLab Releases": "Mirror completo del código fuente y lanzamientos sincronizado desde main.",
+      "APKPure": "Popular mirror de APKs de terceros que indexa lanzamientos públicos firmados.",
+      "itch.io": "Página indie con descarga directa de APK y notas de versión.",
+      "Appteka": "Catálogo Android independiente con compilaciones APK verificadas.",
+      "Komi Store": "Tienda de apps Android FOSS curada por la comunidad.",
+      "AlternativeTo": "Reseñas de la comunidad, etiquetas y listado de alternativas abiertas.",
+      "Amazon Appstore": "Listado antiguo — ya no recibe compilaciones actuales. Usa GitHub Releases."
+    }
+  },
+  "changelogPage": {
+    "title": "Novedades — ApkUp",
+    "metaDesc": "Historial mensual de lanzamientos sincronizado desde el registro de cambios oficial de ApkUp.",
+    "h1": "Novedades",
+    "lead": "Historial mensual sincronizado desde el registro oficial de ApkUp. Haz clic en cualquier mes para expandir o contraer.",
+    "langNote": "Las notas de versión siguientes se muestran en inglés (idioma publicado del registro de cambios).",
+    "filterAria": "Filtrar versiones",
+    "filterAll": "Todas las versiones",
+    "filterFeature": "Actualización de funciones",
+    "filterPatch": "Parche y corrección",
+    "searchPlaceholder": "Filtrar historial…",
+    "searchAria": "Filtrar historial",
+    "releasesWord": "versiones"
+  },
+  "comparePage": {
+    "title": "¿Por qué ApkUp? Comparativa y Comprobador — ApkUp",
+    "metaDesc": "Compara ApkUp frente a Obtainium, Aurora Store y F-Droid y prueba tu exportación JSON de Obtainium 100 % sin conexión.",
+    "h1": "¿Por qué ApkUp? Comparativa detallada",
+    "lead": "Cómo combina ApkUp el descubrimiento multifuente automático, la verificación criptográfica y la interoperabilidad con Obtainium frente a otras apps.",
+    "thCapability": "Capacidad / Función",
+    "rows": [
+      {
+        "cap": "Búsqueda automática de actualizaciones para apps ya instaladas sin configurar URLs",
+        "apkup": "✓ Automático (7 fuentes)",
+        "obt": "✕ URL manual por app",
+        "aur": "✓ Solo Play Store",
+        "fdr": "✓ Solo F-Droid"
+      },
+      {
+        "cap": "Ecosistema unificado (Play Store + FOSS + forjas Git + APKMirror en una app)",
+        "apkup": "✓ Todo combinado",
+        "obt": "◐ Sin Play Store",
+        "aur": "✕ Solo Play Store",
+        "fdr": "✕ Solo F-Droid"
+      },
+      {
+        "cap": "Actualizaciones anónimas de Google Play Store sin cuenta de Google",
+        "apkup": "✓ Integrado (Aurora Delta)",
+        "obt": "✕ No compatible",
+        "aur": "✓ Integrado",
+        "fdr": "✕ No compatible"
+      },
+      {
+        "cap": "Descargas directas de APKMirror en la app e instalación de splits .apkm",
+        "apkup": "✓ Nativo + WebView Cloudflare",
+        "obt": "◐ Solo seguimiento",
+        "aur": "✕ No compatible",
+        "fdr": "✕ No compatible"
+      },
+      {
+        "cap": "Diffs incrementales F-Droid Index V2 (RFC 7396) y fijado de certificados TOFU",
+        "apkup": "✓ Index V2 nativo + Diffs",
+        "obt": "◐ Descarga índice completo",
+        "aur": "✕ No compatible",
+        "fdr": "✓ Index V2 nativo"
+      },
+      {
+        "cap": "Consultas GraphQL por lotes en GitHub, subgrupos GitLab y Codeberg/Forgejo",
+        "apkup": "✓ Completo + filtros Regex",
+        "obt": "✓ API REST + Regex",
+        "aur": "✕ No compatible",
+        "fdr": "✕ No compatible"
+      },
+      {
+        "cap": "Prioridad global de fuentes (arrastrar y soltar) y fijado por app con respaldo",
+        "apkup": "✓ Prioridad + Fijado",
+        "obt": "✕ Una fuente por app",
+        "aur": "✕ Una sola fuente",
+        "fdr": "◐ Solo prioridad de repo"
+      },
+      {
+        "cap": "Verificación previa de firma APK v2/v3 y protección contra downgrades",
+        "apkup": "✓ Comprobación previa apksig",
+        "obt": "◐ Solo aviso del sistema",
+        "aur": "◐ Solo aviso del sistema",
+        "fdr": "✓ Firma del índice"
+      },
+      {
+        "cap": "Copias locales automáticas de rollback (incluidos splits) antes de actualizar",
+        "apkup": "✓ Hasta 2 GB + 1 toque",
+        "obt": "✕ No disponible",
+        "aur": "✕ No disponible",
+        "fdr": "◐ Solo archivo de repo"
+      },
+      {
+        "cap": "Protección previa de compatibilidad minSdk y arquitectura CPU ABI",
+        "apkup": "✓ Evita bucles de fallo",
+        "obt": "◐ Por nombre de archivo",
+        "aur": "✓ Perfil de dispositivo",
+        "fdr": "✓ Metadatos del índice"
+      },
+      {
+        "cap": "Canales preliminares globales o por app (Beta, RC, Alpha, Nightly)",
+        "apkup": "✓ 4 canales granulares",
+        "obt": "◐ Interruptor general",
+        "aur": "✕ Solo pista Play Store",
+        "fdr": "◐ Interruptor inestable"
+      },
+      {
+        "cap": "Actualizaciones silenciosas vía Shizuku (sin Root) y Root opcional (su)",
+        "apkup": "✓ Shizuku + Root (su)",
+        "obt": "✓ Shizuku + Root",
+        "aur": "✓ Shizuku + Root",
+        "fdr": "✓ Shizuku / Ext. privileg."
+      },
+      {
+        "cap": "Franjas horarias activas, horas de silencio y reglas de Wi-Fi / carga",
+        "apkup": "✓ Franjas + recuperación",
+        "obt": "◐ Intervalo + Wi-Fi/carga",
+        "aur": "◐ Solo intervalo",
+        "fdr": "◐ Solo Wi-Fi / carga"
+      },
+      {
+        "cap": "Lista de seguimiento + importación/exportación Obtainium y App Watcher",
+        "apkup": "✓ Obtainium 2 vías + Watcher",
+        "obt": "✓ Solo seguimiento + JSON",
+        "aur": "✕ Sin sincr. Obtainium",
+        "fdr": "✕ Sin sincr. Obtainium"
+      },
+      {
+        "cap": "Exportar .apk o paquetes .apks a cualquier carpeta SAF y caché de 24h",
+        "apkup": "✓ Guardar APK/.apks + caché 24h",
+        "obt": "◐ Carpeta estándar",
+        "aur": "✓ Exportar paquete",
+        "fdr": "◐ Solo caché"
+      },
+      {
+        "cap": "Cifrado de tokens Google Tink AES-256-GCM respaldado por hardware y aislamiento",
+        "apkup": "✓ Android Keystore AES-256",
+        "obt": "◐ Almacenamiento de app",
+        "aur": "◐ Almacenamiento de app",
+        "fdr": "✓ No requiere tokens"
+      }
+    ],
+    "checkerTitle": "Comprobador de fuentes y JSON de Obtainium",
+    "checkerLead": "100 % sin conexión en tu navegador: no se sube nada. Pega una exportación JSON de Obtainium o elige un archivo para previsualizar cómo ApkUp mapea tus apps y repositorios.",
+    "chooseFile": "Elegir archivo JSON de Obtainium",
+    "loadSample": "Cargar ejemplo",
+    "textareaAria": "Contenido JSON de exportación de Obtainium",
+    "report": {
+      "invalidJson": "Formato JSON no válido. Revisa tu exportación de Obtainium.",
+      "appsFound": "apps analizadas",
+      "supported": "Compatible",
+      "custom": "Personalizado / Respaldo",
+      "empty": "No se encontró ningún array de apps en el JSON."
+    }
+  },
+  "privacyPage": {
+    "title": "Política de privacidad — ApkUp",
+    "metaDesc": "Cero telemetría, almacenamiento local y credenciales cifradas en ApkUp.",
+    "h1": "Política de privacidad",
+    "lead": "Última actualización: 13 de noviembre de 2026 • Basada en PRIVACY.md en el repositorio de ApkUp.",
+    "onDeviceBadge": "✓ 100% en el dispositivo",
+    "onDeviceItems": [
+      "Escaneo de apps, comparación de versiones y verificación SHA-256",
+      "Tokens cifrados por hardware con Google Tink (AES-256-GCM)"
+    ],
+    "neverSentBadge": "✕ Nunca se envía",
+    "neverSentItems": [
+      "Cero telemetría, rastreadores de fallos o IDs de publicidad",
+      "Sin servidor de desarrollador, cuentas de usuario ni analíticas"
+    ],
+    "s1Title": "1. Sin servidor de desarrollador, analíticas ni anuncios",
+    "s1Items": [
+      "Sin servidores de ApkUp, proxies ni bases de datos que registren consultas o direcciones IP.",
+      "Sin registro, cuentas de usuario, rastreadores (Firebase, Sentry, Crashlytics) ni telemetría de comportamiento.",
+      "Nunca recopila IMEI, números de serie, direcciones MAC ni IDs de publicidad."
+    ],
+    "s2Title": "2. Consentimiento explícito de fuentes y actividad de red",
+    "s2Items": [
+      "Al iniciar por primera vez, ApkUp muestra un diálogo para elegir fuentes: antes no se realiza ninguna petición externa.",
+      "Los índices de F-Droid e IzzyOnDroid se descargan y comparan localmente sin enviar tu lista de apps.",
+      "Las comprobaciones de Google Play usan tokens anónimos de Aurora Dispenser con un perfil mínimo, sin cuenta personal."
+    ],
+    "s3Title": "3. Almacenamiento local cifrado y auditoría abierta",
+    "s3Body": "Todos los ajustes, enlaces y tokens opcionales se cifran en reposo con Google Tink (AES-256-GCM) en Android Keystore. Las copias en la nube y el HTTP sin cifrar están desactivados.",
+    "viewGithub": "Ver PRIVACY.md en GitHub"
+  },
+  "securityPage": {
+    "title": "Política de seguridad — ApkUp",
+    "metaDesc": "Versiones compatibles, verificación criptográfica de firma APK y SHA-256, y divulgación responsable de vulnerabilidades en ApkUp.",
+    "shieldBadge": "Cero rastreo • Firma APK v2/v3",
+    "h1": "Política y arquitectura de seguridad",
+    "lead": "Documentación completa de seguridad basada en SECURITY.md: versiones compatibles, verificación criptográfica y divulgación responsable.",
+    "supportedTitle": "Versiones compatibles",
+    "supportedLead": "Proporcionamos parches de seguridad activamente para las siguientes versiones de ApkUp:",
+    "thVersion": "Versión",
+    "thStatus": "Estado",
+    "orNewer": "o superior",
+    "statusSupported": "✓ Compatible",
+    "statusEol": "✕ Fin de soporte",
+    "archTitle": "Arquitectura de seguridad en profundidad",
+    "archLead": "ApkUp aplica verificación multicapa en cada etapa del ciclo de actualización:",
+    "pillars": [
+      {
+        "badge": "apksig v2 / v3",
+        "title": "Verificación criptográfica de firma APK",
+        "body": "Antes de entregar cualquier APK o paquete .apkm a PackageInstaller, Shizuku o Root (su), ApkIntegrityVerifier comprueba los certificados v2/v3 frente a la app instalada y bloquea discrepancias o downgrades."
+      },
+      {
+        "badge": "SHA-256 + X.509 TOFU",
+        "title": "Índices F-Droid / IzzyOnDroid firmados y sumas SHA-256",
+        "body": "Los índices de repositorio (entry.jar / index-v1.jar) se verifican frente a huellas X.509 SHA-256 fijadas y las APKs descargadas (incluidas autoactualizaciones vía SHA256SUMS) se validan por SHA-256."
+      },
+      {
+        "badge": "Zip-Slip Guard + cacheDir",
+        "title": "Aislamiento de archivos y almacenamiento endurecido",
+        "body": "Todas las descargas residen en almacenamiento interno privado (cacheDir), la extracción .apkm aplica límites estrictos contra Zip-Slip y bombas de descompresión, y HTTP en texto plano está deshabilitado."
+      },
+      {
+        "badge": "Google Tink AES-256-GCM",
+        "title": "Credenciales cifradas y aislamiento de hosts",
+        "body": "Los ajustes locales y tokens opcionales se cifran con Google Tink (AES-256-GCM en Android Keystore). Las cabeceras Authorization se restringen a su host y se eliminan en redirecciones."
+      }
+    ],
+    "disclosureTitle": "Informar de una vulnerabilidad",
+    "disclosureBody": "Si descubres una posible vulnerabilidad de seguridad en ApkUp (especialmente en verificación de firma APK, extracción .apkm, ejecución Shizuku / Root su, almacenamiento de credenciales o red), NO la publiques en issues públicos, discusiones ni redes sociales.",
+    "disclosureSteps": [
+      "Usa el canal confidencial Private Vulnerability Reporting de GitHub.",
+      "Detalla el problema, pasos para reproducirlo, versiones afectadas e incluye una prueba de concepto si es posible.",
+      "Revisaremos los informes con rapidez, investigaremos el alcance y publicaremos un parche antes de cualquier divulgación pública."
+    ],
+    "reportBtn": "Informar vulnerabilidad (Confidencial)",
+    "viewGithub": "Ver SECURITY.md en GitHub"
+  },
+  "sideloadingPage": {
+    "title": "Instalar apps desconocidas (Sideloading APK) — ApkUp",
+    "metaDesc": "Guía paso a paso para activar Instalar aplicaciones desconocidas en Android 10–17, usar Shizuku o ADB y resolver el bloqueo de 24 horas de Google.",
+    "badge": "Android 10 – 17 • Guía de Sideloading",
+    "h1": "Instalar aplicaciones desconocidas en Android",
+    "lead": "Cómo activar el permiso «Instalar apps desconocidas» de Android en 30 segundos — o usar Shizuku, ADB o Root para actualizaciones silenciosas.",
+    "way1Badge": "Android estándar • 30 segundos",
+    "way1Title": "Permiso clásico «Instalar apps desconocidas»",
+    "way1Steps": [
+      {
+        "title": "Descarga y abre la última APK firmada",
+        "bodyBefore": "Descarga el último archivo .apk(Up) firmado desde nuestra",
+        "bodyLink": "página de Descargas",
+        "bodyAfter": "o GitHub Releases y tócalo en tu navegador o gestor de archivos."
+      },
+      {
+        "title": "Activa «Permitir desde esta fuente»",
+        "body": "Cuando Android lo solicite, toca Ajustes, activa Permitir desde esta fuente para tu navegador y toca Instalar."
+      },
+      {
+        "title": "Concede el permiso una vez a ApkUp",
+        "body": "En tu primera actualización dentro de ApkUp, concede el mismo permiso a ApkUp una sola vez — o usa Shizuku/Root para actualizaciones silenciosas."
+      }
+    ],
+    "powerTitle": "Vía avanzada con Shizuku o ADB",
+    "powerDesc": "Instalar mediante Shizuku (Depuración inalámbrica en Android 11+), adb install -r ApkUp.apk desde un PC o Root (su) utiliza directamente la canalización de desarrollador del sistema.",
+    "generalWiki": "Wiki general →",
+    "rootBtn": "Root →",
+    "shizukuBtn": "Shizuku →",
+    "lockBadge": "⚠ Aviso • Bloqueo 2026 / 2027",
+    "lockTitle": "¿Bloqueado por el bloqueo 24h de Google?",
+    "lockDesc": "Google Play Protect está implantando la verificación obligatoria de identidad y una espera de 24 horas en Opciones de desarrollador. Aprende a desbloquearlo permanentemente y por qué apoyamos Keep Android Open.",
+    "lockBtn": "⚠ Bloqueo 24h y Keep Android Open →"
+  },
+  "googleLockPage": {
+    "title": "⚠ Bloqueo 24h de Google y Keep Android Open — ApkUp",
+    "metaDesc": "Análisis y guía de desbloqueo permanente para el bloqueo de 24 horas de verificación de desarrolladores de Google (2026/2027) y Keep Android Open.",
+    "backLink": "← Volver a Instalar apps desconocidas",
+    "alertPill": "ALERTA CRÍTICA • RESTRICCIÓN ANDROID 2026 / 2027",
+    "countdownPill": "Despliegue global: Ene 2027",
+    "h1": "El bloqueo de 24h de Google y Keep Android Open",
+    "lead": "Android afronta la mayor restricción al sideloading de su historia. Desde el 30 de septiembre de 2026 (regiones piloto) y a nivel global en enero de 2027, Google Play Protect bloquea APKs de desarrolladores que no hayan enviado su documento de identidad y claves a Google, obligando a esperar 24 horas en Opciones de desarrollador.",
+    "jumpStepsBtn": "Desbloquear bloqueo 24h paso a paso ↓",
+    "joinKaoBtn": "Unirse a Keep Android Open ↗",
+    "shareBtn": "Compartir y avisar ↗",
+    "checkerBadge": "Comprobación rápida",
+    "checkerTitle": "¿Me afecta el bloqueo de 24h de Google?",
+    "checkerQ1": "1. ¿Tu dispositivo usa Google Play Services / Play Protect?",
+    "checkerQ1Yes": "Sí (Android estándar)",
+    "checkerQ1No": "No (GrapheneOS / Lineage / sin Google)",
+    "checkerQ2": "2. ¿Cómo instalas ApkUp / apps FOSS?",
+    "checkerQ2Apk": "Tocando el APK en el teléfono",
+    "checkerQ2Adb": "ADB / Shizuku / Root (su)",
+    "checkerResultAffected": "⚠ Afectado: Completa una vez los 4 pasos de «Permitir indefinidamente» abajo.",
+    "checkerResultAdb": "✓ Omitido: Las instalaciones vía ADB / Shizuku / Root evitan el bloqueo de 24h.",
+    "checkerResultDeGoogled": "✓ No afectado: Los dispositivos sin Google Play Services no tienen este bloqueo.",
+    "factsBadge": "Calendario y hechos",
+    "factsHeading": "Qué está desplegando Google — y cuándo",
+    "facts": [
+      {
+        "date": "30.09.2026",
+        "title": "Fase piloto activa",
+        "body": "Google Play Protect comenzó a exigir verificación obligatoria en países piloto (incluidos Brasil, Indonesia, Singapur y Tailandia), bloqueando APKs no registradas por defecto."
+      },
+      {
+        "date": "01 / 2027",
+        "title": "Despliegue global",
+        "body": "Desde enero de 2027, Google Play Services extiende esta restricción a todo el mundo en dispositivos Android certificados, incluso para apps fuera de Play Store."
+      },
+      {
+        "date": "ID + KEY",
+        "title": "Identidad y registro obligatorios",
+        "body": "Los autores independientes deben subir identificación oficial, pagar una tasa y vincular el ID de paquete y certificado de firma en el registro central de Google."
+      }
+    ],
+    "whyBadge": "⚠ Por qué importa",
+    "whyHeading": "De un ordenador abierto a una plataforma cerrada",
+    "whyItems": [
+      {
+        "title": "1. Pierdes el control sobre tu propio hardware",
+        "body": "Compraste y posees tu teléfono, pero Google Play Protect decide de forma remota qué software puede ejecutarse salvo que superes una espera de 24 horas."
+      },
+      {
+        "title": "2. Efecto disuasorio en apps independientes y de privacidad",
+        "body": "Desarrolladores independientes, investigadores y proyectos de privacidad que no pueden o no quieren entregar su documento a Google quedan marcados como «no verificados»."
+      },
+      {
+        "title": "3. Fricción artificial para empujar hacia Play Store",
+        "body": "La seguridad real se logra con firmas criptográficas y código abierto auditable, no ocultando un interruptor con espera de 24h y trampa de reinicio a los 7 días."
+      }
+    ],
+    "kaoTitle": "Apoya a Keep Android Open",
+    "kaoBody": "La coalición Keep Android Open documenta el despliegue, moviliza a usuarios y desarrolladores en todo el mundo y defiende un ecosistema móvil abierto.",
+    "kaoBannerBtn": "Banner de campaña ↗",
+    "impactBadge": "Impacto diario • Alternativas",
+    "impactTitle": "Qué significa esto para ti como usuario",
+    "impactBody": "Sin desbloquear las Opciones de desarrollador, Play Protect puede bloquear APKs directas de GitHub, GitLab o Codeberg. Cuando eliges Permitir indefinidamente tras 24h — o instalas por ADB, Shizuku o Root (su) — ApkUp sigue funcionando sin límites.",
+    "wikiChapterBtn": "Capítulo en Wiki →",
+    "rootBtn": "Root →",
+    "shizukuBtn": "Shizuku →",
+    "unlockBadge": "Opciones de desarrollador • Desbloqueo permanente",
+    "unlockHeading": "Cómo desbloquear permanentemente «Apps de desarrolladores no verificados»",
+    "unlockLead": "Sigue estos 4 pasos exactos una vez por dispositivo para seguir instalando ApkUp y apps de código abierto sin bloqueos futuros (toca cada paso para marcarlo):",
+    "checklistProgress": "Progreso de la lista",
+    "resetBtn": "Reiniciar",
+    "steps": [
+      {
+        "title": "Activa Opciones de desarrollador (7× N.º de compilación)",
+        "body": "Abre Ajustes → Información del teléfono (en Samsung: Información de software) y toca 7 veces en Número de compilación hasta ver «¡Ya eres desarrollador!».",
+        "chips": ["Ajustes", "Información del teléfono", "N.º compilación (7×)"],
+        "toast": "🎉 ¡Ya eres desarrollador!"
+      },
+      {
+        "title": "Activa «Apps de desarrolladores no verificados»",
+        "body": "Ve a Ajustes → Sistema → Opciones de desarrollador (o búscalo en Ajustes), localiza Apps de desarrolladores no verificados y activa Permitir.",
+        "chips": ["Sistema", "Opciones de desarrollador", "No verificados"]
+      },
+      {
+        "title": "Confirma tu bloqueo de pantalla y reinicia",
+        "body": "Verifica tu PIN, patrón o biometría cuando se solicite y reinicia el teléfono. La cuenta atrás obligatoria de 24 horas comienza justo tras el reinicio.",
+        "icsBtn": "📅 Guardar recordatorio 24h (.ics)"
+      },
+      {
+        "title": "Tras 24 horas: Elige «Permitir indefinidamente»",
+        "body": "Vuelve a Opciones de desarrollador → Apps de desarrolladores no verificados cuando pasen las 24 horas y selecciona Permitir indefinidamente."
+      }
+    ],
+    "trapTitle": "⚠ ¡Cuidado con la trampa de los 7 días!",
+    "trapBody": "Android ofrece una opción temporal de 7 días junto a Permitir indefinidamente. Si eliges 7 días, Android reactivará el bloqueo automáticamente tras una semana y tendrás que esperar otras 24 horas. ¡Elige siempre Permitir indefinidamente!",
+    "trapTab7d": "Si eliges «7 días»",
+    "trapTabForever": "Si eliges «Permitir indefinidamente»",
+    "trapRes7d": "Días 1–7: Permitido → Día 8: ✕ Bloqueado otra vez (+24h de espera)",
+    "trapResForever": "Día 1+: ✓ Desbloqueado para siempre — ¡sin reinicio cada 7 días!",
+    "compareBadge": "Comparativa",
+    "compareHeading": "Play Protect bloqueado vs. Desbloqueado / ADB y Shizuku",
+    "compareThScenario": "Escenario",
+    "compareThLocked": "Con bloqueo de 24h activo",
+    "compareThSafe": "Desbloqueado / ADB / Shizuku",
+    "compareRows": [
+      {
+        "scenario": "APK directa desde el navegador",
+        "locked": "✕ Bloqueada sin ID de Google",
+        "safe": "✓ Se instala con normalidad"
+      },
+      {
+        "scenario": "Actualizaciones multifuente de ApkUp",
+        "locked": "⚠ Play Protect bloquea APKs no verificadas",
+        "safe": "✓ Las 7 fuentes funcionan sin problemas"
+      },
+      {
+        "scenario": "ADB / Shizuku / Root (su)",
+        "locked": "✓ La vía de desarrollador sigue abierta",
+        "safe": "✓ Actualizaciones silenciosas en segundo plano"
+      }
+    ],
+    "adbHeading": "Vía de escape inmediata (sin esperar 24h)",
+    "adbLead": "Si no puedes esperar 24 horas, puedes instalar ApkUp de inmediato desde cualquier PC con ADB (USB o Depuración inalámbrica) y activar Shizuku o Root dentro de ApkUp:",
+    "copy": "Copiar",
+    "copied": "Copiado ✓",
+    "backUnknownBtn": "← Guía de apps desconocidas",
+    "generalWikiBtn": "Wiki general →",
+    "quickJump": "Solución 24h ↓"
+  },
+  "wikiPage": {
+    "title": "Wiki y Guías — ApkUp",
+    "metaDesc": "Documentación completa de 12 capítulos de ApkUp sobre fuentes, F-Droid Index V2, tokens PAT, Shizuku y Root, importación Obtainium, sideloading y solución de errores.",
+    "h1": "Wiki y Documentación de ApkUp",
+    "lead": "Las 12 guías oficiales en un solo lugar con búsqueda — cambia de capítulo a la izquierda o busca cualquier tema abajo.",
+    "langNote": "Nota: Los artículos de referencia completos se sincronizan desde la Wiki de GitHub en inglés. Los resúmenes de capítulo, pasos rápidos y tablas están traducidos a tu idioma.",
+    "searchPlaceholder": "Buscar en las 12 guías (ej. Shizuku, 24h, SHA-256, Cloudflare, 403, Obtainium)…",
+    "searchAria": "Buscar en las guías de la Wiki",
+    "prevMatchAria": "Coincidencia anterior",
+    "nextMatchAria": "Siguiente coincidencia",
+    "tocBtn": "Índice de contenidos (12 capítulos)",
+    "minRead": "min de lectura",
+    "openOnGithub": "Leer artículo completo en GitHub Wiki ↗",
+    "chapters": {
+      "home": {
+        "title": "Resumen e inicio rápido",
+        "lead": "ApkUp es un actualizador Android multifuente local para Android 10–17 (API 29+). Busca, verifica e instala actualizaciones en 7 ecosistemas sin telemetría ni servidores propios.",
+        "cards": [
+          {
+            "badge": "Consentimiento primero",
+            "title": "Cero peticiones de red antes de elegir fuentes",
+            "body": "En el primer inicio, ApkUp muestra el diálogo de selección de fuentes. Solo se consultan por HTTPS las fuentes que actives."
+          },
+          {
+            "badge": "3 pestañas principales",
+            "title": "Apps, Actualizaciones y Ajustes",
+            "body": "Gestiona apps instaladas y lista de seguimiento en Apps, ejecuta actualizaciones en Actualizaciones y configura fuentes y copias en Ajustes."
+          },
+          {
+            "badge": "apksig v2/v3",
+            "title": "Protección criptográfica de firma y ABI",
+            "body": "Cada APK o paquete .apkm descargado se comprueba frente al certificado instalado, minSdk y arquitectura CPU antes de instalar."
+          },
+          {
+            "badge": "Android 10–17 y 9 idiomas",
+            "title": "Requisitos, idiomas y automatización opcional",
+            "body": "Funciona desde Android 10.0 (API 29+) en 9 idiomas. Funciona con diálogos estándar o en silencio con Shizuku / Root (su)."
+          }
+        ],
+        "stepsTitle": "Inicio rápido en 3 pasos",
+        "steps": [
+          {
+            "title": "Elige tus fuentes activas",
+            "body": "Activa F-Droid/IzzyOnDroid, GitHub, GitLab, Codeberg, APKMirror o Google Play Store en el asistente inicial."
+          },
+          {
+            "title": "Ordena la prioridad y fija apps si lo deseas",
+            "body": "Arrastra el orden preferido de fuentes en Ajustes o fija apps concretas desde la pestaña Apps."
+          },
+          {
+            "title": "Escanea y actualiza",
+            "body": "Desliza para actualizar, revisa notas o guarda APKs en Detalles e instala individualmente o todo a la vez."
+          }
+        ]
+      },
+      "sources": {
+        "title": "Fuentes de actualización, enlaces y protección de firma",
+        "lead": "Cómo consulta ApkUp cada fuente, cómo funcionan los enlaces personalizados de repositorios y por qué ocurren conflictos de firma al cambiar de ecosistema.",
+        "cards": [
+          {
+            "badge": "Prioridad y fijado",
+            "title": "Orden global de prioridad con respaldo automático",
+            "body": "ApkUp evalúa las fuentes activadas según tu lista de prioridad. Fijar una app prioriza esa fuente y usa respaldo si no hay actualización."
+          },
+          {
+            "badge": "Enlace 3 vías",
+            "title": "Enlaces personalizados de GitHub, GitLab y Codeberg",
+            "body": "Vincula cualquier app a owner/repo, subgrupos multinivel de GitLab (group/sub/project) o instancias propias."
+          },
+          {
+            "badge": "Filtro de assets",
+            "title": "Detección ABI, variantes FOSS y filtros Regex",
+            "body": "Elige automáticamente arm64-v8a / armeabi-v7a / x86_64 frente a universales, prefiere variantes FOSS y admite filtros Regex."
+          },
+          {
+            "badge": "Protección de firma",
+            "title": "Por qué Android bloquea cambios de certificado entre fuentes",
+            "body": "F-Droid oficial firma con su propia clave, mientras GitHub/Play/IzzyOnDroid usan la del desarrollador. ApkUp avisa antes de instalar."
+          }
+        ],
+        "tableHeaders": {
+          "h1": "Fuente",
+          "h2": "Protocolo y autenticación",
+          "h3": "Capacidades especiales"
+        },
+        "tableRows": [
+          {
+            "col1": "GitHub",
+            "col2": "REST + GraphQL por lotes (con PAT opcional)",
+            "col3": "Mapeos FOSS integrados, owner/repo propio, autoactualizador SHA256SUMS"
+          },
+          {
+            "col1": "GitLab",
+            "col2": "API REST v4 (gitlab.com y propio + PAT opcional)",
+            "col3": "Admite rutas de subgrupos multinivel (group/sub/project)"
+          },
+          {
+            "col1": "Codeberg / Forgejo",
+            "col2": "API Releases de Gitea/Forgejo (codeberg.org y propios)",
+            "col3": "Resolución directa de assets con filtrado ABI y Regex"
+          },
+          {
+            "col1": "F-Droid e IzzyOnDroid",
+            "col2": "Index V2 firmado (entry.jar) + respaldo Index V1",
+            "col3": "Diffs RFC 7396, fijado X.509 TOFU, comparación 100 % local"
+          },
+          {
+            "col1": "APKMirror",
+            "col2": "API/Feeds HTTPS + respaldo WebView Cloudflare",
+            "col3": "Extracción .apk y splits .apkm con espera de 10 min por app"
+          },
+          {
+            "col1": "Google Play Store",
+            "col2": "Token anónimo de Aurora Dispenser (sin cuenta)",
+            "col3": "Perfil de dispositivo minimizado y recuperación ante HTTP 429"
+          }
+        ]
+      },
+      "fdroid": {
+        "title": "Repositorios F-Droid e Index V2",
+        "lead": "ApkUp integra un motor nativo F-Droid Index V2 con diffs incrementales RFC 7396, verificación criptográfica JAR y ajustes rápidos.",
+        "cards": [
+          {
+            "badge": "Diffs RFC 7396",
+            "title": "Hasta un 95 % menos de datos en escaneos repetidos",
+            "body": "En lugar de bajar más de 50 MB cada vez, ApkUp verifica entry.jar y aplica solo el pequeño diff JSON desde tu última comprobación."
+          },
+          {
+            "badge": "Fijado X.509 TOFU",
+            "title": "Verificación criptográfica de huella",
+            "body": "Las firmas JAR se verifican frente a la huella SHA-256 X.509 de 64 caracteres fijada. Cualquier índice alterado se rechaza."
+          }
+        ],
+        "tableHeaders": {
+          "h1": "Repositorio predefinido",
+          "h2": "URL oficial del índice",
+          "h3": "Huella de certificado SHA-256"
+        },
+        "deepDives": [
+          {
+            "q": "Cómo añadir cualquier repositorio F-Droid HTTPS personalizado",
+            "a": "Abre Ajustes → Fuentes de actualización → IzzyOnDroid / F-Droid → Añadir repositorio. Pega un enlace con ?fingerprint=<64-hex> o déjalo vacío la primera vez para verificar y fijar la huella por TOFU."
+          }
+        ]
+      },
+      "tokens": {
+        "title": "Configurar tokens PAT de GitHub, GitLab y Codeberg",
+        "lead": "Los repositorios públicos funcionan sin token, pero un Personal Access Token de solo lectura elimina los límites de API (de 60 a 5.000 pet./h en GitHub).",
+        "cards": [
+          {
+            "badge": "5.000 pet./h + GraphQL",
+            "title": "Token Fine-Grained de GitHub (Solo lectura)",
+            "body": "Crea un token en github.com/settings/personal-access-tokens con acceso de solo lectura a repositorios públicos. ApkUp valida el token y muestra tu cuota."
+          },
+          {
+            "badge": "Ámbito read_api",
+            "title": "Tokens de GitLab y Codeberg / Forgejo",
+            "body": "En GitLab crea un token con ámbito read_api. En Codeberg o Forgejo genera un token de solo lectura en Ajustes de usuario → Aplicaciones."
+          },
+          {
+            "badge": "AES-256-GCM",
+            "title": "Cifrado por hardware y protección de redirecciones",
+            "body": "Los tokens se cifran localmente con Google Tink (AES-256-GCM) en Android Keystore y se eliminan las cabeceras Authorization en redirecciones a CDNs."
+          },
+          {
+            "badge": "Prueba en 1 toque",
+            "title": "Verificación integrada de token",
+            "body": "Toca Verificar token en Ajustes → Fuentes → GitHub / GitLab para comprobar validez, usuario y cuota restante."
+          }
+        ]
+      },
+      "shizuku-setup": {
+        "title": "Configurar Shizuku (Guía rápida)",
+        "lead": "Shizuku es totalmente opcional. Emparejarlo permite actualizaciones silenciosas en segundo plano en dispositivos Android 11+ sin Root.",
+        "stepsTitle": "Configuración por Depuración inalámbrica (Android 11+ — sin PC ni Root)",
+        "steps": [
+          {
+            "title": "Instala Shizuku y activa Opciones de desarrollador",
+            "body": "Instala la app oficial Shizuku y toca 7 veces en Número de compilación en Ajustes → Información del teléfono."
+          },
+          {
+            "title": "Empareja Shizuku con Depuración inalámbrica",
+            "body": "Conéctate a Wi-Fi, toca Emparejar en Shizuku, abre Depuración inalámbrica → Emparejar con código e introduce los 6 dígitos."
+          },
+          {
+            "title": "Inicia Shizuku y autoriza a ApkUp",
+            "body": "Toca Iniciar en Shizuku, luego abre ApkUp → Ajustes → Instalación y automatización y activa Shizuku."
+          }
+        ],
+        "deepDives": [
+          {
+            "q": "Alternativa: Iniciar Shizuku por PC (ADB) o Root",
+            "a": "En Android 10 ejecuta \"adb shell sh /sdcard/Android/data/moe.shizuku.privileged.api/start.sh\" desde un PC. En dispositivos con Root usa la opción Root directa."
+          }
+        ]
+      },
+      "shizuku-deep": {
+        "title": "Shizuku e instalación en segundo plano",
+        "lead": "Análisis detallado de sesiones privilegiadas, respaldo Root (su), reglas de Wi-Fi y carga, franjas horarias y copias de rollback.",
+        "cards": [
+          {
+            "badge": "Pipeline IPC",
+            "title": "Sesión PackageInstaller elevada vía Binder",
+            "body": "Tras superar las comprobaciones apksig v2/v3 y ABI, ApkUp transmite la APK o splits .apkm mediante Shizuku Binder IPC o su."
+          },
+          {
+            "badge": "Autoactualización segura",
+            "title": "Autoactualización diferida al final del lote",
+            "body": "Si el lote incluye al propio ApkUp, instala primero el resto de apps y deja su propia actualización para el final."
+          },
+          {
+            "badge": "Franjas horarias",
+            "title": "Horas activas, silencio y recuperación automática",
+            "body": "Restringe comprobaciones y actualizaciones a una franja horaria (ej. 02:00–06:00 cargando en Wi-Fi) con recuperación automática."
+          },
+          {
+            "badge": "Bóveda 2 GB",
+            "title": "Copias automáticas y rollback en un toque",
+            "body": "Archiva las APKs base + split instaladas (hasta 2 GB LRU) antes de actualizar para restaurarlas desde el historial."
+          }
+        ],
+        "deepDives": [
+          {
+            "q": "Rollback directo con Root (-r -d) vs. guiado sin Root",
+            "a": "Con Root (su), ApkUp ejecuta un downgrade directo conservando datos. Sin Root, te guía en dos pasos: desinstalar la versión nueva y reinstalar la copia anterior."
+          }
+        ]
+      },
+      "obtainium": {
+        "title": "Guía de migración y sincronización con Obtainium",
+        "lead": "Importa tus configuraciones de Obtainium, repositorios F-Droid y listas de seguimiento a ApkUp, o exporta tus enlaces a JSON de Obtainium.",
+        "stepsTitle": "Migrar desde Obtainium en 3 pasos",
+        "steps": [
+          {
+            "title": "Exporta tu JSON en Obtainium",
+            "body": "En Obtainium abre Importar/Exportar → Exportación Obtainium para guardar tu archivo JSON."
+          },
+          {
+            "title": "Abre la vista previa interactiva en ApkUp",
+            "body": "En ApkUp ve a Ajustes → Ajustes avanzados → Copia y exportación → Importar Obtainium."
+          },
+          {
+            "title": "Revisa enlaces, repos F-Droid y lista de seguimiento",
+            "body": "ApkUp previsualiza repositorios detectados (incluidos subgrupos GitLab y Codeberg), repos F-Droid y apps no instaladas."
+          }
+        ]
+      },
+      "management": {
+        "title": "Gestión de apps, lista de seguimiento, filtros y copias",
+        "lead": "Domina las herramientas diarias: lista de seguimiento, canales preliminares, caché inteligente de 24h, exportación SAF y copias JSON.",
+        "cards": [
+          {
+            "badge": "Lista + App Watcher",
+            "title": "Sigue lanzamientos antes de instalar",
+            "body": "Toca + en Apps para seguir cualquier app de GitHub, GitLab, Codeberg, F-Droid o APKMirror o importar listas de App Watcher."
+          },
+          {
+            "badge": "Canales preliminares",
+            "title": "Soporte selectivo Beta, RC, Alpha y Nightly",
+            "body": "Mantén tu sistema estable por defecto y activa compilaciones Beta, RC, Alpha o Nightly globalmente o por app."
+          },
+          {
+            "badge": "Caché 24h + Guardar APK",
+            "title": "Reintento instantáneo y exportación SAF",
+            "body": "Las descargas verificadas permanecen 24h en caché. Usa Guardar APK para exportar .apk o paquetes .apks a cualquier carpeta."
+          },
+          {
+            "badge": "Copia JSON completa",
+            "title": "Ajustes portables y registros limpios",
+            "body": "Exporta prioridades, apps fijadas, repos y horarios en JSON (sin tokens por seguridad) y registros .txt anonimizados."
+          }
+        ]
+      },
+      "troubleshooting": {
+        "title": "Solución de errores de fuentes y preguntas comunes",
+        "lead": "Tabla de referencia rápida para códigos de estado HTTP, límites de tasa, desafíos Cloudflare y errores del instalador.",
+        "tableHeaders": {
+          "h1": "Error / Síntoma",
+          "h2": "Causa",
+          "h3": "Solución en ApkUp"
+        },
+        "tableRows": [
+          {
+            "col1": "GitHub HTTP 403 / 429",
+            "col2": "Límite de IP sin autenticar (60 pet./hora) alcanzado",
+            "col3": "Añade un token de solo lectura de GitHub en Ajustes (sube a 5.000/h + GraphQL)"
+          },
+          {
+            "col1": "APKMirror Cloudflare / 403",
+            "col2": "Protección antibots o espera de 10 min activa en APKMirror",
+            "col3": "Completa la verificación automática en el WebView interno o revisa el estado de fuentes"
+          },
+          {
+            "col1": "Google Play HTTP 429",
+            "col2": "Límite temporal del Aurora Dispenser anónimo",
+            "col3": "ApkUp espera automáticamente y solicita un nuevo token de sesión anónimo"
+          },
+          {
+            "col1": "GitHub HTTP 401",
+            "col2": "Token de acceso caducado, revocado o inválido",
+            "col3": "Abre Ajustes → Fuentes → GitHub → Verificar token y actualízalo o bórralo"
+          },
+          {
+            "col1": "GitLab HTTP 404 (Subgrupos)",
+            "col2": "Ruta de subgrupo incompleta o repositorio privado sin token",
+            "col3": "Introduce la ruta completa group/subgroup/project (y token read_api si es privado)"
+          },
+          {
+            "col1": "F-Droid Fingerprint Mismatch",
+            "col2": "El certificado del índice JAR no coincide con la huella SHA-256 fijada",
+            "col3": "Comprueba la URL oficial y ?fingerprint= antes de volver a fijar en Ajustes"
+          },
+          {
+            "col1": "Signature Mismatch Blocked",
+            "col2": "La actualización está firmada con una clave distinta a la app instalada",
+            "col3": "Fija la app a su fuente original o usa Guardar APK para reinstalar limpiamente"
+          },
+          {
+            "col1": "Incompatible ABI / minSdk",
+            "col2": "El lanzamiento requiere una versión de Android o arquitectura CPU distinta",
+            "col3": "ApkUp bloquea archivos incompatibles automáticamente para evitar fallos repetidos"
+          },
+          {
+            "col1": "Shizuku Disconnected",
+            "col2": "El servicio Shizuku se detuvo tras reiniciar el dispositivo",
+            "col3": "Reinicia Shizuku vía Depuración inalámbrica o activa el autoinicio en Shizuku"
+          }
+        ]
+      },
+      "sha256": {
+        "title": "Sumas SHA-256 y verificación de firma APK",
+        "lead": "Qué son las sumas SHA-256, por qué te protegen frente a descargas alteradas y cómo verificar APKs en Windows, macOS, Linux y Android.",
+        "cards": [
+          {
+            "badge": "Huella digital",
+            "title": "¿Qué es SHA-256?",
+            "body": "Una huella criptográfica de 64 caracteres de un archivo APK. Cambiar un solo byte produce un hash totalmente distinto."
+          },
+          {
+            "badge": "Automático",
+            "title": "Firma APK v2/v3",
+            "body": "Dentro de ApkUp, el certificado de firma de cada actualización se verifica automáticamente frente a la app instalada."
+          }
+        ]
+      },
+      "sideloading": {
+        "title": "Instalar apps desconocidas en Android",
+        "lead": "Instrucciones paso a paso para el permiso clásico «Instalar apps desconocidas» más instalación avanzada con Shizuku, ADB y Root.",
+        "cards": [
+          {
+            "badge": "30 seg.",
+            "title": "Sideloading clásico en Android",
+            "body": "Toca el APK descargado, abre Ajustes cuando se solicite, activa «Permitir desde esta fuente» e instala."
+          },
+          {
+            "badge": "Avanzado",
+            "title": "Shizuku, ADB y Root (su)",
+            "body": "Usa Shizuku (Depuración inalámbrica), adb install -r o Root (su) para instalaciones en segundo plano."
+          }
+        ]
+      },
+      "google-lock": {
+        "title": "Bloqueo de 24h de Google y Keep Android Open",
+        "lead": "Cómo desbloquear permanentemente la espera de 24 horas de Google (2026/2027) en Opciones de desarrollador y la campaña Keep Android Open.",
+        "cards": [
+          {
+            "badge": "Bloqueo 24h",
+            "title": "Flujo en Opciones de desarrollador (2026/2027)",
+            "body": "Activa Opciones de desarrollador (7× N.º compilación) → Permitir apps de desarrolladores no verificados → Reiniciar → Tras 24h elegir «Permitir indefinidamente»."
+          },
+          {
+            "badge": "Keep Android Open",
+            "title": "FOSS, F-Droid y keepandroidopen.org",
+            "body": "F-Droid compila APKs de código abierto reproducibles sin obligar a desarrolladores anónimos a entregar su documento a Google."
+          }
+        ]
+      }
+    }
+  }
+}
