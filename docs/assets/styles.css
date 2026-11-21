@@ -1222,17 +1222,24 @@ p {
   }
 
   .help-translate-link {
-    font-size: 0.84rem;
-    font-weight: 700;
-    color: var(--accent);
-    text-decoration: none;
-    padding: 6px 10px;
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 14px;
     border-radius: var(--radius-pill);
+    border: 1px solid var(--outline-strong);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: border-color 140ms ease, color 140ms ease, background 140ms ease;
   }
 
   @media (hover: hover) {
     .help-translate-link:hover {
-      text-decoration: underline;
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--surface-high);
     }
   }
 
