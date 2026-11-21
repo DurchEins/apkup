@@ -1,7 +1,11 @@
-<svg viewBox="0 0 360 32" width="360" height="32" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ApkUp — Built with Kotlin &amp; Material 3 Expressive">
-  <rect x="0.5" y="0.5" width="359" height="31" rx="15.5" fill="#FFFDF8" stroke="#E7E0D3" stroke-width="1" />
-  <rect x="9" y="6" width="20" height="20" rx="6" fill="#FEF3C7" stroke="#D97706" stroke-opacity="0.45" stroke-width="0.8" />
-  <path d="M15 17 L19 13 L23 17 M19 13 L19 21" stroke="#B45309" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-  <text x="38" y="20" fill="#1C1917" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="600">ApkUp</text>
-  <text x="80" y="20" fill="#57534E" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="11.5">•  Built with Kotlin &amp; Material 3 Expressive</text>
+<svg viewBox="0 0 326 32" width="326" height="32" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ApkUp — Built with Kotlin &amp; Material 3 Expressive">
+  <rect x="0.5" y="0.5" width="325" height="31" rx="15.5" fill="#FFFDF8" stroke="#E7E0D3" stroke-width="1" />
+  <g transform="translate(14, 0)">
+    <rect x="0" y="6" width="20" height="20" rx="6" fill="#FEF3C7" stroke="#D97706" stroke-opacity="0.45" stroke-width="0.8" />
+    <path d="M6 17 L10 13 L14 17 M10 13 L10 21" stroke="#B45309" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+    <text x="163" y="20" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="11.5">
+      <tspan fill="#1C1917" font-weight="600">ApkUp</tspan>
+      <tspan fill="#57534E">  •  Built with Kotlin &amp; Material 3 Expressive</tspan>
+    </text>
+  </g>
 </svg>

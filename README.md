@@ -31,21 +31,9 @@
 <p align="center">
   <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/github/downloads/DurchEins/apkup/total?style=flat&label=GitHub%20Downloads&color=F59E0B&logo=github" alt="Total GitHub Downloads" /></a>
   <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.45.1%20(223)-38BDF8?style=flat" alt="Current Version: 1.45.1 (223)" /></a>
-  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/github/release-date/DurchEins/apkup?style=flat&label=Last%20Release&color=F59E0B" alt="Latest Release Date" /></a>
-  <a href="https://github.com/DurchEins/apkup/commits/main"><img src="https://img.shields.io/github/last-commit/DurchEins/apkup?style=flat&label=Last%20Commit&color=2EA44F" alt="Last Commit Activity" /></a>
   <img src="https://img.shields.io/badge/Min%20SDK-29%20(Android%2010%2B)-3DDC84?style=flat&logo=android" alt="Minimum Android SDK 29 (Android 10 or higher)" />
   <img src="https://img.shields.io/badge/Privacy-No%20Ads%20%7C%20No%20Tracking-2EA44F?style=flat" alt="Privacy: No Ads, No Tracking" />
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-blue?style=flat" alt="License: GNU GPL-3.0" /></a>
-</p>
-
-<p align="center">
-  <a href="https://github.com/DurchEins/apkup/releases/latest">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset=".github/assets/live-update-card-dark.svg">
-      <source media="(prefers-color-scheme: light)" srcset=".github/assets/live-update-card-light.svg">
-      <img src=".github/assets/live-update-card-dark.svg" width="460" alt="ApkUp v1.45.1 (223) — Verified Live Update Card" />
-    </picture>
-  </a>
 </p>
 
 <p align="center">
@@ -350,7 +338,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset=".github/assets/footer-pill-dark.svg">
     <source media="(prefers-color-scheme: light)" srcset=".github/assets/footer-pill-light.svg">
-    <img src=".github/assets/footer-pill-dark.svg" width="360" alt="ApkUp — Built with Kotlin & Material 3 Expressive" />
+    <img src=".github/assets/footer-pill-dark.svg" width="326" alt="ApkUp — Built with Kotlin & Material 3 Expressive" />
   </picture>
 </p>
 
