@@ -3672,30 +3672,7 @@ p {
     }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .btn-danger,
-    .btn-danger-outline,
-    .kao-copy-btn,
-    .kao-quick-jump,
-    .kao-progress-fill,
-    .kao-danger-item,
-    .kao-pulse-dot::after {
-      transition: none;
-      animation: none;
-    }
-    .btn-danger:active:not(:disabled),
-    .btn-danger-outline:active:not(:disabled),
-    .kao-copy-btn:active:not(:disabled),
-    .kao-quick-jump:active:not(:disabled) {
-      transform: none;
-    }
-    .kao-danger-item {
-      opacity: 1;
-      transform: none;
-    }
-  }
-
-  /* 1. Alert Radar Pulse */
+  /* Alert Radar Pulse */
   .kao-alert-pill {
     display: inline-flex;
     align-items: center;
@@ -4281,10 +4258,28 @@ p {
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .btn-danger,
+    .btn-danger-outline,
+    .kao-copy-btn,
+    .kao-quick-jump,
+    .kao-progress-fill,
+    .kao-danger-item,
+    .kao-pulse-dot::after,
     .kao-scroll-progress,
     .kao-anchor-flash {
       animation: none;
       transition: none;
+    }
+    .btn-danger:active:not(:disabled),
+    .btn-danger-outline:active:not(:disabled),
+    .kao-copy-btn:active:not(:disabled),
+    .kao-quick-jump:active:not(:disabled),
+    .kao-q-btn:active:not(:disabled) {
+      transform: none;
+    }
+    .kao-danger-item {
+      opacity: 1;
+      transform: none;
     }
   }
 
