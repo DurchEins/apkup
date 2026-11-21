@@ -99,7 +99,7 @@ internal fun resolvePreviousVersionUrl(
         }
 
         sourceName.equals(CustomFDroidSource.name, ignoreCase = true) -> {
-            if (trimmedUrl.startsWith("http", ignoreCase = true)) {
+            if (trimmedUrl.startsWith("https://", ignoreCase = true)) {
                 return trimmedUrl.substringBeforeLast('/')
             }
         }

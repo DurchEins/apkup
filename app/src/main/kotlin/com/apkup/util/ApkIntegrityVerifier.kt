@@ -59,6 +59,29 @@ object ApkIntegrityVerifier {
         return cleaned
     }
 
+    fun uniqueSafePartFileName(
+        rawName: String,
+        fallbackIndex: Int = 0,
+        usedNamesLower: MutableSet<String>
+    ): String {
+        val candidate = sanitizePartFileName(rawName, fallbackIndex)
+        if (usedNamesLower.add(candidate.lowercase(Locale.ROOT))) return candidate
+        val stemNoExt = if (candidate.endsWith(".apk", ignoreCase = true)) {
+            candidate.dropLast(4)
+        } else {
+            candidate
+        }
+        val baseStem = stemNoExt.take(100).ifBlank {
+            if (fallbackIndex == 0) "base" else "split_$fallbackIndex"
+        }
+        var suffix = fallbackIndex.coerceAtLeast(1)
+        while (true) {
+            val disambiguated = "${baseStem}_$suffix.apk"
+            if (usedNamesLower.add(disambiguated.lowercase(Locale.ROOT))) return disambiguated
+            suffix++
+        }
+    }
+
     fun normalizeSha256Hex(raw: String?): String? {
         val cleaned = raw?.trim()
             ?.removePrefix("sha256:")

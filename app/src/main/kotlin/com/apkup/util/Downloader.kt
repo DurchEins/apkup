@@ -206,39 +206,46 @@ class Downloader(
         }
     }
 
-    fun downloadStream(url: String, callTag: String? = null): InputStream? = runCatching {
-        val request = downloadRequest(url, callTag)
-        val c = selectClientForUrl(url)
-        val call = c.newCall(request)
-        if (callTag != null) {
-            registerCall(callTag, call)
-        }
-        val response = call.execute()
-        if (response.isSuccessful) {
-            val wrapped = wrapStreamIfGzip(response.body.byteStream())
-            object : java.io.FilterInputStream(wrapped) {
-                override fun close() {
-                    try {
-                        super.close()
-                    } finally {
-                        if (callTag != null) {
-                            unregisterCall(callTag, call)
+    fun downloadStream(url: String, callTag: String? = null): InputStream? {
+        var registeredCall: okhttp3.Call? = null
+        return runCatching {
+            val request = downloadRequest(url, callTag)
+            val c = selectClientForUrl(url)
+            val call = c.newCall(request)
+            if (callTag != null) {
+                registerCall(callTag, call)
+                registeredCall = call
+            }
+            val response = call.execute()
+            if (response.isSuccessful) {
+                val wrapped = wrapStreamIfGzip(response.body.byteStream())
+                object : java.io.FilterInputStream(wrapped) {
+                    override fun close() {
+                        try {
+                            super.close()
+                        } finally {
+                            if (callTag != null) {
+                                unregisterCall(callTag, call)
+                            }
+                            response.close()
                         }
-                        response.close()
                     }
                 }
+            } else {
+                if (callTag != null) {
+                    unregisterCall(callTag, call)
+                }
+                response.close()
+                Log.w("Downloader", "Download failed with HTTP ${response.code}")
+                null
             }
-        } else {
+        }.getOrElse {
             if (callTag != null) {
-                unregisterCall(callTag, call)
+                registeredCall?.let { call -> unregisterCall(callTag, call) }
             }
-            response.close()
-            Log.w("Downloader", "Download failed with HTTP ${response.code}")
+            Log.w("Downloader", "Download stream failed (${it.javaClass.simpleName})")
             null
         }
-    }.getOrElse {
-        Log.w("Downloader", "Download stream failed (${it.javaClass.simpleName})")
-        null
     }
 
     suspend fun downloadToFile(

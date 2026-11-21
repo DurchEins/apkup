@@ -6,19 +6,29 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -30,6 +40,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
@@ -41,6 +52,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.grid.items as gridItems
+import androidx.compose.foundation.lazy.grid.itemsIndexed as gridItemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
@@ -66,9 +78,11 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Update
+import androidx.compose.material.icons.rounded.VerifiedUser
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
@@ -113,8 +127,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
@@ -170,9 +190,13 @@ import com.apkup.util.BatchProgressUnits
 import com.apkup.ui.component.toUpdateCardContent
 import com.apkup.ui.component.updateGridColumnCount
 import com.apkup.util.getAppName
+import com.apkup.util.InstallLog
+import com.apkup.util.SourceHealthTracker
+import com.apkup.util.openSafeHttpsUri
 import com.apkup.viewmodel.AppsViewModel
 import com.apkup.viewmodel.UpdatesViewModel
 import com.apkup.viewmodel.partitionInstallQueueCandidates
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import java.util.Locale
 
@@ -332,6 +356,7 @@ fun UpdatesTopBar(
 	allSelectableSelected: Boolean = false,
 	onClearSelection: (() -> Unit)? = null,
 	onToggleSelectAll: (() -> Unit)? = null,
+	onInstallSelected: (() -> Unit)? = null,
 	searchExpanded: Boolean = false,
 	onToggleSearch: (() -> Unit)? = null,
 	sortOrder: UpdatesSortOrder = UpdatesSortOrder.NAME_ASC,
@@ -369,6 +394,27 @@ fun UpdatesTopBar(
 							),
 							style = MaterialTheme.typography.labelLarge,
 							fontWeight = FontWeight.SemiBold
+						)
+					}
+				}
+				if (onInstallSelected != null) {
+					Button(
+						onClick = onInstallSelected,
+						shape = CircleShape,
+						contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+						modifier = Modifier.padding(end = 6.dp)
+					) {
+						Icon(
+							painter = painterResource(R.drawable.ic_install),
+							contentDescription = null,
+							modifier = Modifier.size(16.dp)
+						)
+						Spacer(Modifier.width(5.dp))
+						Text(
+							text = stringResource(R.string.updates_install_selected, selectedCount),
+							style = MaterialTheme.typography.labelMedium,
+							fontWeight = FontWeight.Bold,
+							maxLines = 1
 						)
 					}
 				}
@@ -522,14 +568,14 @@ fun UpdatesScreenError(
 	viewModel: UpdatesViewModel,
 	onOpenHistory: (() -> Unit)? = null
 ) = Column(Modifier.fillMaxSize()) {
-	val handler = LocalUriHandler.current
+	val handler = com.apkup.ui.component.rememberCustomTabUriHandler()
 	UpdatesTopBar(viewModel = viewModel, onOpenHistory = onOpenHistory)
 	UpdatesMessage(
 		title = stringResource(R.string.updates_error_title),
 		message = stringResource(R.string.updates_error_message),
 		icon = Icons.Filled.Info,
 		actionLabel = stringResource(R.string.error_banner_wiki_help),
-		onAction = { runCatching { handler.openUri(resolveWikiUrlForSourceError(null)) } },
+		onAction = { handler.openSafeHttpsUri(resolveWikiUrlForSourceError(null)) },
 		modifier = Modifier.weight(1f)
 	)
 }
@@ -547,13 +593,27 @@ fun UpdatesScreenSuccess(
 	sourceErrors: Map<String, String> = emptyMap(),
 	lastCheckedAtMillis: Long? = null,
 	onOpenHistory: (() -> Unit)? = null
-) = Column(
-	modifier = Modifier
-		.fillMaxSize()
-		.background(MaterialTheme.colorScheme.background)
 ) {
+	val installLog: InstallLog = koinInject()
+	var failedUpdateIds by remember { mutableStateOf<Set<Int>>(emptySet()) }
+	var jumpToErrorTick by remember { mutableIntStateOf(0) }
+	LaunchedEffect(installLog) {
+		installLog.status().collect { status ->
+			failedUpdateIds = if (status.success) {
+				failedUpdateIds - status.id
+			} else if (status.id != 0) {
+				failedUpdateIds + status.id
+			} else {
+				failedUpdateIds
+			}
+		}
+	}
+	LaunchedEffect(isChecking) {
+		if (isChecking) failedUpdateIds = emptySet()
+	}
+
 	val context = LocalContext.current
-	val handler = LocalUriHandler.current
+	val handler = com.apkup.ui.component.rememberCustomTabUriHandler()
 	val displayMode = viewModel.getUpdatesDisplayMode()
 	val view = LocalView.current
 	DisposableEffect(isChecking) {
@@ -630,10 +690,12 @@ fun UpdatesScreenSuccess(
 		mutableStateOf<Pair<List<AppUpdate>, () -> Unit>?>(null)
 	}
 
+	val customTabHandler = com.apkup.ui.component.rememberCustomTabUriHandler()
+
 	val requestInstallSingle: (AppUpdate) -> Unit = { target ->
 		val execute = {
 			requestNotificationPermissionIfNeeded()
-			viewModel.install(target, handler)
+			viewModel.install(target, customTabHandler)
 		}
 		if (target.isWatchedApp() && target.source == ApkMirrorSource) {
 			pendingWatchedApkMirrorConfirm = listOf(target) to execute
@@ -644,7 +706,7 @@ fun UpdatesScreenSuccess(
 
 	val requestSaveApkSingle: (AppUpdate) -> Unit = { target ->
 		val execute = {
-			viewModel.saveApk(target, handler)
+			viewModel.saveApk(target, customTabHandler)
 		}
 		if (target.isWatchedApp() && target.source == ApkMirrorSource) {
 			pendingWatchedApkMirrorConfirm = listOf(target) to execute
@@ -714,6 +776,28 @@ fun UpdatesScreenSuccess(
 			displayedUpdates.isEmpty()
 	)
 
+	Box(
+		modifier = Modifier
+			.fillMaxSize()
+			.background(MaterialTheme.colorScheme.background)
+	) {
+	Column(modifier = Modifier.fillMaxSize()) {
+	val installSelectedAction: () -> Unit = {
+		val toInstall = selectedUpdates
+		val (directQueue, _) = partitionInstallQueueCandidates(toInstall, directMirror)
+		val riskyWatched = directQueue.filter { it.isWatchedApp() && it.source == ApkMirrorSource }
+		val execute: () -> Unit = {
+			requestNotificationPermissionIfNeeded()
+			selectedUpdateIds = emptySet()
+			viewModel.installSelected(toInstall)
+		}
+		if (riskyWatched.isNotEmpty()) {
+			pendingWatchedApkMirrorConfirm = riskyWatched to execute
+		} else {
+			execute()
+		}
+	}
+
 	UpdatesTopBar(
 		viewModel = viewModel,
 		updatesCount = displayedUpdates.size,
@@ -725,6 +809,7 @@ fun UpdatesScreenSuccess(
 		onToggleSelectAll = {
 			selectedUpdateIds = if (allSelectableSelected) emptySet() else selectableIds
 		},
+		onInstallSelected = if (isSelectionMode) installSelectedAction else null,
 		searchExpanded = searchExpanded,
 		onToggleSearch = if (updates.isNotEmpty()) {
 			{
@@ -762,7 +847,7 @@ fun UpdatesScreenSuccess(
 
 	CollapsibleScrollHeader(state = collapsibleHeaderState) {
 		Column(modifier = Modifier.fillMaxWidth()) {
-			if ((updates.isNotEmpty() && !isChecking) || activeTasks.isNotEmpty() || isSelectionMode) {
+			if ((updates.isNotEmpty() && !isChecking && !isSelectionMode) || activeTasks.isNotEmpty()) {
 				UpdatesHeroBanner(
 					updatesCount = displayedUpdates.size,
 					hasInstallable = hasInstallable,
@@ -783,21 +868,7 @@ fun UpdatesScreenSuccess(
 							execute()
 						}
 					},
-					onInstallSelected = {
-						val toInstall = selectedUpdates
-						val (directQueue, _) = partitionInstallQueueCandidates(toInstall, directMirror)
-						val riskyWatched = directQueue.filter { it.isWatchedApp() && it.source == ApkMirrorSource }
-						val execute: () -> Unit = {
-							requestNotificationPermissionIfNeeded()
-							selectedUpdateIds = emptySet()
-							viewModel.installSelected(toInstall)
-						}
-						if (riskyWatched.isNotEmpty()) {
-							pendingWatchedApkMirrorConfirm = riskyWatched to execute
-						} else {
-							execute()
-						}
-					},
+					onInstallSelected = installSelectedAction,
 					onOpenQueue = { showQueueSheet = true },
 					onOpenHistory = onOpenHistory,
 					onSelectAll = {
@@ -840,7 +911,7 @@ fun UpdatesScreenSuccess(
 				fdroidRepoNames = fdroidRepoNames
 			)
 			Surface(
-				onClick = { runCatching { handler.openUri(wikiUrl) } },
+				onClick = { handler.openSafeHttpsUri(wikiUrl) },
 				color = MaterialTheme.colorScheme.errorContainer,
 				shape = RoundedCornerShape(24.dp),
 				modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
@@ -891,7 +962,7 @@ fun UpdatesScreenSuccess(
 					fdroidRepoNames = fdroidRepoNames
 				)
 				Surface(
-					onClick = { runCatching { handler.openUri(wikiUrl) } },
+					onClick = { handler.openSafeHttpsUri(wikiUrl) },
 					color = MaterialTheme.colorScheme.errorContainer,
 					shape = RoundedCornerShape(24.dp),
 					modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
@@ -964,7 +1035,7 @@ fun UpdatesScreenSuccess(
 			actionLabel = stringResource(R.string.error_banner_wiki_help),
 			onAction = {
 				val firstEntry = sourceErrors.entries.firstOrNull()
-				runCatching { handler.openUri(resolveWikiUrlForSourceError(firstEntry?.key, firstEntry?.value)) }
+				handler.openSafeHttpsUri(resolveWikiUrlForSourceError(firstEntry?.key, firstEntry?.value))
 			},
 			modifier = Modifier.weight(1f)
 		)
@@ -983,40 +1054,106 @@ fun UpdatesScreenSuccess(
 			),
 			modifier = Modifier.weight(1f)
 		)
-		displayMode == 1 -> CompactUpdatesGrid(
-			viewModel = viewModel,
-			appsViewModel = appsViewModel,
-			updates = displayedUpdates,
-			scrollResetKey = Triple(sortOrder, selectedSourceFilter, searchQuery.trim()),
-			activeTasksMap = activeTasksMap,
-			readyUpdateIds = readyUpdateIds,
-			handler = handler,
-			modifier = Modifier
-				.weight(1f)
-				.nestedScroll(collapsibleHeaderState.nestedScrollConnection),
-			onRequestInstall = requestInstallSingle,
-			onRequestSaveApk = requestSaveApkSingle,
-			isSelectionMode = isSelectionMode,
-			selectedUpdateIds = selectedUpdateIds,
-			onToggleSelection = toggleSelection
-		)
-		else -> UpdatesList(
-			viewModel = viewModel,
-			appsViewModel = appsViewModel,
-			updates = displayedUpdates,
-			scrollResetKey = Triple(sortOrder, selectedSourceFilter, searchQuery.trim()),
-			activeTasksMap = activeTasksMap,
-			readyUpdateIds = readyUpdateIds,
-			handler = handler,
-			modifier = Modifier
-				.weight(1f)
-				.nestedScroll(collapsibleHeaderState.nestedScrollConnection),
-			onRequestInstall = requestInstallSingle,
-			onRequestSaveApk = requestSaveApkSingle,
-			isSelectionMode = isSelectionMode,
-			selectedUpdateIds = selectedUpdateIds,
-			onToggleSelection = toggleSelection
-		)
+		displayMode == 1 -> {
+			UpdatesPullToRefreshBox(
+				isChecking = isChecking,
+				onRefresh = { viewModel.refresh() },
+				modifier = Modifier.weight(1f)
+			) {
+				CompactUpdatesGrid(
+					viewModel = viewModel,
+					appsViewModel = appsViewModel,
+					updates = displayedUpdates,
+					scrollResetKey = Triple(sortOrder, selectedSourceFilter, searchQuery.trim()),
+					activeTasksMap = activeTasksMap,
+					readyUpdateIds = readyUpdateIds,
+					failedUpdateIds = failedUpdateIds,
+					jumpToErrorTick = jumpToErrorTick,
+					extraBottomPadding = 0.dp,
+					handler = handler,
+					modifier = Modifier
+						.fillMaxSize()
+						.nestedScroll(collapsibleHeaderState.nestedScrollConnection),
+					onRequestInstall = requestInstallSingle,
+					onRequestSaveApk = requestSaveApkSingle,
+					isSelectionMode = isSelectionMode,
+					selectedUpdateIds = selectedUpdateIds,
+					onToggleSelection = toggleSelection
+				)
+			}
+		}
+		else -> {
+			UpdatesPullToRefreshBox(
+				isChecking = isChecking,
+				onRefresh = { viewModel.refresh() },
+				modifier = Modifier.weight(1f)
+			) {
+				UpdatesList(
+					viewModel = viewModel,
+					appsViewModel = appsViewModel,
+					updates = displayedUpdates,
+					scrollResetKey = Triple(sortOrder, selectedSourceFilter, searchQuery.trim()),
+					activeTasksMap = activeTasksMap,
+					readyUpdateIds = readyUpdateIds,
+					failedUpdateIds = failedUpdateIds,
+					jumpToErrorTick = jumpToErrorTick,
+					extraBottomPadding = 0.dp,
+					handler = handler,
+					modifier = Modifier
+						.fillMaxSize()
+						.nestedScroll(collapsibleHeaderState.nestedScrollConnection),
+					onRequestInstall = requestInstallSingle,
+					onRequestSaveApk = requestSaveApkSingle,
+					isSelectionMode = isSelectionMode,
+					selectedUpdateIds = selectedUpdateIds,
+					onToggleSelection = toggleSelection
+				)
+			}
+		}
+	}
+	}
+
+	val hasVisibleFailedItem = remember(failedUpdateIds, displayedUpdates) {
+		failedUpdateIds.isNotEmpty() && displayedUpdates.any { it.id in failedUpdateIds }
+	}
+	val isReducedMotionDock = ApkUpTheme.isReducedMotion
+
+	AnimatedVisibility(
+		visible = hasVisibleFailedItem && !isSelectionMode,
+		enter = if (isReducedMotionDock) fadeIn(tween(80)) else slideInVertically { it } + fadeIn(),
+		exit = if (isReducedMotionDock) fadeOut(tween(80)) else slideOutVertically { it } + fadeOut(),
+		modifier = Modifier
+			.align(Alignment.BottomCenter)
+			.navigationBarsPadding()
+			.padding(bottom = 96.dp)
+	) {
+		Surface(
+			onClick = { jumpToErrorTick++ },
+			shape = CircleShape,
+			color = MaterialTheme.colorScheme.errorContainer,
+			contentColor = MaterialTheme.colorScheme.onErrorContainer,
+			tonalElevation = 4.dp,
+			shadowElevation = 6.dp,
+			border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.4f))
+		) {
+			Row(
+				modifier = Modifier.padding(horizontal = 16.dp, vertical = 9.dp),
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(6.dp)
+			) {
+				Icon(
+					imageVector = Icons.Filled.Warning,
+					contentDescription = null,
+					modifier = Modifier.size(16.dp)
+				)
+				Text(
+					text = stringResource(R.string.updates_jump_to_error),
+					style = MaterialTheme.typography.labelLarge,
+					fontWeight = FontWeight.SemiBold
+				)
+			}
+		}
+	}
 	}
 
 	if (showQueueSheet) {
@@ -1133,6 +1270,44 @@ fun UpdatesScreenSuccess(
 				}
 			}
 		)
+	}
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun UpdatesPullToRefreshBox(
+	isChecking: Boolean,
+	onRefresh: () -> Unit,
+	modifier: Modifier = Modifier,
+	content: @Composable () -> Unit
+) {
+	val pullToRefreshState = androidx.compose.material3.pulltorefresh.rememberPullToRefreshState()
+	val pullHaptics = LocalHapticFeedback.current
+	var pullThresholdCrossed by remember { mutableStateOf(false) }
+	LaunchedEffect(pullToRefreshState.distanceFraction, isChecking) {
+		if (!isChecking && pullToRefreshState.distanceFraction >= 1f && !pullThresholdCrossed) {
+			pullThresholdCrossed = true
+			pullHaptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+		} else if (pullToRefreshState.distanceFraction < 0.75f) {
+			pullThresholdCrossed = false
+		}
+	}
+	androidx.compose.material3.pulltorefresh.PullToRefreshBox(
+		isRefreshing = isChecking,
+		onRefresh = onRefresh,
+		state = pullToRefreshState,
+		modifier = modifier,
+		indicator = {
+			if (!isChecking && pullToRefreshState.distanceFraction > 0.05f) {
+				androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator(
+					state = pullToRefreshState,
+					isRefreshing = false,
+					modifier = Modifier.align(Alignment.TopCenter)
+				)
+			}
+		}
+	) {
+		content()
 	}
 }
 
@@ -1462,10 +1637,27 @@ private fun UpdatesHeroBanner(
 		return
 	}
 
+	val bannerHaptics = LocalHapticFeedback.current
+	var hadActiveTasks by remember { mutableStateOf(false) }
+	var showBatchCompletePop by remember { mutableStateOf(false) }
+	LaunchedEffect(activeTasks.isNotEmpty()) {
+		if (activeTasks.isNotEmpty()) {
+			hadActiveTasks = true
+			showBatchCompletePop = false
+		} else if (hadActiveTasks) {
+			hadActiveTasks = false
+			showBatchCompletePop = true
+			bannerHaptics.performHapticFeedback(HapticFeedbackType.LongPress)
+			kotlinx.coroutines.delay(1500L)
+			showBatchCompletePop = false
+		}
+	}
+
 	Surface(
 		modifier = Modifier
 			.fillMaxWidth()
-			.padding(horizontal = 12.dp, vertical = 4.dp),
+			.padding(horizontal = 12.dp, vertical = 4.dp)
+			.animateContentSize(animationSpec = ApkUpTheme.motion.defaultSpatialSpec()),
 		shape = shape,
 		color = MaterialTheme.colorScheme.surfaceContainerLow,
 		border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.24f)),
@@ -1515,31 +1707,55 @@ private fun UpdatesHeroBanner(
 			}
 			if (hasInstallable) {
 				Spacer(Modifier.width(8.dp))
-				ApkUpSplitActionButton(
-					label = stringResource(R.string.install_all),
-					iconRes = R.drawable.ic_install,
-					onClick = onInstallAll,
-					menuContent = { dismiss ->
-						if (onOpenHistory != null) {
-							DropdownMenuItem(
-								text = { Text(stringResource(R.string.update_history_title)) },
-								leadingIcon = {
-									Icon(
-										imageVector = Icons.Rounded.History,
-										contentDescription = null
-									)
-								},
-								onClick = {
-									dismiss()
-									onOpenHistory()
-								}
-							)
-						}
-						DropdownMenuItem(
-							text = { Text(stringResource(R.string.updates_select_all)) },
-							leadingIcon = {
+				androidx.compose.animation.AnimatedContent(
+					targetState = showBatchCompletePop,
+					label = "UpdateAllMorph"
+				) { completed ->
+					if (completed) {
+						Surface(
+							shape = CircleShape,
+							color = MaterialTheme.colorScheme.primaryContainer,
+							border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.45f))
+						) {
+							Row(
+								modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+								verticalAlignment = Alignment.CenterVertically,
+								horizontalArrangement = Arrangement.spacedBy(6.dp)
+							) {
 								Icon(
-									imageVector = Icons.Filled.Check,
+									imageVector = Icons.Rounded.CheckCircle,
+									contentDescription = null,
+									tint = MaterialTheme.colorScheme.primary,
+									modifier = Modifier.size(18.dp)
+								)
+							}
+						}
+					} else {
+						ApkUpSplitActionButton(
+							label = stringResource(R.string.install_all),
+							iconRes = R.drawable.ic_install,
+							onClick = onInstallAll,
+							menuContent = { dismiss ->
+								if (onOpenHistory != null) {
+									DropdownMenuItem(
+										text = { Text(stringResource(R.string.update_history_title)) },
+										leadingIcon = {
+											Icon(
+												imageVector = Icons.Rounded.History,
+												contentDescription = null
+											)
+										},
+										onClick = {
+											dismiss()
+											onOpenHistory()
+										}
+									)
+								}
+								DropdownMenuItem(
+									text = { Text(stringResource(R.string.updates_select_all)) },
+									leadingIcon = {
+										Icon(
+											imageVector = Icons.Filled.Check,
 									contentDescription = null
 								)
 							},
@@ -1550,6 +1766,8 @@ private fun UpdatesHeroBanner(
 						)
 					}
 				)
+					}
+				}
 			}
 		}
 	}
@@ -1723,6 +1941,7 @@ private fun ActiveQueueBottomSheet(
 								trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
 							)
 						}
+						DownloadSpeedSparkline(speedBytesPerSec = summary.speedBytesPerSec)
 					}
 				}
 			}
@@ -2254,6 +2473,239 @@ private fun UpdateCheckProgressBar(
 }
 
 @Composable
+private fun DownloadSpeedSparkline(
+	speedBytesPerSec: Long,
+	modifier: Modifier = Modifier
+) {
+	val samples = remember { androidx.compose.runtime.mutableStateListOf<Float>() }
+	LaunchedEffect(speedBytesPerSec) {
+		if (speedBytesPerSec > 0L) {
+			samples.add(speedBytesPerSec.toFloat())
+			if (samples.size > 24) {
+				samples.removeAt(0)
+			}
+		}
+	}
+	if (samples.size < 2) return
+	val lineColor = MaterialTheme.colorScheme.primary
+	val fillColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
+	Canvas(
+		modifier = modifier
+			.fillMaxWidth()
+			.height(20.dp)
+	) {
+		val maxVal = (samples.maxOrNull() ?: 1f).coerceAtLeast(1f)
+		val stepX = if (samples.size > 1) size.width / (samples.size - 1).toFloat() else size.width
+		val linePath = Path()
+		val fillPath = Path()
+		samples.forEachIndexed { idx, value ->
+			val x = idx * stepX
+			val norm = (value / maxVal).coerceIn(0f, 1f)
+			val y = size.height - (norm * (size.height - 4.dp.toPx()) + 2.dp.toPx())
+			if (idx == 0) {
+				linePath.moveTo(x, y)
+				fillPath.moveTo(x, size.height)
+				fillPath.lineTo(x, y)
+			} else {
+				linePath.lineTo(x, y)
+				fillPath.lineTo(x, y)
+			}
+		}
+		fillPath.lineTo(size.width, size.height)
+		fillPath.close()
+		drawPath(path = fillPath, color = fillColor)
+		drawPath(
+			path = linePath,
+			color = lineColor,
+			style = Stroke(width = 1.75.dp.toPx(), cap = StrokeCap.Round)
+		)
+	}
+}
+
+@Composable
+private fun StaggeredCascadeItem(
+	index: Int,
+	modifier: Modifier = Modifier,
+	content: @Composable () -> Unit
+) {
+	val isReducedMotion = ApkUpTheme.isReducedMotion
+	val shouldAnimate = !isReducedMotion && index < 12
+	val progress = remember { Animatable(if (shouldAnimate) 0f else 1f) }
+	LaunchedEffect(isReducedMotion) {
+		if (isReducedMotion) {
+			progress.snapTo(1f)
+		} else if (progress.value < 1f) {
+			kotlinx.coroutines.delay(index * 25L)
+			progress.animateTo(
+				targetValue = 1f,
+				animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing)
+			)
+		}
+	}
+	Box(
+		modifier = modifier.graphicsLayer {
+			val p = progress.value
+			alpha = p
+			translationY = (1f - p) * 16.dp.toPx()
+		}
+	) {
+		content()
+	}
+}
+
+@Composable
+private fun LiveInstallStepperPill(
+	liveTask: DownloadTaskState?,
+	isCachedReady: Boolean,
+	isInstalling: Boolean,
+	isQueued: Boolean,
+	modifier: Modifier = Modifier
+) {
+	val activeStage = when {
+		liveTask?.isInstalling == true -> 3
+		isCachedReady || (liveTask != null && liveTask.total > 0L && liveTask.progress >= liveTask.total) -> 2
+		liveTask != null && !liveTask.isQueued && !liveTask.isResolvingLink -> 1
+		isInstalling && liveTask == null -> 3
+		isQueued -> 0
+		else -> 0
+	}
+	val steps = listOf(
+		stringResource(R.string.updates_step_check),
+		stringResource(R.string.updates_step_download),
+		"${stringResource(R.string.updates_step_verify)} ✓",
+		stringResource(R.string.updates_step_install)
+	)
+	Surface(
+		shape = CircleShape,
+		color = MaterialTheme.colorScheme.surfaceContainerHigh,
+		modifier = modifier.fillMaxWidth()
+	) {
+		Row(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(horizontal = 8.dp, vertical = 4.dp),
+			verticalAlignment = Alignment.CenterVertically,
+			horizontalArrangement = Arrangement.SpaceBetween
+		) {
+			steps.forEachIndexed { idx, label ->
+				val isCompleted = idx < activeStage
+				val isCurrent = idx == activeStage
+				val textColor = when {
+					isCompleted -> ApkUpTheme.colors.success
+					isCurrent -> MaterialTheme.colorScheme.primary
+					else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f)
+				}
+				Text(
+					text = label,
+					style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.5.sp),
+					fontWeight = if (isCurrent || isCompleted) FontWeight.Bold else FontWeight.Normal,
+					color = textColor,
+					maxLines = 1,
+					softWrap = false,
+					overflow = TextOverflow.Ellipsis,
+					modifier = Modifier.weight(1f, fill = false)
+				)
+				if (idx < steps.lastIndex) {
+					Text(
+						text = "→",
+						style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+						color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
+					)
+				}
+			}
+		}
+	}
+}
+
+@Composable
+private fun TrustShieldBadge(
+	isVerified: Boolean,
+	modifier: Modifier = Modifier
+) {
+	val isReducedMotion = ApkUpTheme.isReducedMotion
+	val flipAngle = remember { Animatable(if (isVerified) 180f else 0f) }
+	LaunchedEffect(isVerified, isReducedMotion) {
+		val target = if (isVerified) 180f else 0f
+		if (isReducedMotion) {
+			flipAngle.snapTo(target)
+		} else {
+			flipAngle.animateTo(
+				targetValue = target,
+				animationSpec = spring(dampingRatio = 0.65f, stiffness = 360f)
+			)
+		}
+	}
+	val showVerified = flipAngle.value >= 90f
+	val tint by animateColorAsState(
+		targetValue = if (showVerified) ApkUpTheme.colors.success else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+		animationSpec = tween(if (isReducedMotion) 60 else 200),
+		label = "TrustShieldTint"
+	)
+	Icon(
+		imageVector = if (showVerified) Icons.Rounded.VerifiedUser else Icons.Outlined.Shield,
+		contentDescription = null,
+		tint = tint,
+		modifier = modifier
+			.size(14.dp)
+			.graphicsLayer {
+				rotationY = if (showVerified) flipAngle.value - 180f else flipAngle.value
+			}
+	)
+}
+
+@Composable
+private fun SourceIconWithCooldown(
+	source: Source,
+	modifier: Modifier = Modifier
+) {
+	val isApkMirror = source == ApkMirrorSource
+	var remainingSeconds by remember(isApkMirror) { mutableIntStateOf(0) }
+	if (isApkMirror) {
+		LaunchedEffect(Unit) {
+			while (true) {
+				val entry = SourceHealthTracker.snapshot().firstOrNull {
+					it.sourceName.equals("ApkMirror", ignoreCase = true)
+				}
+				val rem = entry?.remainingCooldownSeconds()?.toInt() ?: 0
+				remainingSeconds = rem
+				kotlinx.coroutines.delay(if (rem > 0) 1000L else 2500L)
+			}
+		}
+	}
+	val ringColor = MaterialTheme.colorScheme.primary
+	Box(
+		modifier = modifier.size(if (remainingSeconds > 0) 15.dp else 11.dp),
+		contentAlignment = Alignment.Center
+	) {
+		if (remainingSeconds > 0) {
+			val fraction = (remainingSeconds / 600f).coerceIn(0.05f, 1f)
+			Canvas(modifier = Modifier.fillMaxSize()) {
+				drawArc(
+					color = ringColor.copy(alpha = 0.2f),
+					startAngle = 0f,
+					sweepAngle = 360f,
+					useCenter = false,
+					style = Stroke(width = 1.4.dp.toPx())
+				)
+				drawArc(
+					color = ringColor,
+					startAngle = -90f,
+					sweepAngle = 360f * fraction,
+					useCenter = false,
+					style = Stroke(width = 1.4.dp.toPx(), cap = StrokeCap.Round)
+				)
+			}
+		}
+		Icon(
+			painter = painterResource(source.resourceId),
+			contentDescription = null,
+			tint = MaterialTheme.colorScheme.onSurfaceVariant,
+			modifier = Modifier.size(11.dp)
+		)
+	}
+}
+
+@Composable
 private fun UpdatesList(
 	viewModel: UpdatesViewModel,
 	appsViewModel: AppsViewModel = koinViewModel(),
@@ -2261,6 +2713,9 @@ private fun UpdatesList(
 	scrollResetKey: Any = Unit,
 	activeTasksMap: Map<Int, DownloadTaskState> = emptyMap(),
 	readyUpdateIds: Set<Int> = emptySet(),
+	failedUpdateIds: Set<Int> = emptySet(),
+	jumpToErrorTick: Int = 0,
+	extraBottomPadding: androidx.compose.ui.unit.Dp = 0.dp,
 	handler: UriHandler,
 	modifier: Modifier,
 	onRequestInstall: (AppUpdate) -> Unit,
@@ -2280,6 +2735,14 @@ private fun UpdatesList(
 			gridState.scrollToItem(0)
 		}
 	}
+	LaunchedEffect(jumpToErrorTick) {
+		if (jumpToErrorTick > 0) {
+			val idx = updates.indexOfFirst { it.id in failedUpdateIds }
+			if (idx >= 0) {
+				gridState.animateScrollToItem(idx)
+			}
+		}
+	}
 
 	BoxWithConstraints(modifier) {
 		val columns = updateGridColumnCount(maxWidth.value, compact = false)
@@ -2291,44 +2754,50 @@ private fun UpdatesList(
 				start = NormalUpdateCardLayout.gridHorizontalPaddingDp.dp,
 				top = NormalUpdateCardLayout.gridTopPaddingDp.dp,
 				end = NormalUpdateCardLayout.gridHorizontalPaddingDp.dp,
-				bottom = NormalUpdateCardLayout.gridBottomPaddingDp.dp
+				bottom = NormalUpdateCardLayout.gridBottomPaddingDp.dp + extraBottomPadding
 			),
 			verticalArrangement = Arrangement.spacedBy(NormalUpdateCardLayout.gridSpacingDp.dp),
 			horizontalArrangement = Arrangement.spacedBy(NormalUpdateCardLayout.gridSpacingDp.dp)
 		) {
-			gridItems(items = updates, key = { it.id }) { update ->
+			gridItemsIndexed(items = updates, key = { _, u -> u.id }) { index, update ->
 				val liveTask = activeTasksMap[update.id]
 					?: activeTasksMap.values.firstOrNull { it.packageName == update.packageName }
 				val isCachedReady = update.id in readyUpdateIds || update.alternativeUpdates.any { it.id in readyUpdateIds }
+				val isFailed = update.id in failedUpdateIds
 				val effInstalling = liveTask?.let { it.isInstalling || !it.isQueued } ?: update.isInstalling
 				val effQueued = liveTask?.isQueued ?: update.isQueued
 				val isSelectable = !effInstalling && !effQueued
 				val isSelected = update.id in selectedUpdateIds
-				UpdateCard(
-					update = update,
-					liveTask = liveTask,
-					isCachedReady = isCachedReady,
-					isSelectionMode = isSelectionMode,
-					isSelected = isSelected,
-					isSelectable = isSelectable,
-					modifier = Modifier.animateItem(),
-					onSelect = {
-						if (isSelectionMode) {
-							if (isSelectable) onToggleSelection(update.id)
-						} else {
-							selectedPackageName = update.packageName
+				StaggeredCascadeItem(
+					index = index,
+					modifier = Modifier.animateItem()
+				) {
+					UpdateCard(
+						update = update,
+						liveTask = liveTask,
+						isCachedReady = isCachedReady,
+						isFailed = isFailed,
+						isSelectionMode = isSelectionMode,
+						isSelected = isSelected,
+						isSelectable = isSelectable,
+						onSelect = {
+							if (isSelectionMode) {
+								if (isSelectable) onToggleSelection(update.id)
+							} else {
+								selectedPackageName = update.packageName
+							}
+						},
+						onLongPress = {
+							if (isSelectable) {
+								haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+								onToggleSelection(update.id)
+							}
+						},
+						onInstall = {
+							onRequestInstall(update)
 						}
-					},
-					onLongPress = {
-						if (isSelectable) {
-							haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-							onToggleSelection(update.id)
-						}
-					},
-					onInstall = {
-						onRequestInstall(update)
-					}
-				)
+					)
+				}
 			}
 		}
 	}
@@ -2375,6 +2844,7 @@ private fun UpdateCard(
 	update: AppUpdate,
 	liveTask: DownloadTaskState? = null,
 	isCachedReady: Boolean = false,
+	isFailed: Boolean = false,
 	isSelectionMode: Boolean = false,
 	isSelected: Boolean = false,
 	isSelectable: Boolean = true,
@@ -2405,17 +2875,17 @@ private fun UpdateCard(
 			)
 			.animateContentSize(animationSpec = ApkUpTheme.motion.defaultSpatialSpec()),
 		shape = cardShape,
-		color = if (isSelected) {
-			MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
-		} else {
-			MaterialTheme.colorScheme.surfaceContainerLow
+		color = when {
+			isSelected -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
+			isFailed -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.28f)
+			else -> MaterialTheme.colorScheme.surfaceContainerLow
 		},
 		border = BorderStroke(
-			width = if (isSelected) 1.5.dp else 1.dp,
-			color = if (isSelected) {
-				MaterialTheme.colorScheme.primary
-			} else {
-				MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+			width = if (isSelected || isFailed) 1.5.dp else 1.dp,
+			color = when {
+				isSelected -> MaterialTheme.colorScheme.primary
+				isFailed -> MaterialTheme.colorScheme.error
+				else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
 			}
 		)
 	) {
@@ -2569,17 +3039,14 @@ private fun UpdateCard(
 								verticalAlignment = Alignment.CenterVertically,
 								horizontalArrangement = Arrangement.spacedBy(4.dp)
 							) {
-								Icon(
-									painter = painterResource(card.source.resourceId),
-									contentDescription = null,
-									tint = MaterialTheme.colorScheme.onSurfaceVariant,
-									modifier = Modifier.size(11.dp)
-								)
+								SourceIconWithCooldown(source = card.source)
 								Text(
 									text = sourceName,
 									style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
 									color = MaterialTheme.colorScheme.onSurfaceVariant
 								)
+								val isVerifiedReady = isCachedReady || (liveTask != null && liveTask.total > 0L && liveTask.progress >= liveTask.total)
+								TrustShieldBadge(isVerified = isVerifiedReady)
 							}
 						}
 						if (card.additionalSourcesCount > 0) {
@@ -2663,7 +3130,13 @@ private fun UpdateCard(
 					isSaveOnlyTask -> stringResource(R.string.queue_status_saving)
 					else -> stringResource(R.string.installing_update)
 				}
-				Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+				Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+					LiveInstallStepperPill(
+						liveTask = liveTask,
+						isCachedReady = isCachedReady,
+						isInstalling = effInstalling,
+						isQueued = effQueued
+					)
 					Text(
 						text = cardProgressLabel,
 						style = MaterialTheme.typography.labelSmall,
@@ -2745,6 +3218,9 @@ private fun CompactUpdatesGrid(
 	scrollResetKey: Any = Unit,
 	activeTasksMap: Map<Int, DownloadTaskState> = emptyMap(),
 	readyUpdateIds: Set<Int> = emptySet(),
+	failedUpdateIds: Set<Int> = emptySet(),
+	jumpToErrorTick: Int = 0,
+	extraBottomPadding: androidx.compose.ui.unit.Dp = 0.dp,
 	handler: UriHandler,
 	modifier: Modifier,
 	onRequestInstall: (AppUpdate) -> Unit,
@@ -2764,6 +3240,14 @@ private fun CompactUpdatesGrid(
 			gridState.scrollToItem(0)
 		}
 	}
+	LaunchedEffect(jumpToErrorTick) {
+		if (jumpToErrorTick > 0) {
+			val idx = updates.indexOfFirst { it.id in failedUpdateIds }
+			if (idx >= 0) {
+				gridState.animateScrollToItem(idx)
+			}
+		}
+	}
 
 	BoxWithConstraints(modifier) {
 		val columns = updateGridColumnCount(maxWidth.value, compact = true)
@@ -2775,12 +3259,12 @@ private fun CompactUpdatesGrid(
 				start = CompactUpdateCardLayout.gridHorizontalPaddingDp.dp,
 				top = CompactUpdateCardLayout.gridTopPaddingDp.dp,
 				end = CompactUpdateCardLayout.gridHorizontalPaddingDp.dp,
-				bottom = CompactUpdateCardLayout.gridBottomPaddingDp.dp
+				bottom = CompactUpdateCardLayout.gridBottomPaddingDp.dp + extraBottomPadding
 			),
 			verticalArrangement = Arrangement.spacedBy(CompactUpdateCardLayout.gridSpacingDp.dp),
 			horizontalArrangement = Arrangement.spacedBy(CompactUpdateCardLayout.gridSpacingDp.dp)
 		) {
-			gridItems(items = updates, key = { it.id }) { update ->
+			gridItemsIndexed(items = updates, key = { _, u -> u.id }) { index, update ->
 				val context = LocalContext.current
 				val appName = update.name.ifBlank {
 					context.getAppName(update.packageName).ifBlank { update.packageName }
@@ -2794,12 +3278,16 @@ private fun CompactUpdatesGrid(
 				val effTotal = liveTask?.total?.takeIf { it > 0L } ?: update.total
 				val isSelectable = !effInstalling && !effQueued
 				val isSelected = update.id in selectedUpdateIds
+				val isFailed = update.id in failedUpdateIds
 				val isCachedReady = update.id in readyUpdateIds || update.alternativeUpdates.any { it.id in readyUpdateIds }
 				val cardShape = RoundedCornerShape(14.dp)
+				StaggeredCascadeItem(
+					index = index,
+					modifier = Modifier.animateItem()
+				) {
 				Surface(
 					modifier = Modifier
 						.fillMaxWidth()
-						.animateItem()
 						.clip(cardShape)
 						.combinedClickable(
 							onClick = {
@@ -2818,12 +3306,16 @@ private fun CompactUpdatesGrid(
 						)
 						.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
 					shape = cardShape,
-					color = if (isSelected) {
-						MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f)
-					} else {
-						MaterialTheme.colorScheme.surfaceContainerLow
+					color = when {
+						isSelected -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f)
+						isFailed -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.28f)
+						else -> MaterialTheme.colorScheme.surfaceContainerLow
 					},
-					border = if (isSelected) BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else null
+					border = when {
+						isSelected -> BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+						isFailed -> BorderStroke(1.5.dp, MaterialTheme.colorScheme.error)
+						else -> null
+					}
 				) {
 					Row(
 						modifier = Modifier
@@ -2970,18 +3462,15 @@ private fun CompactUpdatesGrid(
 									verticalAlignment = Alignment.CenterVertically,
 									horizontalArrangement = Arrangement.spacedBy(4.dp)
 								) {
-									Icon(
-										painter = painterResource(card.source.resourceId),
-										contentDescription = null,
-										tint = MaterialTheme.colorScheme.onSurfaceVariant,
-										modifier = Modifier.size(10.dp)
-									)
+									SourceIconWithCooldown(source = card.source)
 									Text(
 										text = resolvedSourceLabel,
 										style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
 										color = MaterialTheme.colorScheme.onSurfaceVariant,
 										maxLines = 1
 									)
+									val isVerifiedReady = isCachedReady || (liveTask != null && liveTask.total > 0L && liveTask.progress >= liveTask.total)
+									TrustShieldBadge(isVerified = isVerifiedReady)
 									if (card.additionalSourcesCount > 0) {
 										Surface(
 											shape = RoundedCornerShape(4.dp),
@@ -3056,6 +3545,7 @@ private fun CompactUpdatesGrid(
 						}
 					}
 				}
+				}
 			}
 		}
 	}
@@ -3112,7 +3602,7 @@ private fun UpdateDetailsSheet(
 	onIgnoreAppPermanently: (String) -> Unit
 ) {
 	val context = LocalContext.current
-	val handler = LocalUriHandler.current
+	val handler = com.apkup.ui.component.rememberCustomTabUriHandler()
 	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 	val liveTask = activeTasksMap[update.id]
 		?: activeTasksMap.values.firstOrNull { it.packageName == update.packageName }
@@ -3145,17 +3635,13 @@ private fun UpdateDetailsSheet(
 	val showSignatureWarning = hasPotentialSignatureConflict(activeVariant.installOrigin, activeVariant.source)
 	val isUpdateBusy = effInstalling || effQueued
 
-	ModalBottomSheet(
-		onDismissRequest = onDismiss,
-		sheetState = sheetState,
-		shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-		containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-	) {
+	val isWideScreen = LocalConfiguration.current.screenWidthDp >= 840
+	val sheetBody: @Composable () -> Unit = {
 		Column(
 			modifier = Modifier
 				.fillMaxWidth()
 				.verticalScroll(rememberScrollState())
-				.padding(start = 24.dp, end = 24.dp, bottom = 28.dp),
+				.padding(start = 24.dp, end = 24.dp, top = if (isWideScreen) 24.dp else 0.dp, bottom = 28.dp),
 			verticalArrangement = Arrangement.spacedBy(14.dp)
 		) {
 			Row(verticalAlignment = Alignment.CenterVertically) {
@@ -3363,8 +3849,9 @@ private fun UpdateDetailsSheet(
 			}
 
 			if (showSignatureWarning) {
+				val openCustomTab = com.apkup.ui.component.rememberCustomTabOpener()
 				Surface(
-					onClick = { runCatching { handler.openUri(resolveWikiUrlForSourceError("signature")) } },
+					onClick = { openCustomTab(resolveWikiUrlForSourceError("signature")) },
 					shape = RoundedCornerShape(16.dp),
 					color = MaterialTheme.colorScheme.tertiaryContainer
 				) {
@@ -3562,6 +4049,58 @@ private fun UpdateDetailsSheet(
 					color = MaterialTheme.colorScheme.error
 				)
 			}
+		}
+	}
+	if (isWideScreen) {
+		val isReducedMotion = ApkUpTheme.isReducedMotion
+		androidx.compose.ui.window.Dialog(
+			onDismissRequest = onDismiss,
+			properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+		) {
+			Box(
+				modifier = Modifier
+					.fillMaxSize()
+					.clickable(
+						interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+						indication = null,
+						onClick = onDismiss
+					)
+					.padding(16.dp),
+				contentAlignment = Alignment.CenterEnd
+			) {
+				var paneVisible by remember { mutableStateOf(false) }
+				LaunchedEffect(Unit) { paneVisible = true }
+				AnimatedVisibility(
+					visible = paneVisible,
+					enter = if (isReducedMotion) fadeIn(tween(80)) else slideInHorizontally(spring(dampingRatio = 0.84f, stiffness = 380f)) { it } + fadeIn(),
+					exit = if (isReducedMotion) fadeOut(tween(80)) else slideOutHorizontally(spring(dampingRatio = 0.84f, stiffness = 380f)) { it } + fadeOut()
+				) {
+					Surface(
+						shape = RoundedCornerShape(28.dp),
+						color = MaterialTheme.colorScheme.surfaceContainerLow,
+						tonalElevation = 6.dp,
+						shadowElevation = 12.dp,
+						modifier = Modifier
+							.width(420.dp)
+							.clickable(
+								interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+								indication = null,
+								onClick = {}
+							)
+					) {
+						sheetBody()
+					}
+				}
+			}
+		}
+	} else {
+		ModalBottomSheet(
+			onDismissRequest = onDismiss,
+			sheetState = sheetState,
+			shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+			containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+		) {
+			sheetBody()
 		}
 	}
 }

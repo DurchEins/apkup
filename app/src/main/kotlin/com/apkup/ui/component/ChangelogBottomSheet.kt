@@ -2,6 +2,9 @@ package com.apkup.ui.component
 
 import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -42,11 +45,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -108,8 +114,19 @@ data class ChangelogDocument(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChangelogBottomSheet(
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onOpenSupport: (() -> Unit)? = null
 ) {
+    val openCustomTab = rememberCustomTabOpener()
+    val handleChangelogLink: (String) -> Unit = { target ->
+        when {
+            target == "apkup://support" -> {
+                onDismiss()
+                onOpenSupport?.invoke()
+            }
+            com.apkup.util.isSafeHttpsUrl(target) -> openCustomTab(target)
+        }
+    }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val context = LocalContext.current
     val fallbackTitle = stringResource(R.string.changelog_title)
@@ -236,10 +253,12 @@ fun ChangelogBottomSheet(
                     val isExpanded = expandedMonths[monthIndex] ?: (monthIndex == 0)
                     ChangelogMonthAccordion(
                         section = section,
+                        isLatestMonth = monthIndex == 0,
                         isExpanded = isExpanded,
                         onToggle = {
                             expandedMonths[monthIndex] = !isExpanded
-                        }
+                        },
+                        onLinkClick = handleChangelogLink
                     )
                     if (monthIndex < changelogDoc.monthSections.lastIndex) {
                         HorizontalDivider(
@@ -275,8 +294,10 @@ fun ChangelogBottomSheet(
 @Composable
 private fun ChangelogMonthAccordion(
     section: ChangelogMonthSection,
+    isLatestMonth: Boolean,
     isExpanded: Boolean,
-    onToggle: () -> Unit
+    onToggle: () -> Unit,
+    onLinkClick: (String) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -313,7 +334,11 @@ private fun ChangelogMonthAccordion(
                     .padding(bottom = 20.dp)
             ) {
                 section.releases.forEachIndexed { releaseIndex, release ->
-                    ChangelogReleaseBlock(release = release)
+                    ChangelogReleaseBlock(
+                        release = release,
+                        isLatest = isLatestMonth && releaseIndex == 0,
+                        onLinkClick = onLinkClick
+                    )
                     if (releaseIndex < section.releases.lastIndex) {
                         HorizontalDivider(
                             modifier = Modifier.padding(vertical = 20.dp),
@@ -328,7 +353,11 @@ private fun ChangelogMonthAccordion(
 }
 
 @Composable
-private fun ChangelogReleaseBlock(release: ChangelogRelease) {
+private fun ChangelogReleaseBlock(
+    release: ChangelogRelease,
+    isLatest: Boolean = false,
+    onLinkClick: (String) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -356,7 +385,8 @@ private fun ChangelogReleaseBlock(release: ChangelogRelease) {
 
         ChangelogPillBadge(
             label = release.badgeLabel,
-            type = release.badgeType
+            type = release.badgeType,
+            isLatest = isLatest
         )
 
         if (release.banner != null) {
@@ -371,7 +401,7 @@ private fun ChangelogReleaseBlock(release: ChangelogRelease) {
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             release.entries.forEach { entry ->
-                ChangelogBulletRow(entry = entry)
+                ChangelogBulletRow(entry = entry, onLinkClick = onLinkClick)
             }
         }
     }
@@ -380,17 +410,53 @@ private fun ChangelogReleaseBlock(release: ChangelogRelease) {
 @Composable
 private fun ChangelogPillBadge(
     label: String,
-    type: ChangelogBadgeType
+    type: ChangelogBadgeType,
+    isLatest: Boolean = false
 ) {
     val (containerColor, contentColor) = when (type) {
         ChangelogBadgeType.FEATURE -> MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
         ChangelogBadgeType.PATCH -> ApkUpTheme.colors.infoContainer to ApkUpTheme.colors.onInfoContainer
         ChangelogBadgeType.MAJOR -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
     }
+    val isReducedMotion = ApkUpTheme.isReducedMotion
+    val shimmerProgress = remember { Animatable(0f) }
+    LaunchedEffect(isLatest, isReducedMotion) {
+        if (isLatest && !isReducedMotion) {
+            shimmerProgress.snapTo(0f)
+            shimmerProgress.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = 2000, easing = LinearEasing)
+            )
+        }
+    }
 
     Surface(
         shape = CircleShape,
-        color = containerColor
+        color = containerColor,
+        modifier = if (isLatest && !isReducedMotion && shimmerProgress.value < 1f) {
+            val p = shimmerProgress.value
+            val fadeAlpha = ((1f - p) / 0.25f).coerceIn(0f, 1f) * 0.45f
+            val sweep = (p * 1.4f) % 1f
+            Modifier
+                .clip(CircleShape)
+                .drawWithContent {
+                    drawContent()
+                    val startX = size.width * (sweep * 2f - 0.5f)
+                    drawRect(
+                        brush = Brush.linearGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.White.copy(alpha = fadeAlpha),
+                                Color.Transparent
+                            ),
+                            start = Offset(startX, 0f),
+                            end = Offset(startX + size.width * 0.45f, size.height)
+                        )
+                    )
+                }
+        } else {
+            Modifier
+        }
     ) {
         Text(
             text = label,
@@ -499,8 +565,21 @@ private fun ChangelogFeatureBannerCard(banner: ChangelogBanner) {
     }
 }
 
+private val CHANGELOG_LINK_REGEX = Regex("""\[([^\]]+)\]\(([^)]+)\)""")
+
 @Composable
-private fun ChangelogBulletRow(entry: ChangelogEntry) {
+private fun ChangelogBulletRow(
+    entry: ChangelogEntry,
+    onLinkClick: (String) -> Unit
+) {
+    val linkColor = MaterialTheme.colorScheme.primary
+    val linkStyle = androidx.compose.ui.text.TextLinkStyles(
+        style = SpanStyle(
+            color = linkColor,
+            fontWeight = FontWeight.SemiBold,
+            textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline
+        )
+    )
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -527,12 +606,30 @@ private fun ChangelogBulletRow(entry: ChangelogEntry) {
                         }
                     }
                 }
-                withStyle(
-                    SpanStyle(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                val desc = entry.description
+                var cursor = 0
+                for (match in CHANGELOG_LINK_REGEX.findAll(desc)) {
+                    if (match.range.first > cursor) {
+                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
+                            append(desc.substring(cursor, match.range.first))
+                        }
+                    }
+                    val label = match.groupValues[1]
+                    val target = match.groupValues[2].trim()
+                    pushLink(
+                        androidx.compose.ui.text.LinkAnnotation.Clickable(
+                            tag = target,
+                            styles = linkStyle
+                        ) { onLinkClick(target) }
                     )
-                ) {
-                    append(entry.description)
+                    append(label)
+                    pop()
+                    cursor = match.range.last + 1
+                }
+                if (cursor < desc.length) {
+                    withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
+                        append(desc.substring(cursor))
+                    }
                 }
             },
             style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 20.sp),

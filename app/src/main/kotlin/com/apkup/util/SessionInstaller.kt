@@ -224,10 +224,11 @@ class SessionInstaller internal constructor(
         if (allHaveBackingFiles) {
             tempVerifyDir = null
             stagedFiles = parts.map { it.backingFile!! to it.expectedSha256 }
+            val usedNames = HashSet<String>(parts.size)
             verifiedParts = parts.mapIndexed { index, part ->
                 val f = part.backingFile!!
                 InstallPart(
-                    name = ApkIntegrityVerifier.sanitizePartFileName(part.name, index),
+                    name = ApkIntegrityVerifier.uniqueSafePartFileName(part.name, index, usedNames),
                     sizeBytes = f.length(),
                     expectedSha256 = part.expectedSha256,
                     backingFile = f,
@@ -240,8 +241,9 @@ class SessionInstaller internal constructor(
             tempVerifyDir = File(baseCache, "installer_verify_${id}_${UUID.randomUUID()}").apply { mkdirs() }
             var totalStaged = 0L
             try {
+                val usedNames = HashSet<String>(parts.size)
                 val created = parts.mapIndexed { index, part ->
-                    val safeName = ApkIntegrityVerifier.sanitizePartFileName(part.name, index)
+                    val safeName = ApkIntegrityVerifier.uniqueSafePartFileName(part.name, index, usedNames)
                     val outFile = File(tempVerifyDir, safeName)
                     val rawStream = part.openStream()
                         ?: throw IOException("Download stream returned null for $packageName (part $safeName)")
@@ -716,8 +718,9 @@ class SessionInstaller internal constructor(
         var sessionId: String? = null
         try {
             var totalBytes = 0L
+            val usedNames = HashSet<String>(parts.size)
             val stagedFiles = parts.mapIndexed { index, part ->
-                val safeFileName = ApkIntegrityVerifier.sanitizePartFileName(part.name, index)
+                val safeFileName = ApkIntegrityVerifier.uniqueSafePartFileName(part.name, index, usedNames)
                 val existingBacking = part.backingFile
                 if (existingBacking != null && existingBacking.isFile && existingBacking.length() > 0L) {
                     totalBytes += existingBacking.length()
@@ -766,12 +769,13 @@ class SessionInstaller internal constructor(
                 arrayOf("pm", "install-create", "-r", "-p", packageName, "-i", installerPkg)
             }
             val createOutput = runShizukuCommand(shizukuService, createArgs)
-            sessionId = Regex("\\[(\\d+)]").find(createOutput)?.groupValues?.getOrNull(1)
+            val createdSessionId = Regex("\\[(\\d+)]").find(createOutput)?.groupValues?.getOrNull(1)
                 ?: throw IOException("Could not parse Shizuku install session ID from: $createOutput")
+            sessionId = createdSessionId
 
             stagedFiles.forEach { (safeEntryName, file) ->
                 val writeProc = shizukuService.newProcess(
-                    arrayOf("pm", "install-write", "-S", file.length().toString(), sessionId!!, safeEntryName, "-"),
+                    arrayOf("pm", "install-write", "-S", file.length().toString(), createdSessionId, safeEntryName, "-"),
                     null,
                     null
                 )
@@ -807,7 +811,7 @@ class SessionInstaller internal constructor(
 
             val commitOutput = runShizukuCommand(
                 shizukuService,
-                arrayOf("pm", "install-commit", sessionId!!)
+                arrayOf("pm", "install-commit", createdSessionId)
             )
             val success = commitOutput.contains("Success", ignoreCase = true)
             if (success) {

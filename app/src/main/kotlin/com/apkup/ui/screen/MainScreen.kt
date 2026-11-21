@@ -7,10 +7,18 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -73,6 +81,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -107,6 +116,9 @@ import com.apkup.data.ui.UpdatesUiState
 import com.apkup.ui.component.ChangelogBottomSheet
 import com.apkup.ui.component.InstallPermissionDialog
 import com.apkup.ui.component.SelfUpdateDialog
+import com.apkup.ui.component.SupportCommunityBottomSheet
+import com.apkup.ui.component.SupportLinks
+import com.apkup.ui.component.SupportReminderDialog
 import com.apkup.ui.theme.ApkUpTheme
 import com.apkup.ui.theme.AppTheme
 import com.apkup.util.Badger
@@ -159,15 +171,16 @@ fun MainScreen(
                 Lifecycle.Event.ON_START,
                 Lifecycle.Event.ON_RESUME -> {
                     updatesViewModel.setAppInForeground(true)
+                    settingsViewModel.refreshShizukuStatus()
                     runCatching {
                         val powerManager = context.getSystemService(android.content.Context.POWER_SERVICE) as? PowerManager
                         val isBatteryIgnoring = powerManager?.isIgnoringBatteryOptimizations(context.packageName) == true
                         val areNotificationsEnabled = NotificationManagerCompat.from(context).areNotificationsEnabled()
                         val hasInstallPermission = context.packageManager.canRequestPackageInstalls()
-                        val hasWarning = !isBatteryIgnoring || !areNotificationsEnabled || !hasInstallPermission
-                        if (hasWarning) {
-                            badger.changeSettingsBadge("!")
-                        }
+                        val shizukuIssue = settingsViewModel.shizukuEnabled().value &&
+                            !settingsViewModel.shizukuSetupStatus().value.isBinderRunning
+                        val hasWarning = !isBatteryIgnoring || !areNotificationsEnabled || !hasInstallPermission || shizukuIssue
+                        badger.changeSettingsBadge(if (hasWarning) "!" else "")
                     }
                 }
                 Lifecycle.Event.ON_STOP -> {
@@ -187,16 +200,22 @@ fun MainScreen(
     val isUpdatesScreen = !shouldShowDefaultPullToRefreshIndicator(currentDestinationRoute)
     val currentVersionCode = BuildConfig.VERSION_CODE.toLong()
     val showChangelogSheet by mainViewModel.showChangelogSheet.collectAsStateWithLifecycle()
+    val showSupportPrompt by mainViewModel.showSupportPrompt.collectAsStateWithLifecycle()
+    var showSupportCommunitySheet by rememberSaveable { mutableStateOf(false) }
     val selfUpdateState by mainViewModel.selfUpdateState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         mainViewModel.checkChangelogPrompt(context, currentVersionCode)
         mainViewModel.initializeOnStart(appsViewModel, updatesViewModel, isColdStart)
+        mainViewModel.checkSupportPrompt()
     }
 
     LaunchedEffect(isColdStart, showOnboardingConsent) {
         if (isColdStart && !showOnboardingConsent) {
             mainViewModel.checkAndMarkInstallPermissionPrompt(updatesViewModel)
+        }
+        if (!showOnboardingConsent) {
+            mainViewModel.checkSupportPrompt()
         }
     }
 
@@ -331,7 +350,38 @@ fun MainScreen(
             ChangelogBottomSheet(
                 onDismiss = {
                     mainViewModel.dismissChangelogSheet(currentVersionCode)
+                    mainViewModel.checkSupportPrompt()
+                },
+                onOpenSupport = {
+                    mainViewModel.dismissChangelogSheet(currentVersionCode)
+                    showSupportCommunitySheet = true
                 }
+            )
+        }
+
+        if (showSupportPrompt && !showOnboardingConsent && !showChangelogSheet) {
+            val openUrl = com.apkup.ui.component.rememberCustomTabOpener()
+            SupportReminderDialog(
+                onStarOnGitHub = {
+                    mainViewModel.dismissSupportPrompt()
+                    openUrl(SupportLinks.GITHUB)
+                },
+                onOpenSupportSheet = {
+                    mainViewModel.dismissSupportPrompt()
+                    showSupportCommunitySheet = true
+                },
+                onSnooze = {
+                    mainViewModel.snoozeSupportPrompt()
+                },
+                onDismissPermanently = {
+                    mainViewModel.dismissSupportPrompt()
+                }
+            )
+        }
+
+        if (showSupportCommunitySheet) {
+            SupportCommunityBottomSheet(
+                onDismiss = { showSupportCommunitySheet = false }
             )
         }
 
@@ -706,6 +756,17 @@ fun ApkUpNavigationRail(
                     unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                 ),
                 icon = {
+                    val isReducedMotion = ApkUpTheme.isReducedMotion
+                    val iconScale = remember { Animatable(1f) }
+                    LaunchedEffect(selected) {
+                        if (selected && !isReducedMotion) {
+                            iconScale.snapTo(0.84f)
+                            iconScale.animateTo(
+                                targetValue = 1f,
+                                animationSpec = spring(dampingRatio = 0.45f, stiffness = 560f)
+                            )
+                        }
+                    }
                     NavigationBadgeBox(
                         badge = badge,
                         isLoadingUpdates = isLiveChecking,
@@ -715,7 +776,12 @@ fun ApkUpNavigationRail(
                         Icon(
                             imageVector = if (selected) screen.iconSelected else screen.icon,
                             contentDescription = null,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier
+                                .size(24.dp)
+                                .graphicsLayer {
+                                    scaleX = iconScale.value
+                                    scaleY = iconScale.value
+                                }
                         )
                     }
                 },
@@ -745,17 +811,35 @@ private fun NavigationBadgeBox(
         badge = {
             if (badge.isNotEmpty()) {
                 val isWarning = badge == "!"
+                val displayText = if (isWarning) "!" else formatCapsuleBadge(badge)
+                val isReducedMotion = ApkUpTheme.isReducedMotion
                 Badge(
                     containerColor = if (isWarning) warningContainer else MaterialTheme.colorScheme.error,
                     contentColor = if (isWarning) onWarning else MaterialTheme.colorScheme.onError
                 ) {
-                    Text(
-                        text = if (isWarning) "!" else formatCapsuleBadge(badge),
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontSize = if (isWarning) 11.sp else 10.sp,
-                            fontWeight = FontWeight.Bold
+                    AnimatedContent(
+                        targetState = displayText,
+                        transitionSpec = {
+                            if (isReducedMotion) {
+                                fadeIn(tween(80)) togetherWith fadeOut(tween(80))
+                            } else {
+                                val prevNum = initialState.trimEnd('+').toIntOrNull()
+                                val nextNum = targetState.trimEnd('+').toIntOrNull()
+                                val goingUp = prevNum == null || nextNum == null || nextNum >= prevNum
+                                (slideInVertically(tween(220)) { if (goingUp) it else -it } + fadeIn(tween(180))) togetherWith
+                                    (slideOutVertically(tween(220)) { if (goingUp) -it else it } + fadeOut(tween(140)))
+                            }
+                        },
+                        label = "BadgeOdometer"
+                    ) { target ->
+                        Text(
+                            text = target,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontSize = if (isWarning) 11.sp else 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
                         )
-                    )
+                    }
                 }
             } else if (isLoadingUpdates) {
                 CircularProgressIndicator(
@@ -838,6 +922,17 @@ fun CapsuleDockItem(
                     .clip(CircleShape)
                     .background(indicatorColor)
             )
+            val isReducedMotion = ApkUpTheme.isReducedMotion
+            val iconScale = remember { Animatable(1f) }
+            LaunchedEffect(selected) {
+                if (selected && !isReducedMotion) {
+                    iconScale.snapTo(0.84f)
+                    iconScale.animateTo(
+                        targetValue = 1f,
+                        animationSpec = spring(dampingRatio = 0.45f, stiffness = 560f)
+                    )
+                }
+            }
             NavigationBadgeBox(
                 badge = badge,
                 isLoadingUpdates = isLoadingUpdates,
@@ -847,7 +942,12 @@ fun CapsuleDockItem(
                 Icon(
                     imageVector = if (selected) screen.iconSelected else screen.icon,
                     contentDescription = null,
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier
+                        .size(24.dp)
+                        .graphicsLayer {
+                            scaleX = iconScale.value
+                            scaleY = iconScale.value
+                        },
                     tint = iconColor
                 )
             }

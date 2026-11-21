@@ -16,6 +16,7 @@ import com.apkup.util.InstallLog
 import com.apkup.util.SessionInstaller
 import com.apkup.util.SnackBar
 import com.apkup.util.Stringer
+import com.apkup.util.openSafeHttpsUri
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -53,7 +54,7 @@ abstract class InstallViewModel(
                         )
                     }
                     if (url.isNotBlank()) {
-                        runCatching { uriHandler.openUri(url) }
+                        uriHandler.openSafeHttpsUri(url)
                     }
                 }
             }

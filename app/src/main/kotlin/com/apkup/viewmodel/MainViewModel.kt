@@ -54,6 +54,7 @@ class MainViewModel(
     val showOnboardingConsent: StateFlow<Boolean> = _showOnboardingConsent.asStateFlow()
 
     init {
+        prefs.ensureFirstLaunchTimestamp()
         if (prefs.hasCompletedOnboarding.get() && prefs.enableBackgroundChecks.get()) {
             workManager?.let { UpdatesWorker.launch(it, replaceExisting = false) }
         }
@@ -63,6 +64,9 @@ class MainViewModel(
     private var hasInitializedColdStart = false
     private val _showChangelogSheet = MutableStateFlow(false)
     val showChangelogSheet: StateFlow<Boolean> = _showChangelogSheet.asStateFlow()
+
+    private val _showSupportPrompt = MutableStateFlow(false)
+    val showSupportPrompt: StateFlow<Boolean> = _showSupportPrompt.asStateFlow()
 
     private val _selfUpdateState = MutableStateFlow<SelfUpdateState>(SelfUpdateState.Idle)
     val selfUpdateState: StateFlow<SelfUpdateState> = _selfUpdateState.asStateFlow()
@@ -233,6 +237,34 @@ class MainViewModel(
     fun dismissChangelogSheet(currentVersionCode: Long) {
         _showChangelogSheet.value = false
         prefs.lastSeenVersionCode.put(currentVersionCode)
+    }
+
+    fun checkSupportPrompt(nowMillis: Long = System.currentTimeMillis()) {
+        val firstLaunch = prefs.ensureFirstLaunchTimestamp(nowMillis)
+        val isBlocking = _showChangelogSheet.value ||
+            _selfUpdateState.value is SelfUpdateState.Available ||
+            !prefs.hasCompletedOnboarding.get()
+        _showSupportPrompt.value = com.apkup.util.SupportPromptPolicy.shouldShowSupportPrompt(
+            hasCompletedOnboarding = prefs.hasCompletedOnboarding.get(),
+            isBlockingPromptVisible = isBlocking,
+            dismissedPermanently = prefs.supportPromptDismissedPermanently.get(),
+            snoozedUntilMillis = prefs.supportPromptSnoozedUntilMillis.get(),
+            firstLaunchTimestampMillis = firstLaunch,
+            successfulUpdatesCount = prefs.successfulUpdatesCount.get(),
+            nowMillis = nowMillis
+        )
+    }
+
+    fun dismissSupportPrompt() {
+        _showSupportPrompt.value = false
+        prefs.supportPromptDismissedPermanently.put(true)
+    }
+
+    fun snoozeSupportPrompt(nowMillis: Long = System.currentTimeMillis()) {
+        _showSupportPrompt.value = false
+        prefs.supportPromptSnoozedUntilMillis.put(
+            nowMillis + com.apkup.util.SupportPromptPolicy.SNOOZE_DURATION_MILLIS
+        )
     }
 
     fun initializeOnStart(

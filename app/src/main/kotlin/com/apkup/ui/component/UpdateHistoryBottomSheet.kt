@@ -4,6 +4,9 @@ import android.content.Intent
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +28,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material.icons.rounded.History
@@ -42,6 +46,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,6 +57,7 @@ import androidx.core.net.toUri
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalUriHandler
@@ -63,6 +69,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.apkup.R
+import com.apkup.ui.theme.ApkUpTheme
 import com.apkup.data.ui.ApkMirrorSource
 import com.apkup.data.ui.CodebergSource
 import com.apkup.data.ui.CustomFDroidSource
@@ -76,6 +83,7 @@ import com.apkup.data.ui.UpdateInstallMode
 import com.apkup.repository.RepoMappingManager
 import com.apkup.util.effectivePreviousVersionUrl
 import com.apkup.util.getAppName
+import com.apkup.util.openSafeHttpsUri
 import com.apkup.viewmodel.UpdatesViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -115,6 +123,8 @@ fun UpdateHistoryBottomSheet(
             Toast.makeText(context, toastText, Toast.LENGTH_SHORT).show()
         }
     }
+
+    val openCustomTab = rememberCustomTabOpener()
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -283,7 +293,7 @@ fun UpdateHistoryBottomSheet(
                             displayAppName = displayAppName,
                             previousVersionUrl = prevUrl,
                             onOpenPreviousVersion = { url ->
-                                runCatching { uriHandler.openUri(url) }
+                                openCustomTab(url)
                             },
                             backupMeta = backupMeta,
                             onRequestRollback = if (backupMeta != null) {
@@ -308,6 +318,20 @@ fun UpdateHistoryBottomSheet(
 
     selectedRollbackPair?.let { (appLabel, meta) ->
         val isRootActive = updatesViewModel.isRootReady()
+        val currentVersionLabel = remember(entries, meta.packageName) {
+            entries.firstOrNull { it.packageName == meta.packageName }?.newVersion.orEmpty()
+        }
+        val isReducedMotion = ApkUpTheme.isReducedMotion
+        val timeTravelProgress = remember(meta.packageName) { Animatable(if (isReducedMotion) 1f else 0f) }
+        LaunchedEffect(meta.packageName, isReducedMotion) {
+            if (!isReducedMotion) {
+                timeTravelProgress.snapTo(0f)
+                timeTravelProgress.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(durationMillis = 650, easing = FastOutSlowInEasing)
+                )
+            }
+        }
         AlertDialog(
             onDismissRequest = { selectedRollbackPair = null },
             title = {
@@ -319,6 +343,56 @@ fun UpdateHistoryBottomSheet(
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.65f),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            if (currentVersionLabel.isNotBlank()) {
+                                Text(
+                                    text = "v$currentVersionLabel",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f, fill = false)
+                                )
+                                Spacer(Modifier.width(8.dp))
+                            }
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .graphicsLayer {
+                                        val p = timeTravelProgress.value
+                                        rotationZ = if (isReducedMotion) 0f else (1f - p) * 180f
+                                        translationX = if (isReducedMotion) 0f else (1f - p) * 10.dp.toPx()
+                                    }
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = "v${meta.versionName}",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier
+                                    .weight(1f, fill = false)
+                                    .graphicsLayer {
+                                        val p = timeTravelProgress.value
+                                        alpha = if (isReducedMotion) 1f else 0.4f + 0.6f * p
+                                    }
+                            )
+                        }
+                    }
                     Text(
                         text = if (isRootActive) {
                             stringResource(R.string.rollback_dialog_root_desc)

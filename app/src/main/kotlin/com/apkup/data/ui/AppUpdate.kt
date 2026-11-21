@@ -93,22 +93,6 @@ fun List<AppUpdate>.indexOf(id: Int) = indexOfFirst {
 	it.id == id || it.alternativeUpdates.any { alt -> alt.id == id }
 }
 
-fun MutableList<AppUpdate>.setIsInstalling(id: Int, b: Boolean): List<AppUpdate> {
-	val index = this.indexOf(id)
-	if (index != -1) {
-		this[index] = this[index].copy(isInstalling = b, isQueued = if (b) false else this[index].isQueued)
-	}
-	return this
-}
-
-fun MutableList<AppUpdate>.setIsQueued(id: Int, queued: Boolean): MutableList<AppUpdate> {
-	val index = this.indexOf(id)
-	if (index != -1) {
-		this[index] = this[index].copy(isQueued = queued)
-	}
-	return this
-}
-
 fun MutableList<AppUpdate>.removeId(id: Int): List<AppUpdate> {
 	val index = this.indexOf(id)
 	if (index != -1) this.removeAt(index)

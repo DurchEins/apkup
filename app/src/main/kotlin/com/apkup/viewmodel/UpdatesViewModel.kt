@@ -43,6 +43,7 @@ import com.apkup.util.SnackBar
 import com.apkup.util.Stringer
 import com.apkup.util.UpdatesNotification
 import com.apkup.util.buildUpdateHistoryEntry
+import com.apkup.util.openSafeHttpsUri
 import com.apkup.util.launchWithMutex
 import com.apkup.worker.DownloadCoordinator
 import kotlinx.coroutines.Dispatchers
@@ -534,7 +535,7 @@ class UpdatesViewModel(
 						TextSnack(stringer.get(R.string.apkmirror_cooldown_browser_fallback, update.name), visualType = com.apkup.data.snack.SnackVisualType.WARNING)
 					)
 				}
-				runCatching { uriHandler.openUri(url) }
+				uriHandler.openSafeHttpsUri(url)
 			}
 			return
 		}

@@ -85,6 +85,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -138,8 +139,10 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedback
@@ -182,6 +185,7 @@ import com.apkup.data.fdroid.FDroidRepoConfig
 import com.apkup.data.obtainium.ObtainiumImportPreview
 import com.apkup.data.ui.AppsUiState
 import com.apkup.R
+import com.apkup.ui.theme.ApkUpTheme
 import com.apkup.data.selfupdate.SelfUpdateState
 import com.apkup.data.ui.AppInstalled
 import com.apkup.data.ui.BackgroundCheckInterval
@@ -197,6 +201,7 @@ import com.apkup.ui.component.NavigationSettingItem
 import com.apkup.util.AppJournal
 import com.apkup.util.DownloadStorageManager
 import com.apkup.util.SessionInstaller
+import com.apkup.util.openSafeHttpsUri
 import com.apkup.viewmodel.AppsViewModel
 import com.apkup.viewmodel.MainViewModel
 import com.apkup.viewmodel.SettingsViewModel
@@ -284,6 +289,8 @@ fun Settings(
 	var showGitLabTokenDialog by remember { mutableStateOf(false) }
 	var showCodebergTokenDialog by remember { mutableStateOf(false) }
 	var showRootSetupSheet by rememberSaveable { mutableStateOf(false) }
+	var showSupportCommunitySheet by rememberSaveable { mutableStateOf(false) }
+	val openCustomTab = com.apkup.ui.component.rememberCustomTabOpener()
 	var obtainiumImportPreview by remember { mutableStateOf<ObtainiumImportPreview?>(null) }
 	var isAdvancedExpanded by rememberSaveable { mutableStateOf(false) }
 	var includeLogcatInDiagnostics by rememberSaveable { mutableStateOf(false) }
@@ -309,6 +316,7 @@ fun Settings(
 		}
 	}
 	val iconTapTimestamps = remember { mutableStateListOf<Long>() }
+	var exportSuccessWaveTick by remember { mutableIntStateOf(0) }
 
 	val exportBackupLauncher = rememberLauncherForActivityResult(
 		ActivityResultContracts.CreateDocument("application/json")
@@ -324,6 +332,7 @@ fun Settings(
 				}.isSuccess
 				withContext(Dispatchers.Main) {
 					viewModel.notifyBackupExported(success)
+					if (success) exportSuccessWaveTick++
 				}
 			}
 		}
@@ -345,6 +354,7 @@ fun Settings(
 				}.isSuccess
 				withContext(Dispatchers.Main) {
 					viewModel.notifyObtainiumExported(success)
+					if (success) exportSuccessWaveTick++
 				}
 			}
 		}
@@ -355,24 +365,7 @@ fun Settings(
 	) { uri ->
 		if (uri != null) {
 			coroutineScope.launch(Dispatchers.IO) {
-				val rawJson = runCatching {
-					context.contentResolver.openInputStream(uri)?.use { stream ->
-						val maxBytes = SettingsViewModel.MAX_BACKUP_JSON_CHARS
-						val out = java.io.ByteArrayOutputStream()
-						val buf = ByteArray(8192)
-						var total = 0
-						while (true) {
-							val read = stream.read(buf)
-							if (read == -1) break
-							total += read
-							if (total > maxBytes) {
-								throw IllegalArgumentException("Obtainium file exceeds maximum allowed size")
-							}
-							out.write(buf, 0, read)
-						}
-						out.toString(Charsets.UTF_8.name())
-					}
-				}.getOrNull()
+				val rawJson = readUtf8FromSafUri(context, uri)
 				withContext(Dispatchers.Main) {
 					if (rawJson.isNullOrBlank()) {
 						viewModel.notifyObtainiumImportInvalid()
@@ -398,11 +391,7 @@ fun Settings(
 	) { uri ->
 		if (uri != null) {
 			coroutineScope.launch(Dispatchers.IO) {
-				val rawJson = runCatching {
-					context.contentResolver.openInputStream(uri)?.use { stream ->
-						stream.bufferedReader(Charsets.UTF_8).readText()
-					}
-				}.getOrNull().orEmpty()
+				val rawJson = readUtf8FromSafUri(context, uri).orEmpty()
 				val installedPkgs = (appsViewModel.state().value as? AppsUiState.Success)?.apps
 					?.filterNot { it.isWatchedOnly }
 					?.mapTo(HashSet()) { it.packageName }
@@ -458,24 +447,7 @@ fun Settings(
 	) { uri ->
 		if (uri != null) {
 			coroutineScope.launch(Dispatchers.IO) {
-				val rawJson = runCatching {
-					context.contentResolver.openInputStream(uri)?.use { stream ->
-						val maxBytes = SettingsViewModel.MAX_BACKUP_JSON_CHARS
-						val out = java.io.ByteArrayOutputStream()
-						val buf = ByteArray(8192)
-						var total = 0
-						while (true) {
-							val read = stream.read(buf)
-							if (read == -1) break
-							total += read
-							if (total > maxBytes) {
-								throw IllegalArgumentException("Backup file exceeds maximum allowed size")
-							}
-							out.write(buf, 0, read)
-						}
-						out.toString(Charsets.UTF_8.name())
-					}
-				}.getOrNull()
+				val rawJson = readUtf8FromSafUri(context, uri)
 				withContext(Dispatchers.Main) {
 					if (!rawJson.isNullOrBlank()) {
 						val imported = viewModel.importBackupJson(rawJson)
@@ -604,7 +576,6 @@ fun Settings(
 						addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 					})
 				}
-				Unit
 			}
 		}
 
@@ -1684,7 +1655,42 @@ fun Settings(
 							)
 
 							// 3. Datensicherung & Export
-							Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+							val isReducedMotionExport = ApkUpTheme.isReducedMotion
+							val exportWaveProgress = remember { Animatable(1f) }
+							LaunchedEffect(exportSuccessWaveTick) {
+								if (exportSuccessWaveTick > 0 && !isReducedMotionExport) {
+									exportWaveProgress.snapTo(0f)
+									exportWaveProgress.animateTo(
+										targetValue = 1f,
+										animationSpec = tween(durationMillis = 850, easing = FastOutSlowInEasing)
+									)
+								}
+							}
+							val exportWaveColor = MaterialTheme.colorScheme.primary
+							Column(
+								verticalArrangement = Arrangement.spacedBy(8.dp),
+								modifier = Modifier
+									.clip(RoundedCornerShape(14.dp))
+									.drawWithContent {
+										drawContent()
+										val p = exportWaveProgress.value
+										if (!isReducedMotionExport && p < 1f) {
+											val sweepX = size.width * (p * 1.4f - 0.2f)
+											val alpha = (1f - p).coerceIn(0f, 1f) * 0.24f
+											drawRect(
+												brush = Brush.linearGradient(
+													colors = listOf(
+														Color.Transparent,
+														exportWaveColor.copy(alpha = alpha),
+														Color.Transparent
+													),
+													start = Offset(sweepX - size.width * 0.2f, 0f),
+													end = Offset(sweepX + size.width * 0.2f, size.height)
+												)
+											)
+										}
+									}
+							) {
 								Text(
 									text = stringResource(R.string.settings_section_backup_restore),
 									style = MaterialTheme.typography.labelLarge,
@@ -2444,7 +2450,7 @@ fun Settings(
 						horizontalArrangement = Arrangement.spacedBy(8.dp)
 					) {
 						Surface(
-							onClick = { runCatching { handler.openUri("https://github.com/DurchEins/apkup") } },
+							onClick = { openCustomTab("https://github.com/DurchEins/apkup") },
 							modifier = Modifier
 								.weight(1f)
 								.fillMaxHeight(),
@@ -2503,7 +2509,7 @@ fun Settings(
 						}
 
 						Surface(
-							onClick = { runCatching { handler.openUri("https://github.com/DurchEins/apkup/wiki") } },
+							onClick = { openCustomTab("https://durcheins.github.io/apkup/wiki/") },
 							modifier = Modifier
 								.weight(1f)
 								.fillMaxHeight(),
@@ -2562,12 +2568,76 @@ fun Settings(
 						}
 					}
 
+					// 3c. Dezente Vollbreite-Support-Karte (Buy Me a Coffee, Coindrop, GitHub/GitLab Stars & Store-Reviews)
+					Surface(
+						onClick = { showSupportCommunitySheet = true },
+						modifier = Modifier.fillMaxWidth(),
+						shape = RoundedCornerShape(14.dp),
+						color = MaterialTheme.colorScheme.surfaceContainerHigh,
+						border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+					) {
+						Row(
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(horizontal = 12.dp, vertical = 10.dp),
+							verticalAlignment = CenterVertically,
+							horizontalArrangement = Arrangement.spacedBy(10.dp)
+						) {
+							Box(
+								modifier = Modifier
+									.size(28.dp)
+									.clip(RoundedCornerShape(8.dp))
+									.background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.65f)),
+								contentAlignment = Alignment.Center
+							) {
+								Icon(
+									imageVector = Icons.Rounded.Favorite,
+									contentDescription = null,
+									tint = MaterialTheme.colorScheme.primary,
+									modifier = Modifier.size(15.dp)
+								)
+							}
+							Column(
+								modifier = Modifier.weight(1f),
+								verticalArrangement = Arrangement.spacedBy(1.dp)
+							) {
+								Text(
+									text = stringResource(R.string.about_support_bento_title),
+									style = MaterialTheme.typography.labelMedium,
+									fontWeight = FontWeight.SemiBold,
+									color = MaterialTheme.colorScheme.onSurface,
+									maxLines = 1,
+									overflow = TextOverflow.Ellipsis
+								)
+								Text(
+									text = stringResource(R.string.about_support_bento_subtitle),
+									style = MaterialTheme.typography.labelSmall,
+									color = MaterialTheme.colorScheme.onSurfaceVariant,
+									maxLines = 1,
+									overflow = TextOverflow.Ellipsis
+								)
+							}
+							Icon(
+								imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+								contentDescription = null,
+								tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+								modifier = Modifier.size(16.dp)
+							)
+						}
+					}
+
+					if (showSupportCommunitySheet) {
+						com.apkup.ui.component.SupportCommunityBottomSheet(
+							onDismiss = { showSupportCommunitySheet = false }
+						)
+					}
+
 					// 4. Dezenter rahmenloser Footer-Link für das rumboalla-Originalprojekt
 					Row(
 						modifier = Modifier
 							.fillMaxWidth()
 							.clip(RoundedCornerShape(10.dp))
-							.clickable { runCatching { handler.openUri("https://github.com/rumboalla/apkupdater") } }
+							.clickable { openCustomTab("https://github.com/rumboalla/apkupdater") }
 							.padding(horizontal = 8.dp, vertical = 6.dp),
 						verticalAlignment = CenterVertically,
 						horizontalArrangement = Arrangement.Center
@@ -2679,12 +2749,10 @@ fun Settings(
 					Intent.ACTION_VIEW,
 					"market://details?id=${SessionInstaller.SHIZUKU_PACKAGE_NAME}".toUri()
 				).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-				val webIntent = Intent(
-					Intent.ACTION_VIEW,
-					"https://play.google.com/store/apps/details?id=${SessionInstaller.SHIZUKU_PACKAGE_NAME}".toUri()
-				).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 				runCatching { context.startActivity(marketIntent) }
-					.onFailure { runCatching { context.startActivity(webIntent) } }
+					.onFailure {
+						openCustomTab("https://play.google.com/store/apps/details?id=${SessionInstaller.SHIZUKU_PACKAGE_NAME}")
+					}
 			},
 			onOpenShizukuApp = {
 				context.packageManager
@@ -2845,6 +2913,11 @@ fun Settings(
 			onDismiss = {
 				showChangelogSheet = false
 				mainViewModel.dismissChangelogSheet(BuildConfig.VERSION_CODE.toLong())
+			},
+			onOpenSupport = {
+				showChangelogSheet = false
+				mainViewModel.dismissChangelogSheet(BuildConfig.VERSION_CODE.toLong())
+				showSupportCommunitySheet = true
 			}
 		)
 	}
@@ -3110,6 +3183,7 @@ private fun ApiTokenBottomSheet(
 						}
 
 						AnimatedVisibility(visible = isGuideExpanded) {
+							val tokenCustomTab = com.apkup.ui.component.rememberCustomTabOpener()
 							Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
 								Text(
 									text = stringResource(R.string.token_guide_hint),
@@ -3122,7 +3196,7 @@ private fun ApiTokenBottomSheet(
 								) {
 									if (!createTokenUrl.isNullOrBlank() && !createTokenButtonText.isNullOrBlank()) {
 										FilledTonalButton(
-											onClick = { runCatching { uriHandler.openUri(createTokenUrl) } },
+											onClick = { tokenCustomTab(createTokenUrl) },
 											modifier = Modifier.weight(1f),
 											shape = RoundedCornerShape(14.dp),
 											contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp)
@@ -3138,7 +3212,7 @@ private fun ApiTokenBottomSheet(
 									}
 									if (!guideUrl.isNullOrBlank()) {
 										OutlinedButton(
-											onClick = { runCatching { uriHandler.openUri(guideUrl) } },
+											onClick = { tokenCustomTab(guideUrl) },
 											modifier = Modifier.weight(1f),
 											shape = RoundedCornerShape(14.dp),
 											contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp)
@@ -4882,15 +4956,38 @@ private fun PermissionSettingItem(
 			)
 		}
 		val isDark = androidx.compose.foundation.isSystemInDarkTheme()
-		val badgeBg = if (isGranted) {
+		val isReducedMotion = ApkUpTheme.isReducedMotion
+		val targetBadgeBg = if (isGranted) {
 			if (isDark) Color(0xFF1B3820) else Color(0xFFE8F5E9)
 		} else {
 			if (isDark) Color(0xFF3E1A1A) else Color(0xFFFFEBEE)
 		}
-		val badgeColor = if (isGranted) {
+		val targetBadgeColor = if (isGranted) {
 			if (isDark) Color(0xFF81C784) else Color(0xFF2E7D32)
 		} else {
 			if (isDark) Color(0xFFFF8A80) else Color(0xFFC62828)
+		}
+		val badgeBg by animateColorAsState(
+			targetValue = targetBadgeBg,
+			animationSpec = if (isReducedMotion) tween(60) else tween(260),
+			label = "PermissionBadgeBg"
+		)
+		val badgeColor by animateColorAsState(
+			targetValue = targetBadgeColor,
+			animationSpec = if (isReducedMotion) tween(60) else tween(260),
+			label = "PermissionBadgeColor"
+		)
+		val checkScale = remember { Animatable(1f) }
+		var prevGranted by remember { mutableStateOf(isGranted) }
+		LaunchedEffect(isGranted) {
+			if (isGranted && !prevGranted && !isReducedMotion) {
+				checkScale.snapTo(0.25f)
+				checkScale.animateTo(
+					targetValue = 1f,
+					animationSpec = spring(dampingRatio = 0.45f, stiffness = 420f)
+				)
+			}
+			prevGranted = isGranted
 		}
 		Surface(
 			shape = CircleShape,
@@ -4901,12 +4998,30 @@ private fun PermissionSettingItem(
 				verticalAlignment = CenterVertically,
 				horizontalArrangement = Arrangement.spacedBy(4.dp)
 			) {
-				Icon(
-					imageVector = if (isGranted) Icons.Default.Check else Icons.Default.Close,
-					contentDescription = null,
-					tint = badgeColor,
-					modifier = Modifier.size(11.dp)
-				)
+				AnimatedContent(
+					targetState = isGranted,
+					transitionSpec = {
+						if (isReducedMotion) {
+							fadeIn(tween(60)) togetherWith fadeOut(tween(60))
+						} else {
+							(scaleIn(spring(dampingRatio = 0.55f, stiffness = 500f), initialScale = 0.5f) + fadeIn()) togetherWith
+								(scaleOut(targetScale = 0.5f) + fadeOut())
+						}
+					},
+					label = "PermissionCheckIcon"
+				) { granted ->
+					Icon(
+						imageVector = if (granted) Icons.Default.Check else Icons.Default.Close,
+						contentDescription = null,
+						tint = badgeColor,
+						modifier = Modifier
+							.size(11.dp)
+							.graphicsLayer {
+								scaleX = if (granted) checkScale.value else 1f
+								scaleY = if (granted) checkScale.value else 1f
+							}
+					)
+				}
 				Text(
 					text = statusText,
 					style = MaterialTheme.typography.labelSmall,
@@ -5910,3 +6025,25 @@ private fun ObtainiumImportBottomSheet(
 		}
 	}
 }
+
+private fun readUtf8FromSafUri(
+	context: Context,
+	uri: android.net.Uri,
+	maxBytes: Int = SettingsViewModel.MAX_BACKUP_JSON_CHARS
+): String? = runCatching {
+	context.contentResolver.openInputStream(uri)?.use { stream ->
+		val out = java.io.ByteArrayOutputStream()
+		val buf = ByteArray(8192)
+		var total = 0
+		while (true) {
+			val read = stream.read(buf)
+			if (read == -1) break
+			total += read
+			if (total > maxBytes) {
+				throw IllegalArgumentException("SAF file exceeds maximum allowed size ($maxBytes bytes)")
+			}
+			out.write(buf, 0, read)
+		}
+		out.toString(Charsets.UTF_8.name())
+	}
+}.getOrNull()

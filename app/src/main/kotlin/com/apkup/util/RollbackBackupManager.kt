@@ -47,7 +47,7 @@ class RollbackBackupManager(
         maxTotalBytes: Long = DEFAULT_MAX_TOTAL_BYTES
     ): RollbackBackupMeta? = synchronized(lock) {
         val cleanPkg = packageName.trim()
-        if (cleanPkg.isEmpty()) return null
+        val pkgDir = getPackageBackupDir(cleanPkg) ?: return null
         return runCatching {
             val pm = context.packageManager
             val pkgInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -72,12 +72,13 @@ class RollbackBackupManager(
 
             // Skip re-copying if we already have an identical backup for this exact versionCode
             val existing = getBackupMeta(cleanPkg)
-            val pkgDir = getPackageBackupDir(cleanPkg)
             if (existing != null && existing.versionCode == versionCode && hasValidApkFiles(pkgDir)) {
                 return existing
             }
 
-            val tempDir = File(rootDir, "${cleanPkg}.tmp")
+            val safePkg = pkgDir.name
+            val tempDir = File(rootDir, "$safePkg.tmp")
+            if (!isStrictChildOfRoot(tempDir)) return null
             if (tempDir.exists()) tempDir.deleteRecursively()
             tempDir.mkdirs()
 
@@ -126,7 +127,7 @@ class RollbackBackupManager(
     }
 
     fun getBackupMeta(packageName: String): RollbackBackupMeta? = synchronized(lock) {
-        val dir = getPackageBackupDir(packageName)
+        val dir = getPackageBackupDir(packageName) ?: return null
         val metaFile = File(dir, META_FILE_NAME)
         if (!metaFile.isFile || !hasValidApkFiles(dir)) return null
         return runCatching {
@@ -135,7 +136,7 @@ class RollbackBackupManager(
     }
 
     fun getBackupTargetFileOrDir(packageName: String): File? = synchronized(lock) {
-        val dir = getPackageBackupDir(packageName)
+        val dir = getPackageBackupDir(packageName) ?: return null
         if (!hasValidApkFiles(dir)) return null
         val apks = dir.listFiles { f -> f.isFile && f.name.endsWith(".apk", ignoreCase = true) }.orEmpty()
         return if (apks.size == 1) apks.first() else dir
@@ -162,7 +163,7 @@ class RollbackBackupManager(
     }
 
     fun deleteBackup(packageName: String): Boolean = synchronized(lock) {
-        val dir = getPackageBackupDir(packageName)
+        val dir = getPackageBackupDir(packageName) ?: return false
         if (!dir.exists()) return false
         dir.deleteRecursively()
     }
@@ -178,7 +179,7 @@ class RollbackBackupManager(
      * Single-APK backups are written directly as `.apk`; split backups are bundled as `.apks` (ZIP).
      */
     fun exportBackupToUri(packageName: String, destinationUri: Uri): Boolean = synchronized(lock) {
-        val dir = getPackageBackupDir(packageName)
+        val dir = getPackageBackupDir(packageName) ?: return false
         val apks = dir.listFiles { f -> f.isFile && f.name.endsWith(".apk", ignoreCase = true) }
             ?.sortedBy { it.name }
             .orEmpty()
@@ -202,10 +203,24 @@ class RollbackBackupManager(
         }.getOrDefault(false)
     }
 
-    private fun getPackageBackupDir(packageName: String): File {
-        val safeName = packageName.trim().replace(Regex("[^A-Za-z0-9._-]"), "_")
-        return File(rootDir, safeName)
+    private fun getPackageBackupDir(packageName: String): File? {
+        val trimmed = packageName.trim()
+        if (trimmed.isEmpty() || trimmed == "." || trimmed == ".." || trimmed.contains('/') || trimmed.contains('\\')) {
+            return null
+        }
+        val safeName = trimmed.replace(Regex("[^A-Za-z0-9._-]"), "_")
+        if (safeName.isEmpty() || safeName == "." || safeName == ".." || safeName.all { it == '.' }) {
+            return null
+        }
+        val candidate = File(rootDir, safeName)
+        return candidate.takeIf { isStrictChildOfRoot(it) }
     }
+
+    private fun isStrictChildOfRoot(candidate: File): Boolean = runCatching {
+        val rootCanonical = rootDir.canonicalFile
+        val candCanonical = candidate.canonicalFile
+        candCanonical.parentFile == rootCanonical && candCanonical != rootCanonical
+    }.getOrDefault(false)
 
     private fun hasValidApkFiles(dir: File): Boolean {
         if (!dir.isDirectory) return false

@@ -1,6 +1,5 @@
 <resources>
 
-    <string name="app_disabled">Désactivée</string>
     <string name="tab_apps">Apps</string>
     <string name="tab_updates">Updates</string>
     <string name="tab_settings">Options</string>
@@ -30,7 +29,6 @@
     <string name="app_cd">Icône de l\'application</string>
     <string name="install_success">%1$s installée.</string>
     <string name="install_failure">Échec de l\'installation de %1$s.</string>
-    <string name="install_error_signature_mismatch">Alerte de sécurité : le certificat de signature de l\'APK ne correspond pas à l\'application installée. Installation bloquée.</string>
     <string name="install_error_hash_mismatch">Alerte de sécurité : somme SHA-256 de l\'APK téléchargé incorrecte. Installation bloquée.</string>
     <string name="install_error_downgrade_blocked">Rétrogradation de version détectée et bloquée pour protéger vos données.</string>
     <string name="install_error_integrity_failed">La vérification du paquet APK a échoué (fichier corrompu ou non conforme).</string>
@@ -68,11 +66,6 @@
     <string name="apps_filter_recent">Récentes</string>
     <string name="apps_search_empty_title">Aucune application trouvée</string>
     <string name="apps_search_empty_message">Essayez un autre terme de recherche ou filtre.</string>
-    <string name="app_action_system_details">Infos sur l\'application (Système)</string>
-    <string name="app_action_open_play_store">Ouvrir dans Google Play Store</string>
-    <string name="app_action_open_play_store_unavailable">Non installée depuis Google Play Store</string>
-    <string name="app_action_uninstall">Désinstaller</string>
-    <string name="app_action_toggle_ignore">Basculer l\'état ignoré</string>
     <string name="apps_scroll_to_bottom">Aller en bas</string>
     <string name="apps_scroll_to_top">Aller en haut</string>
 
@@ -141,7 +134,6 @@
     <string name="fdroid_repo_url_label">URL HTTPS du dépôt</string>
     <string name="fdroid_repo_name_label">Nom d\'affichage (optionnel)</string>
     <string name="fdroid_repo_fingerprint_label">Empreinte SHA-256</string>
-    <string name="github_token_dialog_title">GitHub Personal Access Token</string>
     <string name="github_token_dialog_desc">Saisissez un jeton d\'accès personnel (lecture publique uniquement) pour éviter la limite d\'API GitHub (HTTP 403).</string>
     <string name="github_token_dialog_hint">ghp_xxxxxxxxxxxx</string>
     <string name="github_token_dialog_clear">Effacer le jeton</string>
@@ -283,7 +275,6 @@
     <string name="apkmirror_resolution_failed_fallback">Échec de résolution du lien APKMirror. Ouverture du navigateur…</string>
     <string name="settings_source_github_desc">Rechercher les versions GitHub pour les apps open source et associées</string>
     <string name="settings_source_gitlab_desc">Rechercher les versions GitLab pour les dépôts associés</string>
-    <string name="gitlab_token_dialog_title">Jeton d\'accès personnel GitLab</string>
     <string name="gitlab_token_dialog_hint">glpat-xxxxxxxxxxxx</string>
     <string name="gitlab_token_status_set">Jeton configuré</string>
     <string name="token_toggle_visibility">Afficher ou masquer le jeton</string>
@@ -454,21 +445,6 @@
     <string name="token_action_generate_codeberg">Créer un jeton sur Codeberg</string>
     <string name="link_repo_host_hint_codeberg">codeberg.org (ou Forgejo auto-hébergé)</string>
     <string name="repo_view_on_codeberg">Ouvrir sur Codeberg</string>
-    <string name="settings_source_custom_fdroid_desc">Dépôts F-Droid tiers (F-Droid.org, GrapheneOS, Mullvad, etc.)</string>
-    <string name="custom_fdroid_sheet_title">Dépôts F-Droid personnalisés</string>
-    <string name="custom_fdroid_sheet_subtitle">Dépôts configurés : %1$d</string>
-    <string name="custom_fdroid_presets_label">Dépôts populaires</string>
-    <string name="custom_fdroid_add_title">Ajouter l\'URL du dépôt</string>
-    <string name="custom_fdroid_name_label">Nom affiché</string>
-    <string name="custom_fdroid_name_hint">ex. F-Droid officiel</string>
-    <string name="custom_fdroid_url_label">URL du dépôt</string>
-    <string name="custom_fdroid_url_hint">https://f-droid.org/repo</string>
-    <string name="custom_fdroid_fingerprint_label">Empreinte SHA-256 (optionnel)</string>
-    <string name="custom_fdroid_btn_add">Ajouter le dépôt</string>
-    <string name="custom_fdroid_empty">Aucun dépôt F-Droid personnalisé configuré.</string>
-    <string name="custom_fdroid_invalid_url">Veuillez saisir une URL HTTPS ou fdroidrepo valide (http:// interdit).</string>
-    <string name="custom_fdroid_disallowed_host">Cet hôte de dépôt est bloqué pour des raisons de sécurité.</string>
-    <string name="custom_fdroid_invalid_fingerprint">L\'empreinte SHA-256 doit être vide ou contenir exactement 64 caractères hexadécimaux.</string>
     <string name="custom_fdroid_unpinned_badge">Non épinglé (TOFU)</string>
     <string name="custom_fdroid_unpinned_hint">Aucune empreinte SHA-256 épinglée — la première signature de l\'index sera approuvée au premier chargement</string>
     <string name="custom_fdroid_tofu_pinned_badge">Épinglé (TOFU)</string>
@@ -485,7 +461,6 @@
     <string name="obtainium_import_nothing">Aucune entrée GitHub, GitLab, Codeberg ou F-Droid compatible trouvée.</string>
     <string name="apps_filter_watched">Suivies</string>
     <string name="apps_watched_badge">Suivie</string>
-    <string name="apps_watched_not_installed">Non installée · Suivie</string>
     <string name="apps_watch_add_action">Suivre l\'app</string>
     <string name="apps_watch_remove_action">Ne plus suivre</string>
     <string name="apps_watch_removed_snack">%1$s retirée de la liste de suivi</string>
@@ -543,9 +518,7 @@
     <string name="pin_source_menu_action">Pin source</string>
     <string name="pin_source_menu_pinned">Pinned: %1$s</string>
     <string name="pin_source_chip_label">Pinned</string>
-    <string name="pin_source_unpin">Unpin</string>
     <string name="settings_include_prereleases_title">Include Pre-Releases (Alpha / Beta / RC)</string>
-    <string name="settings_include_prereleases_desc">Allow Alpha, Beta, RC, and Nightly versions globally. Can be overridden per app in the Pin Source sheet.</string>
     <string name="prerelease_override_section_title">Pre-Releases (Alpha / Beta / RC)</string>
     <string name="prerelease_override_default">Default</string>
     <string name="prerelease_override_allow">Always allow</string>
@@ -575,7 +548,6 @@
     <string name="watched_mark_seen_action">Seen</string>
     <string name="watched_mark_seen_snack">Marked v%1$s as seen</string>
     <string name="settings_import_app_watcher_title">Import from App Watcher</string>
-    <string name="settings_import_app_watcher_desc">Import uninstalled apps from an App Watcher JSON export into your Watchlist.</string>
     <string name="app_watcher_import_success">App Watcher: %1$d added to Watchlist (%2$d installed skipped)</string>
     <string name="app_watcher_import_error">Could not read App Watcher export file</string>
     <string name="settings_source_health_title">Source Health &amp; Cooldowns</string>
@@ -604,4 +576,31 @@
     <string name="self_update_prerelease_notice">Il s\'agit d\'une préversion d\'ApkUp destinée aux tests anticipés.</string>
     <string name="dynamic_color_title">Couleurs dynamiques (Material You)</string>
     <string name="dynamic_color_subtitle">Adapter les couleurs de l\'application à votre fond d\'écran</string>
+    <string name="about_support_bento_title">Soutenir ApkUp</string>
+    <string name="about_support_bento_subtitle">Étoile, avis · Buy Me a Coffee &amp; Coindrop</string>
+    <string name="support_sheet_title">Soutenir ApkUp</string>
+    <string name="support_sheet_description" formatted="false">ApkUp reste 100 % gratuit, open source, sans publicité ni suivi. Si l\'application vous fait gagner du temps, tout soutien volontaire aide beaucoup !</string>
+    <string name="support_section_direct">Soutien direct</string>
+    <string name="support_bmac_title">Buy Me a Coffee</string>
+    <string name="support_coindrop_title">Coindrop</string>
+    <string name="support_section_free">Aider gratuitement : étoile et avis</string>
+    <string name="support_section_free_desc">Laissez une étoile sur GitHub ou GitLab, ou publiez un avis sur votre plateforme préférée :</string>
+    <string name="support_prompt_title">Vous aimez ApkUp ?</string>
+    <string name="support_prompt_message" formatted="false">ApkUp est 100 % open source et sans publicité. Si l\'app vous aide, vous pouvez soutenir le projet avec une étoile sur GitHub, un avis ou un petit café !</string>
+    <string name="support_prompt_cta_github">Mettre une étoile sur GitHub</string>
+    <string name="support_prompt_cta_options">Voir le soutien et les stores</string>
+    <string name="support_prompt_later">Plus tard</string>
+    <string name="support_prompt_never">Ne plus demander</string>
+    <string name="updates_step_check">Vérifier</string>
+    <string name="updates_step_download">Télécharger</string>
+    <string name="updates_step_verify">Contrôler</string>
+    <string name="updates_step_install">Installer</string>
+    <string name="updates_selected_count_install">%1$d sél. · Installer</string>
+    <string name="updates_jump_to_error">Aller à l\'erreur ↑</string>
+    <string name="link_repo_preview_label">Aperçu</string>
+    <string name="apps_peek_package">Paquet</string>
+    <string name="apps_peek_signature">SHA-256 du signataire</string>
+    <string name="apps_peek_last_updated">Dernière mise à jour</string>
+    <string name="apps_fingerprint_copied">Empreinte copiée</string>
+    <string name="apps_newly_updated_badge">Mis à jour récemment</string>
 </resources>
