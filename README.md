@@ -166,13 +166,14 @@ cd apkup
 
 ## 📖 Troubleshooting & Wiki
 
-Need help configuring sources or resolving connection errors? Visit the official **[ApkUp Wiki](https://github.com/DurchEins/apkup/wiki)** for step-by-step guides:
+Need help configuring update sources, resolving errors, or setting up silent background installs? Browse the **[GitHub Wiki](https://github.com/DurchEins/apkup/wiki)** or the **[Web Wiki](https://durcheins.github.io/apkup/wiki/)** (available in 9 languages):
 
-* [Troubleshooting Source Errors](https://github.com/DurchEins/apkup/wiki/Troubleshooting-Source-Errors)
-* [Configuring GitHub, GitLab & Codeberg Personal Access Tokens](https://github.com/DurchEins/apkup/wiki/Configuring-GitHub-&-GitLab-Tokens)
-* [Setting up Shizuku & Optional Root (`su`) for Silent Updates](https://github.com/DurchEins/apkup/wiki/Setting-up-Shizuku)
-* [Obtainium Migration & Sync Guide](https://github.com/DurchEins/apkup/wiki/Obtainium-Migration-&-Sync-Guide)
-* [F-Droid & Index V2 Repositories](https://github.com/DurchEins/apkup/wiki/F-Droid-&-Index-V2-Repositories)
+| Category | Guides |
+| :--- | :--- |
+| 🌐 **Sources & Security** | [Update Sources & Signature Protection](https://github.com/DurchEins/apkup/wiki/Update-Sources,-Repository-Linking-&-Signature-Protection) • [F-Droid & Index V2 Repositories](https://github.com/DurchEins/apkup/wiki/F-Droid-&-Index-V2-Repositories) • [GitHub, GitLab & Codeberg Tokens](https://github.com/DurchEins/apkup/wiki/Configuring-GitHub-&-GitLab-Tokens) |
+| ⚡ **Installation & Automation** | [Shizuku & Background Installation](https://github.com/DurchEins/apkup/wiki/Shizuku-&-Background-Installation) ([Quick Setup](https://github.com/DurchEins/apkup/wiki/Setting-up-Shizuku)) • [Installing Unknown Apps](https://github.com/DurchEins/apkup/wiki/Installing-Unknown-Apps) • [Google’s 24h Lock & Keep Android Open](https://github.com/DurchEins/apkup/wiki/Google-24h-Lock-&-Keep-Android-Open) |
+| 🛠️ **Management & Migration** | [Apps, Filters, Rollbacks & Backup](https://github.com/DurchEins/apkup/wiki/App-Management,-Filters,-Background-Checks-&-Backup) • [Obtainium Migration & Sync Guide](https://github.com/DurchEins/apkup/wiki/Obtainium-Migration-&-Sync-Guide) |
+| 🚨 **Troubleshooting** | [Troubleshooting Source Errors](https://github.com/DurchEins/apkup/wiki/Troubleshooting-Source-Errors) *(DNS/Timeouts, 401/403/429 Rate Limits, Cloudflare, Signature Conflicts)* |
 
 ---
 
@@ -233,5 +234,5 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 ```
 
 <p align="center">
-  <sub>Special Thanks: Based on the original open-source project by <a href="https://github.com/rumboalla/apkupdater">rumboalla (APKUpdater)</a>.</sub>
+  <sub><i>Special Thanks: Based on the original open-source project by <a href="https://github.com/rumboalla/apkupdater">rumboalla (APKUpdater)</a>.</i></sub>
 </p>
