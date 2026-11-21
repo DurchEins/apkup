@@ -287,6 +287,7 @@ fun Settings(
 	var showCodebergTokenDialog by remember { mutableStateOf(false) }
 	var showRootSetupSheet by rememberSaveable { mutableStateOf(false) }
 	var showSupportCommunitySheet by rememberSaveable { mutableStateOf(false) }
+	val openCustomTab = com.apkup.ui.component.rememberCustomTabOpener()
 	var obtainiumImportPreview by remember { mutableStateOf<ObtainiumImportPreview?>(null) }
 	var isAdvancedExpanded by rememberSaveable { mutableStateOf(false) }
 	var includeLogcatInDiagnostics by rememberSaveable { mutableStateOf(false) }
@@ -2467,7 +2468,7 @@ fun Settings(
 						}
 
 						Surface(
-							onClick = { handler.openSafeHttpsUri("https://durcheins.github.io/apkup/wiki/") },
+							onClick = { openCustomTab("https://durcheins.github.io/apkup/wiki/") },
 							modifier = Modifier
 								.weight(1f)
 								.fillMaxHeight(),
