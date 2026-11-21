@@ -1,14 +1,26 @@
-name: Translation Improvement
-description: Report a typo, awkward phrasing, or missing translation in any of ApkUp's 9 languages
-title: "[Translation]: "
+name: Translation Improvement / New Language
+description: Report a translation typo, suggest a more natural phrasing, or contribute a new language
+title: "[Translation] "
 labels:
   - translation
-  - documentation
+  - needs-triage
 body:
   - type: markdown
     attributes:
       value: |
-        Spot a typo or unnatural phrasing? Let us know below and we'll fix it in the next release!
+        Thank you for helping make **ApkUp** sound natural in every language!
+        No Git or coding experience is required — simply describe the improvement below.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Where did you see the text?
+      options:
+        - Android App (UI / Settings)
+        - Website (durcheins.github.io/apkup)
+        - Both Android App & Website
+    validations:
+      required: true
 
   - type: dropdown
     id: language
@@ -16,29 +28,30 @@ body:
       label: Language
       options:
         - English (en)
-        - German (de)
-        - Spanish (es)
-        - French (fr)
-        - Italian (it)
-        - Japanese (ja)
-        - Portuguese (pt)
-        - Russian (ru)
-        - Chinese Simplified (zh-rCN)
+        - Deutsch (de)
+        - Español (es)
+        - Français (fr)
+        - Italiano (it)
+        - 日本語 (ja)
+        - Português (pt)
+        - Русский (ru)
+        - 简体中文 (zh-cn)
+        - Request / Contribute a new language
     validations:
       required: true
 
   - type: textarea
-    id: original
+    id: current_text
     attributes:
-      label: Current Text (or Screen / Setting Name)
-      placeholder: e.g. Setup → Installation → ...
+      label: Current text (optional)
+      description: Paste the current text or screenshot description if you are fixing a typo or awkward phrasing.
     validations:
-      required: true
+      required: false
 
   - type: textarea
-    id: suggestion
+    id: suggested_text
     attributes:
-      label: Suggested Correction
-      placeholder: What should it say instead?
+      label: Suggested translation or details
+      description: Write the improved translation, or let us know which new language you would like to help translate.
     validations:
       required: true

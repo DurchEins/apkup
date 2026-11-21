@@ -5,4 +5,11 @@ export default defineConfig({
   base: '/apkup',
   outDir: '../docs',
   compressHTML: true,
+  i18n: {
+    defaultLocale: 'en',
+    locales: ['en', 'de', 'es', 'fr', 'it', 'ja', 'pt', 'ru', 'zh-cn'],
+    routing: {
+      prefixDefaultLocale: false,
+    },
+  },
 });

@@ -1,0 +1,1626 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import {
+  DEFAULT_LOCALE,
+  absoluteLocaleUrl,
+  getTranslations,
+  localePath,
+  type Locale,
+} from '../i18n';
+
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = DEFAULT_LOCALE } = Astro.props;
+const t = getTranslations(lang);
+const gl = t.googleLockPage;
+
+const lockSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: gl.title,
+  url: absoluteLocaleUrl(lang, 'sideloading/google-lock/'),
+  author: { '@type': 'Person', name: 'DurchEins', url: 'https://github.com/DurchEins' },
+  about: { '@type': 'SoftwareApplication', name: 'ApkUp' },
+};
+---
+
+<BaseLayout
+  lang={lang}
+  subPath="sideloading/google-lock/"
+  title={gl.title}
+  description={gl.metaDesc}
+  jsonLd={lockSchema}
+  kaoBannerSize="normal"
+>
+  <Navbar lang={lang} />
+  <div class="kao-scroll-progress" id="kao-scroll-progress" aria-hidden="true"></div>
+  <main id="main-content" class="section">
+    <div class="container subpage-wrap">
+      <nav class="sl-breadcrumb" aria-label="Breadcrumb">
+        <a href={localePath(lang, 'sideloading/')} class="mono">
+          {gl.backLink}
+        </a>
+      </nav>
+
+      <header class="kao-hero" id="kao-hero">
+        <div class="kao-hero-top">
+          <span class="pill-badge pill-danger mono kao-alert-pill">
+            <span class="kao-pulse-dot" aria-hidden="true"></span>
+            <span>{gl.alertPill}</span>
+          </span>
+          <span class="pill-badge pill-neutral mono kao-countdown-pill" id="kao-global-countdown">
+            {gl.countdownPill}
+          </span>
+          <span class="pill-badge pill-neutral mono">keepandroidopen.org</span>
+        </div>
+
+        <h1 class="kao-title">{gl.h1}</h1>
+        <p class="kao-lead">{gl.lead}</p>
+
+        <div class="kao-hero-actions">
+          <a href="#sl-lock-steps" class="btn btn-danger" data-kao-jump-steps>
+            {gl.jumpStepsBtn}
+          </a>
+          <a
+            href="https://keepandroidopen.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn-danger-outline"
+          >
+            {gl.joinKaoBtn}
+          </a>
+          <button type="button" class="btn btn-danger-outline kao-share-btn" id="kao-share-btn">
+            {gl.shareBtn}
+          </button>
+        </div>
+      </header>
+
+      <section class="kao-checker" id="kao-checker" aria-labelledby="kao-checker-title">
+        <div class="kao-checker-head">
+          <span class="pill-badge pill-danger mono">{gl.checkerBadge}</span>
+          <h2 id="kao-checker-title">{gl.checkerTitle}</h2>
+        </div>
+        <div class="kao-checker-grid">
+          <div class="kao-q">
+            <span class="kao-q-label">{gl.checkerQ1}</span>
+            <div class="kao-q-btns">
+              <button type="button" class="kao-q-btn is-selected" data-q="gms" data-val="yes">
+                {gl.checkerQ1Yes}
+              </button>
+              <button type="button" class="kao-q-btn" data-q="gms" data-val="no">
+                {gl.checkerQ1No}
+              </button>
+            </div>
+          </div>
+          <div class="kao-q">
+            <span class="kao-q-label">{gl.checkerQ2}</span>
+            <div class="kao-q-btns">
+              <button type="button" class="kao-q-btn is-selected" data-q="method" data-val="apk">
+                {gl.checkerQ2Apk}
+              </button>
+              <button type="button" class="kao-q-btn" data-q="method" data-val="adb">
+                {gl.checkerQ2Adb}
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="kao-checker-result is-affected mono" id="kao-checker-result" aria-live="polite">
+          {gl.checkerResultAffected}
+        </div>
+      </section>
+
+      <section class="kao-section" aria-labelledby="kao-timeline-heading">
+        <div class="kao-sec-head">
+          <span class="pill-badge pill-danger mono">{gl.factsBadge}</span>
+          <h2 id="kao-timeline-heading">{gl.factsHeading}</h2>
+        </div>
+
+        <div class="kao-facts-grid">
+          {gl.facts.map((f) => (
+            <article class="kao-fact-card kao-spotlight">
+              <span class="kao-fact-date mono">{f.date}</span>
+              <h3>{f.title}</h3>
+              <p>{f.body}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section class="sl-card sl-card-danger" aria-labelledby="kao-why-heading">
+        <div class="sl-card-head">
+          <span class="pill-badge pill-danger mono">{gl.whyBadge}</span>
+          <h2 id="kao-why-heading">{gl.whyHeading}</h2>
+        </div>
+
+        <div class="kao-danger-list" id="kao-danger-list">
+          {gl.whyItems.map((item, idx) => (
+            <div class="kao-danger-item" style={`--stagger-i: ${idx};`}>
+              <strong>{item.title}</strong>
+              <p>{item.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div class="sl-two-col">
+        <article class="sl-card sl-card-danger">
+          <span class="pill-badge pill-danger mono">keepandroidopen.org</span>
+          <h2>{gl.kaoTitle}</h2>
+          <p>{gl.kaoBody}</p>
+          <div class="sl-actions">
+            <a
+              href="https://keepandroidopen.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn btn-danger"
+            >
+              keepandroidopen.org ↗
+            </a>
+            <a
+              href="https://keepandroidopen.org/banner/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn btn-danger-outline"
+            >
+              {gl.kaoBannerBtn}
+            </a>
+          </div>
+        </article>
+
+        <article class="sl-card has-spotlight">
+          <span class="pill-badge pill-amber mono">{gl.impactBadge}</span>
+          <h2>{gl.impactTitle}</h2>
+          <p>{gl.impactBody}</p>
+          <div class="sl-actions">
+            <a href={localePath(lang, 'wiki/#doc-google-lock')} class="btn btn-secondary">
+              {gl.wikiChapterBtn}
+            </a>
+            <a href={localePath(lang, 'wiki/#doc-shizuku-deep')} class="btn btn-ghost">
+              {gl.rootBtn}
+            </a>
+            <a href={localePath(lang, 'wiki/#doc-shizuku-setup')} class="btn btn-ghost">
+              {gl.shizukuBtn}
+            </a>
+          </div>
+        </article>
+      </div>
+
+      <section class="sl-card sl-card-danger" id="sl-lock-section" aria-labelledby="sl-lock-steps">
+        <div class="sl-card-head">
+          <span class="pill-badge pill-danger mono">{gl.unlockBadge}</span>
+          <h2 id="sl-lock-steps">{gl.unlockHeading}</h2>
+          <p class="sl-lead">{gl.unlockLead}</p>
+          <div class="kao-progress-wrap" aria-live="polite">
+            <div class="kao-progress-head mono">
+              <span>{gl.checklistProgress}</span>
+              <span class="kao-progress-right">
+                <span id="kao-steps-count">0 / 4</span>
+                <button type="button" class="kao-reset-btn" id="kao-steps-reset" hidden>
+                  {gl.resetBtn}
+                </button>
+              </span>
+            </div>
+            <div class="kao-progress-track">
+              <div class="kao-progress-fill" id="kao-steps-fill"></div>
+            </div>
+          </div>
+        </div>
+
+        <ol class="sl-steps" id="kao-steps-list">
+          <li data-step-idx="0" role="checkbox" aria-checked="false" tabindex="0">
+            <span class="sl-num sl-num-danger mono" id="kao-step1-badge" aria-hidden="true" title="Tap 7×!">
+              <span class="sl-num-text">01</span>
+              <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
+            <div>
+              <strong class="sl-step-title">{gl.steps[0].title}</strong>
+              <p>{gl.steps[0].body}</p>
+              {gl.steps[0].chips && (
+                <div class="kao-path-chips mono" aria-label="Android menu path">
+                  <span class="kao-chip">{gl.steps[0].chips[0]}</span>
+                  <span class="kao-chip-arrow" aria-hidden="true">→</span>
+                  <span class="kao-chip">{gl.steps[0].chips[1]}</span>
+                  <span class="kao-chip-arrow" aria-hidden="true">→</span>
+                  <span class="kao-chip kao-chip-hl">{gl.steps[0].chips[2]}</span>
+                </div>
+              )}
+              <div class="kao-dev-toast mono" id="kao-dev-toast" hidden aria-live="polite">
+                {gl.steps[0].toast}
+              </div>
+            </div>
+          </li>
+          <li data-step-idx="1" role="checkbox" aria-checked="false" tabindex="0">
+            <span class="sl-num sl-num-danger mono" aria-hidden="true">
+              <span class="sl-num-text">02</span>
+              <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
+            <div>
+              <strong class="sl-step-title">{gl.steps[1].title}</strong>
+              <p>{gl.steps[1].body}</p>
+              {gl.steps[1].chips && (
+                <div class="kao-path-chips mono" aria-label="Developer Options menu path">
+                  <span class="kao-chip">{gl.steps[1].chips[0]}</span>
+                  <span class="kao-chip-arrow" aria-hidden="true">→</span>
+                  <span class="kao-chip">{gl.steps[1].chips[1]}</span>
+                  <span class="kao-chip-arrow" aria-hidden="true">→</span>
+                  <span class="kao-chip kao-chip-hl">{gl.steps[1].chips[2]}</span>
+                </div>
+              )}
+            </div>
+          </li>
+          <li data-step-idx="2" role="checkbox" aria-checked="false" tabindex="0">
+            <span class="sl-num sl-num-danger mono" aria-hidden="true">
+              <span class="sl-num-text">03</span>
+              <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
+            <div>
+              <strong class="sl-step-title">{gl.steps[2].title}</strong>
+              <p>{gl.steps[2].body}</p>
+              <div class="kao-ics-hint">
+                <button type="button" class="kao-ics-link mono" id="kao-timer-ics">
+                  {gl.steps[2].icsBtn}
+                </button>
+              </div>
+            </div>
+          </li>
+          <li data-step-idx="3" role="checkbox" aria-checked="false" tabindex="0">
+            <span class="sl-num sl-num-danger mono" aria-hidden="true">
+              <span class="sl-num-text">04</span>
+              <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
+            <div>
+              <strong class="sl-step-title">{gl.steps[3].title}</strong>
+              <p>{gl.steps[3].body}</p>
+            </div>
+          </li>
+        </ol>
+
+        <div class="kao-trap-alert" role="note">
+          <strong>{gl.trapTitle}</strong>
+          <p>{gl.trapBody}</p>
+          <div class="kao-trap-sim" id="kao-trap-sim">
+            <div class="kao-trap-tabs" role="tablist" aria-label="7-day trap comparison">
+              <button type="button" class="kao-trap-tab is-active" data-trap-mode="7d" role="tab" aria-selected="true">
+                {gl.trapTab7d}
+              </button>
+              <button type="button" class="kao-trap-tab" data-trap-mode="forever" role="tab" aria-selected="false">
+                {gl.trapTabForever}
+              </button>
+            </div>
+            <div class="kao-trap-result is-bad mono" id="kao-trap-result">
+              {gl.trapRes7d}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sl-card" aria-labelledby="kao-compare-heading">
+        <div class="sl-card-head">
+          <span class="pill-badge pill-neutral mono">{gl.compareBadge}</span>
+          <h2 id="kao-compare-heading">{gl.compareHeading}</h2>
+        </div>
+
+        <div class="kao-table-wrap">
+          <table class="kao-table" id="kao-compare-table">
+            <thead>
+              <tr>
+                <th>{gl.compareThScenario}</th>
+                <th>{gl.compareThLocked}</th>
+                <th class="kao-col-safe-th" id="kao-col-safe-th" tabindex="0">
+                  {gl.compareThSafe}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {gl.compareRows.map((r, i) => (
+                <tr class={i < 2 ? 'kao-row-warn' : 'kao-row-safe'}>
+                  <td><strong>{r.scenario}</strong></td>
+                  <td class={i < 2 ? 'kao-td-bad' : 'kao-td-good'}>{r.locked}</td>
+                  <td class="kao-td-good">{r.safe}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="sl-card" aria-labelledby="kao-adb-heading">
+        <div class="sl-card-head">
+          <span class="pill-badge pill-green mono">ADB • Shizuku • Root</span>
+          <h2 id="kao-adb-heading">{gl.adbHeading}</h2>
+          <p>{gl.adbLead}</p>
+        </div>
+        <div class="kao-code-wrap">
+          <pre class="kao-code mono"><code>adb install -r ApkUp.apk</code></pre>
+          <button type="button" class="kao-copy-btn mono" id="kao-copy-adb" aria-label="Copy ADB command">
+            <span class="kao-copy-icon kao-icon-default" aria-hidden="true">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            </span>
+            <span class="kao-copy-icon kao-icon-done" aria-hidden="true">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
+            <span class="kao-copy-label">{gl.copy}</span>
+          </button>
+        </div>
+        <div class="sl-actions">
+          <a href={localePath(lang, 'sideloading/')} class="btn btn-secondary">
+            {gl.backUnknownBtn}
+          </a>
+          <a href={localePath(lang, 'wiki/#doc-sideloading')} class="btn btn-ghost">
+            {gl.generalWikiBtn}
+          </a>
+          <a href={localePath(lang, 'wiki/#doc-shizuku-deep')} class="btn btn-ghost">
+            {gl.rootBtn}
+          </a>
+          <a href={localePath(lang, 'wiki/#doc-shizuku-setup')} class="btn btn-ghost">
+            {gl.shizukuBtn}
+          </a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <a href="#sl-lock-steps" class="kao-quick-jump mono" id="kao-quick-jump" data-kao-jump-steps hidden>
+    {gl.quickJump}
+  </a>
+
+  <Footer lang={lang} subPath="sideloading/google-lock/" />
+</BaseLayout>
+
+<script
+  is:inline
+  define:vars={{
+    resAffected: gl.checkerResultAffected,
+    resAdb: gl.checkerResultAdb,
+    resDeGoogled: gl.checkerResultDeGoogled,
+    trap7dText: gl.trapRes7d,
+    trapForeverText: gl.trapResForever,
+    shareTitle: gl.h1,
+    shareLead: gl.lead,
+    copiedToast: t.meta.copiedToast,
+  }}
+>
+  (function () {
+    var ROLLOUT_UTC_MS = Date.UTC(2027, 0, 1, 0, 0, 0);
+    var HOURS_24_MS = 24 * 3600 * 1000;
+    var CHECKLIST_STORAGE_KEY = 'apkup-24h-steps-v1';
+    var ADB_INSTALL_COMMAND = 'adb install -r ApkUp.apk';
+
+    function initGlobalCountdown() {
+      var countdownEl = document.getElementById('kao-global-countdown');
+      if (!countdownEl) return;
+
+      function render() {
+        var remainingMs = ROLLOUT_UTC_MS - Date.now();
+        if (remainingMs <= 0) {
+          countdownEl.textContent = 'Global Rollout: Active';
+          return;
+        }
+        var days = Math.floor(remainingMs / 86400000);
+        var hours = Math.floor((remainingMs % 86400000) / 3600000);
+        countdownEl.textContent = 'Jan 2027 • ' + days + 'd ' + hours + 'h';
+      }
+
+      render();
+      setInterval(render, 60000);
+    }
+
+    function initCardSpotlights() {
+      document.querySelectorAll('.kao-spotlight').forEach(function (card) {
+        card.addEventListener('pointermove', function (event) {
+          var rect = card.getBoundingClientRect();
+          card.style.setProperty('--mx', (event.clientX - rect.left) + 'px');
+          card.style.setProperty('--my', (event.clientY - rect.top) + 'px');
+        });
+      });
+    }
+
+    function initScrollReveal() {
+      var dangerItems = document.querySelectorAll('.kao-danger-item');
+      if (!dangerItems.length) return;
+      if (!('IntersectionObserver' in window)) {
+        dangerItems.forEach(function (item) { item.classList.add('is-visible'); });
+        return;
+      }
+
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        });
+      }, { threshold: 0.15 });
+
+      dangerItems.forEach(function (item) { observer.observe(item); });
+    }
+
+    function loadSavedSteps() {
+      try {
+        var parsed = JSON.parse(localStorage.getItem(CHECKLIST_STORAGE_KEY) || '[]');
+        if (Array.isArray(parsed) && parsed.length === 4) return parsed.map(Boolean);
+      } catch (e) {}
+      return [false, false, false, false];
+    }
+
+    function initUnlockChecklist() {
+      var stepsList = document.getElementById('kao-steps-list');
+      if (!stepsList) return;
+
+      var countEl = document.getElementById('kao-steps-count');
+      var fillEl = document.getElementById('kao-steps-fill');
+      var resetBtn = document.getElementById('kao-steps-reset');
+      var stepItems = stepsList.querySelectorAll('li[data-step-idx]');
+      var stepState = loadSavedSteps();
+
+      function render() {
+        var doneCount = 0;
+        stepItems.forEach(function (li, index) {
+          var isDone = stepState[index];
+          if (isDone) doneCount++;
+          li.classList.toggle('is-done', isDone);
+          li.setAttribute('aria-checked', isDone ? 'true' : 'false');
+        });
+        if (countEl) countEl.textContent = doneCount + ' / 4';
+        if (fillEl) fillEl.style.width = (doneCount * 25) + '%';
+        if (resetBtn) resetBtn.hidden = doneCount < 4;
+        try { localStorage.setItem(CHECKLIST_STORAGE_KEY, JSON.stringify(stepState)); } catch (e) {}
+      }
+
+      stepItems.forEach(function (li, index) {
+        function toggle() {
+          stepState[index] = !stepState[index];
+          render();
+        }
+        li.addEventListener('click', toggle);
+        li.addEventListener('keydown', function (event) {
+          if (event.key !== ' ' && event.key !== 'Enter') return;
+          event.preventDefault();
+          toggle();
+        });
+      });
+
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function () {
+          stepState = [false, false, false, false];
+          render();
+        });
+      }
+
+      render();
+    }
+
+    function initTrapSimulator() {
+      var simulator = document.getElementById('kao-trap-sim');
+      var resultEl = document.getElementById('kao-trap-result');
+      if (!simulator || !resultEl) return;
+
+      var tabs = simulator.querySelectorAll('.kao-trap-tab');
+      tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          var isForever = tab.getAttribute('data-trap-mode') === 'forever';
+          tabs.forEach(function (btn) {
+            var active = btn === tab;
+            btn.classList.toggle('is-active', active);
+            btn.setAttribute('aria-selected', active ? 'true' : 'false');
+          });
+          resultEl.classList.toggle('is-good', isForever);
+          resultEl.classList.toggle('is-bad', !isForever);
+          resultEl.textContent = isForever ? trapForeverText : trap7dText;
+        });
+      });
+    }
+
+    function initAdbCopyButton() {
+      var copyBtn = document.getElementById('kao-copy-adb');
+      if (!copyBtn) return;
+
+      var resetTimer = null;
+      copyBtn.addEventListener('click', function () {
+        if (navigator.clipboard) navigator.clipboard.writeText(ADB_INSTALL_COMMAND);
+        copyBtn.classList.add('is-copied');
+        clearTimeout(resetTimer);
+        resetTimer = setTimeout(function () { copyBtn.classList.remove('is-copied'); }, 1800);
+      });
+    }
+
+    function initQuickJumpButton() {
+      var heroEl = document.getElementById('kao-hero');
+      var stepsHeading = document.getElementById('sl-lock-steps');
+      var jumpBtn = document.getElementById('kao-quick-jump');
+      if (!heroEl || !stepsHeading || !jumpBtn || !('IntersectionObserver' in window)) return;
+
+      var heroVisible = true;
+      var stepsVisible = false;
+      function syncVisibility() {
+        jumpBtn.hidden = heroVisible || stepsVisible;
+      }
+
+      new IntersectionObserver(function (entries) {
+        heroVisible = entries[0].isIntersecting;
+        syncVisibility();
+      }).observe(heroEl);
+
+      new IntersectionObserver(function (entries) {
+        stepsVisible = entries[0].isIntersecting;
+        syncVisibility();
+      }).observe(stepsHeading);
+    }
+
+    function initScrollProgressBar() {
+      var progressBar = document.getElementById('kao-scroll-progress');
+      if (!progressBar) return;
+
+      function update() {
+        var scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+        var ratio = scrollableHeight > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollableHeight)) : 0;
+        progressBar.style.transform = 'scaleX(' + ratio.toFixed(4) + ')';
+      }
+
+      window.addEventListener('scroll', update, { passive: true });
+      update();
+    }
+
+    function initShareButton() {
+      var shareBtn = document.getElementById('kao-share-btn');
+      if (!shareBtn) return;
+
+      var resetTimer = null;
+      shareBtn.addEventListener('click', function () {
+        var url = window.location.href;
+        if (navigator.share) {
+          navigator.share({
+            title: shareTitle,
+            text: shareLead,
+            url: url,
+          }).catch(function () {});
+          return;
+        }
+        if (!navigator.clipboard) return;
+        navigator.clipboard.writeText(url);
+        var previousText = shareBtn.textContent;
+        shareBtn.textContent = copiedToast;
+        clearTimeout(resetTimer);
+        resetTimer = setTimeout(function () { shareBtn.textContent = previousText; }, 1800);
+      });
+    }
+
+    function initAffectedChecker() {
+      var checker = document.getElementById('kao-checker');
+      var resultEl = document.getElementById('kao-checker-result');
+      if (!checker || !resultEl) return;
+
+      var answers = { gms: 'yes', method: 'apk' };
+
+      function renderResult() {
+        var isSafe = answers.gms === 'no' || answers.method === 'adb';
+        resultEl.classList.toggle('is-safe', isSafe);
+        resultEl.classList.toggle('is-affected', !isSafe);
+
+        if (answers.gms === 'no') {
+          resultEl.textContent = resDeGoogled;
+          return;
+        }
+        if (answers.method === 'adb') {
+          resultEl.textContent = resAdb;
+          return;
+        }
+        resultEl.textContent = resAffected;
+      }
+
+      checker.querySelectorAll('.kao-q-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var question = btn.getAttribute('data-q');
+          answers[question] = btn.getAttribute('data-val');
+          checker.querySelectorAll('.kao-q-btn[data-q="' + question + '"]').forEach(function (option) {
+            option.classList.toggle('is-selected', option === btn);
+          });
+          renderResult();
+        });
+      });
+    }
+
+    function initDeveloperEasterEgg() {
+      var stepBadge = document.getElementById('kao-step1-badge');
+      var toast = document.getElementById('kao-dev-toast');
+      if (!stepBadge || !toast) return;
+
+      var tapCount = 0;
+      var hideTimer = null;
+      stepBadge.addEventListener('click', function (event) {
+        event.stopPropagation();
+        tapCount++;
+        if (tapCount < 7) return;
+        tapCount = 0;
+        toast.hidden = false;
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(function () { toast.hidden = true; }, 2600);
+      });
+    }
+
+    function formatIcsUtc(date) {
+      return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+    }
+
+    function initCalendarReminder() {
+      var icsBtn = document.getElementById('kao-timer-ics');
+      if (!icsBtn) return;
+
+      icsBtn.addEventListener('click', function (event) {
+        event.stopPropagation();
+        var startTime = new Date(Date.now() + HOURS_24_MS);
+        var endTime = new Date(startTime.getTime() + 15 * 60 * 1000);
+        var summary = 'Android 24h Lock: Allow indefinitely';
+        var description = 'Settings -> System -> Developer Options -> Apps from unverified developers -> Allow indefinitely';
+        var icsText = [
+          'BEGIN:VCALENDAR',
+          'VERSION:2.0',
+          'PRODID:-//ApkUp//24h Lock Reminder//EN',
+          'BEGIN:VEVENT',
+          'UID:apkup-24h-' + startTime.getTime() + '@durcheins.github.io',
+          'DTSTAMP:' + formatIcsUtc(new Date()),
+          'DTSTART:' + formatIcsUtc(startTime),
+          'DTEND:' + formatIcsUtc(endTime),
+          'SUMMARY:' + summary,
+          'DESCRIPTION:' + description,
+          'BEGIN:VALARM',
+          'TRIGGER:-PT0M',
+          'ACTION:DISPLAY',
+          'DESCRIPTION:' + summary,
+          'END:VALARM',
+          'END:VEVENT',
+          'END:VCALENDAR',
+        ].join('\r\n');
+        var blob = new Blob([icsText], { type: 'text/calendar;charset=utf-8' });
+        var downloadLink = document.createElement('a');
+        downloadLink.href = URL.createObjectURL(blob);
+        downloadLink.download = 'apkup-android-24h-unlock.ics';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        setTimeout(function () { URL.revokeObjectURL(downloadLink.href); }, 1000);
+      });
+    }
+
+    function initSafeColumnHighlight() {
+      var table = document.getElementById('kao-compare-table');
+      var safeHeader = document.getElementById('kao-col-safe-th');
+      if (!table || !safeHeader) return;
+
+      safeHeader.addEventListener('mouseenter', function () { table.classList.add('is-col-safe-hl'); });
+      safeHeader.addEventListener('mouseleave', function () { table.classList.remove('is-col-safe-hl'); });
+      safeHeader.addEventListener('click', function () { table.classList.toggle('is-col-safe-hl'); });
+    }
+
+    function initAnchorHighlightFlash() {
+      var lockSection = document.getElementById('sl-lock-section');
+      if (!lockSection) return;
+
+      document.querySelectorAll('[data-kao-jump-steps]').forEach(function (trigger) {
+        trigger.addEventListener('click', function () {
+          lockSection.classList.remove('kao-anchor-flash');
+          void lockSection.offsetWidth;
+          lockSection.classList.add('kao-anchor-flash');
+        });
+      });
+    }
+
+    initGlobalCountdown();
+    initCardSpotlights();
+    initScrollReveal();
+    initUnlockChecklist();
+    initTrapSimulator();
+    initAdbCopyButton();
+    initQuickJumpButton();
+    initScrollProgressBar();
+    initShareButton();
+    initAffectedChecker();
+    initDeveloperEasterEgg();
+    initCalendarReminder();
+    initSafeColumnHighlight();
+    initAnchorHighlightFlash();
+  })();
+</script>
+<style>
+
+  .subpage-wrap {
+    max-width: 980px;
+  }
+
+  .sl-breadcrumb {
+    margin-bottom: 14px;
+  }
+
+  .sl-breadcrumb a {
+    font-size: 0.82rem;
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  @media (hover: hover) {
+    .sl-breadcrumb a:hover {
+      text-decoration: underline;
+    }
+  }
+
+  /* Alarm-Red Hero (Keep Android Open Style) */
+  .kao-hero {
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(239, 68, 68, 0.7);
+    background: linear-gradient(145deg, rgba(220, 38, 38, 0.22), rgba(127, 29, 29, 0.14) 45%, var(--surface-low));
+    padding: clamp(24px, 4vw, 38px);
+    margin-bottom: 24px;
+    box-shadow: 0 18px 44px rgba(220, 38, 38, 0.16);
+  }
+
+  .kao-hero-top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .kao-title {
+    margin: 0 0 12px;
+    font-size: clamp(1.85rem, 3.6vw, 2.7rem);
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+  }
+
+  .kao-lead {
+    margin: 0 0 22px;
+    max-width: 70ch;
+    color: var(--text);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .kao-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .btn-danger-outline {
+    background: rgba(220, 38, 38, 0.12);
+    color: #fca5a5;
+    border: 1px solid rgba(239, 68, 68, 0.55);
+    font-weight: 700;
+    transition-property: background-color, border-color, transform;
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
+  }
+
+  [data-theme='light'] .btn-danger-outline {
+    color: #b91c1c;
+    background: rgba(220, 38, 38, 0.08);
+  }
+
+  @media (hover: hover) {
+    .btn-danger-outline:hover {
+      background: rgba(220, 38, 38, 0.22);
+      border-color: #ef4444;
+    }
+  }
+
+  .btn-danger-outline:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+
+  /* Timeline & Facts */
+  .kao-section {
+    margin-bottom: 24px;
+  }
+
+  .kao-sec-head {
+    margin-bottom: 14px;
+  }
+
+  .kao-sec-head h2 {
+    margin: 8px 0 0;
+    font-size: 1.4rem;
+  }
+
+  .kao-facts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .kao-fact-card {
+    background: var(--surface-low);
+    border: 1px solid rgba(239, 68, 68, 0.38);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .kao-fact-date {
+    display: inline-flex;
+    align-self: flex-start;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(239, 68, 68, 0.16);
+    color: #f87171;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  [data-theme='light'] .kao-fact-date {
+    color: #b91c1c;
+  }
+
+  .kao-fact-card h3 {
+    margin: 0;
+    font-size: 1.04rem;
+  }
+
+  .kao-fact-card p {
+    margin: 0;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .kao-danger-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .kao-danger-item {
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    border: 1px solid rgba(239, 68, 68, 0.28);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .kao-danger-item strong {
+    font-size: 0.94rem;
+    color: var(--text);
+  }
+
+  .kao-danger-item p {
+    font-size: 0.86rem;
+    line-height: 1.5;
+  }
+
+  .sl-num-danger {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: rgba(239, 68, 68, 0.16);
+    color: #f87171;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  [data-theme='light'] .sl-num-danger {
+    color: #b91c1c;
+  }
+
+  .sl-step-title {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.96rem;
+    color: var(--text);
+  }
+
+  .kao-trap-alert {
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(239, 68, 68, 0.65);
+    background: rgba(220, 38, 38, 0.14);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .kao-trap-alert strong {
+    color: #fca5a5;
+    font-size: 0.95rem;
+  }
+
+  [data-theme='light'] .kao-trap-alert strong {
+    color: #b91c1c;
+  }
+
+  .kao-trap-alert p {
+    color: var(--text);
+    font-size: 0.88rem;
+  }
+
+  /* Comparison Table */
+  .kao-table-wrap {
+    overflow-x: auto;
+  }
+
+  .kao-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+
+  .kao-table th,
+  .kao-table td {
+    text-align: left;
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--outline);
+  }
+
+  .kao-table th {
+    color: var(--text-muted);
+    font-weight: 700;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .kao-td-bad {
+    color: #f87171;
+    font-weight: 600;
+  }
+
+  .kao-td-good {
+    color: var(--tertiary-soft-ink);
+    font-weight: 600;
+  }
+
+  [data-theme='light'] .kao-td-bad {
+    color: #b91c1c;
+  }
+
+  .kao-code {
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    border: 1px solid var(--outline);
+    font-size: 0.86rem;
+    overflow-x: auto;
+  }
+
+  .sl-two-col {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .sl-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 6px;
+  }
+
+  @media (max-width: 820px) {
+    .kao-facts-grid,
+    .kao-danger-list,
+    .sl-two-col {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Alert Radar Pulse */
+  .kao-alert-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .kao-pulse-dot {
+    position: relative;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #ef4444;
+    flex-shrink: 0;
+  }
+
+  .kao-pulse-dot::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 999px;
+    border: 1.5px solid #ef4444;
+    animation: kaoRadarPulse 2.2s ease-out infinite;
+  }
+
+  @keyframes kaoRadarPulse {
+    0% {
+      transform: scale(0.8);
+      opacity: 0.8;
+    }
+    100% {
+      transform: scale(2.1);
+      opacity: 0;
+    }
+  }
+
+  /* 5. Red Cursor Spotlight on Fact Cards */
+  .kao-spotlight {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kao-spotlight::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), rgba(239, 68, 68, 0.16), transparent 70%);
+    transition-property: opacity;
+    transition-duration: 160ms;
+  }
+
+  @media (hover: hover) {
+    .kao-spotlight:hover::before {
+      opacity: 1;
+    }
+  }
+
+  /* 9. Staggered Scroll-Reveal for Danger Cards */
+  .kao-danger-item {
+    opacity: 0;
+    transform: translateY(12px);
+    transition-property: opacity, transform;
+    transition-duration: 300ms;
+    transition-timing-function: ease-out;
+    transition-delay: calc(var(--stagger-i, 0) * 100ms);
+  }
+
+  .kao-danger-item.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* 3. Interactive Steps & Progress Bar */
+  .kao-progress-wrap {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .kao-progress-head {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.76rem;
+    color: var(--text-muted);
+  }
+
+  .kao-progress-track {
+    width: 100%;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--bg);
+    border: 1px solid var(--outline);
+    overflow: hidden;
+  }
+
+  .kao-progress-fill {
+    width: 0%;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #ef4444, #22c55e);
+    transition-property: width;
+    transition-duration: 280ms;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  #kao-steps-list li {
+    cursor: pointer;
+    user-select: none;
+    transition-property: border-color, background-color;
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
+  }
+
+  @media (hover: hover) {
+    #kao-steps-list li:hover {
+      border-color: rgba(239, 68, 68, 0.55);
+    }
+  }
+
+  #kao-steps-list li.is-done {
+    border-color: rgba(34, 197, 94, 0.45);
+    background: rgba(34, 197, 94, 0.06);
+  }
+
+  #kao-steps-list .sl-num {
+    position: relative;
+  }
+
+  #kao-steps-list .sl-num-check {
+    position: absolute;
+    opacity: 0;
+    transform: scale(0.25);
+    transition-property: opacity, transform;
+    transition-duration: 260ms;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  #kao-steps-list .sl-num-text {
+    transition-property: opacity, transform;
+    transition-duration: 200ms;
+  }
+
+  #kao-steps-list li.is-done .sl-num {
+    background: rgba(34, 197, 94, 0.18);
+    color: #4ade80;
+  }
+
+  [data-theme='light'] #kao-steps-list li.is-done .sl-num {
+    color: #15803d;
+  }
+
+  #kao-steps-list li.is-done .sl-num-text {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  #kao-steps-list li.is-done .sl-num-check {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* 7. 7-Day Trap Mini-Simulation */
+  .kao-trap-sim {
+    margin-top: 8px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(239, 68, 68, 0.35);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .kao-trap-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .kao-trap-tab {
+    padding: 5px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--outline);
+    background: var(--bg);
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition-property: background-color, border-color, color, transform;
+    transition-duration: 150ms;
+  }
+
+  .kao-trap-tab.is-active {
+    border-color: #ef4444;
+    background: rgba(220, 38, 38, 0.2);
+    color: var(--text);
+  }
+
+  .kao-trap-tab.is-active[data-trap-mode='forever'] {
+    border-color: #22c55e;
+    background: rgba(34, 197, 94, 0.16);
+  }
+
+  .kao-trap-result {
+    font-size: 0.78rem;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm, 8px);
+    background: var(--bg);
+    border: 1px solid rgba(239, 68, 68, 0.45);
+    color: #fca5a5;
+  }
+
+  .kao-trap-result.is-good {
+    border-color: rgba(34, 197, 94, 0.45);
+    color: #86efac;
+  }
+
+  [data-theme='light'] .kao-trap-result {
+    color: #b91c1c;
+  }
+
+  [data-theme='light'] .kao-trap-result.is-good {
+    color: #15803d;
+  }
+
+  /* 8. Table Row Status Highlight */
+  .kao-table tbody tr {
+    border-left: 3px solid transparent;
+    transition-property: background-color, border-color;
+    transition-duration: 150ms;
+  }
+
+  @media (hover: hover) {
+    .kao-table tbody tr.kao-row-warn:hover {
+      background: rgba(239, 68, 68, 0.08);
+      border-left-color: #ef4444;
+    }
+    .kao-table tbody tr.kao-row-safe:hover {
+      background: rgba(34, 197, 94, 0.08);
+      border-left-color: #22c55e;
+    }
+  }
+
+  /* 6. ADB Copy-to-Clipboard Morph */
+  .kao-code-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-md);
+    padding: 8px 10px 8px 14px;
+  }
+
+  .kao-code-wrap .kao-code {
+    flex: 1;
+    border: none;
+    padding: 0;
+    background: transparent;
+  }
+
+  .kao-copy-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 11px;
+    border-radius: 999px;
+    border: 1px solid var(--outline);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.76rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition-property: background-color, border-color, color, transform;
+    transition-duration: 150ms;
+  }
+
+  .kao-copy-icon {
+    display: inline-flex;
+    transition-property: opacity, transform;
+    transition-duration: 300ms;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .kao-icon-done {
+    position: absolute;
+    left: 11px;
+    opacity: 0;
+    transform: scale(0.25);
+    color: #4ade80;
+  }
+
+  .kao-copy-btn.is-copied {
+    border-color: rgba(34, 197, 94, 0.55);
+    color: #4ade80;
+  }
+
+  .kao-copy-btn.is-copied .kao-icon-default {
+    opacity: 0;
+    transform: scale(0.25);
+  }
+
+  .kao-copy-btn.is-copied .kao-icon-done {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .kao-copy-btn:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+
+  /* 10. Floating Quick-Jump Pill */
+  .kao-quick-jump {
+    position: fixed;
+    left: 20px;
+    bottom: 20px;
+    z-index: 40;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: #dc2626;
+    color: #fff;
+    border: 1px solid #ef4444;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 10px 26px rgba(220, 38, 38, 0.35);
+    transition-property: transform, background-color, opacity;
+    transition-duration: 180ms;
+    transition-timing-function: ease-out;
+  }
+
+  @media (hover: hover) {
+    .kao-quick-jump:hover {
+      background: #b91c1c;
+    }
+  }
+
+  .kao-quick-jump:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+
+  /* 6b. Scroll Progress Line */
+  .kao-scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    z-index: 60;
+    background: linear-gradient(90deg, #ef4444, #f97316);
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+    pointer-events: none;
+  }
+
+  /* 3b. 2-Click Self-Check */
+  .kao-checker {
+    background: var(--surface-low);
+    border: 1px solid rgba(239, 68, 68, 0.48);
+    border-radius: var(--radius-lg);
+    padding: clamp(18px, 3vw, 24px);
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .kao-checker-head h2 {
+    margin: 8px 0 0;
+    font-size: 1.24rem;
+  }
+
+  .kao-checker-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .kao-q {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .kao-q-label {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .kao-q-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .kao-q-btn {
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--outline);
+    background: var(--bg);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition-property: background-color, border-color, color, transform;
+    transition-duration: 150ms;
+  }
+
+  .kao-q-btn.is-selected {
+    border-color: #ef4444;
+    background: rgba(220, 38, 38, 0.16);
+    color: var(--text);
+  }
+
+  .kao-q-btn:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+
+  .kao-checker-result {
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    font-size: 0.82rem;
+    font-weight: 700;
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    background: rgba(220, 38, 38, 0.12);
+    color: #fca5a5;
+  }
+
+  .kao-checker-result.is-safe {
+    border-color: rgba(34, 197, 94, 0.5);
+    background: rgba(34, 197, 94, 0.12);
+    color: #86efac;
+  }
+
+  [data-theme='light'] .kao-checker-result {
+    color: #b91c1c;
+  }
+
+  [data-theme='light'] .kao-checker-result.is-safe {
+    color: #15803d;
+  }
+
+  /* 9b. Reset Micro-Button */
+  .kao-progress-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .kao-reset-btn {
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--outline);
+    background: var(--bg);
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition-property: border-color, color, transform;
+    transition-duration: 150ms;
+  }
+
+  @media (hover: hover) {
+    .kao-reset-btn:hover {
+      border-color: #ef4444;
+      color: #f87171;
+    }
+  }
+
+  /* 4b. Path Breadcrumb Chips */
+  .kao-path-chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .kao-chip {
+    padding: 3px 9px;
+    border-radius: 7px;
+    background: var(--surface);
+    border: 1px solid var(--outline);
+    font-size: 0.73rem;
+    color: var(--text-muted);
+  }
+
+  .kao-chip-hl {
+    border-color: rgba(239, 68, 68, 0.45);
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  .kao-chip-arrow {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    transition-property: transform;
+    transition-duration: 150ms;
+  }
+
+  @media (hover: hover) {
+    #kao-steps-list li:hover .kao-chip-arrow {
+      transform: translateX(2px);
+    }
+  }
+
+  /* 5b. 7x Tap Developer Toast */
+  .kao-dev-toast {
+    margin-top: 8px;
+    display: inline-flex;
+    padding: 5px 11px;
+    border-radius: 999px;
+    background: rgba(34, 197, 94, 0.16);
+    border: 1px solid rgba(34, 197, 94, 0.5);
+    color: #86efac;
+    font-size: 0.76rem;
+    font-weight: 700;
+  }
+
+  [data-theme='light'] .kao-dev-toast {
+    color: #15803d;
+  }
+
+  /* 1b. Subtle .ics Calendar Reminder Link */
+  .kao-ics-hint {
+    margin-top: 8px;
+  }
+
+  .kao-ics-link {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--text-muted);
+    font-size: 0.76rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+    transition-property: color;
+    transition-duration: 150ms;
+  }
+
+  @media (hover: hover) {
+    .kao-ics-link:hover {
+      color: var(--accent);
+    }
+  }
+
+  /* 8b. Table Safe Column Highlight */
+  .kao-col-safe-th {
+    cursor: pointer;
+    transition-property: color, background-color;
+    transition-duration: 150ms;
+  }
+
+  .kao-table.is-col-safe-hl th:nth-child(3),
+  .kao-table.is-col-safe-hl td:nth-child(3) {
+    background: rgba(34, 197, 94, 0.1);
+  }
+
+  /* 10b. Smooth Anchor Highlight Flash */
+  @keyframes kaoAnchorFlash {
+    0% {
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.65);
+    }
+    50% {
+      box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.28);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
+  }
+
+  .kao-anchor-flash {
+    animation: kaoAnchorFlash 600ms ease-out;
+  }
+
+  @media (max-width: 720px) {
+    .kao-checker-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn-danger,
+    .btn-danger-outline,
+    .kao-copy-btn,
+    .kao-quick-jump,
+    .kao-progress-fill,
+    .kao-danger-item,
+    .kao-pulse-dot::after,
+    .kao-scroll-progress,
+    .kao-anchor-flash {
+      animation: none;
+      transition: none;
+    }
+    .btn-danger:active:not(:disabled),
+    .btn-danger-outline:active:not(:disabled),
+    .kao-copy-btn:active:not(:disabled),
+    .kao-quick-jump:active:not(:disabled),
+    .kao-q-btn:active:not(:disabled) {
+      transform: none;
+    }
+    .kao-danger-item {
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>

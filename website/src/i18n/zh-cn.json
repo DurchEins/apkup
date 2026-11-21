@@ -1,0 +1,1215 @@
+{
+  "meta": {
+    "defaultTitle": "ApkUp — 多源 Android 应用更新器",
+    "defaultDescription": "开源、注重隐私的 Android 应用更新器，支持 Google Play、F-Droid Index V2、IzzyOnDroid、APKMirror、GitHub、GitLab 和 Codeberg，并支持通过 Shizuku 进行静默后台更新。",
+    "skipToContent": "跳到主要内容",
+    "backToTop": "返回顶部",
+    "copiedToast": "✓ 已复制到剪贴板",
+    "shareTitle": "ApkUp — 多源 Android 应用更新器",
+    "shareText": "ApkUp：支持 Google Play、F-Droid、GitHub 等多源的开源 Android 应用更新器 —— 无广告、支持 Shizuku。",
+    "devModeTitle": "⚡ ApkUp 开发者模式"
+  },
+  "nav": {
+    "homeAria": "ApkUp 首页",
+    "primaryAria": "主导航",
+    "mobileAria": "移动端导航",
+    "toggleMenuAria": "切换导航菜单",
+    "toggleThemeAria": "切换浅色/深色主题",
+    "features": "功能特性",
+    "showcase": "界面预览",
+    "sources": "更新源",
+    "whatsNew": "更新日志",
+    "wiki": "Wiki",
+    "privacy": "隐私政策",
+    "downloads": "下载",
+    "download": "下载"
+  },
+  "footer": {
+    "downloads": "下载",
+    "installUnknownApps": "安装未知应用",
+    "googleLock": "Google 24小时锁定",
+    "whatsNew": "更新日志",
+    "wiki": "Wiki",
+    "sourceChecker": "源兼容性检查",
+    "privacy": "隐私政策",
+    "security": "安全架构",
+    "canonicalRelease": "官方正式版",
+    "langPickerAria": "选择语言",
+    "helpTranslate": "协助翻译 →"
+  },
+  "kaoBanner": {
+    "warningLabel": "警告：Android 侧载自由正面临风险 (2026 / 2027)",
+    "normalText": "Google Play Protect 正在推行强制开发者身份验证，并对未验证 APK 在开发者选项中设置 24 小时冷却锁定。",
+    "miniText": "Google 24 小时开发者锁定正在威胁自由安装 APK。",
+    "ctaLabel": "24小时解锁指南",
+    "learnMore": "keepandroidopen.org ↗",
+    "dismissAria": "在本次会话中关闭警告横幅"
+  },
+  "hero": {
+    "openSourceBadge": "GPL-3.0 开源协议",
+    "title": "所有 Android 应用更新，尽在一个隐私优先的中心。",
+    "lead": "ApkUp 自动发现、校验并安装来自 Google Play、F-Droid Index V2、IzzyOnDroid、APKMirror、GitHub、GitLab 与 Codeberg 的应用更新 —— 零广告、零追踪，支持通过 Shizuku 或 Root 进行静默后台安装。",
+    "downloadPrefix": "下载",
+    "downloadSuffix": "",
+    "qrCode": "二维码",
+    "share": "分享",
+    "linkCopied": "链接已复制！",
+    "meta": "Android 10.0 – 17 (API 29+) • SHA-256 校验 • 9 种语言",
+    "androidDetected": "📱 直接安装到此 Android 设备",
+    "sideloadTrigger": "如何安装未知 APK 并解除 Google 24 小时锁定？",
+    "popoverTitle": "快速安装指南 (Android 10–17)",
+    "popoverStep1": "点击下载的 APK，并开启「允许来自此来源的应用」。",
+    "popoverStep2": "新版 Play Protect 24小时锁定 (2026/27)：开发者选项（连点7次版本号）→ 允许来自未验证开发者的应用 → 重启 → 24小时后选择「永久允许」。",
+    "popoverInstallGuide": "安装指南 →",
+    "popoverGoogleLock": "Google 24小时锁定 →",
+    "screenAlt": "显示可用应用更新与批量安装按钮的 ApkUp 更新界面",
+    "trust": [
+      "零广告与零遥测",
+      "独立更新源",
+      "APK 签名校验",
+      "Google Tink 本地加密"
+    ]
+  },
+  "bento": {
+    "title": "为轻松更新与密码学级信任而打造",
+    "subtitle": "表层是清爽的 Material 3 Expressive 体验，底层是可验证的安全检查与进阶控制。",
+    "cards": [
+      {
+        "badge": "7+ 更新源",
+        "title": "支持优先级与固定的多源发现引擎",
+        "desc": "覆盖 Google Play、APKMirror（.apkm + Cloudflare 回退）、支持 RFC 7396 增量的 F-Droid Index V2、IzzyOnDroid、GitHub、GitLab（含多层子群组）及 Codeberg / 自建 Forgejo。"
+      },
+      {
+        "badge": "Shizuku / su",
+        "title": "静默后台安装",
+        "desc": "通过 Shizuku（无需 Root）或可选 Root (su) 实现全自动后台安装，并受仅限 Wi-Fi、仅限充电和活动时间段规则保护。"
+      },
+      {
+        "badge": "apksig v2/v3",
+        "title": "纵深防御校验",
+        "desc": "对照已安装应用验证 APK 签名证书，校验 SHA-256 摘要，检查 minSdk / ABI 兼容性，拦截降级，并使用 Google Tink AES-256-GCM 加密令牌。"
+      },
+      {
+        "badge": "JSON 同步",
+        "title": "Obtainium 与 App Watcher 迁移",
+        "desc": "通过交互式预览从 Obtainium 导入应用配置、自定义 F-Droid 仓库与关注列表，或将 ApkUp 绑定导出为 Obtainium JSON。"
+      },
+      {
+        "badge": "回滚 + SAF",
+        "title": "回滚备份、关注列表与 APK 导出",
+        "desc": "追踪未安装的应用，更新前自动备份现有 APK（含分包），利用 24 小时智能缓存，并通过 SAF 导出 .apk 或 .apks 包。"
+      },
+      {
+        "badge": "M3 Expressive",
+        "title": "Material 3 Expressive、测试通道与自更新",
+        "desc": "品牌琥珀与米白主题、动态取色（Material You）、平板自适应导航栏、按应用配置 Beta/RC/Alpha/Nightly 通道及 SHA256SUMS 校验的自更新器。"
+      }
+    ]
+  },
+  "showcase": {
+    "title": "专为单手拇指操作人体工学设计",
+    "subtitle": "探索真实应用界面 —— 在下方切换页面，或点击手机预览图放大查看。",
+    "tablistAria": "应用截图",
+    "lightboxAria": "截图预览",
+    "closePreviewAria": "关闭预览",
+    "screens": {
+      "updates": {
+        "label": "更新",
+        "title": "轻点即可更新，长按支持批量选择",
+        "desc": "在一个简洁的 Material 3 Expressive 视图中查看版本变化、更新日志、来源标签和实时总进度。",
+        "alt": "ApkUp 更新界面"
+      },
+      "details": {
+        "label": "更新详情",
+        "title": "每次安装前信息完全透明",
+        "desc": "查看发布日志、保存单个 APK 或 .apks 捆绑包、跳过特定版本或永久忽略应用。",
+        "alt": "ApkUp 更新详情界面"
+      },
+      "apps-list": {
+        "label": "应用列表",
+        "title": "管理已安装的用户与系统应用",
+        "desc": "清晰区分用户应用与系统应用，提供即时搜索、A–Z 分组、关注列表和来源筛选。",
+        "alt": "ApkUp 应用列表界面"
+      },
+      "apps-grid": {
+        "label": "应用网格",
+        "title": "在紧凑网格与详细列表间自由切换",
+        "desc": "随时切换显示密度，并按 GitHub/侧载、已关注或近期更新进行筛选。",
+        "alt": "ApkUp 应用网格界面"
+      },
+      "app-actions": {
+        "label": "应用操作",
+        "title": "自定义仓库绑定、预览版通道与源固定",
+        "desc": "将单个应用固定到首选更新源，配置 Beta/RC/Alpha/Nightly 通道，或绑定自定义仓库。",
+        "alt": "ApkUp 应用操作界面"
+      },
+      "sources": {
+        "label": "更新源与主题",
+        "title": "调整更新源优先级并定制 Material 3 主题",
+        "desc": "拖拽排序更新源优先级，开启动态取色，或在深色、米白浅色与跟随系统间切换。",
+        "alt": "ApkUp 更新源与主题界面"
+      },
+      "schedule": {
+        "label": "后台与 Shizuku",
+        "title": "可选的 Shizuku 与 Root 静默后台更新",
+        "desc": "配置仅 Wi-Fi 与充电限制、活动时间窗口、自动回滚备份以及 Shizuku 或 Root 安装。",
+        "alt": "ApkUp 后台与 Shizuku 界面"
+      },
+      "about": {
+        "label": "备份与关于",
+        "title": "Obtainium 同步、自更新与 Beta 测试通道",
+        "desc": "导入/导出 Obtainium JSON 配置、备份全部设置、导出脱敏诊断日志或加入 Beta 测试通道。",
+        "alt": "ApkUp 备份与关于界面"
+      },
+      "whats-new": {
+        "label": "更新日志",
+        "title": "按月份分组的应用内更新日志",
+        "desc": "按真实发布月份整理清晰的更新说明，附带重点特性横幅与通俗解释。",
+        "alt": "ApkUp 更新日志界面"
+      },
+      "history": {
+        "label": "更新历史",
+        "title": "附带回滚备份的更新历史记录",
+        "desc": "每次更新都会在本地记录，必要时可通过快速链接还原至旧版本。",
+        "alt": "ApkUp 更新历史界面"
+      }
+    }
+  },
+  "sources": {
+    "title": "所有应用更新源，统一管理、按序优先",
+    "subtitle": "首次启动时的更新源同意机制确保在您做出选择前零外部请求。支持全局优先级排序或按应用固定。",
+    "items": {
+      "github": {
+        "tag": "GraphQL + Releases",
+        "desc": "内置 FOSS 映射、支持可选 PAT 的批量 GraphQL 查询、正则资源过滤与 SHA-256 校验。"
+      },
+      "gitlab": {
+        "tag": "嵌套子群组",
+        "desc": "支持 gitlab.com 与自建实例，包括多层子群组路径和按主机隔离的令牌。"
+      },
+      "codeberg": {
+        "tag": "支持自建",
+        "desc": "直接跟踪 Codeberg、Forgejo 或 Gitea 实例的发布，并自动匹配设备架构。"
+      },
+      "fdroid": {
+        "tag": "RFC 7396 增量 + TOFU",
+        "desc": "原生 Index V2 增量差异更新，具备加密 JAR 证书校验与自定义 HTTPS 仓库预设。"
+      },
+      "izzy": {
+        "tag": "签名 Index V2",
+        "desc": "在本地与已签名的 IzzyOnDroid 索引进行比对，您的应用列表绝不会离开设备。"
+      },
+      "apkmirror": {
+        "tag": ".apkm + Cloudflare",
+        "desc": "支持应用内直接下载和 .apkm 分包提取，配备自动 Cloudflare WebView 与浏览器回退。"
+      },
+      "playstore": {
+        "tag": "匿名增量",
+        "desc": "通过 Aurora Dispenser 获取匿名会话令牌并采用最小化设备配置 —— 无需 Google 账号。"
+      },
+      "selfupdater": {
+        "tag": "SHA256SUMS + Beta",
+        "desc": "检查官方 GitHub 发布，进行 SHA256SUMS 与签名证书验证，并支持可选 Beta 通道。"
+      }
+    },
+    "quickTest": {
+      "title": "快速 URL 测试：",
+      "placeholder": "https://github.com/owner/repo 或 https://gitlab.com/group/sub/repo",
+      "ariaLabel": "仓库或商店 URL",
+      "checkerLink": "Obtainium JSON 检查器 →",
+      "hint": "点击示例或粘贴任意仓库 URL",
+      "wikiLink": "Wiki →",
+      "detected": {
+        "github": {
+          "source": "GitHub Releases",
+          "msg": "原生支持 —— 支持 GraphQL 批量查询（配合 PAT）、正则过滤与 SHA-256 校验。"
+        },
+        "gitlab": {
+          "source": "GitLab（含子群组）",
+          "msg": "原生支持 —— 可处理多层子群组路径与按主机隔离的个人访问令牌。"
+        },
+        "codeberg": {
+          "source": "Codeberg / Forgejo",
+          "msg": "原生支持 —— 支持自动 ABI 匹配及自建 Forgejo/Gitea 实例。"
+        },
+        "fdroid": {
+          "source": "F-Droid Index V2 / IzzyOnDroid",
+          "msg": "原生支持 —— 使用带加密 JAR 指纹校验的 RFC 7396 增量更新。"
+        },
+        "apkmirror": {
+          "source": "APKMirror (.apkm)",
+          "msg": "原生支持 —— 支持直接下载、.apkm 分包提取与 Cloudflare WebView 回退。"
+        },
+        "playstore": {
+          "source": "Google Play 商店",
+          "msg": "匿名支持 —— 无需 Google 账号即可通过 Aurora Dispenser 检查兼容更新。"
+        },
+        "custom": {
+          "source": "自定义主机",
+          "msg": "可能是自建 GitLab、Forgejo 或自定义 HTTPS F-Droid 仓库 —— 可在设置中通过 ?fingerprint= 添加。"
+        }
+      }
+    },
+    "silent": {
+      "badge": "可选 • Shizuku 或 Root (su)",
+      "title": "可选的静默后台更新",
+      "desc": "标准 Android 安装无需任何额外设置即可使用。如需免打扰的后台自动更新，可搭配 Shizuku（无需 Root）或开启 Root (su) 并设置 Wi-Fi 与充电条件。",
+      "modeAria": "安装模式",
+      "shizukuBtn": "Shizuku（无需 Root）",
+      "rootBtn": "Root (su)",
+      "shizukuGuideBtn": "Wiki 中的 Shizuku 指南",
+      "rootGuideBtn": "Root 与后台指南",
+      "shizukuSteps": [
+        {
+          "title": "通过无线调试启动 Shizuku",
+          "desc": "在 Android 11+ 上无需解锁 Bootloader，不到一分钟即可启用 Shizuku。"
+        },
+        {
+          "title": "授权 ApkUp 并设定保护规则",
+          "desc": "在设置中开启静默更新，并配置仅 Wi-Fi、仅充电及免打扰时段。"
+        },
+        {
+          "title": "经校验的自动安装与回滚保障",
+          "desc": "每个 APK 均先通过 v2/v3 签名与兼容性检查，并可自动提前备份。"
+        }
+      ],
+      "rootSteps": [
+        {
+          "title": "授予一次超级用户 (su) 权限",
+          "desc": "在 ApkUp 设置中选择 Root (su)，并确认 Magisk / KernelSU / APatch 授权。"
+        },
+        {
+          "title": "无需 Shizuku 服务的直接 pm 安装",
+          "desc": "每次重启后立即生效，无需重新配对无线调试或 ADB。"
+        },
+        {
+          "title": "一键原地回滚",
+          "desc": "Root 允许直接从更新历史中执行降级 (-d)，保留数据并快速恢复。"
+        }
+      ]
+    }
+  },
+  "downloadsSection": {
+    "title": "下载 ApkUp",
+    "subtitle": "需要 Android 10.0 (API 29) 或更高版本。GitHub Releases 提供带有 SHA256SUMS 的官方标准构建。",
+    "recommended": "推荐",
+    "cardTitle": "GitHub Releases（官方签名直链 APK）",
+    "cardDesc": "由 CI 签名的官方发布产物，支持 SHA256SUMS 校验与内置自更新。",
+    "downloadPrefix": "下载",
+    "downloadSuffix": "",
+    "qrCode": "二维码",
+    "whatsNew": "更新日志",
+    "reqLine": "Android 10.0 – 17 (API 29+) • 架构：arm64-v8a, armeabi-v7a, x86_64",
+    "whyApkUp": "为何选择 ApkUp？",
+    "installUnknownApps": "安装未知应用",
+    "googleLock": "Google 24小时锁定",
+    "mirrorsTitle": "备选镜像与校验和",
+    "mirrorsDesc": "Zapstore、GitLab、APKPure、itch.io、Appteka、Komi Store 与实时 SHA-256 校验。",
+    "mirrorsBtn": "查看全部 8 个镜像与 SHA-256 →",
+    "supportTitle": "支持 ApkUp 的开发",
+    "supportDesc": "ApkUp 完全免费、无广告且开源。如果它为您节省了时间，欢迎在 GitHub 点亮 Star 或请作者喝杯咖啡。",
+    "starOnGithub": "在 GitHub 点赞",
+    "shareWebsite": "分享网站",
+    "linkCopied": "链接已复制！"
+  },
+  "permissions": {
+    "title": "透明权限与本地加密",
+    "subtitle": "用通俗语言解释 AndroidManifest.xml 中的每一项权限。所有偏好与可选令牌均通过 Google Tink (AES-256-GCM) 本地加密。",
+    "privacyLink": "隐私政策 →",
+    "securityLink": "安全架构 →",
+    "items": {
+      "QUERY_ALL_PACKAGES": {
+        "title": "检查已安装应用与签名证书",
+        "desc": "仅在设备本地读取包名、版本号和 v2/v3 签名证书，用于检测更新并在安装前拦截签名不匹配。"
+      },
+      "REQUEST_INSTALL_PACKAGES & UPDATE_PACKAGES_WITHOUT_USER_ACTION": {
+        "title": "安装已校验 APK 与无缝更新",
+        "desc": "用于将已验证的安装包交给系统 PackageInstaller 或已授权的 Shizuku 会话，并在 Android 12+ 上实现免确认更新。"
+      },
+      "REQUEST_DELETE_PACKAGES": {
+        "title": "卸载应用与引导式非 Root 回滚",
+        "desc": "仅在您主动触发卸载或执行两步式非 Root 回滚以恢复旧版备份 APK 时使用。"
+      },
+      "INTERNET & ACCESS_NETWORK_STATE": {
+        "title": "仅从已授权更新源获取更新",
+        "desc": "在首次启动选择更新源前零外部请求。仅用于通过 HTTPS 查询已启用的源并检查 Wi-Fi 状态。"
+      },
+      "FOREGROUND_SERVICE & RUN_USER_INITIATED_JOBS": {
+        "title": "带实时剩余时间的可靠批量下载",
+        "desc": "驱动 AndroidX WorkManager 前台传输任务，确保大型多应用批量更新稳定完成。"
+      },
+      "POST_NOTIFICATIONS & VIBRATE": {
+        "title": "可选的更新提醒与触觉反馈",
+        "desc": "可选权限，用于向您推送可用更新通知、后台安装汇总以及轻柔震动反馈。"
+      },
+      "REQUEST_IGNORE_BATTERY_OPTIMIZATIONS": {
+        "title": "可选的后台检查稳定性",
+        "desc": "可在设置中授予的可选豁免，防止激进的厂商省电策略延迟定时后台检查。"
+      },
+      "HIDE_OVERLAY_WINDOWS": {
+        "title": "安装时的防点击劫持保护",
+        "desc": "防止恶意第三方悬浮窗在 ApkUp 运行时遮挡敏感的安装或授权对话框。"
+      }
+    }
+  },
+  "faq": {
+    "title": "常见问题",
+    "subtitle": "关于权限、签名校验、隐私保护以及从其他更新器迁移的清晰解答。",
+    "wikiCta": "需要分步指南？打开 ApkUp Wiki →",
+    "items": [
+      {
+        "q": "静默后台更新需要 Root 吗？",
+        "a": "不需要。ApkUp 原生支持 Shizuku，可在未 Root 的原生 Android（Android 11+ 通过无线调试或 ADB）上获得高级 PackageInstaller 权限。同时也支持可选 Root (su)。"
+      },
+      {
+        "q": "检查 Google Play 商店更新需要我的 Google 账号吗？",
+        "a": "不需要。ApkUp 使用社区 Aurora Dispenser 提供的匿名会话令牌以及最小化设备兼容配置（CPU ABI、Android SDK、屏幕密度和语言），无需任何个人登录。"
+      },
+      {
+        "q": "ApkUp 如何保护我免受篡改或不兼容 APK 的侵害？",
+        "a": "在安装前，ApkUp 会校验 v2/v3 签名证书是否与已安装应用一致，验证 SHA-256 摘要和已签名的 F-Droid 索引，拦截降级，检查 minSdk/ABI，并对 .apkm 解压实施 Zip-Slip 防护。"
+      },
+      {
+        "q": "我可以从 Obtainium 或 App Watcher 迁移应用吗？",
+        "a": "可以。ApkUp 内置交互式 Obtainium JSON 导入预览（支持绑定、自定义 F-Droid 仓库和关注列表）、Obtainium 导出以及 App Watcher 列表直接导入。"
+      },
+      {
+        "q": "ApkUp 的自更新和 Beta 测试通道如何工作？",
+        "a": "ApkUp 默认仅检查 GitHub 正式版，并在自更新前验证 SHA256SUMS 摘要和签名证书。您可以随时在 设置 → 关于 中开启或退出 Beta 通道。"
+      },
+      {
+        "q": "ApkUp 会收集分析数据、崩溃日志或遥测吗？",
+        "a": "完全不会。ApkUp 没有开发者服务器、没有广告、没有分析 SDK、也没有遥测。首次启动同意机制确保在您选择更新源前零网络请求，令牌使用 Google Tink (AES-256-GCM) 本地加密。"
+      }
+    ]
+  },
+  "qrModal": {
+    "title": "扫码在 Android 上下载",
+    "closeAria": "关闭二维码窗口",
+    "whatsNewPrefix": "更新内容：",
+    "fullChangelog": "完整更新日志 →",
+    "hint": "直接指向 GitHub Releases 上最新的已签名 APK。"
+  },
+  "downloadsPage": {
+    "title": "下载、镜像与 SHA-256 校验 — ApkUp",
+    "metaDesc": "从 GitHub Releases 下载官方签名的 ApkUp APK，验证 SHA256SUMS 校验和，并浏览全部 8 个官方与社区镜像。",
+    "h1": "下载、镜像与校验",
+    "lead": "单一产物原则：GitHub Releases 提供由 CI 签名的规范 APK 和 SHA-256 校验和。下方提供实时校验与全部 8 个镜像。",
+    "canonicalBadge": "官方 CI 签名构建",
+    "cardTitle": "GitHub Releases（官方签名直链 APK）",
+    "cardDesc": "内置自更新器与密码学 SHA-256 校验的通用 APK。",
+    "downloadPrefix": "下载",
+    "downloadSuffix": "",
+    "whatsNew": "更新日志",
+    "installUnknown": "安装未知应用 →",
+    "googleLock": "Google 24小时锁定 →",
+    "shaTitle": "实时 SHA-256 校验和",
+    "shaHelpAria": "什么是 SHA-256？",
+    "shaHelpBody": "SHA-256 校验和是 APK 文件唯一的 64 位数字指纹。哪怕只有一个字节被篡改或损坏，哈希值都会完全不同。",
+    "shaHelpWiki": "在 Wiki 中阅读完整指南 →",
+    "shaLead": "来自 GitHub Releases 最新已签名 APK 的实时 SHA-256 摘要。",
+    "shaLoading": "正在加载 SHA-256…",
+    "shaUnavailable": "校验和暂不可用 — 请在 GitHub Releases 查看 SHA256SUMS。",
+    "shaComparePlaceholder": "粘贴本地 SHA-256 进行比对…",
+    "shaCompareAria": "粘贴本地 SHA-256 哈希以验证",
+    "shaMatch": "匹配 ✓",
+    "shaMismatch": "不匹配 ✕",
+    "copy": "复制",
+    "copied": "已复制 ✓",
+    "cmdTitle": "本地校验命令",
+    "cmdHelpAria": "本地校验命令如何使用？",
+    "cmdHelpBody": "在您的下载文件夹中运行对应系统的命令计算文件 SHA-256 哈希，并与左侧官方校验和比对。",
+    "cmdHelpWiki": "Wiki 分步指南 →",
+    "officialMirrorsTitle": "官方镜像",
+    "officialMirrorsLead": "与 GitHub Releases 同步直接维护。",
+    "communityMirrorsTitle": "社区商店与目录",
+    "communityMirrorsLead": "收录或托管 ApkUp 的第三方平台与目录。",
+    "mirrorBadges": {
+      "Zapstore": "已签名 Nostr 发布",
+      "GitLab Releases": "官方镜像",
+      "APKPure": "已验证页面",
+      "itch.io": "APK 直接下载",
+      "Appteka": "第三方商店",
+      "Komi Store": "FOSS 商店",
+      "AlternativeTo": "评价与信息",
+      "Amazon Appstore": "已过时"
+    },
+    "mirrorDescs": {
+      "Zapstore": "基于 Nostr 协议、具备开发者加密签名的去中心化 Android 应用商店。",
+      "GitLab Releases": "与 main 分支同步的完整源码与发布镜像。",
+      "APKPure": "收录公开已签名版本的知名第三方 APK 镜像站。",
+      "itch.io": "提供直接 APK 下载与版本说明的独立分发页面。",
+      "Appteka": "托管经验证 APK 构建的独立 Android 应用目录。",
+      "Komi Store": "由社区维护的 FOSS 开源 Android 应用商店。",
+      "AlternativeTo": "社区评价、功能标签与开源替代品目录。",
+      "Amazon Appstore": "历史旧版页面 —— 不再接收最新构建，请优先使用 GitHub Releases。"
+    }
+  },
+  "changelogPage": {
+    "title": "更新日志 — ApkUp",
+    "metaDesc": "与 ApkUp 官方应用内更新日志同步的按月发布历史。",
+    "h1": "更新日志",
+    "lead": "与 ApkUp 已发布的应用内更新日志同步的按月发布历史。点击下方任意月份即可展开或折叠。",
+    "langNote": "以下版本说明以英文显示（应用内更新日志的发布语言）。",
+    "filterAria": "筛选版本",
+    "filterAll": "全部版本",
+    "filterFeature": "功能更新",
+    "filterPatch": "补丁与修复",
+    "searchPlaceholder": "筛选更新日志…",
+    "searchAria": "筛选更新日志",
+    "releasesWord": "个版本"
+  },
+  "comparePage": {
+    "title": "为何选择 ApkUp？功能对比与源检查器 — ApkUp",
+    "metaDesc": "将 ApkUp 与 Obtainium、Aurora Store 和 F-Droid 进行对比，并 100% 离线测试您的 Obtainium JSON 导出。",
+    "h1": "为何选择 ApkUp？功能详细对比",
+    "lead": "了解 ApkUp 如何将自动多源发现、密码学校验与 Obtainium 互通性结合在一起。",
+    "thCapability": "能力 / 特性",
+    "rows": [
+      {
+        "cap": "无需手动填 URL 即可扫描已安装应用的更新",
+        "apkup": "✓ 自动 (7 个源)",
+        "obt": "✕ 需逐个手动填 URL",
+        "aur": "✓ 仅 Play 商店",
+        "fdr": "✓ 仅 F-Droid"
+      },
+      {
+        "cap": "统一生态（Play 商店 + FOSS + Git 托管 + APKMirror）",
+        "apkup": "✓ 全部整合",
+        "obt": "◐ 不支持 Play 商店",
+        "aur": "✕ 仅 Play 商店",
+        "fdr": "✕ 仅 F-Droid"
+      },
+      {
+        "cap": "无需 Google 账号的匿名 Google Play 商店更新",
+        "apkup": "✓ 内置 (Aurora Delta)",
+        "obt": "✕ 不支持",
+        "aur": "✓ 内置",
+        "fdr": "✕ 不支持"
+      },
+      {
+        "cap": "应用内直接下载 APKMirror 及安装 .apkm 分包",
+        "apkup": "✓ 原生 + Cloudflare WebView",
+        "obt": "◐ 仅追踪版本号",
+        "aur": "✕ 不支持",
+        "fdr": "✕ 不支持"
+      },
+      {
+        "cap": "F-Droid Index V2 增量更新 (RFC 7396) 与 TOFU 证书固定",
+        "apkup": "✓ 原生 Index V2 + 增量",
+        "obt": "◐ 下载完整索引",
+        "aur": "✕ 不支持",
+        "fdr": "✓ 原生 Index V2"
+      },
+      {
+        "cap": "GitHub 批量 GraphQL 查询、GitLab 多层子群组与 Codeberg",
+        "apkup": "✓ 完整支持 + 正则过滤",
+        "obt": "✓ REST API + 正则",
+        "aur": "✕ 不支持",
+        "fdr": "✕ 不支持"
+      },
+      {
+        "cap": "全局更新源优先级（拖拽）与按应用固定源（带回退）",
+        "apkup": "✓ 优先级 + 固定",
+        "obt": "✕ 每应用仅 1 个源",
+        "aur": "✕ 单一源",
+        "fdr": "◐ 仅仓库优先级"
+      },
+      {
+        "cap": "安装前 APK 签名 v2/v3 校验与降级拦截",
+        "apkup": "✓ 安装前 apksig 校验",
+        "obt": "◐ 仅依赖系统提示",
+        "aur": "◐ 仅依赖系统提示",
+        "fdr": "✓ 仓库索引签名"
+      },
+      {
+        "cap": "更新前自动本地 APK 回滚备份（含分包）",
+        "apkup": "✓ 最高 2 GB + 一键回滚",
+        "obt": "✕ 不支持",
+        "aur": "✕ 不支持",
+        "fdr": "◐ 仅依赖仓库归档"
+      },
+      {
+        "cap": "安装前 minSdk 与 CPU ABI 架构兼容性保护",
+        "apkup": "✓ 防止安装失败循环",
+        "obt": "◐ 仅文件名匹配",
+        "aur": "✓ 设备配置匹配",
+        "fdr": "✓ 索引元数据"
+      },
+      {
+        "cap": "全局与单应用预览版通道（Beta, RC, Alpha, Nightly）",
+        "apkup": "✓ 4 个独立通道",
+        "obt": "◐ 仅通用预发布开关",
+        "aur": "✕ 仅 Play 商店轨道",
+        "fdr": "◐ 不稳定版开关"
+      },
+      {
+        "cap": "通过 Shizuku（免 Root）与可选 Root (su) 静默后台更新",
+        "apkup": "✓ Shizuku + Root (su)",
+        "obt": "✓ Shizuku + Root",
+        "aur": "✓ Shizuku + Root",
+        "fdr": "✓ Shizuku / 特权扩展"
+      },
+      {
+        "cap": "活动时间窗、免打扰时段与 Wi-Fi / 充电保护规则",
+        "apkup": "✓ 时间窗 + 补全机制",
+        "obt": "◐ 间隔 + Wi-Fi/充电",
+        "aur": "◐ 仅时间间隔",
+        "fdr": "◐ 仅 Wi-Fi / 充电"
+      },
+      {
+        "cap": "未安装应用关注列表 + Obtainium 与 App Watcher 导入/导出",
+        "apkup": "✓ 双向 Obtainium + Watcher",
+        "obt": "✓ 仅追踪 + 自有 JSON",
+        "aur": "✕ 无 Obtainium 同步",
+        "fdr": "✕ 无 Obtainium 同步"
+      },
+      {
+        "cap": "导出 .apk 或 .apks 到任意 SAF 文件夹及 24 小时缓存",
+        "apkup": "✓ 保存 APK/.apks + 24h缓存",
+        "obt": "◐ 默认下载目录",
+        "aur": "✓ 导出安装包",
+        "fdr": "◐ 仅缓存"
+      },
+      {
+        "cap": "硬件级 Google Tink AES-256-GCM 令牌加密与主机隔离",
+        "apkup": "✓ Android Keystore AES-256",
+        "obt": "◐ 应用私有存储",
+        "aur": "◐ 应用私有存储",
+        "fdr": "✓ 无需令牌"
+      }
+    ],
+    "checkerTitle": "Obtainium 与更新源检查器",
+    "checkerLead": "在浏览器中 100% 离线运行 —— 不会上传任何数据。粘贴 Obtainium JSON 导出或选择文件，即可预览 ApkUp 的映射结果。",
+    "chooseFile": "选择 Obtainium JSON 文件",
+    "loadSample": "加载示例导出",
+    "textareaAria": "Obtainium JSON 导出内容",
+    "report": {
+      "invalidJson": "JSON 格式无效，请检查您的 Obtainium 导出文件。",
+      "appsFound": "个应用已分析",
+      "supported": "已支持",
+      "custom": "自定义 / 回退",
+      "empty": "JSON 中未找到 apps 数组。"
+    }
+  },
+  "privacyPage": {
+    "title": "隐私政策 — ApkUp",
+    "metaDesc": "ApkUp 的零遥测、本地存储与加密凭据说明。",
+    "h1": "隐私政策",
+    "lead": "最后更新：2026 年 11 月 13 日 • 基于 ApkUp 仓库中的 PRIVACY.md。",
+    "onDeviceBadge": "✓ 100% 本地运行",
+    "onDeviceItems": [
+      "应用扫描、版本比对与 SHA-256 校验",
+      "基于硬件密钥库的 Google Tink (AES-256-GCM) 加密令牌"
+    ],
+    "neverSentBadge": "✕ 绝不发送",
+    "neverSentItems": [
+      "零遥测、零崩溃追踪器、零广告 ID",
+      "无开发者后台服务器、无账号体系、无统计分析"
+    ],
+    "s1Title": "1. 无开发者服务器、无统计、无广告",
+    "s1Items": [
+      "没有任何记录用户查询或 IP 地址的 ApkUp 服务器、代理或数据库。",
+      "无需注册、无用户账号、无崩溃追踪器（Firebase、Sentry、Crashlytics）或行为遥测。",
+      "绝不收集 IMEI、硬件序列号、MAC 地址或广告 ID。"
+    ],
+    "s2Title": "2. 明确的更新源同意与网络活动",
+    "s2Items": [
+      "首次启动时 ApkUp 会显示「选择更新源」同意对话框 —— 在此之前不会发出任何外部请求。",
+      "F-Droid 与 IzzyOnDroid 索引在本地下载并比对，不会上传您的应用列表。",
+      "Google Play 检查使用匿名 Aurora Dispenser 令牌与最小化兼容配置 —— 无需个人 Google 账号。"
+    ],
+    "s3Title": "3. 加密本地存储与开源审计",
+    "s3Body": "所有偏好设置、仓库绑定与可选 API 令牌均通过由 Android Keystore 保护的 Google Tink (AES-256-GCM) 静态加密。云备份与明文 HTTP 均已禁用。",
+    "viewGithub": "在 GitHub 查看 PRIVACY.md"
+  },
+  "securityPage": {
+    "title": "安全政策 — ApkUp",
+    "metaDesc": "ApkUp 支持的版本、加密 APK 签名与 SHA-256 校验以及负责任的漏洞披露方式。",
+    "shieldBadge": "零追踪 • APK 签名 v2/v3",
+    "h1": "安全政策与架构",
+    "lead": "基于 SECURITY.md 的完整安全文档 —— 涵盖受支持版本、密码学校验与负责任的漏洞披露。",
+    "supportedTitle": "受支持的版本",
+    "supportedLead": "我们积极为以下版本的 ApkUp 提供安全补丁：",
+    "thVersion": "版本",
+    "thStatus": "状态",
+    "orNewer": "或更高",
+    "statusSupported": "✓ 支持中",
+    "statusEol": "✕ 已停止支持",
+    "archTitle": "纵深防御安全架构",
+    "archLead": "ApkUp 在更新生命周期的每个阶段都执行多层验证：",
+    "pillars": [
+      {
+        "badge": "apksig v2 / v3",
+        "title": "密码学 APK 签名校验",
+        "body": "在将任何下载的 APK 或 .apkm 分包交给 PackageInstaller、Shizuku 或 Root (su) 之前，ApkIntegrityVerifier 会对照已安装应用校验 v2/v3 签名证书，并拦截证书不匹配或版本降级。"
+      },
+      {
+        "badge": "SHA-256 + X.509 TOFU",
+        "title": "已签名的 F-Droid / IzzyOnDroid 索引与 SHA-256",
+        "body": "仓库索引（entry.jar / index-v1.jar）会对照固定的 64 位 SHA-256 X.509 证书指纹进行校验；下载的 APK（含通过 SHA256SUMS 的自更新）也会进行 SHA-256 验证。"
+      },
+      {
+        "badge": "Zip-Slip 防护 + cacheDir",
+        "title": "加固归档解压与存储隔离",
+        "body": "所有下载均保存在私有内部存储（cacheDir）中，.apkm 解压严格限制 Zip-Slip 与解压炸弹，且明文 HTTP 与云备份已完全禁用。"
+      },
+      {
+        "badge": "Google Tink AES-256-GCM",
+        "title": "加密凭据与主机隔离",
+        "body": "本地设置与可选令牌使用 Android Keystore 上的 Google Tink (AES-256-GCM) 加密存储。Authorization 请求头严格绑定目标主机并在跨域重定向时剥离。"
+      }
+    ],
+    "disclosureTitle": "报告安全漏洞",
+    "disclosureBody": "如果您在 ApkUp 中发现潜在安全漏洞（尤其是涉及 APK 签名校验、.apkm 解压、Shizuku IPC / Root su 执行、凭据存储或网络传输），请勿通过公开 GitHub Issue、讨论区或社交媒体披露。",
+    "disclosureSteps": [
+      "请使用 GitHub 保密的 Private Vulnerability Reporting 渠道。",
+      "详细说明问题、复现步骤、受影响版本，如有可能请附带验证脚本 (PoC)。",
+      "我们将迅速审核报告、评估影响范围，并在任何公开披露前发布修复补丁。"
+    ],
+    "reportBtn": "报告漏洞（保密）",
+    "viewGithub": "在 GitHub 查看 SECURITY.md"
+  },
+  "sideloadingPage": {
+    "title": "安装未知应用（APK 侧载）— ApkUp",
+    "metaDesc": "在 Android 10–17 上开启「安装未知应用」权限、使用 Shizuku 或 ADB 静默更新以及应对 Google 24 小时验证锁定的分步指南。",
+    "badge": "Android 10 – 17 • 侧载指南",
+    "h1": "在 Android 上安装未知应用",
+    "lead": "30 秒开启 Android「安装未知应用」权限的方法 —— 或使用 Shizuku、ADB 或 Root 实现静默后台更新。",
+    "way1Badge": "标准 Android • 30 秒",
+    "way1Title": "传统「安装未知应用」权限",
+    "way1Steps": [
+      {
+        "title": "下载并打开最新的已签名 APK",
+        "bodyBefore": "通过我们的",
+        "bodyLink": "下载页面",
+        "bodyAfter": "或 GitHub Releases 下载最新已签名的 .apk(Up) 文件，并在浏览器或文件管理器中点击打开。"
+      },
+      {
+        "title": "开启「允许来自此来源的应用」",
+        "body": "当 Android 弹出提示时点击设置，为您的浏览器开启允许来自此来源的应用，然后点击安装。"
+      },
+      {
+        "title": "为 ApkUp 授予一次相同权限",
+        "body": "在 ApkUp 内首次更新应用时，为 ApkUp 也授予一次相同权限 —— 或使用 Shizuku/Root 实现完全静默的后台更新。"
+      }
+    ],
+    "powerTitle": "通过 Shizuku 或 ADB 的进阶方式",
+    "powerDesc": "通过 Shizuku（Android 11+ 无线调试）、电脑端 adb install -r ApkUp.apk 或 Root (su) 安装，将直接使用 Android 的开发者安装通道。",
+    "generalWiki": "综合 Wiki →",
+    "rootBtn": "Root →",
+    "shizukuBtn": "Shizuku →",
+    "lockBadge": "⚠ 警告 • 2026 / 2027 锁定",
+    "lockTitle": "被 Google 的 24 小时开发者锁定拦截了？",
+    "lockDesc": "Google Play Protect 正在推行强制身份验证与开发者选项 24 小时冷却锁定。了解如何永久解锁未验证 APK 以及我们为何支持 Keep Android Open。",
+    "lockBtn": "⚠ 24小时锁定与 Keep Android Open →"
+  },
+  "googleLockPage": {
+    "title": "⚠ Google 24小时锁定与 Keep Android Open — ApkUp",
+    "metaDesc": "Google 2026/2027 年 Android 开发者验证 24 小时侧载锁定深度解析、永久解锁指南、ADB/Shizuku 绕过方案及 Keep Android Open 倡议。",
+    "backLink": "← 返回安装未知应用指南",
+    "alertPill": "重要警告 • 2026 / 2027 ANDROID 封锁",
+    "countdownPill": "全球推行：2027年1月",
+    "h1": "Google 24小时开发者锁定与 Keep Android Open",
+    "lead": "Android 正面临史上最严厉的侧载限制。自 2026 年 9 月 30 日（试点地区）及 2027 年 1 月全球推行起，Google Play Protect 将默认拦截未向 Google 提交政府身份证件与包密钥的开发者 APK —— 迫使用户在开发者选项中等待 24 小时冷却期。",
+    "jumpStepsBtn": "查看 24 小时分步解锁教程 ↓",
+    "joinKaoBtn": "加入 Keep Android Open ↗",
+    "shareBtn": "分享并警示他人 ↗",
+    "checkerBadge": "两步自测",
+    "checkerTitle": "我会受到 Google 24 小时锁定的影响吗？",
+    "checkerQ1": "1. 您的设备使用 Google Play 服务 / Play Protect 吗？",
+    "checkerQ1Yes": "是（标准 Android）",
+    "checkerQ1No": "否（GrapheneOS / Lineage / 去谷歌设备）",
+    "checkerQ2": "2. 您如何安装 ApkUp / 开源应用？",
+    "checkerQ2Apk": "直接在手机上点击 APK",
+    "checkerQ2Adb": "ADB / Shizuku / Root (su)",
+    "checkerResultAffected": "⚠ 受影响：请按下方 4 步一次性完成「永久允许」设置。",
+    "checkerResultAdb": "✓ 已绕过：ADB / Shizuku / Root 安装可绕过 Play Protect 的 24 小时锁定。",
+    "checkerResultDeGoogled": "✓ 不受影响：不含 Google Play 服务的设备没有此 24 小时锁定。",
+    "factsBadge": "时间表与事实",
+    "factsHeading": "Google 正在推行什么 —— 以及何时生效",
+    "facts": [
+      {
+        "date": "30.09.2026",
+        "title": "试点强制执行开启",
+        "body": "Google Play Protect 已在首批试点国家（包括巴西、印度尼西亚、新加坡和泰国）强制实施开发者验证，默认拦截未注册 APK。"
+      },
+      {
+        "date": "01 / 2027",
+        "title": "Play Protect 全球推行",
+        "body": "从 2027 年 1 月起，Google Play 服务会将此限制推送至全球所有认证 Android 手机 —— 即使应用从未在 Play 商店上架。"
+      },
+      {
+        "date": "ID + KEY",
+        "title": "强制实名与包名绑定",
+        "body": "独立作者必须上传官方身份证件、缴纳注册费，并将每个应用的包名与签名证书绑定到 Google 中央注册库。"
+      }
+    ],
+    "whyBadge": "⚠ 为何事关重大",
+    "whyHeading": "从开放的个人电脑走向封闭的守门人平台",
+    "whyItems": [
+      {
+        "title": "1. 您正在失去对自己硬件的控制权",
+        "body": "您花钱买下了手机，但 Google Play Protect 却可以远程决定哪些软件能运行，除非您忍受 24 小时的等待障碍。"
+      },
+      {
+        "title": "2. 对独立开发者与隐私应用的寒蝉效应",
+        "body": "无法或不愿向 Google 提交个人证件的业余开发者、安全研究员与隐私项目，会被自动标记为「未验证」并遭到恐吓性拦截。"
+      },
+      {
+        "title": "3. 旨在将用户推回 Play 商店的人为阻力",
+        "body": "真正的恶意软件防护依靠密码学签名与可复现源码，而不是在开发者选项里藏一个带 24 小时冷却和 7 天自动重置陷阱的开关。"
+      }
+    ],
+    "kaoTitle": "支持 Keep Android Open",
+    "kaoBody": "Keep Android Open 联盟致力于记录推行进展、动员全球开发者与用户，并倡导保持开放的移动生态。",
+    "kaoBannerBtn": "倡议横幅 ↗",
+    "impactBadge": "日常影响 • 应对方案",
+    "impactTitle": "这对普通用户意味着什么",
+    "impactBody": "若未在开发者选项中解锁，直接点击来自 GitHub、GitLab 或 Codeberg 的 APK 可能会被 Play Protect 拦截。一旦在 24 小时后选择「永久允许」—— 或改用 ADB、Shizuku、Root —— ApkUp 即可继续无限制运行。",
+    "wikiChapterBtn": "Wiki 章节 →",
+    "rootBtn": "Root →",
+    "shizukuBtn": "Shizuku →",
+    "unlockBadge": "开发者选项 • 永久解锁",
+    "unlockHeading": "如何永久开启「允许来自未验证开发者的应用」",
+    "unlockLead": "每台设备只需按以下步骤操作一次，即可持续自由安装 ApkUp 与独立开源应用（点击每一步可勾选完成）：",
+    "checklistProgress": "清单进度",
+    "resetBtn": "重置",
+    "steps": [
+      {
+        "title": "开启开发者选项（连点 7 次版本号）",
+        "body": "打开 设置 → 关于手机（三星：软件信息），连续点击 版本号 7 次，直到系统提示「您现在处于开发者模式！」。",
+        "chips": ["设置", "关于手机", "版本号 (7×)"],
+        "toast": "🎉 您现在处于开发者模式！"
+      },
+      {
+        "title": "开启「允许来自未验证开发者的应用」",
+        "body": "打开 设置 → 系统 → 开发者选项（或在设置中搜索开发者选项），找到 未验证开发者的应用 并开启允许。",
+        "chips": ["系统", "开发者选项", "未验证开发者"]
+      },
+      {
+        "title": "验证锁屏并重启设备",
+        "body": "按提示验证锁屏密码、图案或生物识别，然后重启手机。强制的 24 小时倒计时将在重启后立即开始。",
+        "icsBtn": "📅 保存 24 小时日历提醒 (.ics)"
+      },
+      {
+        "title": "24 小时后：务必选择「永久允许」",
+        "body": "等待 24 小时结束后，重新进入 开发者选项 → 未验证开发者的应用，并明确选择 永久允许。"
+      }
+    ],
+    "trapTitle": "⚠ 警惕「7 天自动重置」陷阱！",
+    "trapBody": "Android 在「永久允许」旁边提供了一个临时的「7 天」选项。如果您误选了 7 天，一周后系统会自动重新开启锁定 —— 迫使您再等整整 24 小时。请务必选择永久允许！",
+    "trapTab7d": "如果选择「7 天」",
+    "trapTabForever": "如果选择「永久允许」",
+    "trapRes7d": "第 1–7 天：允许 → 第 8 天：✕ 自动重新锁定（+24小时等待！）",
+    "trapResForever": "第 1 天起：✓ 永久解锁 —— 无 7 天重置！",
+    "compareBadge": "对比",
+    "compareHeading": "Play Protect 锁定 vs. 已解锁 / ADB 与 Shizuku",
+    "compareThScenario": "使用场景",
+    "compareThLocked": "开启 24 小时锁定时",
+    "compareThSafe": "已解锁 / ADB / Shizuku",
+    "compareRows": [
+      {
+        "scenario": "浏览器直接下载安装 APK",
+        "locked": "✕ 无 Google ID 时被拦截",
+        "safe": "✓ 正常安装"
+      },
+      {
+        "scenario": "ApkUp 多源更新",
+        "locked": "⚠ Play Protect 拦截未验证 APK",
+        "safe": "✓ 全部 7 个源无缝运行"
+      },
+      {
+        "scenario": "ADB / Shizuku / Root (su)",
+        "locked": "✓ 开发者安装通道保持开放",
+        "safe": "✓ 静默后台更新"
+      }
+    ],
+    "adbHeading": "立即可用的开发者逃生通道（无需等待 24 小时）",
+    "adbLead": "如果您无法等待 24 小时，可以立即从任意电脑通过 ADB（USB 或无线调试）安装 ApkUp，然后在 ApkUp 内启用 Shizuku 或 Root：",
+    "copy": "复制",
+    "copied": "已复制 ✓",
+    "backUnknownBtn": "← 未知应用安装指南",
+    "generalWikiBtn": "综合 Wiki →",
+    "quickJump": "24小时解锁 ↓"
+  },
+  "wikiPage": {
+    "title": "Wiki 与指南 — ApkUp",
+    "metaDesc": "涵盖更新源、F-Droid Index V2、PAT 令牌、Shizuku 与 Root、Obtainium 导入、侧载与故障排除的 12 章完整 ApkUp 文档。",
+    "h1": "ApkUp Wiki 与文档",
+    "lead": "全部 12 篇官方指南集中在一处并支持全文搜索 —— 在左侧切换章节或在下方搜索任意主题。",
+    "langNote": "说明：下方完整参考文章同步自英文 GitHub Wiki。各章节的摘要、快速步骤与对照表均已本地化为简体中文。",
+    "searchPlaceholder": "搜索全部 12 篇指南（例如 Shizuku, 24h, SHA-256, Cloudflare, 403, Obtainium）…",
+    "searchAria": "搜索 Wiki 指南",
+    "prevMatchAria": "上一个匹配",
+    "nextMatchAria": "下一个匹配",
+    "tocBtn": "目录（12 章）",
+    "minRead": "分钟阅读",
+    "openOnGithub": "在 GitHub Wiki 阅读全文 ↗",
+    "chapters": {
+      "home": {
+        "title": "概览与快速上手",
+        "lead": "ApkUp 是一款适用于 Android 10–17 (API 29+) 的本地多源更新器。零遥测、无开发者服务器，跨 7 个生态检查、校验并安装更新。",
+        "cards": [
+          {
+            "badge": "同意优先",
+            "title": "选择更新源前零网络请求",
+            "body": "首次启动时 ApkUp 会显示「选择更新源」对话框，仅通过 HTTPS 查询您启用的源。"
+          },
+          {
+            "badge": "3 个主标签页",
+            "title": "应用、更新与设置",
+            "body": "在「应用」管理已安装应用与关注列表，在「更新」执行单次或批量更新，在「设置」配置源与备份。"
+          },
+          {
+            "badge": "apksig v2/v3",
+            "title": "加密签名与 ABI 保护",
+            "body": "每次下载的 APK 或 .apkm 在安装前都会对照已安装签名证书、minSdk 与 CPU ABI 进行校验。"
+          },
+          {
+            "badge": "Android 10–17 & 9 种语言",
+            "title": "运行要求、语言与可选自动化",
+            "body": "支持 Android 10.0+ (API 29+) 及 9 种语言。可使用标准弹窗或 Shizuku / Root (su) 静默安装。"
+          }
+        ],
+        "stepsTitle": "首次使用 3 步快速上手",
+        "steps": [
+          {
+            "title": "选择您要启用的更新源",
+            "body": "在引导页启用 F-Droid/IzzyOnDroid、GitHub、GitLab、Codeberg、APKMirror 或 Google Play 商店。"
+          },
+          {
+            "title": "排序优先级与可选固定",
+            "body": "在设置中拖拽调整更新源顺序，或在应用页为特定应用固定优先源。"
+          },
+          {
+            "title": "扫描并更新",
+            "body": "在更新页下拉刷新，在详情中查看日志或保存 APK，并点击安装或全部安装。"
+          }
+        ]
+      },
+      "sources": {
+        "title": "更新源、仓库绑定与签名保护",
+        "lead": "了解 ApkUp 如何查询各更新源、自定义三方仓库绑定以及为何跨源切换会触发签名保护。",
+        "cards": [
+          {
+            "badge": "优先级与固定",
+            "title": "全局优先级与自动回退",
+            "body": "ApkUp 按您的拖拽优先级依次检查已启用源；固定应用后将优先检查指定源并在必要时回退。"
+          },
+          {
+            "badge": "三方仓库绑定",
+            "title": "自定义 GitHub、GitLab 与 Codeberg 链接",
+            "body": "将任意应用绑定到 owner/repo、多层 GitLab 子群组 (group/sub/project) 或自建实例。"
+          },
+          {
+            "badge": "资源过滤",
+            "title": "ABI 匹配、FOSS 分支与正则过滤",
+            "body": "自动优先选择 arm64-v8a / armeabi-v7a / x86_64 包，支持优先 FOSS 分支与自定义正则过滤。"
+          },
+          {
+            "badge": "签名保护",
+            "title": "为何 Android 阻止跨源证书变更",
+            "body": "官方 F-Droid 使用 F-Droid 密钥签名，而 GitHub/Play/IzzyOnDroid 使用开发者密钥。ApkUp 会提前拦截并提示。"
+          }
+        ],
+        "tableHeaders": {
+          "h1": "更新源",
+          "h2": "协议与认证",
+          "h3": "特殊能力"
+        },
+        "tableRows": [
+          {
+            "col1": "GitHub",
+            "col2": "REST + 批量 GraphQL（支持可选 PAT）",
+            "col3": "内置 FOSS 映射、自定义 owner/repo、SHA256SUMS 自更新"
+          },
+          {
+            "col1": "GitLab",
+            "col2": "REST API v4（gitlab.com 与自建 + PAT）",
+            "col3": "支持多层嵌套子群组路径 (group/sub/project)"
+          },
+          {
+            "col1": "Codeberg / Forgejo",
+            "col2": "Gitea/Forgejo Releases API（codeberg.org 与自建）",
+            "col3": "带 ABI 与正则过滤的直接资源解析"
+          },
+          {
+            "col1": "F-Droid 与 IzzyOnDroid",
+            "col2": "已签名 Index V2 (entry.jar) + Index V1 回退",
+            "col3": "RFC 7396 增量更新、X.509 TOFU 固定、纯本地比对"
+          },
+          {
+            "col1": "APKMirror",
+            "col2": "HTTPS API/订阅 + 内置 Cloudflare WebView",
+            "col3": "直接提取 .apk 与 .apkm 分包（每应用 10 分钟冷却）"
+          },
+          {
+            "col1": "Google Play 商店",
+            "col2": "匿名 Aurora Dispenser 令牌（无需登录）",
+            "col3": "最小化设备配置与 HTTP 429 自动恢复"
+          }
+        ]
+      },
+      "fdroid": {
+        "title": "F-Droid 与 Index V2 仓库",
+        "lead": "ApkUp 内置原生 F-Droid Index V2 引擎，支持 RFC 7396 增量差异更新、加密 JAR 证书校验与一键预设。",
+        "cards": [
+          {
+            "badge": "RFC 7396 增量",
+            "title": "重复扫描最多节省 95% 流量",
+            "body": "无需每次下载 50+ MB 完整索引，ApkUp 验证 entry.jar 后仅应用上次检查以来的小型 JSON 差异。"
+          },
+          {
+            "badge": "X.509 TOFU 固定",
+            "title": "加密指纹校验",
+            "body": "仓库 JAR 签名会对照固定的 64 位 SHA-256 X.509 证书指纹进行校验，任何篡改都会被立即拒绝。"
+          }
+        ],
+        "tableHeaders": {
+          "h1": "仓库预设",
+          "h2": "官方索引 URL",
+          "h3": "SHA-256 证书指纹"
+        },
+        "deepDives": [
+          {
+            "q": "如何添加任意自定义 HTTPS F-Droid 仓库",
+            "a": "打开 设置 → 更新源 → IzzyOnDroid / F-Droid → 添加仓库。粘贴带 ?fingerprint=<64-hex> 的链接，或首次留空以进行首次信任 (TOFU) 固定。"
+          }
+        ]
+      },
+      "tokens": {
+        "title": "配置 GitHub、GitLab 与 Codeberg 访问令牌 (PAT)",
+        "lead": "公开仓库无需令牌即可使用，添加只读个人访问令牌可大幅解除 API 速率限制（GitHub 从 60 次/小时提升至 5,000 次/小时）。",
+        "cards": [
+          {
+            "badge": "5,000 次/小时 + GraphQL",
+            "title": "GitHub Fine-Grained 令牌（只读）",
+            "body": "在 github.com/settings/personal-access-tokens 创建仅含 Public Repositories (read-only) 权限的令牌。ApkUp 会即时验证并显示剩余配额。"
+          },
+          {
+            "badge": "read_api 权限",
+            "title": "GitLab 与 Codeberg / Forgejo 令牌",
+            "body": "GitLab 请创建带 read_api 权限的令牌；Codeberg 或自建 Forgejo 请在用户设置 → 应用中生成只读令牌。"
+          },
+          {
+            "badge": "AES-256-GCM",
+            "title": "硬件加密与重定向剥离",
+            "body": "令牌使用 Android Keystore 中的 Google Tink (AES-256-GCM) 本地加密，并在跳转到外部 CDN 时自动剥离 Authorization 头。"
+          },
+          {
+            "badge": "一键测试",
+            "title": "内置令牌验证面板",
+            "body": "在 设置 → 更新源 → GitHub / GitLab 中点击验证令牌，即可立即确认有效性与剩余配额。"
+          }
+        ]
+      },
+      "shizuku-setup": {
+        "title": "设置 Shizuku（快速指南）",
+        "lead": "Shizuku 完全可选。配对后可在未 Root 的 Android 11+ 设备上实现静默后台更新。",
+        "stepsTitle": "通过无线调试配置（Android 11+ —— 无需电脑或 Root）",
+        "steps": [
+          {
+            "title": "安装 Shizuku 并开启开发者选项",
+            "body": "安装官方 Shizuku 应用，并在系统 设置 → 关于手机 中连续点击版本号 7 次。"
+          },
+          {
+            "title": "使用无线调试配对 Shizuku",
+            "body": "连接 Wi-Fi，在 Shizuku 中点击配对，打开无线调试 → 使用配对码配对设备，并输入 6 位数字。"
+          },
+          {
+            "title": "启动 Shizuku 并授权 ApkUp",
+            "body": "在 Shizuku 中点击启动，随后在 ApkUp → 设置 → 安装与自动化 中开启 Shizuku 后台安装并允许授权。"
+          }
+        ],
+        "deepDives": [
+          {
+            "q": "替代方案：通过电脑 (ADB) 或 Root 启动 Shizuku",
+            "a": "Android 10 可在电脑运行 \"adb shell sh /sdcard/Android/data/moe.shizuku.privileged.api/start.sh\"。已 Root 设备也可直接在 ApkUp 中开启 Root (su) 模式。"
+          }
+        ]
+      },
+      "shizuku-deep": {
+        "title": "Shizuku 与后台安装（架构与保护）",
+        "lead": "深入了解特权会话、Root (su) 回退、Wi-Fi/充电条件、活动时间窗与回滚备份。",
+        "cards": [
+          {
+            "badge": "IPC 管道",
+            "title": "通过 Binder 调用特权 PackageInstaller 会话",
+            "body": "通过 apksig v2/v3 与 ABI 检查后，ApkUp 经由 Shizuku Binder IPC 或 su 写入校验后的 APK 或 .apkm 分包。"
+          },
+          {
+            "badge": "自更新安全",
+            "title": "批量更新末尾延迟自更新",
+            "body": "当批量更新包含 ApkUp 自身时，会先安装所有其他应用，最后再执行 ApkUp 自更新。"
+          },
+          {
+            "badge": "时间窗口",
+            "title": "活动时段、静默时段与自动补全",
+            "body": "将后台更新限制在特定时间段（如 02:00–06:00 连接 Wi-Fi 且充电时），错过的检查会在下一允许时段自动补全。"
+          },
+          {
+            "badge": "2 GB 回滚库",
+            "title": "更新前自动备份与一键回滚",
+            "body": "开启回滚备份后，ApkUp 会在更新前将当前基础包与分包归档在私有空间（最多 2 GB LRU）以便快速恢复。"
+          }
+        ],
+        "deepDives": [
+          {
+            "q": "Root 原地回滚 (-r -d) 与非 Root 引导回滚的区别",
+            "a": "拥有 Root (su) 时，ApkUp 可保留数据执行原地降级。无 Root 时则会引导您先卸载新版再立即安装已备份的旧版 APK。"
+          }
+        ]
+      },
+      "obtainium": {
+        "title": "Obtainium 迁移与同步指南",
+        "lead": "将现有的 Obtainium 应用配置、自定义 F-Droid 仓库与关注列表无缝导入 ApkUp，或导出为 Obtainium JSON。",
+        "stepsTitle": "3 步从 Obtainium 迁移",
+        "steps": [
+          {
+            "title": "在 Obtainium 中导出 JSON",
+            "body": "在 Obtainium 打开 导入/导出 → Obtainium 导出 以保存配置文件。"
+          },
+          {
+            "title": "在 ApkUp 中打开交互式导入预览",
+            "body": "在 ApkUp 进入 设置 → 高级设置 → 备份与导出 → Obtainium 导入 并选择文件。"
+          },
+          {
+            "title": "检查匹配的绑定、F-Droid 仓库与关注列表",
+            "body": "ApkUp 会提前预览识别到的仓库绑定（含 GitLab 子群组与 Codeberg）、F-Droid 仓库及未安装应用。"
+          }
+        ]
+      },
+      "management": {
+        "title": "应用管理、关注列表、筛选与备份",
+        "lead": "掌握日常工具：未安装应用关注列表、预览版通道、24 小时缓存、SAF 导出与完整 JSON 备份。",
+        "cards": [
+          {
+            "badge": "关注 + App Watcher",
+            "title": "在安装前追踪应用发布",
+            "body": "点击应用页 + 号即可关注 GitHub、GitLab、Codeberg、F-Droid 或 APKMirror 应用，或从 App Watcher 导入列表。"
+          },
+          {
+            "badge": "预览版通道",
+            "title": "选择性支持 Beta、RC、Alpha 与 Nightly",
+            "body": "默认保持稳定版，并可全局或针对单个应用开启 Beta、RC、Alpha 或 Nightly 版本。"
+          },
+          {
+            "badge": "24h 缓存 + 保存 APK",
+            "title": "免重新下载重试与 SAF 导出",
+            "body": "已校验的下载在缓存中保留 24 小时。使用详情页的保存 APK 可将 .apk 或 .apks 导出到任意目录。"
+          },
+          {
+            "badge": "完整 JSON 备份",
+            "title": "便携配置与脱敏诊断日志",
+            "body": "将优先级、固定应用、仓库与定时计划导出为 JSON（不含令牌），并可导出已移除令牌的 .txt 诊断日志。"
+          }
+        ]
+      },
+      "troubleshooting": {
+        "title": "更新源错误排查",
+        "lead": "HTTP 状态码、速率限制、Cloudflare 验证与安装器错误的快速对照与解决方案。",
+        "tableHeaders": {
+          "h1": "错误 / 现象",
+          "h2": "原因",
+          "h3": "在 ApkUp 中的解决方法"
+        },
+        "tableRows": [
+          {
+            "col1": "GitHub HTTP 403 / 429",
+            "col2": "达到未认证 GitHub IP 速率限制（每小时 60 次）",
+            "col3": "在设置中添加只读 GitHub PAT（提升至 5,000 次/小时 + GraphQL）"
+          },
+          {
+            "col1": "APKMirror Cloudflare / 403",
+            "col2": "触发反爬虫验证或处于每应用 10 分钟冷却期",
+            "col3": "完成内置 WebView 的自动验证，或在设置中查看更新源健康状态"
+          },
+          {
+            "col1": "Google Play HTTP 429",
+            "col2": "匿名 Aurora Dispenser 临时速率限制",
+            "col3": "ApkUp 会自动退避并使用新的匿名会话令牌重试"
+          },
+          {
+            "col1": "GitHub HTTP 401",
+            "col2": "个人访问令牌已过期、被吊销或格式错误",
+            "col3": "打开 设置 → 更新源 → GitHub → 验证令牌 进行更换或清除"
+          },
+          {
+            "col1": "GitLab HTTP 404 (子群组)",
+            "col2": "子群组路径不完整或私有仓库未配置令牌",
+            "col3": "输入完整路径 group/subgroup/project（私有仓库需附带 read_api 令牌）"
+          },
+          {
+            "col1": "F-Droid Fingerprint Mismatch",
+            "col2": "索引 JAR 证书与固定的 SHA-256 指纹不匹配",
+            "col3": "在设置中重新固定前，请先核对官方仓库 URL 与 ?fingerprint="
+          },
+          {
+            "col1": "Signature Mismatch Blocked",
+            "col2": "更新包与已安装应用使用了不同的开发者/F-Droid 签名密钥",
+            "col3": "将应用固定回原更新源，或先保存 APK 后再干净重装"
+          },
+          {
+            "col1": "Incompatible ABI / minSdk",
+            "col2": "新版本需要更高的 Android 版本或不同的 CPU 架构",
+            "col3": "ApkUp 会自动拦截不兼容资源，防止反复安装失败"
+          },
+          {
+            "col1": "Shizuku Disconnected",
+            "col2": "设备重启或网络切换后 Shizuku 后台服务停止",
+            "col3": "通过无线调试重启 Shizuku（或在 Shizuku 内开启开机自启）"
+          }
+        ]
+      },
+      "sha256": {
+        "title": "SHA-256 校验和与 APK 签名验证",
+        "lead": "什么是 SHA-256 校验和、为何能防止下载被篡改，以及如何在各平台验证 APK。",
+        "cards": [
+          {
+            "badge": "数字指纹",
+            "title": "什么是 SHA-256？",
+            "body": "APK 文件的 64 位密码学指纹。哪怕修改 1 个字节，计算出的哈希值也会完全改变。"
+          },
+          {
+            "badge": "自动校验",
+            "title": "APK 签名 v2/v3",
+            "body": "在 ApkUp 内部，每次更新都会自动对照已安装应用验证签名证书。"
+          }
+        ]
+      },
+      "sideloading": {
+        "title": "在 Android 上安装未知应用",
+        "lead": "经典「安装未知应用」权限的分步说明，以及通过 Shizuku、ADB 和 Root 的进阶安装方式。",
+        "cards": [
+          {
+            "badge": "30 秒",
+            "title": "经典 Android 侧载",
+            "body": "点击下载的 APK，按提示进入设置开启「允许来自此来源的应用」即可安装。"
+          },
+          {
+            "badge": "进阶用户",
+            "title": "Shizuku、ADB 与 Root (su)",
+            "body": "使用 Shizuku（无线调试）、adb install -r 或 Root (su) 进行高效的后台安装。"
+          }
+        ]
+      },
+      "google-lock": {
+        "title": "Google 24小时锁定与 Keep Android Open",
+        "lead": "如何永久解除 Google 2026/2027 年开发者选项 24 小时冷却限制（「永久允许」）以及 Keep Android Open 倡议。",
+        "cards": [
+          {
+            "badge": "24小时锁定",
+            "title": "Google 2026/2027 开发者选项流程",
+            "body": "开启开发者选项（7次版本号）→ 允许未验证开发者的应用 → 重启 → 24小时后选择「永久允许」。"
+          },
+          {
+            "badge": "Keep Android Open",
+            "title": "FOSS、F-Droid 与 keepandroidopen.org",
+            "body": "F-Droid 构建可复现的开源 APK，而不强迫匿名开发者向 Google 提交身份证件。"
+          }
+        ]
+      }
+    }
+  }
+}

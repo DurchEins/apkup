@@ -164,24 +164,6 @@ cd apkup
 
 ---
 
-## 🌍 Community Translations
-
-| Language | Status | Contribute |
-| :--- | :---: | :--- |
-| English (`EN`) | ✅ 100% | [Edit on GitHub](https://github.com/DurchEins/apkup/blob/main/app/src/main/res/values/strings.xml) |
-| German (`DE`) | ✅ 100% | [Edit on GitHub](https://github.com/DurchEins/apkup/blob/main/app/src/main/res/values-de/strings.xml) |
-| Spanish (`ES`) | ✅ 100% | [Edit on GitHub](https://github.com/DurchEins/apkup/blob/main/app/src/main/res/values-es/strings.xml) |
-| French (`FR`) | ✅ 100% | [Edit on GitHub](https://github.com/DurchEins/apkup/blob/main/app/src/main/res/values-fr/strings.xml) |
-| Italian (`IT`) | ✅ 100% | [Edit on GitHub](https://github.com/DurchEins/apkup/blob/main/app/src/main/res/values-it/strings.xml) |
-| Japanese (`JA`) | ✅ 100% | [Edit on GitHub](https://github.com/DurchEins/apkup/blob/main/app/src/main/res/values-ja/strings.xml) |
-| Portuguese (`PT`) | ✅ 100% | [Edit on GitHub](https://github.com/DurchEins/apkup/blob/main/app/src/main/res/values-pt/strings.xml) |
-| Russian (`RU`) | ✅ 100% | [Edit on GitHub](https://github.com/DurchEins/apkup/blob/main/app/src/main/res/values-ru/strings.xml) |
-| Simplified Chinese (`ZH-CN`) | ✅ 100% | [Edit on GitHub](https://github.com/DurchEins/apkup/blob/main/app/src/main/res/values-zh-rCN/strings.xml) |
-
-> **Spot a typo? Fix it in 30 seconds:** [Submit a translation improvement](.github/ISSUE_TEMPLATE/translation.yml)
-
----
-
 ## 📖 Troubleshooting & Wiki
 
 Need help configuring sources or resolving connection errors? Visit the official **[ApkUp Wiki](https://github.com/DurchEins/apkup/wiki)** for step-by-step guides:
@@ -213,6 +195,18 @@ If ApkUp saves you time keeping your apps up to date, consider supporting its on
 > * ⭐ **[Star the repository on GitHub](https://github.com/DurchEins/apkup)** (or **[GitLab](https://gitlab.com/DurchEins1/apkup)**)
 > * 💬 **Rate & review** ApkUp on **[Zapstore](https://zapstore.dev/apps/com.apkup)**, **[AlternativeTo](https://alternativeto.net/software/apkup/about/)**, **[APKPure](https://apkpure.com/apkup/com.apkup)**, **[itch.io](https://durcheins.itch.io/apkup)**, or **[Appteka](https://appteka.store/app/c0cr341070)**
 > * 🐛 **[Report bugs](https://github.com/DurchEins/apkup/issues)**, **[suggest features](https://github.com/DurchEins/apkup/issues)**, or share ApkUp with friends!
+
+---
+
+## 🌍 Translations
+
+<a href="https://hosted.weblate.org/engage/apkup/">
+  <img src="https://hosted.weblate.org/widgets/apkup/-/multi-auto.svg" alt="Translation status" />
+</a>
+
+| 🌐 Browser (No Git needed) | 🛠️ Developers (Pull Requests) |
+| :--- | :--- |
+| Translate directly in your browser on **[Hosted Weblate](https://hosted.weblate.org/engage/apkup/)**, or report typos via the **[Translation Issue Form](https://github.com/DurchEins/apkup/issues/new?template=translation.yml)**. | Edit Android strings in `app/src/main/res/values-*/strings.xml` or website translations in `website/src/i18n/*.json`. |
 
 ---
 

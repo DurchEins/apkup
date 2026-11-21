@@ -1,4 +1,7 @@
-<!DOCTYPE html><html lang="en" data-theme="dark" data-lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>⚠ Google’s 24h Sideloading Lock &amp; Keep Android Open — ApkUp</title><meta name="description" content="Detailed analysis &amp; permanent unlock guide for Google’s 2026/2027 Android Developer Verification 24-hour sideloading lock, user impact, ADB/Shizuku workarounds, and Keep Android Open."><meta name="theme-color" content="#121316" id="meta-theme-color"><link rel="canonical" href="https://durcheins.github.io/apkup/sideloading/google-lock/"><link rel="alternate" type="text/plain" title="LLMs.txt" href="/apkup/llms.txt"><link rel="icon" type="image/png" href="/apkup/assets/logo.png"><link rel="apple-touch-icon" href="/apkup/assets/logo.png"><link rel="stylesheet" href="/apkup/assets/styles.css"><!-- OpenGraph & Social --><meta property="og:type" content="website"><meta property="og:url" content="https://durcheins.github.io/apkup/sideloading/google-lock/"><meta property="og:title" content="⚠ Google’s 24h Sideloading Lock &amp; Keep Android Open — ApkUp"><meta property="og:description" content="Detailed analysis &amp; permanent unlock guide for Google’s 2026/2027 Android Developer Verification 24-hour sideloading lock, user impact, ADB/Shizuku workarounds, and Keep Android Open."><meta property="og:image" content="https://durcheins.github.io/apkup/og-card.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="⚠ Google’s 24h Sideloading Lock &amp; Keep Android Open — ApkUp"><meta name="twitter:description" content="Detailed analysis &amp; permanent unlock guide for Google’s 2026/2027 Android Developer Verification 24-hour sideloading lock, user impact, ADB/Shizuku workarounds, and Keep Android Open."><meta name="twitter:image" content="https://durcheins.github.io/apkup/og-card.png"><!-- Google Fonts CDN (Plus Jakarta Sans + JetBrains Mono) --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Google’s 24-Hour Sideloading Lock (2026/2027) & Keep Android Open — Complete Guide","url":"https://durcheins.github.io/apkup/sideloading/google-lock/","author":{"@type":"Person","name":"DurchEins","url":"https://github.com/DurchEins"},"about":{"@type":"SoftwareApplication","name":"ApkUp"}}</script><!-- Prevent theme/lang flash before first paint --><script>
+<!DOCTYPE html><html lang="en" data-theme="dark" data-lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>⚠ Google’s 24h Sideloading Lock &amp; Keep Android Open — ApkUp</title><meta name="description" content="Detailed analysis &amp; permanent unlock guide for Google’s 2026/2027 Android Developer Verification 24-hour sideloading lock, user impact, ADB/Shizuku workarounds, and Keep Android Open."><meta name="theme-color" content="#121316" id="meta-theme-color"><link rel="canonical" href="https://durcheins.github.io/apkup/sideloading/google-lock/"><link rel="alternate" hreflang="en" href="https://durcheins.github.io/apkup/sideloading/google-lock/"><link rel="alternate" hreflang="de" href="https://durcheins.github.io/apkup/de/sideloading/google-lock/"><link rel="alternate" hreflang="es" href="https://durcheins.github.io/apkup/es/sideloading/google-lock/"><link rel="alternate" hreflang="fr" href="https://durcheins.github.io/apkup/fr/sideloading/google-lock/"><link rel="alternate" hreflang="it" href="https://durcheins.github.io/apkup/it/sideloading/google-lock/"><link rel="alternate" hreflang="ja" href="https://durcheins.github.io/apkup/ja/sideloading/google-lock/"><link rel="alternate" hreflang="pt" href="https://durcheins.github.io/apkup/pt/sideloading/google-lock/"><link rel="alternate" hreflang="ru" href="https://durcheins.github.io/apkup/ru/sideloading/google-lock/"><link rel="alternate" hreflang="zh-CN" href="https://durcheins.github.io/apkup/zh-cn/sideloading/google-lock/"><link rel="alternate" hreflang="x-default" href="https://durcheins.github.io/apkup/sideloading/google-lock/"><link rel="alternate" type="text/plain" title="LLMs.txt" href="/apkup/llms.txt"><link rel="icon" type="image/png" href="/apkup/assets/logo.png"><link rel="apple-touch-icon" href="/apkup/assets/logo.png"><link rel="stylesheet" href="/apkup/assets/styles.css"><!-- OpenGraph & Social --><meta property="og:type" content="website"><meta property="og:url" content="https://durcheins.github.io/apkup/sideloading/google-lock/"><meta property="og:locale" content="en"><meta property="og:title" content="⚠ Google’s 24h Sideloading Lock &amp; Keep Android Open — ApkUp"><meta property="og:description" content="Detailed analysis &amp; permanent unlock guide for Google’s 2026/2027 Android Developer Verification 24-hour sideloading lock, user impact, ADB/Shizuku workarounds, and Keep Android Open."><meta property="og:image" content="https://durcheins.github.io/apkup/og-card.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="⚠ Google’s 24h Sideloading Lock &amp; Keep Android Open — ApkUp"><meta name="twitter:description" content="Detailed analysis &amp; permanent unlock guide for Google’s 2026/2027 Android Developer Verification 24-hour sideloading lock, user impact, ADB/Shizuku workarounds, and Keep Android Open."><meta name="twitter:image" content="https://durcheins.github.io/apkup/og-card.png"><!-- Google Fonts CDN (Plus Jakarta Sans + JetBrains Mono) --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"⚠ Google’s 24h Sideloading Lock & Keep Android Open — ApkUp","url":"https://durcheins.github.io/apkup/sideloading/google-lock/","author":{"@type":"Person","name":"DurchEins","url":"https://github.com/DurchEins"},"about":{"@type":"SoftwareApplication","name":"ApkUp"}}</script><!-- Prevent theme flash & auto-detect language on default root URLs before first paint --><script>(function(){const currentLang = "en";
+const basePath = "/apkup/";
+const cleanSubPath = "sideloading/google-lock/";
+
       (function () {
         try {
           var savedTheme = localStorage.getItem('apkup-theme');
@@ -7,40 +10,86 @@
           var meta = document.getElementById('meta-theme-color');
           if (meta) meta.setAttribute('content', theme === 'light' ? '#F4F1EA' : '#121316');
 
-          var savedLang = localStorage.getItem('apkup-lang');
-          var lang = savedLang === 'de' || savedLang === 'en' ? savedLang : 'en';
-          document.documentElement.setAttribute('data-lang', lang);
-          document.documentElement.setAttribute('lang', lang);
-        } catch (e) {}
-      })();
-    </script><link rel="stylesheet" href="/apkup/_astro/Footer.CKTIxEoH.css"><link rel="stylesheet" href="/apkup/_astro/google-lock.CVB3GfF5.css"></head> <body> <a class="skip-link" href="#main-content"> <span class="i18n-en">Skip to main content</span> <span class="i18n-de">Zum Hauptinhalt springen</span> </a> <div id="kao-banner-slot" data-kao-size="normal"></div> <script>(function(){const kaoBannerSize = "normal";
+          if (currentLang === 'en') {
+            var nonDefault = ['de', 'es', 'fr', 'it', 'ja', 'pt', 'ru', 'zh-cn'];
+            var savedLang = null;
+            try {
+              savedLang = localStorage.getItem('apkup-lang');
+            } catch (e) {}
 
-      (function () {
-        try {
-          var lang = document.documentElement.getAttribute('data-lang') || 'en';
-          var s = document.createElement('script');
-          s.async = true;
-          s.src =
-            'https://keepandroidopen.org/banner.js?id=kao-banner-slot&size=' +
-            encodeURIComponent(kaoBannerSize) +
-            '&hidebutton=on&link=' +
-            encodeURIComponent('https://durcheins.github.io/apkup/sideloading/google-lock/') +
-            '&lang=' +
-            encodeURIComponent(lang);
-          document.body.appendChild(s);
+            var targetLang = null;
+            if (savedLang === 'en') {
+              targetLang = 'en';
+            } else if (savedLang && nonDefault.indexOf(savedLang) !== -1) {
+              targetLang = savedLang;
+            } else {
+              var langs = navigator.languages && navigator.languages.length
+                ? navigator.languages
+                : [navigator.language || 'en'];
+              for (var i = 0; i < langs.length; i++) {
+                var raw = String(langs[i] || '').toLowerCase().replace(/_/g, '-');
+                if (!raw) continue;
+                if (raw === 'en' || raw.indexOf('en-') === 0) { targetLang = 'en'; break; }
+                if (raw === 'de' || raw.indexOf('de-') === 0) { targetLang = 'de'; break; }
+                if (raw === 'es' || raw.indexOf('es-') === 0) { targetLang = 'es'; break; }
+                if (raw === 'fr' || raw.indexOf('fr-') === 0) { targetLang = 'fr'; break; }
+                if (raw === 'it' || raw.indexOf('it-') === 0) { targetLang = 'it'; break; }
+                if (raw === 'ja' || raw.indexOf('ja-') === 0) { targetLang = 'ja'; break; }
+                if (raw === 'pt' || raw.indexOf('pt-') === 0) { targetLang = 'pt'; break; }
+                if (raw === 'ru' || raw.indexOf('ru-') === 0) { targetLang = 'ru'; break; }
+                if (
+                  raw === 'zh' ||
+                  raw === 'zh-cn' ||
+                  raw === 'zh-sg' ||
+                  raw === 'zh-hans' ||
+                  raw.indexOf('zh-hans-') === 0
+                ) {
+                  targetLang = 'zh-cn';
+                  break;
+                }
+              }
+            }
+
+            if (targetLang && targetLang !== 'en') {
+              var dest = basePath + targetLang + '/' + cleanSubPath + window.location.search + window.location.hash;
+              window.location.replace(dest);
+            }
+          }
         } catch (e) {}
       })();
-    })();</script>  <header class="site-header" data-astro-cid-l7arcky5> <div class="container nav-inner" data-astro-cid-l7arcky5> <a class="brand" href="/apkup/" aria-label="ApkUp Home" data-astro-cid-l7arcky5> <img src="/apkup/assets/logo.png" alt="" width="36" height="36" class="brand-icon" data-astro-cid-l7arcky5> <span class="brand-name" data-astro-cid-l7arcky5>ApkUp</span> </a> <nav class="nav-links" aria-label="Primary navigation" data-astro-cid-l7arcky5> <a href="/apkup/#features" data-astro-cid-l7arcky5> <span class="i18n-en" data-astro-cid-l7arcky5>Features</span> <span class="i18n-de" data-astro-cid-l7arcky5>Funktionen</span> </a> <a href="/apkup/#showcase" data-astro-cid-l7arcky5> <span class="i18n-en" data-astro-cid-l7arcky5>Showcase</span> <span class="i18n-de" data-astro-cid-l7arcky5>Einblicke</span> </a> <a href="/apkup/#sources" data-astro-cid-l7arcky5> <span class="i18n-en" data-astro-cid-l7arcky5>Sources</span> <span class="i18n-de" data-astro-cid-l7arcky5>Quellen</span> </a> <a href="/apkup/changelog/" data-astro-cid-l7arcky5> <span class="i18n-en" data-astro-cid-l7arcky5>What’s New?</span> <span class="i18n-de" data-astro-cid-l7arcky5>Was ist neu?</span> </a> <a href="/apkup/wiki/" data-astro-cid-l7arcky5>Wiki</a> <a href="/apkup/privacy/" data-astro-cid-l7arcky5>Privacy</a> <a href="/apkup/downloads/" data-astro-cid-l7arcky5>Downloads</a> </nav> <div class="nav-actions" data-astro-cid-l7arcky5> <button id="lang-toggle" type="button" class="icon-pill" aria-label="Switch language between English and German" title="EN / DE" data-astro-cid-l7arcky5> <span class="i18n-en" data-astro-cid-l7arcky5>DE</span> <span class="i18n-de" data-astro-cid-l7arcky5>EN</span> </button> <button id="theme-toggle" type="button" class="icon-pill icon-only" aria-label="Toggle light and dark theme" title="Toggle theme" data-astro-cid-l7arcky5> <!-- Sun icon (shown in dark mode to switch to light) --><svg class="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-l7arcky5> <circle cx="12" cy="12" r="4" data-astro-cid-l7arcky5></circle> <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" data-astro-cid-l7arcky5></path> </svg> <!-- Moon icon (shown in light mode to switch to dark) --> <svg class="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-l7arcky5> <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" data-astro-cid-l7arcky5></path> </svg> </button> <a class="btn btn-primary nav-cta" href="/apkup/#downloads" data-astro-cid-l7arcky5> <span class="i18n-en" data-astro-cid-l7arcky5>Download</span> <span class="i18n-de" data-astro-cid-l7arcky5>Herunterladen</span> </a> <button id="mobile-menu-toggle" type="button" class="icon-pill icon-only mobile-menu-btn" aria-expanded="false" aria-controls="mobile-nav-panel" aria-label="Toggle navigation menu" data-astro-cid-l7arcky5> <svg class="menu-icon-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" data-astro-cid-l7arcky5> <line x1="4" y1="7" x2="20" y2="7" data-astro-cid-l7arcky5></line> <line x1="4" y1="12" x2="20" y2="12" data-astro-cid-l7arcky5></line> <line x1="4" y1="17" x2="20" y2="17" data-astro-cid-l7arcky5></line> </svg> <svg class="menu-icon-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" data-astro-cid-l7arcky5> <path d="M18 6 6 18M6 6l12 12" data-astro-cid-l7arcky5></path> </svg> </button> </div> </div> <nav id="mobile-nav-panel" class="mobile-nav-panel" aria-label="Mobile navigation" hidden data-astro-cid-l7arcky5> <div class="container mobile-nav-list" data-astro-cid-l7arcky5> <a href="/apkup/#features" data-astro-cid-l7arcky5> <span class="i18n-en" data-astro-cid-l7arcky5>Features</span> <span class="i18n-de" data-astro-cid-l7arcky5>Funktionen</span> </a> <a href="/apkup/#showcase" data-astro-cid-l7arcky5> <span class="i18n-en" data-astro-cid-l7arcky5>Showcase</span> <span class="i18n-de" data-astro-cid-l7arcky5>Einblicke</span> </a> <a href="/apkup/#sources" data-astro-cid-l7arcky5> <span class="i18n-en" data-astro-cid-l7arcky5>Sources</span> <span class="i18n-de" data-astro-cid-l7arcky5>Quellen</span> </a> <a href="/apkup/changelog/" data-astro-cid-l7arcky5> <span class="i18n-en" data-astro-cid-l7arcky5>What’s New?</span> <span class="i18n-de" data-astro-cid-l7arcky5>Was ist neu?</span> </a> <a href="/apkup/wiki/" data-astro-cid-l7arcky5>Wiki</a> <a href="/apkup/privacy/" data-astro-cid-l7arcky5>Privacy</a> <a href="/apkup/downloads/" data-astro-cid-l7arcky5>Downloads</a> <a class="btn btn-primary mobile-nav-cta" href="/apkup/#downloads" data-astro-cid-l7arcky5> <span class="i18n-en" data-astro-cid-l7arcky5>Download</span> <span class="i18n-de" data-astro-cid-l7arcky5>Herunterladen</span> </a> </div> </nav> </header> <script>
+    })();</script></head> <body> <a class="skip-link" href="#main-content"> Skip to main content </a> <aside id="kao-local-banner" class="kao-signal-banner is-normal" aria-label="WARNING: ANDROID SIDELOADING AT RISK (2026 / 2027)" data-astro-cid-d67wyeir> <div class="container kao-banner-inner" data-astro-cid-d67wyeir> <div class="kao-banner-content" data-astro-cid-d67wyeir> <div class="kao-signal-bar mono" data-astro-cid-d67wyeir> <span class="kao-signal-icon" aria-hidden="true" data-astro-cid-d67wyeir>⚠️</span> <span data-astro-cid-d67wyeir>WARNING: ANDROID SIDELOADING AT RISK (2026 / 2027)</span> </div> <p class="kao-banner-text" data-astro-cid-d67wyeir> Google Play Protect is rolling out mandatory developer ID verification and a 24-hour Developer Options lock for unverified APKs. </p> </div> <div class="kao-banner-actions" data-astro-cid-d67wyeir> <a class="kao-cta-btn" href="/apkup/sideloading/google-lock/" data-astro-cid-d67wyeir> 24h Unlock Guide →
+</a> <a class="kao-secondary-link" href="https://keepandroidopen.org" target="_blank" rel="noopener noreferrer" data-astro-cid-d67wyeir> keepandroidopen.org ↗ </a> <button type="button" id="kao-banner-dismiss" class="kao-dismiss-btn" aria-label="Dismiss warning banner for this session" title="Dismiss warning banner for this session" data-astro-cid-d67wyeir>
+×
+</button> </div> </div> </aside> <script>
+  (function () {
+    var banner = document.getElementById('kao-local-banner');
+    var dismiss = document.getElementById('kao-banner-dismiss');
+    if (!banner) return;
+    try {
+      if (sessionStorage.getItem('apkup-kao-dismissed') === '1') {
+        banner.hidden = true;
+        return;
+      }
+    } catch (e) {}
+    if (dismiss) {
+      dismiss.addEventListener('click', function () {
+        banner.hidden = true;
+        try {
+          sessionStorage.setItem('apkup-kao-dismissed', '1');
+        } catch (e) {}
+      });
+    }
+  })();
+</script>  <header class="site-header" data-astro-cid-vus4yyb6> <div class="container nav-inner" data-astro-cid-vus4yyb6> <a class="brand" href="/apkup/" aria-label="ApkUp Home" data-astro-cid-vus4yyb6> <img src="/apkup/assets/logo.png" alt="" width="36" height="36" class="brand-icon" data-astro-cid-vus4yyb6> <span class="brand-name" data-astro-cid-vus4yyb6>ApkUp</span> </a> <nav class="nav-links" aria-label="Primary navigation" data-astro-cid-vus4yyb6> <a href="/apkup/#features" data-astro-cid-vus4yyb6>Features</a> <a href="/apkup/#showcase" data-astro-cid-vus4yyb6>Showcase</a> <a href="/apkup/#sources" data-astro-cid-vus4yyb6>Sources</a> <a href="/apkup/changelog/" data-astro-cid-vus4yyb6>What’s New?</a> <a href="/apkup/wiki/" data-astro-cid-vus4yyb6>Wiki</a> <a href="/apkup/privacy/" data-astro-cid-vus4yyb6>Privacy</a> <a href="/apkup/downloads/" data-astro-cid-vus4yyb6>Downloads</a> </nav> <div class="nav-actions" data-astro-cid-vus4yyb6> <button id="theme-toggle" type="button" class="icon-pill icon-only" aria-label="Toggle light and dark theme" title="Toggle light and dark theme" data-astro-cid-vus4yyb6> <svg class="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-vus4yyb6> <circle cx="12" cy="12" r="4" data-astro-cid-vus4yyb6></circle> <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" data-astro-cid-vus4yyb6></path> </svg> <svg class="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-vus4yyb6> <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" data-astro-cid-vus4yyb6></path> </svg> </button> <a class="btn btn-primary nav-cta" href="/apkup/#downloads" data-astro-cid-vus4yyb6> Download </a> <button id="mobile-menu-toggle" type="button" class="icon-pill icon-only mobile-menu-btn" aria-expanded="false" aria-controls="mobile-nav-panel" aria-label="Toggle navigation menu" data-astro-cid-vus4yyb6> <svg class="menu-icon-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" data-astro-cid-vus4yyb6> <line x1="4" y1="7" x2="20" y2="7" data-astro-cid-vus4yyb6></line> <line x1="4" y1="12" x2="20" y2="12" data-astro-cid-vus4yyb6></line> <line x1="4" y1="17" x2="20" y2="17" data-astro-cid-vus4yyb6></line> </svg> <svg class="menu-icon-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" data-astro-cid-vus4yyb6> <path d="M18 6 6 18M6 6l12 12" data-astro-cid-vus4yyb6></path> </svg> </button> </div> </div> <nav id="mobile-nav-panel" class="mobile-nav-panel" aria-label="Mobile navigation" hidden data-astro-cid-vus4yyb6> <div class="container mobile-nav-list" data-astro-cid-vus4yyb6> <a href="/apkup/#features" data-astro-cid-vus4yyb6>Features</a> <a href="/apkup/#showcase" data-astro-cid-vus4yyb6>Showcase</a> <a href="/apkup/#sources" data-astro-cid-vus4yyb6>Sources</a> <a href="/apkup/changelog/" data-astro-cid-vus4yyb6>What’s New?</a> <a href="/apkup/wiki/" data-astro-cid-vus4yyb6>Wiki</a> <a href="/apkup/privacy/" data-astro-cid-vus4yyb6>Privacy</a> <a href="/apkup/downloads/" data-astro-cid-vus4yyb6>Downloads</a> <a class="btn btn-primary mobile-nav-cta" href="/apkup/#downloads" data-astro-cid-vus4yyb6> Download </a> </div> </nav> </header> <script>
   (function () {
     var btn = document.getElementById('mobile-menu-toggle');
     var panel = document.getElementById('mobile-nav-panel');
 
-    // Highlight active nav link + Scroll-Spy on homepage sections
-    var path = window.location.pathname;
+    var path = window.location.pathname.replace(/\/$/, '');
     var navLinks = Array.prototype.slice.call(document.querySelectorAll('.nav-links a'));
     navLinks.forEach(function (a) {
-      var href = a.getAttribute('href') || '';
-      if (href.indexOf('#') === -1 && path.indexOf(href) === 0 && href.length > 6) {
+      var href = (a.getAttribute('href') || '').replace(/\/$/, '');
+      if (href.indexOf('#') === -1 && href && path === href) {
         a.classList.add('is-current');
       }
     });
@@ -125,133 +174,72 @@
       });
     }
   })();
-</script> <div class="kao-scroll-progress" id="kao-scroll-progress" aria-hidden="true" data-astro-cid-uusvhgec></div> <main id="main-content" class="section" data-astro-cid-uusvhgec> <div class="container subpage-wrap" data-astro-cid-uusvhgec> <nav class="sl-breadcrumb" aria-label="Breadcrumb" data-astro-cid-uusvhgec> <a href="/apkup/sideloading/" class="mono" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>← Back to Installing Unknown Apps</span> <span class="i18n-de" data-astro-cid-uusvhgec>← Zurück zu „Unbekannte Apps installieren“</span> </a> </nav> <!-- Alarm-Red Hero Banner (Keep Android Open Inspired) --> <header class="kao-hero" id="kao-hero" data-astro-cid-uusvhgec> <div class="kao-hero-top" data-astro-cid-uusvhgec> <span class="pill-badge pill-danger mono kao-alert-pill" data-astro-cid-uusvhgec> <span class="kao-pulse-dot" aria-hidden="true" data-astro-cid-uusvhgec></span> <span class="i18n-en" data-astro-cid-uusvhgec>CRITICAL ALERT • 2026 / 2027 ANDROID LOCKDOWN</span> <span class="i18n-de" data-astro-cid-uusvhgec>WICHTIGE WARNUNG • ANDROID-SPERRE 2026 / 2027</span> </span> <span class="pill-badge pill-neutral mono kao-countdown-pill" id="kao-global-countdown" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Global Rollout: Jan 2027</span> <span class="i18n-de" data-astro-cid-uusvhgec>Globaler Rollout: Jan. 2027</span> </span> <span class="pill-badge pill-neutral mono" data-astro-cid-uusvhgec>keepandroidopen.org</span> </div> <h1 class="kao-title" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Google’s 24h Developer Lock &amp; Keep Android Open</span> <span class="i18n-de" data-astro-cid-uusvhgec>Googles 24h-Entwicklersperre &amp; Keep Android Open</span> </h1> <p class="kao-lead" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>
-Android is facing the biggest restriction on sideloading in its history. Starting
-<strong data-astro-cid-uusvhgec>September 30, 2026</strong> (pilot regions) and rolling out globally in
-<strong data-astro-cid-uusvhgec>January 2027</strong>, Google Play Protect blocks APKs from developers who have
-            not submitted government ID and package keys to Google — forcing users through a hidden
-<strong data-astro-cid-uusvhgec>24-hour Developer Options cooldown</strong>.
-</span> <span class="i18n-de" data-astro-cid-uusvhgec>
-Android steht vor der größten Einschränkung beim Installieren freier Apps in seiner
-            Geschichte: Seit <strong data-astro-cid-uusvhgec>30. September 2026</strong> (Pilotregionen) und ab
-<strong data-astro-cid-uusvhgec>Januar 2027</strong> weltweit blockiert Google Play Protect standardmäßig APKs
-            von Entwicklern ohne Ausweisverifizierung bei Google – und versteckt die Freigabe
-            hinter einer <strong data-astro-cid-uusvhgec>24-Stunden-Sperre in den Entwickleroptionen</strong>.
-</span> </p> <div class="kao-hero-actions" data-astro-cid-uusvhgec> <a href="#sl-lock-steps" class="btn btn-danger" data-kao-jump-steps data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Unlock 24h Lock Step-by-Step ↓</span> <span class="i18n-de" data-astro-cid-uusvhgec>24h-Sperre dauerhaft lösen ↓</span> </a> <a href="https://keepandroidopen.org" target="_blank" rel="noopener noreferrer" class="btn btn-danger-outline" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Join Keep Android Open ↗</span> <span class="i18n-de" data-astro-cid-uusvhgec>Keep Android Open unterstützen ↗</span> </a> <button type="button" class="btn btn-danger-outline kao-share-btn" id="kao-share-btn" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Share &amp; Warn Others ↗</span> <span class="i18n-de" data-astro-cid-uusvhgec>Teilen &amp; Aufklären ↗</span> </button> </div> </header> <!-- Quick Self-Check: Am I Affected? --> <section class="kao-checker" id="kao-checker" aria-labelledby="kao-checker-title" data-astro-cid-uusvhgec> <div class="kao-checker-head" data-astro-cid-uusvhgec> <span class="pill-badge pill-danger mono" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>2-Click Check</span> <span class="i18n-de" data-astro-cid-uusvhgec>2-Klick-Check</span> </span> <h2 id="kao-checker-title" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Am I Affected by Google’s 24h Lock?</span> <span class="i18n-de" data-astro-cid-uusvhgec>Bin ich von Googles 24h-Sperre betroffen?</span> </h2> </div> <div class="kao-checker-grid" data-astro-cid-uusvhgec> <div class="kao-q" data-astro-cid-uusvhgec> <span class="kao-q-label" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>1. Device uses Google Play Services / Play Protect?</span> <span class="i18n-de" data-astro-cid-uusvhgec>1. Gerät nutzt Google Play Services / Play Protect?</span> </span> <div class="kao-q-btns" data-astro-cid-uusvhgec> <button type="button" class="kao-q-btn is-selected" data-q="gms" data-val="yes" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Yes (Standard Android)</span> <span class="i18n-de" data-astro-cid-uusvhgec>Ja (Standard-Android)</span> </button> <button type="button" class="kao-q-btn" data-q="gms" data-val="no" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>No (GrapheneOS / Lineage / DeGoogled)</span> <span class="i18n-de" data-astro-cid-uusvhgec>Nein (GrapheneOS / Lineage / ohne Google)</span> </button> </div> </div> <div class="kao-q" data-astro-cid-uusvhgec> <span class="kao-q-label" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>2. How do you install ApkUp / FOSS apps?</span> <span class="i18n-de" data-astro-cid-uusvhgec>2. Wie installierst du ApkUp / FOSS-Apps?</span> </span> <div class="kao-q-btns" data-astro-cid-uusvhgec> <button type="button" class="kao-q-btn is-selected" data-q="method" data-val="apk" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Tap APK directly on phone</span> <span class="i18n-de" data-astro-cid-uusvhgec>APK direkt am Handy antippen</span> </button> <button type="button" class="kao-q-btn" data-q="method" data-val="adb" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>ADB / Shizuku / Root (su)</span> <span class="i18n-de" data-astro-cid-uusvhgec>ADB / Shizuku / Root (su)</span> </button> </div> </div> </div> <div class="kao-checker-result is-affected mono" id="kao-checker-result" aria-live="polite" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>⚠ Affected: Complete the 4-step “Allow indefinitely” unlock below once.</span> <span class="i18n-de" data-astro-cid-uusvhgec>⚠ Betroffen: Einmalig unten die 4 Schritte („Dauerhaft erlauben“) ausführen.</span> </div> </section> <!-- Section 1: Hard Facts & Timeline --> <section class="kao-section" aria-labelledby="kao-timeline-heading" data-astro-cid-uusvhgec> <div class="kao-sec-head" data-astro-cid-uusvhgec> <span class="pill-badge pill-danger mono" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Rollout &amp; Facts</span> <span class="i18n-de" data-astro-cid-uusvhgec>Zeitplan &amp; Fakten</span> </span> <h2 id="kao-timeline-heading" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>What Google Is Rolling Out — And When</span> <span class="i18n-de" data-astro-cid-uusvhgec>Was Google genau einführt – und ab wann es greift</span> </h2> </div> <div class="kao-facts-grid" data-astro-cid-uusvhgec> <article class="kao-fact-card kao-spotlight" data-astro-cid-uusvhgec> <span class="kao-fact-date mono" data-astro-cid-uusvhgec>30.09.2026</span> <h3 data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Pilot Enforcement Active</span> <span class="i18n-de" data-astro-cid-uusvhgec>Pilotphase gestartet</span> </h3> <p data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>
-Google Play Protect began enforcing mandatory developer verification in initial
-                pilot countries (including Brazil, Indonesia, Singapore, and Thailand), blocking
-                unregistered APKs by default.
-</span> <span class="i18n-de" data-astro-cid-uusvhgec>
-Google Play Protect blockiert in ersten Pilotregionen (u. a. Brasilien, Indonesien,
-                Singapur und Thailand) standardmäßig jede APK ohne hinterlegte Google-Verifizierung.
-</span> </p> </article> <article class="kao-fact-card kao-spotlight" data-astro-cid-uusvhgec> <span class="kao-fact-date mono" data-astro-cid-uusvhgec>01 / 2027</span> <h3 data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Global Play Protect Rollout</span> <span class="i18n-de" data-astro-cid-uusvhgec>Weltweiter Rollout</span> </h3> <p data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>
-Starting January 2027, Google Play Services pushes this restriction worldwide to
-                certified Android smartphones — even for apps never distributed on the Play Store.
-</span> <span class="i18n-de" data-astro-cid-uusvhgec>
-Ab Januar 2027 wird die Sperre weltweit per Google Play Services auf zertifizierten
-                Android-Geräten aktiviert – selbst für Apps, die nie im Play Store standen.
-</span> </p> </article> <article class="kao-fact-card kao-spotlight" data-astro-cid-uusvhgec> <span class="kao-fact-date mono" data-astro-cid-uusvhgec>ID + KEY</span> <h3 data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Mandatory ID &amp; Package Binding</span> <span class="i18n-de" data-astro-cid-uusvhgec>Ausweis- &amp; Schlüsselpflicht</span> </h3> <p data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>
-Independent authors must upload government ID, pay a registration fee, and bind
-                every app’s package ID and signing certificate to Google’s central registry.
-</span> <span class="i18n-de" data-astro-cid-uusvhgec>
-Unabhängige Entwickler sollen Ausweisdaten einreichen, eine Gebühr zahlen und
-                Paketnamen samt Signaturschlüssel zentral bei Google registrieren.
-</span> </p> </article> </div> </section> <!-- Section 2: Why This Is Dangerous (Keep Android Open Core) --> <section class="sl-card sl-card-danger" aria-labelledby="kao-why-heading" data-astro-cid-uusvhgec> <div class="sl-card-head" data-astro-cid-uusvhgec> <span class="pill-badge pill-danger mono" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>⚠ Why It Matters</span> <span class="i18n-de" data-astro-cid-uusvhgec>⚠ Warum das gefährlich ist</span> </span> <h2 id="kao-why-heading" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>From an Open Computer to a Locked Gatekeeper</span> <span class="i18n-de" data-astro-cid-uusvhgec>Vom freien Computer zur geschlossenen Gatekeeper-Plattform</span> </h2> </div> <div class="kao-danger-list" id="kao-danger-list" data-astro-cid-uusvhgec> <div class="kao-danger-item" style="--stagger-i: 0;" data-astro-cid-uusvhgec> <strong data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>1. You lose control over your own hardware</span> <span class="i18n-de" data-astro-cid-uusvhgec>1. Verlust der Kontrolle über deine eigene Hardware</span> </strong> <p data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>
-You bought and own your smartphone, yet Google Play Protect decides remotely which
-                software is allowed to run unless you jump through a 24-hour waiting hoop.
-</span> <span class="i18n-de" data-astro-cid-uusvhgec>
-Du hast dein Smartphone bezahlt – trotzdem entscheidet Google per Play-Protect-Update
-                aus der Ferne, welche Software ohne 24-Stunden-Hürde installiert werden darf.
-</span> </p> </div> <div class="kao-danger-item" style="--stagger-i: 1;" data-astro-cid-uusvhgec> <strong data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>2. Chilling effect on independent &amp; privacy apps</span> <span class="i18n-de" data-astro-cid-uusvhgec>2. Druck auf unabhängige Entwickler &amp; Datenschutz-Apps</span> </strong> <p data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>
-Hobbyists, security researchers, students, and privacy-focused developers who cannot
-                or will not hand over personal IDs to Google are automatically flagged as
-                “unverified” and scary-blocked.
-</span> <span class="i18n-de" data-astro-cid-uusvhgec>
-Hobby-Entwickler, Sicherheitsforscher, Studierende und Datenschutz-Projekte, die
-                keine Ausweisdaten an Google übermitteln wollen oder können, werden automatisch als
-                „nicht verifiziert“ blockiert.
-</span> </p> </div> <div class="kao-danger-item" style="--stagger-i: 2;" data-astro-cid-uusvhgec> <strong data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>3. Friction designed to push users back to Play Store</span> <span class="i18n-de" data-astro-cid-uusvhgec>3. Künstliche Hürden statt echter Sicherheit</span> </strong> <p data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>
-Real malware checks happen via cryptographic signatures and reproducible source code —
-                not by hiding an off-switch in Developer Options with a 24-hour cooldown and a
-                7-day auto-reset trap.
-</span> <span class="i18n-de" data-astro-cid-uusvhgec>
-Echte Sicherheit entsteht durch Signaturprüfungen und offenen Quellcode – nicht durch
-                einen versteckten Entwickler-Schalter mit 24h-Countdown und 7-Tage-Rückfall-Falle.
-</span> </p> </div> </div> </section> <!-- Section 3: 2-Column Context (Keep Android Open + S4 Replacement: User Impact & Escape Hatches) --> <div class="sl-two-col" data-astro-cid-uusvhgec> <article class="sl-card sl-card-danger" data-astro-cid-uusvhgec> <span class="pill-badge pill-danger mono" data-astro-cid-uusvhgec>keepandroidopen.org</span> <h2 data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Support Keep Android Open</span> <span class="i18n-de" data-astro-cid-uusvhgec>Keep Android Open unterstützen</span> </h2> <p data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>
-The <strong data-astro-cid-uusvhgec>Keep Android Open</strong> coalition documents the rollout, mobilizes
-              developers and users worldwide, and provides the open countdown banner we display on
-              this website. Share the campaign or add the banner to your own project.
-</span> <span class="i18n-de" data-astro-cid-uusvhgec>
-Die Initiative <strong data-astro-cid-uusvhgec>Keep Android Open</strong> dokumentiert den Rollout, informiert
-              Nutzer sowie Entwickler weltweit und stellt das offene Countdown-Banner bereit, das wir
-              auf dieser Website einbinden. Teile die Kampagne oder binde das Banner selbst ein.
-</span> </p> <div class="sl-actions" data-astro-cid-uusvhgec> <a href="https://keepandroidopen.org" target="_blank" rel="noopener noreferrer" class="btn btn-danger" data-astro-cid-uusvhgec>
+</script> <div class="kao-scroll-progress" id="kao-scroll-progress" aria-hidden="true" data-astro-cid-zxyow5fr></div> <main id="main-content" class="section" data-astro-cid-zxyow5fr> <div class="container subpage-wrap" data-astro-cid-zxyow5fr> <nav class="sl-breadcrumb" aria-label="Breadcrumb" data-astro-cid-zxyow5fr> <a href="/apkup/sideloading/" class="mono" data-astro-cid-zxyow5fr> ← Back to Installing Unknown Apps </a> </nav> <header class="kao-hero" id="kao-hero" data-astro-cid-zxyow5fr> <div class="kao-hero-top" data-astro-cid-zxyow5fr> <span class="pill-badge pill-danger mono kao-alert-pill" data-astro-cid-zxyow5fr> <span class="kao-pulse-dot" aria-hidden="true" data-astro-cid-zxyow5fr></span> <span data-astro-cid-zxyow5fr>CRITICAL ALERT • 2026 / 2027 ANDROID LOCKDOWN</span> </span> <span class="pill-badge pill-neutral mono kao-countdown-pill" id="kao-global-countdown" data-astro-cid-zxyow5fr> Global Rollout: Jan 2027 </span> <span class="pill-badge pill-neutral mono" data-astro-cid-zxyow5fr>keepandroidopen.org</span> </div> <h1 class="kao-title" data-astro-cid-zxyow5fr>Google’s 24h Developer Lock &amp; Keep Android Open</h1> <p class="kao-lead" data-astro-cid-zxyow5fr>Android is facing the biggest restriction on sideloading in its history. Starting September 30, 2026 (pilot regions) and rolling out globally in January 2027, Google Play Protect blocks APKs from developers who have not submitted government ID and package keys to Google — forcing users through a hidden 24-hour Developer Options cooldown.</p> <div class="kao-hero-actions" data-astro-cid-zxyow5fr> <a href="#sl-lock-steps" class="btn btn-danger" data-kao-jump-steps data-astro-cid-zxyow5fr> Unlock 24h Lock Step-by-Step ↓ </a> <a href="https://keepandroidopen.org" target="_blank" rel="noopener noreferrer" class="btn btn-danger-outline" data-astro-cid-zxyow5fr> Join Keep Android Open ↗ </a> <button type="button" class="btn btn-danger-outline kao-share-btn" id="kao-share-btn" data-astro-cid-zxyow5fr> Share &amp; Warn Others ↗ </button> </div> </header> <section class="kao-checker" id="kao-checker" aria-labelledby="kao-checker-title" data-astro-cid-zxyow5fr> <div class="kao-checker-head" data-astro-cid-zxyow5fr> <span class="pill-badge pill-danger mono" data-astro-cid-zxyow5fr>2-Click Check</span> <h2 id="kao-checker-title" data-astro-cid-zxyow5fr>Am I Affected by Google’s 24h Lock?</h2> </div> <div class="kao-checker-grid" data-astro-cid-zxyow5fr> <div class="kao-q" data-astro-cid-zxyow5fr> <span class="kao-q-label" data-astro-cid-zxyow5fr>1. Device uses Google Play Services / Play Protect?</span> <div class="kao-q-btns" data-astro-cid-zxyow5fr> <button type="button" class="kao-q-btn is-selected" data-q="gms" data-val="yes" data-astro-cid-zxyow5fr> Yes (Standard Android) </button> <button type="button" class="kao-q-btn" data-q="gms" data-val="no" data-astro-cid-zxyow5fr> No (GrapheneOS / Lineage / DeGoogled) </button> </div> </div> <div class="kao-q" data-astro-cid-zxyow5fr> <span class="kao-q-label" data-astro-cid-zxyow5fr>2. How do you install ApkUp / FOSS apps?</span> <div class="kao-q-btns" data-astro-cid-zxyow5fr> <button type="button" class="kao-q-btn is-selected" data-q="method" data-val="apk" data-astro-cid-zxyow5fr> Tap APK directly on phone </button> <button type="button" class="kao-q-btn" data-q="method" data-val="adb" data-astro-cid-zxyow5fr> ADB / Shizuku / Root (su) </button> </div> </div> </div> <div class="kao-checker-result is-affected mono" id="kao-checker-result" aria-live="polite" data-astro-cid-zxyow5fr> ⚠ Affected: Complete the 4-step “Allow indefinitely” unlock below once. </div> </section> <section class="kao-section" aria-labelledby="kao-timeline-heading" data-astro-cid-zxyow5fr> <div class="kao-sec-head" data-astro-cid-zxyow5fr> <span class="pill-badge pill-danger mono" data-astro-cid-zxyow5fr>Rollout &amp; Facts</span> <h2 id="kao-timeline-heading" data-astro-cid-zxyow5fr>What Google Is Rolling Out — And When</h2> </div> <div class="kao-facts-grid" data-astro-cid-zxyow5fr> <article class="kao-fact-card kao-spotlight" data-astro-cid-zxyow5fr> <span class="kao-fact-date mono" data-astro-cid-zxyow5fr>30.09.2026</span> <h3 data-astro-cid-zxyow5fr>Pilot Enforcement Active</h3> <p data-astro-cid-zxyow5fr>Google Play Protect began enforcing mandatory developer verification in initial pilot countries (including Brazil, Indonesia, Singapore, and Thailand), blocking unregistered APKs by default.</p> </article><article class="kao-fact-card kao-spotlight" data-astro-cid-zxyow5fr> <span class="kao-fact-date mono" data-astro-cid-zxyow5fr>01 / 2027</span> <h3 data-astro-cid-zxyow5fr>Global Play Protect Rollout</h3> <p data-astro-cid-zxyow5fr>Starting January 2027, Google Play Services pushes this restriction worldwide to certified Android smartphones — even for apps never distributed on the Play Store.</p> </article><article class="kao-fact-card kao-spotlight" data-astro-cid-zxyow5fr> <span class="kao-fact-date mono" data-astro-cid-zxyow5fr>ID + KEY</span> <h3 data-astro-cid-zxyow5fr>Mandatory ID &amp; Package Binding</h3> <p data-astro-cid-zxyow5fr>Independent authors must upload government ID, pay a registration fee, and bind every app’s package ID and signing certificate to Google’s central registry.</p> </article> </div> </section> <section class="sl-card sl-card-danger" aria-labelledby="kao-why-heading" data-astro-cid-zxyow5fr> <div class="sl-card-head" data-astro-cid-zxyow5fr> <span class="pill-badge pill-danger mono" data-astro-cid-zxyow5fr>⚠ Why It Matters</span> <h2 id="kao-why-heading" data-astro-cid-zxyow5fr>From an Open Computer to a Locked Gatekeeper</h2> </div> <div class="kao-danger-list" id="kao-danger-list" data-astro-cid-zxyow5fr> <div class="kao-danger-item" style="--stagger-i: 0;" data-astro-cid-zxyow5fr> <strong data-astro-cid-zxyow5fr>1. You lose control over your own hardware</strong> <p data-astro-cid-zxyow5fr>You bought and own your smartphone, yet Google Play Protect decides remotely which software is allowed to run unless you jump through a 24-hour waiting hoop.</p> </div><div class="kao-danger-item" style="--stagger-i: 1;" data-astro-cid-zxyow5fr> <strong data-astro-cid-zxyow5fr>2. Chilling effect on independent &amp; privacy apps</strong> <p data-astro-cid-zxyow5fr>Hobbyists, security researchers, students, and privacy-focused developers who cannot or will not hand over personal IDs to Google are automatically flagged as “unverified” and scary-blocked.</p> </div><div class="kao-danger-item" style="--stagger-i: 2;" data-astro-cid-zxyow5fr> <strong data-astro-cid-zxyow5fr>3. Friction designed to push users back to Play Store</strong> <p data-astro-cid-zxyow5fr>Real malware checks happen via cryptographic signatures and reproducible source code — not by hiding an off-switch in Developer Options with a 24-hour cooldown and a 7-day auto-reset trap.</p> </div> </div> </section> <div class="sl-two-col" data-astro-cid-zxyow5fr> <article class="sl-card sl-card-danger" data-astro-cid-zxyow5fr> <span class="pill-badge pill-danger mono" data-astro-cid-zxyow5fr>keepandroidopen.org</span> <h2 data-astro-cid-zxyow5fr>Support Keep Android Open</h2> <p data-astro-cid-zxyow5fr>The Keep Android Open coalition documents the rollout, mobilizes developers and users worldwide, and raises awareness about open mobile ecosystems. Share the campaign or learn more on their site.</p> <div class="sl-actions" data-astro-cid-zxyow5fr> <a href="https://keepandroidopen.org" target="_blank" rel="noopener noreferrer" class="btn btn-danger" data-astro-cid-zxyow5fr>
 keepandroidopen.org ↗
-</a> <a href="https://keepandroidopen.org/banner/" target="_blank" rel="noopener noreferrer" class="btn btn-danger-outline" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Campaign Banner ↗</span> <span class="i18n-de" data-astro-cid-uusvhgec>Kampagnen-Banner ↗</span> </a> </div> </article> <article class="sl-card has-spotlight" data-astro-cid-uusvhgec> <span class="pill-badge pill-amber mono" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Daily Impact • Escape Hatches</span> <span class="i18n-de" data-astro-cid-uusvhgec>Alltagsfolgen • Auswege</span> </span> <h2 data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>What This Means for You as a User</span> <span class="i18n-de" data-astro-cid-uusvhgec>Was bedeutet das für dich als Nutzer?</span> </h2> <p data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>
-Without unlocking Developer Options, tapping direct APKs from GitHub, GitLab,
-              Codeberg, or independent sites can be blocked by Play Protect. Once you select
-<strong data-astro-cid-uusvhgec>Allow indefinitely</strong> after 24h — or update via <strong data-astro-cid-uusvhgec>ADB</strong>,  <strong data-astro-cid-uusvhgec>Shizuku</strong>, or <strong data-astro-cid-uusvhgec>Root (su)</strong> — ApkUp continues working
-              without restrictions.
-</span> <span class="i18n-de" data-astro-cid-uusvhgec>
-Ohne Freigabe in den Entwickleroptionen kann Play Protect direkte APKs von GitHub,
-              GitLab, Codeberg oder Webseiten blockieren. Sobald du nach 24h
-<strong data-astro-cid-uusvhgec>Dauerhaft erlauben</strong> wählst – oder über <strong data-astro-cid-uusvhgec>ADB</strong>,  <strong data-astro-cid-uusvhgec>Shizuku</strong> bzw. <strong data-astro-cid-uusvhgec>Root (su)</strong> installierst – läuft ApkUp
-              dauerhaft uneingeschränkt weiter.
-</span> </p> <div class="sl-actions" data-astro-cid-uusvhgec> <a href="/apkup/wiki/#doc-google-lock" class="btn btn-secondary" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Wiki Chapter →</span> <span class="i18n-de" data-astro-cid-uusvhgec>Allgemeines Wiki →</span> </a> <a href="/apkup/wiki/#doc-shizuku-deep" class="btn btn-ghost" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Root →</span> <span class="i18n-de" data-astro-cid-uusvhgec>Root →</span> </a> <a href="/apkup/wiki/#doc-shizuku-setup" class="btn btn-ghost" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Shizuku →</span> <span class="i18n-de" data-astro-cid-uusvhgec>Shizuku →</span> </a> </div> </article> </div> <!-- Section 4: Step-by-step 24h Lock Unlock --> <section class="sl-card sl-card-danger" id="sl-lock-section" aria-labelledby="sl-lock-steps" data-astro-cid-uusvhgec> <div class="sl-card-head" data-astro-cid-uusvhgec> <span class="pill-badge pill-danger mono" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Developer Options • Permanent Unlock</span> <span class="i18n-de" data-astro-cid-uusvhgec>Entwickleroptionen • Dauerhafte Freigabe</span> </span> <h2 id="sl-lock-steps" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>How to Permanently Unlock “Apps from unverified developers”</span> <span class="i18n-de" data-astro-cid-uusvhgec>So löst du die 24-Stunden-Sperre dauerhaft</span> </h2> <p class="sl-lead" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>
-Follow these exact 4 steps once per device to keep installing ApkUp and independent
-              open-source apps without future blocks (click/tap each step to check it off):
-</span> <span class="i18n-de" data-astro-cid-uusvhgec>
-Führe diese 4 Schritte einmalig pro Gerät aus, um ApkUp und unabhängige
-              Open-Source-Apps dauerhaft ohne Blockaden zu installieren (antippen zum Abhaken):
-</span> </p> <div class="kao-progress-wrap" aria-live="polite" data-astro-cid-uusvhgec> <div class="kao-progress-head mono" data-astro-cid-uusvhgec> <span data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Checklist Progress</span> <span class="i18n-de" data-astro-cid-uusvhgec>Fortschritt</span> </span> <span class="kao-progress-right" data-astro-cid-uusvhgec> <span id="kao-steps-count" data-astro-cid-uusvhgec>0 / 4</span> <button type="button" class="kao-reset-btn" id="kao-steps-reset" hidden data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Reset</span> <span class="i18n-de" data-astro-cid-uusvhgec>Zurücksetzen</span> </button> </span> </div> <div class="kao-progress-track" data-astro-cid-uusvhgec> <div class="kao-progress-fill" id="kao-steps-fill" data-astro-cid-uusvhgec></div> </div> </div> </div> <ol class="sl-steps" id="kao-steps-list" data-astro-cid-uusvhgec> <li data-step-idx="0" role="checkbox" aria-checked="false" tabindex="0" data-astro-cid-uusvhgec> <span class="sl-num sl-num-danger mono" id="kao-step1-badge" aria-hidden="true" title="Tap 7×!" data-astro-cid-uusvhgec> <span class="sl-num-text" data-astro-cid-uusvhgec>01</span> <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" data-astro-cid-uusvhgec><path d="M20 6 9 17l-5-5" data-astro-cid-uusvhgec></path></svg> </span> <div data-astro-cid-uusvhgec> <strong class="sl-step-title" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Enable Developer Options (7× Build Number)</span> <span class="i18n-de" data-astro-cid-uusvhgec>Entwickleroptionen freischalten (7× Build-Nummer)</span> </strong> <p data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>
-Open <strong data-astro-cid-uusvhgec>Settings → About Phone</strong> (on Samsung: <em data-astro-cid-uusvhgec>Software
-                  information</em>) and tap <strong data-astro-cid-uusvhgec>Build Number</strong> 7 times until Android
-                  confirms <em data-astro-cid-uusvhgec>“You are now a developer!”</em>.
-</span> <span class="i18n-de" data-astro-cid-uusvhgec>
-Öffne <strong data-astro-cid-uusvhgec>Einstellungen → Über das Telefon</strong> (bei Samsung:  <em data-astro-cid-uusvhgec>Softwareinformationen</em>) und tippe 7-mal auf die  <strong data-astro-cid-uusvhgec>Build-Nummer</strong>, bis <em data-astro-cid-uusvhgec>„Du bist jetzt Entwickler!“</em> erscheint.
-</span> </p> <div class="kao-path-chips mono" aria-label="Android menu path" data-astro-cid-uusvhgec> <span class="kao-chip i18n-en" data-astro-cid-uusvhgec>Settings</span> <span class="kao-chip i18n-de" data-astro-cid-uusvhgec>Einstellungen</span> <span class="kao-chip-arrow" aria-hidden="true" data-astro-cid-uusvhgec>→</span> <span class="kao-chip i18n-en" data-astro-cid-uusvhgec>About Phone</span> <span class="kao-chip i18n-de" data-astro-cid-uusvhgec>Über das Telefon</span> <span class="kao-chip-arrow" aria-hidden="true" data-astro-cid-uusvhgec>→</span> <span class="kao-chip kao-chip-hl i18n-en" data-astro-cid-uusvhgec>Build Number (7×)</span> <span class="kao-chip kao-chip-hl i18n-de" data-astro-cid-uusvhgec>Build-Nummer (7×)</span> </div> <div class="kao-dev-toast mono" id="kao-dev-toast" hidden aria-live="polite" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>🎉 You are now a developer!</span> <span class="i18n-de" data-astro-cid-uusvhgec>🎉 Du bist jetzt Entwickler!</span> </div> </div> </li> <li data-step-idx="1" role="checkbox" aria-checked="false" tabindex="0" data-astro-cid-uusvhgec> <span class="sl-num sl-num-danger mono" aria-hidden="true" data-astro-cid-uusvhgec> <span class="sl-num-text" data-astro-cid-uusvhgec>02</span> <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" data-astro-cid-uusvhgec><path d="M20 6 9 17l-5-5" data-astro-cid-uusvhgec></path></svg> </span> <div data-astro-cid-uusvhgec> <strong class="sl-step-title" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Toggle “Apps from unverified developers”</span> <span class="i18n-de" data-astro-cid-uusvhgec>„Apps von nicht verifizierten Entwicklern“ aktivieren</span> </strong> <p data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>
-Open <strong data-astro-cid-uusvhgec>Settings → System → Developer Options</strong> (or search for
-<em data-astro-cid-uusvhgec>Developer Options</em> in Settings), find  <strong data-astro-cid-uusvhgec>Apps from unverified developers</strong>, and enable  <strong data-astro-cid-uusvhgec>Allow apps from unverified developers</strong>.
-</span> <span class="i18n-de" data-astro-cid-uusvhgec>
-Gehe zu <strong data-astro-cid-uusvhgec>Einstellungen → System → Entwickleroptionen</strong> (oder suche in
-                  den Einstellungen nach <em data-astro-cid-uusvhgec>Entwickleroptionen</em>), tippe auf  <strong data-astro-cid-uusvhgec>Apps von nicht verifizierten Entwicklern</strong> und aktiviere die
-                  Freigabe.
-</span> </p> <div class="kao-path-chips mono" aria-label="Developer Options menu path" data-astro-cid-uusvhgec> <span class="kao-chip i18n-en" data-astro-cid-uusvhgec>System</span> <span class="kao-chip i18n-de" data-astro-cid-uusvhgec>System</span> <span class="kao-chip-arrow" aria-hidden="true" data-astro-cid-uusvhgec>→</span> <span class="kao-chip i18n-en" data-astro-cid-uusvhgec>Developer Options</span> <span class="kao-chip i18n-de" data-astro-cid-uusvhgec>Entwickleroptionen</span> <span class="kao-chip-arrow" aria-hidden="true" data-astro-cid-uusvhgec>→</span> <span class="kao-chip kao-chip-hl i18n-en" data-astro-cid-uusvhgec>Unverified developers</span> <span class="kao-chip kao-chip-hl i18n-de" data-astro-cid-uusvhgec>Nicht verifizierte Entwickler</span> </div> </div> </li> <li data-step-idx="2" role="checkbox" aria-checked="false" tabindex="0" data-astro-cid-uusvhgec> <span class="sl-num sl-num-danger mono" aria-hidden="true" data-astro-cid-uusvhgec> <span class="sl-num-text" data-astro-cid-uusvhgec>03</span> <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" data-astro-cid-uusvhgec><path d="M20 6 9 17l-5-5" data-astro-cid-uusvhgec></path></svg> </span> <div data-astro-cid-uusvhgec> <strong class="sl-step-title" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Confirm Lock Screen &amp; Restart Device</span> <span class="i18n-de" data-astro-cid-uusvhgec>Displaysperre bestätigen &amp; Gerät neu starten</span> </strong> <p data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>
-Verify your lock screen PIN, pattern, or biometrics when prompted, then  <strong data-astro-cid-uusvhgec>restart your smartphone</strong>. The mandatory 24-hour cooldown timer
-                  starts immediately after reboot.
-</span> <span class="i18n-de" data-astro-cid-uusvhgec>
-Bestätige deine PIN, dein Muster oder deine Biometrie und  <strong data-astro-cid-uusvhgec>starte das Smartphone neu</strong>. Direkt nach dem Neustart beginnt der
-                  vorgeschriebene 24-Stunden-Countdown.
-</span> </p> <div class="kao-ics-hint" data-astro-cid-uusvhgec> <button type="button" class="kao-ics-link mono" id="kao-timer-ics" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>📅 Save 24h calendar reminder (.ics)</span> <span class="i18n-de" data-astro-cid-uusvhgec>📅 24h-Kalender-Erinnerung (.ics) speichern</span> </button> </div> </div> </li> <li data-step-idx="3" role="checkbox" aria-checked="false" tabindex="0" data-astro-cid-uusvhgec> <span class="sl-num sl-num-danger mono" aria-hidden="true" data-astro-cid-uusvhgec> <span class="sl-num-text" data-astro-cid-uusvhgec>04</span> <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" data-astro-cid-uusvhgec><path d="M20 6 9 17l-5-5" data-astro-cid-uusvhgec></path></svg> </span> <div data-astro-cid-uusvhgec> <strong class="sl-step-title" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>After 24 Hours: Select “Allow indefinitely”</span> <span class="i18n-de" data-astro-cid-uusvhgec>Nach 24 Stunden: Unbedingt „Dauerhaft erlauben“ wählen</span> </strong> <p data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>
-Return to <strong data-astro-cid-uusvhgec>Developer Options → Apps from unverified developers</strong> 
-once the 24 hours are up and choose <strong data-astro-cid-uusvhgec>Allow indefinitely</strong>.
-</span> <span class="i18n-de" data-astro-cid-uusvhgec>
-Kehre nach Ablauf der 24 Stunden zurück zu  <strong data-astro-cid-uusvhgec>Entwickleroptionen → Apps von nicht verifizierten Entwicklern</strong> und
-                  wähle dort ausdrücklich <strong data-astro-cid-uusvhgec>Dauerhaft erlauben</strong>.
-</span> </p> </div> </li> </ol> <div class="kao-trap-alert" role="note" data-astro-cid-uusvhgec> <strong data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>⚠ Watch Out for the 7-Day Reset Trap!</span> <span class="i18n-de" data-astro-cid-uusvhgec>⚠ Achtung vor der 7-Tage-Rückfall-Falle!</span> </strong> <p data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>
-Android offers a temporary <strong data-astro-cid-uusvhgec>7-day option</strong> next to  <strong data-astro-cid-uusvhgec>Allow indefinitely</strong>. If you select 7 days, Android automatically
-              re-enables the lock after one week — forcing you to wait another full 24 hours.
-              Always pick <strong data-astro-cid-uusvhgec>Allow indefinitely</strong>!
-</span> <span class="i18n-de" data-astro-cid-uusvhgec>
-Android zeigt neben <strong data-astro-cid-uusvhgec>Dauerhaft erlauben</strong> auch eine befristete  <strong data-astro-cid-uusvhgec>7-Tage-Option</strong> an. Wählst du nur 7 Tage, schaltet Android die Sperre
-              nach einer Woche automatisch wieder scharf – und du musst erneut 24 Stunden warten.
-              Wähle deshalb immer <strong data-astro-cid-uusvhgec>Dauerhaft erlauben</strong>!
-</span> </p> <div class="kao-trap-sim" id="kao-trap-sim" data-astro-cid-uusvhgec> <div class="kao-trap-tabs" role="tablist" aria-label="7-day trap comparison" data-astro-cid-uusvhgec> <button type="button" class="kao-trap-tab is-active" data-trap-mode="7d" role="tab" aria-selected="true" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>If you pick “7 Days”</span> <span class="i18n-de" data-astro-cid-uusvhgec>Bei „7 Tage wählen“ (Falle)</span> </button> <button type="button" class="kao-trap-tab" data-trap-mode="forever" role="tab" aria-selected="false" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>If you pick “Allow indefinitely”</span> <span class="i18n-de" data-astro-cid-uusvhgec>Bei „Dauerhaft erlauben“</span> </button> </div> <div class="kao-trap-result is-bad mono" id="kao-trap-result" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Day 1–7: Allowed → Day 8: ✕ Auto-locked again (+24h new wait!)</span> <span class="i18n-de" data-astro-cid-uusvhgec>Tag 1–7: Erlaubt → Tag 8: ✕ Automatisch wieder gesperrt (+24h Wartezeit!)</span> </div> </div> </div> </section> <!-- Section 5: Comparison Table --> <section class="sl-card" aria-labelledby="kao-compare-heading" data-astro-cid-uusvhgec> <div class="sl-card-head" data-astro-cid-uusvhgec> <span class="pill-badge pill-neutral mono" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Comparison</span> <span class="i18n-de" data-astro-cid-uusvhgec>Direktvergleich</span> </span> <h2 id="kao-compare-heading" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Locked Play Protect vs. Unlocked / ADB &amp; Shizuku</span> <span class="i18n-de" data-astro-cid-uusvhgec>Aktive Play-Protect-Sperre vs. Freigabe / ADB &amp; Shizuku</span> </h2> </div> <div class="kao-table-wrap" data-astro-cid-uusvhgec> <table class="kao-table" id="kao-compare-table" data-astro-cid-uusvhgec> <thead data-astro-cid-uusvhgec> <tr data-astro-cid-uusvhgec> <th data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Scenario</span> <span class="i18n-de" data-astro-cid-uusvhgec>Szenario</span> </th> <th data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>With 24h Lock Active</span> <span class="i18n-de" data-astro-cid-uusvhgec>Mit aktiver Sperre</span> </th> <th class="kao-col-safe-th" id="kao-col-safe-th" tabindex="0" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Unlocked / ADB / Shizuku</span> <span class="i18n-de" data-astro-cid-uusvhgec>Dauerhaft frei / ADB / Shizuku</span> </th> </tr> </thead> <tbody data-astro-cid-uusvhgec> <tr class="kao-row-warn" data-astro-cid-uusvhgec> <td data-astro-cid-uusvhgec> <strong data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Direct APK from Browser</span> <span class="i18n-de" data-astro-cid-uusvhgec>Direkte APK aus Browser</span> </strong> </td> <td class="kao-td-bad" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>✕ Blocked if dev has no Google ID</span> <span class="i18n-de" data-astro-cid-uusvhgec>✕ Blockiert ohne Google-Ausweis</span> </td> <td class="kao-td-good" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>✓ Installs normally</span> <span class="i18n-de" data-astro-cid-uusvhgec>✓ Installiert normal</span> </td> </tr> <tr class="kao-row-warn" data-astro-cid-uusvhgec> <td data-astro-cid-uusvhgec> <strong data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>ApkUp Multi-Source Updates</span> <span class="i18n-de" data-astro-cid-uusvhgec>ApkUp Multi-Quellen-Updates</span> </strong> </td> <td class="kao-td-bad" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>⚠ Play Protect blocks unverified APKs</span> <span class="i18n-de" data-astro-cid-uusvhgec>⚠ Play Protect blockiert Updates</span> </td> <td class="kao-td-good" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>✓ All 7 sources work seamlessly</span> <span class="i18n-de" data-astro-cid-uusvhgec>✓ Alle 7 Quellen laufen nahtlos</span> </td> </tr> <tr class="kao-row-safe" data-astro-cid-uusvhgec> <td data-astro-cid-uusvhgec> <strong data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>ADB / Shizuku / Root (su)</span> <span class="i18n-de" data-astro-cid-uusvhgec>ADB / Shizuku / Root (su)</span> </strong> </td> <td class="kao-td-good" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>✓ Developer pipeline stays open</span> <span class="i18n-de" data-astro-cid-uusvhgec>✓ Entwickler-Pipeline bleibt offen</span> </td> <td class="kao-td-good" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>✓ Silent background updates</span> <span class="i18n-de" data-astro-cid-uusvhgec>✓ Lautlose Hintergrund-Updates</span> </td> </tr> </tbody> </table> </div> </section> <!-- Section 6: Power-User Workaround & Quick Links --> <section class="sl-card" aria-labelledby="kao-adb-heading" data-astro-cid-uusvhgec> <div class="sl-card-head" data-astro-cid-uusvhgec> <span class="pill-badge pill-green mono" data-astro-cid-uusvhgec>ADB • Shizuku • Root</span> <h2 id="kao-adb-heading" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Immediate Developer Escape Hatch (No 24h Wait)</span> <span class="i18n-de" data-astro-cid-uusvhgec>Sofortiger Entwickler-Ausweg (ohne 24h Wartezeit)</span> </h2> <p data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>
-If you cannot wait 24 hours, you can install ApkUp immediately from any PC via ADB
-              (USB or Wireless Debugging), and then enable Shizuku or Root inside ApkUp:
-</span> <span class="i18n-de" data-astro-cid-uusvhgec>
-Wenn du nicht 24 Stunden warten möchtest, kannst du ApkUp sofort per ADB vom PC
-              (USB oder Kabelloses Debugging) installieren und danach Shizuku oder Root in ApkUp
-              nutzen:
-</span> </p> </div> <div class="kao-code-wrap" data-astro-cid-uusvhgec> <pre class="kao-code mono" data-astro-cid-uusvhgec><code data-astro-cid-uusvhgec>adb install -r ApkUp.apk</code></pre> <button type="button" class="kao-copy-btn mono" id="kao-copy-adb" aria-label="Copy ADB command" data-astro-cid-uusvhgec> <span class="kao-copy-icon kao-icon-default" aria-hidden="true" data-astro-cid-uusvhgec> <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-astro-cid-uusvhgec><rect width="14" height="14" x="8" y="8" rx="2" data-astro-cid-uusvhgec></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" data-astro-cid-uusvhgec></path></svg> </span> <span class="kao-copy-icon kao-icon-done" aria-hidden="true" data-astro-cid-uusvhgec> <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" data-astro-cid-uusvhgec><path d="M20 6 9 17l-5-5" data-astro-cid-uusvhgec></path></svg> </span> <span class="kao-copy-label" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>Copy</span> <span class="i18n-de" data-astro-cid-uusvhgec>Kopieren</span> </span> </button> </div> <div class="sl-actions" data-astro-cid-uusvhgec> <a href="/apkup/sideloading/" class="btn btn-secondary" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>← Unknown Apps Guide</span> <span class="i18n-de" data-astro-cid-uusvhgec>← Unbekannte-Apps-Guide</span> </a> <a href="/apkup/wiki/#doc-sideloading" class="btn btn-ghost" data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>General Wiki →</span> <span class="i18n-de" data-astro-cid-uusvhgec>Allgemeines Wiki →</span> </a> <a href="/apkup/wiki/#doc-shizuku-deep" class="btn btn-ghost" data-astro-cid-uusvhgec> <span data-astro-cid-uusvhgec>Root →</span> </a> <a href="/apkup/wiki/#doc-shizuku-setup" class="btn btn-ghost" data-astro-cid-uusvhgec> <span data-astro-cid-uusvhgec>Shizuku →</span> </a> </div> </section> </div> </main> <a href="#sl-lock-steps" class="kao-quick-jump mono" id="kao-quick-jump" data-kao-jump-steps hidden data-astro-cid-uusvhgec> <span class="i18n-en" data-astro-cid-uusvhgec>24h Fix ↓</span> <span class="i18n-de" data-astro-cid-uusvhgec>Zur 24h-Sperre ↓</span> </a> <footer class="site-footer" data-astro-cid-jo6i4kqk> <div class="container footer-inner" data-astro-cid-jo6i4kqk> <div class="footer-brand" data-astro-cid-jo6i4kqk> <img src="/apkup/assets/logo.png" alt="" width="34" height="34" class="footer-icon" data-astro-cid-jo6i4kqk> <div class="footer-brand-text" data-astro-cid-jo6i4kqk> <strong data-astro-cid-jo6i4kqk>ApkUp</strong> <p class="footer-copy" data-astro-cid-jo6i4kqk>
-Copyright © 2026  <a href="https://github.com/DurchEins" target="_blank" rel="noopener noreferrer" class="footer-author-link" data-astro-cid-jo6i4kqk>DurchEins</a>  • GPL-3.0
-</p> </div> </div> <nav class="footer-links" aria-label="Footer links" data-astro-cid-jo6i4kqk> <a href="/apkup/downloads/" data-astro-cid-jo6i4kqk>Downloads</a> <a href="/apkup/sideloading/" data-astro-cid-jo6i4kqk> <span class="i18n-en" data-astro-cid-jo6i4kqk>Install Unknown Apps</span> <span class="i18n-de" data-astro-cid-jo6i4kqk>Unbekannte Apps</span> </a> <a href="/apkup/sideloading/google-lock/" data-astro-cid-jo6i4kqk> <span class="i18n-en" data-astro-cid-jo6i4kqk>Google 24h Lock</span> <span class="i18n-de" data-astro-cid-jo6i4kqk>Googles 24h-Sperre</span> </a> <a href="/apkup/changelog/" data-astro-cid-jo6i4kqk> <span class="i18n-en" data-astro-cid-jo6i4kqk>What’s New?</span> <span class="i18n-de" data-astro-cid-jo6i4kqk>Was ist neu?</span> </a> <a href="/apkup/wiki/" data-astro-cid-jo6i4kqk>Wiki</a> <a href="/apkup/compare/" data-astro-cid-jo6i4kqk> <span class="i18n-en" data-astro-cid-jo6i4kqk>Source Checker</span> <span class="i18n-de" data-astro-cid-jo6i4kqk>Quellen-Check</span> </a> <a href="/apkup/privacy/" data-astro-cid-jo6i4kqk>Privacy</a> <a href="/apkup/security/" data-astro-cid-jo6i4kqk>Security</a> <a href="https://github.com/DurchEins/apkup" target="_blank" rel="noopener noreferrer" data-astro-cid-jo6i4kqk>GitHub</a> <a href="https://github.com/DurchEins/apkup/wiki" target="_blank" rel="noopener noreferrer" data-astro-cid-jo6i4kqk>GitHub Wiki</a> <a href="https://github.com/DurchEins/apkup/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" data-astro-cid-jo6i4kqk>GPL-3.0</a> <a href="https://github.com/DurchEins/apkup/releases/latest" target="_blank" rel="noopener noreferrer" class="footer-build-pill mono" title="Canonical Release" data-astro-cid-jo6i4kqk>
+</a> <a href="https://keepandroidopen.org/banner/" target="_blank" rel="noopener noreferrer" class="btn btn-danger-outline" data-astro-cid-zxyow5fr> Campaign Banner ↗ </a> </div> </article> <article class="sl-card has-spotlight" data-astro-cid-zxyow5fr> <span class="pill-badge pill-amber mono" data-astro-cid-zxyow5fr>Daily Impact • Escape Hatches</span> <h2 data-astro-cid-zxyow5fr>What This Means for You as a User</h2> <p data-astro-cid-zxyow5fr>Without unlocking Developer Options, tapping direct APKs from GitHub, GitLab, Codeberg, or independent sites can be blocked by Play Protect. Once you select Allow indefinitely after 24h — or update via ADB, Shizuku, or Root (su) — ApkUp continues working without restrictions.</p> <div class="sl-actions" data-astro-cid-zxyow5fr> <a href="/apkup/wiki/#doc-google-lock" class="btn btn-secondary" data-astro-cid-zxyow5fr> Wiki Chapter → </a> <a href="/apkup/wiki/#doc-shizuku-deep" class="btn btn-ghost" data-astro-cid-zxyow5fr> Root → </a> <a href="/apkup/wiki/#doc-shizuku-setup" class="btn btn-ghost" data-astro-cid-zxyow5fr> Shizuku → </a> </div> </article> </div> <section class="sl-card sl-card-danger" id="sl-lock-section" aria-labelledby="sl-lock-steps" data-astro-cid-zxyow5fr> <div class="sl-card-head" data-astro-cid-zxyow5fr> <span class="pill-badge pill-danger mono" data-astro-cid-zxyow5fr>Developer Options • Permanent Unlock</span> <h2 id="sl-lock-steps" data-astro-cid-zxyow5fr>How to Permanently Unlock “Apps from unverified developers”</h2> <p class="sl-lead" data-astro-cid-zxyow5fr>Follow these exact 4 steps once per device to keep installing ApkUp and independent open-source apps without future blocks (click/tap each step to check it off):</p> <div class="kao-progress-wrap" aria-live="polite" data-astro-cid-zxyow5fr> <div class="kao-progress-head mono" data-astro-cid-zxyow5fr> <span data-astro-cid-zxyow5fr>Checklist Progress</span> <span class="kao-progress-right" data-astro-cid-zxyow5fr> <span id="kao-steps-count" data-astro-cid-zxyow5fr>0 / 4</span> <button type="button" class="kao-reset-btn" id="kao-steps-reset" hidden data-astro-cid-zxyow5fr> Reset </button> </span> </div> <div class="kao-progress-track" data-astro-cid-zxyow5fr> <div class="kao-progress-fill" id="kao-steps-fill" data-astro-cid-zxyow5fr></div> </div> </div> </div> <ol class="sl-steps" id="kao-steps-list" data-astro-cid-zxyow5fr> <li data-step-idx="0" role="checkbox" aria-checked="false" tabindex="0" data-astro-cid-zxyow5fr> <span class="sl-num sl-num-danger mono" id="kao-step1-badge" aria-hidden="true" title="Tap 7×!" data-astro-cid-zxyow5fr> <span class="sl-num-text" data-astro-cid-zxyow5fr>01</span> <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" data-astro-cid-zxyow5fr><path d="M20 6 9 17l-5-5" data-astro-cid-zxyow5fr></path></svg> </span> <div data-astro-cid-zxyow5fr> <strong class="sl-step-title" data-astro-cid-zxyow5fr>Enable Developer Options (7× Build Number)</strong> <p data-astro-cid-zxyow5fr>Open Settings → About Phone (on Samsung: Software information) and tap Build Number 7 times until Android confirms “You are now a developer!”.</p> <div class="kao-path-chips mono" aria-label="Android menu path" data-astro-cid-zxyow5fr> <span class="kao-chip" data-astro-cid-zxyow5fr>Settings</span> <span class="kao-chip-arrow" aria-hidden="true" data-astro-cid-zxyow5fr>→</span> <span class="kao-chip" data-astro-cid-zxyow5fr>About Phone</span> <span class="kao-chip-arrow" aria-hidden="true" data-astro-cid-zxyow5fr>→</span> <span class="kao-chip kao-chip-hl" data-astro-cid-zxyow5fr>Build Number (7×)</span> </div> <div class="kao-dev-toast mono" id="kao-dev-toast" hidden aria-live="polite" data-astro-cid-zxyow5fr> 🎉 You are now a developer! </div> </div> </li> <li data-step-idx="1" role="checkbox" aria-checked="false" tabindex="0" data-astro-cid-zxyow5fr> <span class="sl-num sl-num-danger mono" aria-hidden="true" data-astro-cid-zxyow5fr> <span class="sl-num-text" data-astro-cid-zxyow5fr>02</span> <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" data-astro-cid-zxyow5fr><path d="M20 6 9 17l-5-5" data-astro-cid-zxyow5fr></path></svg> </span> <div data-astro-cid-zxyow5fr> <strong class="sl-step-title" data-astro-cid-zxyow5fr>Toggle “Apps from unverified developers”</strong> <p data-astro-cid-zxyow5fr>Open Settings → System → Developer Options (or search for Developer Options in Settings), find Apps from unverified developers, and enable Allow apps from unverified developers.</p> <div class="kao-path-chips mono" aria-label="Developer Options menu path" data-astro-cid-zxyow5fr> <span class="kao-chip" data-astro-cid-zxyow5fr>System</span> <span class="kao-chip-arrow" aria-hidden="true" data-astro-cid-zxyow5fr>→</span> <span class="kao-chip" data-astro-cid-zxyow5fr>Developer Options</span> <span class="kao-chip-arrow" aria-hidden="true" data-astro-cid-zxyow5fr>→</span> <span class="kao-chip kao-chip-hl" data-astro-cid-zxyow5fr>Unverified developers</span> </div> </div> </li> <li data-step-idx="2" role="checkbox" aria-checked="false" tabindex="0" data-astro-cid-zxyow5fr> <span class="sl-num sl-num-danger mono" aria-hidden="true" data-astro-cid-zxyow5fr> <span class="sl-num-text" data-astro-cid-zxyow5fr>03</span> <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" data-astro-cid-zxyow5fr><path d="M20 6 9 17l-5-5" data-astro-cid-zxyow5fr></path></svg> </span> <div data-astro-cid-zxyow5fr> <strong class="sl-step-title" data-astro-cid-zxyow5fr>Confirm Lock Screen &amp; Restart Device</strong> <p data-astro-cid-zxyow5fr>Verify your lock screen PIN, pattern, or biometrics when prompted, then restart your smartphone. The mandatory 24-hour cooldown timer starts immediately after reboot.</p> <div class="kao-ics-hint" data-astro-cid-zxyow5fr> <button type="button" class="kao-ics-link mono" id="kao-timer-ics" data-astro-cid-zxyow5fr> 📅 Save 24h calendar reminder (.ics) </button> </div> </div> </li> <li data-step-idx="3" role="checkbox" aria-checked="false" tabindex="0" data-astro-cid-zxyow5fr> <span class="sl-num sl-num-danger mono" aria-hidden="true" data-astro-cid-zxyow5fr> <span class="sl-num-text" data-astro-cid-zxyow5fr>04</span> <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" data-astro-cid-zxyow5fr><path d="M20 6 9 17l-5-5" data-astro-cid-zxyow5fr></path></svg> </span> <div data-astro-cid-zxyow5fr> <strong class="sl-step-title" data-astro-cid-zxyow5fr>After 24 Hours: Select “Allow indefinitely”</strong> <p data-astro-cid-zxyow5fr>Return to Developer Options → Apps from unverified developers once the 24 hours are up and choose Allow indefinitely.</p> </div> </li> </ol> <div class="kao-trap-alert" role="note" data-astro-cid-zxyow5fr> <strong data-astro-cid-zxyow5fr>⚠ Watch Out for the 7-Day Reset Trap!</strong> <p data-astro-cid-zxyow5fr>Android offers a temporary 7-day option next to Allow indefinitely. If you select 7 days, Android automatically re-enables the lock after one week — forcing you to wait another full 24 hours. Always pick Allow indefinitely!</p> <div class="kao-trap-sim" id="kao-trap-sim" data-astro-cid-zxyow5fr> <div class="kao-trap-tabs" role="tablist" aria-label="7-day trap comparison" data-astro-cid-zxyow5fr> <button type="button" class="kao-trap-tab is-active" data-trap-mode="7d" role="tab" aria-selected="true" data-astro-cid-zxyow5fr> If you pick “7 Days” </button> <button type="button" class="kao-trap-tab" data-trap-mode="forever" role="tab" aria-selected="false" data-astro-cid-zxyow5fr> If you pick “Allow indefinitely” </button> </div> <div class="kao-trap-result is-bad mono" id="kao-trap-result" data-astro-cid-zxyow5fr> Day 1–7: Allowed → Day 8: ✕ Auto-locked again (+24h new wait!) </div> </div> </div> </section> <section class="sl-card" aria-labelledby="kao-compare-heading" data-astro-cid-zxyow5fr> <div class="sl-card-head" data-astro-cid-zxyow5fr> <span class="pill-badge pill-neutral mono" data-astro-cid-zxyow5fr>Comparison</span> <h2 id="kao-compare-heading" data-astro-cid-zxyow5fr>Locked Play Protect vs. Unlocked / ADB &amp; Shizuku</h2> </div> <div class="kao-table-wrap" data-astro-cid-zxyow5fr> <table class="kao-table" id="kao-compare-table" data-astro-cid-zxyow5fr> <thead data-astro-cid-zxyow5fr> <tr data-astro-cid-zxyow5fr> <th data-astro-cid-zxyow5fr>Scenario</th> <th data-astro-cid-zxyow5fr>With 24h Lock Active</th> <th class="kao-col-safe-th" id="kao-col-safe-th" tabindex="0" data-astro-cid-zxyow5fr> Unlocked / ADB / Shizuku </th> </tr> </thead> <tbody data-astro-cid-zxyow5fr> <tr class="kao-row-warn" data-astro-cid-zxyow5fr> <td data-astro-cid-zxyow5fr><strong data-astro-cid-zxyow5fr>Direct APK from Browser</strong></td> <td class="kao-td-bad" data-astro-cid-zxyow5fr>✕ Blocked if dev has no Google ID</td> <td class="kao-td-good" data-astro-cid-zxyow5fr>✓ Installs normally</td> </tr><tr class="kao-row-warn" data-astro-cid-zxyow5fr> <td data-astro-cid-zxyow5fr><strong data-astro-cid-zxyow5fr>ApkUp Multi-Source Updates</strong></td> <td class="kao-td-bad" data-astro-cid-zxyow5fr>⚠ Play Protect blocks unverified APKs</td> <td class="kao-td-good" data-astro-cid-zxyow5fr>✓ All 7 sources work seamlessly</td> </tr><tr class="kao-row-safe" data-astro-cid-zxyow5fr> <td data-astro-cid-zxyow5fr><strong data-astro-cid-zxyow5fr>ADB / Shizuku / Root (su)</strong></td> <td class="kao-td-good" data-astro-cid-zxyow5fr>✓ Developer pipeline stays open</td> <td class="kao-td-good" data-astro-cid-zxyow5fr>✓ Silent background updates</td> </tr> </tbody> </table> </div> </section> <section class="sl-card" aria-labelledby="kao-adb-heading" data-astro-cid-zxyow5fr> <div class="sl-card-head" data-astro-cid-zxyow5fr> <span class="pill-badge pill-green mono" data-astro-cid-zxyow5fr>ADB • Shizuku • Root</span> <h2 id="kao-adb-heading" data-astro-cid-zxyow5fr>Immediate Developer Escape Hatch (No 24h Wait)</h2> <p data-astro-cid-zxyow5fr>If you cannot wait 24 hours, you can install ApkUp immediately from any PC via ADB (USB or Wireless Debugging), and then enable Shizuku or Root inside ApkUp:</p> </div> <div class="kao-code-wrap" data-astro-cid-zxyow5fr> <pre class="kao-code mono" data-astro-cid-zxyow5fr><code data-astro-cid-zxyow5fr>adb install -r ApkUp.apk</code></pre> <button type="button" class="kao-copy-btn mono" id="kao-copy-adb" aria-label="Copy ADB command" data-astro-cid-zxyow5fr> <span class="kao-copy-icon kao-icon-default" aria-hidden="true" data-astro-cid-zxyow5fr> <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-astro-cid-zxyow5fr><rect width="14" height="14" x="8" y="8" rx="2" data-astro-cid-zxyow5fr></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" data-astro-cid-zxyow5fr></path></svg> </span> <span class="kao-copy-icon kao-icon-done" aria-hidden="true" data-astro-cid-zxyow5fr> <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" data-astro-cid-zxyow5fr><path d="M20 6 9 17l-5-5" data-astro-cid-zxyow5fr></path></svg> </span> <span class="kao-copy-label" data-astro-cid-zxyow5fr>Copy</span> </button> </div> <div class="sl-actions" data-astro-cid-zxyow5fr> <a href="/apkup/sideloading/" class="btn btn-secondary" data-astro-cid-zxyow5fr> ← Unknown Apps Guide </a> <a href="/apkup/wiki/#doc-sideloading" class="btn btn-ghost" data-astro-cid-zxyow5fr> General Wiki → </a> <a href="/apkup/wiki/#doc-shizuku-deep" class="btn btn-ghost" data-astro-cid-zxyow5fr> Root → </a> <a href="/apkup/wiki/#doc-shizuku-setup" class="btn btn-ghost" data-astro-cid-zxyow5fr> Shizuku → </a> </div> </section> </div> </main> <a href="#sl-lock-steps" class="kao-quick-jump mono" id="kao-quick-jump" data-kao-jump-steps hidden data-astro-cid-zxyow5fr> 24h Fix ↓ </a> <footer class="site-footer" data-astro-cid-yfspknxm> <div class="container footer-inner" data-astro-cid-yfspknxm> <div class="footer-brand" data-astro-cid-yfspknxm> <img src="/apkup/assets/logo.png" alt="" width="34" height="34" class="footer-icon" data-astro-cid-yfspknxm> <div class="footer-brand-text" data-astro-cid-yfspknxm> <strong data-astro-cid-yfspknxm>ApkUp</strong> <p class="footer-copy" data-astro-cid-yfspknxm>
+Copyright © 2026  <a href="https://github.com/DurchEins" target="_blank" rel="noopener noreferrer" class="footer-author-link" data-astro-cid-yfspknxm>DurchEins</a> </p> </div> </div> <nav class="footer-links" aria-label="Footer links" data-astro-cid-yfspknxm> <a href="/apkup/downloads/" data-astro-cid-yfspknxm>Downloads</a> <a href="/apkup/sideloading/" data-astro-cid-yfspknxm>Install Unknown Apps</a> <a href="/apkup/sideloading/google-lock/" data-astro-cid-yfspknxm>Google 24h Lock</a> <a href="/apkup/changelog/" data-astro-cid-yfspknxm>What’s New?</a> <a href="/apkup/wiki/" data-astro-cid-yfspknxm>Wiki</a> <a href="/apkup/compare/" data-astro-cid-yfspknxm>Source Checker</a> <a href="/apkup/privacy/" data-astro-cid-yfspknxm>Privacy</a> <a href="/apkup/security/" data-astro-cid-yfspknxm>Security</a> <a href="https://github.com/DurchEins/apkup" target="_blank" rel="noopener noreferrer" data-astro-cid-yfspknxm>GitHub</a> <a href="https://github.com/DurchEins/apkup/wiki" target="_blank" rel="noopener noreferrer" data-astro-cid-yfspknxm>GitHub Wiki</a> <a href="https://github.com/DurchEins/apkup/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="footer-build-pill mono" data-astro-cid-yfspknxm>GPL-3.0</a> <a href="https://github.com/DurchEins/apkup/releases/latest" target="_blank" rel="noopener noreferrer" class="footer-build-pill mono" title="Canonical Release" data-astro-cid-yfspknxm>
 v1.45.0 (211)
-</a> </nav> </div> </footer>  <button type="button" id="back-to-top-btn" class="back-to-top-pill" aria-label="Back to top" title="Back to top"> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <path d="m18 15-6-6-6 6"></path> </svg> </button> <aside id="dev-mode-hud" class="dev-mode-hud mono" aria-label="ApkUp Developer Mode" hidden> <div class="dev-hud-head"> <strong>⚡ ApkUp Developer Mode</strong> <button type="button" id="dev-hud-close" aria-label="Close Developer HUD">✕</button> </div> <div class="dev-hud-grid"> <span>Release: <strong>v1.45.0 (211)</strong></span> <span>SDK: <strong>API 29 – 36 (Android 10–17)</strong></span> <span>ABIs: <strong>arm64-v8a • armeabi-v7a • x86_64</strong></span> <span>Signature: <strong>APK Scheme v2/v3 + SHA-256</strong></span> <span id="dev-hud-perf">DOM Ready: <strong>-- ms</strong></span> </div> </aside> <script>
+</a> </nav> <div class="footer-i18n-bar" data-astro-cid-yfspknxm> <div class="lang-picker-wrap" id="footer-lang-wrap" data-astro-cid-yfspknxm> <button type="button" id="footer-lang-btn" class="lang-picker-btn" aria-expanded="false" aria-haspopup="menu" aria-controls="footer-lang-menu" aria-label="Select language" data-astro-cid-yfspknxm> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-yfspknxm> <circle cx="12" cy="12" r="10" data-astro-cid-yfspknxm></circle> <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" data-astro-cid-yfspknxm></path> </svg> <span data-astro-cid-yfspknxm>English <span class="mono lang-code" data-astro-cid-yfspknxm>(EN)</span></span> <svg class="lang-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-yfspknxm> <path d="m6 9 6 6 6-6" data-astro-cid-yfspknxm></path> </svg> </button> <div id="footer-lang-menu" class="lang-picker-menu" role="menu" aria-label="Select language" hidden data-astro-cid-yfspknxm> <a href="/apkup/sideloading/google-lock/" role="menuitemradio" aria-checked="true" class="lang-menu-item is-active" data-lang-option="en" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>English</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>EN</span> <span aria-hidden="true" data-astro-cid-yfspknxm>✓</span> </span> </a><a href="/apkup/de/sideloading/google-lock/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="de" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>Deutsch</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>DE</span>  </span> </a><a href="/apkup/es/sideloading/google-lock/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="es" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>Español</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>ES</span>  </span> </a><a href="/apkup/fr/sideloading/google-lock/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="fr" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>Français</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>FR</span>  </span> </a><a href="/apkup/it/sideloading/google-lock/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="it" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>Italiano</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>IT</span>  </span> </a><a href="/apkup/ja/sideloading/google-lock/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="ja" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>日本語</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>JA</span>  </span> </a><a href="/apkup/pt/sideloading/google-lock/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="pt" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>Português</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>PT</span>  </span> </a><a href="/apkup/ru/sideloading/google-lock/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="ru" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>Русский</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>RU</span>  </span> </a><a href="/apkup/zh-cn/sideloading/google-lock/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="zh-cn" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>简体中文</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>ZH-CN</span>  </span> </a> </div> </div> <a href="https://hosted.weblate.org/engage/apkup/" target="_blank" rel="noopener noreferrer" class="help-translate-link" data-astro-cid-yfspknxm> Help translate → </a> </div> </div> </footer> <script>
+  (function () {
+    var wrap = document.getElementById('footer-lang-wrap');
+    var btn = document.getElementById('footer-lang-btn');
+    var menu = document.getElementById('footer-lang-menu');
+    if (!wrap || !btn || !menu) return;
+
+    function closeMenu(focusBtn) {
+      if (menu.hidden) return;
+      menu.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
+      if (focusBtn) btn.focus();
+    }
+
+    function openMenu() {
+      menu.hidden = false;
+      btn.setAttribute('aria-expanded', 'true');
+    }
+
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (menu.hidden) openMenu();
+      else closeMenu(false);
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!menu.hidden && !wrap.contains(e.target)) {
+        closeMenu(false);
+      }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !menu.hidden) {
+        closeMenu(true);
+      }
+    });
+
+    menu.querySelectorAll('[data-lang-option]').forEach(function (link) {
+      link.addEventListener('click', function (e) {
+        var targetLang = link.getAttribute('data-lang-option');
+        if (targetLang) {
+          try {
+            localStorage.setItem('apkup-lang', targetLang);
+          } catch (err) {}
+        }
+        var dest = link.getAttribute('href');
+        if (dest && (window.location.search || window.location.hash)) {
+          e.preventDefault();
+          window.location.href = dest + window.location.search + window.location.hash;
+        }
+      });
+    });
+  })();
+</script>  <button type="button" id="back-to-top-btn" class="back-to-top-pill" aria-label="Back to top" title="Back to top"> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <path d="m18 15-6-6-6 6"></path> </svg> </button> <aside id="dev-mode-hud" class="dev-mode-hud mono" aria-label="⚡ ApkUp Developer Mode" hidden> <div class="dev-hud-head"> <strong>⚡ ApkUp Developer Mode</strong> <button type="button" id="dev-hud-close" aria-label="Close Developer HUD">✕</button> </div> <div class="dev-hud-grid"> <span>Release: <strong>v1.45.0 (211)</strong></span> <span>SDK: <strong>API 29 – 36 (Android 10–17)</strong></span> <span>ABIs: <strong>arm64-v8a • armeabi-v7a • x86_64</strong></span> <span>Signature: <strong>APK Scheme v2/v3 + SHA-256</strong></span> <span id="dev-hud-perf">DOM Ready: <strong>-- ms</strong></span> </div> </aside> <script>(function(){const copiedToastMsg = "✓ Copied to clipboard";
+const shareTitleMsg = "ApkUp — Multi-Source Android App Updater";
+const shareTextMsg = "ApkUp: Open-source Android app updater for Google Play, F-Droid, GitHub & more — ad-free & Shizuku-ready.";
+const canonicalShareUrl = "https://durcheins.github.io/apkup/sideloading/google-lock/";
+
       (function () {
         var root = document.documentElement;
         var themeBtn = document.getElementById('theme-toggle');
-        var langBtn = document.getElementById('lang-toggle');
 
         function applyTheme(next) {
           root.classList.add('theme-switching');
@@ -271,22 +259,6 @@ v1.45.0 (211)
           });
         }
 
-        function applyLang(next) {
-          root.classList.add('lang-switching');
-          root.setAttribute('data-lang', next);
-          root.setAttribute('lang', next);
-          try {
-            localStorage.setItem('apkup-lang', next);
-          } catch (e) {}
-          if (langBtn) {
-            langBtn.setAttribute('aria-pressed', String(next === 'de'));
-          }
-          window.dispatchEvent(new CustomEvent('apkup:langchange', { detail: { lang: next } }));
-          setTimeout(function () {
-            root.classList.remove('lang-switching');
-          }, 130);
-        }
-
         if (themeBtn) {
           themeBtn.setAttribute('aria-pressed', String(root.getAttribute('data-theme') === 'light'));
           try {
@@ -296,14 +268,6 @@ v1.45.0 (211)
             themeBtn.classList.remove('is-system-sync');
             var current = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
             applyTheme(current === 'dark' ? 'light' : 'dark');
-          });
-        }
-
-        if (langBtn) {
-          langBtn.setAttribute('aria-pressed', String(root.getAttribute('data-lang') === 'de'));
-          langBtn.addEventListener('click', function () {
-            var current = root.getAttribute('data-lang') === 'de' ? 'de' : 'en';
-            applyLang(current === 'en' ? 'de' : 'en');
           });
         }
 
@@ -317,7 +281,7 @@ v1.45.0 (211)
           if (window.innerWidth <= 860) {
             var t = document.createElement('div');
             t.className = 'brand-toast mono';
-            t.textContent = root.getAttribute('data-lang') === 'de' ? '✓ In Zwischenablage kopiert' : '✓ Copied to clipboard';
+            t.textContent = copiedToastMsg;
             document.body.appendChild(t);
             setTimeout(function () { t.remove(); }, 1800);
           }
@@ -396,76 +360,52 @@ v1.45.0 (211)
 
         document.querySelectorAll('[data-share-btn]').forEach(function (btn) {
           btn.addEventListener('click', function () {
-            var isDe = root.getAttribute('data-lang') === 'de';
-            var shareUrl = window.location.origin + (window.location.pathname.indexOf('/apkup') === 0 ? '/apkup/' : '/');
             var shareData = {
-              title: 'ApkUp — Multi-Source Android App Updater',
-              text: isDe
-                ? 'ApkUp: Open-Source Android App-Updater für Google Play, F-Droid, GitHub & mehr – werbefrei & mit Shizuku.'
-                : 'ApkUp: Open-source Android app updater for Google Play, F-Droid, GitHub & more — ad-free & Shizuku-ready.',
-              url: shareUrl
+              title: shareTitleMsg,
+              text: shareTextMsg,
+              url: canonicalShareUrl
             };
             if (navigator.share) {
               navigator.share(shareData).catch(function (err) {
                 if (err && err.name === 'AbortError') return;
                 if (navigator.clipboard && navigator.clipboard.writeText) {
-                  navigator.clipboard.writeText(shareUrl).then(function () { showCopied(btn); }).catch(function () {});
+                  navigator.clipboard.writeText(canonicalShareUrl).then(function () { showCopied(btn); }).catch(function () {});
                 }
               });
             } else if (navigator.clipboard && navigator.clipboard.writeText) {
-              navigator.clipboard.writeText(shareUrl).then(function () { showCopied(btn); }).catch(function () {});
+              navigator.clipboard.writeText(canonicalShareUrl).then(function () { showCopied(btn); }).catch(function () {});
             }
           });
         });
       })();
-    </script> </body> </html>  <script>
+    })();</script> </body> </html> <script>(function(){const resAffected = "⚠ Affected: Complete the 4-step “Allow indefinitely” unlock below once.";
+const resAdb = "✓ Bypassed: ADB / Shizuku / Root installs bypass Play Protect’s 24h lock.";
+const resDeGoogled = "✓ Not affected: Devices without Google Play Services have no 24h lock.";
+const trap7dText = "Day 1–7: Allowed → Day 8: ✕ Auto-locked again (+24h new wait!)";
+const trapForeverText = "Day 1+: ✓ Permanently unlocked — no 7-day reset!";
+const shareTitle = "Google’s 24h Developer Lock & Keep Android Open";
+const shareLead = "Android is facing the biggest restriction on sideloading in its history. Starting September 30, 2026 (pilot regions) and rolling out globally in January 2027, Google Play Protect blocks APKs from developers who have not submitted government ID and package keys to Google — forcing users through a hidden 24-hour Developer Options cooldown.";
+const copiedToast = "✓ Copied to clipboard";
+
   (function () {
-    const ROLLOUT_UTC_MS = Date.UTC(2027, 0, 1, 0, 0, 0);
-    const HOURS_24_MS = 24 * 3600 * 1000;
-    const CHECKLIST_STORAGE_KEY = 'apkup-24h-steps-v1';
-    const ADB_INSTALL_COMMAND = 'adb install -r ApkUp.apk';
-
-    function bilingualHtml(enText, deText) {
-      return '<span class="i18n-en">' + enText + '</span><span class="i18n-de">' + deText + '</span>';
-    }
-
-    function isGermanActive() {
-      return document.documentElement.getAttribute('data-lang') === 'de';
-    }
-
-    function initPage() {
-      initGlobalCountdown();
-      initCardSpotlights();
-      initScrollReveal();
-      initUnlockChecklist();
-      initTrapSimulator();
-      initAdbCopyButton();
-      initQuickJumpButton();
-      initScrollProgressBar();
-      initShareButton();
-      initAffectedChecker();
-      initDeveloperEasterEgg();
-      initCalendarReminder();
-      initSafeColumnHighlight();
-      initAnchorHighlightFlash();
-    }
+    var ROLLOUT_UTC_MS = Date.UTC(2027, 0, 1, 0, 0, 0);
+    var HOURS_24_MS = 24 * 3600 * 1000;
+    var CHECKLIST_STORAGE_KEY = 'apkup-24h-steps-v1';
+    var ADB_INSTALL_COMMAND = 'adb install -r ApkUp.apk';
 
     function initGlobalCountdown() {
-      const countdownEl = document.getElementById('kao-global-countdown');
+      var countdownEl = document.getElementById('kao-global-countdown');
       if (!countdownEl) return;
 
       function render() {
-        const remainingMs = ROLLOUT_UTC_MS - Date.now();
+        var remainingMs = ROLLOUT_UTC_MS - Date.now();
         if (remainingMs <= 0) {
-          countdownEl.innerHTML = bilingualHtml('Global Rollout: Active', 'Globaler Rollout: Aktiv');
+          countdownEl.textContent = 'Global Rollout: Active';
           return;
         }
-        const days = Math.floor(remainingMs / 86400000);
-        const hours = Math.floor((remainingMs % 86400000) / 3600000);
-        countdownEl.innerHTML = bilingualHtml(
-          'Global Rollout in ' + days + 'd ' + hours + 'h',
-          'Globaler Rollout in ' + days + 'T ' + hours + 'Std.'
-        );
+        var days = Math.floor(remainingMs / 86400000);
+        var hours = Math.floor((remainingMs % 86400000) / 3600000);
+        countdownEl.textContent = 'Jan 2027 • ' + days + 'd ' + hours + 'h';
       }
 
       render();
@@ -475,7 +415,7 @@ v1.45.0 (211)
     function initCardSpotlights() {
       document.querySelectorAll('.kao-spotlight').forEach(function (card) {
         card.addEventListener('pointermove', function (event) {
-          const rect = card.getBoundingClientRect();
+          var rect = card.getBoundingClientRect();
           card.style.setProperty('--mx', (event.clientX - rect.left) + 'px');
           card.style.setProperty('--my', (event.clientY - rect.top) + 'px');
         });
@@ -483,14 +423,14 @@ v1.45.0 (211)
     }
 
     function initScrollReveal() {
-      const dangerItems = document.querySelectorAll('.kao-danger-item');
+      var dangerItems = document.querySelectorAll('.kao-danger-item');
       if (!dangerItems.length) return;
       if (!('IntersectionObserver' in window)) {
         dangerItems.forEach(function (item) { item.classList.add('is-visible'); });
         return;
       }
 
-      const observer = new IntersectionObserver(function (entries) {
+      var observer = new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
           if (!entry.isIntersecting) return;
           entry.target.classList.add('is-visible');
@@ -503,26 +443,26 @@ v1.45.0 (211)
 
     function loadSavedSteps() {
       try {
-        const parsed = JSON.parse(localStorage.getItem(CHECKLIST_STORAGE_KEY) || '[]');
+        var parsed = JSON.parse(localStorage.getItem(CHECKLIST_STORAGE_KEY) || '[]');
         if (Array.isArray(parsed) && parsed.length === 4) return parsed.map(Boolean);
       } catch (e) {}
       return [false, false, false, false];
     }
 
     function initUnlockChecklist() {
-      const stepsList = document.getElementById('kao-steps-list');
+      var stepsList = document.getElementById('kao-steps-list');
       if (!stepsList) return;
 
-      const countEl = document.getElementById('kao-steps-count');
-      const fillEl = document.getElementById('kao-steps-fill');
-      const resetBtn = document.getElementById('kao-steps-reset');
-      const stepItems = stepsList.querySelectorAll('li[data-step-idx]');
-      let stepState = loadSavedSteps();
+      var countEl = document.getElementById('kao-steps-count');
+      var fillEl = document.getElementById('kao-steps-fill');
+      var resetBtn = document.getElementById('kao-steps-reset');
+      var stepItems = stepsList.querySelectorAll('li[data-step-idx]');
+      var stepState = loadSavedSteps();
 
       function render() {
-        let doneCount = 0;
+        var doneCount = 0;
         stepItems.forEach(function (li, index) {
-          const isDone = stepState[index];
+          var isDone = stepState[index];
           if (isDone) doneCount++;
           li.classList.toggle('is-done', isDone);
           li.setAttribute('aria-checked', isDone ? 'true' : 'false');
@@ -557,39 +497,31 @@ v1.45.0 (211)
     }
 
     function initTrapSimulator() {
-      const simulator = document.getElementById('kao-trap-sim');
-      const resultEl = document.getElementById('kao-trap-result');
+      var simulator = document.getElementById('kao-trap-sim');
+      var resultEl = document.getElementById('kao-trap-result');
       if (!simulator || !resultEl) return;
 
-      const tabs = simulator.querySelectorAll('.kao-trap-tab');
+      var tabs = simulator.querySelectorAll('.kao-trap-tab');
       tabs.forEach(function (tab) {
         tab.addEventListener('click', function () {
-          const isForever = tab.getAttribute('data-trap-mode') === 'forever';
+          var isForever = tab.getAttribute('data-trap-mode') === 'forever';
           tabs.forEach(function (btn) {
-            const active = btn === tab;
+            var active = btn === tab;
             btn.classList.toggle('is-active', active);
             btn.setAttribute('aria-selected', active ? 'true' : 'false');
           });
           resultEl.classList.toggle('is-good', isForever);
           resultEl.classList.toggle('is-bad', !isForever);
-          resultEl.innerHTML = isForever
-            ? bilingualHtml(
-                'Day 1 → Day 365+: ✓ Permanently unlocked (no repeat 24h wait!)',
-                'Tag 1 → Tag 365+: ✓ Dauerhaft freigeschaltet (nie wieder 24h warten!)'
-              )
-            : bilingualHtml(
-                'Day 1–7: Allowed → Day 8: ✕ Auto-locked again (+24h new wait!)',
-                'Tag 1–7: Erlaubt → Tag 8: ✕ Automatisch wieder gesperrt (+24h Wartezeit!)'
-              );
+          resultEl.textContent = isForever ? trapForeverText : trap7dText;
         });
       });
     }
 
     function initAdbCopyButton() {
-      const copyBtn = document.getElementById('kao-copy-adb');
+      var copyBtn = document.getElementById('kao-copy-adb');
       if (!copyBtn) return;
 
-      let resetTimer = null;
+      var resetTimer = null;
       copyBtn.addEventListener('click', function () {
         if (navigator.clipboard) navigator.clipboard.writeText(ADB_INSTALL_COMMAND);
         copyBtn.classList.add('is-copied');
@@ -599,13 +531,13 @@ v1.45.0 (211)
     }
 
     function initQuickJumpButton() {
-      const heroEl = document.getElementById('kao-hero');
-      const stepsHeading = document.getElementById('sl-lock-steps');
-      const jumpBtn = document.getElementById('kao-quick-jump');
+      var heroEl = document.getElementById('kao-hero');
+      var stepsHeading = document.getElementById('sl-lock-steps');
+      var jumpBtn = document.getElementById('kao-quick-jump');
       if (!heroEl || !stepsHeading || !jumpBtn || !('IntersectionObserver' in window)) return;
 
-      let heroVisible = true;
-      let stepsVisible = false;
+      var heroVisible = true;
+      var stepsVisible = false;
       function syncVisibility() {
         jumpBtn.hidden = heroVisible || stepsVisible;
       }
@@ -622,12 +554,12 @@ v1.45.0 (211)
     }
 
     function initScrollProgressBar() {
-      const progressBar = document.getElementById('kao-scroll-progress');
+      var progressBar = document.getElementById('kao-scroll-progress');
       if (!progressBar) return;
 
       function update() {
-        const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
-        const ratio = scrollableHeight > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollableHeight)) : 0;
+        var scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+        var ratio = scrollableHeight > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollableHeight)) : 0;
         progressBar.style.transform = 'scaleX(' + ratio.toFixed(4) + ')';
       }
 
@@ -636,65 +568,55 @@ v1.45.0 (211)
     }
 
     function initShareButton() {
-      const shareBtn = document.getElementById('kao-share-btn');
+      var shareBtn = document.getElementById('kao-share-btn');
       if (!shareBtn) return;
 
-      let resetTimer = null;
+      var resetTimer = null;
       shareBtn.addEventListener('click', function () {
-        const url = window.location.href;
-        const german = isGermanActive();
+        var url = window.location.href;
         if (navigator.share) {
           navigator.share({
-            title: german ? 'Googles 24h-Entwicklersperre & Keep Android Open' : 'Google 24h Developer Lock & Keep Android Open',
-            text: german ? 'So löst du Googles neue 24h-Sperre auf Android dauerhaft:' : 'How to permanently unlock Google’s 24h sideloading lock on Android:',
+            title: shareTitle,
+            text: shareLead,
             url: url,
           }).catch(function () {});
           return;
         }
         if (!navigator.clipboard) return;
         navigator.clipboard.writeText(url);
-        const previousHtml = shareBtn.innerHTML;
-        shareBtn.innerHTML = bilingualHtml('✓ Link copied!', '✓ Link kopiert!');
+        var previousText = shareBtn.textContent;
+        shareBtn.textContent = copiedToast;
         clearTimeout(resetTimer);
-        resetTimer = setTimeout(function () { shareBtn.innerHTML = previousHtml; }, 1800);
+        resetTimer = setTimeout(function () { shareBtn.textContent = previousText; }, 1800);
       });
     }
 
     function initAffectedChecker() {
-      const checker = document.getElementById('kao-checker');
-      const resultEl = document.getElementById('kao-checker-result');
+      var checker = document.getElementById('kao-checker');
+      var resultEl = document.getElementById('kao-checker-result');
       if (!checker || !resultEl) return;
 
-      const answers = { gms: 'yes', method: 'apk' };
+      var answers = { gms: 'yes', method: 'apk' };
 
       function renderResult() {
-        const isSafe = answers.gms === 'no' || answers.method === 'adb';
+        var isSafe = answers.gms === 'no' || answers.method === 'adb';
         resultEl.classList.toggle('is-safe', isSafe);
         resultEl.classList.toggle('is-affected', !isSafe);
 
         if (answers.gms === 'no') {
-          resultEl.innerHTML = bilingualHtml(
-            '✓ Not affected: DeGoogled / Custom ROMs without Play Protect are not blocked.',
-            '✓ Nicht betroffen: Custom-ROMs ohne Google Play Protect werden nicht blockiert.'
-          );
+          resultEl.textContent = resDeGoogled;
           return;
         }
         if (answers.method === 'adb') {
-          resultEl.innerHTML = bilingualHtml(
-            '✓ Developer path open: ADB, Shizuku &amp; Root bypass the 24h consumer block.',
-            '✓ Entwickler-Weg frei: ADB, Shizuku &amp; Root umgehen die 24h-Sperre direkt.'
-          );
+          resultEl.textContent = resAdb;
           return;
         }
-        resultEl.innerHTML = bilingualHtml(
-          '⚠ Affected: Complete the 4-step “Allow indefinitely” unlock below once.',
-          '⚠ Betroffen: Einmalig unten die 4 Schritte („Dauerhaft erlauben“) ausführen.'
-        );
+        resultEl.textContent = resAffected;
       }
 
       checker.querySelectorAll('.kao-q-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {
-          const question = btn.getAttribute('data-q');
+          var question = btn.getAttribute('data-q');
           answers[question] = btn.getAttribute('data-val');
           checker.querySelectorAll('.kao-q-btn[data-q="' + question + '"]').forEach(function (option) {
             option.classList.toggle('is-selected', option === btn);
@@ -705,12 +627,12 @@ v1.45.0 (211)
     }
 
     function initDeveloperEasterEgg() {
-      const stepBadge = document.getElementById('kao-step1-badge');
-      const toast = document.getElementById('kao-dev-toast');
+      var stepBadge = document.getElementById('kao-step1-badge');
+      var toast = document.getElementById('kao-dev-toast');
       if (!stepBadge || !toast) return;
 
-      let tapCount = 0;
-      let hideTimer = null;
+      var tapCount = 0;
+      var hideTimer = null;
       stepBadge.addEventListener('click', function (event) {
         event.stopPropagation();
         tapCount++;
@@ -726,46 +648,37 @@ v1.45.0 (211)
       return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
     }
 
-    function buildUnlockIcsContent(startTime, german) {
-      const endTime = new Date(startTime.getTime() + 15 * 60 * 1000);
-      const summary = german
-        ? 'Android 24h-Sperre: Dauerhaft erlauben wählen!'
-        : 'Android 24h Lock: Choose Allow indefinitely!';
-      const description = german
-        ? 'Öffne Einstellungen -> System -> Entwickleroptionen -> Apps von nicht verifizierten Entwicklern -> Dauerhaft erlauben.'
-        : 'Open Settings -> System -> Developer Options -> Apps from unverified developers -> Allow indefinitely.';
-
-      return [
-        'BEGIN:VCALENDAR',
-        'VERSION:2.0',
-        'PRODID:-//ApkUp//24h Lock Reminder//EN',
-        'BEGIN:VEVENT',
-        'UID:apkup-24h-' + startTime.getTime() + '@durcheins.github.io',
-        'DTSTAMP:' + formatIcsUtc(new Date()),
-        'DTSTART:' + formatIcsUtc(startTime),
-        'DTEND:' + formatIcsUtc(endTime),
-        'SUMMARY:' + summary,
-        'DESCRIPTION:' + description,
-        'BEGIN:VALARM',
-        'TRIGGER:-PT0M',
-        'ACTION:DISPLAY',
-        'DESCRIPTION:' + summary,
-        'END:VALARM',
-        'END:VEVENT',
-        'END:VCALENDAR',
-      ].join('\r\n');
-    }
-
     function initCalendarReminder() {
-      const icsBtn = document.getElementById('kao-timer-ics');
+      var icsBtn = document.getElementById('kao-timer-ics');
       if (!icsBtn) return;
 
       icsBtn.addEventListener('click', function (event) {
         event.stopPropagation();
-        const unlockDate = new Date(Date.now() + HOURS_24_MS);
-        const icsText = buildUnlockIcsContent(unlockDate, isGermanActive());
-        const blob = new Blob([icsText], { type: 'text/calendar;charset=utf-8' });
-        const downloadLink = document.createElement('a');
+        var startTime = new Date(Date.now() + HOURS_24_MS);
+        var endTime = new Date(startTime.getTime() + 15 * 60 * 1000);
+        var summary = 'Android 24h Lock: Allow indefinitely';
+        var description = 'Settings -> System -> Developer Options -> Apps from unverified developers -> Allow indefinitely';
+        var icsText = [
+          'BEGIN:VCALENDAR',
+          'VERSION:2.0',
+          'PRODID:-//ApkUp//24h Lock Reminder//EN',
+          'BEGIN:VEVENT',
+          'UID:apkup-24h-' + startTime.getTime() + '@durcheins.github.io',
+          'DTSTAMP:' + formatIcsUtc(new Date()),
+          'DTSTART:' + formatIcsUtc(startTime),
+          'DTEND:' + formatIcsUtc(endTime),
+          'SUMMARY:' + summary,
+          'DESCRIPTION:' + description,
+          'BEGIN:VALARM',
+          'TRIGGER:-PT0M',
+          'ACTION:DISPLAY',
+          'DESCRIPTION:' + summary,
+          'END:VALARM',
+          'END:VEVENT',
+          'END:VCALENDAR',
+        ].join('\r\n');
+        var blob = new Blob([icsText], { type: 'text/calendar;charset=utf-8' });
+        var downloadLink = document.createElement('a');
         downloadLink.href = URL.createObjectURL(blob);
         downloadLink.download = 'apkup-android-24h-unlock.ics';
         document.body.appendChild(downloadLink);
@@ -776,8 +689,8 @@ v1.45.0 (211)
     }
 
     function initSafeColumnHighlight() {
-      const table = document.getElementById('kao-compare-table');
-      const safeHeader = document.getElementById('kao-col-safe-th');
+      var table = document.getElementById('kao-compare-table');
+      var safeHeader = document.getElementById('kao-col-safe-th');
       if (!table || !safeHeader) return;
 
       safeHeader.addEventListener('mouseenter', function () { table.classList.add('is-col-safe-hl'); });
@@ -786,7 +699,7 @@ v1.45.0 (211)
     }
 
     function initAnchorHighlightFlash() {
-      const lockSection = document.getElementById('sl-lock-section');
+      var lockSection = document.getElementById('sl-lock-section');
       if (!lockSection) return;
 
       document.querySelectorAll('[data-kao-jump-steps]').forEach(function (trigger) {
@@ -798,6 +711,19 @@ v1.45.0 (211)
       });
     }
 
-    initPage();
+    initGlobalCountdown();
+    initCardSpotlights();
+    initScrollReveal();
+    initUnlockChecklist();
+    initTrapSimulator();
+    initAdbCopyButton();
+    initQuickJumpButton();
+    initScrollProgressBar();
+    initShareButton();
+    initAffectedChecker();
+    initDeveloperEasterEgg();
+    initCalendarReminder();
+    initSafeColumnHighlight();
+    initAnchorHighlightFlash();
   })();
-</script>
+})();</script>

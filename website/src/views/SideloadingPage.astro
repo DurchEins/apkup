@@ -1,0 +1,114 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import {
+  DEFAULT_LOCALE,
+  absoluteLocaleUrl,
+  getTranslations,
+  localePath,
+  type Locale,
+} from '../i18n';
+
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = DEFAULT_LOCALE } = Astro.props;
+const t = getTranslations(lang);
+const sl = t.sideloadingPage;
+
+const guideSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: sl.title,
+  url: absoluteLocaleUrl(lang, 'sideloading/'),
+  author: { '@type': 'Person', name: 'DurchEins', url: 'https://github.com/DurchEins' },
+  about: { '@type': 'SoftwareApplication', name: 'ApkUp' },
+};
+---
+
+<BaseLayout
+  lang={lang}
+  subPath="sideloading/"
+  title={sl.title}
+  description={sl.metaDesc}
+  jsonLd={guideSchema}
+  kaoBannerSize="normal"
+>
+  <Navbar lang={lang} />
+  <main id="main-content" class="section">
+    <div class="container subpage-wrap">
+      <header class="sl-header">
+        <span class="pill-badge pill-green mono">{sl.badge}</span>
+        <h1 class="section-title">{sl.h1}</h1>
+        <p class="section-subtitle">{sl.lead}</p>
+      </header>
+
+      <section class="sl-card has-spotlight" aria-labelledby="sl-way1">
+        <div class="sl-card-head">
+          <span class="pill-badge pill-green mono">{sl.way1Badge}</span>
+          <h2 id="sl-way1">{sl.way1Title}</h2>
+        </div>
+        <ol class="sl-steps">
+          <li>
+            <span class="sl-num mono">01</span>
+            <div>
+              <strong class="sl-step-title">{sl.way1Steps[0].title}</strong>
+              <p>
+                {sl.way1Steps[0].bodyBefore}{' '}
+                <a href={localePath(lang, 'downloads/')}>{sl.way1Steps[0].bodyLink}</a>{' '}
+                {sl.way1Steps[0].bodyAfter}
+              </p>
+            </div>
+          </li>
+          <li>
+            <span class="sl-num mono">02</span>
+            <div>
+              <strong class="sl-step-title">{sl.way1Steps[1].title}</strong>
+              <p>{sl.way1Steps[1].body}</p>
+            </div>
+          </li>
+          <li>
+            <span class="sl-num mono">03</span>
+            <div>
+              <strong class="sl-step-title">{sl.way1Steps[2].title}</strong>
+              <p>{sl.way1Steps[2].body}</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <div class="sl-two-col">
+        <article class="sl-card has-spotlight">
+          <span class="pill-badge pill-green mono">Shizuku • ADB • Root</span>
+          <h2>{sl.powerTitle}</h2>
+          <p>{sl.powerDesc}</p>
+          <div class="sl-actions">
+            <a href={localePath(lang, 'wiki/#doc-sideloading')} class="btn btn-secondary">
+              {sl.generalWiki}
+            </a>
+            <a href={localePath(lang, 'wiki/#doc-shizuku-deep')} class="btn btn-ghost">
+              {sl.rootBtn}
+            </a>
+            <a href={localePath(lang, 'wiki/#doc-shizuku-setup')} class="btn btn-ghost">
+              {sl.shizukuBtn}
+            </a>
+          </div>
+        </article>
+
+        <article class="sl-card sl-card-danger has-spotlight">
+          <span class="pill-badge pill-danger mono">{sl.lockBadge}</span>
+          <h2>{sl.lockTitle}</h2>
+          <p>{sl.lockDesc}</p>
+          <div class="sl-actions">
+            <a href={localePath(lang, 'sideloading/google-lock/')} class="btn btn-danger">
+              {sl.lockBtn}
+            </a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </main>
+  <Footer lang={lang} subPath="sideloading/" />
+</BaseLayout>

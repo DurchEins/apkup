@@ -1,0 +1,211 @@
+---
+import { DEFAULT_LOCALE, getTranslations, localePath, type Locale } from '../i18n';
+
+interface Props {
+  lang?: Locale;
+  size?: 'normal' | 'mini';
+}
+
+const { lang = DEFAULT_LOCALE, size = 'mini' } = Astro.props;
+const t = getTranslations(lang);
+const lockUrl = localePath(lang, 'sideloading/google-lock/');
+---
+
+<aside
+  id="kao-local-banner"
+  class={`kao-signal-banner ${size === 'normal' ? 'is-normal' : 'is-mini'}`}
+  aria-label={t.kaoBanner.warningLabel}
+>
+  <div class="container kao-banner-inner">
+    <div class="kao-banner-content">
+      <div class="kao-signal-bar mono">
+        <span class="kao-signal-icon" aria-hidden="true">⚠️</span>
+        <span>{t.kaoBanner.warningLabel}</span>
+      </div>
+      <p class="kao-banner-text">
+        {size === 'normal' ? t.kaoBanner.normalText : t.kaoBanner.miniText}
+      </p>
+    </div>
+
+    <div class="kao-banner-actions">
+      <a class="kao-cta-btn" href={lockUrl}>
+        {t.kaoBanner.ctaLabel} →
+      </a>
+      {size === 'normal' && (
+        <a
+          class="kao-secondary-link"
+          href="https://keepandroidopen.org"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {t.kaoBanner.learnMore}
+        </a>
+      )}
+      <button
+        type="button"
+        id="kao-banner-dismiss"
+        class="kao-dismiss-btn"
+        aria-label={t.kaoBanner.dismissAria}
+        title={t.kaoBanner.dismissAria}
+      >
+        ×
+      </button>
+    </div>
+  </div>
+</aside>
+
+<script is:inline>
+  (function () {
+    var banner = document.getElementById('kao-local-banner');
+    var dismiss = document.getElementById('kao-banner-dismiss');
+    if (!banner) return;
+    try {
+      if (sessionStorage.getItem('apkup-kao-dismissed') === '1') {
+        banner.hidden = true;
+        return;
+      }
+    } catch (e) {}
+    if (dismiss) {
+      dismiss.addEventListener('click', function () {
+        banner.hidden = true;
+        try {
+          sessionStorage.setItem('apkup-kao-dismissed', '1');
+        } catch (e) {}
+      });
+    }
+  })();
+</script>
+
+<style>
+  .kao-signal-banner {
+    background: linear-gradient(135deg, #5c0b0e 0%, #7c2d12 55%, #451a03 100%);
+    color: #fff7ed;
+    border-block-end: 2px solid #f59e0b;
+    position: relative;
+    z-index: 105;
+  }
+
+  :global([data-theme='light']) .kao-signal-banner {
+    background: linear-gradient(135deg, #991b1b 0%, #b45309 55%, #7c2d12 100%);
+    color: #fffbeb;
+  }
+
+  .kao-signal-banner.is-normal {
+    padding-block: 12px;
+  }
+
+  .kao-signal-banner.is-mini {
+    padding-block: 8px;
+  }
+
+  .kao-banner-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 20px;
+    flex-wrap: wrap;
+  }
+
+  .kao-banner-content {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    flex: 1 1 320px;
+  }
+
+  .kao-signal-bar {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: #fde68a;
+  }
+
+  .kao-banner-text {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.4;
+    color: #fff7ed;
+    font-weight: 500;
+  }
+
+  .kao-signal-banner.is-mini .kao-banner-text {
+    font-size: 0.82rem;
+  }
+
+  .kao-banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+
+  .kao-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: #fbbf24;
+    color: #18120b;
+    font-weight: 800;
+    font-size: 0.82rem;
+    text-decoration: none;
+    white-space: nowrap;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
+    transition: transform 140ms ease-out, background-color 140ms ease-out;
+  }
+
+  @media (hover: hover) {
+    .kao-cta-btn:hover {
+      background: #fcd34d;
+      transform: translateY(-1px);
+    }
+  }
+
+  .kao-secondary-link {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #fde68a;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    white-space: nowrap;
+  }
+
+  .kao-dismiss-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    border: 1px solid rgba(254, 243, 199, 0.35);
+    background: rgba(0, 0, 0, 0.22);
+    color: #fffbeb;
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 0;
+    transition: background-color 140ms ease-out;
+  }
+
+  @media (hover: hover) {
+    .kao-dismiss-btn:hover {
+      background: rgba(0, 0, 0, 0.42);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .kao-banner-actions {
+      width: 100%;
+      justify-content: flex-start;
+    }
+    .kao-dismiss-btn {
+      margin-inline-start: auto;
+    }
+  }
+</style>
