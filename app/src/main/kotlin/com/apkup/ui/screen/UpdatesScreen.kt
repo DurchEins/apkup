@@ -1044,7 +1044,7 @@ fun UpdatesScreenSuccess(
 					readyUpdateIds = readyUpdateIds,
 					failedUpdateIds = failedUpdateIds,
 					jumpToErrorTick = jumpToErrorTick,
-					extraBottomPadding = if (isSelectionMode) 84.dp else 0.dp,
+					extraBottomPadding = 0.dp,
 					handler = handler,
 					modifier = Modifier
 						.fillMaxSize()
@@ -1072,7 +1072,7 @@ fun UpdatesScreenSuccess(
 					readyUpdateIds = readyUpdateIds,
 					failedUpdateIds = failedUpdateIds,
 					jumpToErrorTick = jumpToErrorTick,
-					extraBottomPadding = if (isSelectionMode) 84.dp else 0.dp,
+					extraBottomPadding = 0.dp,
 					handler = handler,
 					modifier = Modifier
 						.fillMaxSize()
@@ -1126,70 +1126,6 @@ fun UpdatesScreenSuccess(
 					style = MaterialTheme.typography.labelLarge,
 					fontWeight = FontWeight.SemiBold
 				)
-			}
-		}
-	}
-
-	AnimatedVisibility(
-		visible = isSelectionMode,
-		enter = if (isReducedMotionDock) fadeIn(tween(80)) else slideInVertically(spring(dampingRatio = 0.78f, stiffness = 420f)) { it } + fadeIn(),
-		exit = if (isReducedMotionDock) fadeOut(tween(80)) else slideOutVertically(spring(dampingRatio = 0.85f, stiffness = 460f)) { it } + fadeOut(),
-		modifier = Modifier
-			.align(Alignment.BottomCenter)
-			.navigationBarsPadding()
-			.padding(horizontal = 20.dp, vertical = 92.dp)
-	) {
-		Surface(
-			shape = CircleShape,
-			color = MaterialTheme.colorScheme.primaryContainer,
-			contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-			tonalElevation = 6.dp,
-			shadowElevation = 10.dp,
-			border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.28f))
-		) {
-			Row(
-				modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
-				verticalAlignment = Alignment.CenterVertically,
-				horizontalArrangement = Arrangement.spacedBy(8.dp)
-			) {
-				IconButton(
-					onClick = { selectedUpdateIds = emptySet() },
-					modifier = Modifier.size(34.dp)
-				) {
-					Icon(
-						imageVector = Icons.Filled.Close,
-						contentDescription = stringResource(R.string.action_cancel),
-						modifier = Modifier.size(18.dp)
-					)
-				}
-				Button(
-					onClick = {
-						val toInstall = selectedUpdates
-						if (toInstall.isNotEmpty()) {
-							val (directQueue, _) = partitionInstallQueueCandidates(toInstall, directMirror)
-							val riskyWatched = directQueue.filter { it.isWatchedApp() && it.source == ApkMirrorSource }
-							val execute: () -> Unit = {
-								requestNotificationPermissionIfNeeded()
-								selectedUpdateIds = emptySet()
-								viewModel.installSelected(toInstall)
-							}
-							if (riskyWatched.isNotEmpty()) {
-								pendingWatchedApkMirrorConfirm = riskyWatched to execute
-							} else {
-								execute()
-							}
-						}
-					},
-					shape = CircleShape,
-					contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-				) {
-					Text(
-						text = stringResource(R.string.updates_selected_count_install, selectedUpdateIds.size),
-						style = MaterialTheme.typography.labelLarge,
-						fontWeight = FontWeight.Bold,
-						maxLines = 1
-					)
-				}
 			}
 		}
 	}

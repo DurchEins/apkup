@@ -1,6 +1,6 @@
-1.45.1 (221) – Patch & Bugfix:
+1.45.1 (222) – Patch & Bugfix:
 • Neue ApkUp-Website (https://durcheins.github.io/apkup) mit Anleitungen, Downloads & direktem Hilfe-Link im Über-Bereich
 • Neuer „ApkUp unterstützen“-Bereich unter Über mit Unterstützungsoptionen sowie Stern- und Bewertungslinks für GitHub, GitLab & App-Stores
-• Interaktions-Feinschliff: Live-Installationsschritte, schwebende Batch-Leiste, App-Vorschau per langem Druck & kopierbare Signatur-Fingerabdrücke
+• Interaktions-Feinschliff: Live-Installationsschritte, einheitliches App-Aktionsmenü mit kopierbaren Signatur-Fingerabdrücken & klickbare Repo-Vorschau
 • Externe Projekt-, Hilfe- und Store-Links öffnen sich jetzt nahtlos direkt in der App
 • Verbesserte Sicherheitsprüfungen bei Root-Rollbacks, Split-APKs, Filter-Mustern & behobene Pull-to-Refresh-Überlappung

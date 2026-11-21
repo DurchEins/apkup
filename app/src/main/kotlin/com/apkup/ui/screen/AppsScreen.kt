@@ -40,6 +40,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -203,8 +205,6 @@ fun AppsScreenSuccess(
 	val searchQuery by viewModel.searchQuery().collectAsStateWithLifecycle()
 	val pinnedAppSources by viewModel.pinnedAppSources().collectAsStateWithLifecycle()
 	var pinTargetApp by remember { mutableStateOf<AppInstalled?>(null) }
-	var peekTargetApp by remember { mutableStateOf<AppInstalled?>(null) }
-	val isWideScreen = LocalConfiguration.current.screenWidthDp >= 840
 	val quickFilter by viewModel.quickFilter().collectAsStateWithLifecycle()
 	val scopeTab by viewModel.scopeTab().collectAsStateWithLifecycle()
 	val viewMode by viewModel.viewMode().collectAsStateWithLifecycle()
@@ -562,7 +562,6 @@ fun AppsScreenSuccess(
 										app = app,
 										pinnedSourceKey = pinnedAppSources[app.packageName],
 										onOpenPinSource = { pinTargetApp = app },
-										onPeekApp = { peekTargetApp = app },
 										onIgnore = { pkg ->
 											viewModel.ignore(pkg)
 											updatesViewModel.syncIgnoredFromPrefs()
@@ -616,7 +615,6 @@ fun AppsScreenSuccess(
 											app = app,
 											pinnedSourceKey = pinnedAppSources[app.packageName],
 											onOpenPinSource = { pinTargetApp = app },
-											onPeekApp = { peekTargetApp = app },
 											onIgnore = { pkg ->
 												viewModel.ignore(pkg)
 												updatesViewModel.syncIgnoredFromPrefs()
@@ -653,7 +651,6 @@ fun AppsScreenSuccess(
 											app = app,
 											pinnedSourceKey = pinnedAppSources[app.packageName],
 											onOpenPinSource = { pinTargetApp = app },
-											onPeekApp = { peekTargetApp = app },
 											onIgnore = { pkg ->
 												viewModel.ignore(pkg)
 												updatesViewModel.syncIgnoredFromPrefs()
@@ -702,7 +699,6 @@ fun AppsScreenSuccess(
 												app = app,
 												pinnedSourceKey = pinnedAppSources[app.packageName],
 												onOpenPinSource = { pinTargetApp = app },
-												onPeekApp = { peekTargetApp = app },
 												onIgnore = { pkg ->
 													viewModel.ignore(pkg)
 													updatesViewModel.syncIgnoredFromPrefs()
@@ -812,182 +808,6 @@ fun AppsScreenSuccess(
 				viewModel.setAppPreReleaseOverride(target.packageName, mode)
 			}
 		)
-	}
-
-	if (isWideScreen) {
-		val isReducedMotion = ApkUpTheme.isReducedMotion
-		peekTargetApp?.let { peekApp ->
-			androidx.compose.ui.window.Dialog(
-				onDismissRequest = { peekTargetApp = null },
-				properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
-			) {
-				Box(
-					modifier = Modifier
-						.fillMaxSize()
-						.clickable(
-							interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
-							indication = null,
-							onClick = { peekTargetApp = null }
-						)
-						.padding(16.dp),
-					contentAlignment = Alignment.CenterEnd
-				) {
-					var paneVisible by remember { mutableStateOf(false) }
-					LaunchedEffect(Unit) { paneVisible = true }
-					androidx.compose.animation.AnimatedVisibility(
-						visible = paneVisible,
-						enter = if (isReducedMotion) fadeIn(tween(80)) else slideInHorizontally(spring(dampingRatio = 0.85f, stiffness = 400f)) { it } + fadeIn(),
-						exit = if (isReducedMotion) fadeOut(tween(80)) else slideOutHorizontally(spring(dampingRatio = 0.85f, stiffness = 400f)) { it } + fadeOut()
-					) {
-						AppPeekDetailsCard(
-							app = peekApp,
-							onDismiss = { peekTargetApp = null },
-							modifier = Modifier
-								.width(380.dp)
-								.clickable(
-									interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
-									indication = null,
-									onClick = {}
-								)
-						)
-					}
-				}
-			}
-		}
-	} else {
-		peekTargetApp?.let { peekApp ->
-			androidx.compose.ui.window.Dialog(onDismissRequest = { peekTargetApp = null }) {
-				AppPeekDetailsCard(
-					app = peekApp,
-					onDismiss = { peekTargetApp = null }
-				)
-			}
-		}
-	}
-}
-
-@Composable
-private fun AppPeekDetailsCard(
-	app: AppInstalled,
-	onDismiss: () -> Unit,
-	modifier: Modifier = Modifier
-) {
-	val context = LocalContext.current
-	val lastUpdatedFormatted = remember(app.lastUpdateTime) {
-		if (app.lastUpdateTime > 0L) {
-			DateUtils.getRelativeTimeSpanString(
-				app.lastUpdateTime,
-				System.currentTimeMillis(),
-				DateUtils.MINUTE_IN_MILLIS
-			).toString()
-		} else {
-			"—"
-		}
-	}
-	Surface(
-		modifier = modifier.fillMaxWidth(),
-		shape = RoundedCornerShape(24.dp),
-		color = MaterialTheme.colorScheme.surfaceContainerHigh,
-		tonalElevation = 6.dp,
-		border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-	) {
-		Column(
-			modifier = Modifier
-				.fillMaxWidth()
-				.padding(20.dp),
-			verticalArrangement = Arrangement.spacedBy(14.dp)
-		) {
-			Row(
-				verticalAlignment = Alignment.CenterVertically,
-				horizontalArrangement = Arrangement.spacedBy(12.dp)
-			) {
-				Box(
-					modifier = Modifier
-						.size(48.dp)
-						.clip(RoundedCornerShape(14.dp))
-						.background(MaterialTheme.colorScheme.surfaceContainer),
-					contentAlignment = Alignment.Center
-				) {
-					LoadingImageApp(app.packageName, Modifier.fillMaxSize())
-				}
-				Column(modifier = Modifier.weight(1f)) {
-					Row(
-						verticalAlignment = Alignment.CenterVertically,
-						horizontalArrangement = Arrangement.spacedBy(6.dp)
-					) {
-						Text(
-							text = app.name.ifBlank { app.packageName },
-							style = MaterialTheme.typography.titleMedium,
-							fontWeight = FontWeight.Bold,
-							color = MaterialTheme.colorScheme.onSurface,
-							maxLines = 1,
-							overflow = TextOverflow.Ellipsis,
-							modifier = Modifier.weight(1f, fill = false)
-						)
-						NewlyUpdatedPulseDot(lastUpdateTime = app.lastUpdateTime)
-					}
-					if (app.version.isNotBlank()) {
-						Text(
-							text = "v${app.version} (${app.versionCode})",
-							style = MaterialTheme.typography.labelMedium,
-							color = MaterialTheme.colorScheme.primary
-						)
-					}
-				}
-			}
-
-			HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-
-			Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-				Text(
-					text = stringResource(R.string.apps_peek_package),
-					style = MaterialTheme.typography.labelSmall,
-					color = MaterialTheme.colorScheme.onSurfaceVariant
-				)
-				Text(
-					text = app.packageName,
-					style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-					color = MaterialTheme.colorScheme.onSurface
-				)
-
-				Text(
-					text = stringResource(R.string.apps_peek_last_updated),
-					style = MaterialTheme.typography.labelSmall,
-					color = MaterialTheme.colorScheme.onSurfaceVariant,
-					modifier = Modifier.padding(top = 4.dp)
-				)
-				Text(
-					text = lastUpdatedFormatted,
-					style = MaterialTheme.typography.bodySmall,
-					color = MaterialTheme.colorScheme.onSurface
-				)
-
-				if (app.signatureSha256.isNotBlank()) {
-					Text(
-						text = stringResource(R.string.apps_peek_signature),
-						style = MaterialTheme.typography.labelSmall,
-						color = MaterialTheme.colorScheme.onSurfaceVariant,
-						modifier = Modifier.padding(top = 4.dp)
-					)
-					CopyableFingerprintPill(fingerprint = app.signatureSha256)
-				}
-			}
-
-			Row(
-				modifier = Modifier.fillMaxWidth(),
-				horizontalArrangement = Arrangement.End
-			) {
-				FilledTonalButton(
-					onClick = {
-						onDismiss()
-						context.openAppSystemSettings(app.packageName)
-					},
-					shape = CircleShape
-				) {
-					Text(stringResource(R.string.apps_context_details))
-				}
-			}
-		}
 	}
 }
 
@@ -1163,14 +983,13 @@ private fun AppListItem(
 	app: AppInstalled,
 	pinnedSourceKey: String? = null,
 	onOpenPinSource: () -> Unit = {},
-	onPeekApp: () -> Unit = {},
 	repoMappingManager: RepoMappingManager = koinInject(),
 	onIgnore: (String) -> Unit,
 	onRemoveWatched: ((String) -> Unit)? = null
 ) {
 	val context = LocalContext.current
 	val haptics = LocalHapticFeedback.current
-	var showMenu by remember { mutableStateOf(false) }
+	var showActionsSheet by remember { mutableStateOf(false) }
 	var showLinkRepoDialog by remember { mutableStateOf(false) }
 	val repoBinding = remember(app.packageName, showLinkRepoDialog) {
 		repoMappingManager.getBinding(app.packageName)
@@ -1199,11 +1018,11 @@ private fun AppListItem(
 				indication = null,
 				onClick = {
 					haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-					showMenu = true
+					showActionsSheet = true
 				},
 				onLongClick = {
 					haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-					onPeekApp()
+					showActionsSheet = true
 				}
 			)
 			.animateContentSize(animationSpec = ApkUpTheme.motion.defaultSpatialSpec()),
@@ -1383,38 +1202,37 @@ private fun AppListItem(
 					}
 
 					// 28dp Context Menu Trigger
-					Box {
-						Surface(
-							onClick = { showMenu = true },
-							shape = CircleShape,
-							color = Color.Transparent,
-							modifier = Modifier.size(28.dp)
-						) {
-							Box(contentAlignment = Alignment.Center) {
-								Icon(
-									imageVector = Icons.Rounded.MoreVert,
-									contentDescription = null,
-									tint = MaterialTheme.colorScheme.onSurfaceVariant,
-									modifier = Modifier.size(18.dp)
-								)
-							}
+					Surface(
+						onClick = { showActionsSheet = true },
+						shape = CircleShape,
+						color = Color.Transparent,
+						modifier = Modifier.size(28.dp)
+					) {
+						Box(contentAlignment = Alignment.Center) {
+							Icon(
+								imageVector = Icons.Rounded.MoreVert,
+								contentDescription = null,
+								tint = MaterialTheme.colorScheme.onSurfaceVariant,
+								modifier = Modifier.size(18.dp)
+							)
 						}
-
-						AppItemDropdownMenu(
-							expanded = showMenu,
-							onDismiss = { showMenu = false },
-							app = app,
-							repoBinding = repoBinding,
-							pinnedSourceKey = pinnedSourceKey,
-							onOpenLinkRepoDialog = { showLinkRepoDialog = true },
-							onOpenPinSource = onOpenPinSource,
-							onIgnore = onIgnore,
-							onRemoveWatched = onRemoveWatched
-						)
 					}
 				}
 			}
 		}
+	}
+
+	if (showActionsSheet) {
+		AppActionsBottomSheet(
+			onDismiss = { showActionsSheet = false },
+			app = app,
+			repoBinding = repoBinding,
+			pinnedSourceKey = pinnedSourceKey,
+			onOpenLinkRepoDialog = { showLinkRepoDialog = true },
+			onOpenPinSource = onOpenPinSource,
+			onIgnore = onIgnore,
+			onRemoveWatched = onRemoveWatched
+		)
 	}
 
 	if (showLinkRepoDialog) {
@@ -1435,14 +1253,13 @@ private fun AppGridItem(
 	app: AppInstalled,
 	pinnedSourceKey: String? = null,
 	onOpenPinSource: () -> Unit = {},
-	onPeekApp: () -> Unit = {},
 	repoMappingManager: RepoMappingManager = koinInject(),
 	onIgnore: (String) -> Unit,
 	onRemoveWatched: ((String) -> Unit)? = null
 ) {
 	val context = LocalContext.current
 	val haptics = LocalHapticFeedback.current
-	var showMenu by remember { mutableStateOf(false) }
+	var showActionsSheet by remember { mutableStateOf(false) }
 	var showLinkRepoDialog by remember { mutableStateOf(false) }
 	val repoBinding = remember(app.packageName, showLinkRepoDialog) {
 		repoMappingManager.getBinding(app.packageName)
@@ -1471,11 +1288,11 @@ private fun AppGridItem(
 				indication = null,
 				onClick = {
 					haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-					showMenu = true
+					showActionsSheet = true
 				},
 				onLongClick = {
 					haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-					onPeekApp()
+					showActionsSheet = true
 				}
 			)
 			.animateContentSize(animationSpec = ApkUpTheme.motion.defaultSpatialSpec()),
@@ -1525,33 +1342,20 @@ private fun AppGridItem(
 							}
 						}
 					}
-					Box {
-						Surface(
-							onClick = { showMenu = true },
-							shape = CircleShape,
-							color = Color.Transparent,
-							modifier = Modifier.size(28.dp)
-						) {
-							Box(contentAlignment = Alignment.Center) {
-								Icon(
-									imageVector = Icons.Rounded.MoreVert,
-									contentDescription = null,
-									tint = MaterialTheme.colorScheme.onSurfaceVariant,
-									modifier = Modifier.size(18.dp)
-								)
-							}
+					Surface(
+						onClick = { showActionsSheet = true },
+						shape = CircleShape,
+						color = Color.Transparent,
+						modifier = Modifier.size(28.dp)
+					) {
+						Box(contentAlignment = Alignment.Center) {
+							Icon(
+								imageVector = Icons.Rounded.MoreVert,
+								contentDescription = null,
+								tint = MaterialTheme.colorScheme.onSurfaceVariant,
+								modifier = Modifier.size(18.dp)
+							)
 						}
-						AppItemDropdownMenu(
-							expanded = showMenu,
-							onDismiss = { showMenu = false },
-							app = app,
-							repoBinding = repoBinding,
-							pinnedSourceKey = pinnedSourceKey,
-							onOpenLinkRepoDialog = { showLinkRepoDialog = true },
-							onOpenPinSource = onOpenPinSource,
-							onIgnore = onIgnore,
-							onRemoveWatched = onRemoveWatched
-						)
 					}
 				}
 			}
@@ -1662,6 +1466,19 @@ private fun AppGridItem(
 		}
 	}
 
+	if (showActionsSheet) {
+		AppActionsBottomSheet(
+			onDismiss = { showActionsSheet = false },
+			app = app,
+			repoBinding = repoBinding,
+			pinnedSourceKey = pinnedSourceKey,
+			onOpenLinkRepoDialog = { showLinkRepoDialog = true },
+			onOpenPinSource = onOpenPinSource,
+			onIgnore = onIgnore,
+			onRemoveWatched = onRemoveWatched
+		)
+	}
+
 	if (showLinkRepoDialog) {
 		LinkRepoDialog(
 			packageName = app.packageName,
@@ -1672,11 +1489,11 @@ private fun AppGridItem(
 }
 
 // -------------------------------------------------------------
-// Shared Dropdown Menu for Context Actions
+// Unified ModalBottomSheet for App Details & Context Actions
 // -------------------------------------------------------------
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-private fun AppItemDropdownMenu(
-	expanded: Boolean,
+private fun AppActionsBottomSheet(
 	onDismiss: () -> Unit,
 	app: AppInstalled,
 	repoBinding: RepoBinding?,
@@ -1687,209 +1504,410 @@ private fun AppItemDropdownMenu(
 	onRemoveWatched: ((String) -> Unit)? = null
 ) {
 	val context = LocalContext.current
-	DropdownMenu(
-		expanded = expanded,
+	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+	val lastUpdatedFormatted = remember(app.lastUpdateTime) {
+		if (app.lastUpdateTime > 0L) {
+			DateUtils.getRelativeTimeSpanString(
+				app.lastUpdateTime,
+				System.currentTimeMillis(),
+				DateUtils.MINUTE_IN_MILLIS
+			).toString()
+		} else {
+			"—"
+		}
+	}
+
+	ModalBottomSheet(
 		onDismissRequest = onDismiss,
-		shape = RoundedCornerShape(24.dp),
-		containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-	) {
-		// 1. App Info in Android Settings (only for installed apps)
-		if (!app.isWatchedOnly) {
-			DropdownMenuItem(
-				text = { Text(stringResource(R.string.apps_context_details)) },
-				leadingIcon = {
-					Icon(
-						imageVector = Icons.Filled.Info,
-						contentDescription = null,
-						tint = MaterialTheme.colorScheme.primary
-					)
-				},
-				onClick = {
-					onDismiss()
-					context.openAppSystemSettings(app.packageName)
-				}
+		sheetState = sheetState,
+		containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+		contentColor = MaterialTheme.colorScheme.onSurface,
+		dragHandle = {
+			Box(
+				modifier = Modifier
+					.padding(vertical = 12.dp)
+					.width(36.dp)
+					.height(4.dp)
+					.clip(CircleShape)
+					.background(MaterialTheme.colorScheme.outlineVariant)
 			)
 		}
-
-		// 2. Play Store or Repo link
-		if (repoBinding != null) {
-			DropdownMenuItem(
-				text = {
-					Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+	) {
+		Column(
+			modifier = Modifier
+				.fillMaxWidth()
+				.verticalScroll(rememberScrollState())
+				.navigationBarsPadding()
+				.padding(horizontal = 20.dp)
+				.padding(bottom = 24.dp),
+			verticalArrangement = Arrangement.spacedBy(12.dp)
+		) {
+			// Top Header: Icon, Name, Package Name
+			Row(
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(12.dp)
+			) {
+				Box(
+					modifier = Modifier
+						.size(48.dp)
+						.clip(RoundedCornerShape(14.dp))
+						.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+					contentAlignment = Alignment.Center
+				) {
+					LoadingImageApp(app.packageName, Modifier.fillMaxSize())
+				}
+				Column(
+					modifier = Modifier.weight(1f),
+					verticalArrangement = Arrangement.spacedBy(2.dp)
+				) {
+					Row(
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(6.dp)
+					) {
 						Text(
-							stringResource(
-								when {
-									repoBinding.isCodeberg -> R.string.repo_view_on_codeberg
-									repoBinding.isGitLab -> R.string.repo_view_on_gitlab
-									else -> R.string.repo_view_on_github
-								}
-							)
-						)
-						Text(
-							text = repoBinding.webUrl,
-							style = MaterialTheme.typography.labelSmall,
-							color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+							text = app.name.ifBlank { app.packageName },
+							style = MaterialTheme.typography.titleMedium,
+							fontWeight = FontWeight.Bold,
+							color = MaterialTheme.colorScheme.onSurface,
 							maxLines = 1,
-							overflow = TextOverflow.Ellipsis
+							overflow = TextOverflow.Ellipsis,
+							modifier = Modifier.weight(1f, fill = false)
+						)
+						NewlyUpdatedPulseDot(lastUpdateTime = app.lastUpdateTime)
+					}
+					Text(
+						text = app.packageName,
+						style = MaterialTheme.typography.bodySmall.copy(
+							fontSize = 11.5.sp,
+							fontFamily = FontFamily.Monospace
+						),
+						color = MaterialTheme.colorScheme.onSurfaceVariant,
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis
+					)
+				}
+			}
+
+			// Metadata Pills: Version, Install Origin, Last Updated
+			FlowRow(
+				horizontalArrangement = Arrangement.spacedBy(6.dp),
+				verticalArrangement = Arrangement.spacedBy(6.dp)
+			) {
+				if (app.isWatchedOnly) {
+					Surface(
+						shape = RoundedCornerShape(8.dp),
+						color = MaterialTheme.colorScheme.secondaryContainer
+					) {
+						Text(
+							text = stringResource(R.string.apps_watched_badge),
+							style = MaterialTheme.typography.labelMedium,
+							fontWeight = FontWeight.SemiBold,
+							color = MaterialTheme.colorScheme.onSecondaryContainer,
+							modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
 						)
 					}
-				},
-				leadingIcon = {
-					Icon(
-						painter = painterResource(
+				} else {
+					if (app.version.isNotBlank()) {
+						Surface(
+							shape = RoundedCornerShape(8.dp),
+							color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f)
+						) {
+							Text(
+								text = "v${app.version} (${app.versionCode})",
+								style = MaterialTheme.typography.labelMedium,
+								fontWeight = FontWeight.SemiBold,
+								color = MaterialTheme.colorScheme.onPrimaryContainer,
+								modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+							)
+						}
+					}
+					val (originIcon, originLabel) = resolveOriginDisplay(app.installOrigin)
+					Surface(
+						shape = RoundedCornerShape(8.dp),
+						color = MaterialTheme.colorScheme.surfaceContainerHigh
+					) {
+						Row(
+							modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+							verticalAlignment = Alignment.CenterVertically,
+							horizontalArrangement = Arrangement.spacedBy(5.dp)
+						) {
+							Icon(
+								painter = painterResource(originIcon),
+								contentDescription = null,
+								tint = MaterialTheme.colorScheme.onSurfaceVariant,
+								modifier = Modifier.size(13.dp)
+							)
+							Text(
+								text = originLabel,
+								style = MaterialTheme.typography.labelMedium,
+								color = MaterialTheme.colorScheme.onSurfaceVariant
+							)
+						}
+					}
+				}
+
+				if (app.lastUpdateTime > 0L) {
+					Surface(
+						shape = RoundedCornerShape(8.dp),
+						color = MaterialTheme.colorScheme.surfaceContainerHigh
+					) {
+						Text(
+							text = "${stringResource(R.string.apps_peek_last_updated)}: $lastUpdatedFormatted",
+							style = MaterialTheme.typography.labelMedium,
+							color = MaterialTheme.colorScheme.onSurfaceVariant,
+							modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+						)
+					}
+				}
+			}
+
+			// Tappable SHA-256 Signer Fingerprint Chip
+			if (app.signatureSha256.isNotBlank()) {
+				Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+					Text(
+						text = stringResource(R.string.apps_peek_signature),
+						style = MaterialTheme.typography.labelSmall,
+						color = MaterialTheme.colorScheme.onSurfaceVariant
+					)
+					CopyableFingerprintPill(fingerprint = app.signatureSha256)
+				}
+			}
+
+			HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+
+			// Action Rows
+			Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+				// 1. Open App (if installed)
+				if (!app.isWatchedOnly) {
+					AppSheetActionRow(
+						title = stringResource(R.string.apps_launch_action),
+						icon = {
+							Icon(
+								imageVector = Icons.AutoMirrored.Rounded.OpenInNew,
+								contentDescription = null,
+								tint = MaterialTheme.colorScheme.primary,
+								modifier = Modifier.size(20.dp)
+							)
+						},
+						onClick = {
+							onDismiss()
+							launchAppOrSettings(context, app.packageName)
+						}
+					)
+
+					// 2. App Info in Android Settings
+					AppSheetActionRow(
+						title = stringResource(R.string.apps_context_details),
+						icon = {
+							Icon(
+								imageVector = Icons.Filled.Info,
+								contentDescription = null,
+								tint = MaterialTheme.colorScheme.primary,
+								modifier = Modifier.size(20.dp)
+							)
+						},
+						onClick = {
+							onDismiss()
+							context.openAppSystemSettings(app.packageName)
+						}
+					)
+				}
+
+				// 3. View on GitHub / GitLab / Codeberg (or Play Store)
+				if (repoBinding != null) {
+					AppSheetActionRow(
+						title = stringResource(
 							when {
-								repoBinding.isCodeberg -> R.drawable.ic_codeberg
-								repoBinding.isGitLab -> R.drawable.ic_gitlab
-								else -> R.drawable.ic_github
+								repoBinding.isCodeberg -> R.string.repo_view_on_codeberg
+								repoBinding.isGitLab -> R.string.repo_view_on_gitlab
+								else -> R.string.repo_view_on_github
 							}
 						),
-						contentDescription = null,
-						tint = MaterialTheme.colorScheme.primary,
-						modifier = Modifier.size(20.dp)
+						subtitle = repoBinding.webUrl,
+						icon = {
+							Icon(
+								painter = painterResource(
+									when {
+										repoBinding.isCodeberg -> R.drawable.ic_codeberg
+										repoBinding.isGitLab -> R.drawable.ic_gitlab
+										else -> R.drawable.ic_github
+									}
+								),
+								contentDescription = null,
+								tint = MaterialTheme.colorScheme.primary,
+								modifier = Modifier.size(20.dp)
+							)
+						},
+						onClick = {
+							onDismiss()
+							context.openUrl(repoBinding.webUrl)
+						}
 					)
-				},
-				onClick = {
-					onDismiss()
-					context.openUrl(repoBinding.webUrl)
-				}
-			)
-		} else if (!app.isWatchedOnly) {
-			val isPlayStore = app.installOrigin == InstallOrigin.PLAY_STORE
-			DropdownMenuItem(
-				enabled = isPlayStore,
-				text = { Text(stringResource(R.string.apps_context_store)) },
-				leadingIcon = {
-					Icon(
-						imageVector = Icons.Outlined.PlayArrow,
-						contentDescription = null,
-						tint = if (isPlayStore) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
+				} else if (!app.isWatchedOnly) {
+					val isPlayStore = app.installOrigin == InstallOrigin.PLAY_STORE
+					AppSheetActionRow(
+						title = stringResource(R.string.apps_context_store),
+						enabled = isPlayStore,
+						icon = {
+							Icon(
+								imageVector = Icons.Outlined.PlayArrow,
+								contentDescription = null,
+								tint = if (isPlayStore) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
+								modifier = Modifier.size(20.dp)
+							)
+						},
+						onClick = {
+							onDismiss()
+							if (isPlayStore) {
+								context.openAppInPlayStore(app.packageName)
+							}
+						}
 					)
-				},
-				onClick = {
-					onDismiss()
-					if (isPlayStore) {
-						context.openAppInPlayStore(app.packageName)
-					}
 				}
-			)
-		}
 
-		// 3. Link Repository
-		DropdownMenuItem(
-			text = {
-				Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-					Text(
-						stringResource(
-							if (repoBinding != null) R.string.repo_menu_linked
-							else R.string.repo_menu_link
-						)
-					)
-					if (repoBinding != null) {
-						val providerLabel = when {
-							repoBinding.isCodeberg -> "Codeberg"
-							repoBinding.isGitLab -> "GitLab"
-							else -> "GitHub"
-						}
-						Text(
-							text = "$providerLabel: ${repoBinding.repo}",
-							style = MaterialTheme.typography.labelSmall,
-							color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
-							maxLines = 1,
-							overflow = TextOverflow.Ellipsis
-						)
-					}
+				// 4. Link / Edit Repository
+				val providerLabel = when {
+					repoBinding?.isCodeberg == true -> "Codeberg"
+					repoBinding?.isGitLab == true -> "GitLab"
+					else -> "GitHub"
 				}
-			},
-			leadingIcon = {
-				Icon(
-					painter = painterResource(
-						when {
-							repoBinding?.isCodeberg == true -> R.drawable.ic_codeberg
-							repoBinding?.isGitLab == true -> R.drawable.ic_gitlab
-							else -> R.drawable.ic_github
-						}
+				AppSheetActionRow(
+					title = stringResource(
+						if (repoBinding != null) R.string.repo_menu_linked
+						else R.string.repo_menu_link
 					),
-					contentDescription = null,
-					tint = if (repoBinding != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-					modifier = Modifier.size(20.dp)
-				)
-			},
-			onClick = {
-				onDismiss()
-				onOpenLinkRepoDialog()
-			}
-		)
-
-		// 3b. Pin Update Source
-		DropdownMenuItem(
-			text = {
-				Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-					Text(stringResource(R.string.pin_source_menu_action))
-					if (pinnedSourceKey != null) {
-						Text(
-							text = stringResource(R.string.pin_source_menu_pinned, sourcePriorityLabel(pinnedSourceKey)),
-							style = MaterialTheme.typography.labelSmall,
-							color = MaterialTheme.colorScheme.primary,
-							maxLines = 1,
-							overflow = TextOverflow.Ellipsis
+					subtitle = repoBinding?.let { "$providerLabel: ${it.repo}" },
+					icon = {
+						Icon(
+							painter = painterResource(
+								when {
+									repoBinding?.isCodeberg == true -> R.drawable.ic_codeberg
+									repoBinding?.isGitLab == true -> R.drawable.ic_gitlab
+									else -> R.drawable.ic_github
+								}
+							),
+							contentDescription = null,
+							tint = if (repoBinding != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+							modifier = Modifier.size(20.dp)
 						)
+					},
+					onClick = {
+						onDismiss()
+						onOpenLinkRepoDialog()
 					}
-				}
-			},
-			leadingIcon = {
-				Icon(
-					imageVector = Icons.Rounded.PushPin,
-					contentDescription = null,
-					tint = if (pinnedSourceKey != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-					modifier = Modifier.size(20.dp)
 				)
-			},
-			onClick = {
-				onDismiss()
-				onOpenPinSource()
-			}
-		)
 
-		// 4. Remove Watchlist or Ignore / Unignore App
-		if (app.isWatchedOnly && onRemoveWatched != null) {
-			DropdownMenuItem(
-				text = { Text(stringResource(R.string.apps_watch_remove_action)) },
-				leadingIcon = {
-					Icon(
-						imageVector = Icons.Filled.Delete,
-						contentDescription = null,
-						tint = MaterialTheme.colorScheme.error,
-						modifier = Modifier.size(20.dp)
+				// 5. Pin Update Source
+				AppSheetActionRow(
+					title = stringResource(R.string.pin_source_menu_action),
+					subtitle = pinnedSourceKey?.let {
+						stringResource(R.string.pin_source_menu_pinned, sourcePriorityLabel(it))
+					},
+					subtitleColor = MaterialTheme.colorScheme.primary,
+					icon = {
+						Icon(
+							imageVector = Icons.Rounded.PushPin,
+							contentDescription = null,
+							tint = if (pinnedSourceKey != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+							modifier = Modifier.size(20.dp)
+						)
+					},
+					onClick = {
+						onDismiss()
+						onOpenPinSource()
+					}
+				)
+
+				// 6. Remove from Watchlist or Ignore / Unignore App
+				if (app.isWatchedOnly && onRemoveWatched != null) {
+					AppSheetActionRow(
+						title = stringResource(R.string.apps_watch_remove_action),
+						titleColor = MaterialTheme.colorScheme.error,
+						icon = {
+							Icon(
+								imageVector = Icons.Filled.Delete,
+								contentDescription = null,
+								tint = MaterialTheme.colorScheme.error,
+								modifier = Modifier.size(20.dp)
+							)
+						},
+						onClick = {
+							onDismiss()
+							onRemoveWatched(app.packageName)
+						}
 					)
-				},
-				onClick = {
-					onDismiss()
-					onRemoveWatched(app.packageName)
-				}
-			)
-		} else {
-			DropdownMenuItem(
-				text = {
-					Text(
-						stringResource(
+				} else {
+					AppSheetActionRow(
+						title = stringResource(
 							if (app.ignored) R.string.apps_context_unignore
 							else R.string.apps_context_ignore
-						)
+						),
+						icon = {
+							Icon(
+								painter = painterResource(if (app.ignored) R.drawable.ic_visible else R.drawable.ic_visible_off),
+								contentDescription = null,
+								tint = if (app.ignored) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+								modifier = Modifier.size(20.dp)
+							)
+						},
+						onClick = {
+							onDismiss()
+							onIgnore(app.packageName)
+						}
 					)
-				},
-				leadingIcon = {
-					Icon(
-						painter = painterResource(if (app.ignored) R.drawable.ic_visible else R.drawable.ic_visible_off),
-						contentDescription = null,
-						tint = if (app.ignored) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-						modifier = Modifier.size(20.dp)
-					)
-				},
-				onClick = {
-					onDismiss()
-					onIgnore(app.packageName)
 				}
-			)
+			}
+		}
+	}
+}
+
+@Composable
+private fun AppSheetActionRow(
+	title: String,
+	subtitle: String? = null,
+	enabled: Boolean = true,
+	titleColor: Color = MaterialTheme.colorScheme.onSurface,
+	subtitleColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+	icon: @Composable () -> Unit,
+	onClick: () -> Unit
+) {
+	Surface(
+		onClick = onClick,
+		enabled = enabled,
+		shape = RoundedCornerShape(14.dp),
+		color = MaterialTheme.colorScheme.surfaceContainer,
+		modifier = Modifier.fillMaxWidth()
+	) {
+		Row(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(horizontal = 14.dp, vertical = 12.dp),
+			verticalAlignment = Alignment.CenterVertically,
+			horizontalArrangement = Arrangement.spacedBy(12.dp)
+		) {
+			icon()
+			Column(
+				modifier = Modifier.weight(1f),
+				verticalArrangement = Arrangement.spacedBy(2.dp)
+			) {
+				Text(
+					text = title,
+					style = MaterialTheme.typography.bodyMedium,
+					fontWeight = FontWeight.Medium,
+					color = if (enabled) titleColor else titleColor.copy(alpha = 0.45f),
+					maxLines = 1,
+					overflow = TextOverflow.Ellipsis
+				)
+				if (!subtitle.isNullOrBlank()) {
+					Text(
+						text = subtitle,
+						style = MaterialTheme.typography.labelSmall,
+						color = if (enabled) subtitleColor else subtitleColor.copy(alpha = 0.45f),
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis
+					)
+				}
+			}
 		}
 	}
 }

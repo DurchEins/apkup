@@ -89,6 +89,7 @@ fun LinkRepoDialog(
 ) {
     val context = LocalContext.current
     val resources = LocalResources.current
+    val openInCustomTab = rememberCustomTabOpener()
     val coroutineScope = rememberCoroutineScope()
     val existingBinding = remember(packageName) { repoMappingManager.getBinding(packageName) }
     val isCustom = remember(packageName) { repoMappingManager.getCustomBindings().containsKey(packageName) }
@@ -288,6 +289,7 @@ fun LinkRepoDialog(
                                 else -> "GitHub"
                             }
                             Surface(
+                                onClick = { openInCustomTab(parsed.webUrl) },
                                 shape = CircleShape,
                                 color = MaterialTheme.colorScheme.secondaryContainer,
                                 modifier = Modifier.padding(top = 2.dp)
@@ -314,7 +316,14 @@ fun LinkRepoDialog(
                                         fontWeight = FontWeight.SemiBold,
                                         color = MaterialTheme.colorScheme.onSecondaryContainer,
                                         maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.weight(1f, fill = false)
+                                    )
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_open_in_new),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.72f),
+                                        modifier = Modifier.size(12.dp)
                                     )
                                 }
                             }

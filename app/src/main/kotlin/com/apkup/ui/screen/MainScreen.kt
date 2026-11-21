@@ -230,21 +230,6 @@ fun MainScreen(
     val snackBarHostState = handleSnackBar()
 
     AppTheme(darkTheme = theme, dynamicColor = dynamicColor) {
-        val isReducedMotion = ApkUpTheme.isReducedMotion
-        val themeRipple = remember { Animatable(1f) }
-        var themeRippleInitialized by remember { mutableStateOf(false) }
-        LaunchedEffect(theme, dynamicColor) {
-            if (!themeRippleInitialized) {
-                themeRippleInitialized = true
-            } else if (!isReducedMotion) {
-                themeRipple.snapTo(0f)
-                themeRipple.animateTo(
-                    targetValue = 1f,
-                    animationSpec = tween(durationMillis = 420, easing = FastOutSlowInEasing)
-                )
-            }
-        }
-        Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             containerColor = MaterialTheme.colorScheme.background
         ) { padding ->
@@ -320,19 +305,6 @@ fun MainScreen(
                     }
                 }
             }
-        }
-        if (!isReducedMotion && themeRipple.value < 1f) {
-            val rippleProgress = themeRipple.value
-            val rippleColor = MaterialTheme.colorScheme.primary
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                val maxRadius = kotlin.math.hypot(size.width.toDouble(), size.height.toDouble()).toFloat()
-                drawCircle(
-                    color = rippleColor.copy(alpha = (1f - rippleProgress) * 0.14f),
-                    radius = maxRadius * rippleProgress,
-                    center = Offset(size.width * 0.5f, size.height * 0.45f)
-                )
-            }
-        }
         }
 
         if (showOnboardingConsent) {

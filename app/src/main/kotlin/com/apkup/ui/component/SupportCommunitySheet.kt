@@ -140,9 +140,10 @@ fun SupportCommunityBottomSheet(
 	LaunchedEffect(isReducedMotion) {
 		if (!isReducedMotion) {
 			heartDrift.snapTo(0f)
+			kotlinx.coroutines.delay(220L)
 			heartDrift.animateTo(
 				targetValue = 1f,
-				animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing)
+				animationSpec = tween(durationMillis = 1400, easing = FastOutSlowInEasing)
 			)
 		}
 	}
@@ -163,19 +164,19 @@ fun SupportCommunityBottomSheet(
 			verticalArrangement = Arrangement.spacedBy(16.dp)
 		) {
 			Box(modifier = Modifier.fillMaxWidth()) {
-				if (!isReducedMotion && heartDrift.value < 1f) {
+				if (!isReducedMotion && heartDrift.value > 0f && heartDrift.value < 1f) {
 					val p = heartDrift.value
-					val driftAlpha = (if (p < 0.2f) p / 0.2f else 1f - ((p - 0.2f) / 0.8f)).coerceIn(0f, 1f) * 0.42f
+					val driftAlpha = (if (p < 0.2f) p / 0.2f else 1f - ((p - 0.2f) / 0.8f)).coerceIn(0f, 1f) * 0.85f
 					Icon(
 						imageVector = Icons.Rounded.Favorite,
 						contentDescription = null,
 						tint = androidx.compose.ui.graphics.Color(0xFFF59E0B).copy(alpha = driftAlpha),
 						modifier = Modifier
 							.align(Alignment.CenterStart)
-							.offset(x = 12.dp)
-							.size(18.dp)
+							.offset(x = 7.dp)
+							.size(26.dp)
 							.graphicsLayer {
-								translationY = -p * 34.dp.toPx()
+								translationY = -p * 36.dp.toPx()
 								translationX = p * 8.dp.toPx()
 								val s = 0.85f + 0.35f * p
 								scaleX = s

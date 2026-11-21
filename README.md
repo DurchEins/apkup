@@ -11,14 +11,14 @@
 </p>
 
 <p align="center">
-  <a href="#-features">Features</a> • <a href="#-screenshots">Screenshots</a> • <a href="#-features">Sources</a> • <a href="#-quick-guides">Security</a> • <a href="#-downloads">Install</a> • <a href="#-troubleshooting--wiki">Wiki</a>
+  <a href="https://durcheins.github.io/apkup/">Homepage</a> • <a href="#-features">Features</a> • <a href="#-screenshots">Screenshots</a> • <a href="#-features">Sources</a> • <a href="#-quick-guides">Security</a> • <a href="#-downloads">Install</a> • <a href="#-troubleshooting--wiki">Wiki</a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/github/downloads/DurchEins/apkup/total?style=flat&label=Downloads&color=F59E0B&logo=github" alt="GitHub Release Downloads" /></a>
-  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.45.1%20(221)-38BDF8?style=flat" alt="Version" /></a>
+  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/github/downloads/DurchEins/apkup/total?style=flat&label=GitHub%20Downloads&color=F59E0B&logo=github" alt="GitHub Downloads" /></a>
+  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.45.1%20(222)-38BDF8?style=flat" alt="Version" /></a>
   <img src="https://img.shields.io/badge/Min%20SDK-29%20(Android%2010%2B)-3DDC84?style=flat&logo=android" alt="Min SDK 29" />
-  <a href="#-community-translations"><img src="https://img.shields.io/badge/Languages-9-6366F1?style=flat" alt="Languages (9)" /></a>
+  <img src="https://img.shields.io/badge/Privacy-No%20Ads%20%7C%20No%20Tracking-2EA44F?style=flat" alt="Privacy: No Ads | No Tracking" />
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-blue?style=flat" alt="License GPL-3.0" /></a>
 </p>
 
@@ -27,18 +27,18 @@
 ## ✨ Features
 
 * **🚀 Multi-Source Update Engine & Self-Updater:**
-  * **F-Droid & IzzyOnDroid Multi-Repo Engine:** Native support for official F-Droid, IzzyOnDroid, and custom HTTPS F-Droid repositories (`?fingerprint=…`) with cryptographic JAR certificate verification (`entry.jar` / `index-v1.jar`), incremental Index-V2 diffs (`RFC 7396`) with per-diff SHA-256 verification, and per-APK SHA-256 checksum validation.
+  * **F-Droid & IzzyOnDroid Multi-Repo Engine:** Native support for official F-Droid, IzzyOnDroid, and custom HTTPS F-Droid repositories (`?fingerprint=…`) with cryptographic JAR certificate verification (`entry.jar` / `index-v1.jar`), incremental Index-V2 diffs (`RFC 7396`) with per-diff SHA-256 verification, and per-APK SHA-256 checksum validation ([Index-V2 Guide](https://github.com/DurchEins/apkup/wiki/F-Droid-%26-Index-V2-Repositories)).
   * **Google Play Store:** Anonymous store delta queries with automatic HTTP 429 rate-limit recovery and privacy-minimized device compatibility profiles.
   * **APKMirror In-App Downloads:** Direct in-app downloading and `.apkm` split-bundle installation with automatic in-app Cloudflare WebView verification, intelligent concurrency throttling, 10-minute per-app cooldown, and seamless browser fallback on anti-bot challenges.
   * **GitHub, GitLab & Codeberg / Forgejo:** Built-in mappings for popular FOSS apps, batched GraphQL update queries when a GitHub token is configured, and 3-way custom repository bindings (`owner/repo`, self-hosted GitLab/Forgejo instances, multi-level subgroup paths, token verification sheets, optional asset regex filtering, and FOSS flavor preference) with strict host-isolated token handling.
   * **Configurable Source Priority & Per-App Pinning:** Reorder update sources via drag-and-drop or arrow controls in *Setup*, pin individual apps to a preferred source with automatic fallback when no update is available there, and track active F-Droid repositories in a compact grouped scan tray.
   * **Pre-Release Channels & Background Time Window:** Selectively enable **Beta**, **RC**, **Alpha**, or **Nightly** channels globally or per app, and configure quiet hours or active time windows for background checks and auto-updates with automatic catch-up scheduling.
-  * **Automatic Rollback Backups & Compatibility Guard:** Optionally back up installed APKs (including splits) before updating for in-place Root (`-r -d`) or guided non-Root rollbacks, with pre-install `minSdk` / `ABI` checks and a *Source Health & Cooldowns* sheet in *Setup*.
+  * **Automatic Rollback Backups & Compatibility Guard:** Optionally back up installed APKs (including splits) before updating for in-place Root (`-r -d`) or guided non-Root rollbacks, with pre-install `minSdk` / `ABI` checks and a *Source Health & Cooldowns* sheet in *Setup* ([Troubleshooting](https://github.com/DurchEins/apkup/wiki/Troubleshooting-Source-Errors)).
   * **Watch Uninstalled Apps & App Watcher Import:** Track releases for apps that are not yet installed via the **`+`** button in *Apps* and the *Watched* filter, mark versions as *Seen*, or import watchlists directly from **App Watcher** exports.
-  * **Obtainium Interoperability with Preview:** Import app configurations, custom F-Droid repositories, and watchlist candidates from Obtainium exports via an interactive preview sheet, and export custom bindings back to Obtainium JSON.
+  * **Obtainium Interoperability with Preview:** Import app configurations, custom F-Droid repositories, and watchlist candidates from Obtainium exports via an interactive preview sheet, and export custom bindings back to Obtainium JSON ([Obtainium Sync Guide](https://github.com/DurchEins/apkup/wiki/Obtainium-Migration-%26-Sync-Guide)).
   * **Verified Self-Updater with Optional Beta Channel:** Checks official GitHub releases (stable-only by default, with an opt-in *Receive ApkUp beta updates* toggle under *Setup ➔ About* that cleanly returns to stable on opt-out) and validates `SHA256SUMS` digests plus APK signing certificates before installing updates.
 * **🛡️ Defense-in-Depth Security & Privacy:**
-  * **Pre-Install APK Signature & Downgrade Verification:** Cryptographically verifies APK Signature Scheme v2/v3 certificates against the installed app before launching `PackageInstaller`, Shizuku, or Root (`su`), blocking certificate mismatches and version downgrades.
+  * **Pre-Install APK Signature & Downgrade Verification:** Cryptographically verifies APK Signature Scheme v2/v3 certificates against the installed app before launching `PackageInstaller`, Shizuku, or Root (`su`), blocking certificate mismatches and version downgrades ([SHA-256 & Signature Guide](https://github.com/DurchEins/apkup/wiki/SHA-256-%26-Signature-Verification)).
   * **Onboarding Source Consent:** Transparent first-launch source selection ensures zero external network requests happen before you choose your preferred update sources.
   * **Encrypted Local Storage:** Preferences and optional API tokens are encrypted at rest via **Google Tink (AES-256-GCM)** in Android Keystore, with cloud backups and cleartext HTTP strictly disabled.
   * **Tapjacking & Archive Hardening:** Touch events are filtered when obscured by overlays, and `.apkm` extraction enforces strict Zip-Slip and decompression-bomb limits inside private internal storage.
@@ -50,7 +50,7 @@
 * **⚡ Reliable WorkManager Downloads, APK Export, 24h Cache & Autonomous Installs:**
   * **User-Initiated Data Transfer Worker & Batch ETA:** Interactive downloads, multi-select batch installs (long-press any update card), and filtered batch updates (*Install All*) run reliably via AndroidX `WorkManager` (`UpdateDownloadWorker`) with live overall batch percentage, smoothed transfer speed, ETA, and instant per-item or global cancellation.
   * **Save APK & Split `.apks` Bundles:** Export single `.apk` installers or bundled `.apks` split packages directly into `Download/ApkUp/` (or any custom SAF folder configured in Setup) without installing.
-  * **Autonomous Background Updates (Shizuku & Optional Root `su`):** Optional zero-touch Shizuku or Root (`su`) pipeline with live availability checks, configurable **Wi-Fi only** and **While charging** guards, consolidated summary notifications, a sanitized **Diagnostic & Update Log** (`.txt`), and a persistent **Update History** sheet.
+  * **Autonomous Background Updates (Shizuku & Optional Root `su`):** Optional zero-touch Shizuku or Root (`su`) pipeline with live availability checks, configurable **Wi-Fi only** and **While charging** guards, consolidated summary notifications, a sanitized **Diagnostic & Update Log** (`.txt`), and a persistent **Update History** sheet ([Background Install Guide](https://github.com/DurchEins/apkup/wiki/Shizuku-%26-Background-Installation)).
   * **24-Hour Smart Cache & Instant Resume:** Verified APKs in private cache can be installed without re-downloading, with automatic Android 14+ Background Activity Launch (BAL) prompt fallback.
 
 ---
@@ -59,10 +59,14 @@
 
 * **Minimum:** Android 10.0 (API Level 29) or higher.
 * **Recommended:** Android 12+ for Dynamic Color theming and [Shizuku](https://shizuku.rikka.app/) for silent background installations.
+* **Sideloading Note:** Need help with Android restricted settings or Play Protect? See the [Google Lock & Sideloading Guide](https://durcheins.github.io/apkup/sideloading/google-lock/).
 
 ---
 
 ## 🛠️ Tech Stack
+
+<details>
+<summary><strong>🛠️ Tech Stack &amp; Architecture</strong></summary>
 
 * **Language:** Kotlin 2.3+
 * **UI Framework:** Jetpack Compose & Material 3 Expressive
@@ -73,6 +77,8 @@
 * **Privileged Install:** Shizuku API 13.x & optional `su` Root session installer
 * **Background Tasks:** AndroidX WorkManager 2.11 (`User-Initiated Data Transfer` & Periodic Workers)
 * **SDK Compatibility:** Min SDK 29 (Android 10.0) | Target & Compile SDK 37 (Android 17)
+
+</details>
 
 ---
 
@@ -127,9 +133,9 @@ Get the latest release of ApkUp from your preferred platform:
 <details>
 <summary><b>⚡ Shizuku 3-Step Silent Update Setup</b></summary>
 
-1. Install **[Shizuku](https://shizuku.rikka.app/)** and start it via Wireless Debugging (Android 11+) or ADB.
+1. Install **[Shizuku](https://shizuku.rikka.app/)** and start it via Wireless Debugging (Android 11+) or ADB ([Setting up Shizuku](https://github.com/DurchEins/apkup/wiki/Setting-up-Shizuku)).
 2. Open ApkUp **Setup ➔ Installation** and enable **Shizuku Auto-Update**.
-3. Grant Shizuku permission when prompted — ApkUp now installs updates silently in the background.
+3. Grant Shizuku permission when prompted — ApkUp now installs updates silently in the background ([Shizuku & Background Installation](https://github.com/DurchEins/apkup/wiki/Shizuku-%26-Background-Installation)).
 
 </details>
 
@@ -141,7 +147,7 @@ Get the latest release of ApkUp from your preferred platform:
    ```bash
    sha256sum -c SHA256SUMS.txt --ignore-missing
    ```
-3. ApkUp also verifies APK Signature Scheme v2/v3 certificates and `SHA256SUMS` digests automatically during self-updates.
+3. ApkUp also verifies APK Signature Scheme v2/v3 certificates and `SHA256SUMS` digests automatically during self-updates ([SHA-256 & Signature Verification Guide](https://github.com/DurchEins/apkup/wiki/SHA-256-%26-Signature-Verification)).
 
 </details>
 
@@ -160,9 +166,17 @@ cd apkup
 
 ## 🌍 Community Translations
 
-| `EN` | `DE` | `ES` | `FR` | `IT` | `JA` | `PT` | `RU` | `ZH-CN` |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% | ✅ 100% |
+| Language | Status | Contribute |
+| :--- | :---: | :--- |
+| English (`EN`) | ✅ 100% | [Edit on GitHub](https://github.com/DurchEins/apkup/blob/main/app/src/main/res/values/strings.xml) |
+| German (`DE`) | ✅ 100% | [Edit on GitHub](https://github.com/DurchEins/apkup/blob/main/app/src/main/res/values-de/strings.xml) |
+| Spanish (`ES`) | ✅ 100% | [Edit on GitHub](https://github.com/DurchEins/apkup/blob/main/app/src/main/res/values-es/strings.xml) |
+| French (`FR`) | ✅ 100% | [Edit on GitHub](https://github.com/DurchEins/apkup/blob/main/app/src/main/res/values-fr/strings.xml) |
+| Italian (`IT`) | ✅ 100% | [Edit on GitHub](https://github.com/DurchEins/apkup/blob/main/app/src/main/res/values-it/strings.xml) |
+| Japanese (`JA`) | ✅ 100% | [Edit on GitHub](https://github.com/DurchEins/apkup/blob/main/app/src/main/res/values-ja/strings.xml) |
+| Portuguese (`PT`) | ✅ 100% | [Edit on GitHub](https://github.com/DurchEins/apkup/blob/main/app/src/main/res/values-pt/strings.xml) |
+| Russian (`RU`) | ✅ 100% | [Edit on GitHub](https://github.com/DurchEins/apkup/blob/main/app/src/main/res/values-ru/strings.xml) |
+| Simplified Chinese (`ZH-CN`) | ✅ 100% | [Edit on GitHub](https://github.com/DurchEins/apkup/blob/main/app/src/main/res/values-zh-rCN/strings.xml) |
 
 > **Spot a typo? Fix it in 30 seconds:** [Submit a translation improvement](.github/ISSUE_TEMPLATE/translation.yml)
 
@@ -226,9 +240,3 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 > **Special Thanks:**  
 > Based on the original open-source project by **[rumboalla (APKUpdater)](https://github.com/rumboalla/apkupdater)**.
-
-<p align="center">
-  <a href="https://buymeacoffee.com/durcheins"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Support-F59E0B?style=flat&logo=buymeacoffee&logoColor=black" alt="Buy Me a Coffee" /></a>&nbsp;
-  <a href="https://coindrop.to/durcheins"><img src="https://img.shields.io/badge/Coindrop-Tip%20Jar-10B981?style=flat" alt="Coindrop" /></a>&nbsp;
-  <a href="https://github.com/DurchEins/apkup"><img src="https://img.shields.io/github/stars/DurchEins/apkup?style=flat&label=Star%20on%20GitHub&color=6366F1&logo=github" alt="Star on GitHub" /></a>
-</p>
