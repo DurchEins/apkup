@@ -20,7 +20,7 @@ function collectAstroFiles(dirPath) {
   return out;
 }
 
-for (const dir of ['src/components', 'src/pages']) {
+for (const dir of ['src/components', 'src/views', 'src/pages']) {
   const fullDir = join(root, dir);
   for (const filePath of collectAstroFiles(fullDir)) {
     const src = readFileSync(filePath, 'utf8');

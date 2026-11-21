@@ -1,0 +1,690 @@
+<!DOCTYPE html><html lang="it" data-theme="dark" data-lang="it"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Download, Mirror e Verifica SHA-256 — ApkUp</title><meta name="description" content="Scarica l'APK ufficiale firmato di ApkUp da GitHub Releases, verifica i checksum SHA256SUMS ed esplora gli 8 mirror ufficiali e della community."><meta name="theme-color" content="#121316" id="meta-theme-color"><link rel="canonical" href="https://durcheins.github.io/apkup/it/downloads/"><link rel="alternate" hreflang="en" href="https://durcheins.github.io/apkup/downloads/"><link rel="alternate" hreflang="de" href="https://durcheins.github.io/apkup/de/downloads/"><link rel="alternate" hreflang="es" href="https://durcheins.github.io/apkup/es/downloads/"><link rel="alternate" hreflang="fr" href="https://durcheins.github.io/apkup/fr/downloads/"><link rel="alternate" hreflang="it" href="https://durcheins.github.io/apkup/it/downloads/"><link rel="alternate" hreflang="ja" href="https://durcheins.github.io/apkup/ja/downloads/"><link rel="alternate" hreflang="pt" href="https://durcheins.github.io/apkup/pt/downloads/"><link rel="alternate" hreflang="ru" href="https://durcheins.github.io/apkup/ru/downloads/"><link rel="alternate" hreflang="zh-CN" href="https://durcheins.github.io/apkup/zh-cn/downloads/"><link rel="alternate" hreflang="x-default" href="https://durcheins.github.io/apkup/downloads/"><link rel="alternate" type="text/plain" title="LLMs.txt" href="/apkup/llms.txt"><link rel="icon" type="image/png" href="/apkup/assets/logo.png"><link rel="apple-touch-icon" href="/apkup/assets/logo.png"><link rel="stylesheet" href="/apkup/assets/styles.css"><!-- OpenGraph & Social --><meta property="og:type" content="website"><meta property="og:url" content="https://durcheins.github.io/apkup/it/downloads/"><meta property="og:locale" content="it"><meta property="og:title" content="Download, Mirror e Verifica SHA-256 — ApkUp"><meta property="og:description" content="Scarica l'APK ufficiale firmato di ApkUp da GitHub Releases, verifica i checksum SHA256SUMS ed esplora gli 8 mirror ufficiali e della community."><meta property="og:image" content="https://durcheins.github.io/apkup/og-card.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Download, Mirror e Verifica SHA-256 — ApkUp"><meta name="twitter:description" content="Scarica l'APK ufficiale firmato di ApkUp da GitHub Releases, verifica i checksum SHA256SUMS ed esplora gli 8 mirror ufficiali e della community."><meta name="twitter:image" content="https://durcheins.github.io/apkup/og-card.png"><!-- Google Fonts CDN (Plus Jakarta Sans + JetBrains Mono) --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"><script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"ApkUp","applicationCategory":"UtilitiesApplication","operatingSystem":"Android 10.0 - 17 (API 29+)","softwareVersion":"1.45.0","license":"https://github.com/DurchEins/apkup/blob/main/LICENSE","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"url":"https://durcheins.github.io/apkup/it/downloads/","downloadUrl":"https://github.com/DurchEins/apkup/releases/latest"}</script><!-- Prevent theme flash & auto-detect language on default root URLs before first paint --><script>(function(){const currentLang = "it";
+const basePath = "/apkup/";
+const cleanSubPath = "downloads/";
+
+      (function () {
+        try {
+          var savedTheme = localStorage.getItem('apkup-theme');
+          var theme = savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : 'dark';
+          document.documentElement.setAttribute('data-theme', theme);
+          var meta = document.getElementById('meta-theme-color');
+          if (meta) meta.setAttribute('content', theme === 'light' ? '#F4F1EA' : '#121316');
+
+          if (currentLang === 'en') {
+            var nonDefault = ['de', 'es', 'fr', 'it', 'ja', 'pt', 'ru', 'zh-cn'];
+            var savedLang = null;
+            try {
+              savedLang = localStorage.getItem('apkup-lang');
+            } catch (e) {}
+
+            var targetLang = null;
+            if (savedLang === 'en') {
+              targetLang = 'en';
+            } else if (savedLang && nonDefault.indexOf(savedLang) !== -1) {
+              targetLang = savedLang;
+            } else {
+              var langs = navigator.languages && navigator.languages.length
+                ? navigator.languages
+                : [navigator.language || 'en'];
+              for (var i = 0; i < langs.length; i++) {
+                var raw = String(langs[i] || '').toLowerCase().replace(/_/g, '-');
+                if (!raw) continue;
+                if (raw === 'en' || raw.indexOf('en-') === 0) { targetLang = 'en'; break; }
+                if (raw === 'de' || raw.indexOf('de-') === 0) { targetLang = 'de'; break; }
+                if (raw === 'es' || raw.indexOf('es-') === 0) { targetLang = 'es'; break; }
+                if (raw === 'fr' || raw.indexOf('fr-') === 0) { targetLang = 'fr'; break; }
+                if (raw === 'it' || raw.indexOf('it-') === 0) { targetLang = 'it'; break; }
+                if (raw === 'ja' || raw.indexOf('ja-') === 0) { targetLang = 'ja'; break; }
+                if (raw === 'pt' || raw.indexOf('pt-') === 0) { targetLang = 'pt'; break; }
+                if (raw === 'ru' || raw.indexOf('ru-') === 0) { targetLang = 'ru'; break; }
+                if (
+                  raw === 'zh' ||
+                  raw === 'zh-cn' ||
+                  raw === 'zh-sg' ||
+                  raw === 'zh-hans' ||
+                  raw.indexOf('zh-hans-') === 0
+                ) {
+                  targetLang = 'zh-cn';
+                  break;
+                }
+              }
+            }
+
+            if (targetLang && targetLang !== 'en') {
+              var dest = basePath + targetLang + '/' + cleanSubPath + window.location.search + window.location.hash;
+              window.location.replace(dest);
+            }
+          }
+        } catch (e) {}
+      })();
+    })();</script></head> <body> <a class="skip-link" href="#main-content"> Vai al contenuto principale </a> <aside id="kao-local-banner" class="kao-signal-banner is-mini" aria-label="AVVISO: SIDELOADING ANDROID A RISCHIO (2026 / 2027)" data-astro-cid-d67wyeir> <div class="container kao-banner-inner" data-astro-cid-d67wyeir> <div class="kao-banner-content" data-astro-cid-d67wyeir> <div class="kao-signal-bar mono" data-astro-cid-d67wyeir> <span class="kao-signal-icon" aria-hidden="true" data-astro-cid-d67wyeir>⚠️</span> <span data-astro-cid-d67wyeir>AVVISO: SIDELOADING ANDROID A RISCHIO (2026 / 2027)</span> </div> <p class="kao-banner-text" data-astro-cid-d67wyeir> Il blocco di 24h di Google minaccia la libera installazione di APK. </p> </div> <div class="kao-banner-actions" data-astro-cid-d67wyeir> <a class="kao-cta-btn" href="/apkup/it/sideloading/google-lock/" data-astro-cid-d67wyeir> Guida sblocco 24h →
+</a>  <button type="button" id="kao-banner-dismiss" class="kao-dismiss-btn" aria-label="Chiudi avviso per questa sessione" title="Chiudi avviso per questa sessione" data-astro-cid-d67wyeir>
+×
+</button> </div> </div> </aside> <script>
+  (function () {
+    var banner = document.getElementById('kao-local-banner');
+    var dismiss = document.getElementById('kao-banner-dismiss');
+    if (!banner) return;
+    try {
+      if (sessionStorage.getItem('apkup-kao-dismissed') === '1') {
+        banner.hidden = true;
+        return;
+      }
+    } catch (e) {}
+    if (dismiss) {
+      dismiss.addEventListener('click', function () {
+        banner.hidden = true;
+        try {
+          sessionStorage.setItem('apkup-kao-dismissed', '1');
+        } catch (e) {}
+      });
+    }
+  })();
+</script>  <header class="site-header" data-astro-cid-vus4yyb6> <div class="container nav-inner" data-astro-cid-vus4yyb6> <a class="brand" href="/apkup/it/" aria-label="Home ApkUp" data-astro-cid-vus4yyb6> <img src="/apkup/assets/logo.png" alt="" width="36" height="36" class="brand-icon" data-astro-cid-vus4yyb6> <span class="brand-name" data-astro-cid-vus4yyb6>ApkUp</span> </a> <nav class="nav-links" aria-label="Navigazione principale" data-astro-cid-vus4yyb6> <a href="/apkup/it/#features" data-astro-cid-vus4yyb6>Funzioni</a> <a href="/apkup/it/#showcase" data-astro-cid-vus4yyb6>Anteprima</a> <a href="/apkup/it/#sources" data-astro-cid-vus4yyb6>Sorgenti</a> <a href="/apkup/it/changelog/" data-astro-cid-vus4yyb6>Novità</a> <a href="/apkup/it/wiki/" data-astro-cid-vus4yyb6>Wiki</a> <a href="/apkup/it/privacy/" data-astro-cid-vus4yyb6>Privacy</a> <a href="/apkup/it/downloads/" data-astro-cid-vus4yyb6>Download</a> </nav> <div class="nav-actions" data-astro-cid-vus4yyb6> <button id="theme-toggle" type="button" class="icon-pill icon-only" aria-label="Cambia tema chiaro/scuro" title="Cambia tema chiaro/scuro" data-astro-cid-vus4yyb6> <svg class="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-vus4yyb6> <circle cx="12" cy="12" r="4" data-astro-cid-vus4yyb6></circle> <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" data-astro-cid-vus4yyb6></path> </svg> <svg class="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-vus4yyb6> <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" data-astro-cid-vus4yyb6></path> </svg> </button> <a class="btn btn-primary nav-cta" href="/apkup/it/#downloads" data-astro-cid-vus4yyb6> Scarica </a> <button id="mobile-menu-toggle" type="button" class="icon-pill icon-only mobile-menu-btn" aria-expanded="false" aria-controls="mobile-nav-panel" aria-label="Apri/chiudi menu di navigazione" data-astro-cid-vus4yyb6> <svg class="menu-icon-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" data-astro-cid-vus4yyb6> <line x1="4" y1="7" x2="20" y2="7" data-astro-cid-vus4yyb6></line> <line x1="4" y1="12" x2="20" y2="12" data-astro-cid-vus4yyb6></line> <line x1="4" y1="17" x2="20" y2="17" data-astro-cid-vus4yyb6></line> </svg> <svg class="menu-icon-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" data-astro-cid-vus4yyb6> <path d="M18 6 6 18M6 6l12 12" data-astro-cid-vus4yyb6></path> </svg> </button> </div> </div> <nav id="mobile-nav-panel" class="mobile-nav-panel" aria-label="Navigazione mobile" hidden data-astro-cid-vus4yyb6> <div class="container mobile-nav-list" data-astro-cid-vus4yyb6> <a href="/apkup/it/#features" data-astro-cid-vus4yyb6>Funzioni</a> <a href="/apkup/it/#showcase" data-astro-cid-vus4yyb6>Anteprima</a> <a href="/apkup/it/#sources" data-astro-cid-vus4yyb6>Sorgenti</a> <a href="/apkup/it/changelog/" data-astro-cid-vus4yyb6>Novità</a> <a href="/apkup/it/wiki/" data-astro-cid-vus4yyb6>Wiki</a> <a href="/apkup/it/privacy/" data-astro-cid-vus4yyb6>Privacy</a> <a href="/apkup/it/downloads/" data-astro-cid-vus4yyb6>Download</a> <a class="btn btn-primary mobile-nav-cta" href="/apkup/it/#downloads" data-astro-cid-vus4yyb6> Scarica </a> </div> </nav> </header> <script>
+  (function () {
+    var btn = document.getElementById('mobile-menu-toggle');
+    var panel = document.getElementById('mobile-nav-panel');
+
+    var path = window.location.pathname.replace(/\/$/, '');
+    var navLinks = Array.prototype.slice.call(document.querySelectorAll('.nav-links a'));
+    navLinks.forEach(function (a) {
+      var href = (a.getAttribute('href') || '').replace(/\/$/, '');
+      if (href.indexOf('#') === -1 && href && path === href) {
+        a.classList.add('is-current');
+      }
+    });
+
+    var secIds = ['features', 'showcase', 'sources'];
+    var secEls = secIds.map(function (id) { return document.getElementById(id); }).filter(Boolean);
+    if (secEls.length && 'IntersectionObserver' in window) {
+      var spy = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          var hash = '#' + entry.target.id;
+          navLinks.forEach(function (a) {
+            var h = a.getAttribute('href') || '';
+            if (h.indexOf('#') !== -1) {
+              a.classList.toggle('is-current', h.slice(h.indexOf('#')) === hash);
+            }
+          });
+        });
+      }, { rootMargin: '-30% 0px -60% 0px' });
+      secEls.forEach(function (el) { spy.observe(el); });
+    }
+
+    if (!btn || !panel) return;
+
+    function closeMenu() {
+      panel.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
+    }
+
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var nextOpen = panel.hidden;
+      panel.hidden = !nextOpen;
+      btn.setAttribute('aria-expanded', String(nextOpen));
+    });
+
+    panel.querySelectorAll('a').forEach(function (a) {
+      a.addEventListener('click', closeMenu);
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !panel.hidden) closeMenu();
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!panel.hidden && !panel.contains(e.target) && !btn.contains(e.target)) {
+        closeMenu();
+      }
+    });
+
+    // Easter Egg: 5 rapid clicks on ApkUp logo -> amber sparks + toast
+    var brand = document.querySelector('.site-header .brand');
+    if (brand) {
+      var clicks = 0;
+      var clickTimer = null;
+      brand.addEventListener('click', function (e) {
+        clicks++;
+        clearTimeout(clickTimer);
+        clickTimer = setTimeout(function () { clicks = 0; }, 1200);
+        if (clicks >= 5) {
+          e.preventDefault();
+          clicks = 0;
+          var rect = brand.getBoundingClientRect();
+          for (var i = 0; i < 12; i++) {
+            var spark = document.createElement('span');
+            spark.className = 'brand-spark';
+            var angle = (Math.PI * 2 * i) / 12;
+            var dist = 28 + Math.random() * 24;
+            spark.style.left = rect.left + 20 + 'px';
+            spark.style.top = rect.top + 20 + 'px';
+            spark.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+            spark.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+            document.body.appendChild(spark);
+            setTimeout((function (el) { return function () { el.remove(); }; })(spark), 700);
+          }
+          var toast = document.createElement('div');
+          toast.className = 'brand-toast mono';
+          toast.textContent = 'Open Source since 2026 ⚡';
+          document.body.appendChild(toast);
+          setTimeout(function () { toast.remove(); }, 2400);
+        }
+      });
+    }
+  })();
+</script> <main id="main-content" class="dl-page" data-astro-cid-svz2ssif> <div class="container" data-astro-cid-svz2ssif> <header class="dl-header" data-astro-cid-svz2ssif> <h1 class="dl-title" data-astro-cid-svz2ssif>Download, Mirror e Verifica</h1> <p class="dl-lead" data-astro-cid-svz2ssif>Principio dell&#39;artefatto unico: GitHub Releases fornisce l&#39;APK canonico firmato da CI e il checksum SHA-256. Qui sotto trovi verifica live e tutti gli 8 mirror.</p> </header> <section class="dl-hero-card" aria-labelledby="dl-canonical-title" data-astro-cid-svz2ssif> <div class="dl-hero-top" data-astro-cid-svz2ssif> <div data-astro-cid-svz2ssif> <div class="dl-badges" data-astro-cid-svz2ssif> <span class="pill-badge pill-green" data-astro-cid-svz2ssif>Build CI canonica firmata</span> </div> <h2 id="dl-canonical-title" data-astro-cid-svz2ssif>GitHub Releases (APK firmato diretto)</h2> <p class="dl-muted" data-astro-cid-svz2ssif>APK universale con auto-aggiornamento integrato e verifica crittografica SHA-256.</p> </div> <div class="dl-actions" data-astro-cid-svz2ssif> <a class="btn btn-primary" href="https://github.com/DurchEins/apkup/releases/latest" data-apk-link data-astro-cid-svz2ssif> <span data-astro-cid-svz2ssif> Scarica  <span class="apk-light" data-astro-cid-svz2ssif>Apk</span><strong class="apk-up" data-astro-cid-svz2ssif>Up</strong>   <span data-apk-meta data-astro-cid-svz2ssif>(v1.45.0)</span> </span> </a> <button type="button" class="btn btn-secondary" data-open-qr data-astro-cid-svz2ssif> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-svz2ssif> <rect x="3" y="3" width="7" height="7" rx="1" data-astro-cid-svz2ssif></rect> <rect x="14" y="3" width="7" height="7" rx="1" data-astro-cid-svz2ssif></rect> <rect x="3" y="14" width="7" height="7" rx="1" data-astro-cid-svz2ssif></rect> <path d="M14 14h3v3h-3zM18 18h3v3h-3zM18 14h3M14 18v3" data-astro-cid-svz2ssif></path> </svg> <span data-astro-cid-svz2ssif>QR-Code</span> </button> <a class="btn btn-ghost" href="/apkup/it/changelog/" data-astro-cid-svz2ssif> Novità </a> </div> </div> <div class="dl-specs-strip mono" data-astro-cid-svz2ssif> <span data-astro-cid-svz2ssif><strong data-astro-cid-svz2ssif>Android:</strong> 10.0 – 17 (API 29+)</span> <span data-astro-cid-svz2ssif><strong data-astro-cid-svz2ssif>ABIs:</strong> arm64-v8a • armeabi-v7a • x86_64</span> <span data-astro-cid-svz2ssif><strong data-astro-cid-svz2ssif>GPL-3.0</strong> • APK Signature v2 / v3</span> <a href="/apkup/it/sideloading/" class="dl-ext-link" data-astro-cid-svz2ssif> Installa app sconosciute → </a> <a href="/apkup/it/sideloading/google-lock/" class="dl-ext-link" data-astro-cid-svz2ssif> Blocco 24h Google → </a> </div> </section> <section class="dl-bento-grid" aria-labelledby="dl-verify-title" data-astro-cid-svz2ssif> <div class="dl-bento-card has-spotlight" data-astro-cid-svz2ssif> <div class="dl-bento-head" data-astro-cid-svz2ssif> <div class="dl-title-with-help" data-help-wrap="help-sha256" data-astro-cid-svz2ssif> <span class="dl-live-dot" id="sha256-live-dot" aria-hidden="true" title="Live" data-astro-cid-svz2ssif></span> <h2 id="dl-verify-title" data-astro-cid-svz2ssif>Checksum SHA-256 live</h2> <button type="button" class="dl-help-btn" aria-expanded="false" aria-controls="help-sha256" aria-label="Cos'è SHA-256?" data-help-toggle="help-sha256" data-astro-cid-svz2ssif>
+?
+</button> <div class="dl-help-popover" id="help-sha256" hidden data-astro-cid-svz2ssif> <p data-astro-cid-svz2ssif>Un checksum SHA-256 è l&#39;impronta digitale univoca a 64 caratteri dell&#39;APK. Se anche un solo byte è stato alterato, l&#39;hash non corrisponderà.</p> <a href="/apkup/it/wiki/#doc-sha256" class="dl-help-wiki-link" data-astro-cid-svz2ssif> Leggi la guida completa nella Wiki → </a> </div> </div> <a class="dl-ext-link mono" href="https://github.com/DurchEins/apkup/releases/latest" target="_blank" rel="noopener noreferrer" data-astro-cid-svz2ssif>
+SHA256SUMS ↗
+</a> </div> <p class="dl-muted" data-astro-cid-svz2ssif>Digest SHA-256 live dell&#39;ultimo APK firmato su GitHub Releases.</p> <div class="dl-code-box" data-astro-cid-svz2ssif> <code class="mono" id="sha256-output" data-astro-cid-svz2ssif>Caricamento SHA-256…</code> <button type="button" class="btn btn-secondary dl-copy-sm" id="copy-sha256-btn" hidden data-astro-cid-svz2ssif> Copia </button> </div> <div class="dl-compare-wrap" data-astro-cid-svz2ssif> <input type="text" id="sha256-compare-input" class="dl-compare-input mono" placeholder="Incolla SHA-256 locale per verificare…" aria-label="Incolla hash SHA-256 locale per verificare" spellcheck="false" data-astro-cid-svz2ssif> <span class="dl-compare-badge mono" id="sha256-compare-badge" hidden data-astro-cid-svz2ssif></span> </div> </div> <div class="dl-bento-card has-spotlight" data-astro-cid-svz2ssif> <div class="dl-bento-head" data-astro-cid-svz2ssif> <div class="dl-title-with-help" data-help-wrap="help-cmd" data-astro-cid-svz2ssif> <h2 data-astro-cid-svz2ssif>Comandi di verifica locale</h2> <button type="button" class="dl-help-btn" aria-expanded="false" aria-controls="help-cmd" aria-label="Come funzionano i comandi locali?" data-help-toggle="help-cmd" data-astro-cid-svz2ssif>
+?
+</button> <div class="dl-help-popover" id="help-cmd" hidden data-astro-cid-svz2ssif> <p data-astro-cid-svz2ssif>Esegui il comando per il tuo sistema nella cartella Download per calcolare l&#39;hash SHA-256 del file e confrontarlo con quello ufficiale a sinistra.</p> <a href="/apkup/it/wiki/#sha256-local-verification-step-by-step" class="dl-help-wiki-link" data-astro-cid-svz2ssif> Guida passo-passo nella Wiki → </a> </div> </div> </div> <div class="dl-cmd-stack" data-astro-cid-svz2ssif> <div class="dl-cmd-row" data-astro-cid-svz2ssif> <div class="dl-cmd-text" data-astro-cid-svz2ssif> <span class="mono dl-cmd-os" data-astro-cid-svz2ssif>Linux / macOS</span> <code class="mono" data-astro-cid-svz2ssif>sha256sum -c SHA256SUMS</code> </div> <button type="button" class="btn btn-secondary dl-copy-sm" data-copy-cmd="sha256sum -c SHA256SUMS" data-astro-cid-svz2ssif> Copia </button> </div> <div class="dl-cmd-row" data-astro-cid-svz2ssif> <div class="dl-cmd-text" data-astro-cid-svz2ssif> <span class="mono dl-cmd-os" data-astro-cid-svz2ssif>Windows PowerShell</span> <code class="mono" data-astro-cid-svz2ssif>Get-FileHash .\ApkUp-*.apk -Algorithm SHA256</code> </div> <button type="button" class="btn btn-secondary dl-copy-sm" data-copy-cmd="Get-FileHash .\ApkUp-*.apk -Algorithm SHA256" data-astro-cid-svz2ssif> Copia </button> </div> </div> </div> </section> <section class="dl-mirrors-group" aria-labelledby="dl-official-title" data-astro-cid-svz2ssif> <div class="dl-group-head" data-astro-cid-svz2ssif> <h2 id="dl-official-title" data-astro-cid-svz2ssif>Mirror ufficiali</h2> <p class="dl-muted" data-astro-cid-svz2ssif>Mantenuti direttamente insieme a GitHub Releases.</p> </div> <div class="dl-mirror-grid" data-astro-cid-svz2ssif> <a class="dl-mirror-card has-spotlight" href="https://zapstore.dev/apps/com.apkup" target="_blank" rel="noopener noreferrer" data-astro-cid-svz2ssif> <div class="dl-mirror-head" data-astro-cid-svz2ssif> <div class="dl-mirror-brand" data-astro-cid-svz2ssif> <span class="dl-mirror-icon " style="background: #fff;" data-astro-cid-svz2ssif> <img src="/apkup/assets/mirrors/zapstore.png" width="24" height="24" alt="" loading="lazy" decoding="async" style="display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 6px;"> </span> <div data-astro-cid-svz2ssif> <strong data-astro-cid-svz2ssif>Zapstore</strong> <span class="pill-badge pill-green mono" data-astro-cid-svz2ssif> Release Nostr firmate </span> </div> </div> <svg class="dl-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-svz2ssif> <path d="M7 17 17 7M7 7h10v10" data-astro-cid-svz2ssif></path> </svg> </div> <p data-astro-cid-svz2ssif>App store Android decentralizzato basato su Nostr con firme crittografiche.</p> </a><a class="dl-mirror-card has-spotlight" href="https://gitlab.com/DurchEins1/apkup/-/releases" target="_blank" rel="noopener noreferrer" data-astro-cid-svz2ssif> <div class="dl-mirror-head" data-astro-cid-svz2ssif> <div class="dl-mirror-brand" data-astro-cid-svz2ssif> <span class="dl-mirror-icon " style="background: #fff;" data-astro-cid-svz2ssif> <img src="/apkup/assets/mirrors/gitlab.png" width="24" height="24" alt="" loading="lazy" decoding="async" style="display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 6px;"> </span> <div data-astro-cid-svz2ssif> <strong data-astro-cid-svz2ssif>GitLab Releases</strong> <span class="pill-badge pill-green mono" data-astro-cid-svz2ssif> Mirror ufficiale </span> </div> </div> <svg class="dl-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-svz2ssif> <path d="M7 17 17 7M7 7h10v10" data-astro-cid-svz2ssif></path> </svg> </div> <p data-astro-cid-svz2ssif>Mirror completo del codice sorgente e delle release sincronizzato da main.</p> </a> </div> </section> <section class="dl-mirrors-group" aria-labelledby="dl-community-title" data-astro-cid-svz2ssif> <div class="dl-group-head" data-astro-cid-svz2ssif> <h2 id="dl-community-title" data-astro-cid-svz2ssif>Store della community e directory</h2> <p class="dl-muted" data-astro-cid-svz2ssif>Piattaforme di terze parti e directory che indicizzano o ospitano ApkUp.</p> </div> <div class="dl-mirror-grid" data-astro-cid-svz2ssif> <a class="dl-mirror-card has-spotlight " href="https://apkpure.com/apkup/com.apkup" target="_blank" rel="noopener noreferrer" data-astro-cid-svz2ssif> <div class="dl-mirror-head" data-astro-cid-svz2ssif> <div class="dl-mirror-brand" data-astro-cid-svz2ssif> <span class="dl-mirror-icon " style="background: #fff;" data-astro-cid-svz2ssif> <img src="/apkup/assets/mirrors/apkpure.png" width="24" height="24" alt="" loading="lazy" decoding="async" style="display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 6px;"> </span> <div data-astro-cid-svz2ssif> <strong data-astro-cid-svz2ssif>APKPure</strong> <span class="pill-badge pill-neutral mono" data-astro-cid-svz2ssif> Scheda verificata </span> </div> </div> <svg class="dl-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-svz2ssif> <path d="M7 17 17 7M7 7h10v10" data-astro-cid-svz2ssif></path> </svg> </div> <p data-astro-cid-svz2ssif>Popolare mirror APK di terze parti che indicizza le release pubbliche firmate.</p> </a><a class="dl-mirror-card has-spotlight " href="https://durcheins.itch.io/apkup" target="_blank" rel="noopener noreferrer" data-astro-cid-svz2ssif> <div class="dl-mirror-head" data-astro-cid-svz2ssif> <div class="dl-mirror-brand" data-astro-cid-svz2ssif> <span class="dl-mirror-icon is-svg" style="background: #FA5C5C;" data-astro-cid-svz2ssif> <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"> <path d="M3.13 1.338C2.08 1.96.02 4.328 0 4.95v1.03c0 1.303 1.22 2.45 2.325 2.45 1.33 0 2.436-1.102 2.436-2.41 0 1.308 1.07 2.41 2.4 2.41 1.328 0 2.362-1.102 2.362-2.41 0 1.308 1.137 2.41 2.466 2.41h.024c1.33 0 2.466-1.102 2.466-2.41 0 1.308 1.034 2.41 2.363 2.41 1.33 0 2.4-1.102 2.4-2.41 0 1.308 1.106 2.41 2.435 2.41C22.78 8.43 24 7.282 24 5.98V4.95c-.02-.622-2.082-2.99-3.13-3.612-3.253-.114-5.508-.134-8.87-.133-3.362 0-5.617.019-8.87.133zm6.968 8.532c-.862.03-1.694.492-2.163 1.23-.614.078-1.48.078-2.094 0-.47-.738-1.301-1.2-2.163-1.23-.844-.03-1.74.383-2.203 1.123-.496.79-.658 2.138-.734 3.63-.076 1.494.084 3.237.768 4.442.842 1.482 2.467 1.802 3.743 1.306.922-.358 1.662-1.084 2.26-1.883h5.004c.598.8 1.338 1.525 2.26 1.883 1.276.496 2.901.176 3.743-1.306.684-1.205.844-2.948.768-4.442-.076-1.492-.238-2.84-.734-3.63-.463-.74-1.36-1.153-2.203-1.123-.862.03-1.693.492-2.163 1.23-.614.078-1.48.078-2.094 0-.47-.738-1.3-1.2-2.163-1.23z"></path> </svg> </span> <div data-astro-cid-svz2ssif> <strong data-astro-cid-svz2ssif>itch.io</strong> <span class="pill-badge pill-neutral mono" data-astro-cid-svz2ssif> Download APK diretto </span> </div> </div> <svg class="dl-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-svz2ssif> <path d="M7 17 17 7M7 7h10v10" data-astro-cid-svz2ssif></path> </svg> </div> <p data-astro-cid-svz2ssif>Pagina indie con download diretto dell&#39;APK e note di versione.</p> </a><a class="dl-mirror-card has-spotlight " href="https://appteka.store/app/c0cr341070" target="_blank" rel="noopener noreferrer" data-astro-cid-svz2ssif> <div class="dl-mirror-head" data-astro-cid-svz2ssif> <div class="dl-mirror-brand" data-astro-cid-svz2ssif> <span class="dl-mirror-icon " style="background: #fff;" data-astro-cid-svz2ssif> <img src="/apkup/assets/mirrors/appteka.png" width="24" height="24" alt="" loading="lazy" decoding="async" style="display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 6px;"> </span> <div data-astro-cid-svz2ssif> <strong data-astro-cid-svz2ssif>Appteka</strong> <span class="pill-badge pill-neutral mono" data-astro-cid-svz2ssif> Store alternativo </span> </div> </div> <svg class="dl-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-svz2ssif> <path d="M7 17 17 7M7 7h10v10" data-astro-cid-svz2ssif></path> </svg> </div> <p data-astro-cid-svz2ssif>Catalogo Android indipendente che ospita build APK verificate.</p> </a><a class="dl-mirror-card has-spotlight " href="https://komistore.app" target="_blank" rel="noopener noreferrer" data-astro-cid-svz2ssif> <div class="dl-mirror-head" data-astro-cid-svz2ssif> <div class="dl-mirror-brand" data-astro-cid-svz2ssif> <span class="dl-mirror-icon " style="background: #fff;" data-astro-cid-svz2ssif> <img src="/apkup/assets/mirrors/komistore.png" width="24" height="24" alt="" loading="lazy" decoding="async" style="display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 6px;"> </span> <div data-astro-cid-svz2ssif> <strong data-astro-cid-svz2ssif>Komi Store</strong> <span class="pill-badge pill-neutral mono" data-astro-cid-svz2ssif> Store FOSS </span> </div> </div> <svg class="dl-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-svz2ssif> <path d="M7 17 17 7M7 7h10v10" data-astro-cid-svz2ssif></path> </svg> </div> <p data-astro-cid-svz2ssif>Store di app Android FOSS curato dalla community.</p> </a><a class="dl-mirror-card has-spotlight " href="https://alternativeto.net/software/apkup/about/" target="_blank" rel="noopener noreferrer" data-astro-cid-svz2ssif> <div class="dl-mirror-head" data-astro-cid-svz2ssif> <div class="dl-mirror-brand" data-astro-cid-svz2ssif> <span class="dl-mirror-icon " style="background: #fff;" data-astro-cid-svz2ssif> <img src="/apkup/assets/mirrors/alternativeto.png" width="24" height="24" alt="" loading="lazy" decoding="async" style="display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 6px;"> </span> <div data-astro-cid-svz2ssif> <strong data-astro-cid-svz2ssif>AlternativeTo</strong> <span class="pill-badge pill-neutral mono" data-astro-cid-svz2ssif> Recensioni &amp; info </span> </div> </div> <svg class="dl-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-svz2ssif> <path d="M7 17 17 7M7 7h10v10" data-astro-cid-svz2ssif></path> </svg> </div> <p data-astro-cid-svz2ssif>Recensioni della community, tag e elenco di alternative open source.</p> </a><a class="dl-mirror-card has-spotlight is-outdated" href="https://www.amazon.com/gp/product/B0HR5TXL8R" target="_blank" rel="noopener noreferrer" data-astro-cid-svz2ssif> <div class="dl-mirror-head" data-astro-cid-svz2ssif> <div class="dl-mirror-brand" data-astro-cid-svz2ssif> <span class="dl-mirror-icon " style="background: #fff;" data-astro-cid-svz2ssif> <img src="/apkup/assets/mirrors/amazon.png" width="24" height="24" alt="" loading="lazy" decoding="async" style="display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 6px;"> </span> <div data-astro-cid-svz2ssif> <strong data-astro-cid-svz2ssif>Amazon Appstore</strong> <span class="pill-badge pill-warn mono" data-astro-cid-svz2ssif> Obsoleto </span> </div> </div> <svg class="dl-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-svz2ssif> <path d="M7 17 17 7M7 7h10v10" data-astro-cid-svz2ssif></path> </svg> </div> <p data-astro-cid-svz2ssif>Scheda obsoleta — non riceve più build recenti. Preferisci GitHub Releases.</p> </a> </div> </section> </div> </main> <footer class="site-footer" data-astro-cid-yfspknxm> <div class="container footer-inner" data-astro-cid-yfspknxm> <div class="footer-brand" data-astro-cid-yfspknxm> <img src="/apkup/assets/logo.png" alt="" width="34" height="34" class="footer-icon" data-astro-cid-yfspknxm> <div class="footer-brand-text" data-astro-cid-yfspknxm> <strong data-astro-cid-yfspknxm>ApkUp</strong> <p class="footer-copy" data-astro-cid-yfspknxm>
+Copyright © 2026  <a href="https://github.com/DurchEins" target="_blank" rel="noopener noreferrer" class="footer-author-link" data-astro-cid-yfspknxm>DurchEins</a>  • GPL-3.0
+</p> </div> </div> <nav class="footer-links" aria-label="Footer links" data-astro-cid-yfspknxm> <a href="/apkup/it/downloads/" data-astro-cid-yfspknxm>Download</a> <a href="/apkup/it/sideloading/" data-astro-cid-yfspknxm>App sconosciute</a> <a href="/apkup/it/sideloading/google-lock/" data-astro-cid-yfspknxm>Blocco 24h Google</a> <a href="/apkup/it/changelog/" data-astro-cid-yfspknxm>Novità</a> <a href="/apkup/it/wiki/" data-astro-cid-yfspknxm>Wiki</a> <a href="/apkup/it/compare/" data-astro-cid-yfspknxm>Verifica sorgenti</a> <a href="/apkup/it/privacy/" data-astro-cid-yfspknxm>Privacy</a> <a href="/apkup/it/security/" data-astro-cid-yfspknxm>Sicurezza</a> <a href="https://github.com/DurchEins/apkup" target="_blank" rel="noopener noreferrer" data-astro-cid-yfspknxm>GitHub</a> <a href="https://github.com/DurchEins/apkup/wiki" target="_blank" rel="noopener noreferrer" data-astro-cid-yfspknxm>GitHub Wiki</a> <a href="https://github.com/DurchEins/apkup/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" data-astro-cid-yfspknxm>GPL-3.0</a> <a href="https://github.com/DurchEins/apkup/releases/latest" target="_blank" rel="noopener noreferrer" class="footer-build-pill mono" title="Release ufficiale" data-astro-cid-yfspknxm>
+v1.45.0 (211)
+</a> </nav> <div class="footer-i18n-bar" data-astro-cid-yfspknxm> <div class="lang-picker-wrap" id="footer-lang-wrap" data-astro-cid-yfspknxm> <button type="button" id="footer-lang-btn" class="lang-picker-btn" aria-expanded="false" aria-haspopup="menu" aria-controls="footer-lang-menu" aria-label="Seleziona lingua" data-astro-cid-yfspknxm> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-yfspknxm> <circle cx="12" cy="12" r="10" data-astro-cid-yfspknxm></circle> <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" data-astro-cid-yfspknxm></path> </svg> <span data-astro-cid-yfspknxm>Italiano <span class="mono lang-code" data-astro-cid-yfspknxm>(IT)</span></span> <svg class="lang-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-yfspknxm> <path d="m6 9 6 6 6-6" data-astro-cid-yfspknxm></path> </svg> </button> <div id="footer-lang-menu" class="lang-picker-menu" role="menu" aria-label="Seleziona lingua" hidden data-astro-cid-yfspknxm> <a href="/apkup/downloads/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="en" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>English</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>EN</span>  </span> </a><a href="/apkup/de/downloads/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="de" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>Deutsch</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>DE</span>  </span> </a><a href="/apkup/es/downloads/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="es" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>Español</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>ES</span>  </span> </a><a href="/apkup/fr/downloads/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="fr" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>Français</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>FR</span>  </span> </a><a href="/apkup/it/downloads/" role="menuitemradio" aria-checked="true" class="lang-menu-item is-active" data-lang-option="it" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>Italiano</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>IT</span> <span aria-hidden="true" data-astro-cid-yfspknxm>✓</span> </span> </a><a href="/apkup/ja/downloads/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="ja" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>日本語</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>JA</span>  </span> </a><a href="/apkup/pt/downloads/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="pt" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>Português</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>PT</span>  </span> </a><a href="/apkup/ru/downloads/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="ru" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>Русский</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>RU</span>  </span> </a><a href="/apkup/zh-cn/downloads/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="zh-cn" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>简体中文</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>ZH-CN</span>  </span> </a> </div> </div> <a href="https://github.com/DurchEins/apkup/issues/new?template=translation.yml" target="_blank" rel="noopener noreferrer" class="help-translate-link" data-astro-cid-yfspknxm> Aiuta a tradurre → </a> </div> </div> </footer> <script>
+  (function () {
+    var wrap = document.getElementById('footer-lang-wrap');
+    var btn = document.getElementById('footer-lang-btn');
+    var menu = document.getElementById('footer-lang-menu');
+    if (!wrap || !btn || !menu) return;
+
+    function closeMenu(focusBtn) {
+      if (menu.hidden) return;
+      menu.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
+      if (focusBtn) btn.focus();
+    }
+
+    function openMenu() {
+      menu.hidden = false;
+      btn.setAttribute('aria-expanded', 'true');
+    }
+
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (menu.hidden) openMenu();
+      else closeMenu(false);
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!menu.hidden && !wrap.contains(e.target)) {
+        closeMenu(false);
+      }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !menu.hidden) {
+        closeMenu(true);
+      }
+    });
+
+    menu.querySelectorAll('[data-lang-option]').forEach(function (link) {
+      link.addEventListener('click', function (e) {
+        var targetLang = link.getAttribute('data-lang-option');
+        if (targetLang) {
+          try {
+            localStorage.setItem('apkup-lang', targetLang);
+          } catch (err) {}
+        }
+        var dest = link.getAttribute('href');
+        if (dest && (window.location.search || window.location.hash)) {
+          e.preventDefault();
+          window.location.href = dest + window.location.search + window.location.hash;
+        }
+      });
+    });
+  })();
+</script> <dialog id="qr-modal" class="qr-dialog" aria-labelledby="qr-modal-title" data-astro-cid-juid3b5l> <div class="qr-card" data-astro-cid-juid3b5l> <div class="qr-header" data-astro-cid-juid3b5l> <div data-astro-cid-juid3b5l> <span class="pill-badge pill-amber mono" id="qr-version-pill" data-astro-cid-juid3b5l>v1.45.0</span> <h3 id="qr-modal-title" data-astro-cid-juid3b5l>Scansiona per scaricare su Android</h3> </div> <button type="button" class="qr-close" id="qr-close-btn" aria-label="Chiudi finestra QR" data-astro-cid-juid3b5l> <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" data-astro-cid-juid3b5l> <path d="M18 6 6 18M6 6l12 12" data-astro-cid-juid3b5l></path> </svg> </button> </div> <div class="qr-frame-wrap" data-astro-cid-juid3b5l> <div class="qr-frame" id="qr-svg-host" aria-live="polite" data-astro-cid-juid3b5l></div> <span class="qr-scan-line" aria-hidden="true" data-astro-cid-juid3b5l></span> </div> <a class="qr-url mono" id="qr-target-url" href="https://github.com/DurchEins/apkup/releases/latest" target="_blank" rel="noopener noreferrer" data-astro-cid-juid3b5l> https://github.com/DurchEins/apkup/releases/latest </a> <details class="qr-release-notes" data-astro-cid-juid3b5l> <summary class="mono" data-astro-cid-juid3b5l> Novità nella v1.45.0? ▾
+</summary> <p data-astro-cid-juid3b5l> Material 3 Expressive Look &amp; Off-White • Expressive Progress &amp; Actions • Adaptive Navigation &amp; Accessibility.  <a href="/apkup/it/changelog/" data-astro-cid-juid3b5l>Changelog completo →</a> </p> </details> <p class="qr-hint" data-astro-cid-juid3b5l>Punta direttamente all&#39;ultimo APK firmato su GitHub Releases.</p> </div> </dialog> <script src="/apkup/assets/qrcode.js"></script> <script>(function(){const baseUrl = "/apkup/";
+const fallbackUrl = "https://github.com/DurchEins/apkup/releases/latest";
+
+  (function () {
+    var dialog = document.getElementById('qr-modal');
+    var closeBtn = document.getElementById('qr-close-btn');
+    var host = document.getElementById('qr-svg-host');
+    var urlEl = document.getElementById('qr-target-url');
+    var verEl = document.getElementById('qr-version-pill');
+
+    if (!dialog || !host) return;
+
+    function isFinderZone(r, c, count) {
+      var topLeft = r < 7 && c < 7;
+      var topRight = r < 7 && c >= count - 7;
+      var bottomLeft = r >= count - 7 && c < 7;
+      return topLeft || topRight || bottomLeft;
+    }
+
+    function isCenterLogoZone(r, c, count) {
+      var mid = (count - 1) / 2;
+      return Math.abs(r - mid) <= 3.2 && Math.abs(c - mid) <= 3.2;
+    }
+
+    function renderCustomQr(targetUrl) {
+      if (typeof window.qrcode !== 'function') {
+        host.textContent = targetUrl;
+        return;
+      }
+      var qr = window.qrcode(0, 'H');
+      qr.addData(targetUrl);
+      qr.make();
+      var count = qr.getModuleCount();
+      var pad = 3;
+      var size = count + pad * 2;
+      var dots = [];
+
+      for (var r = 0; r < count; r++) {
+        for (var c = 0; c < count; c++) {
+          if (!qr.isDark(r, c)) continue;
+          if (isCenterLogoZone(r, c, count)) continue;
+          var x = c + pad;
+          var y = r + pad;
+          if (isFinderZone(r, c, count)) {
+            dots.push('<rect x="' + x + '" y="' + y + '" width="1.02" height="1.02" rx="0.22" fill="#B45309" />');
+          } else {
+            dots.push('<circle cx="' + (x + 0.5) + '" cy="' + (y + 0.5) + '" r="0.42" fill="#121316" />');
+          }
+        }
+      }
+
+      var logoSize = Math.max(5.6, count * 0.17);
+      var logoPos = (size - logoSize) / 2;
+      var bgSize = logoSize + 1.4;
+      var bgPos = (size - bgSize) / 2;
+
+      host.innerHTML =
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' +
+        size +
+        ' ' +
+        size +
+        '" width="248" height="248" role="img" aria-label="ApkUp Download QR Code">' +
+        '<rect width="' +
+        size +
+        '" height="' +
+        size +
+        '" rx="2.4" fill="#FAF8F4" />' +
+        dots.join('') +
+        '<rect x="' +
+        bgPos +
+        '" y="' +
+        bgPos +
+        '" width="' +
+        bgSize +
+        '" height="' +
+        bgSize +
+        '" rx="1.6" fill="#FAF8F4" stroke="#F59E0B" stroke-width="0.35" />' +
+        '<image href="' +
+        baseUrl +
+        'assets/logo.png" x="' +
+        logoPos +
+        '" y="' +
+        logoPos +
+        '" width="' +
+        logoSize +
+        '" height="' +
+        logoSize +
+        '" />' +
+        '</svg>';
+    }
+
+    function openQrModal() {
+      var primaryLink = document.querySelector('[data-apk-link]');
+      var currentUrl = primaryLink ? primaryLink.getAttribute('href') || fallbackUrl : fallbackUrl;
+      var heroPill = document.getElementById('hero-version-pill');
+      if (verEl && heroPill) verEl.textContent = heroPill.textContent;
+      if (urlEl) {
+        urlEl.textContent = currentUrl;
+        urlEl.setAttribute('href', currentUrl);
+      }
+      renderCustomQr(currentUrl);
+      if (typeof dialog.showModal === 'function') {
+        dialog.showModal();
+      } else {
+        dialog.setAttribute('open', '');
+      }
+    }
+
+    document.querySelectorAll('[data-open-qr]').forEach(function (btn) {
+      btn.addEventListener('click', openQrModal);
+    });
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function () {
+        dialog.close();
+      });
+    }
+
+    dialog.addEventListener('click', function (e) {
+      if (e.target === dialog) dialog.close();
+    });
+  })();
+})();</script>  <button type="button" id="back-to-top-btn" class="back-to-top-pill" aria-label="Torna su" title="Torna su"> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <path d="m18 15-6-6-6 6"></path> </svg> </button> <aside id="dev-mode-hud" class="dev-mode-hud mono" aria-label="⚡ Modalità sviluppatore ApkUp" hidden> <div class="dev-hud-head"> <strong>⚡ Modalità sviluppatore ApkUp</strong> <button type="button" id="dev-hud-close" aria-label="Close Developer HUD">✕</button> </div> <div class="dev-hud-grid"> <span>Release: <strong>v1.45.0 (211)</strong></span> <span>SDK: <strong>API 29 – 36 (Android 10–17)</strong></span> <span>ABIs: <strong>arm64-v8a • armeabi-v7a • x86_64</strong></span> <span>Signature: <strong>APK Scheme v2/v3 + SHA-256</strong></span> <span id="dev-hud-perf">DOM Ready: <strong>-- ms</strong></span> </div> </aside> <script>(function(){const copiedToastMsg = "✓ Copiato negli appunti";
+const shareTitleMsg = "ApkUp — Aggiornatore Android multisorgente";
+const shareTextMsg = "ApkUp: aggiornatore Android open source per Google Play, F-Droid, GitHub e altro — senza pubblicità e con Shizuku.";
+const canonicalShareUrl = "https://durcheins.github.io/apkup/it/downloads/";
+
+      (function () {
+        var root = document.documentElement;
+        var themeBtn = document.getElementById('theme-toggle');
+
+        function applyTheme(next) {
+          root.classList.add('theme-switching');
+          root.setAttribute('data-theme', next);
+          var meta = document.getElementById('meta-theme-color');
+          if (meta) meta.setAttribute('content', next === 'light' ? '#F4F1EA' : '#121316');
+          try {
+            localStorage.setItem('apkup-theme', next);
+          } catch (e) {}
+          if (themeBtn) {
+            themeBtn.setAttribute('aria-pressed', String(next === 'light'));
+          }
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+              root.classList.remove('theme-switching');
+            });
+          });
+        }
+
+        if (themeBtn) {
+          themeBtn.setAttribute('aria-pressed', String(root.getAttribute('data-theme') === 'light'));
+          try {
+            if (!localStorage.getItem('apkup-theme')) themeBtn.classList.add('is-system-sync');
+          } catch (e) {}
+          themeBtn.addEventListener('click', function () {
+            themeBtn.classList.remove('is-system-sync');
+            var current = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+          });
+        }
+
+        function showCopied(btn) {
+          var lbl = btn.querySelector('[data-share-label]');
+          var copied = btn.querySelector('[data-share-copied]');
+          if (!lbl || !copied) return;
+          lbl.hidden = true;
+          copied.hidden = false;
+          btn.classList.add('is-copied');
+          if (window.innerWidth <= 860) {
+            var t = document.createElement('div');
+            t.className = 'brand-toast mono';
+            t.textContent = copiedToastMsg;
+            document.body.appendChild(t);
+            setTimeout(function () { t.remove(); }, 1800);
+          }
+          clearTimeout(btn._shareTimer);
+          btn._shareTimer = setTimeout(function () {
+            lbl.hidden = false;
+            copied.hidden = true;
+            btn.classList.remove('is-copied');
+          }, 2000);
+        }
+
+        // Konami Code (↑↑↓↓←→←→BA) & Alt+D Developer Mode HUD
+        var devHud = document.getElementById('dev-mode-hud');
+        var devClose = document.getElementById('dev-hud-close');
+        var devPerf = document.getElementById('dev-hud-perf');
+        var konami = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+        var kPos = 0;
+        function toggleDevHud() {
+          if (!devHud) return;
+          devHud.hidden = !devHud.hidden;
+          if (!devHud.hidden && devPerf && window.performance) {
+            devPerf.innerHTML = 'DOM Load: <strong>' + Math.round(performance.now()) + ' ms</strong>';
+          }
+        }
+        if (devClose) devClose.addEventListener('click', function () { if (devHud) devHud.hidden = true; });
+        document.addEventListener('keydown', function (e) {
+          if (e.altKey && (e.key === 'd' || e.key === 'D')) {
+            e.preventDefault();
+            toggleDevHud();
+            return;
+          }
+          var key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+          if (key === konami[kPos]) {
+            kPos++;
+            if (kPos === konami.length) {
+              kPos = 0;
+              toggleDevHud();
+            }
+          } else {
+            kPos = 0;
+          }
+        });
+
+        var topBtn = document.getElementById('back-to-top-btn');
+        if (topBtn) {
+          function syncTopBtn() {
+            topBtn.classList.toggle('is-visible', window.scrollY > 480);
+          }
+          window.addEventListener('scroll', syncTopBtn, { passive: true });
+          syncTopBtn();
+          topBtn.addEventListener('click', function () {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          });
+        }
+
+        // TV/D-Pad keyboard focus mode
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Tab' || e.key.indexOf('Arrow') === 0) {
+            root.classList.add('kbd-nav');
+          }
+        });
+        document.addEventListener('pointerdown', function () {
+          root.classList.remove('kbd-nav');
+        });
+
+        // Global mouse-tracking spotlight on .has-spotlight cards
+        if (!window.matchMedia || !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          document.querySelectorAll('.has-spotlight').forEach(function (card) {
+            card.addEventListener('pointermove', function (e) {
+              var r = card.getBoundingClientRect();
+              card.style.setProperty('--mx', e.clientX - r.left + 'px');
+              card.style.setProperty('--my', e.clientY - r.top + 'px');
+            });
+          });
+        }
+
+        document.querySelectorAll('[data-share-btn]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var shareData = {
+              title: shareTitleMsg,
+              text: shareTextMsg,
+              url: canonicalShareUrl
+            };
+            if (navigator.share) {
+              navigator.share(shareData).catch(function (err) {
+                if (err && err.name === 'AbortError') return;
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                  navigator.clipboard.writeText(canonicalShareUrl).then(function () { showCopied(btn); }).catch(function () {});
+                }
+              });
+            } else if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(canonicalShareUrl).then(function () { showCopied(btn); }).catch(function () {});
+            }
+          });
+        });
+      })();
+    })();</script> </body> </html> <script>(function(){const shaUnavailableMsg = "Checksum non disponibile — apri SHA256SUMS su GitHub Releases.";
+const shaMatchMsg = "Corrisponde ✓";
+const shaMismatchMsg = "Non corrisponde ✕";
+
+  (function () {
+    var out = document.getElementById('sha256-output');
+    var copyBtn = document.getElementById('copy-sha256-btn');
+    var shaText = '';
+
+    function flashBtn(btn) {
+      if (!btn.dataset.origLabel) {
+        btn.dataset.origLabel = btn.textContent || '';
+      }
+      clearTimeout(btn._flashTimer);
+      btn.textContent = '✓ Copied';
+      btn.classList.add('is-copied');
+      btn._flashTimer = setTimeout(function () {
+        btn.textContent = btn.dataset.origLabel;
+        btn.classList.remove('is-copied');
+      }, 1600);
+    }
+
+    function copyText(text, btn) {
+      if (!text) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+          if (btn) flashBtn(btn);
+        }).catch(function () {});
+      }
+    }
+
+    function renderSha(text) {
+      shaText = (text || '').trim();
+      var liveDot = document.getElementById('sha256-live-dot');
+      if (!out) return;
+      if (shaText) {
+        out.textContent = shaText;
+        if (copyBtn) copyBtn.hidden = false;
+        if (liveDot) liveDot.classList.add('is-live');
+      } else {
+        out.textContent = shaUnavailableMsg;
+        if (copyBtn) copyBtn.hidden = true;
+      }
+    }
+
+    var cmpInput = document.getElementById('sha256-compare-input');
+    var cmpBadge = document.getElementById('sha256-compare-badge');
+    if (cmpInput && cmpBadge) {
+      cmpInput.addEventListener('input', function () {
+        var val = (cmpInput.value || '').trim().toLowerCase();
+        var liveHash = (shaText.split(/\s+/)[0] || '').toLowerCase();
+        if (!val) {
+          cmpBadge.hidden = true;
+          cmpBadge.className = 'dl-compare-badge mono';
+          return;
+        }
+        cmpBadge.hidden = false;
+        if (liveHash && val === liveHash) {
+          cmpBadge.textContent = shaMatchMsg;
+          cmpBadge.className = 'dl-compare-badge mono is-match';
+        } else {
+          cmpBadge.textContent = shaMismatchMsg;
+          cmpBadge.className = 'dl-compare-badge mono is-mismatch';
+        }
+      });
+    }
+
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function () {
+        copyText(shaText, copyBtn);
+      });
+    }
+    if (out) {
+      out.style.cursor = 'pointer';
+      out.addEventListener('click', function () {
+        if (shaText) copyText(shaText, copyBtn);
+      });
+    }
+
+    document.querySelectorAll('[data-copy-cmd]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        copyText(btn.getAttribute('data-copy-cmd') || '', btn);
+      });
+    });
+
+    function closeAllHelp() {
+      document.querySelectorAll('.dl-help-popover').forEach(function (p) {
+        p.hidden = true;
+      });
+      document.querySelectorAll('[data-help-toggle]').forEach(function (b) {
+        b.setAttribute('aria-expanded', 'false');
+      });
+    }
+
+    document.querySelectorAll('[data-help-wrap]').forEach(function (wrap) {
+      var id = wrap.getAttribute('data-help-wrap');
+      var panel = id ? document.getElementById(id) : null;
+      var btn = wrap.querySelector('[data-help-toggle]');
+      var closeTimer = null;
+      if (!panel || !btn) return;
+
+      function openPanel() {
+        clearTimeout(closeTimer);
+        closeAllHelp();
+        panel.hidden = false;
+        btn.setAttribute('aria-expanded', 'true');
+      }
+
+      function scheduleClose() {
+        closeTimer = setTimeout(function () {
+          panel.hidden = true;
+          btn.setAttribute('aria-expanded', 'false');
+        }, 160);
+      }
+
+      btn.addEventListener('mouseenter', openPanel);
+      panel.addEventListener('mouseenter', function () {
+        clearTimeout(closeTimer);
+      });
+      wrap.addEventListener('mouseleave', scheduleClose);
+
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (panel.hidden) {
+          openPanel();
+        } else {
+          closeAllHelp();
+        }
+      });
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('[data-help-wrap]')) {
+        closeAllHelp();
+      }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeAllHelp();
+    });
+
+    fetch('https://api.github.com/repos/DurchEins/apkup/releases/latest', {
+      headers: { Accept: 'application/vnd.github+json' },
+    })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (rel) {
+        if (!rel) return renderSha('');
+        var apkAsset = (rel.assets || []).find(function (a) {
+          return /\.apk$/i.test(a.name || '');
+        });
+        if (
+          apkAsset &&
+          apkAsset.browser_download_url &&
+          /^https:\/\/(github\.com\/DurchEins\/apkup\/|objects\.githubusercontent\.com\/|release-assets\.githubusercontent\.com\/)/i.test(apkAsset.browser_download_url)
+        ) {
+          document.querySelectorAll('[data-apk-link]').forEach(function (el) {
+            el.setAttribute('href', apkAsset.browser_download_url);
+          });
+        }
+        if (rel.tag_name) {
+          var mb = apkAsset && apkAsset.size ? (apkAsset.size / (1024 * 1024)).toFixed(1) : '';
+          var meta = '(' + rel.tag_name + (mb ? ' • ' + mb + ' MB' : '') + ')';
+          document.querySelectorAll('[data-apk-meta]').forEach(function (el) {
+            el.textContent = meta;
+          });
+        }
+
+        if (apkAsset && apkAsset.digest) {
+          var cleanHash = apkAsset.digest.replace(/^sha256:/i, '');
+          return renderSha(cleanHash + '  ' + apkAsset.name);
+        }
+
+        if (rel.body) {
+          var m = rel.body.match(/[a-f0-9]{64}/i);
+          if (m) return renderSha(m[0] + (apkAsset ? '  ' + apkAsset.name : ''));
+        }
+
+        return renderSha('');
+      })
+      .catch(function () { renderSha(''); });
+  })();
+})();</script>

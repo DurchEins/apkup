@@ -3,13 +3,21 @@ import { getBaseUrl } from '../utils/site';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { SITE } from '../data/content';
+import { DEFAULT_LOCALE, LOCALE_META, getTranslations, localePath, type Locale } from '../i18n';
 
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = DEFAULT_LOCALE } = Astro.props;
+const t = getTranslations(lang);
 const base = getBaseUrl();
+const changelogLang = LOCALE_META[lang].changelogLang;
 
-function getReleaseSummary(lang: 'en' | 'de', version: string): string {
+function getReleaseSummary(clLang: 'en' | 'de', version: string): string {
   try {
     const md = readFileSync(
-      join(process.cwd(), '..', 'app', 'src', 'main', 'assets', 'changelog', `1.45_${lang}.md`),
+      join(process.cwd(), '..', 'app', 'src', 'main', 'assets', 'changelog', `1.45_${clLang}.md`),
       'utf8'
     );
     const verEsc = version.replace('.', '\\.');
@@ -22,8 +30,11 @@ function getReleaseSummary(lang: 'en' | 'de', version: string): string {
   }
 }
 
-const summaryEn = getReleaseSummary('en', SITE.fallbackVersion) || 'Material 3 Expressive UI, Opt-in Beta Channel & Redesigned Help Wiki';
-const summaryDe = getReleaseSummary('de', SITE.fallbackVersion) || 'Material 3 Expressive Look, Opt-in Beta-Kanal & Überarbeitetes Hilfe-Wiki';
+const summaryText =
+  getReleaseSummary(changelogLang, SITE.fallbackVersion) ||
+  (changelogLang === 'de'
+    ? 'Material 3 Expressive Look, Opt-in Beta-Kanal & Überarbeitetes Hilfe-Wiki'
+    : 'Material 3 Expressive UI, Opt-in Beta Channel & Redesigned Help Wiki');
 ---
 
 <dialog id="qr-modal" class="qr-dialog" aria-labelledby="qr-modal-title">
@@ -31,12 +42,9 @@ const summaryDe = getReleaseSummary('de', SITE.fallbackVersion) || 'Material 3 E
     <div class="qr-header">
       <div>
         <span class="pill-badge pill-amber mono" id="qr-version-pill">v{SITE.fallbackVersion}</span>
-        <h3 id="qr-modal-title">
-          <span class="i18n-en">Scan to download on Android</span>
-          <span class="i18n-de">Per Smartphone-Kamera laden</span>
-        </h3>
+        <h3 id="qr-modal-title">{t.qrModal.title}</h3>
       </div>
-      <button type="button" class="qr-close" id="qr-close-btn" aria-label="Close QR dialog">
+      <button type="button" class="qr-close" id="qr-close-btn" aria-label={t.qrModal.closeAria}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
           <path d="M18 6 6 18M6 6l12 12" />
         </svg>
@@ -59,29 +67,15 @@ const summaryDe = getReleaseSummary('de', SITE.fallbackVersion) || 'Material 3 E
     </a>
     <details class="qr-release-notes">
       <summary class="mono">
-        <span class="i18n-en">What’s new in v{SITE.fallbackVersion}? ▾</span>
-        <span class="i18n-de">Was ist neu in v{SITE.fallbackVersion}? ▾</span>
+        {t.qrModal.whatsNewPrefix} v{SITE.fallbackVersion}? ▾
       </summary>
       <p>
-        <span class="i18n-en">
-          {summaryEn}.{' '}
-          <a href={`${base}changelog/`}>Full changelog →</a>
-        </span>
-        <span class="i18n-de">
-          {summaryDe}.{' '}
-          <a href={`${base}changelog/`}>Zum Changelog →</a>
-        </span>
+        {summaryText}.{' '}
+        <a href={localePath(lang, 'changelog/')}>{t.qrModal.fullChangelog}</a>
       </p>
     </details>
 
-    <p class="qr-hint">
-      <span class="i18n-en">
-        Points directly to the latest signed GitHub Release APK.
-      </span>
-      <span class="i18n-de">
-        Verweist automatisch auf das aktuellste signierte GitHub-Release-APK.
-      </span>
-    </p>
+    <p class="qr-hint">{t.qrModal.hint}</p>
   </div>
 </dialog>
 

@@ -1,0 +1,117 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import { SITE } from '../data/content';
+import { DEFAULT_LOCALE, getTranslations, type Locale } from '../i18n';
+
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = DEFAULT_LOCALE } = Astro.props;
+const t = getTranslations(lang);
+const p = t.privacyPage;
+---
+
+<BaseLayout lang={lang} subPath="privacy/" title={p.title} description={p.metaDesc}>
+  <Navbar lang={lang} />
+  <main id="main-content" class="section">
+    <div class="container subpage-wrap">
+      <div class="section-header">
+        <h1 class="section-title">{p.h1}</h1>
+        <p class="section-subtitle">{p.lead}</p>
+      </div>
+
+      <div class="privacy-cards">
+        <article class="priv-card priv-summary-grid">
+          <div>
+            <span class="pill-badge pill-green mono">{p.onDeviceBadge}</span>
+            <ul>
+              {p.onDeviceItems.map((item) => <li>{item}</li>)}
+            </ul>
+          </div>
+          <div>
+            <span class="pill-badge pill-amber mono">{p.neverSentBadge}</span>
+            <ul>
+              {p.neverSentItems.map((item) => <li>{item}</li>)}
+            </ul>
+          </div>
+        </article>
+
+        <article class="priv-card">
+          <h2>{p.s1Title}</h2>
+          <ul>
+            {p.s1Items.map((item) => <li>{item}</li>)}
+          </ul>
+        </article>
+
+        <article class="priv-card">
+          <h2>{p.s2Title}</h2>
+          <ul>
+            {p.s2Items.map((item) => <li>{item}</li>)}
+          </ul>
+        </article>
+
+        <article class="priv-card">
+          <h2>{p.s3Title}</h2>
+          <p>{p.s3Body}</p>
+          <div style="margin-top: 14px;">
+            <a class="btn btn-secondary" href={SITE.privacyUrl} target="_blank" rel="noopener noreferrer">
+              {p.viewGithub}
+            </a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </main>
+  <Footer lang={lang} subPath="privacy/" />
+</BaseLayout>
+
+<style>
+  .subpage-wrap {
+    max-width: 860px;
+  }
+
+  .privacy-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .priv-card {
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+  }
+
+  .priv-card h2 {
+    margin: 0 0 12px;
+    font-size: 1.25rem;
+    font-weight: 800;
+  }
+
+  .priv-card ul {
+    margin: 0;
+    padding-inline-start: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .priv-card p {
+    margin: 0;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .priv-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    border-color: rgba(245, 158, 11, 0.35);
+  }
+</style>

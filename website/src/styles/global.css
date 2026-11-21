@@ -430,15 +430,6 @@ p {
   border: 1px solid var(--outline);
 }
 
-/* Language toggle visibility */
-[data-lang='en'] .i18n-de {
-  display: none !important;
-}
-
-[data-lang='de'] .i18n-en {
-  display: none !important;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .btn,
   .btn:active {

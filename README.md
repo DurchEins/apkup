@@ -154,6 +154,15 @@ If ApkUp saves you time keeping your apps up to date, consider supporting its on
 
 ---
 
+## 🌍 Translations & Contributing
+
+ApkUp and its website are available in **9 languages** (`en`, `de`, `es`, `fr`, `it`, `ja`, `pt`, `ru`, `zh-cn`). Several base translations are AI-assisted and native-speaker polish is always welcome!
+
+* **No Git skills needed:** Use the **[Translation Issue Form](https://github.com/DurchEins/apkup/issues/new?template=translation.yml)** to report typos, suggest more natural phrasing, or volunteer for a new language.
+* **Pull Requests:** Edit the Android string resources in `app/src/main/res/values-*/strings.xml` and/or the Weblate-ready website JSON files in `website/src/i18n/*.json`.
+
+---
+
 ## 📜 License & Credits
 
 This project is licensed under the **[GNU General Public License v3.0 (GPL-3.0)](LICENSE)** — see the [LICENSE](LICENSE) file for full details.

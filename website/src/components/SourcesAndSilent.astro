@@ -1,62 +1,53 @@
 ---
-import { getBaseUrl } from '../utils/site';
-import { SOURCES, SITE } from '../data/content';
+import { SOURCES } from '../data/content';
+import { DEFAULT_LOCALE, getTranslations, localePath, type Locale } from '../i18n';
 
-const base = getBaseUrl();
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = DEFAULT_LOCALE } = Astro.props;
+const t = getTranslations(lang);
+type SourceKey = keyof typeof t.sources.items;
+const wikiSourcesHref = localePath(lang, 'wiki/#doc-sources');
 ---
 
 <section id="sources" class="section">
   <div class="container">
     <div class="section-header">
-      <h2 class="section-title">
-        <span class="i18n-en">All your app sources, unified &amp; prioritized</span>
-        <span class="i18n-de">Alle Update-Quellen, vereint &amp; priorisiert</span>
-      </h2>
-      <p class="section-subtitle">
-        <span class="i18n-en">
-          First-launch source consent guarantees zero external requests until you pick what to
-          enable. Reorder priorities globally or pin individual apps.
-        </span>
-        <span class="i18n-de">
-          Durch die bewusste Quellenauswahl beim Erststart sendet ApkUp keine Anfragen ohne deine
-          Zustimmung. Prioritäten lassen sich global sortieren oder pro App festpinnen.
-        </span>
-      </p>
+      <h2 class="section-title">{t.sources.title}</h2>
+      <p class="section-subtitle">{t.sources.subtitle}</p>
     </div>
 
     <div class="sources-grid">
       {
-        SOURCES.map((source) => (
-          <article class="source-card has-spotlight">
-            <div class="source-top">
-              <h3>{source.name}</h3>
-              <span class="pill-badge pill-neutral mono">{source.tag}</span>
-            </div>
-            <p>
-              <span class="i18n-en">{source.en}</span>
-              <span class="i18n-de">{source.de}</span>
-            </p>
-          </article>
-        ))
+        SOURCES.map((source) => {
+          const item = t.sources.items[source.id as SourceKey];
+          return (
+            <article class="source-card has-spotlight">
+              <div class="source-top">
+                <h3>{source.name}</h3>
+                <span class="pill-badge pill-neutral mono">{item.tag}</span>
+              </div>
+              <p>{item.desc}</p>
+            </article>
+          );
+        })
       }
     </div>
 
     <div class="quick-compat-box">
       <div class="quick-compat-row">
-        <strong class="quick-compat-title">
-          <span class="i18n-en">Quick URL Test:</span>
-          <span class="i18n-de">Schneller URL-Test:</span>
-        </strong>
+        <strong class="quick-compat-title">{t.sources.quickTest.title}</strong>
         <input
           type="url"
           id="quick-compat-input"
           class="quick-compat-input mono"
-          placeholder="https://github.com/owner/repo or https://gitlab.com/group/sub/repo"
-          aria-label="Repository or store URL"
+          placeholder={t.sources.quickTest.placeholder}
+          aria-label={t.sources.quickTest.ariaLabel}
         />
-        <a class="quick-compat-link" href={`${base}compare/#checker`}>
-          <span class="i18n-en">Obtainium JSON Checker →</span>
-          <span class="i18n-de">Obtainium-JSON-Tester →</span>
+        <a class="quick-compat-link" href={localePath(lang, 'compare/#checker')}>
+          {t.sources.quickTest.checkerLink}
         </a>
       </div>
       <div class="quick-compat-bottom">
@@ -68,168 +59,59 @@ const base = getBaseUrl();
           <button type="button" class="preset-chip mono" data-preset-url="https://www.apkmirror.com/apk/google-inc/android-auto/">APKMirror</button>
           <button type="button" class="preset-chip mono" data-preset-url="https://play.google.com/store/apps/details?id=org.thoughtcrime.securesms">Play Store</button>
         </div>
-        <span class="quick-compat-hint">
-          <span class="i18n-en">Click a preset or paste any repo URL</span>
-          <span class="i18n-de">Beispiel wählen oder eigene Repo-URL einfügen</span>
-        </span>
+        <span class="quick-compat-hint">{t.sources.quickTest.hint}</span>
       </div>
       <div class="quick-compat-result" id="quick-compat-result" role="status" hidden></div>
     </div>
 
     <div class="silent-box">
       <div class="silent-intro">
-        <span class="pill-badge pill-emerald">
-          <span class="i18n-en">Optional • Shizuku or Root (su)</span>
-          <span class="i18n-de">Optional • Shizuku oder Root (su)</span>
-        </span>
-        <h3>
-          <span class="i18n-en">Optional silent background updates</span>
-          <span class="i18n-de">Optionale Hintergrund-Updates (Shizuku &amp; Root)</span>
-        </h3>
-        <p>
-          <span class="i18n-en">
-            Standard Android installs work out of the box without any extra setup. If you want
-            hands-free background installs, pair ApkUp with Shizuku (no Root required) or enable
-            optional Root (su) with Wi-Fi and charging guards.
-          </span>
-          <span class="i18n-de">
-            Der normale Android-Installationsweg funktioniert jederzeit ohne Einrichtung. Wer
-            lautlose Hintergrund-Updates möchte, kann optional Shizuku (ohne Root) oder Root (su)
-            samt WLAN- und Lade-Regeln aktivieren.
-          </span>
-        </p>
-        <div class="silent-mode-toggle" role="group" aria-label="Install mode">
+        <span class="pill-badge pill-emerald">{t.sources.silent.badge}</span>
+        <h3>{t.sources.silent.title}</h3>
+        <p>{t.sources.silent.desc}</p>
+        <div class="silent-mode-toggle" role="group" aria-label={t.sources.silent.modeAria}>
           <button type="button" class="mode-pill is-active" data-silent-mode="shizuku">
-            <span class="i18n-en">Shizuku (No Root)</span>
-            <span class="i18n-de">Shizuku (Ohne Root)</span>
+            {t.sources.silent.shizukuBtn}
           </button>
           <button type="button" class="mode-pill" data-silent-mode="root">
-            <span class="i18n-en">Root (su)</span>
-            <span class="i18n-de">Root (su)</span>
+            {t.sources.silent.rootBtn}
           </button>
         </div>
         <a
           class="btn btn-secondary"
           id="silent-wiki-btn"
-          href={`${base}wiki/#doc-shizuku-setup`}
-          data-shizuku-href={`${base}wiki/#doc-shizuku-setup`}
-          data-root-href={`${base}wiki/#doc-shizuku-deep`}
+          href={localePath(lang, 'wiki/#doc-shizuku-setup')}
+          data-shizuku-href={localePath(lang, 'wiki/#doc-shizuku-setup')}
+          data-root-href={localePath(lang, 'wiki/#doc-shizuku-deep')}
+          data-shizuku-label={t.sources.silent.shizukuGuideBtn}
+          data-root-label={t.sources.silent.rootGuideBtn}
         >
-          <span class="i18n-en" data-silent-btn-en>Shizuku Setup Guide</span>
-          <span class="i18n-de" data-silent-btn-de>Shizuku-Anleitung im Wiki</span>
+          {t.sources.silent.shizukuGuideBtn}
         </a>
       </div>
 
       <ol class="silent-steps" data-mode-panel="shizuku">
-        <li>
-          <span class="step-num mono">01</span>
-          <div>
-            <h4>
-              <span class="i18n-en">Start Shizuku via Wireless Debugging</span>
-              <span class="i18n-de">Shizuku per Wireless Debugging starten</span>
-            </h4>
-            <p>
-              <span class="i18n-en">
-                Enable Shizuku on Android 11+ in under a minute without unlocking your bootloader.
-              </span>
-              <span class="i18n-de">
-                Aktiviere Shizuku ab Android 11 in unter einer Minute – ganz ohne Bootloader-Unlock.
-              </span>
-            </p>
-          </div>
-        </li>
-        <li>
-          <span class="step-num mono">02</span>
-          <div>
-            <h4>
-              <span class="i18n-en">Grant ApkUp permission &amp; set guards</span>
-              <span class="i18n-de">Berechtigung erteilen &amp; Regeln setzen</span>
-            </h4>
-            <p>
-              <span class="i18n-en">
-                Toggle silent updates in Setup and configure Wi-Fi-only, charging-only, and quiet
-                hours.
-              </span>
-              <span class="i18n-de">
-                Aktiviere Hintergrund-Updates im Setup und lege WLAN-, Lade- sowie Ruhezeit-Regeln
-                fest.
-              </span>
-            </p>
-          </div>
-        </li>
-        <li>
-          <span class="step-num mono">03</span>
-          <div>
-            <h4>
-              <span class="i18n-en">Verified auto-install with rollback safety</span>
-              <span class="i18n-de">Verifizierte Installation samt Rollback-Schutz</span>
-            </h4>
-            <p>
-              <span class="i18n-en">
-                Every APK passes v2/v3 signature and compatibility checks first, with optional
-                pre-update backup.
-              </span>
-              <span class="i18n-de">
-                Jede APK durchläuft zuerst Signatur- und Kompatibilitätsprüfungen – auf Wunsch mit
-                Backup vorab.
-              </span>
-            </p>
-          </div>
-        </li>
+        {t.sources.silent.shizukuSteps.map((step, i) => (
+          <li>
+            <span class="step-num mono">0{i + 1}</span>
+            <div>
+              <h4>{step.title}</h4>
+              <p>{step.desc}</p>
+            </div>
+          </li>
+        ))}
       </ol>
 
       <ol class="silent-steps" data-mode-panel="root" hidden>
-        <li>
-          <span class="step-num mono">01</span>
-          <div>
-            <h4>
-              <span class="i18n-en">Grant Superuser (su) once</span>
-              <span class="i18n-de">Superuser (su) einmalig freigeben</span>
-            </h4>
-            <p>
-              <span class="i18n-en">
-                Select Root (su) in ApkUp Setup and confirm the Magisk / KernelSU / APatch prompt.
-              </span>
-              <span class="i18n-de">
-                Wähle Root (su) im ApkUp-Setup und bestätige die Magisk- / KernelSU- / APatch-Anfrage.
-              </span>
-            </p>
-          </div>
-        </li>
-        <li>
-          <span class="step-num mono">02</span>
-          <div>
-            <h4>
-              <span class="i18n-en">Direct pm-install without Shizuku service</span>
-              <span class="i18n-de">Direkte Installation ohne Shizuku-Dienst</span>
-            </h4>
-            <p>
-              <span class="i18n-en">
-                Works immediately after every reboot without needing Wireless Debugging or ADB pairing.
-              </span>
-              <span class="i18n-de">
-                Funktioniert nach jedem Neustart sofort – ganz ohne Kabelloses Debugging oder ADB.
-              </span>
-            </p>
-          </div>
-        </li>
-        <li>
-          <span class="step-num mono">03</span>
-          <div>
-            <h4>
-              <span class="i18n-en">One-tap in-place rollbacks</span>
-              <span class="i18n-de">Direkte In-Place-Rollbacks</span>
-            </h4>
-            <p>
-              <span class="i18n-en">
-                Root enables seamless downgrades (-d) from your Update History if an app update misbehaves.
-              </span>
-              <span class="i18n-de">
-                Root ermöglicht nahtlose Downgrades (-d) direkt aus dem Update-Verlauf.
-              </span>
-            </p>
-          </div>
-        </li>
+        {t.sources.silent.rootSteps.map((step, i) => (
+          <li>
+            <span class="step-num mono">0{i + 1}</span>
+            <div>
+              <h4>{step.title}</h4>
+              <p>{step.desc}</p>
+            </div>
+          </li>
+        ))}
       </ol>
     </div>
   </div>
@@ -240,8 +122,6 @@ const base = getBaseUrl();
     var modeBtns = document.querySelectorAll('[data-silent-mode]');
     var modePanels = document.querySelectorAll('[data-mode-panel]');
     var wikiBtn = document.getElementById('silent-wiki-btn');
-    var btnEn = document.querySelector('[data-silent-btn-en]');
-    var btnDe = document.querySelector('[data-silent-btn-de]');
     modeBtns.forEach(function (btn) {
       btn.addEventListener('click', function () {
         var mode = btn.getAttribute('data-silent-mode');
@@ -254,15 +134,21 @@ const base = getBaseUrl();
         if (wikiBtn) {
           var isRoot = mode === 'root';
           wikiBtn.setAttribute('href', wikiBtn.getAttribute(isRoot ? 'data-root-href' : 'data-shizuku-href') || '');
-          if (btnEn) btnEn.textContent = isRoot ? 'Root & Background Guide' : 'Shizuku Setup Guide';
-          if (btnDe) btnDe.textContent = isRoot ? 'Root- & Hintergrund-Anleitung im Wiki' : 'Shizuku-Anleitung im Wiki';
+          wikiBtn.textContent = wikiBtn.getAttribute(isRoot ? 'data-root-label' : 'data-shizuku-label') || '';
         }
       });
     });
   })();
 </script>
 
-<script is:inline>
+<script
+  is:inline
+  define:vars={{
+    detectedMap: t.sources.quickTest.detected,
+    wikiLinkText: t.sources.quickTest.wikiLink,
+    wikiSourcesHref,
+  }}
+>
   (function () {
     var input = document.getElementById('quick-compat-input');
     var result = document.getElementById('quick-compat-result');
@@ -272,60 +158,13 @@ const base = getBaseUrl();
       var url = (raw || '').trim();
       if (!url) return null;
       var lower = url.toLowerCase();
-      if (lower.includes('github.com/')) {
-        return {
-          ok: true,
-          source: 'GitHub Releases',
-          en: 'Supported natively — supports GraphQL batching (with PAT), asset regex filters, and SHA-256 verification.',
-          de: 'Nativ unterstützt – inklusive gebündelter GraphQL-Abfragen (mit Token), Regex-Asset-Filter und SHA-256-Prüfung.',
-        };
-      }
-      if (lower.includes('gitlab.com/') || lower.includes('gitlab.')) {
-        return {
-          ok: true,
-          source: 'GitLab (incl. Subgroups)',
-          en: 'Supported natively — handles multi-level subgroup paths and host-isolated personal access tokens.',
-          de: 'Nativ unterstützt – verarbeitet auch mehrstufige Subgroup-Pfade sowie host-isolierte Tokens.',
-        };
-      }
-      if (lower.includes('codeberg.org/') || lower.includes('forgejo') || lower.includes('gitea')) {
-        return {
-          ok: true,
-          source: 'Codeberg / Forgejo',
-          en: 'Supported natively — automatic ABI matching and custom self-hosted Forgejo/Gitea instance support.',
-          de: 'Nativ unterstützt – inklusive automatischer ABI-Erkennung und selbst gehosteter Forgejo/Gitea-Instanzen.',
-        };
-      }
-      if (lower.includes('f-droid.org') || lower.includes('izzysoft.de') || lower.includes('/fdroid/')) {
-        return {
-          ok: true,
-          source: 'F-Droid Index V2 / IzzyOnDroid',
-          en: 'Supported natively — uses RFC 7396 incremental diffs with cryptographic JAR fingerprint verification.',
-          de: 'Nativ unterstützt – nutzt inkrementelle RFC-7396-Diffs samt kryptografischer JAR-Fingerprint-Prüfung.',
-        };
-      }
-      if (lower.includes('apkmirror.com/')) {
-        return {
-          ok: true,
-          source: 'APKMirror (.apkm)',
-          en: 'Supported natively — direct in-app downloads, .apkm split-bundle extraction, and Cloudflare WebView fallback.',
-          de: 'Nativ unterstützt – direkter In-App-Download, .apkm-Split-Entpackung und Cloudflare-WebView-Fallback.',
-        };
-      }
-      if (lower.includes('play.google.com/')) {
-        return {
-          ok: true,
-          source: 'Google Play Store',
-          en: 'Supported anonymously — checks compatible updates via Aurora Dispenser without a Google account.',
-          de: 'Anonym unterstützt – prüft kompatible Updates über Aurora Dispenser ganz ohne Google-Konto.',
-        };
-      }
-      return {
-        ok: false,
-        source: 'Custom Host',
-        en: 'Could be a self-hosted GitLab, Forgejo, or custom HTTPS F-Droid repo — add it via Custom Repo Binding or F-Droid ?fingerprint= in Setup.',
-        de: 'Möglicherweise selbst gehostetes GitLab, Forgejo oder ein eigenes HTTPS-F-Droid-Repo – lässt sich im Setup als Custom-Repo oder ?fingerprint= hinzufügen.',
-      };
+      if (lower.includes('github.com/')) return Object.assign({ ok: true }, detectedMap.github);
+      if (lower.includes('gitlab.com/') || lower.includes('gitlab.')) return Object.assign({ ok: true }, detectedMap.gitlab);
+      if (lower.includes('codeberg.org/') || lower.includes('forgejo') || lower.includes('gitea')) return Object.assign({ ok: true }, detectedMap.codeberg);
+      if (lower.includes('f-droid.org') || lower.includes('izzysoft.de') || lower.includes('/fdroid/')) return Object.assign({ ok: true }, detectedMap.fdroid);
+      if (lower.includes('apkmirror.com/')) return Object.assign({ ok: true }, detectedMap.apkmirror);
+      if (lower.includes('play.google.com/')) return Object.assign({ ok: true }, detectedMap.playstore);
+      return Object.assign({ ok: false }, detectedMap.custom);
     }
 
     function render(val) {
@@ -334,17 +173,20 @@ const base = getBaseUrl();
         result.hidden = true;
         return;
       }
-      var isDe = document.documentElement.getAttribute('data-lang') === 'de';
       result.hidden = false;
       result.className = 'quick-compat-result ' + (info.ok ? 'is-ok' : 'is-warn');
-      result.innerHTML =
-        '<strong>' +
-        info.source +
-        '</strong><span>' +
-        (isDe ? info.de : info.en) +
-        ' <a href="/apkup/wiki/#doc-sources" style="color:var(--accent);font-weight:700;">' +
-        (isDe ? 'Im Wiki →' : 'Wiki →') +
-        '</a></span>';
+      result.innerHTML = '';
+      var strong = document.createElement('strong');
+      strong.textContent = info.source;
+      var span = document.createElement('span');
+      span.textContent = info.msg + ' ';
+      var a = document.createElement('a');
+      a.href = wikiSourcesHref;
+      a.style.cssText = 'color:var(--accent);font-weight:700;';
+      a.textContent = wikiLinkText;
+      span.appendChild(a);
+      result.appendChild(strong);
+      result.appendChild(span);
     }
 
     input.addEventListener('input', function () {
@@ -356,10 +198,6 @@ const base = getBaseUrl();
         input.value = btn.getAttribute('data-preset-url') || '';
         render(input.value);
       });
-    });
-
-    window.addEventListener('apkup:langchange', function () {
-      if (input.value) render(input.value);
     });
   })();
 </script>
@@ -590,47 +428,6 @@ const base = getBaseUrl();
     color: var(--accent-ink);
   }
 
-  .quick-compat-result.is-ok {
-    animation: quickBounce 260ms cubic-bezier(0.2, 0, 0, 1);
-  }
-
-  @keyframes quickBounce {
-    0% { opacity: 0.5; transform: scale(0.97); }
-    70% { transform: scale(1.015); }
-    100% { opacity: 1; transform: scale(1); }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .silent-mode-toggle {
-    display: inline-flex;
-    padding: 4px;
-    border-radius: var(--radius-pill);
-    background: var(--bg);
-    border: 1px solid var(--outline);
-    gap: 4px;
-    margin-block: 10px 14px;
-  }
-
-  .mode-pill {
-    min-height: 36px;
-    padding: 6px 14px;
-    border-radius: var(--radius-pill);
-    border: none;
-    background: transparent;
-    color: var(--text-muted);
-    font-size: 0.82rem;
-    font-weight: 700;
-    transition: background-color 160ms ease-out, color 160ms ease-out;
-  }
-
-  .mode-pill.is-active {
-    background: var(--accent);
-    color: var(--accent-ink);
-  }
-
-  .quick-compat-result.is-ok { animation: none; }
-  }
-
   .quick-compat-result {
     padding: 14px 16px;
     border-radius: var(--radius-md);
@@ -644,40 +441,24 @@ const base = getBaseUrl();
     display: none;
   }
 
-  .silent-mode-toggle {
-    display: inline-flex;
-    padding: 4px;
-    border-radius: var(--radius-pill);
-    background: var(--bg);
-    border: 1px solid var(--outline);
-    gap: 4px;
-    margin-block: 10px 14px;
-  }
-
-  .mode-pill {
-    min-height: 36px;
-    padding: 6px 14px;
-    border-radius: var(--radius-pill);
-    border: none;
-    background: transparent;
-    color: var(--text-muted);
-    font-size: 0.82rem;
-    font-weight: 700;
-    transition: background-color 160ms ease-out, color 160ms ease-out;
-  }
-
-  .mode-pill.is-active {
-    background: var(--accent);
-    color: var(--accent-ink);
-  }
-
   .quick-compat-result.is-ok {
     background: var(--tertiary-soft);
     color: var(--tertiary-soft-ink);
+    animation: quickBounce 260ms cubic-bezier(0.2, 0, 0, 1);
   }
 
   .quick-compat-result.is-warn {
     background: var(--accent-soft);
     color: var(--accent-soft-ink);
+  }
+
+  @keyframes quickBounce {
+    0% { opacity: 0.5; transform: scale(0.97); }
+    70% { transform: scale(1.015); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .quick-compat-result.is-ok { animation: none; }
   }
 </style>
