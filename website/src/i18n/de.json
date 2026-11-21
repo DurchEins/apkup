@@ -49,7 +49,7 @@
     "openSourceBadge": "GPL-3.0 Open Source",
     "title": "Alle Android-App-Updates. Eine sichere App.",
     "lead": "ApkUp findet, prüft und installiert App-Updates über Google Play, F-Droid Index V2, IzzyOnDroid, APKMirror, GitHub, GitLab und Codeberg – komplett werbefrei, ohne Tracking und auf Wunsch lautlos im Hintergrund per Shizuku oder Root.",
-    "downloadPrefix": "",
+    "downloadPrefix": "Download",
     "downloadSuffix": "laden",
     "qrCode": "QR-Code",
     "share": "Teilen",
@@ -295,7 +295,7 @@
     "recommended": "Empfohlen",
     "cardTitle": "GitHub Releases (Direkte signierte APK)",
     "cardDesc": "Offiziell signiertes CI-Release-Artefakt mit SHA256SUMS-Prüfung und integriertem Selbst-Updater.",
-    "downloadPrefix": "",
+    "downloadPrefix": "Download",
     "downloadSuffix": "laden",
     "qrCode": "QR-Code",
     "whatsNew": "Was ist neu?",
@@ -398,7 +398,7 @@
     "canonicalBadge": "Kanonischer Signierter CI-Build",
     "cardTitle": "GitHub Releases (Direkte signierte APK)",
     "cardDesc": "Universelle APK mit integriertem Selbst-Updater und kryptografischer SHA-256-Prüfung.",
-    "downloadPrefix": "",
+    "downloadPrefix": "Download",
     "downloadSuffix": "laden",
     "whatsNew": "Was ist neu?",
     "installUnknown": "Unbekannte Apps installieren →",
@@ -779,13 +779,21 @@
       {
         "title": "Entwickleroptionen freischalten (7× Build-Nummer)",
         "body": "Öffne Einstellungen → Über das Telefon (bei Samsung: Softwareinformationen) und tippe 7-mal auf die Build-Nummer, bis „Du bist jetzt Entwickler!“ erscheint.",
-        "chips": ["Einstellungen", "Über das Telefon", "Build-Nummer (7×)"],
+        "chips": [
+          "Einstellungen",
+          "Über das Telefon",
+          "Build-Nummer (7×)"
+        ],
         "toast": "🎉 Du bist jetzt Entwickler!"
       },
       {
         "title": "„Apps von nicht verifizierten Entwicklern“ aktivieren",
         "body": "Gehe zu Einstellungen → System → Entwickleroptionen (oder suche in den Einstellungen nach Entwickleroptionen), tippe auf Apps von nicht verifizierten Entwicklern und aktiviere die Freigabe.",
-        "chips": ["System", "Entwickleroptionen", "Nicht verifizierte Entwickler"]
+        "chips": [
+          "System",
+          "Entwickleroptionen",
+          "Nicht verifizierte Entwickler"
+        ]
       },
       {
         "title": "Displaysperre bestätigen & Gerät neu starten",
