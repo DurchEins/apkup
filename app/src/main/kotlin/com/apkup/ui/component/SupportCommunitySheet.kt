@@ -94,30 +94,7 @@ fun openInCustomTab(
 	context: Context,
 	url: String,
 	toolbarColorArgb: Int
-) {
-	if (!com.apkup.util.isSafeHttpsUrl(url)) return
-	val uri = runCatching { Uri.parse(url.trim()) }.getOrNull() ?: return
-	val launchedCustomTab = runCatching {
-		val colorParams = CustomTabColorSchemeParams.Builder()
-			.setToolbarColor(toolbarColorArgb)
-			.build()
-		val customTabsIntent = CustomTabsIntent.Builder()
-			.setDefaultColorSchemeParams(colorParams)
-			.setShowTitle(true)
-			.setUrlBarHidingEnabled(true)
-			.build()
-		customTabsIntent.launchUrl(context, uri)
-	}.isSuccess
-	if (!launchedCustomTab) {
-		runCatching {
-			context.startActivity(
-				Intent(Intent.ACTION_VIEW, uri).apply {
-					addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-				}
-			)
-		}
-	}
-}
+) = com.apkup.util.openInCustomTab(context, url, toolbarColorArgb)
 
 @Composable
 fun rememberCustomTabOpener(): (String) -> Unit {

@@ -1,0 +1,5 @@
+1.45.1 (218) – Patch & Fix:
+• New ApkUp website (durcheins.github.io/apkup) with guides, downloads & direct Help link in About
+• New "Support ApkUp" section in About with support options plus star & review links for GitHub, GitLab & app stores
+• External repository, help, and fallback links now open seamlessly right inside the app
+• Stronger safety checks for Root rollbacks, split APKs, filter patterns & cleaner diagnostic log redaction

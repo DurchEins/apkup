@@ -194,10 +194,15 @@ fun UriHandler.openSafeHttpsUri(url: String): Boolean {
 }
 
 /**
- * Safely opens an external HTTPS URL in a browser, strictly rejecting `intent://`, `javascript:`,
- * `file://`, `content://`, or cleartext `http://` schemes (HIGH-22).
+ * Opens an external HTTPS [url] in a Chrome Custom Tab (with optional [toolbarColorArgb]),
+ * falling back to a standard `ACTION_VIEW` browser intent if no Custom Tabs provider is available.
+ * Strictly rejects non-HTTPS schemes (`intent://`, `javascript:`, `file://`, `content://`, `http://`).
  */
-fun Context.openUrl(url: String) {
+fun openInCustomTab(
+    context: Context,
+    url: String,
+    toolbarColorArgb: Int? = null
+) {
     val trimmed = url.trim()
     if (!isSafeHttpsUrl(trimmed)) {
         if (trimmed.isNotEmpty()) {
@@ -205,12 +210,36 @@ fun Context.openUrl(url: String) {
         }
         return
     }
-    runCatching {
-        val uri = trimmed.toUri()
-        val intent = Intent(Intent.ACTION_VIEW, uri).apply {
-            addCategory(Intent.CATEGORY_BROWSABLE)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    val uri = runCatching { trimmed.toUri() }.getOrNull() ?: return
+    val launchedCustomTab = runCatching {
+        val builder = androidx.browser.customtabs.CustomTabsIntent.Builder()
+            .setShowTitle(true)
+            .setUrlBarHidingEnabled(true)
+        if (toolbarColorArgb != null) {
+            val colorParams = androidx.browser.customtabs.CustomTabColorSchemeParams.Builder()
+                .setToolbarColor(toolbarColorArgb)
+                .build()
+            builder.setDefaultColorSchemeParams(colorParams)
         }
-        startActivity(intent)
+        val customTabsIntent = builder.build()
+        if (context !is android.app.Activity) {
+            customTabsIntent.intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        customTabsIntent.launchUrl(context, uri)
+    }.isSuccess
+    if (!launchedCustomTab) {
+        runCatching {
+            val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+                addCategory(Intent.CATEGORY_BROWSABLE)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+        }
     }
 }
+
+/**
+ * Safely opens an external HTTPS URL in a Chrome Custom Tab (falling back to a browser `ACTION_VIEW`
+ * intent), strictly rejecting `intent://`, `javascript:`, `file://`, `content://`, or `http://`.
+ */
+fun Context.openUrl(url: String) = openInCustomTab(this, url)

@@ -2596,7 +2596,7 @@ fun Settings(
 						modifier = Modifier
 							.fillMaxWidth()
 							.clip(RoundedCornerShape(10.dp))
-							.clickable { handler.openSafeHttpsUri("https://github.com/rumboalla/apkupdater") }
+							.clickable { openCustomTab("https://github.com/rumboalla/apkupdater") }
 							.padding(horizontal = 8.dp, vertical = 6.dp),
 						verticalAlignment = CenterVertically,
 						horizontalArrangement = Arrangement.Center
@@ -2708,12 +2708,10 @@ fun Settings(
 					Intent.ACTION_VIEW,
 					"market://details?id=${SessionInstaller.SHIZUKU_PACKAGE_NAME}".toUri()
 				).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-				val webIntent = Intent(
-					Intent.ACTION_VIEW,
-					"https://play.google.com/store/apps/details?id=${SessionInstaller.SHIZUKU_PACKAGE_NAME}".toUri()
-				).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 				runCatching { context.startActivity(marketIntent) }
-					.onFailure { runCatching { context.startActivity(webIntent) } }
+					.onFailure {
+						openCustomTab("https://play.google.com/store/apps/details?id=${SessionInstaller.SHIZUKU_PACKAGE_NAME}")
+					}
 			},
 			onOpenShizukuApp = {
 				context.packageManager
@@ -3139,6 +3137,7 @@ private fun ApiTokenBottomSheet(
 						}
 
 						AnimatedVisibility(visible = isGuideExpanded) {
+							val tokenCustomTab = com.apkup.ui.component.rememberCustomTabOpener()
 							Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
 								Text(
 									text = stringResource(R.string.token_guide_hint),
@@ -3151,7 +3150,7 @@ private fun ApiTokenBottomSheet(
 								) {
 									if (!createTokenUrl.isNullOrBlank() && !createTokenButtonText.isNullOrBlank()) {
 										FilledTonalButton(
-											onClick = { uriHandler.openSafeHttpsUri(createTokenUrl) },
+											onClick = { tokenCustomTab(createTokenUrl) },
 											modifier = Modifier.weight(1f),
 											shape = RoundedCornerShape(14.dp),
 											contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp)
@@ -3167,7 +3166,7 @@ private fun ApiTokenBottomSheet(
 									}
 									if (!guideUrl.isNullOrBlank()) {
 										OutlinedButton(
-											onClick = { uriHandler.openSafeHttpsUri(guideUrl) },
+											onClick = { tokenCustomTab(guideUrl) },
 											modifier = Modifier.weight(1f),
 											shape = RoundedCornerShape(14.dp),
 											contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp)

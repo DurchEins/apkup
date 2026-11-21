@@ -523,7 +523,7 @@ fun UpdatesScreenError(
 	viewModel: UpdatesViewModel,
 	onOpenHistory: (() -> Unit)? = null
 ) = Column(Modifier.fillMaxSize()) {
-	val handler = LocalUriHandler.current
+	val handler = com.apkup.ui.component.rememberCustomTabUriHandler()
 	UpdatesTopBar(viewModel = viewModel, onOpenHistory = onOpenHistory)
 	UpdatesMessage(
 		title = stringResource(R.string.updates_error_title),
@@ -554,7 +554,7 @@ fun UpdatesScreenSuccess(
 		.background(MaterialTheme.colorScheme.background)
 ) {
 	val context = LocalContext.current
-	val handler = LocalUriHandler.current
+	val handler = com.apkup.ui.component.rememberCustomTabUriHandler()
 	val displayMode = viewModel.getUpdatesDisplayMode()
 	val view = LocalView.current
 	DisposableEffect(isChecking) {
@@ -3115,7 +3115,7 @@ private fun UpdateDetailsSheet(
 	onIgnoreAppPermanently: (String) -> Unit
 ) {
 	val context = LocalContext.current
-	val handler = LocalUriHandler.current
+	val handler = com.apkup.ui.component.rememberCustomTabUriHandler()
 	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 	val liveTask = activeTasksMap[update.id]
 		?: activeTasksMap.values.firstOrNull { it.packageName == update.packageName }
@@ -3366,8 +3366,9 @@ private fun UpdateDetailsSheet(
 			}
 
 			if (showSignatureWarning) {
+				val openCustomTab = com.apkup.ui.component.rememberCustomTabOpener()
 				Surface(
-					onClick = { handler.openSafeHttpsUri(resolveWikiUrlForSourceError("signature")) },
+					onClick = { openCustomTab(resolveWikiUrlForSourceError("signature")) },
 					shape = RoundedCornerShape(16.dp),
 					color = MaterialTheme.colorScheme.tertiaryContainer
 				) {

@@ -117,6 +117,8 @@ fun UpdateHistoryBottomSheet(
         }
     }
 
+    val openCustomTab = rememberCustomTabOpener()
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -284,7 +286,7 @@ fun UpdateHistoryBottomSheet(
                             displayAppName = displayAppName,
                             previousVersionUrl = prevUrl,
                             onOpenPreviousVersion = { url ->
-                                uriHandler.openSafeHttpsUri(url)
+                                openCustomTab(url)
                             },
                             backupMeta = backupMeta,
                             onRequestRollback = if (backupMeta != null) {

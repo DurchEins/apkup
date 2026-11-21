@@ -1,5 +1,0 @@
-1.45.1 (217) – Patch & Bugfix:
-• Dezente „ApkUp unterstützen“-Karte im Über-Bereich mit Buy Me a Coffee & Coindrop per Chrome Custom Tabs
-• Direkte Stern- und Store-Review-Links (GitHub, GitLab, AlternativeTo, Komi Store, Zapstore, APKPure, itch.io, Appteka)
-• Einmalige, sanfte Community-Erinnerung nach 5 Tagen Nutzung oder 5 erfolgreichen Updates
-• Hilfe & Wiki im Über-Bereich verlinkt jetzt direkt auf das neue Website-Wiki (durcheins.github.io/apkup/wiki/)
