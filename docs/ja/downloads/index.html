@@ -516,11 +516,14 @@ const shaMismatchMsg = "不一致 ✕";
     var shaText = '';
 
     function flashBtn(btn) {
-      var orig = btn.innerHTML;
-      btn.textContent = '✓';
+      if (!btn.dataset.origLabel) {
+        btn.dataset.origLabel = btn.textContent || '';
+      }
+      clearTimeout(btn._flashTimer);
+      btn.textContent = '✓ Copied';
       btn.classList.add('is-copied');
-      setTimeout(function () {
-        btn.innerHTML = orig;
+      btn._flashTimer = setTimeout(function () {
+        btn.textContent = btn.dataset.origLabel;
         btn.classList.remove('is-copied');
       }, 1600);
     }
@@ -573,6 +576,12 @@ const shaMismatchMsg = "不一致 ✕";
     if (copyBtn) {
       copyBtn.addEventListener('click', function () {
         copyText(shaText, copyBtn);
+      });
+    }
+    if (out) {
+      out.style.cursor = 'pointer';
+      out.addEventListener('click', function () {
+        if (shaText) copyText(shaText, copyBtn);
       });
     }
 
