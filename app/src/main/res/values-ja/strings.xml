@@ -30,7 +30,6 @@
     <string name="app_cd">アプリアイコン</string>
     <string name="install_success">%1$s をインストールしました。</string>
     <string name="install_failure">%1$s のインストールに失敗しました。</string>
-    <string name="install_error_signature_mismatch">セキュリティ警告: APK の署名証明書がインストール済みのアプリと一致しません。インストールをブロックしました。</string>
     <string name="install_error_hash_mismatch">セキュリティ警告: ダウンロードした APK の SHA-256 チェックサムが一致しません。インストールをブロックしました。</string>
     <string name="install_error_downgrade_blocked">バージョンのダウングレードが検出されたため、データ保護のためブロックしました。</string>
     <string name="install_error_integrity_failed">APK パッケージの検証に失敗しました（破損または不一致のパッケージ）。</string>
@@ -141,7 +140,6 @@
     <string name="fdroid_repo_url_label">HTTPS リポジトリ URL</string>
     <string name="fdroid_repo_name_label">表示名（任意）</string>
     <string name="fdroid_repo_fingerprint_label">SHA-256 フィンガープリント</string>
-    <string name="github_token_dialog_title">GitHub Personal Access Token</string>
     <string name="github_token_dialog_desc">GitHub API の制限 (HTTP 403) を回避するため、公開リポジトリの読み取り権限を持つ個人アクセストークンを入力してください。</string>
     <string name="github_token_dialog_hint">ghp_xxxxxxxxxxxx</string>
     <string name="github_token_dialog_clear">トークンを消去</string>
@@ -279,7 +277,6 @@
     <string name="apkmirror_resolution_failed_fallback">APKMirror ダウンロードリンクの取得に失敗しました。ブラウザーを開きます…</string>
     <string name="settings_source_github_desc">オープンソースや関連付けられたアプリの GitHub リリースを確認</string>
     <string name="settings_source_gitlab_desc">関連付けられたリポジトリの GitLab リリースを確認</string>
-    <string name="gitlab_token_dialog_title">GitLab 個人用アクセストークン</string>
     <string name="gitlab_token_dialog_hint">glpat-xxxxxxxxxxxx</string>
     <string name="gitlab_token_status_set">トークン設定済み</string>
     <string name="token_toggle_visibility">トークン表示の切り替え</string>
@@ -450,21 +447,6 @@
     <string name="token_action_generate_codeberg">Codeberg でトークンを作成</string>
     <string name="link_repo_host_hint_codeberg">codeberg.org（またはセルフホスト Forgejo）</string>
     <string name="repo_view_on_codeberg">Codeberg で開く</string>
-    <string name="settings_source_custom_fdroid_desc">サードパーティ製 F-Droid リポジトリ（F-Droid.org、GrapheneOS、Mullvad など）</string>
-    <string name="custom_fdroid_sheet_title">カスタム F-Droid リポジトリ</string>
-    <string name="custom_fdroid_sheet_subtitle">設定済みリポジトリ: %1$d</string>
-    <string name="custom_fdroid_presets_label">人気のプリセット</string>
-    <string name="custom_fdroid_add_title">リポジトリ URL を追加</string>
-    <string name="custom_fdroid_name_label">表示名</string>
-    <string name="custom_fdroid_name_hint">例: 公式 F-Droid</string>
-    <string name="custom_fdroid_url_label">リポジトリ URL</string>
-    <string name="custom_fdroid_url_hint">https://f-droid.org/repo</string>
-    <string name="custom_fdroid_fingerprint_label">SHA-256 フィンガープリント（任意）</string>
-    <string name="custom_fdroid_btn_add">リポジトリを追加</string>
-    <string name="custom_fdroid_empty">カスタム F-Droid リポジトリはまだ設定されていません。</string>
-    <string name="custom_fdroid_invalid_url">有効な HTTPS または fdroidrepo URL を入力してください（http:// は使用不可）。</string>
-    <string name="custom_fdroid_disallowed_host">セキュリティ上の理由によりこのホストはブロックされています。</string>
-    <string name="custom_fdroid_invalid_fingerprint">SHA-256 フィンガープリントは空にするか、64 文字の16進数である必要があります。</string>
     <string name="custom_fdroid_unpinned_badge">未固定 (TOFU)</string>
     <string name="custom_fdroid_unpinned_hint">SHA-256 フィンガープリント未固定 — 初回取得時のインデックス署名を信頼します</string>
     <string name="custom_fdroid_tofu_pinned_badge">固定済み (TOFU)</string>
@@ -481,7 +463,6 @@
     <string name="obtainium_import_nothing">互換性のある GitHub・GitLab・Codeberg・F-Droid エントリが見つかりませんでした。</string>
     <string name="apps_filter_watched">ウォッチ中</string>
     <string name="apps_watched_badge">ウォッチ中</string>
-    <string name="apps_watched_not_installed">未インストール · ウォッチ中</string>
     <string name="apps_watch_add_action">アプリをウォッチ</string>
     <string name="apps_watch_remove_action">ウォッチを解除</string>
     <string name="apps_watch_removed_snack">%1$s をウォッチリストから削除しました</string>
@@ -539,9 +520,7 @@
     <string name="pin_source_menu_action">Pin source</string>
     <string name="pin_source_menu_pinned">Pinned: %1$s</string>
     <string name="pin_source_chip_label">Pinned</string>
-    <string name="pin_source_unpin">Unpin</string>
     <string name="settings_include_prereleases_title">Include Pre-Releases (Alpha / Beta / RC)</string>
-    <string name="settings_include_prereleases_desc">Allow Alpha, Beta, RC, and Nightly versions globally. Can be overridden per app in the Pin Source sheet.</string>
     <string name="prerelease_override_section_title">Pre-Releases (Alpha / Beta / RC)</string>
     <string name="prerelease_override_default">Default</string>
     <string name="prerelease_override_allow">Always allow</string>
@@ -571,7 +550,6 @@
     <string name="watched_mark_seen_action">Seen</string>
     <string name="watched_mark_seen_snack">Marked v%1$s as seen</string>
     <string name="settings_import_app_watcher_title">Import from App Watcher</string>
-    <string name="settings_import_app_watcher_desc">Import uninstalled apps from an App Watcher JSON export into your Watchlist.</string>
     <string name="app_watcher_import_success">App Watcher: %1$d added to Watchlist (%2$d installed skipped)</string>
     <string name="app_watcher_import_error">Could not read App Watcher export file</string>
     <string name="settings_source_health_title">Source Health &amp; Cooldowns</string>

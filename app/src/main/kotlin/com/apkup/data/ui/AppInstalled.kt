@@ -65,14 +65,6 @@ private val FDROID_INSTALLERS = setOf(
 
 fun List<AppInstalled>.getApp(packageName: String) = find { packageName == it.packageName }
 
-fun List<AppInstalled>.getVersionCode(packageName: String) = getApp(packageName)
-	?.versionCode
-	?: 0L
-
-fun List<AppInstalled>.getVersion(packageName: String) = getApp(packageName)
-	?.version
-	?: ""
-
 fun List<AppInstalled>.getSignature(packageName: String) = getApp(packageName)
 	?.signature
 	.orEmpty()

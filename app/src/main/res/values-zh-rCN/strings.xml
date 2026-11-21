@@ -30,7 +30,6 @@
     <string name="app_cd">应用图标</string>
     <string name="install_success">%1$s 安装成功。</string>
     <string name="install_failure">%1$s 安装失败。</string>
-    <string name="install_error_signature_mismatch">安全警告：APK 签名证书与已安装应用不匹配，安装已阻止。</string>
     <string name="install_error_hash_mismatch">安全警告：下载的 APK SHA-256 校验和不匹配，安装已阻止。</string>
     <string name="install_error_downgrade_blocked">检测到版本降级，已阻止安装以保护应用数据。</string>
     <string name="install_error_integrity_failed">APK 安装包验证失败（文件损坏或包名不匹配）。</string>
@@ -141,7 +140,6 @@
     <string name="fdroid_repo_url_label">HTTPS 软件源地址</string>
     <string name="fdroid_repo_name_label">显示名称（可选）</string>
     <string name="fdroid_repo_fingerprint_label">SHA-256 指纹</string>
-    <string name="github_token_dialog_title">GitHub 个人访问令牌</string>
     <string name="github_token_dialog_desc">输入仅具有公开仓库读取权限的个人访问令牌，以避免 GitHub API 速率限制 (HTTP 403)。</string>
     <string name="github_token_dialog_hint">ghp_xxxxxxxxxxxx</string>
     <string name="github_token_dialog_clear">清除令牌</string>
@@ -280,7 +278,6 @@
     <string name="apkmirror_resolution_failed_fallback">APKMirror 下载链接解析失败，正在打开浏览器…</string>
     <string name="settings_source_github_desc">检查开源及已关联应用的 GitHub 发布版</string>
     <string name="settings_source_gitlab_desc">检查已关联仓库的 GitLab 发布版</string>
-    <string name="gitlab_token_dialog_title">GitLab 个人访问令牌</string>
     <string name="gitlab_token_dialog_hint">glpat-xxxxxxxxxxxx</string>
     <string name="gitlab_token_status_set">令牌已配置</string>
     <string name="token_toggle_visibility">切换令牌可见性</string>
@@ -451,21 +448,6 @@
     <string name="token_action_generate_codeberg">在 Codeberg 上创建令牌</string>
     <string name="link_repo_host_hint_codeberg">codeberg.org（或自托管 Forgejo）</string>
     <string name="repo_view_on_codeberg">在 Codeberg 上打开</string>
-    <string name="settings_source_custom_fdroid_desc">第三方 F-Droid 仓库（F-Droid.org、GrapheneOS、Mullvad 等）</string>
-    <string name="custom_fdroid_sheet_title">自定义 F-Droid 仓库</string>
-    <string name="custom_fdroid_sheet_subtitle">已配置仓库：%1$d</string>
-    <string name="custom_fdroid_presets_label">常用预设</string>
-    <string name="custom_fdroid_add_title">添加仓库 URL</string>
-    <string name="custom_fdroid_name_label">显示名称</string>
-    <string name="custom_fdroid_name_hint">例如 官方 F-Droid</string>
-    <string name="custom_fdroid_url_label">仓库 URL</string>
-    <string name="custom_fdroid_url_hint">https://f-droid.org/repo</string>
-    <string name="custom_fdroid_fingerprint_label">SHA-256 指纹（可选）</string>
-    <string name="custom_fdroid_btn_add">添加仓库</string>
-    <string name="custom_fdroid_empty">尚未配置自定义 F-Droid 仓库。</string>
-    <string name="custom_fdroid_invalid_url">请输入有效的 HTTPS 或 fdroidrepo URL（不允许使用 http://）。</string>
-    <string name="custom_fdroid_disallowed_host">出于安全原因，此仓库主机已被阻止。</string>
-    <string name="custom_fdroid_invalid_fingerprint">SHA-256 指纹必须为空或恰好包含 64 个十六进制字符。</string>
     <string name="custom_fdroid_unpinned_badge">未固定 (TOFU)</string>
     <string name="custom_fdroid_unpinned_hint">未固定 SHA-256 指纹 — 首次获取时将信任首个索引签名</string>
     <string name="custom_fdroid_tofu_pinned_badge">已固定 (TOFU)</string>
@@ -482,7 +464,6 @@
     <string name="obtainium_import_nothing">未找到兼容的 GitHub、GitLab、Codeberg 或 F-Droid 条目。</string>
     <string name="apps_filter_watched">已关注</string>
     <string name="apps_watched_badge">已关注</string>
-    <string name="apps_watched_not_installed">未安装 · 已关注</string>
     <string name="apps_watch_add_action">关注应用</string>
     <string name="apps_watch_remove_action">取消关注</string>
     <string name="apps_watch_removed_snack">已将 %1$s 从关注列表移除</string>
@@ -540,9 +521,7 @@
     <string name="pin_source_menu_action">Pin source</string>
     <string name="pin_source_menu_pinned">Pinned: %1$s</string>
     <string name="pin_source_chip_label">Pinned</string>
-    <string name="pin_source_unpin">Unpin</string>
     <string name="settings_include_prereleases_title">Include Pre-Releases (Alpha / Beta / RC)</string>
-    <string name="settings_include_prereleases_desc">Allow Alpha, Beta, RC, and Nightly versions globally. Can be overridden per app in the Pin Source sheet.</string>
     <string name="prerelease_override_section_title">Pre-Releases (Alpha / Beta / RC)</string>
     <string name="prerelease_override_default">Default</string>
     <string name="prerelease_override_allow">Always allow</string>
@@ -572,7 +551,6 @@
     <string name="watched_mark_seen_action">Seen</string>
     <string name="watched_mark_seen_snack">Marked v%1$s as seen</string>
     <string name="settings_import_app_watcher_title">Import from App Watcher</string>
-    <string name="settings_import_app_watcher_desc">Import uninstalled apps from an App Watcher JSON export into your Watchlist.</string>
     <string name="app_watcher_import_success">App Watcher: %1$d added to Watchlist (%2$d installed skipped)</string>
     <string name="app_watcher_import_error">Could not read App Watcher export file</string>
     <string name="settings_source_health_title">Source Health &amp; Cooldowns</string>

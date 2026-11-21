@@ -15,11 +15,6 @@ sealed class ApkSignatureCheckResult {
 	) : ApkSignatureCheckResult()
 }
 
-class SignatureMismatchInstallException(
-	val packageName: String,
-	message: String
-) : java.io.IOException(message)
-
 internal data class ParsedPackageSigningInfo(
 	val packageName: String?,
 	val currentSigners: Set<String>,
