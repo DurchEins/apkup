@@ -1,0 +1,190 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Hero from '../components/Hero.astro';
+import FeatureBento from '../components/FeatureBento.astro';
+import ScreenShowcase from '../components/ScreenShowcase.astro';
+import SourcesAndSilent from '../components/SourcesAndSilent.astro';
+import DownloadsAndSupport from '../components/DownloadsAndSupport.astro';
+import PermissionsSection from '../components/PermissionsSection.astro';
+import FaqAndFooter from '../components/FaqAndFooter.astro';
+import QrModal from '../components/QrModal.astro';
+import { SITE, FAQS } from '../data/content';
+
+const siteRoot = 'https://durcheins.github.io/apkup/';
+const homeSchemas = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'ApkUp',
+    url: siteRoot,
+    inLanguage: ['en', 'de'],
+    description:
+      'Open-source, privacy-first multi-source Android app updater supporting Google Play, F-Droid Index V2, IzzyOnDroid, APKMirror, GitHub, GitLab, and Codeberg.',
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'ApkUp',
+    applicationCategory: 'UtilitiesApplication',
+    operatingSystem: 'Android 10.0 - 17 (API 29+)',
+    softwareVersion: SITE.fallbackVersion,
+    license: SITE.licenseUrl,
+    isAccessibleForFree: true,
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'EUR',
+    },
+    url: siteRoot,
+    downloadUrl: SITE.releasesUrl,
+    installUrl: SITE.releasesUrl,
+    screenshot: `${siteRoot}assets/screenshots/en/01_updates.png`,
+    author: {
+      '@type': 'Person',
+      name: 'DurchEins',
+      url: 'https://github.com/DurchEins',
+    },
+    sameAs: [SITE.repoUrl, SITE.gitlabUrl, SITE.wikiUrl],
+    featureList: [
+      'Multi-source app update scanning (Google Play, F-Droid Index V2, IzzyOnDroid, APKMirror, GitHub, GitLab, Codeberg, Direct APK)',
+      'Optional silent background installations via Shizuku (no root) or Root (su)',
+      'Automatic SHA-256 and signing-certificate verification',
+      'Obtainium JSON import and source compatibility mapping',
+      'Hardware-backed Google Tink (AES-256-GCM) credential encryption',
+      'Zero ads, zero tracking, 100% open source (GPL-3.0)',
+    ],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: FAQS.map((item) => ({
+      '@type': 'Question',
+      name: item.qEn,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.aEn,
+      },
+    })),
+  },
+];
+---
+
+<BaseLayout jsonLd={homeSchemas} kaoBannerSize="normal">
+  <Navbar />
+  <main id="main-content">
+    <Hero />
+    <FeatureBento />
+    <ScreenShowcase />
+    <SourcesAndSilent />
+    <DownloadsAndSupport />
+    <PermissionsSection />
+    <FaqAndFooter />
+  </main>
+  <QrModal />
+
+  <script is:inline>
+    (function () {
+      var CACHE_KEY = 'apkup-latest-release-v1';
+      var API_URL = 'https://api.github.com/repos/DurchEins/apkup/releases/latest';
+
+      function applyRelease(data) {
+        if (!data || !data.version) return;
+        var links = document.querySelectorAll('[data-apk-link]');
+        var metaSpans = document.querySelectorAll('[data-apk-meta]');
+        var heroPill = document.getElementById('hero-version-pill');
+
+        if (data.apkUrl && /^https:\/\/github\.com\/DurchEins\/apkup\//i.test(data.apkUrl)) {
+          links.forEach(function (el) {
+            el.setAttribute('href', data.apkUrl);
+          });
+        }
+        var metaText = '(' + data.version + (data.sizeMb ? ' • ' + data.sizeMb + ' MB' : '') + ')';
+        metaSpans.forEach(function (el) {
+          el.textContent = metaText;
+        });
+        if (heroPill) heroPill.textContent = data.version;
+      }
+
+      function initReleaseFetch() {
+        try {
+          var cached = sessionStorage.getItem(CACHE_KEY);
+          if (cached) {
+            var parsed = JSON.parse(cached);
+            if (parsed && Date.now() - parsed.ts < 15 * 60 * 1000) {
+              applyRelease(parsed);
+              return;
+            }
+          }
+        } catch (e) {}
+
+        fetch(API_URL, { headers: { Accept: 'application/vnd.github+json' } })
+          .then(function (res) {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.json();
+          })
+          .then(function (release) {
+            var version = release.tag_name || '';
+            var apkAsset = null;
+            if (Array.isArray(release.assets)) {
+              apkAsset = release.assets.find(function (a) {
+                return typeof a.name === 'string' && a.name.toLowerCase().endsWith('.apk');
+              });
+            }
+            var payload = {
+              ts: Date.now(),
+              version: version.startsWith('v') ? version : 'v' + version,
+              apkUrl: apkAsset ? apkAsset.browser_download_url : release.html_url,
+              sizeMb: apkAsset && apkAsset.size ? (apkAsset.size / (1024 * 1024)).toFixed(1) : '',
+            };
+            try {
+              sessionStorage.setItem(CACHE_KEY, JSON.stringify(payload));
+            } catch (e) {}
+            applyRelease(payload);
+          })
+          .catch(function () {});
+      }
+
+      initReleaseFetch();
+
+      // Fetch live GitHub Star count
+      var STAR_KEY = 'apkup-gh-stars-v1';
+      function applyStars(count) {
+        if (typeof count !== 'number') return;
+        document.querySelectorAll('[data-gh-stars]').forEach(function (el) {
+          el.textContent = String(count);
+          el.hidden = false;
+          el.classList.add('is-popped');
+        });
+      }
+      try {
+        var cachedStars = sessionStorage.getItem(STAR_KEY);
+        if (cachedStars) {
+          var parsedStars = JSON.parse(cachedStars);
+          if (parsedStars && Date.now() - parsedStars.ts < 15 * 60 * 1000) {
+            applyStars(parsedStars.stars);
+            return;
+          }
+        }
+      } catch (e) {}
+      fetch('https://api.github.com/repos/DurchEins/apkup', {
+        headers: { Accept: 'application/vnd.github+json' },
+      })
+        .then(function (res) {
+          return res.ok ? res.json() : null;
+        })
+        .then(function (repo) {
+          if (repo && typeof repo.stargazers_count === 'number') {
+            try {
+              sessionStorage.setItem(
+                STAR_KEY,
+                JSON.stringify({ ts: Date.now(), stars: repo.stargazers_count })
+              );
+            } catch (e) {}
+            applyStars(repo.stargazers_count);
+          }
+        })
+        .catch(function () {});
+    })();
+  </script>
+</BaseLayout>

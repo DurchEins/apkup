@@ -1,0 +1,147 @@
+---
+import { getBaseUrl } from '../utils/site';
+import { FAQS } from '../data/content';
+import Footer from './Footer.astro';
+
+const base = getBaseUrl();
+---
+
+<section id="faq" class="section">
+  <div class="container faq-container">
+    <div class="section-header">
+      <h2 class="section-title">
+        <span class="i18n-en">Frequently asked questions</span>
+        <span class="i18n-de">Häufige Fragen</span>
+      </h2>
+      <p class="section-subtitle">
+        <span class="i18n-en">
+          Clear answers on permissions, signature checks, privacy, and migrating from other
+          updaters.
+        </span>
+        <span class="i18n-de">
+          Klare Antworten zu Berechtigungen, Signaturprüfungen, Datenschutz und dem Umstieg von
+          anderen Updaters.
+        </span>
+      </p>
+    </div>
+
+    <div class="faq-list">
+      {
+        FAQS.map((item) => (
+          <details class="faq-item">
+            <summary class="faq-question">
+              <span class="i18n-en">{item.qEn}</span>
+              <span class="i18n-de">{item.qDe}</span>
+              <svg
+                class="faq-chevron"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </summary>
+            <div class="faq-answer">
+              <p class="i18n-en">{item.aEn}</p>
+              <p class="i18n-de">{item.aDe}</p>
+            </div>
+          </details>
+        ))
+      }
+    <div class="faq-wiki-cta">
+      <a href={`${base}wiki/`} class="btn btn-secondary">
+        <span class="i18n-en">Need step-by-step guides? Open ApkUp Wiki →</span>
+        <span class="i18n-de">Weitere Schritt-für-Schritt-Anleitungen im ApkUp-Wiki →</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<Footer />
+
+<style>
+  .faq-container {
+    max-width: 860px;
+    margin-inline: auto;
+  }
+
+  .faq-container .section-header {
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .faq-item {
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-md);
+    padding: 4px 20px;
+  }
+
+  .faq-item[open] {
+    border-color: var(--outline-strong);
+    background: var(--surface);
+  }
+
+  .faq-question {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 56px;
+    padding-block: 12px;
+    font-weight: 700;
+    font-size: 1.02rem;
+    cursor: pointer;
+  }
+
+  .faq-question::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq-chevron {
+    flex-shrink: 0;
+    color: var(--text-muted);
+    transition: transform 200ms cubic-bezier(0.2, 0, 0, 1), color 150ms ease-out;
+  }
+
+  .faq-item[open] .faq-chevron {
+    transform: rotate(180deg);
+    color: var(--accent);
+  }
+
+  .faq-answer {
+    padding-block-end: 18px;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+
+  .faq-answer p {
+    margin: 0;
+    max-width: 70ch;
+  }
+
+  .faq-wiki-cta {
+    margin-block-start: 28px;
+    display: flex;
+    justify-content: center;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .faq-chevron {
+      transition: none;
+    }
+  }
+</style>

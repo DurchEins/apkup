@@ -1,0 +1,60 @@
+name: Sync Website (docs/)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'website/**'
+      - 'app/src/main/assets/changelog/**'
+      - 'SECURITY.md'
+      - 'PRIVACY.md'
+  release:
+    types: [published]
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: website/package-lock.json
+
+      - name: Sync GitHub Wiki markdown
+        run: |
+          git clone --depth=1 https://github.com/DurchEins/apkup.wiki.git /tmp/apkup-wiki || true
+          if [ -d /tmp/apkup-wiki ]; then
+            cp -f /tmp/apkup-wiki/*.md website/src/data/wiki/ 2>/dev/null || true
+            rm -rf /tmp/apkup-wiki
+          fi
+
+      - name: Install dependencies & build docs/
+        working-directory: website
+        run: |
+          npm ci
+          npm run build
+          rm -f ../docs/*.mjs
+
+      - name: Commit updated docs/ if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/ website/src/data/wiki/
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(website): auto-sync wiki & docs/ build"
+            git push
+          fi

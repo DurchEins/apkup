@@ -1,0 +1,38 @@
+---
+import { getBaseUrl } from '../utils/site';
+interface Props {
+  name: string;
+  size?: number;
+}
+
+const { name, size = 24 } = Astro.props;
+const base = getBaseUrl();
+
+const IMAGE_ICONS: Record<string, string> = {
+  Zapstore: 'zapstore.png',
+  'GitLab Releases': 'gitlab.png',
+  APKPure: 'apkpure.png',
+  Appteka: 'appteka.png',
+  'Komi Store': 'komistore.png',
+  AlternativeTo: 'alternativeto.png',
+  'Amazon Appstore': 'amazon.png',
+};
+
+const imgFile = IMAGE_ICONS[name];
+---
+
+{imgFile ? (
+  <img
+    src={`${base}assets/mirrors/${imgFile}`}
+    width={size}
+    height={size}
+    alt=""
+    loading="lazy"
+    decoding="async"
+    style="display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 6px;"
+  />
+) : name === 'itch.io' ? (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
+    <path d="M3.13 1.338C2.08 1.96.02 4.328 0 4.95v1.03c0 1.303 1.22 2.45 2.325 2.45 1.33 0 2.436-1.102 2.436-2.41 0 1.308 1.07 2.41 2.4 2.41 1.328 0 2.362-1.102 2.362-2.41 0 1.308 1.137 2.41 2.466 2.41h.024c1.33 0 2.466-1.102 2.466-2.41 0 1.308 1.034 2.41 2.363 2.41 1.33 0 2.4-1.102 2.4-2.41 0 1.308 1.106 2.41 2.435 2.41C22.78 8.43 24 7.282 24 5.98V4.95c-.02-.622-2.082-2.99-3.13-3.612-3.253-.114-5.508-.134-8.87-.133-3.362 0-5.617.019-8.87.133zm6.968 8.532c-.862.03-1.694.492-2.163 1.23-.614.078-1.48.078-2.094 0-.47-.738-1.301-1.2-2.163-1.23-.844-.03-1.74.383-2.203 1.123-.496.79-.658 2.138-.734 3.63-.076 1.494.084 3.237.768 4.442.842 1.482 2.467 1.802 3.743 1.306.922-.358 1.662-1.084 2.26-1.883h5.004c.598.8 1.338 1.525 2.26 1.883 1.276.496 2.901.176 3.743-1.306.684-1.205.844-2.948.768-4.442-.076-1.492-.238-2.84-.734-3.63-.463-.74-1.36-1.153-2.203-1.123-.862.03-1.693.492-2.163 1.23-.614.078-1.48.078-2.094 0-.47-.738-1.3-1.2-2.163-1.23z" />
+  </svg>
+) : null}

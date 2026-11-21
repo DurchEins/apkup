@@ -1,0 +1,607 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+
+const COMPARE_ROWS = [
+  {
+    en: 'Zero-config update scan for already installed apps',
+    de: 'Sofortige Update-Suche für bereits installierte Apps ohne manuelle Einrichtung',
+    apkupEn: '✓ Automatic (7 Sources)',
+    apkupDe: '✓ Automatisch (7 Quellen)',
+    obtEn: '✕ Manual URL per app',
+    obtDe: '✕ Manuelle URL pro App',
+    aurEn: '✓ Play Store only',
+    aurDe: '✓ Nur Play Store',
+    fdrEn: '✓ F-Droid only',
+    fdrDe: '✓ Nur F-Droid',
+  },
+  {
+    en: 'Unified ecosystem (Play Store + FOSS + Git Forges + APKMirror in one app)',
+    de: 'Vereintes Ökosystem (Play Store + FOSS + Git-Forges + APKMirror in einer App)',
+    apkupEn: '✓ All combined',
+    apkupDe: '✓ Alles vereint',
+    obtEn: '◐ No Play Store',
+    obtDe: '◐ Kein Play Store',
+    aurEn: '✕ Play Store only',
+    aurDe: '✕ Nur Play Store',
+    fdrEn: '✕ F-Droid only',
+    fdrDe: '✕ Nur F-Droid',
+  },
+  {
+    en: 'Anonymous Google Play Store updates without a Google account',
+    de: 'Anonyme Google-Play-Store-Updates ganz ohne eigenes Google-Konto',
+    apkupEn: '✓ Built-in (Aurora Delta)',
+    apkupDe: '✓ Integriert (Aurora-Delta)',
+    obtEn: '✕ Not supported',
+    obtDe: '✕ Nicht unterstützt',
+    aurEn: '✓ Built-in',
+    aurDe: '✓ Integriert',
+    fdrEn: '✕ Not supported',
+    fdrDe: '✕ Nicht unterstützt',
+  },
+  {
+    en: 'Direct in-app APKMirror downloads & .apkm split-bundle installation',
+    de: 'Direkter APKMirror-Download in der App & .apkm-Split-Bundle-Installation',
+    apkupEn: '✓ Native + Cloudflare WebView',
+    apkupDe: '✓ Nativ + Cloudflare-WebView',
+    obtEn: '◐ Version tracking only',
+    obtDe: '◐ Nur Versions-Tracking',
+    aurEn: '✕ Not supported',
+    aurDe: '✕ Nicht unterstützt',
+    fdrEn: '✕ Not supported',
+    fdrDe: '✕ Nicht unterstützt',
+  },
+  {
+    en: 'F-Droid Index V2 incremental diffs (RFC 7396) & X.509 TOFU certificate pinning',
+    de: 'Sparsame F-Droid-Index-V2-Diffs (RFC 7396) & kryptografisches TOFU-Pinning',
+    apkupEn: '✓ Native Index V2 + Diffs',
+    apkupDe: '✓ Nativ Index V2 + Diffs',
+    obtEn: '◐ Full index download',
+    obtDe: '◐ Vollständiger Index-Download',
+    aurEn: '✕ Not supported',
+    aurDe: '✕ Nicht unterstützt',
+    fdrEn: '✓ Native Index V2',
+    fdrDe: '✓ Nativ Index V2',
+  },
+  {
+    en: 'Batched GitHub GraphQL queries, nested GitLab subgroups & Codeberg/Forgejo',
+    de: 'Gebündelte GitHub-GraphQL-Abfragen, mehrstufige GitLab-Subgroups & Codeberg/Forgejo',
+    apkupEn: '✓ Full support + Regex filters',
+    apkupDe: '✓ Vollständig + Regex-Filter',
+    obtEn: '✓ REST API + Regex',
+    obtDe: '✓ REST-API + Regex',
+    aurEn: '✕ Not supported',
+    aurDe: '✕ Nicht unterstützt',
+    fdrEn: '✕ Not supported',
+    fdrDe: '✕ Nicht unterstützt',
+  },
+  {
+    en: 'Global source priority (Drag & Drop) & per-app source pinning with fallback',
+    de: 'Globale Quellen-Priorität (Drag & Drop) & festes App-Pinning samt Fallback',
+    apkupEn: '✓ Priority + Pinning',
+    apkupDe: '✓ Priorität + App-Pinning',
+    obtEn: '✕ Single source per app',
+    obtDe: '✕ Nur 1 Quelle pro App',
+    aurEn: '✕ Single source',
+    aurDe: '✕ Nur 1 Quelle',
+    fdrEn: '◐ Repo priority only',
+    fdrDe: '◐ Nur Repo-Priorität',
+  },
+  {
+    en: 'Pre-install APK Signature Scheme v2/v3 verification & downgrade protection',
+    de: 'Kryptografische APK-Signaturprüfung (v2/v3) & Downgrade-Sperre vor der Installation',
+    apkupEn: '✓ Pre-install apksig check',
+    apkupDe: '✓ Vorab-Zertifikatsprüfung',
+    obtEn: '◐ Android OS prompt only',
+    obtDe: '◐ Erst durch Android-System',
+    aurEn: '◐ Android OS prompt only',
+    aurDe: '◐ Erst durch Android-System',
+    fdrEn: '✓ Repo index signature',
+    fdrDe: '✓ Repo-Index-Signatur',
+  },
+  {
+    en: 'Automatic local APK rollback backups (including split APKs) before updating',
+    de: 'Automatische lokale Rollback-Sicherungen (inkl. Split-APKs) vor jedem Update',
+    apkupEn: '✓ Up to 2 GB + 1-tap rollback',
+    apkupDe: '✓ Bis 2 GB + Direkt-Rollback',
+    obtEn: '✕ Not available',
+    obtDe: '✕ Nicht vorhanden',
+    aurEn: '✕ Not available',
+    aurDe: '✕ Nicht vorhanden',
+    fdrEn: '◐ Repo archive only',
+    fdrDe: '◐ Nur sofern noch im Repo',
+  },
+  {
+    en: 'Pre-install minSdk & CPU ABI architecture compatibility guard',
+    de: 'Vorab-Kompatibilitätsprüfung auf Android-Mindestversion (minSdk) & CPU-Architektur',
+    apkupEn: '✓ Prevents install loops',
+    apkupDe: '✓ Verhindert Fehlschläge',
+    obtEn: '◐ Filename matching',
+    obtDe: '◐ Nur per Dateiname',
+    aurEn: '✓ Device profile',
+    aurDe: '✓ Über Geräteprofil',
+    fdrEn: '✓ Index metadata',
+    fdrDe: '✓ Über Index-Metadaten',
+  },
+  {
+    en: 'Per-app & global pre-release channels (Beta, RC, Alpha, Nightly)',
+    de: 'Wählbare Vorabversions-Kanäle (Beta, RC, Alpha, Nightly) global oder pro App',
+    apkupEn: '✓ 4 granular channels',
+    apkupDe: '✓ 4 getrennte Kanäle',
+    obtEn: '◐ General pre-release toggle',
+    obtDe: '◐ Nur allgemeiner Schalter',
+    aurEn: '✕ Stable / Play track only',
+    aurDe: '✕ Nur Play-Store-Track',
+    fdrEn: '◐ Unstable toggle',
+    fdrDe: '◐ Allgemeiner Schalter',
+  },
+  {
+    en: 'Silent background updates via Shizuku (no Root) & optional Root (su)',
+    de: 'Lautlose Hintergrund-Updates über Shizuku (ohne Root) sowie optionales Root (su)',
+    apkupEn: '✓ Shizuku + Root (su)',
+    apkupDe: '✓ Shizuku + Root (su)',
+    obtEn: '✓ Shizuku + Root',
+    obtDe: '✓ Shizuku + Root',
+    aurEn: '✓ Shizuku + Root',
+    aurDe: '✓ Shizuku + Root',
+    fdrEn: '✓ Shizuku / Privileged Ext.',
+    fdrDe: '✓ Shizuku / System-Erw.',
+  },
+  {
+    en: 'Active background time windows, quiet hours & Wi-Fi / charging guards',
+    de: 'Aktive Zeitfenster, Ruhezeiten sowie Schutzregeln für WLAN und Laden',
+    apkupEn: '✓ Time windows + catch-up',
+    apkupDe: '✓ Zeitfenster + Nachhol-Logik',
+    obtEn: '◐ Interval + Wi-Fi/charging',
+    obtDe: '◐ Intervall + WLAN/Laden',
+    aurEn: '◐ Interval only',
+    aurDe: '◐ Nur Zeitintervall',
+    fdrEn: '◐ Wi-Fi / charging only',
+    fdrDe: '◐ Nur WLAN / Laden',
+  },
+  {
+    en: 'Watchlist for uninstalled apps + Obtainium & App Watcher import/export',
+    de: 'Merkliste für nicht installierte Apps + Obtainium- & App-Watcher-Import/Export',
+    apkupEn: '✓ 2-way Obtainium + Watcher',
+    apkupDe: '✓ 2-Wege-Obtainium + Watcher',
+    obtEn: '✓ Track-only apps + JSON',
+    obtDe: '✓ Track-Only + eigenes JSON',
+    aurEn: '✕ No Obtainium sync',
+    aurDe: '✕ Kein Obtainium-Sync',
+    fdrEn: '✕ No Obtainium sync',
+    fdrDe: '✕ Kein Obtainium-Sync',
+  },
+  {
+    en: 'Export single .apk or split .apks bundles to any custom SAF folder & 24h cache',
+    de: 'Direkter Export von .apk- und Split-.apks-Paketen in Wunschordner (SAF) & 24h-Cache',
+    apkupEn: '✓ Save APK / .apks + 24h cache',
+    apkupDe: '✓ APK / .apks + 24h-Cache',
+    obtEn: '◐ Standard download folder',
+    obtDe: '◐ Standard-Download',
+    aurEn: '✓ Export bundle',
+    aurDe: '✓ Paket-Export',
+    fdrEn: '◐ Cache only',
+    fdrDe: '◐ Nur App-Cache',
+  },
+  {
+    en: 'Hardware-backed Google Tink AES-256-GCM token encryption & host isolation',
+    de: 'Hardware-gestützte Google-Tink-Verschlüsselung (AES-256-GCM) & Host-Isolierung',
+    apkupEn: '✓ Android Keystore AES-256',
+    apkupDe: '✓ Android Keystore AES-256',
+    obtEn: '◐ App storage',
+    obtDe: '◐ App-Speicher',
+    aurEn: '◐ App storage',
+    aurDe: '◐ App-Speicher',
+    fdrEn: '✓ No tokens required',
+    fdrDe: '✓ Keine Tokens nötig',
+  },
+];
+---
+
+<BaseLayout
+  title="Why ApkUp? Comparison & Source Checker — ApkUp"
+  description="Compare ApkUp vs. Obtainium, Aurora Store & F-Droid and test your Obtainium JSON export 100% offline."
+  jsonLd={{
+    '@context': 'https://schema.org',
+    '@type': 'TechArticle',
+    headline: 'ApkUp vs. Obtainium vs. Aurora Store vs. F-Droid — Feature Comparison & Obtainium JSON Checker',
+    url: 'https://durcheins.github.io/apkup/compare/',
+    author: { '@type': 'Person', name: 'DurchEins', url: 'https://github.com/DurchEins' },
+    about: { '@type': 'SoftwareApplication', name: 'ApkUp' },
+  }}
+>
+  <Navbar />
+  <main id="main-content" class="section">
+    <div class="container subpage-wrap">
+      <!-- PART 1: WHY APKUP COMPARISON TABLE -->
+      <div id="comparison" class="compare-block">
+        <div class="section-header">
+          <h1 class="section-title">
+            <span class="i18n-en">Why ApkUp? Feature Comparison</span>
+            <span class="i18n-de">Warum ApkUp? Der ausführliche Vergleich</span>
+          </h1>
+          <p class="section-subtitle">
+            <span class="i18n-en">
+              How ApkUp combines automatic multi-source discovery, cryptographic verification, and
+              Obtainium interoperability compared to standalone updaters and stores.
+            </span>
+            <span class="i18n-de">
+              Wie ApkUp automatische Multi-Quellen-Erkennung, kryptografische Sicherheitsprüfungen
+              und Obtainium-Kompatibilität im Vergleich zu Einzel-Apps vereint.
+            </span>
+          </p>
+        </div>
+
+        <div class="compare-table-card">
+          <div class="compare-scroll">
+            <table class="compare-table">
+              <thead>
+                <tr>
+                  <th>
+                    <span class="i18n-en">Capability / Feature</span>
+                    <span class="i18n-de">Eigenschaft / Funktion</span>
+                  </th>
+                  <th class="is-apkup">ApkUp</th>
+                  <th>Obtainium</th>
+                  <th>Aurora Store</th>
+                  <th>F-Droid</th>
+                </tr>
+              </thead>
+              <tbody>
+                {
+                  COMPARE_ROWS.map((row) => (
+                    <tr>
+                      <td>
+                        <span class="i18n-en">{row.en}</span>
+                        <span class="i18n-de">{row.de}</span>
+                      </td>
+                      <td class="is-apkup mono">
+                        <span class="i18n-en">{row.apkupEn}</span>
+                        <span class="i18n-de">{row.apkupDe}</span>
+                      </td>
+                      <td class="mono">
+                        <span class="i18n-en">{row.obtEn}</span>
+                        <span class="i18n-de">{row.obtDe}</span>
+                      </td>
+                      <td class="mono">
+                        <span class="i18n-en">{row.aurEn}</span>
+                        <span class="i18n-de">{row.aurDe}</span>
+                      </td>
+                      <td class="mono">
+                        <span class="i18n-en">{row.fdrEn}</span>
+                        <span class="i18n-de">{row.fdrDe}</span>
+                      </td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PART 2: OBTAINIUM & SOURCE CHECKER -->
+      <div id="checker" class="checker-block">
+        <div class="section-header">
+          <h2 class="section-title">
+            <span class="i18n-en">Obtainium &amp; Source Checker</span>
+            <span class="i18n-de">Quellen- &amp; Obtainium-JSON-Tester</span>
+          </h2>
+          <p class="section-subtitle">
+            <span class="i18n-en">
+              100% offline in your browser — nothing is uploaded. Paste an Obtainium JSON export or
+              choose a file to preview how ApkUp maps your apps and custom F-Droid repositories.
+            </span>
+            <span class="i18n-de">
+              100 % offline in deinem Browser – es wird nichts hochgeladen. Füge deinen
+              Obtainium-JSON-Export ein oder wähle eine Datei, um kompatible Apps &amp; Repos vorab
+              zu prüfen.
+            </span>
+          </p>
+        </div>
+
+        <div class="compat-card">
+          <div class="compat-actions">
+            <label class="btn btn-primary" for="obt-file-input">
+              <span class="i18n-en">Choose Obtainium JSON File</span>
+              <span class="i18n-de">Obtainium-JSON-Datei wählen</span>
+            </label>
+            <input type="file" id="obt-file-input" accept=".json,application/json" hidden />
+            <button type="button" class="btn btn-secondary" id="obt-sample-btn">
+              <span class="i18n-en">Load Sample Export</span>
+              <span class="i18n-de">Beispiel-Export laden</span>
+            </button>
+          </div>
+
+          <textarea
+            id="obt-json-input"
+            class="compat-textarea mono"
+            rows="7"
+            placeholder='{"apps": [{"id": "com.apkup", "url": "https://github.com/DurchEins/apkup", "name": "ApkUp"}]}'
+            aria-label="Obtainium JSON export content"
+          ></textarea>
+
+          <div id="obt-report" class="compat-report" hidden></div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<script is:inline>
+  (function () {
+    var fileInput = document.getElementById('obt-file-input');
+    var textarea = document.getElementById('obt-json-input');
+    var sampleBtn = document.getElementById('obt-sample-btn');
+    var report = document.getElementById('obt-report');
+
+    if (textarea) {
+      textarea.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        textarea.classList.add('is-dragover');
+      });
+      textarea.addEventListener('dragleave', function () {
+        textarea.classList.remove('is-dragover');
+      });
+      textarea.addEventListener('drop', function (e) {
+        e.preventDefault();
+        textarea.classList.remove('is-dragover');
+        var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function () {
+          textarea.value = String(reader.result || '');
+          textarea.dispatchEvent(new Event('input', { bubbles: true }));
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    function classifyUrl(url) {
+      var u = (url || '').toLowerCase();
+      if (u.includes('github.com')) return 'GitHub';
+      if (u.includes('gitlab')) return 'GitLab';
+      if (u.includes('codeberg.org') || u.includes('forgejo') || u.includes('gitea')) return 'Codeberg / Forgejo';
+      if (u.includes('izzysoft.de')) return 'IzzyOnDroid';
+      if (u.includes('f-droid.org') || u.includes('fdroid')) return 'F-Droid Index V2';
+      if (u.includes('apkmirror.com')) return 'APKMirror';
+      if (u.includes('play.google.com')) return 'Google Play';
+      return 'Custom / HTML';
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function analyze(raw) {
+      if (!report) return;
+      var text = (raw || '').trim();
+      if (!text) {
+        report.hidden = true;
+        return;
+      }
+      try {
+        var parsed = JSON.parse(text);
+        var apps = Array.isArray(parsed) ? parsed : Array.isArray(parsed.apps) ? parsed.apps : [];
+        if (!apps.length) {
+          report.hidden = false;
+          report.innerHTML = '<p class="compat-err">No Obtainium app entries found in JSON.</p>';
+          return;
+        }
+        var rows = apps.map(function (a) {
+          var name = escapeHtml(a.name || a.id || 'Unknown App');
+          var rawUrl = String(a.url || '');
+          var url = escapeHtml(rawUrl);
+          var src = classifyUrl(rawUrl);
+          var ok = src !== 'Custom / HTML';
+          return (
+            '<div class="compat-row">' +
+            '<div><strong>' + name + '</strong><div class="mono compat-url">' + url + '</div></div>' +
+            '<span class="pill-badge ' + (ok ? 'pill-emerald' : 'pill-amber') + ' mono">' + src + '</span>' +
+            '</div>'
+          );
+        });
+        report.hidden = false;
+        report.innerHTML =
+          '<div class="compat-summary mono">' + apps.length + ' entries analyzed offline</div>' +
+          '<div class="compat-rows">' + rows.join('') + '</div>';
+      } catch (e) {
+        report.hidden = false;
+        report.innerHTML = '<p class="compat-err">Invalid JSON format.</p>';
+      }
+    }
+
+    if (textarea) {
+      textarea.addEventListener('input', function () {
+        analyze(textarea.value);
+      });
+    }
+
+    if (fileInput && textarea) {
+      fileInput.addEventListener('change', function () {
+        var file = fileInput.files && fileInput.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function () {
+          textarea.value = String(reader.result || '');
+          analyze(textarea.value);
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    if (sampleBtn && textarea) {
+      sampleBtn.addEventListener('click', function () {
+        var sample = {
+          apps: [
+            { id: 'com.apkup', name: 'ApkUp', url: 'https://github.com/DurchEins/apkup' },
+            { id: 'com.aurora.store', name: 'Aurora Store', url: 'https://gitlab.com/AuroraOSS/AuroraStore' },
+            { id: 'nodomain.freeyourgadget.gadgetbridge', name: 'Gadgetbridge', url: 'https://codeberg.org/Freeyourgadget/Gadgetbridge' },
+            { id: 'app.organicmaps', name: 'Organic Maps', url: 'https://apt.izzysoft.de/fdroid/index/apk/app.organicmaps' },
+          ],
+        };
+        textarea.value = JSON.stringify(sample, null, 2);
+        analyze(textarea.value);
+      });
+    }
+  })();
+</script>
+
+<style>
+  .subpage-wrap {
+    max-width: 1060px;
+  }
+
+  .compare-block {
+    margin-block-end: 56px;
+  }
+
+  .checker-block {
+    scroll-margin-block-start: calc(var(--header-height) + 24px);
+  }
+
+  .compare-table-card {
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-lg);
+    padding: 8px 18px;
+  }
+
+  .compare-scroll {
+    overflow-x: auto;
+  }
+
+  .compare-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    text-align: start;
+    font-size: 0.86rem;
+  }
+
+  .compare-table th:first-child,
+  .compare-table td:first-child {
+    width: 34%;
+  }
+
+  .compare-table th:nth-child(2),
+  .compare-table td:nth-child(2) {
+    width: 18%;
+  }
+
+  .compare-table th:nth-child(n + 3),
+  .compare-table td:nth-child(n + 3) {
+    width: 16%;
+  }
+
+  .compare-table th,
+  .compare-table td {
+    padding: 12px 10px;
+    border-block-end: 1px solid var(--outline);
+    overflow-wrap: break-word;
+    vertical-align: top;
+  }
+
+  .compare-table tr:last-child td {
+    border-block-end: none;
+  }
+
+  .compare-table tbody tr {
+    transition: background-color 140ms ease-out;
+  }
+
+  @media (hover: hover) {
+    .compare-table tbody tr:hover {
+      background-color: var(--surface);
+    }
+  }
+
+  .compare-table th {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    font-weight: 800;
+  }
+
+  .compare-table td.is-apkup {
+    color: var(--accent);
+    font-weight: 700;
+    background: rgba(245, 158, 11, 0.05);
+  }
+
+  @media (max-width: 720px) {
+    .compare-table {
+      table-layout: auto;
+      min-width: 560px;
+    }
+  }
+
+  .compat-card {
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-lg);
+    padding: clamp(20px, 3vw, 32px);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .compat-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .compat-textarea {
+    width: 100%;
+    padding: 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--outline-strong);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.85rem;
+    resize: vertical;
+  }
+
+  .compat-summary {
+    font-size: 0.85rem;
+    color: var(--accent);
+    margin-bottom: 12px;
+    font-weight: 700;
+  }
+
+  .compat-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .compat-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    border: 1px solid var(--outline);
+  }
+
+  .compat-url {
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    word-break: break-all;
+  }
+
+  .compat-err {
+    color: var(--danger);
+    margin: 0;
+  }
+</style>

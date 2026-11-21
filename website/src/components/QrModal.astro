@@ -1,0 +1,393 @@
+---
+import { getBaseUrl } from '../utils/site';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { SITE } from '../data/content';
+
+const base = getBaseUrl();
+
+function getReleaseSummary(lang: 'en' | 'de', version: string): string {
+  try {
+    const md = readFileSync(
+      join(process.cwd(), '..', 'app', 'src', 'main', 'assets', 'changelog', `1.45_${lang}.md`),
+      'utf8'
+    );
+    const verEsc = version.replace('.', '\\.');
+    const secMatch = md.match(new RegExp(`###[^\\n]*\\|\\s*${verEsc}[\\s\\S]*?(?=\\n###|$)`));
+    if (!secMatch) return '';
+    const bullets = Array.from(secMatch[0].matchAll(/^- \*\*([^*]+)\*\*/gm)).map((m) => m[1]);
+    return bullets.slice(0, 3).join(' • ');
+  } catch {
+    return '';
+  }
+}
+
+const summaryEn = getReleaseSummary('en', SITE.fallbackVersion) || 'Material 3 Expressive UI, Opt-in Beta Channel & Redesigned Help Wiki';
+const summaryDe = getReleaseSummary('de', SITE.fallbackVersion) || 'Material 3 Expressive Look, Opt-in Beta-Kanal & Überarbeitetes Hilfe-Wiki';
+---
+
+<dialog id="qr-modal" class="qr-dialog" aria-labelledby="qr-modal-title">
+  <div class="qr-card">
+    <div class="qr-header">
+      <div>
+        <span class="pill-badge pill-amber mono" id="qr-version-pill">v{SITE.fallbackVersion}</span>
+        <h3 id="qr-modal-title">
+          <span class="i18n-en">Scan to download on Android</span>
+          <span class="i18n-de">Per Smartphone-Kamera laden</span>
+        </h3>
+      </div>
+      <button type="button" class="qr-close" id="qr-close-btn" aria-label="Close QR dialog">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M18 6 6 18M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="qr-frame-wrap">
+      <div class="qr-frame" id="qr-svg-host" aria-live="polite"></div>
+      <span class="qr-scan-line" aria-hidden="true"></span>
+    </div>
+
+    <a
+      class="qr-url mono"
+      id="qr-target-url"
+      href={SITE.releasesUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {SITE.releasesUrl}
+    </a>
+    <details class="qr-release-notes">
+      <summary class="mono">
+        <span class="i18n-en">What’s new in v{SITE.fallbackVersion}? ▾</span>
+        <span class="i18n-de">Was ist neu in v{SITE.fallbackVersion}? ▾</span>
+      </summary>
+      <p>
+        <span class="i18n-en">
+          {summaryEn}.{' '}
+          <a href={`${base}changelog/`}>Full changelog →</a>
+        </span>
+        <span class="i18n-de">
+          {summaryDe}.{' '}
+          <a href={`${base}changelog/`}>Zum Changelog →</a>
+        </span>
+      </p>
+    </details>
+
+    <p class="qr-hint">
+      <span class="i18n-en">
+        Points directly to the latest signed GitHub Release APK.
+      </span>
+      <span class="i18n-de">
+        Verweist automatisch auf das aktuellste signierte GitHub-Release-APK.
+      </span>
+    </p>
+  </div>
+</dialog>
+
+<script is:inline src={`${base}assets/qrcode.js`}></script>
+<script is:inline define:vars={{ baseUrl: base, fallbackUrl: SITE.releasesUrl }}>
+  (function () {
+    var dialog = document.getElementById('qr-modal');
+    var closeBtn = document.getElementById('qr-close-btn');
+    var host = document.getElementById('qr-svg-host');
+    var urlEl = document.getElementById('qr-target-url');
+    var verEl = document.getElementById('qr-version-pill');
+
+    if (!dialog || !host) return;
+
+    function isFinderZone(r, c, count) {
+      var topLeft = r < 7 && c < 7;
+      var topRight = r < 7 && c >= count - 7;
+      var bottomLeft = r >= count - 7 && c < 7;
+      return topLeft || topRight || bottomLeft;
+    }
+
+    function isCenterLogoZone(r, c, count) {
+      var mid = (count - 1) / 2;
+      return Math.abs(r - mid) <= 3.2 && Math.abs(c - mid) <= 3.2;
+    }
+
+    function renderCustomQr(targetUrl) {
+      if (typeof window.qrcode !== 'function') {
+        host.textContent = targetUrl;
+        return;
+      }
+      var qr = window.qrcode(0, 'H');
+      qr.addData(targetUrl);
+      qr.make();
+      var count = qr.getModuleCount();
+      var pad = 3;
+      var size = count + pad * 2;
+      var dots = [];
+
+      for (var r = 0; r < count; r++) {
+        for (var c = 0; c < count; c++) {
+          if (!qr.isDark(r, c)) continue;
+          if (isCenterLogoZone(r, c, count)) continue;
+          var x = c + pad;
+          var y = r + pad;
+          if (isFinderZone(r, c, count)) {
+            dots.push('<rect x="' + x + '" y="' + y + '" width="1.02" height="1.02" rx="0.22" fill="#B45309" />');
+          } else {
+            dots.push('<circle cx="' + (x + 0.5) + '" cy="' + (y + 0.5) + '" r="0.42" fill="#121316" />');
+          }
+        }
+      }
+
+      var logoSize = Math.max(5.6, count * 0.17);
+      var logoPos = (size - logoSize) / 2;
+      var bgSize = logoSize + 1.4;
+      var bgPos = (size - bgSize) / 2;
+
+      host.innerHTML =
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' +
+        size +
+        ' ' +
+        size +
+        '" width="248" height="248" role="img" aria-label="ApkUp Download QR Code">' +
+        '<rect width="' +
+        size +
+        '" height="' +
+        size +
+        '" rx="2.4" fill="#FAF8F4" />' +
+        dots.join('') +
+        '<rect x="' +
+        bgPos +
+        '" y="' +
+        bgPos +
+        '" width="' +
+        bgSize +
+        '" height="' +
+        bgSize +
+        '" rx="1.6" fill="#FAF8F4" stroke="#F59E0B" stroke-width="0.35" />' +
+        '<image href="' +
+        baseUrl +
+        'assets/logo.png" x="' +
+        logoPos +
+        '" y="' +
+        logoPos +
+        '" width="' +
+        logoSize +
+        '" height="' +
+        logoSize +
+        '" />' +
+        '</svg>';
+    }
+
+    function openQrModal() {
+      var primaryLink = document.querySelector('[data-apk-link]');
+      var currentUrl = primaryLink ? primaryLink.getAttribute('href') || fallbackUrl : fallbackUrl;
+      var heroPill = document.getElementById('hero-version-pill');
+      if (verEl && heroPill) verEl.textContent = heroPill.textContent;
+      if (urlEl) {
+        urlEl.textContent = currentUrl;
+        urlEl.setAttribute('href', currentUrl);
+      }
+      renderCustomQr(currentUrl);
+      if (typeof dialog.showModal === 'function') {
+        dialog.showModal();
+      } else {
+        dialog.setAttribute('open', '');
+      }
+    }
+
+    document.querySelectorAll('[data-open-qr]').forEach(function (btn) {
+      btn.addEventListener('click', openQrModal);
+    });
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function () {
+        dialog.close();
+      });
+    }
+
+    dialog.addEventListener('click', function (e) {
+      if (e.target === dialog) dialog.close();
+    });
+  })();
+</script>
+
+<style>
+  .qr-dialog {
+    padding: 0;
+    border: 1px solid var(--outline-strong);
+    border-radius: var(--radius-lg);
+    background: var(--surface-low);
+    color: var(--text);
+    max-width: min(400px, 92vw);
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .qr-dialog[open] {
+    animation: qrDialogIn 280ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .qr-dialog::backdrop {
+    background: rgba(10, 11, 14, 0.76);
+    backdrop-filter: blur(8px);
+  }
+
+  .qr-dialog[open]::backdrop {
+    animation: qrBackdropIn 240ms ease-out;
+  }
+
+  .qr-frame-wrap {
+    position: relative;
+    overflow: hidden;
+    border-radius: 22px;
+  }
+
+  .qr-scan-line {
+    position: absolute;
+    inset-inline: 12px;
+    top: 12px;
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, #f59e0b, #fbbf24, #f59e0b, transparent);
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.85);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .qr-dialog[open] .qr-scan-line {
+    animation: qrScanSweep 1.15s cubic-bezier(0.4, 0, 0.2, 1) 180ms 1;
+  }
+
+  @keyframes qrDialogIn {
+    from {
+      opacity: 0;
+      transform: scale(0.92) translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  @keyframes qrBackdropIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes qrScanSweep {
+    0% {
+      opacity: 0;
+      transform: translateY(0);
+    }
+    15% {
+      opacity: 1;
+    }
+    85% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(242px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .qr-dialog[open],
+    .qr-dialog[open]::backdrop,
+    .qr-dialog[open] .qr-scan-line {
+      animation: none;
+    }
+  }
+
+  .qr-card {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    text-align: center;
+  }
+
+  .qr-header {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    text-align: start;
+  }
+
+  .qr-header h3 {
+    margin: 8px 0 0;
+    font-size: 1.18rem;
+    font-weight: 800;
+  }
+
+  .qr-close {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--outline);
+    background: var(--surface);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+
+  .qr-frame {
+    padding: 12px;
+    border-radius: 22px;
+    background: #faf8f4;
+    border: 2px solid var(--accent);
+  }
+
+  .qr-url {
+    display: block;
+    margin: 0;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    word-break: break-all;
+    max-width: 100%;
+    text-decoration: none;
+    transition: color 140ms ease-out;
+  }
+
+  .qr-url:hover {
+    color: var(--accent);
+    text-decoration: underline;
+  }
+
+  .qr-release-notes {
+    width: 100%;
+    text-align: left;
+    background: var(--bg);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-md);
+    padding: 8px 12px;
+    font-size: 0.78rem;
+  }
+
+  .qr-release-notes summary {
+    cursor: pointer;
+    color: var(--accent);
+    font-weight: 700;
+    list-style: none;
+  }
+
+  .qr-release-notes summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .qr-release-notes p {
+    margin: 6px 0 0;
+    color: var(--text-muted);
+    line-height: 1.45;
+  }
+
+  .qr-release-notes a {
+    color: var(--accent);
+  }
+
+  .qr-hint {
+    margin: 0;
+    font-size: 0.84rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+</style>

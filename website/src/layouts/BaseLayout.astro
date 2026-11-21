@@ -1,0 +1,306 @@
+---
+import { getBaseUrl } from '../utils/site';
+interface Props {
+  title?: string;
+  description?: string;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  kaoBannerSize?: 'normal' | 'mini';
+}
+
+const {
+  title = 'ApkUp — Multi-Source Android App Updater',
+  description = 'Open-source, privacy-first Android app updater for Google Play, F-Droid Index V2, IzzyOnDroid, APKMirror, GitHub, GitLab & Codeberg with Shizuku silent background updates.',
+  jsonLd,
+  kaoBannerSize = 'mini',
+} = Astro.props;
+
+const ldList = Array.isArray(jsonLd) ? jsonLd : jsonLd ? [jsonLd] : [];
+
+const base = getBaseUrl();
+const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+const ogImage = new URL(`${base}og-card.png`, Astro.site).toString();
+---
+
+<!doctype html>
+<html lang="en" data-theme="dark" data-lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#121316" id="meta-theme-color" />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" type="text/plain" title="LLMs.txt" href={`${base}llms.txt`} />
+    <link rel="icon" type="image/png" href={`${base}assets/logo.png`} />
+    <link rel="apple-touch-icon" href={`${base}assets/logo.png`} />
+    <link rel="stylesheet" href={`${base}assets/styles.css`} />
+
+    <!-- OpenGraph & Social -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- Google Fonts CDN (Plus Jakarta Sans + JetBrains Mono) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    {ldList.map((schema) => (
+      <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+    ))}
+
+    <!-- Prevent theme/lang flash before first paint -->
+    <script is:inline>
+      (function () {
+        try {
+          var savedTheme = localStorage.getItem('apkup-theme');
+          var theme = savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : 'dark';
+          document.documentElement.setAttribute('data-theme', theme);
+          var meta = document.getElementById('meta-theme-color');
+          if (meta) meta.setAttribute('content', theme === 'light' ? '#F4F1EA' : '#121316');
+
+          var savedLang = localStorage.getItem('apkup-lang');
+          var lang = savedLang === 'de' || savedLang === 'en' ? savedLang : 'en';
+          document.documentElement.setAttribute('data-lang', lang);
+          document.documentElement.setAttribute('lang', lang);
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">
+      <span class="i18n-en">Skip to main content</span>
+      <span class="i18n-de">Zum Hauptinhalt springen</span>
+    </a>
+
+    <div id="kao-banner-slot" data-kao-size={kaoBannerSize}></div>
+    <script is:inline define:vars={{ kaoBannerSize }}>
+      (function () {
+        try {
+          var lang = document.documentElement.getAttribute('data-lang') || 'en';
+          var s = document.createElement('script');
+          s.async = true;
+          s.src =
+            'https://keepandroidopen.org/banner.js?id=kao-banner-slot&size=' +
+            encodeURIComponent(kaoBannerSize) +
+            '&hidebutton=on&link=' +
+            encodeURIComponent('https://durcheins.github.io/apkup/sideloading/google-lock/') +
+            '&lang=' +
+            encodeURIComponent(lang);
+          document.body.appendChild(s);
+        } catch (e) {}
+      })();
+    </script>
+
+    <slot />
+    <button
+      type="button"
+      id="back-to-top-btn"
+      class="back-to-top-pill"
+      aria-label="Back to top"
+      title="Back to top"
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m18 15-6-6-6 6" />
+      </svg>
+    </button>
+
+    <aside id="dev-mode-hud" class="dev-mode-hud mono" aria-label="ApkUp Developer Mode" hidden>
+      <div class="dev-hud-head">
+        <strong>⚡ ApkUp Developer Mode</strong>
+        <button type="button" id="dev-hud-close" aria-label="Close Developer HUD">✕</button>
+      </div>
+      <div class="dev-hud-grid">
+        <span>Release: <strong>v1.45.0 (211)</strong></span>
+        <span>SDK: <strong>API 29 – 36 (Android 10–17)</strong></span>
+        <span>ABIs: <strong>arm64-v8a • armeabi-v7a • x86_64</strong></span>
+        <span>Signature: <strong>APK Scheme v2/v3 + SHA-256</strong></span>
+        <span id="dev-hud-perf">DOM Ready: <strong>-- ms</strong></span>
+      </div>
+    </aside>
+
+    <script is:inline>
+      (function () {
+        var root = document.documentElement;
+        var themeBtn = document.getElementById('theme-toggle');
+        var langBtn = document.getElementById('lang-toggle');
+
+        function applyTheme(next) {
+          root.classList.add('theme-switching');
+          root.setAttribute('data-theme', next);
+          var meta = document.getElementById('meta-theme-color');
+          if (meta) meta.setAttribute('content', next === 'light' ? '#F4F1EA' : '#121316');
+          try {
+            localStorage.setItem('apkup-theme', next);
+          } catch (e) {}
+          if (themeBtn) {
+            themeBtn.setAttribute('aria-pressed', String(next === 'light'));
+          }
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+              root.classList.remove('theme-switching');
+            });
+          });
+        }
+
+        function applyLang(next) {
+          root.classList.add('lang-switching');
+          root.setAttribute('data-lang', next);
+          root.setAttribute('lang', next);
+          try {
+            localStorage.setItem('apkup-lang', next);
+          } catch (e) {}
+          if (langBtn) {
+            langBtn.setAttribute('aria-pressed', String(next === 'de'));
+          }
+          window.dispatchEvent(new CustomEvent('apkup:langchange', { detail: { lang: next } }));
+          setTimeout(function () {
+            root.classList.remove('lang-switching');
+          }, 130);
+        }
+
+        if (themeBtn) {
+          themeBtn.setAttribute('aria-pressed', String(root.getAttribute('data-theme') === 'light'));
+          try {
+            if (!localStorage.getItem('apkup-theme')) themeBtn.classList.add('is-system-sync');
+          } catch (e) {}
+          themeBtn.addEventListener('click', function () {
+            themeBtn.classList.remove('is-system-sync');
+            var current = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+          });
+        }
+
+        if (langBtn) {
+          langBtn.setAttribute('aria-pressed', String(root.getAttribute('data-lang') === 'de'));
+          langBtn.addEventListener('click', function () {
+            var current = root.getAttribute('data-lang') === 'de' ? 'de' : 'en';
+            applyLang(current === 'en' ? 'de' : 'en');
+          });
+        }
+
+        function showCopied(btn) {
+          var lbl = btn.querySelector('[data-share-label]');
+          var copied = btn.querySelector('[data-share-copied]');
+          if (!lbl || !copied) return;
+          lbl.hidden = true;
+          copied.hidden = false;
+          btn.classList.add('is-copied');
+          if (window.innerWidth <= 860) {
+            var t = document.createElement('div');
+            t.className = 'brand-toast mono';
+            t.textContent = root.getAttribute('data-lang') === 'de' ? '✓ In Zwischenablage kopiert' : '✓ Copied to clipboard';
+            document.body.appendChild(t);
+            setTimeout(function () { t.remove(); }, 1800);
+          }
+          clearTimeout(btn._shareTimer);
+          btn._shareTimer = setTimeout(function () {
+            lbl.hidden = false;
+            copied.hidden = true;
+            btn.classList.remove('is-copied');
+          }, 2000);
+        }
+
+        // Konami Code (↑↑↓↓←→←→BA) & Alt+D Developer Mode HUD
+        var devHud = document.getElementById('dev-mode-hud');
+        var devClose = document.getElementById('dev-hud-close');
+        var devPerf = document.getElementById('dev-hud-perf');
+        var konami = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+        var kPos = 0;
+        function toggleDevHud() {
+          if (!devHud) return;
+          devHud.hidden = !devHud.hidden;
+          if (!devHud.hidden && devPerf && window.performance) {
+            devPerf.innerHTML = 'DOM Load: <strong>' + Math.round(performance.now()) + ' ms</strong>';
+          }
+        }
+        if (devClose) devClose.addEventListener('click', function () { if (devHud) devHud.hidden = true; });
+        document.addEventListener('keydown', function (e) {
+          if (e.altKey && (e.key === 'd' || e.key === 'D')) {
+            e.preventDefault();
+            toggleDevHud();
+            return;
+          }
+          var key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+          if (key === konami[kPos]) {
+            kPos++;
+            if (kPos === konami.length) {
+              kPos = 0;
+              toggleDevHud();
+            }
+          } else {
+            kPos = 0;
+          }
+        });
+
+        var topBtn = document.getElementById('back-to-top-btn');
+        if (topBtn) {
+          function syncTopBtn() {
+            topBtn.classList.toggle('is-visible', window.scrollY > 480);
+          }
+          window.addEventListener('scroll', syncTopBtn, { passive: true });
+          syncTopBtn();
+          topBtn.addEventListener('click', function () {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          });
+        }
+
+        // TV/D-Pad keyboard focus mode
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Tab' || e.key.indexOf('Arrow') === 0) {
+            root.classList.add('kbd-nav');
+          }
+        });
+        document.addEventListener('pointerdown', function () {
+          root.classList.remove('kbd-nav');
+        });
+
+        // Global mouse-tracking spotlight on .has-spotlight cards
+        if (!window.matchMedia || !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          document.querySelectorAll('.has-spotlight').forEach(function (card) {
+            card.addEventListener('pointermove', function (e) {
+              var r = card.getBoundingClientRect();
+              card.style.setProperty('--mx', e.clientX - r.left + 'px');
+              card.style.setProperty('--my', e.clientY - r.top + 'px');
+            });
+          });
+        }
+
+        document.querySelectorAll('[data-share-btn]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var isDe = root.getAttribute('data-lang') === 'de';
+            var shareUrl = window.location.origin + (window.location.pathname.indexOf('/apkup') === 0 ? '/apkup/' : '/');
+            var shareData = {
+              title: 'ApkUp — Multi-Source Android App Updater',
+              text: isDe
+                ? 'ApkUp: Open-Source Android App-Updater für Google Play, F-Droid, GitHub & mehr – werbefrei & mit Shizuku.'
+                : 'ApkUp: Open-source Android app updater for Google Play, F-Droid, GitHub & more — ad-free & Shizuku-ready.',
+              url: shareUrl
+            };
+            if (navigator.share) {
+              navigator.share(shareData).catch(function (err) {
+                if (err && err.name === 'AbortError') return;
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                  navigator.clipboard.writeText(shareUrl).then(function () { showCopied(btn); }).catch(function () {});
+                }
+              });
+            } else if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(shareUrl).then(function () { showCopied(btn); }).catch(function () {});
+            }
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>
