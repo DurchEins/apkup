@@ -1,5 +1,5 @@
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { join, relative } from 'node:path';
 
 const root = process.cwd();
 const chunks = [
@@ -7,14 +7,27 @@ const chunks = [
   readFileSync(join(root, 'src/styles/global.css'), 'utf8'),
 ];
 
+function collectAstroFiles(dirPath) {
+  const out = [];
+  for (const entry of readdirSync(dirPath).sort()) {
+    const full = join(dirPath, entry);
+    if (statSync(full).isDirectory()) {
+      out.push(...collectAstroFiles(full));
+    } else if (entry.endsWith('.astro')) {
+      out.push(full);
+    }
+  }
+  return out;
+}
+
 for (const dir of ['src/components', 'src/pages']) {
   const fullDir = join(root, dir);
-  for (const file of readdirSync(fullDir).sort()) {
-    if (!file.endsWith('.astro')) continue;
-    const src = readFileSync(join(fullDir, file), 'utf8');
+  for (const filePath of collectAstroFiles(fullDir)) {
+    const src = readFileSync(filePath, 'utf8');
     const match = src.match(/<style>([\s\S]*?)<\/style>/);
     if (match) {
-      chunks.push(`/* ${dir}/${file} */\n${match[1].trim()}`);
+      const rel = relative(root, filePath).replace(/\\/g, '/');
+      chunks.push(`/* ${rel} */\n${match[1].trim()}`);
     }
   }
 }

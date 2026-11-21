@@ -504,18 +504,11 @@ const lockSchema = {
                   vorgeschriebene 24-Stunden-Countdown.
                 </span>
               </p>
-              <div class="kao-timer-box">
-                <div class="kao-timer-btns">
-                  <button type="button" class="kao-mini-btn mono" id="kao-timer-start">
-                    <span class="i18n-en">⏱ Start 24h Browser Timer</span>
-                    <span class="i18n-de">⏱ 24h-Browser-Timer starten</span>
-                  </button>
-                  <button type="button" class="kao-mini-btn kao-mini-btn-accent mono" id="kao-timer-ics">
-                    <span class="i18n-en">📅 Download Calendar Reminder (.ics)</span>
-                    <span class="i18n-de">📅 Kalender-Erinnerung (.ics)</span>
-                  </button>
-                </div>
-                <div class="kao-timer-status mono" id="kao-timer-status" hidden aria-live="polite"></div>
+              <div class="kao-ics-hint">
+                <button type="button" class="kao-ics-link mono" id="kao-timer-ics">
+                  <span class="i18n-en">📅 Save 24h calendar reminder (.ics)</span>
+                  <span class="i18n-de">📅 24h-Kalender-Erinnerung (.ics) speichern</span>
+                </button>
               </div>
             </div>
           </li>
@@ -1632,49 +1625,28 @@ const lockSchema = {
     color: #15803d;
   }
 
-  /* 1b. 24h Timer + .ics Calendar Helper */
-  .kao-timer-box {
-    margin-top: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+  /* 1b. Subtle .ics Calendar Reminder Link */
+  .kao-ics-hint {
+    margin-top: 8px;
   }
 
-  .kao-timer-btns {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .kao-mini-btn {
-    padding: 6px 11px;
-    border-radius: 999px;
-    border: 1px solid var(--outline);
-    background: var(--surface);
-    color: var(--text);
-    font-size: 0.74rem;
-    font-weight: 700;
+  .kao-ics-link {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--text-muted);
+    font-size: 0.76rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
     cursor: pointer;
-    transition-property: border-color, background-color, transform;
+    transition-property: color;
     transition-duration: 150ms;
   }
 
-  .kao-mini-btn-accent {
-    border-color: rgba(239, 68, 68, 0.55);
-    background: rgba(220, 38, 38, 0.14);
-  }
-
-  .kao-mini-btn:active:not(:disabled) {
-    transform: scale(0.96);
-  }
-
-  .kao-timer-status {
-    padding: 7px 11px;
-    border-radius: 8px;
-    background: rgba(245, 158, 11, 0.12);
-    border: 1px solid rgba(245, 158, 11, 0.4);
-    color: var(--text);
-    font-size: 0.76rem;
+  @media (hover: hover) {
+    .kao-ics-link:hover {
+      color: var(--accent);
+    }
   }
 
   /* 8b. Table Safe Column Highlight */
@@ -1779,6 +1751,8 @@ const lockSchema = {
       if (!Array.isArray(saved) || saved.length !== 4) saved = [false, false, false, false];
       var items = stepsList.querySelectorAll('li[data-step-idx]');
 
+      var resetBtn = document.getElementById('kao-steps-reset');
+
       function renderSteps() {
         var doneCount = 0;
         items.forEach(function (li, i) {
@@ -1789,7 +1763,15 @@ const lockSchema = {
         });
         if (countEl) countEl.textContent = doneCount + ' / 4';
         if (fillEl) fillEl.style.width = (doneCount * 25) + '%';
+        if (resetBtn) resetBtn.hidden = doneCount < 4;
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch (e) {}
+      }
+
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function () {
+          saved = [false, false, false, false];
+          renderSteps();
+        });
       }
 
       items.forEach(function (li, i) {
@@ -1944,30 +1926,6 @@ const lockSchema = {
       });
     }
 
-    // 9b. Reset Micro-Button for 4/4 Checklist
-    var resetBtn = document.getElementById('kao-steps-reset');
-    var stepsCountEl = document.getElementById('kao-steps-count');
-    if (resetBtn && stepsList) {
-      function syncResetVisibility() {
-        var allDone = stepsList.querySelectorAll('li.is-done').length === 4;
-        resetBtn.hidden = !allDone;
-      }
-      stepsList.addEventListener('click', function () {
-        setTimeout(syncResetVisibility, 0);
-      });
-      resetBtn.addEventListener('click', function () {
-        try { localStorage.removeItem('apkup-24h-steps-v1'); } catch (e) {}
-        stepsList.querySelectorAll('li[data-step-idx]').forEach(function (li) {
-          li.classList.remove('is-done');
-          li.setAttribute('aria-checked', 'false');
-        });
-        if (stepsCountEl) stepsCountEl.textContent = '0 / 4';
-        if (fillEl) fillEl.style.width = '0%';
-        resetBtn.hidden = true;
-      });
-      syncResetVisibility();
-    }
-
     // 5b. 7x Tap Easter Egg on Step 01 Badge
     var badge1 = document.getElementById('kao-step1-badge');
     var devToast = document.getElementById('kao-dev-toast');
@@ -1986,57 +1944,12 @@ const lockSchema = {
       });
     }
 
-    // 1b. 24h Browser Timer + .ics Calendar Reminder Export
-    var TIMER_KEY = 'apkup-24h-unlock-at';
-    var timerStartBtn = document.getElementById('kao-timer-start');
+    // 1b. Subtle 24h .ics Calendar Reminder Export
     var timerIcsBtn = document.getElementById('kao-timer-ics');
-    var timerStatus = document.getElementById('kao-timer-status');
-    var timerInterval = null;
-
-    function render24hTimer() {
-      if (!timerStatus) return;
-      var targetMs = 0;
-      try { targetMs = Number(localStorage.getItem(TIMER_KEY) || '0'); } catch (e) {}
-      if (!targetMs) {
-        timerStatus.hidden = true;
-        return;
-      }
-      timerStatus.hidden = false;
-      var diff = targetMs - Date.now();
-      if (diff <= 0) {
-        timerStatus.innerHTML =
-          '<span class="i18n-en">✓ 24h complete! Open Developer Options now &amp; pick “Allow indefinitely”.</span>' +
-          '<span class="i18n-de">✓ 24h abgelaufen! Jetzt in den Entwickleroptionen „Dauerhaft erlauben“ wählen.</span>';
-        return;
-      }
-      var h = Math.floor(diff / 3600000);
-      var m = Math.floor((diff % 3600000) / 60000);
-      var endDate = new Date(targetMs);
-      var hhmm = String(endDate.getHours()).padStart(2, '0') + ':' + String(endDate.getMinutes()).padStart(2, '0');
-      timerStatus.innerHTML =
-        '<span class="i18n-en">⏳ ' + h + 'h ' + m + 'm left (ready at ' + hhmm + ')</span>' +
-        '<span class="i18n-de">⏳ Noch ' + h + ' Std. ' + m + ' Min. (Freigabe ab ' + hhmm + ' Uhr)</span>';
-    }
-
-    if (timerStartBtn) {
-      timerStartBtn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        var unlockAt = Date.now() + 24 * 3600 * 1000;
-        try { localStorage.setItem(TIMER_KEY, String(unlockAt)); } catch (err) {}
-        render24hTimer();
-        clearInterval(timerInterval);
-        timerInterval = setInterval(render24hTimer, 30000);
-      });
-      render24hTimer();
-      timerInterval = setInterval(render24hTimer, 30000);
-    }
-
     if (timerIcsBtn) {
       timerIcsBtn.addEventListener('click', function (e) {
         e.stopPropagation();
-        var targetMs = 0;
-        try { targetMs = Number(localStorage.getItem(TIMER_KEY) || '0'); } catch (err) {}
-        if (!targetMs) targetMs = Date.now() + 24 * 3600 * 1000;
+        var targetMs = Date.now() + 24 * 3600 * 1000;
         function toIcsUtc(d) {
           return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
         }
