@@ -18,8 +18,10 @@
     <img src=".github/assets/header-banner.svg" width="100%" alt="ApkUp — Multi-Source • Verified • Silent" />
   </picture>
 </p>
+<h1 align="center"><sub>ApkUp — Multi-Source Android App Updater (Verified &amp; Silent)</sub></h1>
+
 <p align="center">
-  <b>A modern open-source Android application for discovering, verifying, and autonomously installing app updates across multiple sources (Google Play, F-Droid &amp; IzzyOnDroid, APKMirror, GitHub, GitLab &amp; Codeberg/Forgejo) featuring Material 3 Expressive design, cryptographic APK signature verification, Watchlist tracking, APK export, and unattended Shizuku &amp; optional Root background updates.</b>
+  <b>Discover, cryptographically verify, and silently install Android app updates across Google Play, F-Droid (Index V2), IzzyOnDroid, APKMirror, GitHub, GitLab &amp; Codeberg — featuring Material 3 Expressive design, Watchlist tracking, Obtainium sync, APK export, and unattended Shizuku or Root updates.</b>
 </p>
 
 <p align="center">
@@ -46,11 +48,11 @@
 
 | 🚀 Multi-Source Engine | 🛡️ Security & Privacy |
 | :--- | :--- |
-| • **6+ Update Sources:** Google Play, F-Droid, IzzyOnDroid, APKMirror, GitHub, GitLab & Codeberg<br>• **Custom Repositories:** Link self-hosted GitLab/Forgejo repos & custom F-Droid feeds<br>• **Priority & Pinning:** Set preferred source order or pin apps to a specific source<br>• **Pre-Release Channels:** Track Beta, RC, Alpha, or Nightly releases per app or globally | • **Signature Protection:** Verifies app signing certificates before every install to block tampering<br>• **Checksums & Downgrade Guard:** Validates SHA-256 checksums and prevents accidental downgrades<br>• **Encrypted Credentials:** Protects local settings and optional API tokens on-device<br>• **Privacy First:** Choose your sources on first launch — zero ads, zero tracking |
+| • **[6+ Update Sources](https://durcheins.github.io/apkup/wiki/#sources):** Google Play, [F-Droid (Index V2)](https://durcheins.github.io/apkup/wiki/#fdroid), IzzyOnDroid, APKMirror, GitHub, GitLab & Codeberg<br>• **[Custom Repositories](https://durcheins.github.io/apkup/wiki/#sources):** Link self-hosted GitLab/Forgejo repos & custom F-Droid feeds<br>• **[Priority & Pinning](https://durcheins.github.io/apkup/wiki/#sources):** Set preferred source order or pin apps to a specific source<br>• **[Pre-Release Channels](https://durcheins.github.io/apkup/wiki/#management):** Track Beta, RC, Alpha, or Nightly releases per app or globally | • **[Signature Protection](https://durcheins.github.io/apkup/wiki/#sha256):** Verifies app signing certificates before every install to block tampering<br>• **[Checksums & Downgrade Guard](https://durcheins.github.io/apkup/wiki/#sha256):** Validates SHA-256 checksums and prevents accidental downgrades<br>• **Encrypted Credentials:** Protects local settings and optional API tokens on-device<br>• **Privacy First:** Choose your sources on first launch — zero ads, zero tracking |
 
 | ⚡ Downloads & Automation | 🎨 Design & Ecosystem |
 | :--- | :--- |
-| • **Batch Downloads & ETA:** Install multiple updates at once with live speed & remaining time<br>• **Silent Background Updates:** Hands-free updates via Shizuku or optional Root with Wi-Fi & charging rules<br>• **APK Export & Smart Cache:** Save `.apk` / `.apks` files or install cached downloads without re-downloading<br>• **Rollback Backups:** Optional pre-update backups & automatic device compatibility checks | • **Material 3 Expressive:** Brand-Amber theme, Dynamic Color, dark/light modes & smooth animations<br>• **9 Official Languages:** English, German, Spanish, French, Portuguese, Italian, Russian, Chinese & Japanese<br>• **Smart Link Routing:** Opens web links in matching installed apps first or in-app Chrome Custom Tabs<br>• **Watchlist & Obtainium Sync:** Track uninstalled apps and import/export Obtainium & App Watcher lists |
+| • **Batch Downloads & ETA:** Install multiple updates at once with live speed & remaining time<br>• **[Silent Background Updates](https://durcheins.github.io/apkup/wiki/#shizuku-deep):** Hands-free updates via Shizuku or optional Root with Wi-Fi & charging rules<br>• **APK Export & Smart Cache:** Save `.apk` / `.apks` files or install cached downloads without re-downloading<br>• **[Rollback Backups](https://durcheins.github.io/apkup/wiki/#management):** Optional pre-update backups & automatic device compatibility checks | • **Material 3 Expressive:** Brand-Amber theme, Dynamic Color, dark/light modes & smooth animations<br>• **9 Official Languages:** English, German, Spanish, French, Portuguese, Italian, Russian, Chinese & Japanese<br>• **Smart Link Routing:** Opens web links in matching installed apps first or in-app Chrome Custom Tabs<br>• **[Watchlist & Obtainium Sync](https://durcheins.github.io/apkup/wiki/#obtainium):** Track uninstalled apps and import/export Obtainium & App Watcher lists |
 
 <details>
 <summary><b>📋 Full Feature Breakdown</b></summary>
@@ -202,7 +204,7 @@ Get the latest release of ApkUp from your preferred platform:
 </details>
 
 <details>
-<summary><b>🛡️ SHA-256 &amp; VirusTotal Verification</b></summary>
+<summary><img src=".github/assets/verified-lock.svg" width="16" height="16" align="absmiddle" alt="" />&nbsp;<b>SHA-256, ADB &amp; VirusTotal Verification</b></summary>
 
 1. Download the `.apk` and `SHA256SUMS.txt` from **[GitHub Releases](https://github.com/DurchEins/apkup/releases/latest)**.
 2. Verify locally:
@@ -213,6 +215,10 @@ Get the latest release of ApkUp from your preferred platform:
    **Windows (PowerShell):**
    ```powershell
    Get-FileHash .\ApkUp-*.apk -Algorithm SHA256
+   ```
+   **ADB Quick Install (Power Users):**
+   ```bash
+   adb install -r ApkUp-*.apk
    ```
 3. ApkUp also verifies APK Signature Scheme v2/v3 certificates and `SHA256SUMS` digests automatically during self-updates ([Update Sources & Signature Protection](https://github.com/DurchEins/apkup/wiki/Update-Sources,-Repository-Linking-&-Signature-Protection)).
 
@@ -327,6 +333,21 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 <p align="center">
   <sub><i>Special Thanks: Based on the original open-source project by <a href="https://github.com/rumboalla/apkupdater">rumboalla (APKUpdater)</a>.</i></sub>
 </p>
+
+<details>
+<summary><b>📈 Star History</b></summary>
+
+<p align="center">
+  <a href="https://www.star-history.com/#DurchEins/apkup&Date">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=DurchEins/apkup&type=Date&theme=dark" />
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=DurchEins/apkup&type=Date" />
+      <img alt="Star History Chart for DurchEins/apkup" src="https://api.star-history.com/svg?repos=DurchEins/apkup&type=Date" width="100%" />
+    </picture>
+  </a>
+</p>
+
+</details>
 
 <p align="center">
   <a href="#top"><kbd>↑ Back to top</kbd></a>
