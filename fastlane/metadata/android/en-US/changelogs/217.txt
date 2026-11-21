@@ -1,4 +1,4 @@
-1.45.1 (215) – Patch & Fix:
+1.45.1 (217) – Patch & Fix:
 • Clean "Support ApkUp" card in About opening Buy Me a Coffee & Coindrop via Chrome Custom Tabs
 • Direct star & store review links (GitHub, GitLab, AlternativeTo, Komi Store, Zapstore, APKPure, itch.io, Appteka)
 • Gentle one-time community reminder after 5 days of usage or 5 successful updates

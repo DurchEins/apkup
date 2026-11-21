@@ -2409,7 +2409,7 @@ fun Settings(
 						horizontalArrangement = Arrangement.spacedBy(8.dp)
 					) {
 						Surface(
-							onClick = { handler.openSafeHttpsUri("https://github.com/DurchEins/apkup") },
+							onClick = { openCustomTab("https://github.com/DurchEins/apkup") },
 							modifier = Modifier
 								.weight(1f)
 								.fillMaxHeight(),
