@@ -1,4 +1,5 @@
 ---
+import { getBaseUrl } from '../utils/site';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
@@ -6,9 +7,7 @@ import QrModal from '../components/QrModal.astro';
 import MirrorIcon from '../components/MirrorIcon.astro';
 import { SITE, MIRRORS } from '../data/content';
 
-const base = import.meta.env.BASE_URL.endsWith('/')
-  ? import.meta.env.BASE_URL
-  : `${import.meta.env.BASE_URL}/`;
+const base = getBaseUrl();
 
 const MIRROR_DESCRIPTIONS: Record<string, { en: string; de: string; tier: 'official' | 'community' | 'outdated' }> = {
   Zapstore: {

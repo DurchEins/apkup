@@ -1,10 +1,9 @@
 ---
+import { getBaseUrl } from '../utils/site';
 import { MIRRORS, SITE } from '../data/content';
 import MirrorIcon from './MirrorIcon.astro';
 
-const base = import.meta.env.BASE_URL.endsWith('/')
-  ? import.meta.env.BASE_URL
-  : `${import.meta.env.BASE_URL}/`;
+const base = getBaseUrl();
 ---
 
 <section id="downloads" class="section downloads-section">

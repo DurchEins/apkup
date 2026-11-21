@@ -1,10 +1,9 @@
 ---
+import { getBaseUrl } from '../utils/site';
 import { FAQS } from '../data/content';
 import Footer from './Footer.astro';
 
-const base = import.meta.env.BASE_URL.endsWith('/')
-  ? import.meta.env.BASE_URL
-  : `${import.meta.env.BASE_URL}/`;
+const base = getBaseUrl();
 ---
 
 <section id="faq" class="section">
