@@ -7,6 +7,7 @@ import android.content.res.Configuration
 import android.content.res.Resources
 import android.os.Build
 import android.util.Log
+import androidx.compose.ui.platform.UriHandler
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.apkup.R
@@ -15,6 +16,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import okhttp3.OkHttpClient
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.io.InputStream
 import java.security.MessageDigest
 import java.util.Locale
 import kotlin.coroutines.CoroutineContext
@@ -96,9 +100,6 @@ fun PackageInfo.getSignatureSha1(): String =
 fun PackageInfo.getSignatureSha256(): String =
     getSignature().takeIf { it.isNotEmpty() }?.toSha256().orEmpty()
 
-fun PackageInfo.getAllSignerSha256Set(): Set<String> =
-    ApkIntegrityVerifier.extractActiveSignersSha256(this)
-
 fun Intent.getIntentExtra(): Intent? = when {
     Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> getParcelableExtra(Intent.EXTRA_INTENT, Intent::class.java)
     else -> @Suppress("DEPRECATION") getParcelableExtra(Intent.EXTRA_INTENT)
@@ -140,18 +141,72 @@ fun Context.openAppSystemSettings(packageName: String) {
 }
 
 /**
+ * Reads UTF-8 text from [input] up to [maxBytes] in a loop, avoiding single-`read()` short-read
+ * truncation on chunked streams and unbounded OOM on oversized responses.
+ */
+fun readUtf8Bounded(input: InputStream, maxBytes: Int): String {
+    require(maxBytes >= 0) { "maxBytes must be non-negative" }
+    val out = ByteArrayOutputStream()
+    val buffer = ByteArray(minOf(8192, maxOf(256, maxBytes)))
+    var total = 0
+    while (true) {
+        val remaining = maxBytes - total
+        if (remaining <= 0) {
+            if (input.read() != -1) {
+                throw IOException("Stream exceeded maximum allowed size of $maxBytes bytes")
+            }
+            break
+        }
+        val toRead = minOf(buffer.size, remaining)
+        val n = input.read(buffer, 0, toRead)
+        if (n == -1) break
+        out.write(buffer, 0, n)
+        total += n
+    }
+    return out.toString(Charsets.UTF_8.name())
+}
+
+/**
+ * Returns true if [url] is a non-blank HTTPS URI with a valid host.
+ */
+fun isSafeHttpsUrl(url: String): Boolean {
+    val trimmed = url.trim()
+    if (trimmed.isEmpty()) return false
+    return runCatching {
+        val uri = java.net.URI(trimmed)
+        uri.scheme.equals("https", ignoreCase = true) && !uri.host.isNullOrBlank()
+    }.getOrDefault(false)
+}
+
+/**
+ * Safely opens an external HTTPS URI via Compose [UriHandler], rejecting non-HTTPS schemes.
+ */
+fun UriHandler.openSafeHttpsUri(url: String): Boolean {
+    val trimmed = url.trim()
+    if (!isSafeHttpsUrl(trimmed)) {
+        runCatching { Log.w("Extensions", "Blocked non-HTTPS external URI launch attempt") }
+        return false
+    }
+    return runCatching {
+        openUri(trimmed)
+        true
+    }.getOrDefault(false)
+}
+
+/**
  * Safely opens an external HTTPS URL in a browser, strictly rejecting `intent://`, `javascript:`,
  * `file://`, `content://`, or cleartext `http://` schemes (HIGH-22).
  */
 fun Context.openUrl(url: String) {
     val trimmed = url.trim()
-    if (trimmed.isEmpty()) return
+    if (!isSafeHttpsUrl(trimmed)) {
+        if (trimmed.isNotEmpty()) {
+            runCatching { Log.w("Extensions", "Blocked non-HTTPS external URI launch attempt") }
+        }
+        return
+    }
     runCatching {
         val uri = trimmed.toUri()
-        if (!uri.scheme?.lowercase(Locale.ROOT).equals("https")) {
-            Log.w("Extensions", "Blocked non-HTTPS external URI launch attempt")
-            return
-        }
         val intent = Intent(Intent.ACTION_VIEW, uri).apply {
             addCategory(Intent.CATEGORY_BROWSABLE)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

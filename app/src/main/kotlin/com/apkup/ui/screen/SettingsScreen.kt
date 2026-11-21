@@ -357,24 +357,7 @@ fun Settings(
 	) { uri ->
 		if (uri != null) {
 			coroutineScope.launch(Dispatchers.IO) {
-				val rawJson = runCatching {
-					context.contentResolver.openInputStream(uri)?.use { stream ->
-						val maxBytes = SettingsViewModel.MAX_BACKUP_JSON_CHARS
-						val out = java.io.ByteArrayOutputStream()
-						val buf = ByteArray(8192)
-						var total = 0
-						while (true) {
-							val read = stream.read(buf)
-							if (read == -1) break
-							total += read
-							if (total > maxBytes) {
-								throw IllegalArgumentException("Obtainium file exceeds maximum allowed size")
-							}
-							out.write(buf, 0, read)
-						}
-						out.toString(Charsets.UTF_8.name())
-					}
-				}.getOrNull()
+				val rawJson = readUtf8FromSafUri(context, uri)
 				withContext(Dispatchers.Main) {
 					if (rawJson.isNullOrBlank()) {
 						viewModel.notifyObtainiumImportInvalid()
@@ -400,11 +383,7 @@ fun Settings(
 	) { uri ->
 		if (uri != null) {
 			coroutineScope.launch(Dispatchers.IO) {
-				val rawJson = runCatching {
-					context.contentResolver.openInputStream(uri)?.use { stream ->
-						stream.bufferedReader(Charsets.UTF_8).readText()
-					}
-				}.getOrNull().orEmpty()
+				val rawJson = readUtf8FromSafUri(context, uri).orEmpty()
 				val installedPkgs = (appsViewModel.state().value as? AppsUiState.Success)?.apps
 					?.filterNot { it.isWatchedOnly }
 					?.mapTo(HashSet()) { it.packageName }
@@ -460,24 +439,7 @@ fun Settings(
 	) { uri ->
 		if (uri != null) {
 			coroutineScope.launch(Dispatchers.IO) {
-				val rawJson = runCatching {
-					context.contentResolver.openInputStream(uri)?.use { stream ->
-						val maxBytes = SettingsViewModel.MAX_BACKUP_JSON_CHARS
-						val out = java.io.ByteArrayOutputStream()
-						val buf = ByteArray(8192)
-						var total = 0
-						while (true) {
-							val read = stream.read(buf)
-							if (read == -1) break
-							total += read
-							if (total > maxBytes) {
-								throw IllegalArgumentException("Backup file exceeds maximum allowed size")
-							}
-							out.write(buf, 0, read)
-						}
-						out.toString(Charsets.UTF_8.name())
-					}
-				}.getOrNull()
+				val rawJson = readUtf8FromSafUri(context, uri)
 				withContext(Dispatchers.Main) {
 					if (!rawJson.isNullOrBlank()) {
 						val imported = viewModel.importBackupJson(rawJson)
@@ -5976,3 +5938,25 @@ private fun ObtainiumImportBottomSheet(
 		}
 	}
 }
+
+private fun readUtf8FromSafUri(
+	context: Context,
+	uri: android.net.Uri,
+	maxBytes: Int = SettingsViewModel.MAX_BACKUP_JSON_CHARS
+): String? = runCatching {
+	context.contentResolver.openInputStream(uri)?.use { stream ->
+		val out = java.io.ByteArrayOutputStream()
+		val buf = ByteArray(8192)
+		var total = 0
+		while (true) {
+			val read = stream.read(buf)
+			if (read == -1) break
+			total += read
+			if (total > maxBytes) {
+				throw IllegalArgumentException("SAF file exceeds maximum allowed size ($maxBytes bytes)")
+			}
+			out.write(buf, 0, read)
+		}
+		out.toString(Charsets.UTF_8.name())
+	}
+}.getOrNull()

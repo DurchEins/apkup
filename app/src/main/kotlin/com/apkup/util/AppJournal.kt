@@ -235,6 +235,8 @@ class AppJournal(
         private val AURORA_AUTH_REGEX = Regex("""(?<![?&A-Za-z0-9_])Auth=(?!\[REDACTED\])\S+""", RegexOption.IGNORE_CASE)
         private val AAS_ET_REGEX = Regex("""\baas_et/\S+""", RegexOption.IGNORE_CASE)
         private val PAT_TOKEN_REGEX = Regex("""\b(?:ghp|gho|ghu|ghs|ghr|github_pat)_[A-Za-z0-9_]+\b|\bglpat-[A-Za-z0-9_-]+\b""")
+        private val COOKIE_HEADER_REGEX = Regex("""\b(Set-Cookie|Cookie):\s*\S+(?:\s+[^\r\n]*?(?=\s+[A-Za-z-]+:\s|$))?""", RegexOption.IGNORE_CASE)
+        private val URL_USERINFO_REGEX = Regex("""(https?://)([^/\s:@]+:[^/\s@]+)@""", RegexOption.IGNORE_CASE)
 
         @Volatile
         private var sharedInstance: AppJournal? = null
@@ -287,6 +289,8 @@ class AppJournal(
             clean = AURORA_AUTH_REGEX.replace(clean, "Auth=[REDACTED]")
             clean = AAS_ET_REGEX.replace(clean, "aas_et/[REDACTED]")
             clean = PAT_TOKEN_REGEX.replace(clean, "[TOKEN_REDACTED]")
+            clean = COOKIE_HEADER_REGEX.replace(clean) { match -> "${match.groupValues[1]}: [REDACTED]" }
+            clean = URL_USERINFO_REGEX.replace(clean) { match -> "${match.groupValues[1]}[REDACTED]@" }
             return clean
         }
 

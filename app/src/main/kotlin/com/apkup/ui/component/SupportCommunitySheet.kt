@@ -95,7 +95,8 @@ fun openInCustomTab(
 	url: String,
 	toolbarColorArgb: Int
 ) {
-	val uri = runCatching { Uri.parse(url) }.getOrNull() ?: return
+	if (!com.apkup.util.isSafeHttpsUrl(url)) return
+	val uri = runCatching { Uri.parse(url.trim()) }.getOrNull() ?: return
 	val launchedCustomTab = runCatching {
 		val colorParams = CustomTabColorSchemeParams.Builder()
 			.setToolbarColor(toolbarColorArgb)

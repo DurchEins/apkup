@@ -300,8 +300,8 @@ class RootInstaller(
     }
 
     /**
-     * Clean Root rollback fallback: verifies the backup parts first (fail-closed), then uninstalls
-     * the newer package and installs the backup via `su`.
+     * Clean Root rollback fallback: stages and verifies all backup parts first (fail-closed, even
+     * for stream-only parts), then uninstalls the newer package and installs the backup via `su`.
      */
     fun executeCleanRootRollback(
         packageName: String,
@@ -312,13 +312,56 @@ class RootInstaller(
         if (!ApkIntegrityVerifier.isValidPackageName(packageName)) {
             return RootInstallResult(false, details = "Invalid target package name: '$packageName'")
         }
-        val backingFiles = parts.mapNotNull { it.backingFile?.let { f -> f to it.expectedSha256 } }
-        if (backingFiles.size == parts.size && backingFiles.isNotEmpty()) {
+        if (parts.isEmpty()) {
+            return RootInstallResult(false, details = "No APK parts supplied for $packageName")
+        }
+
+        var tempVerifyDir: File? = null
+        try {
+            val verifiedParts = mutableListOf<InstallPart>()
+            val stagedFiles = mutableListOf<Pair<File, String?>>()
+            parts.forEachIndexed { index, part ->
+                val safeName = sanitizePartName(part.name, index)
+                val backing = part.backingFile
+                val stagedFile = if (backing != null && backing.isFile && backing.length() > 0L) {
+                    backing
+                } else {
+                    val verifyDir = tempVerifyDir ?: run {
+                        val baseCache = runCatching { context?.cacheDir }.getOrNull()
+                            ?: File(System.getProperty("java.io.tmpdir") ?: ".", "apkup_root_verify")
+                        File(baseCache, "root_rollback_verify_${UUID.randomUUID()}").apply { mkdirs() }.also {
+                            tempVerifyDir = it
+                        }
+                    }
+                    val target = File(verifyDir, safeName)
+                    val raw = part.openStream()
+                        ?: return RootInstallResult(false, details = "Null stream for $packageName ($safeName)")
+                    raw.use { input ->
+                        target.outputStream().use { out ->
+                            input.copyTo(out, DEFAULT_BUFFER_SIZE)
+                            out.flush()
+                        }
+                    }
+                    if (!target.isFile || target.length() <= 0L) {
+                        return RootInstallResult(false, details = "Empty stream for $packageName ($safeName)")
+                    }
+                    target
+                }
+                stagedFiles += stagedFile to part.expectedSha256
+                verifiedParts += InstallPart(
+                    name = safeName,
+                    sizeBytes = stagedFile.length(),
+                    expectedSha256 = part.expectedSha256,
+                    backingFile = stagedFile,
+                    openStream = { stagedFile.inputStream() }
+                )
+            }
+
             try {
                 ApkIntegrityVerifier.verifyStagedApkFiles(
                     context = context,
                     expectedPackageName = packageName,
-                    stagedFiles = backingFiles,
+                    stagedFiles = stagedFiles,
                     allowDowngrade = true
                 )
             } catch (sec: ApkIntegrityException) {
@@ -330,14 +373,17 @@ class RootInstaller(
                     details = sec.message ?: "Backup verification failed"
                 )
             }
+
+            runCatching { shellExecutor.runCommand("pm uninstall $packageName") }
+            return executeRootInstall(
+                packageName = packageName,
+                parts = verifiedParts,
+                installerPackageName = installerPackageName,
+                allowDowngrade = true,
+                bypassLowTargetSdkBlock = bypassLowTargetSdkBlock
+            )
+        } finally {
+            tempVerifyDir?.let { runCatching { it.deleteRecursively() } }
         }
-        runCatching { shellExecutor.runCommand("pm uninstall $packageName") }
-        return executeRootInstall(
-            packageName = packageName,
-            parts = parts,
-            installerPackageName = installerPackageName,
-            allowDowngrade = true,
-            bypassLowTargetSdkBlock = bypassLowTargetSdkBlock
-        )
     }
 }

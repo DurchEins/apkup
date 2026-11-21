@@ -84,6 +84,8 @@ function formatInline(raw: string, slugPrefix = 'home'): string {
       if (targetSlug) {
         return `<a href="#doc-${targetSlug}" data-wiki-jump="${targetSlug}">${cleanLabel}</a>`;
       }
+      // Reject unsafe/unknown schemes such as javascript:, data:, vbscript:, etc.
+      return cleanLabel;
     }
     return `<a href="${url}" target="_blank" rel="noopener noreferrer">${cleanLabel}</a>`;
   });

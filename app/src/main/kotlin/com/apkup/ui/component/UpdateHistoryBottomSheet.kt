@@ -76,6 +76,7 @@ import com.apkup.data.ui.UpdateInstallMode
 import com.apkup.repository.RepoMappingManager
 import com.apkup.util.effectivePreviousVersionUrl
 import com.apkup.util.getAppName
+import com.apkup.util.openSafeHttpsUri
 import com.apkup.viewmodel.UpdatesViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -283,7 +284,7 @@ fun UpdateHistoryBottomSheet(
                             displayAppName = displayAppName,
                             previousVersionUrl = prevUrl,
                             onOpenPreviousVersion = { url ->
-                                runCatching { uriHandler.openUri(url) }
+                                uriHandler.openSafeHttpsUri(url)
                             },
                             backupMeta = backupMeta,
                             onRequestRollback = if (backupMeta != null) {
