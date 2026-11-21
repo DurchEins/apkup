@@ -16,7 +16,7 @@
 
 <p align="center">
   <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/github/downloads/DurchEins/apkup/total?style=flat&label=GitHub%20Downloads&color=F59E0B&logo=github" alt="GitHub Downloads" /></a>
-  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.45.1%20(222)-38BDF8?style=flat" alt="Version" /></a>
+  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.45.1%20(223)-38BDF8?style=flat" alt="Version" /></a>
   <img src="https://img.shields.io/badge/Min%20SDK-29%20(Android%2010%2B)-3DDC84?style=flat&logo=android" alt="Min SDK 29" />
   <img src="https://img.shields.io/badge/Privacy-No%20Ads%20%7C%20No%20Tracking-2EA44F?style=flat" alt="Privacy: No Ads | No Tracking" />
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-blue?style=flat" alt="License GPL-3.0" /></a>
@@ -238,5 +238,6 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 ```
 
-> **Special Thanks:**  
-> Based on the original open-source project by **[rumboalla (APKUpdater)](https://github.com/rumboalla/apkupdater)**.
+<p align="center">
+  <sub>Special Thanks: Based on the original open-source project by <a href="https://github.com/rumboalla/apkupdater">rumboalla (APKUpdater)</a>.</sub>
+</p>

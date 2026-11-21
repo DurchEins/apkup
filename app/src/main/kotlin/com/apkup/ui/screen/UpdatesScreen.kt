@@ -356,6 +356,7 @@ fun UpdatesTopBar(
 	allSelectableSelected: Boolean = false,
 	onClearSelection: (() -> Unit)? = null,
 	onToggleSelectAll: (() -> Unit)? = null,
+	onInstallSelected: (() -> Unit)? = null,
 	searchExpanded: Boolean = false,
 	onToggleSearch: (() -> Unit)? = null,
 	sortOrder: UpdatesSortOrder = UpdatesSortOrder.NAME_ASC,
@@ -393,6 +394,27 @@ fun UpdatesTopBar(
 							),
 							style = MaterialTheme.typography.labelLarge,
 							fontWeight = FontWeight.SemiBold
+						)
+					}
+				}
+				if (onInstallSelected != null) {
+					Button(
+						onClick = onInstallSelected,
+						shape = CircleShape,
+						contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+						modifier = Modifier.padding(end = 6.dp)
+					) {
+						Icon(
+							painter = painterResource(R.drawable.ic_install),
+							contentDescription = null,
+							modifier = Modifier.size(16.dp)
+						)
+						Spacer(Modifier.width(5.dp))
+						Text(
+							text = stringResource(R.string.updates_install_selected, selectedCount),
+							style = MaterialTheme.typography.labelMedium,
+							fontWeight = FontWeight.Bold,
+							maxLines = 1
 						)
 					}
 				}
@@ -760,6 +782,22 @@ fun UpdatesScreenSuccess(
 			.background(MaterialTheme.colorScheme.background)
 	) {
 	Column(modifier = Modifier.fillMaxSize()) {
+	val installSelectedAction: () -> Unit = {
+		val toInstall = selectedUpdates
+		val (directQueue, _) = partitionInstallQueueCandidates(toInstall, directMirror)
+		val riskyWatched = directQueue.filter { it.isWatchedApp() && it.source == ApkMirrorSource }
+		val execute: () -> Unit = {
+			requestNotificationPermissionIfNeeded()
+			selectedUpdateIds = emptySet()
+			viewModel.installSelected(toInstall)
+		}
+		if (riskyWatched.isNotEmpty()) {
+			pendingWatchedApkMirrorConfirm = riskyWatched to execute
+		} else {
+			execute()
+		}
+	}
+
 	UpdatesTopBar(
 		viewModel = viewModel,
 		updatesCount = displayedUpdates.size,
@@ -771,6 +809,7 @@ fun UpdatesScreenSuccess(
 		onToggleSelectAll = {
 			selectedUpdateIds = if (allSelectableSelected) emptySet() else selectableIds
 		},
+		onInstallSelected = if (isSelectionMode) installSelectedAction else null,
 		searchExpanded = searchExpanded,
 		onToggleSearch = if (updates.isNotEmpty()) {
 			{
@@ -808,7 +847,7 @@ fun UpdatesScreenSuccess(
 
 	CollapsibleScrollHeader(state = collapsibleHeaderState) {
 		Column(modifier = Modifier.fillMaxWidth()) {
-			if ((updates.isNotEmpty() && !isChecking) || activeTasks.isNotEmpty() || isSelectionMode) {
+			if ((updates.isNotEmpty() && !isChecking && !isSelectionMode) || activeTasks.isNotEmpty()) {
 				UpdatesHeroBanner(
 					updatesCount = displayedUpdates.size,
 					hasInstallable = hasInstallable,
@@ -829,21 +868,7 @@ fun UpdatesScreenSuccess(
 							execute()
 						}
 					},
-					onInstallSelected = {
-						val toInstall = selectedUpdates
-						val (directQueue, _) = partitionInstallQueueCandidates(toInstall, directMirror)
-						val riskyWatched = directQueue.filter { it.isWatchedApp() && it.source == ApkMirrorSource }
-						val execute: () -> Unit = {
-							requestNotificationPermissionIfNeeded()
-							selectedUpdateIds = emptySet()
-							viewModel.installSelected(toInstall)
-						}
-						if (riskyWatched.isNotEmpty()) {
-							pendingWatchedApkMirrorConfirm = riskyWatched to execute
-						} else {
-							execute()
-						}
-					},
+					onInstallSelected = installSelectedAction,
 					onOpenQueue = { showQueueSheet = true },
 					onOpenHistory = onOpenHistory,
 					onSelectAll = {

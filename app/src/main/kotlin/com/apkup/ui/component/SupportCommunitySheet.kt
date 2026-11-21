@@ -159,31 +159,11 @@ fun SupportCommunityBottomSheet(
 				.fillMaxWidth()
 				.verticalScroll(rememberScrollState())
 				.padding(horizontal = 20.dp)
-				.padding(bottom = 24.dp)
+				.padding(top = 8.dp, bottom = 24.dp)
 				.navigationBarsPadding(),
 			verticalArrangement = Arrangement.spacedBy(16.dp)
 		) {
 			Box(modifier = Modifier.fillMaxWidth()) {
-				if (!isReducedMotion && heartDrift.value > 0f && heartDrift.value < 1f) {
-					val p = heartDrift.value
-					val driftAlpha = (if (p < 0.2f) p / 0.2f else 1f - ((p - 0.2f) / 0.8f)).coerceIn(0f, 1f) * 0.85f
-					Icon(
-						imageVector = Icons.Rounded.Favorite,
-						contentDescription = null,
-						tint = androidx.compose.ui.graphics.Color(0xFFF59E0B).copy(alpha = driftAlpha),
-						modifier = Modifier
-							.align(Alignment.CenterStart)
-							.offset(x = 7.dp)
-							.size(26.dp)
-							.graphicsLayer {
-								translationY = -p * 36.dp.toPx()
-								translationX = p * 8.dp.toPx()
-								val s = 0.85f + 0.35f * p
-								scaleX = s
-								scaleY = s
-							}
-					)
-				}
 				Row(
 					verticalAlignment = Alignment.CenterVertically,
 					horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -207,6 +187,26 @@ fun SupportCommunityBottomSheet(
 						style = MaterialTheme.typography.titleLarge,
 						fontWeight = FontWeight.Bold,
 						color = MaterialTheme.colorScheme.onSurface
+					)
+				}
+				if (!isReducedMotion && heartDrift.value > 0f && heartDrift.value < 1f) {
+					val p = heartDrift.value
+					val driftAlpha = (if (p < 0.2f) p / 0.2f else 1f - ((p - 0.2f) / 0.8f)).coerceIn(0f, 1f) * 0.9f
+					Icon(
+						imageVector = Icons.Rounded.Favorite,
+						contentDescription = null,
+						tint = androidx.compose.ui.graphics.Color(0xFFF59E0B).copy(alpha = driftAlpha),
+						modifier = Modifier
+							.align(Alignment.TopStart)
+							.offset(x = 10.dp, y = (-4).dp)
+							.size(26.dp)
+							.graphicsLayer {
+								translationY = -p * 38.dp.toPx()
+								translationX = p * 12.dp.toPx()
+								val s = 0.85f + 0.35f * p
+								scaleX = s
+								scaleY = s
+							}
 					)
 				}
 			}
