@@ -268,71 +268,118 @@ If you have any questions or concerns regarding this Privacy Policy, please reac
 
 ## Security Policy
 
+<a id="top"></a>
+
 # Security Policy
 
----
+**Last Reviewed:** November 2026
 
-### English
+> [!CAUTION]
+> **Security vulnerabilities must NEVER be opened as public GitHub Issues, Discussions, or social media posts.**
+> Disclosing unpatched issues publicly puts ApkUp users at risk. Use GitHub's confidential advisory workflow below instead.
+>
+> <a href="https://github.com/DurchEins/apkup/security/advisories/new"><img src="https://img.shields.io/badge/Report%20a%20Vulnerability-Private%20Advisory-DC2626?style=flat&logo=github" alt="Report a Vulnerability via Private Advisory" /></a>
 
 ## Supported Versions
 
 We actively provide security patches for the following versions of ApkUp:
 
-| Version | Supported |
-| --- | --- |
-| 1.45.x (or newer) | :white_check_mark: |
-| 1.44.x | :white_check_mark: |
-| < 1.44 | :x: |
-
-## Security Architecture Highlights
-
-ApkUp enforces defense-in-depth verification across every update lifecycle stage:
-- **Cryptographic APK Signature Verification:** Before handing any downloaded APK or `.apkm` split bundle to `PackageInstaller` or Shizuku, `ApkIntegrityVerifier` verifies APK Signature Scheme v2/v3 signing certificates against the currently installed application and blocks certificate mismatches or version downgrades.
-- **Signed F-Droid / IzzyOnDroid Indexes & SHA-256 Checksums:** Repository indexes (`index-v1.jar`) are verified against pinned 64-hex SHA-256 X.509 signing certificate fingerprints, and downloaded APKs (including ApkUp self-updates via `SHA256SUMS`) are validated against expected SHA-256 digests.
-- **Hardened Archive & Storage Isolation:** All downloads reside in private internal app storage (`cacheDir`), `.apkm` split bundles enforce strict Zip-Slip and decompression-bomb limits, and cleartext HTTP traffic as well as cloud backups are disabled.
-- **Encrypted Credentials & Host Isolation:** Local preferences and optional tokens are encrypted at rest using Google Tink (`AES-256-GCM` via Android Keystore). Authorization headers are pinned strictly to their target API hosts and stripped across cross-host redirects.
-
-## Reporting a Vulnerability
-
-If you discover a potential security vulnerability within ApkUp (especially regarding APK signature verification, `.apkm` archive extraction, Shizuku IPC / optional Root `su` execution, credential storage, or network transport), please do **NOT** disclose it via public GitHub issues, discussions, or social media.
-
-Instead, please report it confidentially via GitHub's **Private Vulnerability Reporting**:
-1. Navigate to [Report a Vulnerability](https://github.com/DurchEins/apkup/security/advisories/new).
-2. Detail the issue, steps to reproduce, affected versions, and include a proof-of-concept if available.
-
-We will review incoming reports promptly, investigate the scope, and release a patch before any public disclosure occurs.
+| Version | Support Status | Scope |
+| :--- | :--- | :--- |
+| `1.45.x` (or newer) | ✅ **Full support** | Active bug fixes & security patches |
+| `1.44.x` | ⚠️ **Security fixes only** | Critical security patches until next minor release |
+| `< 1.44` | ❌ **Unsupported** | Please update to the latest release |
 
 ---
 
-### Deutsch
+## 🔐 Official APK Signing Verification & Single-Artifact Principle
 
-## Unterstützte Versionen
+All official **ApkUp** releases follow the **Single-Artifact Principle**: only the release APK built, signed, and published by automated GitHub Actions (`release.yml`) is canonical. All official mirrors (**GitLab Releases**, **Zapstore**, **itch.io**, **APKPure**, **Appteka**, **Komi Store**) and VirusTotal scans distribute and verify this exact same binary.
 
-Sicherheitsupdates werden aktiv für folgende Versionen von ApkUp bereitgestellt:
+Always verify that the signing certificate SHA-256 fingerprint matches ApkUp's official key before trusting an APK:
 
-| Version | Unterstützt |
-| --- | --- |
-| 1.45.x (oder neuer) | :white_check_mark: |
-| 1.44.x | :white_check_mark: |
-| < 1.44 | :x: |
+```text
+8e9b512371ee965afc7cc91f23490d3a514623b90d483e638bba8a070a2170b4
+```
 
-## Sicherheitsarchitektur im Überblick
+Per-release `.sha256` checksum files (`SHA256SUMS`) are published alongside each release binary on **[GitHub Releases](https://github.com/DurchEins/apkup/releases)** and on the **[ApkUp Website](https://durcheins.github.io/apkup/)**.
 
-ApkUp schützt den gesamten Update-Prozess mehrstufig ab:
-- **Kryptografische APK-Signaturprüfung:** Vor jeder Übergabe an den Android-`PackageInstaller` oder Shizuku prüft `ApkIntegrityVerifier` die APK-Signaturzertifikate (v2/v3 Signing Scheme) gegen die bereits installierte App und blockiert Signaturabweichungen sowie Versions-Downgrades.
-- **Signierte F-Droid-/IzzyOnDroid-Indizes & SHA-256-Prüfsummen:** Repository-Indizes (`index-v1.jar`) werden kryptografisch gegen gepinnte SHA-256-Zertifikats-Fingerprints geprüft; heruntergeladene APKs (einschließlich Selbst-Updates über `SHA256SUMS`) werden gegen erwartete SHA-256-Prüfsummen validiert.
-- **Isolierter Speicher & Archiv-Härtung:** Downloads liegen ausschließlich im privaten internen App-Speicher (`cacheDir`), `.apkm`-Bundles sind gegen Zip-Slip und Entpackbomben gehärtet, Klartext-HTTP sowie Cloud-Backups sind deaktiviert.
-- **Verschlüsselte Zugangsdaten & Host-Isolierung:** Lokale Einstellungen und optionale API-Tokens werden per Google Tink (`AES-256-GCM` im Android Keystore) verschlüsselt gespeichert und niemals an fremde Redirect-Domains weitergeleitet.
+---
 
-## Sicherheitslücken melden
+## 🛡️ Security Architecture & Threat Model
 
-Solltest du eine Sicherheitslücke in ApkUp entdecken (insbesondere bei der APK-Signaturprüfung, der `.apkm`-Archiv-Entpackung, der Shizuku- / optionalen Root-(`su`)-Ausführung, der Token-Speicherung oder dem Netzwerk-Transport), erstelle bitte **KEIN** öffentliches Issue.
+ApkUp enforces defense-in-depth verification across every stage of checking, downloading, and installing updates:
 
-Nutze stattdessen vertraulich GitHubs **Private Vulnerability Reporting**:
-1. Öffne [Sicherheitslücke melden](https://github.com/DurchEins/apkup/security/advisories/new).
-2. Beschreibe die Schwachstelle mit Reproduktionsschritten, betroffenen Versionen sowie ggf. einem Proof-of-Concept.
+| Layer | Protection Mechanism |
+| :--- | :--- |
+| **APK Integrity** | `ApkIntegrityVerifier` checks v2/v3 signing certificates against the installed app and blocks mismatches or version downgrades before handing files to `PackageInstaller`, Shizuku, or Root. |
+| **Signed Indexes & Hashes** | F-Droid / IzzyOnDroid indexes (`index-v1.jar`) verify against pinned 64-hex SHA-256 X.509 fingerprints; self-updates verify against signed `SHA256SUMS`. |
+| **Credentials at Rest** | Preferences and optional API tokens are encrypted locally via **Google Tink (`AES-256-GCM`)** backed by the hardware **Android Keystore**. |
+| **Network & Redirects** | HTTPS-only transport (`cleartextTrafficPermitted="false"`). Personal Access Tokens are strictly host-isolated and stripped across cross-host redirects. |
 
-Meldungen werden schnellstmöglich geprüft und behoben, bevor Details öffentlich geteilt werden.
+<details>
+<summary><b>🔍 Detailed Threat Model, Archive Limits &amp; Data Isolation</b></summary>
+<br>
+
+### Threat Model Defenses
+- **Split-Bundle Hardening (`.apkm`):** Archive extraction enforces strict canonical path validation against **Zip-Slip** directory traversal as well as hard per-entry and total **decompression-bomb byte limits**.
+- **UI & Process Protections:** Sensitive confirmation controls filter obscured touches against **Tapjacking**, external intents harden against Background Activity Launch (**BAL**) restrictions, and local diagnostic logs (`AppJournal`) scrub credentials automatically before export.
+- **Privilege Boundaries:** Standard Android `PackageInstaller` requires explicit system confirmation; **Shizuku** runs via scoped ADB binder permissions; optional **Root (`su`)** execution performs explicit pre-checks on target package paths.
+
+### Local Storage & Data Isolation
+- **No Cloud Backups:** Cloud backup and device-to-device data extraction are disabled (`android:allowBackup="false"`).
+- **Private Cache Isolation:** Downloaded APKs reside exclusively in private internal app storage (`cacheDir`) and are cleaned up automatically unless explicitly exported via *Save APK*.
+- **Zero Telemetry:** ApkUp operates strictly client-side with zero analytics SDKs or developer servers. Full data handling details are documented in **[PRIVACY.md](PRIVACY.md)**.
+
+</details>
+
+---
+
+## 📩 Reporting a Vulnerability
+
+If you discover a potential security vulnerability in ApkUp (especially regarding APK signature checks, `.apkm` extraction, Shizuku IPC / optional Root `su` execution, token storage, or network transport), please report it privately via **[GitHub Private Vulnerability Reporting](https://github.com/DurchEins/apkup/security/advisories/new)**.
+
+### What to Include in a Report
+- **ApkUp version & Android OS version** (e.g., `1.45.1 (223)` on Android 15)
+- **Affected component or update source** (e.g., `ApkIntegrityVerifier`, F-Droid index parser, Shizuku installer, Tink storage)
+- **Step-by-step reproduction** or Proof-of-Concept (PoC)
+- **Expected security impact** (e.g., signature bypass, arbitrary file write, credential leak)
+
+- **Coordinated Disclosure Policy:** Best-effort acknowledgement within **7 days**; we kindly ask researchers to allow coordinated disclosure until a patched release is published (typically within **30–90 days**).
+
+---
+
+<details>
+<summary><b>🇩🇪 Deutsche Zusammenfassung (German Summary)</b></summary>
+<br>
+
+> [!CAUTION]
+> **Melde Sicherheitslücken NIEMALS als öffentliches GitHub-Issue!** Nutze immer vertraulich das **[private Meldeformular auf GitHub](https://github.com/DurchEins/apkup/security/advisories/new)**.
+
+### Unterstützte Versionen
+| Version | Status | Hinweis |
+| :--- | :--- | :--- |
+| `1.45.x` (oder neuer) | ✅ **Voller Support** | Aktive Bugfixes & Sicherheitsupdates |
+| `1.44.x` | ⚠️ **Nur Sicherheitsfixes** | Kritische Sicherheitsupdates bis zum nächsten Minor-Release |
+| `< 1.44` | ❌ **Nicht unterstützt** | Bitte auf die aktuellste Version aktualisieren |
+
+### Offizieller Signatur-Fingerprint (SHA-256) & Single-Artifact-Prinzip
+Nur die über GitHub Actions signierten Release-APKs auf **GitHub Releases** sind kanonisch (identische Binärdatei & Prüfsumme auf allen offiziellen Mirrors). Offizieller Zertifikat-SHA-256-Fingerprint:
+
+```text
+8e9b512371ee965afc7cc91f23490d3a514623b90d483e638bba8a070a2170b4
+```
+
+### Sicherheitsarchitektur im Überblick
+- **Signatur- & Prüfsummenschutz:** `ApkIntegrityVerifier` prüft v2/v3-Signaturzertifikate vor jeder Installation und blockiert Downgrades sowie abweichende Signaturen; F-Droid-/IzzyOnDroid-Indizes und Selbst-Updates (`SHA256SUMS`) werden kryptografisch geprüft.
+- **Verschlüsselte Speicherung & Datenisolierung:** Einstellungen und optionale Tokens liegen per **Google Tink (`AES-256-GCM`)** im Android Keystore verschlüsselt, Cloud-Backups sind deaktiviert (`allowBackup="false"`), Downloads liegen im privaten `cacheDir`. Weitere Details stehen in **[PRIVACY.md](PRIVACY.md)**.
+- **Archiv-, Netzwerk- & UI-Härtung:** Schutz vor Zip-Slip und Entpackbomben bei `.apkm`-Bundles, ausschließlich HTTPS mit strikt host-isolierten Tokens, Tapjacking-Schutz und automatische Redaktion sensibler Daten in Diagnose-Logs.
+- **Checkliste für Meldungen:** Bitte nenne betroffene ApkUp-/Android-Version, betroffene Komponente/Quelle, Reproduktionsschritte bzw. PoC und mögliche Auswirkungen.
+- **Koordinierte Offenlegung (Coordinated Disclosure):** Best-Effort-Rückmeldung innerhalb von **7 Tagen**; wir bitten Sicherheitsforscher um eine koordinierte Offenlegung, bis ein gepatchtes Release veröffentlicht ist (üblicherweise innerhalb von **30–90 Tagen**).
+
+</details>
+
+<p align="right"><kbd><a href="#top">↑ Back to top</a></kbd></p>
 
 ---
 
