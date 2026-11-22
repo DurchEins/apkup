@@ -59,9 +59,19 @@ const activeMeta = LOCALE_META[lang];
         href="https://u24.gov.ua/"
         target="_blank"
         rel="noopener noreferrer"
-        class="footer-build-pill"
+        class="footer-build-pill footer-ukraine-pill"
+        aria-label="Stand with Ukraine — Official United24 Support"
       >
-        🇺🇦 Stand with Ukraine
+        <svg width="16" height="11" viewBox="0 0 16 11" aria-hidden="true" class="ua-flag">
+          <defs>
+            <clipPath id="ua-clip"><rect width="16" height="11" rx="2" /></clipPath>
+          </defs>
+          <g clip-path="url(#ua-clip)">
+            <rect width="16" height="5.5" fill="#0057B7" />
+            <rect y="5.5" width="16" height="5.5" fill="#FFD700" />
+          </g>
+        </svg>
+        <span>Stand with Ukraine</span>
       </a>
     </nav>
 
@@ -372,6 +382,36 @@ const activeMeta = LOCALE_META[lang];
     font-weight: 600;
     text-decoration: none;
     transition: border-color 140ms ease, color 140ms ease, background 140ms ease;
+  }
+
+  .footer-ukraine-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border-color: rgba(255, 215, 0, 0.28);
+    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  }
+
+  .ua-flag {
+    flex-shrink: 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  }
+
+  @media (hover: hover) {
+    .footer-ukraine-pill:hover {
+      border-color: rgba(255, 215, 0, 0.7);
+      box-shadow: 0 0 12px rgba(0, 87, 183, 0.28);
+      transform: translateY(-1px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .footer-ukraine-pill {
+      transition: none;
+    }
+    .footer-ukraine-pill:hover {
+      transform: none;
+    }
   }
 
   @media (hover: hover) {

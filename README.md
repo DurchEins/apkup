@@ -343,9 +343,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 </p>
 
 <p align="center">
-  <a href="https://u24.gov.ua/"><img src="https://img.shields.io/badge/Stand_With-Ukraine-0057B7?style=flat&labelColor=FFD700" alt="Stand With Ukraine — Official United24 Support" /></a>
+  <a href="#top"><kbd>↑ Back to top</kbd></a>
 </p>
 
 <p align="center">
-  <a href="#top"><kbd>↑ Back to top</kbd></a>
+  <a href="https://u24.gov.ua/"><img src="https://img.shields.io/badge/Stand_With-Ukraine-0057B7?style=flat&labelColor=FFD700" alt="Stand With Ukraine — Official United24 Support" /></a>
 </p>
