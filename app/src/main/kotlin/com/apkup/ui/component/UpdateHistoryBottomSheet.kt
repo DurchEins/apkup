@@ -9,6 +9,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,22 +26,28 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Restore
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -81,7 +88,9 @@ import com.apkup.data.ui.PlaySource
 import com.apkup.data.ui.UpdateHistoryEntry
 import com.apkup.data.ui.UpdateInstallMode
 import com.apkup.repository.RepoMappingManager
+import com.apkup.util.UpdateHistoryFilterMode
 import com.apkup.util.effectivePreviousVersionUrl
+import com.apkup.util.filterUpdateHistoryEntries
 import com.apkup.util.getAppName
 import com.apkup.util.openSafeHttpsUri
 import com.apkup.viewmodel.UpdatesViewModel
@@ -107,6 +116,25 @@ fun UpdateHistoryBottomSheet(
     var selectedRollbackPair by remember { mutableStateOf<Pair<String, com.apkup.util.RollbackBackupMeta>?>(null) }
     var rollbackStatusHint by remember { mutableStateOf<String?>(null) }
     var pendingExportPkg by remember { mutableStateOf<String?>(null) }
+    var searchQuery by remember { mutableStateOf("") }
+    var filterMode by remember { mutableStateOf(UpdateHistoryFilterMode.ALL) }
+    var selectedSourceName by remember { mutableStateOf<String?>(null) }
+
+    val availableSources = remember(entries) {
+        entries.map { it.sourceName }.filter { it.isNotBlank() }.distinct()
+    }
+    val filteredEntries = remember(entries, searchQuery, filterMode, selectedSourceName) {
+        filterUpdateHistoryEntries(
+            entries = entries,
+            query = searchQuery,
+            filterMode = filterMode,
+            selectedSourceName = selectedSourceName,
+            hasBackup = { pkg -> rollbackManager.getBackupMeta(pkg) != null },
+            resolveAppName = { entry ->
+                entry.appName.ifBlank { context.getAppName(entry.packageName).ifBlank { entry.packageName } }
+            }
+        )
+    }
 
     val exportBackupLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/vnd.android.package-archive")
@@ -265,6 +293,120 @@ fun UpdateHistoryBottomSheet(
                     }
                 }
             } else {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                    placeholder = {
+                        Text(
+                            text = stringResource(R.string.update_history_search_hint),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Rounded.Search,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    },
+                    trailingIcon = if (searchQuery.isNotEmpty()) {
+                        {
+                            IconButton(onClick = { searchQuery = "" }) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Close,
+                                    contentDescription = stringResource(R.string.update_history_filter_reset),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                    } else null
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    FilterChip(
+                        selected = filterMode == UpdateHistoryFilterMode.ALL && selectedSourceName == null,
+                        onClick = {
+                            filterMode = UpdateHistoryFilterMode.ALL
+                            selectedSourceName = null
+                        },
+                        label = { Text(stringResource(R.string.update_history_filter_all)) }
+                    )
+                    FilterChip(
+                        selected = filterMode == UpdateHistoryFilterMode.WITH_BACKUP,
+                        onClick = {
+                            filterMode = if (filterMode == UpdateHistoryFilterMode.WITH_BACKUP) {
+                                UpdateHistoryFilterMode.ALL
+                            } else {
+                                UpdateHistoryFilterMode.WITH_BACKUP
+                            }
+                        },
+                        label = { Text(stringResource(R.string.update_history_filter_backup)) }
+                    )
+                    availableSources.forEach { sourceName ->
+                        val (sourceLabel, _) = resolveHistorySourceDisplay(sourceName)
+                        FilterChip(
+                            selected = selectedSourceName.equals(sourceName, ignoreCase = true),
+                            onClick = {
+                                selectedSourceName = if (selectedSourceName.equals(sourceName, ignoreCase = true)) {
+                                    null
+                                } else {
+                                    sourceName
+                                }
+                            },
+                            label = { Text(sourceLabel) }
+                        )
+                    }
+                }
+
+                if (filteredEntries.isEmpty()) {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(20.dp),
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 24.dp, vertical = 24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.update_history_filter_empty_title),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                textAlign = TextAlign.Center
+                            )
+                            Text(
+                                text = stringResource(R.string.update_history_filter_empty_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                            TextButton(
+                                onClick = {
+                                    searchQuery = ""
+                                    filterMode = UpdateHistoryFilterMode.ALL
+                                    selectedSourceName = null
+                                }
+                            ) {
+                                Text(stringResource(R.string.update_history_filter_reset))
+                            }
+                        }
+                    }
+                } else {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -272,7 +414,7 @@ fun UpdateHistoryBottomSheet(
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     itemsIndexed(
-                        items = entries,
+                        items = filteredEntries,
                         key = { index, item -> "${item.packageName}_${item.installedAtMillis}_$index" }
                     ) { _, entry ->
                         val displayAppName = remember(entry.appName, entry.packageName) {
@@ -311,6 +453,7 @@ fun UpdateHistoryBottomSheet(
                             } else null
                         )
                     }
+                }
                 }
             }
         }

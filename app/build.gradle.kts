@@ -32,8 +32,8 @@ android {
         applicationId = "com.apkup" + buildTag
         minSdk = 29
         targetSdk = 37
-        versionCode = parsedBuildNumber ?: 231
-        versionName = if (parsedBuildNumber == null) "1.46.0 (231)" else "1.46.0-$parsedBuildNumber"
+        versionCode = parsedBuildNumber ?: 232
+        versionName = if (parsedBuildNumber == null) "1.47.0 (232)" else "1.47.0-$parsedBuildNumber"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -144,7 +144,14 @@ android {
 
     packaging {
         resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += setOf(
+                "/META-INF/{AL2.0,LGPL2.1}",
+                "/META-INF/androidx/**/LICENSE.txt",
+                "/META-INF/*.version",
+                "DebugProbesKt.bin",
+                "kotlin-tooling-metadata.json",
+                "google/protobuf/*.proto",
+            )
         }
     }
 

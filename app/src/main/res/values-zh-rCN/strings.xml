@@ -249,6 +249,12 @@
     <string name="update_history_title">更新历史记录</string>
     <string name="update_history_subtitle">由 ApkUp 安装的应用更新</string>
     <string name="update_history_clear">清空</string>
+    <string name="update_history_search_hint">搜索历史记录…</string>
+    <string name="update_history_filter_all">全部</string>
+    <string name="update_history_filter_backup">含备份</string>
+    <string name="update_history_filter_empty_title">没有匹配的记录</string>
+    <string name="update_history_filter_empty_desc">请尝试其他搜索词或重置筛选条件。</string>
+    <string name="update_history_filter_reset">重置筛选</string>
     <string name="update_history_empty_title">暂无更新记录</string>
     <string name="update_history_empty_desc">当 ApkUp 手动或通过 Shizuku 自动更新应用后，记录将显示在此处并提供旧版本链接。</string>
     <string name="update_history_mode_auto_shizuku">自动 · Shizuku</string>

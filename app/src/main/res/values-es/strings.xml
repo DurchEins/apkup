@@ -251,6 +251,12 @@
     <string name="update_history_title">Historial de actualizaciones</string>
     <string name="update_history_subtitle">Actualizaciones instaladas por ApkUp</string>
     <string name="update_history_clear">Borrar</string>
+    <string name="update_history_search_hint">Buscar en el historial…</string>
+    <string name="update_history_filter_all">Todos</string>
+    <string name="update_history_filter_backup">Con copia</string>
+    <string name="update_history_filter_empty_title">Sin resultados</string>
+    <string name="update_history_filter_empty_desc">Prueba otro término o restablece los filtros.</string>
+    <string name="update_history_filter_reset">Restablecer filtros</string>
     <string name="update_history_empty_title">Aún no hay actualizaciones registradas</string>
     <string name="update_history_empty_desc">Cuando ApkUp actualice aplicaciones manualmente o en segundo plano con Shizuku, aparecerán aquí con un enlace a la versión anterior.</string>
     <string name="update_history_mode_auto_shizuku">Auto · Shizuku</string>
