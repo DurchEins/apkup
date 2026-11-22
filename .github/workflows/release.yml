@@ -111,26 +111,40 @@ jobs:
           (cd release_assets && sha256sum "$(basename "$TARGET_APK")" > "$(basename "$TARGET_APK").sha256")
           APK_SHA256=$(awk '{print $1}' "${TARGET_APK}.sha256")
 
-          CHANGELOG_MD=$(ls -v app/src/main/assets/changelog/*_en.md 2>/dev/null | tail -n 1)
           CHANGELOG_BODY=""
-          if [ -n "$CHANGELOG_MD" ] && [ -f "$CHANGELOG_MD" ]; then
-            CHANGELOG_BODY=$(awk '
-              /^### / {
-                if (found) exit
-                found=1
-                next
-              }
-              found {
-                if (/^> \[Banner\]/ || /^$/) next
-                if (sub(/^- \*\*/, "- **")) {
-                  line = $0
-                  sub(/\*\* /, ":** ", line)
-                  print line
-                } else {
-                  print
+          if [ -f ".github/RELEASE_NOTES.md" ] && [ -s ".github/RELEASE_NOTES.md" ]; then
+            CHANGELOG_BODY=$(cat ".github/RELEASE_NOTES.md")
+          else
+            CHANGELOG_MD=$(ls -v app/src/main/assets/changelog/*_en.md 2>/dev/null | tail -n 1)
+            if [ -n "$CHANGELOG_MD" ] && [ -f "$CHANGELOG_MD" ]; then
+              CHANGELOG_BODY=$(awk '
+                /^### / {
+                  if (found) exit
+                  found=1
+                  next
                 }
-              }
-            ' "$CHANGELOG_MD")
+                found {
+                  if (/^> \[Banner\]/ || /^$/) next
+                  if (/^> \[Section\] /) {
+                    sec = $0
+                    sub(/^> \[Section\] /, "", sec)
+                    if (printed) printf "\n"
+                    printf "### %s\n\n", sec
+                    printed=1
+                    next
+                  }
+                  if (sub(/^- \*\*/, "- **")) {
+                    line = $0
+                    sub(/\*\* /, ":** ", line)
+                    print line
+                    printed=1
+                  } else {
+                    print
+                    printed=1
+                  }
+                }
+              ' "$CHANGELOG_MD")
+            fi
           fi
           if [ -z "$CHANGELOG_BODY" ]; then
             CHANGELOG_FILE=$(ls -v fastlane/metadata/android/en-US/changelogs/*.txt 2>/dev/null | tail -n 1)

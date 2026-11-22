@@ -850,6 +850,7 @@ private fun parseMonthlyChangelogDocument(
                     )
                 }
             }
+            trimmed.startsWith("> [Section]", ignoreCase = true) -> Unit
             trimmed.startsWith("- ") || trimmed.startsWith("* ") -> {
                 val itemText = trimmed.substring(2).trim()
                 val match = boldRegex.find(itemText)
