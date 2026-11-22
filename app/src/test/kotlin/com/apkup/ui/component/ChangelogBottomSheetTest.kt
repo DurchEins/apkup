@@ -127,6 +127,34 @@ class ChangelogBottomSheetTest {
     }
 
     @Test
+    fun `parseChangelogDocument ignores release-note section markers`() {
+        val markdown = """
+            # What's New
+
+            ## November 2026
+
+            ### November 22, 2026 | 1.47.0 (232) | Feature Update
+
+            > [Banner] History Filters | Release
+
+            > [Section] 🚀 Store Engine
+
+            - **Updated Engine** Faster checks.
+
+            > [Section] ✨ General Improvements
+
+            - **General Improvements** Stability updates.
+        """.trimIndent()
+
+        val doc = parseChangelogDocument(markdown, "1.47.0 (232)")
+        val release = doc.monthSections.single().releases.single()
+        assertEquals("History Filters", release.banner?.title)
+        assertEquals(2, release.entries.size)
+        assertEquals("Updated Engine", release.entries[0].title)
+        assertEquals("General Improvements", release.entries[1].title)
+    }
+
+    @Test
     fun `production changelog assets parse into real monthly accordion sections with banners on every feature release`() {
         val assetDir = sequenceOf(
             File("src/main/assets/changelog"),
