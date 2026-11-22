@@ -1,4 +1,4 @@
-# ApkUp — Complete Documentation & Knowledge Base (v1.45.2 / Build 227)
+# ApkUp — Complete Documentation & Knowledge Base (v1.46.0 / Build 231)
 
 > ApkUp is a free, ad-free, open-source (GPL-3.0) Android app updater for Android 10.0 – 17 (API 29+). It unifies Google Play, F-Droid Index V2, IzzyOnDroid, APKMirror, GitHub Releases, GitLab Releases, Codeberg Releases, and Direct APK URLs with automatic SHA-256 & signing-certificate verification, Obtainium JSON import, and optional silent background updates via Shizuku or Root (su).
 
@@ -45,11 +45,20 @@ Zero. ApkUp has no developer backend, no ads, no analytics SDKs, and no telemetr
 
 ---
 
-## Latest Release Notes (v1.45.2)
+## Latest Release Notes (v1.46.0)
 
 # What's New
 
 ## November 2026
+
+### November 22, 2026 | 1.46.0 (231) | Feature Update
+
+> [Banner] Configurable Rollback Backups | Safety Net
+
+- **Upgraded Google Play Engine** Updated Play Store integration for even more reliable update checks, app details, and downloads in the background and on-device.
+- **Configurable Rollback Backups** ApkUp can now keep safety copies of installed apps before updating. In the Setup tab, choose whether to retain up to five versions per app or unlimited backups, complete with a clear storage-usage warning and quick access to your backup folder.
+- **Polished Setup Experience** Refined card framing, cleaner spacing, and better organized options make managing rollback backups and update preferences easier to scan.
+- **General Improvements** UI polish, refreshed store metadata, and under-the-hood stability and maintenance updates.
 
 ### November 22, 2026 | 1.45.2 (227) | Patch & Fix
 
@@ -292,9 +301,9 @@ We actively provide security patches for the following versions of ApkUp:
 
 | Version | Support Status | Scope |
 | :--- | :--- | :--- |
-| `1.45.x` (or newer) | ✅ **Full support** | Active bug fixes & security patches |
-| `1.44.x` | ⚠️ **Security fixes only** | Critical security patches until next minor release |
-| `< 1.44` | ❌ **Unsupported** | Please update to the latest release |
+| `1.46.x` (or newer) | ✅ **Full support** | Active bug fixes & security patches |
+| `1.45.x` | ⚠️ **Security fixes only** | Critical security patches until next minor release |
+| `< 1.45` | ❌ **Unsupported** | Please update to the latest release |
 
 ---
 
