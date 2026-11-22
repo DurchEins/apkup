@@ -319,7 +319,11 @@ Complete Reference Guide (Full English GitHub Wiki)
 <p class="wk-p"><a href="#doc-sources">Back to Table of Contents</a></p>
 <hr class="wk-hr" />
 <h4 id="sources-24-google-play-store-engine-gplayapi-400-http-429-recovery" class="wk-h3">2.4 Google Play Store Engine (<code class="wk-code mono">gplayapi 4.0.0</code>) &amp; HTTP 429 Recovery</h4>
-<p class="wk-p">Starting with <strong>v1.46.0+</strong>, anonymous Play Store queries run directly on-device via <code class="wk-code mono">gplayapi 4.0.0</code> (<code class="wk-code mono">PlayClient</code> and <code class="wk-code mono">DefaultPlaySessions</code>) without relying on an external Aurora Dispenser server, while preserving the privacy-friendly Pixel 7a device profile. On <code class="wk-code mono">HTTP 429</code>, ApkUp rotates the anonymous session in a synchronized manner with cooldown protection so concurrent checks and downloads share the refreshed session cleanly.</p>
+<p class="wk-p">Starting with <strong>v1.46.0+</strong>, anonymous Play Store queries run <strong>directly on-device</strong> via <code class="wk-code mono">gplayapi 4.0.0</code> (<code class="wk-code mono">PlayClient</code> and <code class="wk-code mono">DefaultPlaySessions</code>) without relying on an external Aurora Dispenser server:</p>
+<ul class="wk-ul">
+<li><strong>Stronger Privacy &amp; Data Minimization:</strong> Because no third-party dispenser server sits in the middle, no external intermediary ever sees your IP address or update-check timestamps. Traffic flows directly between your device and Google Play while keeping the privacy-friendly Pixel 7a baseline profile and requiring no Google account.</li>
+<li><strong>Higher Reliability &amp; HTTP 429 Recovery:</strong> Eliminates external dispenser outages and bottlenecks. On <code class="wk-code mono">HTTP 429</code>, ApkUp rotates the anonymous session in a synchronized manner with cooldown protection so concurrent checks and downloads share the refreshed session cleanly.</li>
+</ul>
 <p class="wk-p"><a href="#doc-sources">Back to Table of Contents</a></p>
 <hr class="wk-hr" />
 <h4 id="sources-25-three-tier-repository-resolution-for-github-gitlab-codeberg" class="wk-h3">2.5 Three-Tier Repository Resolution for GitHub, GitLab &amp; Codeberg</h4>
