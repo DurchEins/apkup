@@ -1,26 +1,30 @@
 package com.apkup
 
-import com.apkup.repository.withActivePlayStoreLocale
-import com.apkup.repository.withDeviceInfoProvider
-import com.apkup.repository.hasRequiredPlaySession
+import com.apkup.prefs.StoredPlaySession
 import com.apkup.repository.describePlayFailure
-import com.apkup.repository.parseAuthData
-import com.apkup.repository.readAuthDataOrReset
 import com.apkup.repository.describeStoredAuthJsonFailure
-import com.apkup.repository.withoutDeviceInfoProvider
+import com.apkup.repository.hasRequiredPlaySession
+import com.apkup.repository.isReusableFor
+import com.apkup.repository.readPlaySessionOrReset
 import com.apkup.repository.requestWithUnauthorizedRetry
-import com.aurora.gplayapi.data.models.AuthData
-import com.aurora.gplayapi.data.models.PlayResponse
-import com.aurora.gplayapi.data.providers.DeviceInfoProvider
-import com.aurora.gplayapi.helpers.AppDetailsHelper
-import com.aurora.gplayapi.network.IHttpClient
+import com.apkup.repository.resolveActivePlayStoreLocale
+import com.apkup.repository.toAnonymousSession
+import com.apkup.util.play.NativeDeviceInfoProvider
+import com.aurora.gplayapi.PlayClient
+import com.aurora.gplayapi.PlayException
+import com.aurora.gplayapi.device.DeviceRegistry
+import com.aurora.gplayapi.net.HttpEngine
+import com.aurora.gplayapi.net.HttpResponse
+import com.aurora.gplayapi.net.PlayRequest
+import com.aurora.gplayapi.session.AnonymousSession
+import com.aurora.gplayapi.session.PlaySessions
 import com.google.gson.Gson
 import com.google.gson.JsonIOException
 import com.google.gson.JsonParseException
-import kotlinx.coroutines.flow.MutableStateFlow
-import org.junit.Assert.assertTrue
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertThrows
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.Locale
 import java.util.Properties
@@ -29,277 +33,175 @@ class PlayStoreLocaleTest {
 
     @Test
     fun bulkAppDetailsRequestUsesGermanLocaleAndReportsHttpFailure() {
-        val client = CapturingPlayHttpClient(PlayResponse(isSuccessful = false, code = 500, errorString = "test"))
-        val authData = testAuthData().withActivePlayStoreLocale(Locale.GERMANY)
+        val client = CapturingPlayHttpClient(HttpResponse(code = 500, body = byteArrayOf(), headers = emptyMap(), message = "test"))
+        val locale = resolveActivePlayStoreLocale(Locale.GERMANY)
+        val playClient = PlayClient(client, FixedPlaySessions(testAnonymousSession(locale)))
 
         val result = runCatching {
-            AppDetailsHelper(authData).using(client).getAppByPackageName(listOf("example.app"))
+            runBlocking { playClient.apps.details(listOf("example.app")) }
         }
 
         assertTrue(result.isFailure)
-        assertEquals("DE", authData.locale.country)
-        assertEquals("de-DE", client.headers["Accept-Language"])
-        assertEquals("de_DE", client.headers["X-DFE-UserLanguages"])
+        assertEquals("DE", locale.country)
+        assertEquals("de-DE", client.headerValue("Accept-Language"))
+        assertEquals("de-DE", client.headerValue("X-DFE-UserLanguages"))
     }
 
     @Test
     fun validBulkResponseWithNoEntriesIsAnEmptySuccessfulLookup() {
         val client = CapturingPlayHttpClient(
-            PlayResponse(isSuccessful = true, code = 200, responseBytes = byteArrayOf())
+            HttpResponse(code = 200, body = byteArrayOf(), headers = emptyMap(), message = "OK")
+        )
+        val playClient = PlayClient(
+            client,
+            FixedPlaySessions(testAnonymousSession(resolveActivePlayStoreLocale(Locale.GERMANY)))
         )
 
-        val details = AppDetailsHelper(testAuthData().withActivePlayStoreLocale(Locale.GERMANY))
-            .using(client)
-            .getAppByPackageName(listOf("example.app"))
+        val details = runBlocking { playClient.apps.details(listOf("example.app")) }
 
         assertTrue(details.isEmpty())
-        assertEquals(200, client.responseCode.value)
+        assertEquals(1, client.requestCount)
     }
 
     @Test
     fun malformedHttp200PayloadIsAProcessingFailureAndDoesNotTriggerAuthRetry() {
         val client = CapturingPlayHttpClient(
-            PlayResponse(isSuccessful = true, code = 200, responseBytes = byteArrayOf(0x0A, 0xFF.toByte()))
+            HttpResponse(code = 200, body = byteArrayOf(0x0A, 0xFF.toByte()), headers = emptyMap(), message = "OK")
+        )
+        val playClient = PlayClient(
+            client,
+            FixedPlaySessions(testAnonymousSession(resolveActivePlayStoreLocale(Locale.GERMANY)))
         )
         var refreshCount = 0
 
-        val failure = assertThrows(Exception::class.java) {
+        val result = runCatching {
             requestWithUnauthorizedRetry(
-                initialAuth = parseAuthData(
-                    """{"authToken":"test-token","gsfId":"test-device","unexpected":"ignored"}""",
-                    Gson()
-                ).withDeviceInfoProvider(testAuthData().deviceInfoProvider!!.properties)
-                    .withActivePlayStoreLocale(Locale.GERMANY),
-                responseCode = { client.responseCode.value },
+                initialAuth = testAnonymousSession(Locale.GERMANY),
+                responseCode = { 200 },
                 refreshAuth = {
                     refreshCount++
-                    testAuthData()
+                    testAnonymousSession(Locale.GERMANY)
                 },
-                request = { auth ->
-                    AppDetailsHelper(auth).using(client).getAppByPackageName(listOf("example.app"))
+                request = {
+                    runBlocking { playClient.apps.details(listOf("example.app")) }
                 }
             )
         }
 
-        assertEquals(200, client.responseCode.value)
+        assertTrue(result.isFailure)
+        assertEquals(1, client.requestCount)
         assertEquals(0, refreshCount)
-        assertTrue(failure.javaClass.simpleName.contains("Protocol"))
-        assertTrue(describePlayFailure(failure, 200).startsWith("response parsing failure"))
-    }
-
-    @Test
-    fun authSessionWithoutDeviceProfileGetsTheSubmittedProfileBeforeDetailsLookup() {
-        val completeSession = testAuthData()
-        val properties = completeSession.deviceInfoProvider!!.properties
-        val sessionWithoutProfile = completeSession.copy(deviceInfoProvider = null)
-
-        val repairedSession = sessionWithoutProfile.withDeviceInfoProvider(properties)
-
-        assertTrue(repairedSession.hasRequiredPlaySession())
-        assertEquals("test", repairedSession.deviceInfoProvider!!.properties.getProperty("Build.DEVICE"))
-    }
-
-    @Test
-    fun authSessionMissingBearerOrDeviceIdIsRejectedBeforeDetailsLookup() {
-        assertTrue(testAuthData().hasRequiredPlaySession())
-        assertTrue(testAuthData().copy(email = "").hasRequiredPlaySession())
-        assertTrue(!testAuthData().copy(authToken = "").hasRequiredPlaySession())
-        assertTrue(!testAuthData().copy(gsfId = "").hasRequiredPlaySession())
-    }
-
-    @Test
-    fun authResponseWithOmittedEmailAndOptionalFieldsUsesKotlinDefaults() {
-        val authData = parseAuthData(
-            """{"authToken":"test-token","gsfId":"test-device"}""",
-            Gson()
-        ).withDeviceInfoProvider(testAuthData().deviceInfoProvider!!.properties)
-            .withActivePlayStoreLocale(Locale.GERMANY)
-
-        assertEquals("", authData.email)
-        assertEquals("test-token", authData.authToken)
-        assertEquals("test-device", authData.gsfId)
-        assertTrue(authData.hasRequiredPlaySession())
-        assertEquals("DE", authData.locale.country)
-    }
-
-    @Test
-    fun persistedLegacySessionWithMissingEmailCanBeNormalizedSafely() {
-        val oldGsonSession = Gson().fromJson(
-            """{"authToken":"test-token","gsfId":"test-device"}""",
-            AuthData::class.java
-        )
-        val normalized = oldGsonSession
-            .withDeviceInfoProvider(testAuthData().deviceInfoProvider!!.properties)
-            .withActivePlayStoreLocale(Locale.GERMANY)
-
-        assertEquals("", normalized.email)
-        assertEquals("test-token", normalized.authToken)
-        assertTrue(normalized.hasRequiredPlaySession())
-    }
-
-    @Test
-    fun gsonAuthDataRoundTripReproducesTheProtobufListFailure() {
-        val gson = Gson()
-        val encoded = gson.toJson(testAuthData())
-        val failure = assertThrows(JsonIOException::class.java) {
-            gson.fromJson(encoded, AuthData::class.java)
-        }
-        assertTrue(failure.message.orEmpty().contains("com.google.protobuf.Internal\$ProtobufList"))
-        assertEquals(
-            "JsonIOException for com.google.protobuf.Internal\$ProtobufList",
-            describeStoredAuthJsonFailure(failure)
+        val failure = result.exceptionOrNull()!!
+        assertTrue(
+            describePlayFailure(failure, 200).startsWith("response parsing failure") ||
+                describePlayFailure(failure, 200).startsWith("response processing error")
         )
     }
 
     @Test
-    fun corruptStoredDeviceProfileIsResetSoAuthenticationCanRefresh() {
+    fun storedSessionValidationRejectsMissingGsfIdOrDeviceConfigToken() {
+        val valid = StoredPlaySession(
+            gsfId = "test-device",
+            deviceConfigToken = "test-config",
+            checkinConsistencyToken = "test-consistency",
+            localeTag = Locale.GERMANY.toLanguageTag(),
+            mintedAtMillis = System.currentTimeMillis()
+        )
+        assertTrue(valid.hasRequiredPlaySession())
+        assertTrue(valid.isReusableFor(Locale.GERMANY))
+        assertFalse(valid.isReusableFor(Locale.US))
+        assertFalse(valid.copy(gsfId = "").hasRequiredPlaySession())
+        assertFalse(valid.copy(deviceConfigToken = "").hasRequiredPlaySession())
+    }
+
+    @Test
+    fun corruptStoredSessionIsResetSoAuthenticationCanRefresh() {
         val gson = Gson()
-        var storedJson = gson.toJson(testAuthData())
+        var storedJson = "{not-valid-json"
         var loggedCause: JsonParseException? = null
-        val recovered = readAuthDataOrReset(
-            read = { gson.fromJson(storedJson, AuthData::class.java) },
+        val recovered = readPlaySessionOrReset(
+            read = { gson.fromJson(storedJson, StoredPlaySession::class.java) },
             reset = { storedJson = gson.toJson(it) },
             onCorrupt = { loggedCause = it }
         )
 
-        assertTrue(loggedCause is JsonIOException)
-        assertTrue(describeStoredAuthJsonFailure(loggedCause!!).contains("Internal\$ProtobufList"))
-        assertEquals("", recovered.authToken)
+        assertTrue(loggedCause != null)
         assertEquals("", recovered.gsfId)
+        assertEquals("", recovered.deviceConfigToken)
 
-        // The next read sees the reset value and can proceed to the fresh-auth path.
-        val resetSession = gson.fromJson(storedJson, AuthData::class.java)
-        assertEquals("", resetSession.authToken)
+        val resetSession = gson.fromJson(storedJson, StoredPlaySession::class.java)
         assertEquals("", resetSession.gsfId)
+        assertEquals("", resetSession.deviceConfigToken)
     }
 
     @Test
-    fun persistableSessionRoundTripsAndCanFetchAppDetails() {
+    fun persistableSessionRoundTripsAndBuildsAnonymousSession() {
         val gson = Gson()
-        val properties = testAuthData().deviceInfoProvider!!.properties
-        val responseSession = parseAuthData(
-            """{"authToken":"test-token","gsfId":"test-device","unexpected":"ignored"}""",
-            gson
-        ).withDeviceInfoProvider(properties).withActivePlayStoreLocale(Locale.GERMANY)
-        val persisted = responseSession.withoutDeviceInfoProvider()
-        val restored = gson.fromJson(gson.toJson(persisted), AuthData::class.java)
-            .withDeviceInfoProvider(properties)
-            .withActivePlayStoreLocale(Locale.GERMANY)
-        val client = CapturingPlayHttpClient(
-            PlayResponse(isSuccessful = true, code = 200, responseBytes = byteArrayOf())
+        val now = System.currentTimeMillis()
+        val stored = StoredPlaySession(
+            gsfId = "test-device",
+            deviceConfigToken = "test-config",
+            checkinConsistencyToken = "test-consistency",
+            localeTag = Locale.GERMANY.toLanguageTag(),
+            mintedAtMillis = now
         )
-
-        val details = AppDetailsHelper(restored)
-            .using(client)
-            .getAppByPackageName(listOf("example.app"))
+        val restored = gson.fromJson(gson.toJson(stored), StoredPlaySession::class.java)
+        val device = DeviceRegistry.parse("native", testDeviceProperties())
+        val anonymous = restored.toAnonymousSession(device, Locale.GERMANY)
 
         assertTrue(restored.hasRequiredPlaySession())
-        assertTrue(details.isEmpty())
-        assertEquals(1, client.requestCount)
-        assertEquals(200, client.responseCode.value)
+        assertTrue(restored.isReusableFor(Locale.GERMANY, now + 60_000L))
+        assertEquals("test-device", anonymous.gsfId)
+        assertEquals("test-config", anonymous.deviceConfigToken)
+        assertEquals("lynx", device.property("Build.DEVICE"))
     }
 
     @Test
-    fun invalidAuthJsonIsNotAcceptedAsAnEmptySuccessfulSession() {
-        assertThrows(JsonParseException::class.java) {
-            parseAuthData("{not-json", Gson())
-        }
-    }
-
-    @Test
-    fun missingDeviceProfileFailsBeforeHttpAndLocalProfileAllowsTheDetailsRequest() {
-        val client = CapturingPlayHttpClient(
-            PlayResponse(isSuccessful = true, code = 200, responseBytes = byteArrayOf())
-        )
-        val authWithoutProfile = testAuthData().copy(deviceInfoProvider = null)
-
-        assertThrows(NullPointerException::class.java) {
-            AppDetailsHelper(authWithoutProfile).using(client).getAppByPackageName(listOf("example.app"))
-        }
-        assertEquals(0, client.requestCount)
-
-        val normalizedAuth = authWithoutProfile
-            .withDeviceInfoProvider(testAuthData().deviceInfoProvider!!.properties)
-        val details = AppDetailsHelper(normalizedAuth).using(client).getAppByPackageName(listOf("example.app"))
-
-        assertTrue(details.isEmpty())
-        assertEquals(1, client.requestCount)
-    }
-
-    private fun testAuthData(): AuthData {
-        val properties = Properties().apply {
-            listOf(
-                "TouchScreen",
-                "Keyboard",
-                "Navigation",
-                "ScreenLayout",
-                "Screen.Density",
-                "Screen.Width",
-                "Screen.Height",
-                "GL.Version"
-            ).forEach { setProperty(it, "0") }
-            setProperty("Build.VERSION.SDK_INT", "35")
-            setProperty("GSF.version", "1")
-            setProperty("SimOperator", "")
-            setProperty("Vending.version", "70000000")
-            setProperty("Vending.versionString", "7.0.0")
-            setProperty("Build.DEVICE", "test")
-            setProperty("Build.ID", "test")
-            setProperty("Build.VERSION.RELEASE", "15")
-        }
-        val deviceInfo = DeviceInfoProvider(properties, "en_US")
-        return AuthData(
-            email = "test@example.invalid",
-            authToken = "test-token",
-            gsfId = "test-device",
-            locale = Locale.US,
-            deviceInfoProvider = deviceInfo
+    fun describePlayFailureFormatsTypedPlayExceptions() {
+        assertEquals("HTTP 429 (rate limited)", describePlayFailure(PlayException.RateLimited(429, "rate limited"), 429))
+        assertEquals("HTTP 401/403 (unauthorized)", describePlayFailure(PlayException.Unauthorized(401, "unauthorized"), 401))
+        assertEquals("app not found (404)", describePlayFailure(PlayException.NotFound(404, "missing"), 404))
+        val cause = JsonIOException("Interfaces can't be instantiated! Interface name: com.google.protobuf.Internal\$ProtobufList")
+        assertEquals(
+            "JsonIOException for com.google.protobuf.Internal\$ProtobufList",
+            describeStoredAuthJsonFailure(JsonParseException(cause))
         )
     }
 
-    private class CapturingPlayHttpClient(private val response: PlayResponse) : IHttpClient {
-        override val responseCode = MutableStateFlow(response.code)
+    private fun testDeviceProperties(): Properties = NativeDeviceInfoProvider.buildAnonymousProperties(
+        supportedAbis = listOf("arm64-v8a", "armeabi-v7a"),
+        sdkInt = 35,
+        releaseVersion = "15",
+        activeLocale = Locale.US
+    )
+
+    private fun testAnonymousSession(locale: Locale): AnonymousSession = AnonymousSession(
+        device = DeviceRegistry.parse("native", testDeviceProperties()),
+        locale = locale,
+        additionalLocales = emptyList(),
+        gsfId = "3c9c9a9b9f000001",
+        deviceConfigToken = "test-config",
+        checkinConsistencyToken = "test-consistency",
+        mintedAtMillis = System.currentTimeMillis()
+    )
+
+    private class FixedPlaySessions(
+        private val session: AnonymousSession
+    ) : PlaySessions {
+        override suspend fun session() = session
+    }
+
+    private class CapturingPlayHttpClient(private val response: HttpResponse) : HttpEngine {
         var headers: Map<String, String> = emptyMap()
         var requestCount = 0
 
-        private fun capture(headers: Map<String, String>): PlayResponse {
+        fun headerValue(name: String): String? =
+            headers.entries.firstOrNull { it.key.equals(name, ignoreCase = true) }?.value
+
+        override suspend fun execute(request: PlayRequest): HttpResponse {
             requestCount++
-            this.headers = headers
+            headers = request.headers
             return response
         }
-
-        override fun get(url: String, headers: Map<String, String>): PlayResponse {
-            return capture(headers)
-        }
-
-        override fun get(
-            url: String,
-            headers: Map<String, String>,
-            params: Map<String, String>
-        ): PlayResponse {
-            return capture(headers)
-        }
-
-        override fun get(
-            url: String,
-            headers: Map<String, String>,
-            paramString: String
-        ): PlayResponse {
-            return capture(headers)
-        }
-
-        override fun post(url: String, headers: Map<String, String>, body: ByteArray): PlayResponse {
-            return capture(headers)
-        }
-
-        override fun post(url: String, headers: Map<String, String>, params: Map<String, String>): PlayResponse {
-            return capture(headers)
-        }
-
-        override fun getAuth(url: String) =
-            response
-
-        override fun postAuth(url: String, body: ByteArray) =
-            response
     }
 }

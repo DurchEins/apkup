@@ -3,19 +3,24 @@ package com.apkup.util.play
 import android.os.SystemClock
 import android.util.Log
 import com.apkup.BuildConfig
-import com.aurora.gplayapi.data.models.PlayResponse
-import com.aurora.gplayapi.network.IHttpClient
+import com.aurora.gplayapi.net.HttpEngine
+import com.aurora.gplayapi.net.HttpMethod
+import com.aurora.gplayapi.net.HttpResponse
+import com.aurora.gplayapi.net.PlayRequest
+import com.aurora.gplayapi.net.RequestBody as PlayRequestBody
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.withContext
 import okhttp3.Cache
+import okhttp3.FormBody
 import okhttp3.Headers.Companion.toHeaders
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.ByteArrayOutputStream
@@ -25,7 +30,7 @@ import java.util.concurrent.TimeUnit
 
 class PlayHttpClient(
     cache: Cache
-) : IHttpClient {
+) : HttpEngine {
 
     companion object {
         private const val POST = "POST"
@@ -35,7 +40,7 @@ class PlayHttpClient(
 
     private val _responseCode = MutableStateFlow(100)
     private val threadResponseCode = ThreadLocal<Int>()
-    override val responseCode: StateFlow<Int> get() = _responseCode.asStateFlow()
+    val responseCode: StateFlow<Int> get() = _responseCode.asStateFlow()
 
     private val okHttpClient = OkHttpClient().newBuilder()
         .connectTimeout(25, TimeUnit.SECONDS)
@@ -49,92 +54,28 @@ class PlayHttpClient(
         .build()
 
     @Throws(IOException::class)
-    fun post(url: String, headers: Map<String, String>, requestBody: RequestBody): PlayResponse {
-        val request = Request.Builder()
+    override suspend fun execute(request: PlayRequest): HttpResponse = withContext(Dispatchers.IO) {
+        val url = buildUrl(request.url, request.query)
+        val okRequestBody = when (val body = request.body) {
+            null -> if (request.method == HttpMethod.POST) "".toRequestBody(null) else null
+            is PlayRequestBody.Bytes -> body.bytes.toRequestBody(body.contentType.toMediaType())
+            is PlayRequestBody.Form -> FormBody.Builder().apply {
+                body.fields.forEach { (key, value) -> add(key, value) }
+            }.build()
+        }
+        val okMethod = when (request.method) {
+            HttpMethod.GET -> GET
+            HttpMethod.POST -> POST
+        }
+        val okRequest = Request.Builder()
             .url(url)
-            .headers(headers.toHeaders())
-            .method(POST, requestBody)
+            .headers(request.headers.toHeaders())
+            .method(okMethod, okRequestBody)
             .build()
-        return processRequest(request)
+        processRequest(okRequest)
     }
 
-    @Throws(IOException::class)
-    override fun post(
-        url: String,
-        headers: Map<String, String>,
-        params: Map<String, String>
-    ): PlayResponse {
-        val request = Request.Builder()
-            .url(buildUrl(url, params))
-            .headers(headers.toHeaders())
-            .method(POST, "".toRequestBody(null))
-            .build()
-        return processRequest(request)
-    }
-
-    override fun postAuth(url: String, body: ByteArray): PlayResponse {
-        val requestBody = body.toRequestBody("application/json".toMediaType(), 0, body.size)
-        val request = Request.Builder()
-            .url(url)
-            .header("User-Agent", "com.aurora.store-4.4.2-56")
-            .method(POST, requestBody)
-            .build()
-        return processRequest(request)
-    }
-
-    @Throws(IOException::class)
-    override fun post(url: String, headers: Map<String, String>, body: ByteArray): PlayResponse {
-        val requestBody = body.toRequestBody(
-            "application/x-protobuf".toMediaType(),
-            0,
-            body.size
-        )
-        return post(url, headers, requestBody)
-    }
-
-    @Throws(IOException::class)
-    override fun get(url: String, headers: Map<String, String>): PlayResponse {
-        return get(url, headers, mapOf())
-    }
-
-    @Throws(IOException::class)
-    override fun get(
-        url: String,
-        headers: Map<String, String>,
-        params: Map<String, String>
-    ): PlayResponse {
-        val request = Request.Builder()
-            .url(buildUrl(url, params))
-            .headers(headers.toHeaders())
-            .method(GET, null)
-            .build()
-        return processRequest(request)
-    }
-
-    override fun getAuth(url: String): PlayResponse {
-        val request = Request.Builder()
-            .url(url)
-            .header("User-Agent", "com.aurora.store-4.4.2-56")
-            .method(GET, null)
-            .build()
-        return processRequest(request)
-    }
-
-    @Throws(IOException::class)
-    override fun get(
-        url: String,
-        headers: Map<String, String>,
-        paramString: String
-    ): PlayResponse {
-        val request = Request.Builder()
-            .url(url + paramString)
-            .headers(headers.toHeaders())
-            .method(GET, null)
-            .build()
-        return processRequest(request)
-    }
-
-    private fun processRequest(request: Request): PlayResponse {
+    private fun processRequest(request: Request): HttpResponse {
         threadResponseCode.set(0)
         _responseCode.value = 0
 
@@ -145,7 +86,7 @@ class PlayHttpClient(
         val call = okHttpClient.newCall(request)
         val startedAt = SystemClock.elapsedRealtime()
         return try {
-            buildPlayResponse(call.execute()).also { response ->
+            buildHttpResponse(call.execute()).also { response ->
                 if (BuildConfig.DEBUG) {
                     Log.d(
                         "PlayHttpClient",
@@ -172,17 +113,22 @@ class PlayHttpClient(
         return urlBuilder.build()
     }
 
-    private fun buildPlayResponse(response: Response): PlayResponse = response.use {
+    private fun buildHttpResponse(response: Response): HttpResponse = response.use {
         val contentLength = it.body.contentLength()
         if (contentLength > MAX_PLAY_RESPONSE_BYTES) {
             throw IOException("Play response exceeds maximum allowed size ($contentLength bytes)")
         }
         val bytes = readBoundedBytes(it.body.byteStream(), MAX_PLAY_RESPONSE_BYTES)
-        PlayResponse(
-            isSuccessful = it.isSuccessful,
+        val headerMap = buildMap {
+            for (i in 0 until it.headers.size) {
+                put(it.headers.name(i), it.headers.value(i))
+            }
+        }
+        HttpResponse(
             code = it.code,
-            responseBytes = bytes,
-            errorString = if (!it.isSuccessful) it.message else ""
+            body = bytes,
+            headers = headerMap,
+            message = it.message
         ).also {
             threadResponseCode.set(response.code)
             _responseCode.value = response.code
@@ -207,5 +153,5 @@ class PlayHttpClient(
         return out.toByteArray()
     }
 
-    fun responseCodeForCurrentThread(): Int = threadResponseCode.get() ?: 0
+    fun responseCodeForCurrentThread(): Int = threadResponseCode.get() ?: _responseCode.value
 }

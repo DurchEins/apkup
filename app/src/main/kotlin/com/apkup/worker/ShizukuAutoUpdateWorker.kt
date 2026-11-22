@@ -42,7 +42,7 @@ import com.apkup.util.InstallPart
 import com.apkup.util.SessionInstaller
 import com.apkup.util.UpdatesNotification
 import com.apkup.util.buildUpdateHistoryEntry
-import com.aurora.gplayapi.data.models.PlayFile
+import com.aurora.gplayapi.model.AppFile
 import kotlinx.coroutines.CancellationException
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -302,11 +302,11 @@ internal class ShizukuAutoUpdateRunner(
                     throw IOException("No Play Store APK files returned for ${update.packageName}")
                 }
                 val sortedFiles = playFiles.sortedWith(
-                    compareByDescending<PlayFile> { it.type == PlayFile.Type.BASE }
+                    compareByDescending<AppFile> { it.type == AppFile.Type.BASE }
                         .thenBy { it.name }
                 )
                 sortedFiles.mapIndexed { index, playFile ->
-                    val partName = if (playFile.type == PlayFile.Type.BASE) {
+                    val partName = if (playFile.type == AppFile.Type.BASE) {
                         "base.apk"
                     } else {
                         ApkIntegrityVerifier.sanitizePartFileName(playFile.name, index.coerceAtLeast(1))

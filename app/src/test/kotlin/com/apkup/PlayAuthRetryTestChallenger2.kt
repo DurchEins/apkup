@@ -4,8 +4,9 @@ import com.apkup.repository.PlayRepository
 import com.apkup.repository.executeWithPlayDeliveryRetry
 import com.apkup.repository.isPlayRateLimited
 import com.apkup.repository.shouldRefreshPlayAuth
-import com.aurora.gplayapi.data.models.AuthData
-import com.aurora.gplayapi.data.models.PlayFile
+import com.aurora.gplayapi.device.DeviceRegistry
+import com.aurora.gplayapi.model.AppFile
+import com.aurora.gplayapi.session.AnonymousSession
 import kotlinx.coroutines.CancellationException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -57,7 +58,7 @@ class PlayAuthRetryTestChallenger2 {
 
         // Call 1: Delivery attempt 1 fails with 429 -> refreshes -> attempt 2 fails with 429
         val thrown = assertThrows(IOException::class.java) {
-            executeWithPlayDeliveryRetry<PlayFile>(
+            executeWithPlayDeliveryRetry<AnonymousSession, AppFile>(
                 maxAttempts = 2,
                 operationName = "test-delivery",
                 clock = { simulatedClock },
@@ -68,7 +69,7 @@ class PlayAuthRetryTestChallenger2 {
                 getAuth = { currentSessionRef.get() },
                 refreshAuth = { failedAuth ->
                     refreshCount++
-                    assertEquals("stale-token-429", failedAuth.authToken)
+                    assertEquals("stale-token-429", failedAuth.gsfId)
                     currentSessionRef.set(refreshedAuth)
                     refreshedAuth
                 },
@@ -98,7 +99,7 @@ class PlayAuthRetryTestChallenger2 {
         // Call 2: Immediate subsequent call must be rejected upfront without invoking getAuth or operation
         var secondCallAttempted = false
         val rejectedException = assertThrows(IllegalStateException::class.java) {
-            executeWithPlayDeliveryRetry<PlayFile>(
+            executeWithPlayDeliveryRetry<AnonymousSession, AppFile>(
                 maxAttempts = 2,
                 operationName = "test-delivery-subsequent",
                 clock = { simulatedClock },
@@ -114,7 +115,7 @@ class PlayAuthRetryTestChallenger2 {
                 onCooldownEnforced = { duration -> setCooldown(duration) },
                 operation = {
                     secondCallAttempted = true
-                    listOf(PlayFile(name = "test.apk", type = PlayFile.Type.BASE))
+                    listOf(AppFile(name = "test.apk", type = AppFile.Type.BASE))
                 }
             )
         }
@@ -140,7 +141,7 @@ class PlayAuthRetryTestChallenger2 {
         )
 
         val thrown = assertThrows(IOException::class.java) {
-            executeWithPlayDeliveryRetry<PlayFile>(
+            executeWithPlayDeliveryRetry<AnonymousSession, AppFile>(
                 maxAttempts = 3,
                 sleep = { sleepDelays += it },
                 getAuth = { authSessions[0] },
@@ -183,13 +184,13 @@ class PlayAuthRetryTestChallenger2 {
         val serverError = IOException("HTTP 500 Internal Server Error")
 
         val thrown = assertThrows(IOException::class.java) {
-            executeWithPlayDeliveryRetry<PlayFile>(
+            executeWithPlayDeliveryRetry<AnonymousSession, AppFile>(
                 maxAttempts = 2,
                 sleep = { sleepDelays += it },
                 getAuth = { currentAuthRef.get() },
                 refreshAuth = { failed ->
                     refreshes++
-                    assertEquals("token-v1", failed.authToken)
+                    assertEquals("token-v1", failed.gsfId)
                     currentAuthRef.set(refreshedAuth)
                     refreshedAuth
                 },
@@ -197,7 +198,7 @@ class PlayAuthRetryTestChallenger2 {
                 onCooldownEnforced = { cooldownEnforced = true },
                 operation = { auth ->
                     attempts++
-                    if (auth.authToken == "token-v1") {
+                    if (auth.gsfId == "token-v1") {
                         responseCodeHolder.set(429)
                         throw IOException("HTTP 429 Too Many Requests")
                     } else {
@@ -216,7 +217,7 @@ class PlayAuthRetryTestChallenger2 {
             "HTTP 500 terminal error must NOT enforce Play rate-limit cooldown",
             cooldownEnforced
         )
-        assertEquals("Session state must remain updated to refreshed token", "token-v2", currentAuthRef.get().authToken)
+        assertEquals("Session state must remain updated to refreshed token", "token-v2", currentAuthRef.get().gsfId)
     }
 
     @Test
@@ -229,7 +230,7 @@ class PlayAuthRetryTestChallenger2 {
         val dnsException = UnknownHostException("Unable to resolve host play.googleapis.com")
 
         val thrown = assertThrows(UnknownHostException::class.java) {
-            executeWithPlayDeliveryRetry<PlayFile>(
+            executeWithPlayDeliveryRetry<AnonymousSession, AppFile>(
                 maxAttempts = 2,
                 sleep = { /* no-op */ },
                 getAuth = { createTestAuth("token-stale") },
@@ -269,7 +270,7 @@ class PlayAuthRetryTestChallenger2 {
         val timeoutException = SocketTimeoutException("Read timed out waiting for delivery stream")
 
         val thrown = assertThrows(SocketTimeoutException::class.java) {
-            executeWithPlayDeliveryRetry<PlayFile>(
+            executeWithPlayDeliveryRetry<AnonymousSession, AppFile>(
                 maxAttempts = 2,
                 sleep = { /* no-op */ },
                 getAuth = { createTestAuth("token-stale") },
@@ -310,7 +311,7 @@ class PlayAuthRetryTestChallenger2 {
         val networkDropException = UnknownHostException("No address associated with hostname auroraoss.com")
 
         val thrown = assertThrows(UnknownHostException::class.java) {
-            executeWithPlayDeliveryRetry<PlayFile>(
+            executeWithPlayDeliveryRetry<AnonymousSession, AppFile>(
                 maxAttempts = 2,
                 sleep = { /* no-op */ },
                 getAuth = { currentSessionRef.get() },
@@ -335,7 +336,7 @@ class PlayAuthRetryTestChallenger2 {
         assertEquals(
             "Original session must remain unchanged and uncorrupted",
             "original-valid-session",
-            currentSessionRef.get().authToken
+            currentSessionRef.get().gsfId
         )
     }
 
@@ -345,7 +346,7 @@ class PlayAuthRetryTestChallenger2 {
         var refreshCount = 0
 
         val thrown = assertThrows(CancellationException::class.java) {
-            executeWithPlayDeliveryRetry<PlayFile>(
+            executeWithPlayDeliveryRetry<AnonymousSession, AppFile>(
                 maxAttempts = 2,
                 sleep = { /* no-op */ },
                 getAuth = { createTestAuth("token-1") },
@@ -374,7 +375,7 @@ class PlayAuthRetryTestChallenger2 {
         val runtimeException = IllegalArgumentException("Invalid package parameters")
 
         val thrown = assertThrows(IllegalArgumentException::class.java) {
-            executeWithPlayDeliveryRetry<PlayFile>(
+            executeWithPlayDeliveryRetry<AnonymousSession, AppFile>(
                 maxAttempts = 2,
                 getAuth = { createTestAuth("token-1") },
                 refreshAuth = {
@@ -398,10 +399,13 @@ class PlayAuthRetryTestChallenger2 {
     // HELPER FUNCTIONS
     // =========================================================================
 
-    private fun createTestAuth(token: String): AuthData = AuthData(
-        email = "test@example.invalid",
-        authToken = token,
-        gsfId = "test-gsf-id",
-        locale = Locale.GERMANY
+    private fun createTestAuth(token: String): AnonymousSession = AnonymousSession(
+        device = DeviceRegistry.default,
+        locale = Locale.GERMANY,
+        additionalLocales = emptyList(),
+        gsfId = token,
+        deviceConfigToken = "test-config-token",
+        checkinConsistencyToken = "test-consistency",
+        mintedAtMillis = 1_000L
     )
 }

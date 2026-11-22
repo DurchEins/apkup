@@ -5,9 +5,11 @@ import com.apkup.repository.isPlayRateLimited
 import com.apkup.repository.requestTokenDispenserWithRetry
 import com.apkup.repository.requestWithUnauthorizedRetry
 import com.apkup.repository.shouldRefreshPlayAuth
-import com.aurora.gplayapi.data.models.AuthData
-import com.aurora.gplayapi.data.models.PlayFile
-import com.aurora.gplayapi.data.models.PlayResponse
+import com.apkup.prefs.StoredPlaySession
+import com.aurora.gplayapi.device.DeviceRegistry
+import com.aurora.gplayapi.model.AppFile
+import com.aurora.gplayapi.net.HttpResponse
+import com.aurora.gplayapi.session.AnonymousSession
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -117,18 +119,18 @@ class PlayAuthRetryTest {
             request = {
                 attempts++
                 if (attempts < 3) {
-                    PlayResponse(
-                        isSuccessful = false,
+                    HttpResponse(
                         code = 502,
-                        responseBytes = ByteArray(0),
-                        errorString = "Bad Gateway"
+                        body = ByteArray(0),
+                        headers = emptyMap(),
+                        message = "Bad Gateway"
                     )
                 } else {
-                    PlayResponse(
-                        isSuccessful = true,
+                    HttpResponse(
                         code = 200,
-                        responseBytes = "ok-session".toByteArray(),
-                        errorString = ""
+                        body = "ok-session".toByteArray(),
+                        headers = emptyMap(),
+                        message = "OK"
                     )
                 }
             },
@@ -141,17 +143,17 @@ class PlayAuthRetryTest {
     }
 
     @Test
-    fun selfHealingAuthDataResetRecoversFromCorruptJsonException() {
-        var resetCalledWith: AuthData? = null
+    fun selfHealingAnonymousSessionResetRecoversFromCorruptJsonException() {
+        var resetCalledWith: StoredPlaySession? = null
         var corruptCaptured: com.google.gson.JsonParseException? = null
 
-        val recovered = com.apkup.repository.readAuthDataOrReset(
+        val recovered = com.apkup.repository.readPlaySessionOrReset(
             read = { throw com.google.gson.JsonIOException("Interfaces can't be instantiated! Interface name: com.google.protobuf.Internal\$ProtobufList") },
             reset = { resetCalledWith = it },
             onCorrupt = { corruptCaptured = it }
         )
 
-        assertEquals("", recovered.authToken)
+        assertEquals("", recovered.gsfId)
         assertEquals(recovered, resetCalledWith)
         assertEquals(
             "JsonIOException for com.google.protobuf.Internal\$ProtobufList",
@@ -180,7 +182,7 @@ class PlayAuthRetryTest {
             remainingCooldownMs = { 0L },
             operation = {
                 operationExecuted = true
-                listOf(PlayFile(name = "base.apk", type = PlayFile.Type.BASE))
+                listOf(AppFile(name = "base.apk", type = AppFile.Type.BASE))
             }
         )
 
@@ -211,7 +213,7 @@ class PlayAuthRetryTest {
             remainingCooldownMs = { (cooldownUntil - simulatedClock).coerceAtLeast(0L) },
             operation = {
                 executed = true
-                listOf(PlayFile(name = "base.apk", type = PlayFile.Type.BASE))
+                listOf(AppFile(name = "base.apk", type = AppFile.Type.BASE))
             }
         )
 
@@ -239,7 +241,7 @@ class PlayAuthRetryTest {
                 remainingCooldownMs = { cooldownUntil - simulatedClock },
                 operation = {
                     operationAttempted = true
-                    listOf(PlayFile(name = "base.apk", type = PlayFile.Type.BASE))
+                    listOf(AppFile(name = "base.apk", type = AppFile.Type.BASE))
                 }
             )
         }
@@ -343,19 +345,19 @@ class PlayAuthRetryTest {
             getAuth = { staleAuth },
             refreshAuth = { failed ->
                 refreshCount++
-                assertEquals("stale-token", failed.authToken)
+                assertEquals("stale-token", failed.gsfId)
                 freshAuth
             },
             responseCode = { responseCode },
             operation = { auth ->
                 attemptCount++
-                if (auth.authToken == "stale-token") {
+                if (auth.gsfId == "stale-token") {
                     throw IOException("HTTP 429 Too Many Requests")
                 }
                 responseCode = 200
                 listOf(
-                    PlayFile(name = "base.apk", type = PlayFile.Type.BASE),
-                    PlayFile(name = "split_config.arm64_v8a.apk", type = PlayFile.Type.SPLIT)
+                    AppFile(name = "base.apk", type = AppFile.Type.BASE),
+                    AppFile(name = "split_config.arm64_v8a.apk", type = AppFile.Type.SPLIT)
                 )
             }
         )
@@ -388,11 +390,11 @@ class PlayAuthRetryTest {
             responseCode = { responseCode },
             operation = { auth ->
                 attemptCount++
-                if (auth.authToken == "stale-token") {
+                if (auth.gsfId == "stale-token") {
                     emptyList() // Simulate PurchaseHelper returning empty when throttled
                 } else {
                     responseCode = 200
-                    listOf(PlayFile(name = "base.apk", type = PlayFile.Type.BASE))
+                    listOf(AppFile(name = "base.apk", type = AppFile.Type.BASE))
                 }
             }
         )
@@ -412,7 +414,7 @@ class PlayAuthRetryTest {
         val freshAuth = createTestAuth("fresh-token")
 
         val thrown = assertThrows(IOException::class.java) {
-            executeWithPlayDeliveryRetry<PlayFile>(
+            executeWithPlayDeliveryRetry<AnonymousSession, AppFile>(
                 maxAttempts = 2,
                 sleep = { /* no-op */ },
                 getAuth = { staleAuth },
@@ -442,7 +444,7 @@ class PlayAuthRetryTest {
         val serverError = IOException("HTTP 500 Internal Server Error")
 
         val thrown = assertThrows(IOException::class.java) {
-            executeWithPlayDeliveryRetry<PlayFile>(
+            executeWithPlayDeliveryRetry<AnonymousSession, AppFile>(
                 maxAttempts = 2,
                 getAuth = { createTestAuth("token-1") },
                 refreshAuth = {
@@ -483,11 +485,11 @@ class PlayAuthRetryTest {
             responseCode = { responseCode },
             operation = { auth ->
                 attemptCount++
-                if (auth.authToken == "stale-token") {
+                if (auth.gsfId == "stale-token") {
                     throw IOException("HTTP 401 Unauthorized")
                 }
                 responseCode = 200
-                listOf(PlayFile(name = "base.apk", type = PlayFile.Type.BASE))
+                listOf(AppFile(name = "base.apk", type = AppFile.Type.BASE))
             }
         )
 
@@ -504,18 +506,18 @@ class PlayAuthRetryTest {
     @Test
     fun concurrentAuthCallsWhenSessionEmptyShareSingleDispenserRequest() = runBlocking(Dispatchers.Default) {
         val dispenserCalls = AtomicInteger(0)
-        var cachedSession: AuthData? = null
+        var cachedSession: AnonymousSession? = null
         val sessionMutex = Mutex()
 
-        suspend fun getOrRefreshAuth(): AuthData {
+        suspend fun getOrRefreshAuth(): AnonymousSession {
             val memory = cachedSession
-            if (memory != null && memory.authToken.isNotBlank()) {
+            if (memory != null && memory.gsfId.isNotBlank()) {
                 return memory
             }
 
             return sessionMutex.withLock {
                 val doubleCheck = cachedSession
-                if (doubleCheck != null && doubleCheck.authToken.isNotBlank()) {
+                if (doubleCheck != null && doubleCheck.gsfId.isNotBlank()) {
                     return@withLock doubleCheck
                 }
                 dispenserCalls.incrementAndGet()
@@ -534,7 +536,7 @@ class PlayAuthRetryTest {
 
         assertEquals("All 10 callers should receive the exact same auth token", 10, results.size)
         results.forEach {
-            assertEquals("dispenser-token-1", it.authToken)
+            assertEquals("dispenser-token-1", it.gsfId)
         }
         assertEquals("Dispenser should be contacted exactly ONCE despite 10 concurrent requests", 1, dispenserCalls.get())
     }
@@ -545,8 +547,8 @@ class PlayAuthRetryTest {
         val sessionMutex = Mutex()
         var currentActiveSession = createTestAuth("token-initial")
 
-        suspend fun refreshAuthIfNeeded(failedToken: String): AuthData = sessionMutex.withLock {
-            if (currentActiveSession.authToken != failedToken) {
+        suspend fun refreshAuthIfNeeded(failedToken: String): AnonymousSession = sessionMutex.withLock {
+            if (currentActiveSession.gsfId != failedToken) {
                 return@withLock currentActiveSession
             }
             dispenserCalls.incrementAndGet()
@@ -566,7 +568,7 @@ class PlayAuthRetryTest {
 
         assertEquals(3, workers.size)
         workers.forEach {
-            assertEquals("token-refreshed-after-429", it.authToken)
+            assertEquals("token-refreshed-after-429", it.gsfId)
         }
         assertEquals("Only 1 token dispenser call should be fired for 3 concurrent 429 failures", 1, dispenserCalls.get())
     }
@@ -575,9 +577,9 @@ class PlayAuthRetryTest {
     fun concurrentCallsDuringInFlightDispenserRequestWaitAndDoNotDuplicate() = runBlocking(Dispatchers.Default) {
         val dispenserCalls = AtomicInteger(0)
         val sessionMutex = Mutex()
-        var activeSession: AuthData? = null
+        var activeSession: AnonymousSession? = null
 
-        suspend fun authenticate(): AuthData = sessionMutex.withLock {
+        suspend fun authenticate(): AnonymousSession = sessionMutex.withLock {
             activeSession?.let { return@withLock it }
             dispenserCalls.incrementAndGet()
             delay(100L) // Slow initial dispenser call
@@ -596,7 +598,7 @@ class PlayAuthRetryTest {
         val allResults = listOf(job1, job2, job3, job4).awaitAll()
 
         allResults.forEach {
-            assertEquals("token-shared", it.authToken)
+            assertEquals("token-shared", it.gsfId)
         }
         assertEquals("Dispenser must be called exactly once during concurrent in-flight requests", 1, dispenserCalls.get())
     }
@@ -608,8 +610,8 @@ class PlayAuthRetryTest {
         val sessionMutex = Mutex()
         var sharedSession = createTestAuth("stale-account")
 
-        suspend fun safeRefreshAuth(failedToken: String): AuthData = sessionMutex.withLock {
-            if (sharedSession.authToken != failedToken) {
+        suspend fun safeRefreshAuth(failedToken: String): AnonymousSession = sessionMutex.withLock {
+            if (sharedSession.gsfId != failedToken) {
                 return@withLock sharedSession
             }
             dispenserCalls.incrementAndGet()
@@ -618,16 +620,16 @@ class PlayAuthRetryTest {
             fresh
         }
 
-        suspend fun simulateDownloadWorker(appPkg: String): List<PlayFile> {
+        suspend fun simulateDownloadWorker(appPkg: String): List<AppFile> {
             var workerAuth = sharedSession
             for (attempt in 1..2) {
                 deliveryAttemptsPerWorker.incrementAndGet()
-                if (workerAuth.authToken == "stale-account") {
+                if (workerAuth.gsfId == "stale-account") {
                     delay(10L) // brief backoff
-                    workerAuth = safeRefreshAuth(workerAuth.authToken)
+                    workerAuth = safeRefreshAuth(workerAuth.gsfId)
                     continue
                 }
-                return listOf(PlayFile(name = "$appPkg.apk", type = PlayFile.Type.BASE))
+                return listOf(AppFile(name = "$appPkg.apk", type = AppFile.Type.BASE))
             }
             throw IllegalStateException("Failed to download $appPkg")
         }
@@ -653,19 +655,19 @@ class PlayAuthRetryTest {
     @Test
     fun extremeConcurrencyColdStartSixtyCoroutinesExecuteWithExactlyOneDispenserCallAndZeroDeadlocks() = runBlocking(Dispatchers.Default) {
         val dispenserCalls = AtomicInteger(0)
-        var cachedSession: AuthData? = null
+        var cachedSession: AnonymousSession? = null
         val sessionMutex = Mutex()
         val concurrentCount = 60
 
-        suspend fun getOrRefreshAuth(): AuthData {
+        suspend fun getOrRefreshAuth(): AnonymousSession {
             val memory = cachedSession
-            if (memory != null && memory.authToken.isNotBlank()) {
+            if (memory != null && memory.gsfId.isNotBlank()) {
                 return memory
             }
 
             return sessionMutex.withLock {
                 val doubleCheck = cachedSession
-                if (doubleCheck != null && doubleCheck.authToken.isNotBlank()) {
+                if (doubleCheck != null && doubleCheck.gsfId.isNotBlank()) {
                     return@withLock doubleCheck
                 }
                 dispenserCalls.incrementAndGet()
@@ -686,7 +688,7 @@ class PlayAuthRetryTest {
 
             assertEquals("All $concurrentCount callers must complete successfully", concurrentCount, results.size)
             results.forEach { auth ->
-                assertEquals("dispenser-cold-start-shared-token", auth.authToken)
+                assertEquals("dispenser-cold-start-shared-token", auth.gsfId)
             }
             assertEquals("Dispenser must be called exactly ONCE despite $concurrentCount concurrent requests", 1, dispenserCalls.get())
         }
@@ -699,8 +701,8 @@ class PlayAuthRetryTest {
         var currentActiveSession = createTestAuth("stale-token-causing-429")
         val concurrentCount = 60
 
-        suspend fun refreshAuthIfNeeded(failedToken: String): AuthData = sessionMutex.withLock {
-            if (currentActiveSession.authToken != failedToken) {
+        suspend fun refreshAuthIfNeeded(failedToken: String): AnonymousSession = sessionMutex.withLock {
+            if (currentActiveSession.gsfId != failedToken) {
                 return@withLock currentActiveSession
             }
             dispenserCalls.incrementAndGet()
@@ -720,7 +722,7 @@ class PlayAuthRetryTest {
 
             assertEquals(concurrentCount, resolvedAuths.size)
             resolvedAuths.forEach { auth ->
-                assertEquals("fresh-token-post-429-stampede", auth.authToken)
+                assertEquals("fresh-token-post-429-stampede", auth.gsfId)
             }
             assertEquals("Dispenser must be contacted exactly ONCE for $concurrentCount concurrent 429 failures", 1, dispenserCalls.get())
         }
@@ -747,7 +749,7 @@ class PlayAuthRetryTest {
             remainingCooldownMs = { (cooldownUntil - simulatedClock).coerceAtLeast(0L) },
             operation = {
                 executed = true
-                listOf(PlayFile(name = "base.apk", type = PlayFile.Type.BASE))
+                listOf(AppFile(name = "base.apk", type = AppFile.Type.BASE))
             }
         )
 
@@ -776,7 +778,7 @@ class PlayAuthRetryTest {
                 remainingCooldownMs = { cooldownUntil - simulatedClock },
                 operation = {
                     operationAttempted = true
-                    listOf(PlayFile(name = "base.apk", type = PlayFile.Type.BASE))
+                    listOf(AppFile(name = "base.apk", type = AppFile.Type.BASE))
                 }
             )
         }
@@ -803,7 +805,7 @@ class PlayAuthRetryTest {
             remainingCooldownMs = { 0L }, // 0ms remaining
             operation = {
                 executed = true
-                listOf(PlayFile(name = "base.apk", type = PlayFile.Type.BASE))
+                listOf(AppFile(name = "base.apk", type = AppFile.Type.BASE))
             }
         )
 
@@ -860,10 +862,13 @@ class PlayAuthRetryTest {
     // TEST HELPERS
     // =========================================================================
 
-    private fun createTestAuth(token: String): AuthData = AuthData(
-        email = "test@example.invalid",
-        authToken = token,
-        gsfId = "test-gsf-id",
-        locale = Locale.GERMANY
+    private fun createTestAuth(token: String): AnonymousSession = AnonymousSession(
+        device = DeviceRegistry.default,
+        locale = Locale.GERMANY,
+        additionalLocales = emptyList(),
+        gsfId = token,
+        deviceConfigToken = "test-config-token",
+        checkinConsistencyToken = "test-consistency",
+        mintedAtMillis = 1_000L
     )
 }

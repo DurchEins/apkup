@@ -1,6 +1,6 @@
 package com.apkup.data.ui
 
-import com.aurora.gplayapi.data.models.PlayFile
+import com.aurora.gplayapi.model.AppFile
 
 sealed class Link {
     data object Empty : Link()
@@ -9,5 +9,5 @@ sealed class Link {
         val size: Long = 0L,
         val expectedSha256: String? = null
     ) : Link()
-    data class Play(val getInstallFiles: () -> List<PlayFile>) : Link()
+    data class Play(val getInstallFiles: () -> List<AppFile>) : Link()
 }

@@ -3,7 +3,7 @@ package com.apkup.data.ui
 import com.apkup.R
 import com.apkup.data.fdroid.FDroidRepoConfig
 import com.apkup.data.repomapping.RepoBinding
-import com.aurora.gplayapi.data.models.PlayFile
+import com.aurora.gplayapi.model.AppFile
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 enum class UpdateInstallMode {
@@ -440,7 +440,7 @@ internal fun AppUpdate.toCachedDto(includeAlternatives: Boolean = true): CachedA
 
 @Suppress("SENSELESS_COMPARISON")
 internal fun CachedAppUpdateDto.toAppUpdate(
-    playFilesProvider: (packageName: String, versionCode: Long, offerType: Int) -> List<PlayFile>
+    playFilesProvider: (packageName: String, versionCode: Long, offerType: Int) -> List<AppFile>
 ): AppUpdate {
     val safeSourceName = sourceName.orEmpty()
     val safePackageName = packageName.orEmpty()

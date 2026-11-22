@@ -13,7 +13,7 @@ workRuntimeKtx = "2.12.0"
 
 coroutines = "1.11.0"
 tink = "1.24.0"
-gplayapi = "3.6.4"
+gplayapi = "4.0.0"
 gson = "2.15.0"
 jsoup = "1.24.1"
 okhttp = "5.5.1"
