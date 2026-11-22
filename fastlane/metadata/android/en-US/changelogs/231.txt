@@ -1,0 +1,4 @@
+- Configurable Rollback Backups: Choose storage budgets (256 MB to 2 GB) and auto-expiration (7, 14, 30 days, or never) with live stats and one-tap clearing.
+- Upgraded Google Play Engine: Modernized Play Store integration for reliable, self-contained update checks and downloads.
+- Setup Tab Polish: State-tinted icon badges, smoother animations, and cleaner row alignment.
+- General Improvements: Stronger release backup protection and under-the-hood stability updates.

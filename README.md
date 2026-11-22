@@ -18,19 +18,20 @@
     <img src=".github/assets/header-banner.svg" width="100%" alt="ApkUp — Multi-Source • Verified • Silent" />
   </picture>
 </p>
-<h1 align="center"><sub>ApkUp — Multi-Source Android App Updater (Verified &amp; Silent)</sub></h1>
+<h1 align="center">ApkUp</h1>
 
 <p align="center">
-  <b>Discover, cryptographically verify, and silently install Android app updates across Google Play, F-Droid (Index V2), IzzyOnDroid, APKMirror, GitHub, GitLab &amp; Codeberg — featuring Material 3 Expressive design, Watchlist tracking, Obtainium sync, APK export, and unattended Shizuku or Root updates.</b>
+  <b>One updater. Six sources. Cryptographically verified.</b><br>
+  <sub>Material 3 Expressive Android updater for Google Play, F-Droid (Index V2), IzzyOnDroid, APKMirror, GitHub, GitLab &amp; Codeberg — actively maintained APKUpdater successor with Watchlist, Obtainium sync, and silent Shizuku or Root installs.</sub>
 </p>
 
 <p align="center">
-  <a href="https://durcheins.github.io/apkup/"><i>Homepage</i></a> • <a href="#-features">Features</a> • <a href="#-downloads">Downloads</a> • <a href="#-requirements">Requirements</a> • <a href="#-tech-stack">Tech Stack</a> • <a href="#-screenshots">Screenshots</a> • <a href="#-quick-guides">Quick-Guides</a> • <a href="#-troubleshooting--wiki">Wiki</a> • <a href="#-support-apkup">Support</a> • <a href="#-translations">Translations</a>
+  <a href="https://durcheins.github.io/apkup/"><i>Homepage</i></a> • <a href="#-features">Features</a> • <a href="#-downloads">Downloads</a> • <a href="#-screenshots">Screenshots</a> • <a href="#%EF%B8%8F-requirements--tech-stack">Requirements &amp; Tech Stack</a> • <a href="#-quick-guides">Quick-Guides</a> • <a href="#-troubleshooting--wiki">Wiki</a> • <a href="#-support-apkup">Support</a> • <a href="#-translations">Translations</a>
 </p>
 
 <p align="center">
   <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/github/downloads/DurchEins/apkup/total?style=flat&label=GitHub%20Downloads&color=F59E0B&logo=github" alt="Total GitHub Downloads" /></a>
-  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.45.2%20(227)-38BDF8?style=flat" alt="Current Version: 1.45.2 (227)" /></a>
+  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.46.0%20(231)-A855F7?style=flat" alt="Current Version: 1.46.0 (231)" /></a>
   <img src="https://img.shields.io/badge/Min%20SDK-29%20(Android%2010%2B)-3DDC84?style=flat&logo=android" alt="Minimum Android SDK 29 (Android 10 or higher)" />
   <img src="https://img.shields.io/badge/Privacy-No%20Ads%20%7C%20No%20Tracking-2EA44F?style=flat" alt="Privacy: No Ads, No Tracking" />
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-blue?style=flat" alt="License: GNU GPL-3.0" /></a>
@@ -120,45 +121,6 @@ Get the latest release of ApkUp from your preferred platform:
   </picture>
 </p>
 
-## 📥 Requirements
-
-* **Minimum:** Android 10.0 (API Level 29) or higher.
-* **Recommended:** Android 12+ for Dynamic Color theming and [Shizuku](https://shizuku.rikka.app/) for silent background installations.
-* **Sideloading Note:** Need help with Android restricted settings or Play Protect? See the [Google Lock & Sideloading Guide](https://durcheins.github.io/apkup/sideloading/google-lock/).
-
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/divider-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset=".github/assets/divider-light.svg">
-    <img src=".github/assets/divider-dark.svg" width="100%" alt="" />
-  </picture>
-</p>
-
-## 🛠️ Tech Stack
-
-<details>
-<summary><strong>🛠️ Tech Stack &amp; Architecture</strong></summary>
-
-* **Language:** Kotlin 2.3+
-* **UI Framework:** Jetpack Compose & Material 3 Expressive
-* **Architecture:** MVVM with Coroutines & Reactive StateFlow
-* **Dependency Injection:** Koin 4.2
-* **Cryptography & Storage:** Google Tink Android 1.20 (`AES-256-GCM`), `apksig` v2/v3 verification
-* **Network & Parsing:** Retrofit 3, OkHttp 5, Jsoup
-* **Privileged Install:** Shizuku API 13.x & optional `su` Root session installer
-* **Background Tasks:** AndroidX WorkManager 2.11 (`User-Initiated Data Transfer` & Periodic Workers)
-* **SDK Compatibility:** Min SDK 29 (Android 10.0) | Target & Compile SDK 37 (Android 17)
-
-</details>
-
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/divider-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset=".github/assets/divider-light.svg">
-    <img src=".github/assets/divider-dark.svg" width="100%" alt="" />
-  </picture>
-</p>
-
 ## 📸 Screenshots
 
 | 🚀 Multi-Source Updates | 🛡️ Update Details & Verification | ⚙️ Setup & Update Sources |
@@ -192,6 +154,35 @@ Get the latest release of ApkUp from your preferred platform:
   </picture>
 </p>
 
+## ⚙️ Requirements & Tech Stack
+
+| 📥 Requirements | 🛠️ Tech Stack |
+| :--- | :--- |
+| • **Minimum:** Android 10.0 (API Level 29) or higher<br>• **Recommended:** Android 12+ for Dynamic Color theming and [Shizuku](https://shizuku.rikka.app/) for silent background installations<br>• **Sideloading Note:** Need help with Android restricted settings or Play Protect? See the [Google Lock & Sideloading Guide](https://durcheins.github.io/apkup/sideloading/google-lock/) | • **Modern Android Stack:** Built natively in Kotlin with Jetpack Compose & Material 3 Expressive<br>• **Security & Automation:** Google Tink encryption, `apksig` v2/v3 verification, Shizuku & WorkManager<br>• **Full Breakdown:** Expand the architecture spoiler below for exact versions & libraries |
+
+<details>
+<summary><strong>🛠️ Full Tech Stack &amp; Architecture</strong></summary>
+
+* **Language:** Kotlin 2.4+
+* **UI Framework:** Jetpack Compose & Material 3 Expressive
+* **Architecture:** MVVM with Coroutines & Reactive StateFlow
+* **Dependency Injection:** Koin 4.2
+* **Cryptography & Storage:** Google Tink Android 1.24 (`AES-256-GCM`), `apksig` v2/v3 verification
+* **Network & Parsing:** Retrofit 3, OkHttp 5, Jsoup
+* **Privileged Install:** Shizuku API 13.x & optional `su` Root session installer
+* **Background Tasks:** AndroidX WorkManager 2.12 (`User-Initiated Data Transfer` & Periodic Workers)
+* **SDK Compatibility:** Min SDK 29 (Android 10.0) | Target & Compile SDK 37.1 (Android 17)
+
+</details>
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/divider-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/divider-light.svg">
+    <img src=".github/assets/divider-dark.svg" width="100%" alt="" />
+  </picture>
+</p>
+
 ## ⚡ Quick-Guides
 
 <details>
@@ -204,7 +195,7 @@ Get the latest release of ApkUp from your preferred platform:
 </details>
 
 <details>
-<summary><img src=".github/assets/verified-lock.svg" width="16" height="16" align="absmiddle" alt="" />&nbsp;<b>SHA-256, ADB &amp; VirusTotal Verification</b></summary>
+<summary><img src=".github/assets/verified-lock.svg" width="16" height="16" align="absmiddle" alt="Verified" />&nbsp;<b>SHA-256, ADB &amp; VirusTotal Verification</b></summary>
 
 1. Download the `.apk` and `SHA256SUMS.txt` from **[GitHub Releases](https://github.com/DurchEins/apkup/releases/latest)**.
 2. Verify locally:
@@ -278,7 +269,8 @@ If ApkUp saves you time keeping your apps up to date, consider supporting its on
 > [!TIP]
 > **Prefer to support ApkUp for free?** Every bit of visibility helps:
 >
-> * ⭐ **[Star the repository on GitHub](https://github.com/DurchEins/apkup)** (or **[GitLab](https://gitlab.com/DurchEins1/apkup)**)
+> * ⭐ **Star** & 👁️ **Watch** the repository on **[GitHub](https://github.com/DurchEins/apkup)** (or **[GitLab](https://gitlab.com/DurchEins1/apkup)**)
+> * 👤 **Follow me** on **[GitHub (@DurchEins)](https://github.com/DurchEins)** for new releases and projects
 > * 💬 **Rate & review** ApkUp on **[Zapstore](https://zapstore.dev/apps/com.apkup)**, **[AlternativeTo](https://alternativeto.net/software/apkup/about/)**, **[APKPure](https://apkpure.com/apkup/com.apkup)**, **[itch.io](https://durcheins.itch.io/apkup)**, or **[Appteka](https://appteka.store/app/c0cr341070)**
 > * 🐛 **[Report bugs](https://github.com/DurchEins/apkup/issues)**, **[suggest features](https://github.com/DurchEins/apkup/issues)**, or share ApkUp with friends!
 
@@ -339,13 +331,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
     <source media="(prefers-color-scheme: dark)" srcset=".github/assets/footer-pill-dark.svg">
     <source media="(prefers-color-scheme: light)" srcset=".github/assets/footer-pill-light.svg">
     <img src=".github/assets/footer-pill-dark.svg" width="326" alt="ApkUp — Built with Kotlin & Material 3 Expressive" />
-  </picture>
-</p>
-
-<p align="center">
-  <a href="#top"><kbd>↑ Back to top</kbd></a>
-</p>
-
-<p align="center">
+  </picture><br><br>
+  <a href="#top"><kbd>↑ Back to top</kbd></a><br><br>
   <a href="https://u24.gov.ua/"><img src="https://img.shields.io/badge/Stand_With-Ukraine-0057B7?style=flat&labelColor=FFD700" alt="Stand With Ukraine — Official United24 Support" /></a>
 </p>

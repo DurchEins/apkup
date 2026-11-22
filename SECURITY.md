@@ -16,9 +16,9 @@ We actively provide security patches for the following versions of ApkUp:
 
 | Version | Support Status | Scope |
 | :--- | :--- | :--- |
-| `1.45.x` (or newer) | ✅ **Full support** | Active bug fixes & security patches |
-| `1.44.x` | ⚠️ **Security fixes only** | Critical security patches until next minor release |
-| `< 1.44` | ❌ **Unsupported** | Please update to the latest release |
+| `1.46.x` (or newer) | ✅ **Full support** | Active bug fixes & security patches |
+| `1.45.x` | ⚠️ **Security fixes only** | Critical security patches until next minor release |
+| `< 1.45` | ❌ **Unsupported** | Please update to the latest release |
 
 ---
 

@@ -4,7 +4,7 @@ Key Features:
 * Multi-Source Discovery: Check updates across Google Play Store, APKMirror (with direct in-app downloads and .apkm split-bundle extraction), IzzyOnDroid, custom F-Droid repositories (Index V2 with presets), GitHub, GitLab, and Codeberg / self-hosted Forgejo.
 * Watch Uninstalled Apps: Track releases for apps that are not yet installed via your Watchlist and install newly discovered versions directly from Updates.
 * Search, Sorting & Save APK: Filter and sort both Updates and Apps (including newest release date), and export single APKs or split .apks bundles into Downloads or a custom SAF folder.
-* Autonomous Background Updates (Shizuku & Optional Root): Silently install updates in the background via Shizuku or an optional Root (su) fallback with Wi-Fi and charging guards, batch overall ETA progress, and an Update History sheet with rollback links.
+* Autonomous Background Updates (Shizuku & Optional Root): Silently install updates in the background via Shizuku or an optional Root (su) fallback with Wi-Fi and charging guards, batch overall ETA progress, configurable pre-install rollback backups, and an Update History sheet with rollback links.
 * Obtainium Sync, Backup & Diagnostics: Interactive Obtainium JSON import preview and export, full JSON settings backup, and an offline sanitized diagnostic log export.
 * Signature Protection & Granular Filters: Pre-install certificate verification, FOSS flavor and asset regex filtering, per-version skipping, hidden apps, and Wi-Fi-only data saver mode.
 * Modern Android Experience: Supports Android 10.0 (API 29) through Android 17 with Dynamic Color (Material You), collapsible headers, a built-in self-updater, and 9 languages.
