@@ -1,4 +1,4 @@
-# ApkUp — Complete Documentation & Knowledge Base (v1.45.0 / Build 211)
+# ApkUp — Complete Documentation & Knowledge Base (v1.45.1 / Build 223)
 
 > ApkUp is a free, ad-free, open-source (GPL-3.0) Android app updater for Android 10.0 – 17 (API 29+). It unifies Google Play, F-Droid Index V2, IzzyOnDroid, APKMirror, GitHub Releases, GitLab Releases, Codeberg Releases, and Direct APK URLs with automatic SHA-256 & signing-certificate verification, Obtainium JSON import, and optional silent background updates via Shizuku or Root (su).
 
@@ -45,7 +45,7 @@ Zero. ApkUp has no developer backend, no ads, no analytics SDKs, and no telemetr
 
 ---
 
-## Latest Release Notes (v1.45.0)
+## Latest Release Notes (v1.45.1)
 
 # What's New
 

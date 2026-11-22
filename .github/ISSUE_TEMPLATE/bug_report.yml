@@ -1,6 +1,9 @@
 name: Bug Report
 description: Report a bug, crash, or broken update source
+title: "[Bug] "
 type: Bug
+assignees:
+  - DurchEins
 labels:
   - bug
   - needs-triage
@@ -8,22 +11,60 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for reporting a bug! Including a **Diagnostic Report** from ApkUp (*Setup → Diagnostics → Export / Share*) helps fix issues much faster.
+        Thanks for reporting a bug!
+        > **Tip:** Providing your **Device Model**, **Affected Source**, **Steps to Reproduce**, and a **Diagnostic Report** (*Settings ➔ Advanced Settings / Diagnostics*) saves a huge amount of debugging time and helps us fix issues much faster!
 
   - type: input
     id: version
     attributes:
       label: ApkUp Version
-      description: Shown in Setup → About
-      placeholder: e.g. 1.44.0 (203)
+      description: Shown under Settings ➔ About
+      placeholder: e.g. 1.45.1 (223)
     validations:
       required: true
 
   - type: dropdown
+    id: android_version
+    attributes:
+      label: Android Version
+      options:
+        - Android 17
+        - Android 16
+        - Android 15
+        - Android 14
+        - Android 13
+        - Android 12 / 12L
+        - Android 11
+        - Android 10
+        - Custom ROM / Other (specify below)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install_method
+    attributes:
+      label: Installation Method
+      options:
+        - Standard Android PackageInstaller
+        - Shizuku (Background / Silent)
+        - Root (su)
+        - APK / .apks Export only
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device Model (optional, very helpful)
+      placeholder: e.g. Pixel 9 Pro, Samsung Galaxy S24, GrapheneOS...
+    validations:
+      required: false
+
+  - type: dropdown
     id: area
     attributes:
-      label: Affected Area / Source
-      description: Select everything that applies (optional)
+      label: Affected Area / Source (optional, very helpful)
+      description: Select everything that applies
       multiple: true
       options:
         - Google Play Store
@@ -32,8 +73,19 @@ body:
         - GitHub / GitLab / Codeberg
         - Shizuku / Root Background Install
         - Local APK Export / Rollback / Backup
+        - Obtainium Import / Sync
         - UI / Theme / Translation
+        - Self-Updater
         - Other
+    validations:
+      required: false
+
+  - type: input
+    id: affected_app
+    attributes:
+      label: Affected App / Package Name (optional, very helpful)
+      description: If the issue happens with a specific app, name it or its package ID.
+      placeholder: e.g. Android Auto (com.google.android.projection.gearhead)
     validations:
       required: false
 
@@ -41,16 +93,16 @@ body:
     id: description
     attributes:
       label: What happened?
-      description: Briefly describe the problem and what you expected to happen.
+      description: Describe the problem clearly and what you expected to happen.
     validations:
       required: true
 
   - type: textarea
     id: steps
     attributes:
-      label: Steps to Reproduce (optional)
+      label: Steps to Reproduce (optional, very helpful)
       placeholder: |
-        1. Open ...
+        1. Open Settings / Updates / Apps...
         2. Tap ...
         3. See error ...
     validations:
@@ -59,8 +111,16 @@ body:
   - type: textarea
     id: diagnostic_report
     attributes:
-      label: Diagnostic Report / Logs (optional)
-      description: Paste your sanitized report from Setup → Diagnostics (sensitive tokens are already scrubbed).
+      label: Diagnostic Report / Logs (optional, very helpful)
+      description: Paste your sanitized report from Settings (sensitive tokens are already scrubbed).
       render: text
     validations:
       required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I checked existing open/closed issues and the Troubleshooting Wiki for this problem.
+          required: true

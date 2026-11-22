@@ -1,6 +1,9 @@
 name: Feature Request
-description: Suggest a new feature, update source, or improvement
+description: Suggest a new feature, update source, or UI improvement
+title: "[Feature Request] "
 type: Feature
+assignees:
+  - DurchEins
 labels:
   - enhancement
   - needs-triage
@@ -11,10 +14,11 @@ body:
       label: Category
       multiple: true
       options:
-        - Update Sources
+        - Update Sources & Repository Linking
         - Background Updates / Shizuku / Root
         - Rollback / Export / Backup
-        - UI / Design / Accessibility
+        - Watchlist & Obtainium Sync
+        - UI / Material 3 Design / Accessibility
         - Other
     validations:
       required: false
@@ -31,6 +35,14 @@ body:
     id: use_case
     attributes:
       label: Why would this be useful? (optional)
-      description: Explain the problem it solves or how you would use it.
+      description: Explain the problem it solves or how you would use it in your workflow.
     validations:
       required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I checked existing issues and confirmed this feature does not already exist.
+          required: true

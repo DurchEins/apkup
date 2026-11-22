@@ -1,8 +1,11 @@
 blank_issues_enabled: true
 contact_links:
-  - name: 📖 ApkUp Wiki & Troubleshooting
+  - name: 🌐 ApkUp Web Wiki & Guides
+    url: https://durcheins.github.io/apkup/wiki/
+    about: Clean, searchable web documentation for update sources, Shizuku, Obtainium sync, and sideloading.
+  - name: 📖 GitHub Wiki & Troubleshooting
     url: https://github.com/DurchEins/apkup/wiki
-    about: Step-by-step guides for Shizuku, tokens, F-Droid repos, and common source errors.
-  - name: 🔒 Security Policy
-    url: https://github.com/DurchEins/apkup/blob/main/SECURITY.md
-    about: How to report security issues privately and which versions are supported.
+    about: Full GitHub Wiki with step-by-step guides and error troubleshooting.
+  - name: 🌍 Translate ApkUp on Hosted Weblate
+    url: https://hosted.weblate.org/engage/apkup/
+    about: Contribute or polish translations directly in your browser across all 9 languages — no Git required.

@@ -1,0 +1,96 @@
+name: App Repository Mapping Request
+description: Suggest a built-in GitHub, GitLab, or Codeberg repository mapping for a popular Android app
+title: "[Repo Mapping] "
+type: Feature
+assignees:
+  - DurchEins
+labels:
+  - enhancement
+  - needs-triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Suggest an app to be added to ApkUp's built-in repository mappings so all users can receive direct updates automatically.
+        *(Note: You can already link any repository privately for yourself via **Apps ➔ ⋮ ➔ Link repository**!)*
+
+  - type: input
+    id: app_name
+    attributes:
+      label: App Name
+      placeholder: e.g. NewPipe
+    validations:
+      required: true
+
+  - type: input
+    id: package_id
+    attributes:
+      label: Android Package ID
+      description: Shown under Apps ➔ ⋮ or App Info
+      placeholder: e.g. org.schabi.newpipe
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Source Platform
+      options:
+        - GitHub
+        - GitLab (gitlab.com or self-hosted)
+        - Codeberg / Forgejo
+    validations:
+      required: true
+
+  - type: input
+    id: repo_url
+    attributes:
+      label: Repository URL or owner/repo
+      placeholder: e.g. https://github.com/TeamNewPipe/NewPipe
+    validations:
+      required: true
+
+  - type: input
+    id: custom_host
+    attributes:
+      label: Self-Hosted Instance Domain (optional)
+      description: Only needed for self-hosted GitLab, Forgejo, or Gitea instances (otherwise leave blank).
+      placeholder: e.g. gitlab.gnome.org or git.example.org
+    validations:
+      required: false
+
+  - type: input
+    id: asset_filter
+    attributes:
+      label: Asset Flavor Substring (optional)
+      description: If the app ships multiple flavors, enter the substring to prefer (e.g. foss, libre, arm64).
+      placeholder: e.g. foss
+    validations:
+      required: false
+
+  - type: input
+    id: asset_regex
+    attributes:
+      label: Asset Filter Regex (optional)
+      description: Only needed if a simple substring is not enough to match the right APK asset.
+      placeholder: e.g. .*universal.*\.apk$
+    validations:
+      required: false
+
+  - type: input
+    id: official_link
+    attributes:
+      label: Official App Website / Play Store / F-Droid Link (optional, helps verify authenticity)
+      placeholder: e.g. https://newpipe.net/
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Verification
+      options:
+        - label: I confirmed that the repository publishes official signed APK releases.
+          required: true
+        - label: I checked that this app is not already included in ApkUp's built-in mappings.
+          required: true

@@ -1,6 +1,8 @@
 name: Translation Improvement / New Language
 description: Report a translation typo, suggest a more natural phrasing, or contribute a new language
 title: "[Translation] "
+assignees:
+  - DurchEins
 labels:
   - translation
   - needs-triage

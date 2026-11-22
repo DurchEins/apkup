@@ -11,8 +11,8 @@ export const SITE = {
   securityUrl: 'https://github.com/DurchEins/apkup/blob/main/SECURITY.md',
   privacyUrl: 'https://github.com/DurchEins/apkup/blob/main/PRIVACY.md',
   licenseUrl: 'https://github.com/DurchEins/apkup/blob/main/LICENSE',
-  fallbackVersion: '1.45.0',
-  fallbackBuild: '211',
+  fallbackVersion: '1.45.1',
+  fallbackBuild: '223',
 };
 
 export const SOURCES = [
