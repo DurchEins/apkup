@@ -45,7 +45,7 @@ import com.apkup.util.SnackBar
 import com.apkup.util.Stringer
 import com.apkup.util.buildUpdateHistoryEntry
 import com.apkup.util.openUrl
-import com.aurora.gplayapi.data.models.PlayFile
+import com.aurora.gplayapi.model.AppFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -623,7 +623,7 @@ class DownloadCoordinator(
                     throw IOException("No Play Store APK files returned for ${update.packageName}")
                 }
                 val sortedFiles = playFiles.sortedWith(
-                    compareByDescending<PlayFile> { it.type == PlayFile.Type.BASE }
+                    compareByDescending<AppFile> { it.type == AppFile.Type.BASE }
                         .thenBy { it.name }
                 )
                 var totalBytes = sortedFiles.sumOf { it.size.coerceAtLeast(0L) }
@@ -631,7 +631,7 @@ class DownloadCoordinator(
                 onProgress(0L, totalBytes)
 
                 sortedFiles.mapIndexed { index, playFile ->
-                    val partName = if (playFile.type == PlayFile.Type.BASE) {
+                    val partName = if (playFile.type == AppFile.Type.BASE) {
                         "base.apk"
                     } else {
                         ApkIntegrityVerifier.sanitizePartFileName(playFile.name, index.coerceAtLeast(1))

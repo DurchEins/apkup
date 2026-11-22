@@ -25,11 +25,10 @@ import com.apkup.repository.RepoMappingManager
 import com.apkup.repository.SelfUpdateRepository
 import com.apkup.repository.computeUpdateSourcePriority
 import com.apkup.repository.defaultSourcePriority
-import com.apkup.repository.withActivePlayStoreLocale
+import com.apkup.repository.resolveActivePlayStoreLocale
 import com.apkup.service.ApkMirrorAuthInterceptor
 import com.apkup.util.ApkIntegrityException
 import com.apkup.util.ApkIntegrityVerifier
-import com.aurora.gplayapi.data.models.AuthData
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.runBlocking
@@ -730,12 +729,12 @@ class SecurityHardeningAuditTest {
         assertTrue(computeUpdateSourcePriority(customGitLab, repoManager) > computeUpdateSourcePriority(playOrigin, repoManager))
 
         // Play Store active locale normalization (F-15)
-        val authEs = AuthData("", "").withActivePlayStoreLocale(Locale.forLanguageTag("es"))
-        assertEquals("es", authEs.locale.language)
-        assertEquals("ES", authEs.locale.country)
+        val localeEs = resolveActivePlayStoreLocale(Locale.forLanguageTag("es"))
+        assertEquals("es", localeEs.language)
+        assertEquals("ES", localeEs.country)
 
-        val authJa = AuthData("", "").withActivePlayStoreLocale(Locale.JAPANESE)
-        assertEquals("ja", authJa.locale.language)
-        assertEquals("JP", authJa.locale.country)
+        val localeJa = resolveActivePlayStoreLocale(Locale.JAPANESE)
+        assertEquals("ja", localeJa.language)
+        assertEquals("JP", localeJa.country)
     }
 }

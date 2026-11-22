@@ -4,7 +4,7 @@ import com.apkup.data.ui.AppInstallStatus
 import com.apkup.util.InstallLog
 import com.apkup.util.InstallPart
 import com.apkup.util.wrapStreamIfGzip
-import com.aurora.gplayapi.data.models.PlayFile
+import com.aurora.gplayapi.model.AppFile
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -45,46 +45,46 @@ class InstallPipelineTest {
 
     @Test
     fun `play files are sorted so BASE is first and splits follow`() {
-        val splitConfig = PlayFile(
+        val splitConfig = AppFile(
             name = "split_config.arm64_v8a.apk",
-            type = PlayFile.Type.SPLIT,
+            type = AppFile.Type.SPLIT,
             size = 1000L
         )
-        val splitLang = PlayFile(
+        val splitLang = AppFile(
             name = "split_config.de.apk",
-            type = PlayFile.Type.SPLIT,
+            type = AppFile.Type.SPLIT,
             size = 500L
         )
-        val baseFile = PlayFile(
+        val baseFile = AppFile(
             name = "base.apk",
-            type = PlayFile.Type.BASE,
+            type = AppFile.Type.BASE,
             size = 50000L
         )
 
         val unordered = listOf(splitConfig, splitLang, baseFile)
         val sorted = unordered.sortedWith(
-            compareByDescending<PlayFile> { it.type == PlayFile.Type.BASE }
+            compareByDescending<AppFile> { it.type == AppFile.Type.BASE }
                 .thenBy { it.name }
         )
 
-        assertEquals(PlayFile.Type.BASE, sorted[0].type)
+        assertEquals(AppFile.Type.BASE, sorted[0].type)
         assertEquals("base.apk", sorted[0].name)
-        assertEquals(PlayFile.Type.SPLIT, sorted[1].type)
+        assertEquals(AppFile.Type.SPLIT, sorted[1].type)
         assertEquals("split_config.arm64_v8a.apk", sorted[1].name)
-        assertEquals(PlayFile.Type.SPLIT, sorted[2].type)
+        assertEquals(AppFile.Type.SPLIT, sorted[2].type)
         assertEquals("split_config.de.apk", sorted[2].name)
     }
 
     @Test
     fun `all install part filenames end with apk extension`() {
-        val fileBase = PlayFile(name = "", type = PlayFile.Type.BASE)
-        val fileSplitNoExt = PlayFile(name = "split_config", type = PlayFile.Type.SPLIT)
-        val fileSplitWithExt = PlayFile(name = "split_lang.apk", type = PlayFile.Type.SPLIT)
+        val fileBase = AppFile(name = "", type = AppFile.Type.BASE)
+        val fileSplitNoExt = AppFile(name = "split_config", type = AppFile.Type.SPLIT)
+        val fileSplitWithExt = AppFile(name = "split_lang.apk", type = AppFile.Type.SPLIT)
 
         val files = listOf(fileBase, fileSplitNoExt, fileSplitWithExt)
         val parts = files.mapIndexed { index, file ->
             val partName = when {
-                file.type == PlayFile.Type.BASE -> "base.apk"
+                file.type == AppFile.Type.BASE -> "base.apk"
                 file.name.endsWith(".apk") -> file.name
                 file.name.isNotBlank() -> "${file.name}.apk"
                 else -> "split_$index.apk"

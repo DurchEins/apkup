@@ -7,7 +7,6 @@ import com.apkup.data.ui.CustomFDroidRepo
 import com.apkup.data.ui.IgnoredVersionEntry
 import com.apkup.data.ui.UpdateHistoryEntry
 import com.apkup.data.ui.WatchedAppEntry
-import com.aurora.gplayapi.data.models.AuthData
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,6 +14,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.lang.reflect.Type
 import kotlin.math.abs
+
+data class StoredPlaySession(
+    val gsfId: String = "",
+    val deviceConfigToken: String = "",
+    val checkinConsistencyToken: String = "",
+    val localeTag: String = "",
+    val mintedAtMillis: Long = 0L
+)
 
 class PrefSlot<T>(
     private val getter: () -> T,
@@ -294,10 +301,10 @@ class Prefs(
     val dynamicColor: PrefSlot<Boolean> = booleanSlot("dynamicColor", defValue = false)
     val lastTab: PrefSlot<String> = stringSlot("lastTab", defValue = com.apkup.data.ui.Screen.Updates.route)
 
-    val playAuthData: PrefSlot<AuthData> = jsonSlot(
+    val playAuthData: PrefSlot<StoredPlaySession> = jsonSlot(
         key = "playAuthData",
-        type = object : TypeToken<AuthData>() {}.type,
-        defProvider = { AuthData("", "") }
+        type = object : TypeToken<StoredPlaySession>() {}.type,
+        defProvider = { StoredPlaySession() }
     )
     val lastPlayCheck: PrefSlot<Long> = longSlot("lastPlayCheck", defValue = 0L)
 

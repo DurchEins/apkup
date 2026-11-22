@@ -15,23 +15,27 @@ import com.apkup.data.ui.filterNewerCandidates
 import com.apkup.data.ui.getPackageNames
 import com.apkup.data.ui.isMeaningfulVersionUpgrade
 import com.apkup.prefs.Prefs
+import com.apkup.prefs.StoredPlaySession
 import com.apkup.util.play.NativeDeviceInfoProvider
 import com.apkup.util.play.PlayHttpClient
-import com.aurora.gplayapi.data.models.App
-import com.aurora.gplayapi.data.models.AuthData
-import com.aurora.gplayapi.data.models.PlayFile
-import com.aurora.gplayapi.data.providers.DeviceInfoProvider
-import com.aurora.gplayapi.helpers.AppDetailsHelper
-import com.aurora.gplayapi.helpers.PurchaseHelper
+import com.aurora.gplayapi.PlayClient
+import com.aurora.gplayapi.PlayException
+import com.aurora.gplayapi.device.DeviceProfile
+import com.aurora.gplayapi.device.DeviceRegistry
+import com.aurora.gplayapi.model.App
+import com.aurora.gplayapi.model.AppFile
+import com.aurora.gplayapi.net.HttpResponse
+import com.aurora.gplayapi.session.AnonymousSession
+import com.aurora.gplayapi.session.DefaultPlaySessions
+import com.aurora.gplayapi.session.PlaySession
 import com.google.gson.Gson
-import com.google.gson.JsonObject
 import com.google.gson.JsonIOException
 import com.google.gson.JsonParseException
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -42,7 +46,6 @@ import java.net.UnknownHostException
 import java.util.Locale
 import java.util.concurrent.ConcurrentLinkedQueue
 
-
 class PlayRepository(
     private val context: Context,
     private val playHttpClient: PlayHttpClient,
@@ -50,7 +53,6 @@ class PlayRepository(
     private val prefs: Prefs
 ) {
     companion object {
-        const val AUTH_URL = "https://auroraoss.com/api/auth"
         internal const val AUTH_MAX_ATTEMPTS = 3
         internal const val AUTH_INITIAL_BACKOFF_MS = 400L
         internal const val SESSION_CHECK_INTERVAL_MS = 60 * 60 * 1_000L // 1 hour
@@ -61,21 +63,11 @@ class PlayRepository(
     }
 
     /**
-     * Centralized mutex guarding Google Play anonymous authentication, token dispenser requests,
-     * session probing, and session persistence to prevent race conditions and thundering herds.
+     * Centralized mutex guarding Google Play anonymous session minting, cache hydration,
+     * and persistence to prevent race conditions and thundering herds.
      */
     private val sessionMutex = Mutex()
 
-    /**
-     * In-memory cached session to avoid redundant AES decryption and Gson parsing on hot paths.
-     * Guaranteed thread visibility via @Volatile.
-     */
-    @Volatile
-    private var cachedAuthData: AuthData? = null
-
-    /**
-     * Cooldown timestamps for rate-limiting protection.
-     */
     @Volatile
     internal var playCooldownUntilMs: Long = 0L
 
@@ -84,6 +76,28 @@ class PlayRepository(
 
     private val deviceProperties by lazy {
         NativeDeviceInfoProvider(context).getNativeDeviceProperties()
+    }
+
+    private val deviceProfile: DeviceProfile by lazy {
+        DeviceRegistry.parse("native", deviceProperties)
+    }
+
+    private val playSessions by lazy {
+        DefaultPlaySessions(
+            playHttpClient,
+            { deviceProfile },
+            { resolveActivePlayStoreLocale() }
+        )
+    }
+
+    @Volatile
+    private var lastKnownSession: PlaySession? = null
+
+    private val playClient by lazy {
+        PlayClient(
+            playHttpClient,
+            playSessions
+        )
     }
 
     internal fun isPlayCooldownActive(now: Long = SystemClock.elapsedRealtime()): Boolean =
@@ -144,177 +158,59 @@ class PlayRepository(
         dispenserCooldownUntilMs = 0L
     }
 
-    private fun isSessionCheckExpired(): Boolean {
-        val lastCheck = prefs.lastPlayCheck.get()
-        return System.currentTimeMillis() - lastCheck > SESSION_CHECK_INTERVAL_MS
-    }
-
-    private fun readAndNormalizeStoredAuthData(): AuthData {
-        val properties = deviceProperties
-        return readStoredAuthData()
-            .withDeviceInfoProvider(properties)
-            .withActivePlayStoreLocale()
-    }
-
-    /**
-     * Internal token dispenser request and persistence execution.
-     * MUST ONLY be called while [sessionMutex] is held by the caller.
-     */
-    private fun performTokenDispenserAuthLocked(): AuthData {
-        val now = SystemClock.elapsedRealtime()
-        val remainingDispenserCooldown = (dispenserCooldownUntilMs - now).coerceAtLeast(0L)
-        if (remainingDispenserCooldown > 0L) {
-            if (remainingDispenserCooldown <= SHORT_COOLDOWN_WAIT_THRESHOLD_MS) {
-                Log.i("PlayRepository", "Dispenser cooldown active; waiting ${remainingDispenserCooldown}ms.")
-                Thread.sleep(remainingDispenserCooldown)
-            } else {
-                val seconds = remainingDispenserCooldown / 1000L
-                Log.w("PlayRepository", "Dispenser cooldown active; rejecting auth request (${seconds}s remaining).")
-                throw IllegalStateException("Aurora token dispenser cooldown active for ${seconds}s.")
+    internal suspend fun auth(): PlaySession {
+        val activeLocale = resolveActivePlayStoreLocale()
+        lastKnownSession?.let { cached ->
+            if (cached.locale == activeLocale) {
+                return cached
             }
-        }
-
-        Log.i("PlayRepository", "Starting token-dispenser authentication under sessionMutex.")
-        val properties = deviceProperties
-        val payloadBytes = gson.toJson(properties).toByteArray()
-        val receivedAuthData = try {
-            requestTokenDispenserWithRetry(
-                maxAttempts = AUTH_MAX_ATTEMPTS,
-                initialDelayMs = AUTH_INITIAL_BACKOFF_MS,
-                sleep = { delayMs -> Thread.sleep(delayMs) },
-                request = { playHttpClient.postAuth(AUTH_URL, payloadBytes) },
-                parse = { responseBytes -> parseAuthData(String(responseBytes), gson) },
-                onRetry = { attempt, maxAttempts, reason, delayMs ->
-                    Log.w(
-                        "PlayRepository",
-                        "Token-dispenser attempt $attempt/$maxAttempts failed ($reason); retrying in ${delayMs} ms."
-                    )
-                }
-            )
-        } catch (exception: Exception) {
-            if (playHttpClient.responseCodeForCurrentThread() == 429 ||
-                exception.message?.contains("429") == true
-            ) {
-                activateDispenserCooldown(DEFAULT_DISPENSER_COOLDOWN_MS)
-                Log.w("PlayRepository", "Token-dispenser returned HTTP 429; enforced ${DEFAULT_DISPENSER_COOLDOWN_MS / 1000}s cooldown.")
-            }
-            throw exception
-        }
-
-        if (receivedAuthData.deviceInfoProvider == null) {
-            Log.w("PlayRepository", "Auth response did not include a device profile; rebuilding it from submitted device properties.")
-        }
-        val authData = receivedAuthData
-            .withDeviceInfoProvider(properties)
-            .withActivePlayStoreLocale()
-        if (!authData.hasRequiredPlaySession()) {
-            Log.e(
-                "PlayRepository",
-                "Auth response decoded but is missing required fields " +
-                    "(bearer=${authData.authToken.isNotBlank()}, deviceId=${authData.gsfId.isNotBlank()}, " +
-                    "deviceProfile=${authData.deviceInfoProvider != null})."
-            )
-            throw IllegalStateException("Auth response is missing required Play session fields.")
-        }
-
-        Log.i("PlayRepository", "Auth session decoded; saving session data.")
-        saveAuthData(authData)
-        val savedAuthData = readStoredAuthData()
-            .withDeviceInfoProvider(properties)
-            .withActivePlayStoreLocale()
-        if (!savedAuthData.hasRequiredPlaySession()) {
-            Log.e("PlayRepository", "Saved Play session is missing required fields.")
-            throw IllegalStateException("Saved Play session is incomplete.")
-        }
-
-        cachedAuthData = savedAuthData
-        prefs.lastPlayCheck.put(System.currentTimeMillis())
-        Log.i("PlayRepository", "Auth session saved, cached in memory, and ready.")
-        return savedAuthData
-    }
-
-    /**
-     * Retrieves a valid Google Play AuthData session.
-     * Uses double-checked locking with [sessionMutex] to avoid dispenser thundering herds
-     * while enabling lock-free in-memory reads on the fast path.
-     */
-    internal suspend fun auth(): AuthData {
-        val memoryAuth = cachedAuthData
-        if (memoryAuth != null && memoryAuth.hasRequiredPlaySession() && !isSessionCheckExpired()) {
-            return memoryAuth
         }
 
         return sessionMutex.withLock {
-            val doubleCheck = cachedAuthData ?: readAndNormalizeStoredAuthData()
-            if (doubleCheck.hasRequiredPlaySession() && !isSessionCheckExpired()) {
-                cachedAuthData = doubleCheck
-                return@withLock doubleCheck
-            }
-
-            if (!doubleCheck.hasRequiredPlaySession()) {
-                Log.w("PlayRepository", "Saved Play session is missing or incomplete; requesting fresh session.")
-                return@withLock performTokenDispenserAuthLocked()
-            }
-
-            if (isSessionCheckExpired()) {
-                Log.i("PlayRepository", "Session check interval expired; probing Play session validity.")
+            val minted = playSessions.session()
+            lastKnownSession = minted
+            if (minted is AnonymousSession) {
+                savePlaySession(minted)
                 prefs.lastPlayCheck.put(System.currentTimeMillis())
-
-                val probeSuccess = runCatching {
-                    Log.i("PlayRepository", "Checking saved Play session with a single app-detail request.")
-                    val app = AppDetailsHelper(doubleCheck)
-                        .using(playHttpClient)
-                        .getAppByPackageName("com.google.android.gm")
-                    app.packageName.isNotEmpty()
-                }.getOrElse { exception ->
-                    val code = playHttpClient.responseCodeForCurrentThread()
-                    if (shouldRefreshPlayAuth(code)) {
-                        Log.w("PlayRepository", "Saved Play session rejected with HTTP $code; refreshing session.")
-                        false
-                    } else {
-                        throw exception
-                    }
-                }
-
-                if (!probeSuccess) {
-                    return@withLock performTokenDispenserAuthLocked()
-                }
-                Log.i("PlayRepository", "Play session probe succeeded; token still valid.")
             }
-
-            cachedAuthData = doubleCheck
-            doubleCheck
+            minted
         }
     }
 
-    internal fun authBlocking(): AuthData = runBlocking { auth() }
+    internal fun authBlocking(): PlaySession = runBlocking { auth() }
 
-    /**
-     * Refreshes the Google Play anonymous account under [sessionMutex].
-     */
     internal suspend fun refreshAuth(
         force: Boolean = false,
         failedToken: String? = null
-    ): AuthData = sessionMutex.withLock {
-        val current = cachedAuthData ?: readAndNormalizeStoredAuthData()
-        if (!force && failedToken != null && current.authToken.isNotBlank() && current.authToken != failedToken) {
+    ): PlaySession = sessionMutex.withLock {
+        val current = lastKnownSession
+        if (!force && failedToken != null && current != null && current.gsfId != failedToken) {
             Log.i("PlayRepository", "Session was already refreshed by another concurrent caller; adopting fresh session.")
-            cachedAuthData = current
             return@withLock current
         }
-        performTokenDispenserAuthLocked()
+
+        playSessions.invalidateAnonymous()
+        lastKnownSession = null
+        prefs.playAuthData.put(StoredPlaySession())
+        val refreshed = playSessions.session()
+        lastKnownSession = refreshed
+        if (refreshed is AnonymousSession) {
+            savePlaySession(refreshed)
+            prefs.lastPlayCheck.put(System.currentTimeMillis())
+        }
+        refreshed
     }
 
     internal fun refreshAuthBlocking(
         force: Boolean = false,
         failedToken: String? = null
-    ): AuthData = runBlocking { refreshAuth(force, failedToken) }
+    ): PlaySession = runBlocking { refreshAuth(force, failedToken) }
 
-    internal suspend fun refreshAuthIfNeeded(failedAuth: AuthData): AuthData =
-        refreshAuth(force = false, failedToken = failedAuth.authToken)
+    internal suspend fun refreshAuthIfNeeded(failedSession: PlaySession): PlaySession =
+        refreshAuth(force = false, failedToken = failedSession.gsfId)
 
-    internal fun refreshAuthIfNeededBlocking(failedAuth: AuthData): AuthData =
-        runBlocking { refreshAuthIfNeeded(failedAuth) }
+    internal fun refreshAuthIfNeededBlocking(failedSession: PlaySession): PlaySession =
+        runBlocking { refreshAuthIfNeeded(failedSession) }
 
     suspend fun updates(
         apps: List<AppInstalled>,
@@ -342,7 +238,7 @@ class PlayRepository(
 
             phase = "authentication"
             val authStartedAt = SystemClock.elapsedRealtime()
-            val initialAuthData = auth()
+            val initialSession = auth()
             val authDuration = SystemClock.elapsedRealtime() - authStartedAt
             Log.i("PlayRepository", "Authentication stage completed in ${authDuration} ms.")
             phase = "bulk app-details lookup"
@@ -352,7 +248,7 @@ class PlayRepository(
             val consecutive429Count = java.util.concurrent.atomic.AtomicInteger(0)
             Log.i(
                 "PlayRepository",
-                "Starting bulk app-details lookup for ${packageNames.size} package IDs in " +
+                "Starting bulk app-details lookup for ${packageNames.size} package ID(s) in " +
                     "$expectedBatchCount batch(es), up to $PLAY_DETAILS_REQUEST_CONCURRENCY concurrent."
             )
             val requestResult = requestConcurrentBatches<String, App>(
@@ -361,25 +257,23 @@ class PlayRepository(
                 concurrency = PLAY_DETAILS_REQUEST_CONCURRENCY,
                 request = { packageBatch ->
                     requestWithUnauthorizedRetrySuspend(
-                        initialAuth = auth(),
+                        initialAuth = initialSession,
                         responseCode = { playHttpClient.responseCodeForCurrentThread() },
-                        refreshAuth = { failedAuth ->
+                        refreshAuth = { failedSession ->
                             val code = playHttpClient.responseCodeForCurrentThread()
                             if (code == 429) {
                                 kotlinx.coroutines.delay(1500L)
                             }
-                            refreshAuthIfNeeded(failedAuth)
+                            refreshAuthIfNeeded(failedSession)
                         },
-                        request = { currentAuth ->
+                        request = {
                             try {
-                                val appsResult = AppDetailsHelper(currentAuth)
-                                    .using(playHttpClient)
-                                    .getAppByPackageName(packageBatch)
+                                val appsResult = playClient.apps.details(packageBatch)
                                 consecutive429Count.set(0)
                                 appsResult
                             } catch (e: Exception) {
                                 val code = playHttpClient.responseCodeForCurrentThread()
-                                if (code == 429) {
+                                if (e is PlayException.RateLimited || code == 429) {
                                     val count = consecutive429Count.incrementAndGet()
                                     if (count >= 2) {
                                         activatePlayCooldown(DEFAULT_PLAY_COOLDOWN_MS)
@@ -472,35 +366,38 @@ class PlayRepository(
         packageName: String,
         versionCode: Long,
         offerType: Int = 1
-    ): List<PlayFile> = executeWithPlayDeliveryRetry(
+    ): List<AppFile> = executeWithPlayDeliveryRetry(
         maxAttempts = 2,
-        operationName = "purchase($packageName)",
+        operationName = "delivery($packageName)",
         clock = { SystemClock.elapsedRealtime() },
         sleep = { Thread.sleep(it) },
         getAuth = { authBlocking() },
-        refreshAuth = { failedAuth -> refreshAuthIfNeededBlocking(failedAuth) },
+        refreshAuth = { failedSession -> refreshAuthIfNeededBlocking(failedSession) },
         responseCode = { playHttpClient.responseCodeForCurrentThread() },
         isCooldownActive = { isPlayCooldownActive() },
         remainingCooldownMs = { getRemainingPlayCooldownMs() },
         onCooldownEnforced = { duration -> activatePlayCooldown(duration) }
-    ) { currentAuth ->
-        PurchaseHelper(currentAuth)
-            .using(playHttpClient)
-            .purchase(packageName, versionCode, offerType)
-            .filter { it.type == PlayFile.Type.BASE || it.type == PlayFile.Type.SPLIT }
+    ) {
+        runBlocking {
+            playClient.delivery.resolve(
+                packageName = packageName,
+                versionCode = versionCode,
+                offerType = offerType
+            )
+        }.filter { it.type == AppFile.Type.BASE || it.type == AppFile.Type.SPLIT }
     }
 
     internal fun getInstallFilesForPackageBlocking(
         packageName: String,
         versionCode: Long,
         offerType: Int = 1
-    ): List<PlayFile> = getInstallFilesForPackage(packageName, versionCode, offerType)
+    ): List<AppFile> = getInstallFilesForPackage(packageName, versionCode, offerType)
 
     internal suspend fun getInstallFilesForPackageSuspend(
         packageName: String,
         versionCode: Long,
         offerType: Int = 1
-    ): List<PlayFile> = withContext(Dispatchers.IO) {
+    ): List<AppFile> = withContext(Dispatchers.IO) {
         getInstallFilesForPackage(packageName, versionCode, offerType)
     }
 
@@ -510,15 +407,13 @@ class PlayRepository(
         offerType = app.offerType
     )
 
-    private fun readStoredAuthData(): AuthData = readAuthDataOrReset(
+    private fun readStoredPlaySession(): StoredPlaySession = readPlaySessionOrReset(
         read = { prefs.playAuthData.get() },
         reset = { prefs.playAuthData.put(it) },
         onCorrupt = { exception ->
             val summary = describeStoredAuthJsonFailure(exception)
             val message = "Saved Play session JSON is incompatible ($summary); replacing the cached session before re-authentication."
             if (exception is JsonIOException) {
-                // Gson's JsonIOException here contains only the unsupported model type and stack;
-                // it does not contain the serialized session or credentials.
                 Log.w("PlayRepository", message, exception)
             } else {
                 Log.w("PlayRepository", message)
@@ -526,13 +421,17 @@ class PlayRepository(
         }
     )
 
-    private fun saveAuthData(authData: AuthData) {
-        // DeviceInfoProvider contains generated protobuf internals. Gson cannot deserialize those
-        // collections from the persisted AuthData, so reconstruct the provider from local device
-        // properties whenever the session is read instead of storing it.
-        prefs.playAuthData.put(authData.withoutDeviceInfoProvider())
+    private fun savePlaySession(session: AnonymousSession) {
+        prefs.playAuthData.put(
+            StoredPlaySession(
+                gsfId = session.gsfId,
+                deviceConfigToken = session.deviceConfigToken,
+                checkinConsistencyToken = session.checkinConsistencyToken,
+                localeTag = session.locale.toLanguageTag(),
+                mintedAtMillis = session.mintedAtMillis
+            )
+        )
     }
-
 }
 
 internal const val PLAY_DETAILS_BATCH_SIZE = 20
@@ -542,7 +441,7 @@ internal fun <Parsed> requestTokenDispenserWithRetry(
     maxAttempts: Int = PlayRepository.AUTH_MAX_ATTEMPTS,
     initialDelayMs: Long = PlayRepository.AUTH_INITIAL_BACKOFF_MS,
     sleep: (Long) -> Unit = { Thread.sleep(it) },
-    request: () -> com.aurora.gplayapi.data.models.PlayResponse,
+    request: () -> HttpResponse,
     parse: (ByteArray) -> Parsed,
     onRetry: (attempt: Int, maxAttempts: Int, reason: String, delayMs: Long) -> Unit = { _, _, _, _ -> }
 ): Parsed {
@@ -553,7 +452,7 @@ internal fun <Parsed> requestTokenDispenserWithRetry(
     for (attempt in 1..maxAttempts) {
         try {
             val response = request()
-            if (!response.isSuccessful) {
+            if (response.code !in 200..299) {
                 val reason = "HTTP ${response.code}"
                 val failure = IllegalStateException("Auth not successful ($reason).")
                 if (attempt < maxAttempts && isRetryableAuthStatusCode(response.code)) {
@@ -565,7 +464,7 @@ internal fun <Parsed> requestTokenDispenserWithRetry(
                 }
                 throw failure
             }
-            return parse(response.responseBytes)
+            return parse(response.body)
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (exception: Exception) {
@@ -599,7 +498,7 @@ internal fun <Auth, Result> requestWithUnauthorizedRetry(
 } catch (cancellation: CancellationException) {
     throw cancellation
 } catch (exception: Exception) {
-    if (!shouldRefreshPlayAuth(responseCode())) throw exception
+    if (!shouldRefreshPlayAuth(responseCode(), exception)) throw exception
     request(refreshAuth())
 }
 
@@ -613,30 +512,35 @@ internal suspend fun <Auth, Result> requestWithUnauthorizedRetrySuspend(
 } catch (cancellation: CancellationException) {
     throw cancellation
 } catch (exception: Exception) {
-    if (!shouldRefreshPlayAuth(responseCode())) throw exception
+    if (!shouldRefreshPlayAuth(responseCode(), exception)) throw exception
     request(refreshAuth(initialAuth))
 }
 
-internal fun shouldRefreshPlayAuth(responseCode: Int): Boolean =
-    responseCode == 401 || responseCode == 403 || responseCode == 429
+internal fun shouldRefreshPlayAuth(responseCode: Int, exception: Throwable? = null): Boolean =
+    responseCode == 401 ||
+        responseCode == 403 ||
+        responseCode == 429 ||
+        exception is PlayException.Unauthorized ||
+        exception is PlayException.RateLimited
 
 internal fun isPlayRateLimited(responseCode: Int, exception: Throwable? = null): Boolean =
     responseCode == 429 ||
+        exception is PlayException.RateLimited ||
         exception?.message?.contains("429") == true ||
         exception?.message?.contains("Too Many Requests", ignoreCase = true) == true
 
-internal fun <Result> executeWithPlayDeliveryRetry(
+internal fun <Auth, Result> executeWithPlayDeliveryRetry(
     maxAttempts: Int = 2,
     operationName: String = "delivery",
     clock: () -> Long = { SystemClock.elapsedRealtime() },
     sleep: (Long) -> Unit = { Thread.sleep(it) },
-    getAuth: () -> AuthData,
-    refreshAuth: (failedAuth: AuthData) -> AuthData,
+    getAuth: () -> Auth,
+    refreshAuth: (failedAuth: Auth) -> Auth,
     responseCode: () -> Int,
     isCooldownActive: () -> Boolean = { false },
     remainingCooldownMs: () -> Long = { 0L },
     onCooldownEnforced: (cooldownDurationMs: Long) -> Unit = {},
-    operation: (AuthData) -> List<Result>
+    operation: (Auth) -> List<Result>
 ): List<Result> {
     require(maxAttempts > 0) { "maxAttempts must be greater than zero" }
 
@@ -670,7 +574,7 @@ internal fun <Result> executeWithPlayDeliveryRetry(
             lastException = exception
             val code = responseCode()
             val rateLimited = isPlayRateLimited(code, exception)
-            val authExpired = shouldRefreshPlayAuth(code)
+            val authExpired = shouldRefreshPlayAuth(code, exception)
 
             if (attempt < maxAttempts && (rateLimited || authExpired)) {
                 if (rateLimited) {
@@ -691,15 +595,26 @@ internal fun <Result> executeWithPlayDeliveryRetry(
 }
 
 internal fun describePlayFailure(exception: Throwable, responseCode: Int): String = when {
-	exception is SocketTimeoutException -> "timeout"
-	exception is UnknownHostException -> "DNS lookup failed"
-	responseCode in 400..599 -> "HTTP $responseCode"
-	exception is IllegalStateException && exception.message?.contains("HTTP ") == true -> {
+    exception is SocketTimeoutException -> "timeout"
+    exception is UnknownHostException -> "DNS lookup failed"
+    exception is PlayException.RateLimited -> "HTTP 429 (rate limited)"
+    exception is PlayException.Unauthorized -> "HTTP 401/403 (unauthorized)"
+    exception is PlayException.NotFound -> "app not found (404)"
+    exception is PlayException.AppRemoved -> "app removed from Play Store"
+    exception is PlayException.AppNotSupported -> "app not supported on this device"
+    exception is PlayException.NoFilesAvailable -> "no install files available"
+    exception is PlayException.AppNotPurchased -> "app not purchased"
+    exception is PlayException.RequiresAccount -> "account required"
+    exception is PlayException.ServerError -> "Play Store server error (${responseCode.takeIf { it in 500..599 } ?: 500})"
+    responseCode in 400..599 -> "HTTP $responseCode"
+    exception is IllegalStateException && exception.message?.contains("HTTP ") == true -> {
         Regex("HTTP \\d{3}").find(exception.message.orEmpty())?.value ?: "HTTP error"
     }
-	exception.javaClass.simpleName.contains("ProtocolBuffer") -> "response parsing failure (${exception.javaClass.simpleName})"
-	exception is IOException -> "network error (${exception.javaClass.simpleName})"
-	else -> {
+    exception.javaClass.simpleName.contains("ProtocolBuffer") ||
+        exception.javaClass.simpleName.contains("InvalidProtocolBuffer") ->
+        "response parsing failure (${exception.javaClass.simpleName})"
+    exception is IOException -> "network error (${exception.javaClass.simpleName})"
+    else -> {
         val origin = exception.stackTrace.take(2).joinToString(separator = " <- ") {
             "${it.className.substringAfterLast('.')}.${it.methodName}:${it.lineNumber}"
         }.takeIf { it.isNotEmpty() }?.let { " at $it" }.orEmpty()
@@ -707,88 +622,44 @@ internal fun describePlayFailure(exception: Throwable, responseCode: Int): Strin
     }
 }
 
-/**
- * Gson does not apply Kotlin constructor defaults when it reflectively creates AuthData. In
- * particular, the token dispenser may omit optional fields such as email, leaving them null;
- * AuthData.copy() then throws before the session can be normalized. Build the model through its
- * supported builder so omitted fields retain their documented defaults.
- */
-internal fun parseAuthData(responseJson: String, gson: Gson): AuthData {
-    val json = gson.fromJson(responseJson, JsonObject::class.java)
-        ?: throw IllegalStateException("Auth response did not contain a session object.")
-    fun string(name: String): String = json.get(name)
-        ?.takeUnless { it.isJsonNull }
-        ?.asString
-        .orEmpty()
+internal fun StoredPlaySession.hasRequiredPlaySession(): Boolean =
+    gsfId.isNotBlank() && deviceConfigToken.isNotBlank()
 
-    val anonymous = json.get("isAnonymous")
-        ?.takeUnless { it.isJsonNull }
-        ?.asBoolean
-        ?: false
+internal fun StoredPlaySession.isReusableFor(
+    locale: Locale,
+    nowMillis: Long = System.currentTimeMillis()
+): Boolean =
+    hasRequiredPlaySession() &&
+        localeTag == locale.toLanguageTag() &&
+        mintedAtMillis > 0L &&
+        (nowMillis - mintedAtMillis) < PlayRepository.SESSION_CHECK_INTERVAL_MS
 
-    return AuthData.Builder(email = string("email")).apply {
-        aasToken = string("aasToken")
-        authToken = string("authToken")
-        isAnonymous = anonymous
-        gsfId = string("gsfId")
-        tokenDispenserUrl = string("tokenDispenserUrl")
-        ac2dmToken = string("ac2dmToken")
-        androidCheckInToken = string("androidCheckInToken")
-        deviceCheckInConsistencyToken = string("deviceCheckInConsistencyToken")
-        deviceConfigToken = string("deviceConfigToken")
-        experimentsConfigToken = string("experimentsConfigToken")
-        gcmToken = string("gcmToken")
-        oAuthLoginToken = string("oAuthLoginToken")
-        dfeCookie = string("dfeCookie")
-    }.build()
-}
+internal fun StoredPlaySession.toAnonymousSession(
+    device: DeviceProfile,
+    locale: Locale
+): AnonymousSession = AnonymousSession(
+    device = device,
+    locale = locale,
+    additionalLocales = emptyList(),
+    gsfId = gsfId,
+    deviceConfigToken = deviceConfigToken,
+    checkinConsistencyToken = checkinConsistencyToken,
+    mintedAtMillis = mintedAtMillis
+)
 
-internal fun AuthData.withDeviceInfoProvider(properties: java.util.Properties): AuthData {
-    val safeLocale = localeOrDefault(locale)
-    return AuthData.Builder(email = nonNullString(email)).apply {
-        aasToken = nonNullString(this@withDeviceInfoProvider.aasToken)
-        authToken = nonNullString(this@withDeviceInfoProvider.authToken)
-        isAnonymous = this@withDeviceInfoProvider.isAnonymous
-        gsfId = nonNullString(this@withDeviceInfoProvider.gsfId)
-        tokenDispenserUrl = nonNullString(this@withDeviceInfoProvider.tokenDispenserUrl)
-        ac2dmToken = nonNullString(this@withDeviceInfoProvider.ac2dmToken)
-        androidCheckInToken = nonNullString(this@withDeviceInfoProvider.androidCheckInToken)
-        deviceCheckInConsistencyToken = nonNullString(this@withDeviceInfoProvider.deviceCheckInConsistencyToken)
-        deviceConfigToken = nonNullString(this@withDeviceInfoProvider.deviceConfigToken)
-        experimentsConfigToken = nonNullString(this@withDeviceInfoProvider.experimentsConfigToken)
-        gcmToken = nonNullString(this@withDeviceInfoProvider.gcmToken)
-        oAuthLoginToken = nonNullString(this@withDeviceInfoProvider.oAuthLoginToken)
-        dfeCookie = nonNullString(this@withDeviceInfoProvider.dfeCookie)
-        locale = safeLocale
-        deviceInfoProvider = this@withDeviceInfoProvider.deviceInfoProvider
-            ?: DeviceInfoProvider(properties, safeLocale.toString())
-        userProfile = this@withDeviceInfoProvider.userProfile
-    }.build()
-}
-
-private fun nonNullString(value: String?): String = value.orEmpty()
-
-private fun localeOrDefault(value: Locale?): Locale = value ?: Locale.getDefault()
-
-internal fun AuthData.hasRequiredPlaySession(): Boolean =
-    authToken.isNotBlank() && gsfId.isNotBlank() && deviceInfoProvider != null
-
-internal fun AuthData.withoutDeviceInfoProvider(): AuthData =
-    copy(deviceInfoProvider = null, userProfile = null)
-
-internal fun readAuthDataOrReset(
-    read: () -> AuthData,
-    reset: (AuthData) -> Unit,
+internal fun readPlaySessionOrReset(
+    read: () -> StoredPlaySession,
+    reset: (StoredPlaySession) -> Unit,
     onCorrupt: (JsonParseException) -> Unit = {}
-): AuthData = try {
+): StoredPlaySession = try {
     read()
 } catch (exception: JsonParseException) {
     onCorrupt(exception)
-    AuthData("", "").withoutDeviceInfoProvider().also(reset)
+    StoredPlaySession().also(reset)
 } catch (exception: Exception) {
     if (exception is CancellationException) throw exception
     onCorrupt(JsonParseException(exception))
-    AuthData("", "").withoutDeviceInfoProvider().also(reset)
+    StoredPlaySession().also(reset)
 }
 
 internal fun describeStoredAuthJsonFailure(exception: JsonParseException): String {
@@ -806,16 +677,13 @@ internal fun describeStoredAuthJsonFailure(exception: JsonParseException): Strin
  * Normalizes the Google Play session locale to the active device/app [Locale] (`F-15`),
  * ensuring country fallback when a language-only locale is configured.
  */
-internal fun AuthData.withActivePlayStoreLocale(locale: Locale = Locale.getDefault()): AuthData {
-    val resolvedLocale = when {
-        locale.language.isBlank() -> Locale.US
-        locale.country.isNotBlank() -> locale
-        else -> Locale.Builder()
-            .setLanguage(locale.language)
-            .setRegion(defaultCountryForLanguage(locale.language))
-            .build()
-    }
-    return copy(locale = resolvedLocale)
+internal fun resolveActivePlayStoreLocale(locale: Locale = Locale.getDefault()): Locale = when {
+    locale.language.isBlank() -> Locale.US
+    locale.country.isNotBlank() -> locale
+    else -> Locale.Builder()
+        .setLanguage(locale.language)
+        .setRegion(defaultCountryForLanguage(locale.language))
+        .build()
 }
 
 private fun defaultCountryForLanguage(language: String): String = when (language.lowercase(Locale.ROOT)) {
@@ -832,7 +700,7 @@ private fun defaultCountryForLanguage(language: String): String = when (language
 }
 
 fun App.toAppUpdate(
-    getInstallFiles: (App) -> List<PlayFile>,
+    getInstallFiles: (App) -> List<AppFile>,
     oldVersion: String = "",
     oldVersionCode: Long = 0L,
     installOrigin: InstallOrigin = InstallOrigin.SYSTEM,
