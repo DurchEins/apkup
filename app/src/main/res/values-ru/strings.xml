@@ -253,6 +253,12 @@
     <string name="update_history_title">Журнал обновлений</string>
     <string name="update_history_subtitle">Обновления, установленные через ApkUp</string>
     <string name="update_history_clear">Очистить</string>
+    <string name="update_history_search_hint">Поиск по истории…</string>
+    <string name="update_history_filter_all">Все</string>
+    <string name="update_history_filter_backup">С копией</string>
+    <string name="update_history_filter_empty_title">Ничего не найдено</string>
+    <string name="update_history_filter_empty_desc">Попробуйте другой запрос или сбросьте фильтры.</string>
+    <string name="update_history_filter_reset">Сбросить фильтры</string>
     <string name="update_history_empty_title">Обновлений пока нет</string>
     <string name="update_history_empty_desc">Как только ApkUp обновит приложения вручную или автоматически через Shizuku, они пояятся здесь со ссылкой на предыдущую версию.</string>
     <string name="update_history_mode_auto_shizuku">Авто · Shizuku</string>

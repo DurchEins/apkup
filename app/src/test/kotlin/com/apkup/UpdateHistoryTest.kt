@@ -119,4 +119,53 @@ class UpdateHistoryTest {
         assertTrue(prefs.readUpdateHistorySafe().isEmpty())
         assertTrue(prefs.updateHistoryFlow.value.isEmpty())
     }
+
+    @Test
+    fun `filterUpdateHistoryEntries filters by query, backup availability, and source`() {
+        val entries = listOf(
+            UpdateHistoryEntry(
+                packageName = "com.example.alpha",
+                appName = "Alpha Browser",
+                oldVersion = "1.0",
+                newVersion = "1.1",
+                sourceName = "GitHub",
+                installedAtMillis = 1000L
+            ),
+            UpdateHistoryEntry(
+                packageName = "com.example.beta",
+                appName = "Beta Notes",
+                oldVersion = "2.0",
+                newVersion = "2.1",
+                sourceName = "PlayStore",
+                installedAtMillis = 2000L
+            )
+        )
+
+        val byQuery = com.apkup.util.filterUpdateHistoryEntries(
+            entries = entries,
+            query = "alpha",
+            filterMode = com.apkup.util.UpdateHistoryFilterMode.ALL,
+            selectedSourceName = null,
+            hasBackup = { false }
+        )
+        assertEquals(listOf("com.example.alpha"), byQuery.map { it.packageName })
+
+        val withBackup = com.apkup.util.filterUpdateHistoryEntries(
+            entries = entries,
+            query = "",
+            filterMode = com.apkup.util.UpdateHistoryFilterMode.WITH_BACKUP,
+            selectedSourceName = null,
+            hasBackup = { it == "com.example.beta" }
+        )
+        assertEquals(listOf("com.example.beta"), withBackup.map { it.packageName })
+
+        val bySource = com.apkup.util.filterUpdateHistoryEntries(
+            entries = entries,
+            query = "",
+            filterMode = com.apkup.util.UpdateHistoryFilterMode.ALL,
+            selectedSourceName = "github",
+            hasBackup = { true }
+        )
+        assertEquals(listOf("com.example.alpha"), bySource.map { it.packageName })
+    }
 }

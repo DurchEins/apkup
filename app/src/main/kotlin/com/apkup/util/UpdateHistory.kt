@@ -187,3 +187,34 @@ internal fun UpdateHistoryEntry.effectivePreviousVersionUrl(
         repoBinding = repoBinding
     )
 }
+
+internal enum class UpdateHistoryFilterMode {
+    ALL,
+    WITH_BACKUP
+}
+
+internal fun filterUpdateHistoryEntries(
+    entries: List<UpdateHistoryEntry>,
+    query: String,
+    filterMode: UpdateHistoryFilterMode,
+    selectedSourceName: String?,
+    hasBackup: (String) -> Boolean,
+    resolveAppName: (UpdateHistoryEntry) -> String = { it.appName }
+): List<UpdateHistoryEntry> {
+    val trimmedQuery = query.trim()
+    return entries.filter { entry ->
+        if (filterMode == UpdateHistoryFilterMode.WITH_BACKUP && !hasBackup(entry.packageName)) {
+            return@filter false
+        }
+        if (selectedSourceName != null && !entry.sourceName.equals(selectedSourceName, ignoreCase = true)) {
+            return@filter false
+        }
+        if (trimmedQuery.isEmpty()) return@filter true
+        val displayName = resolveAppName(entry)
+        displayName.contains(trimmedQuery, ignoreCase = true) ||
+            entry.packageName.contains(trimmedQuery, ignoreCase = true) ||
+            entry.oldVersion.contains(trimmedQuery, ignoreCase = true) ||
+            entry.newVersion.contains(trimmedQuery, ignoreCase = true) ||
+            entry.sourceName.contains(trimmedQuery, ignoreCase = true)
+    }
+}

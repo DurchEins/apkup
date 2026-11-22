@@ -249,6 +249,12 @@
     <string name="update_history_title">アップデート履歴</string>
     <string name="update_history_subtitle">ApkUpでインストールされた更新</string>
     <string name="update_history_clear">消去</string>
+    <string name="update_history_search_hint">履歴を検索…</string>
+    <string name="update_history_filter_all">すべて</string>
+    <string name="update_history_filter_backup">バックアップあり</string>
+    <string name="update_history_filter_empty_title">一致する履歴がありません</string>
+    <string name="update_history_filter_empty_desc">別の検索語を試すか、フィルターをリセットしてください。</string>
+    <string name="update_history_filter_reset">フィルターをリセット</string>
     <string name="update_history_empty_title">履歴はまだありません</string>
     <string name="update_history_empty_desc">ApkUpが手動またはShizukuで自動更新したアプリが、旧バージョンへのリンク付きでここに表示されます。</string>
     <string name="update_history_mode_auto_shizuku">自動 · Shizuku</string>

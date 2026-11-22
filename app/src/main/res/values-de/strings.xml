@@ -377,6 +377,12 @@
     <string name="update_history_title">Update-Verlauf</string>
     <string name="update_history_subtitle">Von ApkUp installierte App-Updates</string>
     <string name="update_history_clear">Leeren</string>
+    <string name="update_history_search_hint">Verlauf durchsuchen…</string>
+    <string name="update_history_filter_all">Alle</string>
+    <string name="update_history_filter_backup">Mit Backup</string>
+    <string name="update_history_filter_empty_title">Keine passenden Einträge</string>
+    <string name="update_history_filter_empty_desc">Versuche einen anderen Suchbegriff oder setze die Filter zurück.</string>
+    <string name="update_history_filter_reset">Filter zurücksetzen</string>
     <string name="update_history_empty_title">Noch keine Updates protokolliert</string>
     <string name="update_history_empty_desc">Sobald ApkUp Apps manuell oder automatisch über Shizuku aktualisiert, erscheinen sie hier samt Link zur Vorgängerversion.</string>
     <string name="update_history_mode_auto_shizuku">Auto · Shizuku</string>
