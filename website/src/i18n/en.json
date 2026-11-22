@@ -427,9 +427,9 @@
     "mirrorBadges": {
       "Zapstore": "Signed Nostr Releases",
       "GitLab Releases": "Official Mirror",
-      "APKPure": "Verified Listing",
+      "APKPure": "Delayed Updates",
       "itch.io": "Direct APK Download",
-      "Appteka": "Alternative Store",
+      "Appteka": "Outdated",
       "Komi Store": "FOSS Store",
       "AlternativeTo": "Reviews & Info",
       "Amazon Appstore": "Outdated"
@@ -437,9 +437,9 @@
     "mirrorDescs": {
       "Zapstore": "Decentralized Nostr-based Android app store with cryptographic developer signatures.",
       "GitLab Releases": "Full source-code mirror & automated release mirror synchronized from main.",
-      "APKPure": "Popular third-party APK mirror indexing signed public releases.",
+      "APKPure": "Third-party APK mirror with manual review queue; updates may arrive with delay.",
       "itch.io": "Indie distribution page with direct APK download & version notes.",
-      "Appteka": "Independent Android app catalog hosting verified APK builds.",
+      "Appteka": "Legacy listing — no longer receives current builds. Prefer GitHub Releases.",
       "Komi Store": "Community-curated FOSS Android app store.",
       "AlternativeTo": "Community reviews, feature tags, and open-source alternatives listing.",
       "Amazon Appstore": "Legacy listing — no longer receives current builds. Prefer GitHub Releases."
@@ -779,13 +779,21 @@
       {
         "title": "Enable Developer Options (7× Build Number)",
         "body": "Open Settings → About Phone (on Samsung: Software information) and tap Build Number 7 times until Android confirms “You are now a developer!”.",
-        "chips": ["Settings", "About Phone", "Build Number (7×)"],
+        "chips": [
+          "Settings",
+          "About Phone",
+          "Build Number (7×)"
+        ],
         "toast": "🎉 You are now a developer!"
       },
       {
         "title": "Toggle “Apps from unverified developers”",
         "body": "Open Settings → System → Developer Options (or search for Developer Options in Settings), find Apps from unverified developers, and enable Allow apps from unverified developers.",
-        "chips": ["System", "Developer Options", "Unverified developers"]
+        "chips": [
+          "System",
+          "Developer Options",
+          "Unverified developers"
+        ]
       },
       {
         "title": "Confirm Lock Screen & Restart Device",

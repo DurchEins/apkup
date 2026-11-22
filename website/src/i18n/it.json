@@ -427,9 +427,9 @@
     "mirrorBadges": {
       "Zapstore": "Release Nostr firmate",
       "GitLab Releases": "Mirror ufficiale",
-      "APKPure": "Scheda verificata",
+      "APKPure": "Aggiornamenti ritardati",
       "itch.io": "Download APK diretto",
-      "Appteka": "Store alternativo",
+      "Appteka": "Obsoleto",
       "Komi Store": "Store FOSS",
       "AlternativeTo": "Recensioni & info",
       "Amazon Appstore": "Obsoleto"
@@ -437,9 +437,9 @@
     "mirrorDescs": {
       "Zapstore": "App store Android decentralizzato basato su Nostr con firme crittografiche.",
       "GitLab Releases": "Mirror completo del codice sorgente e delle release sincronizzato da main.",
-      "APKPure": "Popolare mirror APK di terze parti che indicizza le release pubbliche firmate.",
+      "APKPure": "Mirror APK di terze parti con coda di revisione manuale; gli aggiornamenti possono arrivare in ritardo.",
       "itch.io": "Pagina indie con download diretto dell'APK e note di versione.",
-      "Appteka": "Catalogo Android indipendente che ospita build APK verificate.",
+      "Appteka": "Scheda obsoleta — non riceve più build aggiornate. Usa GitHub Releases.",
       "Komi Store": "Store di app Android FOSS curato dalla community.",
       "AlternativeTo": "Recensioni della community, tag e elenco di alternative open source.",
       "Amazon Appstore": "Scheda obsoleta — non riceve più build recenti. Preferisci GitHub Releases."
@@ -779,13 +779,21 @@
       {
         "title": "Attiva Opzioni sviluppatore (7× Numero build)",
         "body": "Apri Impostazioni → Informazioni sul telefono (Samsung: Informazioni software) e tocca 7 volte Numero build finché appare «Ora sei uno sviluppatore!».",
-        "chips": ["Impostazioni", "Info telefono", "Numero build (7×)"],
+        "chips": [
+          "Impostazioni",
+          "Info telefono",
+          "Numero build (7×)"
+        ],
         "toast": "🎉 Ora sei uno sviluppatore!"
       },
       {
         "title": "Attiva «App da sviluppatori non verificati»",
         "body": "Vai su Impostazioni → Sistema → Opzioni sviluppatore (o cercale nelle Impostazioni), trova App da sviluppatori non verificati e attiva l'opzione.",
-        "chips": ["Sistema", "Opzioni sviluppatore", "Non verificati"]
+        "chips": [
+          "Sistema",
+          "Opzioni sviluppatore",
+          "Non verificati"
+        ]
       },
       {
         "title": "Conferma blocco schermo e riavvia",
