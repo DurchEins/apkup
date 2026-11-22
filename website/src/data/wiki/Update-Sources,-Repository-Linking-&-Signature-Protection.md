@@ -145,8 +145,8 @@ ApkUp computes both **SHA-1** and **SHA-256** signing fingerprints via `PackageM
 ---
 
 <a id="24-google-play-store-dispenser-resilience--http-429-recovery"></a>
-### 2.4 Google Play Store Dispenser Resilience & HTTP 429 Recovery
-Anonymous Play Store queries use shared guest sessions via Aurora Dispenser. On `HTTP 429`, ApkUp rotates the guest session in a synchronized manner with cooldown protection so concurrent downloads share the refreshed session without flooding the dispenser.
+### 2.4 Google Play Store Engine (`gplayapi 4.0.0`) & HTTP 429 Recovery
+Starting with **v1.46.0+**, anonymous Play Store queries run directly on-device via `gplayapi 4.0.0` (`PlayClient` and `DefaultPlaySessions`) without relying on an external Aurora Dispenser server, while preserving the privacy-friendly Pixel 7a device profile. On `HTTP 429`, ApkUp rotates the anonymous session in a synchronized manner with cooldown protection so concurrent checks and downloads share the refreshed session cleanly.
 
 [⬆️ Back to Table of Contents](#-table-of-contents)
 

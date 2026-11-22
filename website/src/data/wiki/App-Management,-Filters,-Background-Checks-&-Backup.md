@@ -46,6 +46,7 @@ This guide explains how to skip faulty updates, ignore apps, track uninstalled a
 <a id="12-search-sorting-watchlist--app-watcher-import"></a>
 ### 1.2 Search, Sorting, Watchlist & App Watcher Import
 * **Instant Search & Sorting:** Both **Updates** and **Apps** offer live search and flexible sorting (*Name A–Z / Z–A*, *Source*, *Newest Release Date* in Updates, *Recently Updated* in Apps) with automatic scroll-to-top.
+* **Unified Multi-Select & In-App Browser (`Chrome Custom Tabs`):** Selecting multiple items in **Updates** or **Apps** switches to a unified `TopAppBar` selection bar for batch actions. External links (repositories, release notes, and clickable changelog links) open in matching native apps first or fall back seamlessly to **Chrome Custom Tabs**.
 * **Watchlist (Uninstalled Apps):** Tap **`+`** in the **Apps** top bar to follow an uninstalled app by package ID (and optional GitHub/GitLab/Codeberg URL). Tracked entries appear under the **Watched** chip and surface new releases in **Updates** with a **`Watched · New`** badge and a direct **Install** button.
 * **Import from App Watcher:** Open **Setup ➔ Import & Export ➔ Import from App Watcher** to import uninstalled apps (including their last-seen version) straight into your Watchlist.
 
@@ -69,7 +70,7 @@ This guide explains how to skip faulty updates, ignore apps, track uninstalled a
 * **Background Update Time Window:** Enable **Background Update Time Window** to either pause checks & auto-updates during quiet hours (e.g. `22:00 – 07:00`) or restrict them to an active window. Any run that falls outside the window automatically schedules a one-time catch-up at the next window start.
 * **Pre-Release Channels (Apps):** Open **Setup ➔ Include Pre-Releases** to enable **Beta**, **RC**, **Alpha**, or **Nightly** channels globally, or override pre-releases per app.
 * **ApkUp Self-Updater Beta Opt-In:** Under **Setup ➔ About ➔ Receive beta updates** (disabled by default), you can opt into pre-release builds of ApkUp itself. Pre-releases show a **Beta / Pre-Release** badge in the update dialog and enforce identical SHA-256 and certificate checks; turning it off automatically returns you to stable with the next regular release.
-* **Automatic Rollback Backups & Update History:** Keep backups of previous APKs in private storage (`2 GB` LRU limit) before updating so you can roll back anytime from **Update History** (in-place via Root `-r -d`, or guided two-step rollback without Root).
+* **Configurable Rollback Backups & Update History (`v1.46.0+`):** Keep safety copies of previous APKs in private storage before updating so you can roll back anytime from **Update History** (in-place via Root `-r -d`, or guided two-step rollback without Root). Under **Setup ➔ Rollback Backups**, configure the **Storage Limit** (`256 MB`, `512 MB`, `1 GB` default, or `2 GB`), **Retention Period / TTL** (`7`, `14` default, `30 days`, or `Never`), inspect live storage usage, or clear all stored backups manually with **Delete Rollback Backups**. Automatic LRU and TTL cleanup runs on startup, before updates, and in background workers.
 
 [⬆️ Back to Table of Contents](#-table-of-contents)
 
@@ -125,7 +126,7 @@ After each scan, ApkUp stores a local **Update Snapshot** in private app storage
 ApkUp uses Android's **Storage Access Framework (SAF)** with zero broad storage permissions. The exported JSON contains:
 - Enabled update sources, source priority order, pinned app sources, F-Droid repositories, and watched apps
 - Ignored package names, skipped versions, and custom GitHub/GitLab/Codeberg bindings (validated on import for `https://`, allowed hosts, and regex limits)
-- Theme, display, update window, pre-release channels, rollback backup toggle, self-updater beta opt-in (`includeSelfUpdatePreReleases`, safely defaulting to `false` on older backups), and background check preferences
+- Theme, display, update window, pre-release channels, rollback backup settings (`rollbackMaxBytes`, `rollbackRetentionDays`), self-updater beta opt-in (`includeSelfUpdatePreReleases`, safely defaulting to `false` on older backups), and background check preferences
 
 *(Note: Personal Access Tokens remain encrypted on-device in Google Tink `AES-256-GCM` storage and are never exported in plaintext backups; importing a backup also resets `useRootInstaller` to `false` with a security notice.)*
 

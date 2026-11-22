@@ -68,9 +68,9 @@ When checking for updates or downloading packages, ApkUp communicates with multi
 <a id="39-common-error-google-play-store-download-fails-http-429-or-paid-apps"></a>
 ### Google Play Store Rate Limit (`HTTP 429`)
 * **Symptom:** `HTTP 429: Too Many Requests` or Play Store download failure.
-* **Cause:** Shared anonymous dispenser sessions are temporarily throttled by Google, or the app is a paid/region-locked app requiring a personal license.
+* **Cause:** Anonymous Play Store guest sessions (`gplayapi 4.0.0`) are temporarily rate-limited by Google, or the app is a paid/region-locked app requiring a personal license.
 * **Solution:**
-  1. Wait 5–10 minutes — ApkUp automatically rotates dispenser sessions with cooldown protection.
+  1. Wait 5–10 minutes — ApkUp automatically rotates anonymous sessions with synchronized cooldown protection.
   2. Open the update card and switch to **APKMirror**, **F-Droid**, or **GitHub/GitLab** under *Alternative Sources* if available.
 
 <a id="gitlab-auth-error"></a>

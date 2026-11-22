@@ -415,7 +415,7 @@ Every main guide is structured into clear layers:
 
 ### 1. [🌐 Update Sources, Repository Linking & Signature Protection](https://github.com/DurchEins/apkup/wiki/Update-Sources,-Repository-Linking-&-Signature-Protection)
 * **For Everyone:** How Google Play, APKMirror, F-Droid/IzzyOnDroid, GitHub, GitLab, and Codeberg/Forgejo work together, how global **Source Priority & Per-App Pinning** decide which source wins, how **Pre-Release Channels** and **Signature Verification** protect you, and how to link custom repositories.
-* **For Experts:** Parallel multi-source aggregation, SHA-1/SHA-256 certificate verification, `.apkm` split extraction (Zip-Slip protection), Aurora dispenser HTTP 429 rotation, and 3-tier repository resolution.
+* **For Experts:** Parallel multi-source aggregation, SHA-1/SHA-256 certificate verification, `.apkm` split extraction (Zip-Slip protection), direct `gplayapi 4.0.0` session & HTTP 429 rotation, and 3-tier repository resolution.
 * **Specialized Source Guides:**
   * [📦 F-Droid & Index V2 Repositories](https://github.com/DurchEins/apkup/wiki/F-Droid-&-Index-V2-Repositories) — Streaming `index-v2.json`, incremental diffs (`RFC 7396`), built-in presets, and TOFU certificate pinning.
   * [🔑 Configuring GitHub, GitLab & Codeberg Personal Access Tokens](https://github.com/DurchEins/apkup/wiki/Configuring-GitHub-&-GitLab-Tokens) — Raise GitHub limits from 60 to 5,000 requests/hour, enable GraphQL batching, access multi-level GitLab subgroups, and test tokens live.
@@ -430,7 +430,7 @@ Every main guide is structured into clear layers:
 ---
 
 ### 3. [🛠️ App Management, Filters, Background Checks & Backup](https://github.com/DurchEins/apkup/wiki/App-Management,-Filters,-Background-Checks-&-Backup)
-* **For Everyone:** Skipping versions vs. ignoring apps, Watchlist & **App Watcher Import**, searching/sorting, exporting APKs (`.apk` / `.apkm`), **Background Update Time Windows**, **Rollback Backups**, **ApkUp Self-Updater Beta Opt-In**, and transferring settings via JSON backup.
+* **For Everyone:** Skipping versions vs. ignoring apps, Watchlist & **App Watcher Import**, searching/sorting, exporting APKs (`.apk` / `.apkm`), **Background Update Time Windows**, **Configurable Rollback Backups**, **ApkUp Self-Updater Beta Opt-In**, and transferring settings via JSON backup.
 * **For Experts:** Package exclusion vs. `versionCode` pinning, Android `WorkManager` scheduling, persistent update snapshot cache, offline sanitized diagnostic logs, and Storage Access Framework (SAF) JSON security.
 * **Migration Guide:** [🔄 Obtainium Migration & Sync Guide](https://github.com/DurchEins/apkup/wiki/Obtainium-Migration-&-Sync-Guide) — Import Obtainium JSON exports with interactive preview, repo bindings, F-Droid repos, and Watchlist candidates.
 
@@ -610,8 +610,8 @@ ApkUp computes both **SHA-1** and **SHA-256** signing fingerprints via `PackageM
 ---
 
 <a id="24-google-play-store-dispenser-resilience--http-429-recovery"></a>
-### 2.4 Google Play Store Dispenser Resilience & HTTP 429 Recovery
-Anonymous Play Store queries use shared guest sessions via Aurora Dispenser. On `HTTP 429`, ApkUp rotates the guest session in a synchronized manner with cooldown protection so concurrent downloads share the refreshed session without flooding the dispenser.
+### 2.4 Google Play Store Engine (`gplayapi 4.0.0`) & HTTP 429 Recovery
+Starting with **v1.46.0+**, anonymous Play Store queries run directly on-device via `gplayapi 4.0.0` (`PlayClient` and `DefaultPlaySessions`) without relying on an external Aurora Dispenser server, while preserving the privacy-friendly Pixel 7a device profile. On `HTTP 429`, ApkUp rotates the anonymous session in a synchronized manner with cooldown protection so concurrent checks and downloads share the refreshed session cleanly.
 
 [⬆️ Back to Table of Contents](#-table-of-contents)
 
@@ -1394,6 +1394,7 @@ This guide explains how to skip faulty updates, ignore apps, track uninstalled a
 <a id="12-search-sorting-watchlist--app-watcher-import"></a>
 ### 1.2 Search, Sorting, Watchlist & App Watcher Import
 * **Instant Search & Sorting:** Both **Updates** and **Apps** offer live search and flexible sorting (*Name A–Z / Z–A*, *Source*, *Newest Release Date* in Updates, *Recently Updated* in Apps) with automatic scroll-to-top.
+* **Unified Multi-Select & In-App Browser (`Chrome Custom Tabs`):** Selecting multiple items in **Updates** or **Apps** switches to a unified `TopAppBar` selection bar for batch actions. External links (repositories, release notes, and clickable changelog links) open in matching native apps first or fall back seamlessly to **Chrome Custom Tabs**.
 * **Watchlist (Uninstalled Apps):** Tap **`+`** in the **Apps** top bar to follow an uninstalled app by package ID (and optional GitHub/GitLab/Codeberg URL). Tracked entries appear under the **Watched** chip and surface new releases in **Updates** with a **`Watched · New`** badge and a direct **Install** button.
 * **Import from App Watcher:** Open **Setup ➔ Import & Export ➔ Import from App Watcher** to import uninstalled apps (including their last-seen version) straight into your Watchlist.
 
@@ -1417,7 +1418,7 @@ This guide explains how to skip faulty updates, ignore apps, track uninstalled a
 * **Background Update Time Window:** Enable **Background Update Time Window** to either pause checks & auto-updates during quiet hours (e.g. `22:00 – 07:00`) or restrict them to an active window. Any run that falls outside the window automatically schedules a one-time catch-up at the next window start.
 * **Pre-Release Channels (Apps):** Open **Setup ➔ Include Pre-Releases** to enable **Beta**, **RC**, **Alpha**, or **Nightly** channels globally, or override pre-releases per app.
 * **ApkUp Self-Updater Beta Opt-In:** Under **Setup ➔ About ➔ Receive beta updates** (disabled by default), you can opt into pre-release builds of ApkUp itself. Pre-releases show a **Beta / Pre-Release** badge in the update dialog and enforce identical SHA-256 and certificate checks; turning it off automatically returns you to stable with the next regular release.
-* **Automatic Rollback Backups & Update History:** Keep backups of previous APKs in private storage (`2 GB` LRU limit) before updating so you can roll back anytime from **Update History** (in-place via Root `-r -d`, or guided two-step rollback without Root).
+* **Configurable Rollback Backups & Update History (`v1.46.0+`):** Keep safety copies of previous APKs in private storage before updating so you can roll back anytime from **Update History** (in-place via Root `-r -d`, or guided two-step rollback without Root). Under **Setup ➔ Rollback Backups**, configure the **Storage Limit** (`256 MB`, `512 MB`, `1 GB` default, or `2 GB`), **Retention Period / TTL** (`7`, `14` default, `30 days`, or `Never`), inspect live storage usage, or clear all stored backups manually with **Delete Rollback Backups**. Automatic LRU and TTL cleanup runs on startup, before updates, and in background workers.
 
 [⬆️ Back to Table of Contents](#-table-of-contents)
 
@@ -1473,7 +1474,7 @@ After each scan, ApkUp stores a local **Update Snapshot** in private app storage
 ApkUp uses Android's **Storage Access Framework (SAF)** with zero broad storage permissions. The exported JSON contains:
 - Enabled update sources, source priority order, pinned app sources, F-Droid repositories, and watched apps
 - Ignored package names, skipped versions, and custom GitHub/GitLab/Codeberg bindings (validated on import for `https://`, allowed hosts, and regex limits)
-- Theme, display, update window, pre-release channels, rollback backup toggle, self-updater beta opt-in (`includeSelfUpdatePreReleases`, safely defaulting to `false` on older backups), and background check preferences
+- Theme, display, update window, pre-release channels, rollback backup settings (`rollbackMaxBytes`, `rollbackRetentionDays`), self-updater beta opt-in (`includeSelfUpdatePreReleases`, safely defaulting to `false` on older backups), and background check preferences
 
 *(Note: Personal Access Tokens remain encrypted on-device in Google Tink `AES-256-GCM` storage and are never exported in plaintext backups; importing a backup also resets `useRootInstaller` to `false` with a security notice.)*
 
@@ -1594,9 +1595,9 @@ When checking for updates or downloading packages, ApkUp communicates with multi
 <a id="39-common-error-google-play-store-download-fails-http-429-or-paid-apps"></a>
 ### Google Play Store Rate Limit (`HTTP 429`)
 * **Symptom:** `HTTP 429: Too Many Requests` or Play Store download failure.
-* **Cause:** Shared anonymous dispenser sessions are temporarily throttled by Google, or the app is a paid/region-locked app requiring a personal license.
+* **Cause:** Anonymous Play Store guest sessions (`gplayapi 4.0.0`) are temporarily rate-limited by Google, or the app is a paid/region-locked app requiring a personal license.
 * **Solution:**
-  1. Wait 5–10 minutes — ApkUp automatically rotates dispenser sessions with cooldown protection.
+  1. Wait 5–10 minutes — ApkUp automatically rotates anonymous sessions with synchronized cooldown protection.
   2. Open the update card and switch to **APKMirror**, **F-Droid**, or **GitHub/GitLab** under *Alternative Sources* if available.
 
 <a id="gitlab-auth-error"></a>

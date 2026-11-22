@@ -13,7 +13,7 @@ Every main guide is structured into clear layers:
 
 ### 1. [🌐 Update Sources, Repository Linking & Signature Protection](https://github.com/DurchEins/apkup/wiki/Update-Sources,-Repository-Linking-&-Signature-Protection)
 * **For Everyone:** How Google Play, APKMirror, F-Droid/IzzyOnDroid, GitHub, GitLab, and Codeberg/Forgejo work together, how global **Source Priority & Per-App Pinning** decide which source wins, how **Pre-Release Channels** and **Signature Verification** protect you, and how to link custom repositories.
-* **For Experts:** Parallel multi-source aggregation, SHA-1/SHA-256 certificate verification, `.apkm` split extraction (Zip-Slip protection), Aurora dispenser HTTP 429 rotation, and 3-tier repository resolution.
+* **For Experts:** Parallel multi-source aggregation, SHA-1/SHA-256 certificate verification, `.apkm` split extraction (Zip-Slip protection), direct `gplayapi 4.0.0` session & HTTP 429 rotation, and 3-tier repository resolution.
 * **Specialized Source Guides:**
   * [📦 F-Droid & Index V2 Repositories](https://github.com/DurchEins/apkup/wiki/F-Droid-&-Index-V2-Repositories) — Streaming `index-v2.json`, incremental diffs (`RFC 7396`), built-in presets, and TOFU certificate pinning.
   * [🔑 Configuring GitHub, GitLab & Codeberg Personal Access Tokens](https://github.com/DurchEins/apkup/wiki/Configuring-GitHub-&-GitLab-Tokens) — Raise GitHub limits from 60 to 5,000 requests/hour, enable GraphQL batching, access multi-level GitLab subgroups, and test tokens live.
@@ -28,7 +28,7 @@ Every main guide is structured into clear layers:
 ---
 
 ### 3. [🛠️ App Management, Filters, Background Checks & Backup](https://github.com/DurchEins/apkup/wiki/App-Management,-Filters,-Background-Checks-&-Backup)
-* **For Everyone:** Skipping versions vs. ignoring apps, Watchlist & **App Watcher Import**, searching/sorting, exporting APKs (`.apk` / `.apkm`), **Background Update Time Windows**, **Rollback Backups**, **ApkUp Self-Updater Beta Opt-In**, and transferring settings via JSON backup.
+* **For Everyone:** Skipping versions vs. ignoring apps, Watchlist & **App Watcher Import**, searching/sorting, exporting APKs (`.apk` / `.apkm`), **Background Update Time Windows**, **Configurable Rollback Backups**, **ApkUp Self-Updater Beta Opt-In**, and transferring settings via JSON backup.
 * **For Experts:** Package exclusion vs. `versionCode` pinning, Android `WorkManager` scheduling, persistent update snapshot cache, offline sanitized diagnostic logs, and Storage Access Framework (SAF) JSON security.
 * **Migration Guide:** [🔄 Obtainium Migration & Sync Guide](https://github.com/DurchEins/apkup/wiki/Obtainium-Migration-&-Sync-Guide) — Import Obtainium JSON exports with interactive preview, repo bindings, F-Droid repos, and Watchlist candidates.
 
