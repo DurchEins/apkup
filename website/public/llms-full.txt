@@ -1,4 +1,4 @@
-# ApkUp — Complete Documentation & Knowledge Base (v1.45.1 / Build 223)
+# ApkUp — Complete Documentation & Knowledge Base (v1.45.2 / Build 227)
 
 > ApkUp is a free, ad-free, open-source (GPL-3.0) Android app updater for Android 10.0 – 17 (API 29+). It unifies Google Play, F-Droid Index V2, IzzyOnDroid, APKMirror, GitHub Releases, GitLab Releases, Codeberg Releases, and Direct APK URLs with automatic SHA-256 & signing-certificate verification, Obtainium JSON import, and optional silent background updates via Shizuku or Root (su).
 
@@ -45,11 +45,17 @@ Zero. ApkUp has no developer backend, no ads, no analytics SDKs, and no telemetr
 
 ---
 
-## Latest Release Notes (v1.45.1)
+## Latest Release Notes (v1.45.2)
 
 # What's New
 
 ## November 2026
+
+### November 22, 2026 | 1.45.2 (227) | Patch & Fix
+
+- **Updated Store & Browser Engines** Improved compatibility with Google Play Store, APKMirror, and the built-in in-app browser for reliable update checks and downloads.
+- **Refreshed Core & Stronger Security** Updated core platform and security libraries keep network requests and data handling even more resilient.
+- **General Improvements** Modernized app foundation for smoother performance along with under-the-hood stability and maintenance updates.
 
 ### November 21, 2026 | 1.45.1 (223) | Patch & Fix
 
@@ -340,7 +346,7 @@ ApkUp enforces defense-in-depth verification across every stage of checking, dow
 If you discover a potential security vulnerability in ApkUp (especially regarding APK signature checks, `.apkm` extraction, Shizuku IPC / optional Root `su` execution, token storage, or network transport), please report it privately via **[GitHub Private Vulnerability Reporting](https://github.com/DurchEins/apkup/security/advisories/new)**.
 
 ### What to Include in a Report
-- **ApkUp version & Android OS version** (e.g., `1.45.1 (223)` on Android 15)
+- **ApkUp version & Android OS version** (e.g., `1.45.2 (227)` on Android 15)
 - **Affected component or update source** (e.g., `ApkIntegrityVerifier`, F-Droid index parser, Shizuku installer, Tink storage)
 - **Step-by-step reproduction** or Proof-of-Concept (PoC)
 - **Expected security impact** (e.g., signature bypass, arbitrary file write, credential leak)

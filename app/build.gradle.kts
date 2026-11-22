@@ -31,8 +31,8 @@ android {
         applicationId = "com.apkup" + System.getenv("BUILD_TAG").orEmpty().trim()
         minSdk = 29
         targetSdk = 37
-        versionCode = parsedBuildNumber ?: 226
-        versionName = if (parsedBuildNumber == null) "1.45.1 (226)" else "1.45.1-$parsedBuildNumber"
+        versionCode = parsedBuildNumber ?: 227
+        versionName = if (parsedBuildNumber == null) "1.45.2 (227)" else "1.45.2-$parsedBuildNumber"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

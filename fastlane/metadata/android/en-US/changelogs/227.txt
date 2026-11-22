@@ -1,0 +1,4 @@
+1.45.2 (227) – Patch & Fix:
+• Updated Google Play, APKMirror, and in-app browser engines for reliable update scans & downloads
+• Updated Compose, AndroidX, and core security libraries (including protobuf CVE-2024-7254 mitigation)
+• Modernized Gradle, Android Gradle Plugin, and CI build workflows for smoother maintenance & stability

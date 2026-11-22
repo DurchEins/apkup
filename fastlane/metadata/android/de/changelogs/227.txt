@@ -1,0 +1,4 @@
+1.45.2 (227) – Patch & Bugfix:
+• Aktualisierte Update- und Browser-Engines für Google Play Store, APKMirror und den integrierten In-App-Browser
+• Aktualisierte Compose-, AndroidX- und Sicherheitsbibliotheken (inkl. Schutz vor CVE-2024-7254 in Protobuf)
+• Moderneres Gradle-, AGP- und CI-Build-Setup (Node 24) für flüssigere Wartung & höhere Stabilität
