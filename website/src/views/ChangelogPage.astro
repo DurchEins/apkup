@@ -1,6 +1,6 @@
 ---
 import { execSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Navbar from '../components/Navbar.astro';
@@ -73,12 +73,28 @@ function parseChangelog(raw: string): MonthGroup[] {
   return months;
 }
 
+function findLatestChangelogPath(clLang: string, repoRoot: string): string {
+  const dir = join(repoRoot, 'app/src/main/assets/changelog');
+  const suffix = `_${clLang}.md`;
+  const files = readdirSync(dir)
+    .filter((f) => f.endsWith(suffix))
+    .sort((a, b) => {
+      const pa = a.replace(suffix, '').split('.').map(Number);
+      const pb = b.replace(suffix, '').split('.').map(Number);
+      return pb[0] - pa[0] || (pb[1] ?? 0) - (pa[1] ?? 0);
+    });
+  if (files.length === 0) {
+    throw new Error(`No changelog file found for language ${clLang} in ${dir}`);
+  }
+  return `app/src/main/assets/changelog/${files[0]}`;
+}
+
 const { lang = DEFAULT_LOCALE } = Astro.props;
 const t = getTranslations(lang);
 const cl = t.changelogPage;
 const clLang = LOCALE_META[lang].changelogLang;
 const repoRoot = join(process.cwd(), '..');
-const months = parseChangelog(loadReleasedMarkdown(`app/src/main/assets/changelog/1.45_${clLang}.md`, repoRoot));
+const months = parseChangelog(loadReleasedMarkdown(findLatestChangelogPath(clLang, repoRoot), repoRoot));
 ---
 
 <BaseLayout lang={lang} subPath="changelog/" title={cl.title} description={cl.metaDesc}>
