@@ -427,9 +427,9 @@
     "mirrorBadges": {
       "Zapstore": "Signierte Nostr-Releases",
       "GitLab Releases": "Offizieller Mirror",
-      "APKPure": "Verifizierter Eintrag",
+      "APKPure": "Verzögerte Updates",
       "itch.io": "Direkter APK-Download",
-      "Appteka": "Alternativer Store",
+      "Appteka": "Veraltet",
       "Komi Store": "FOSS-Store",
       "AlternativeTo": "Bewertungen & Infos",
       "Amazon Appstore": "Veraltet"
@@ -437,9 +437,9 @@
     "mirrorDescs": {
       "Zapstore": "Dezentraler Nostr-App-Store mit kryptografischer Entwickler-Signatur.",
       "GitLab Releases": "Vollständiger Quellcode- und Release-Mirror, synchronisiert mit main.",
-      "APKPure": "Bekannter Drittanbieter-Mirror, der signierte Releases spiegelt.",
+      "APKPure": "Drittanbieter-APK-Mirror mit manueller Prüfwarteschlange; Updates können verzögert erscheinen.",
       "itch.io": "Indie-Vertriebsseite mit direktem APK-Download und Versionshinweisen.",
-      "Appteka": "Unabhängiger Android-App-Katalog mit gehosteten APK-Builds.",
+      "Appteka": "Veralteter Eintrag — erhält keine aktuellen Builds mehr. Bitte GitHub Releases nutzen.",
       "Komi Store": "Von der Community kuratierter FOSS-Android-Store.",
       "AlternativeTo": "Community-Bewertungen, Funktionsübersicht und Open-Source-Eintrag.",
       "Amazon Appstore": "Veralteter Eintrag — erhält keine aktuellen Builds mehr. Bitte GitHub Releases nutzen."

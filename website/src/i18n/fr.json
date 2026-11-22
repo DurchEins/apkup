@@ -427,9 +427,9 @@
     "mirrorBadges": {
       "Zapstore": "Releases Nostr signés",
       "GitLab Releases": "Miroir officiel",
-      "APKPure": "Fiche vérifiée",
+      "APKPure": "Mises à jour retardées",
       "itch.io": "Téléchargement APK direct",
-      "Appteka": "Boutique alternative",
+      "Appteka": "Obsolète",
       "Komi Store": "Boutique FOSS",
       "AlternativeTo": "Avis & infos",
       "Amazon Appstore": "Obsolète"
@@ -437,9 +437,9 @@
     "mirrorDescs": {
       "Zapstore": "Boutique Android décentralisée basée sur Nostr avec signatures cryptographiques.",
       "GitLab Releases": "Miroir complet du code source et des versions synchronisé depuis main.",
-      "APKPure": "Miroir APK tiers populaire indexant les versions publiques signées.",
+      "APKPure": "Miroir APK tiers avec file de validation manuelle ; les mises à jour peuvent être retardées.",
       "itch.io": "Page de distribution indie avec téléchargement APK direct et notes de version.",
-      "Appteka": "Catalogue Android indépendant hébergeant des APK vérifiés.",
+      "Appteka": "Fiche obsolète — ne reçoit plus les versions actuelles. Préférez GitHub Releases.",
       "Komi Store": "Boutique d'applications Android FOSS gérée par la communauté.",
       "AlternativeTo": "Avis de la communauté, étiquettes et répertoire d'alternatives libres.",
       "Amazon Appstore": "Ancienne fiche — ne reçoit plus les versions actuelles. Préférez GitHub Releases."
@@ -779,13 +779,21 @@
       {
         "title": "Activer les Options pour les développeurs (7× Numéro de build)",
         "body": "Ouvrez Paramètres → À propos du téléphone (Samsung : Informations sur le logiciel) et touchez 7 fois Numéro de build jusqu'au message « Vous êtes désormais développeur ! ».",
-        "chips": ["Paramètres", "À propos du téléphone", "Numéro de build (7×)"],
+        "chips": [
+          "Paramètres",
+          "À propos du téléphone",
+          "Numéro de build (7×)"
+        ],
         "toast": "🎉 Vous êtes désormais développeur !"
       },
       {
         "title": "Activer « Applis de développeurs non vérifiés »",
         "body": "Allez dans Paramètres → Système → Options pour les développeurs (ou recherchez Options développeur), trouvez Applis de développeurs non vérifiés et activez l'autorisation.",
-        "chips": ["Système", "Options développeur", "Développeurs non vérifiés"]
+        "chips": [
+          "Système",
+          "Options développeur",
+          "Développeurs non vérifiés"
+        ]
       },
       {
         "title": "Confirmer le verrouillage & redémarrer",

@@ -427,9 +427,9 @@
     "mirrorBadges": {
       "Zapstore": "已签名 Nostr 发布",
       "GitLab Releases": "官方镜像",
-      "APKPure": "已验证页面",
+      "APKPure": "更新存在延迟",
       "itch.io": "APK 直接下载",
-      "Appteka": "第三方商店",
+      "Appteka": "已过时",
       "Komi Store": "FOSS 商店",
       "AlternativeTo": "评价与信息",
       "Amazon Appstore": "已过时"
@@ -437,9 +437,9 @@
     "mirrorDescs": {
       "Zapstore": "基于 Nostr 协议、具备开发者加密签名的去中心化 Android 应用商店。",
       "GitLab Releases": "与 main 分支同步的完整源码与发布镜像。",
-      "APKPure": "收录公开已签名版本的知名第三方 APK 镜像站。",
+      "APKPure": "采用人工审核队列的第三方 APK 镜像站，新版本上线可能存在延迟。",
       "itch.io": "提供直接 APK 下载与版本说明的独立分发页面。",
-      "Appteka": "托管经验证 APK 构建的独立 Android 应用目录。",
+      "Appteka": "旧版页面 — 不再接收最新构建，请优先使用 GitHub Releases。",
       "Komi Store": "由社区维护的 FOSS 开源 Android 应用商店。",
       "AlternativeTo": "社区评价、功能标签与开源替代品目录。",
       "Amazon Appstore": "历史旧版页面 —— 不再接收最新构建，请优先使用 GitHub Releases。"
@@ -779,13 +779,21 @@
       {
         "title": "开启开发者选项（连点 7 次版本号）",
         "body": "打开 设置 → 关于手机（三星：软件信息），连续点击 版本号 7 次，直到系统提示「您现在处于开发者模式！」。",
-        "chips": ["设置", "关于手机", "版本号 (7×)"],
+        "chips": [
+          "设置",
+          "关于手机",
+          "版本号 (7×)"
+        ],
         "toast": "🎉 您现在处于开发者模式！"
       },
       {
         "title": "开启「允许来自未验证开发者的应用」",
         "body": "打开 设置 → 系统 → 开发者选项（或在设置中搜索开发者选项），找到 未验证开发者的应用 并开启允许。",
-        "chips": ["系统", "开发者选项", "未验证开发者"]
+        "chips": [
+          "系统",
+          "开发者选项",
+          "未验证开发者"
+        ]
       },
       {
         "title": "验证锁屏并重启设备",

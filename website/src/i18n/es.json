@@ -427,9 +427,9 @@
     "mirrorBadges": {
       "Zapstore": "Releases Nostr firmados",
       "GitLab Releases": "Mirror oficial",
-      "APKPure": "Ficha verificada",
+      "APKPure": "Actualizaciones retrasadas",
       "itch.io": "Descarga APK directa",
-      "Appteka": "Tienda alternativa",
+      "Appteka": "Desactualizado",
       "Komi Store": "Tienda FOSS",
       "AlternativeTo": "Reseñas e info",
       "Amazon Appstore": "Desactualizado"
@@ -437,9 +437,9 @@
     "mirrorDescs": {
       "Zapstore": "Tienda Android descentralizada basada en Nostr con firmas criptográficas.",
       "GitLab Releases": "Mirror completo del código fuente y lanzamientos sincronizado desde main.",
-      "APKPure": "Popular mirror de APKs de terceros que indexa lanzamientos públicos firmados.",
+      "APKPure": "Mirror de APKs de terceros con revisión manual; las actualizaciones pueden llegar con retraso.",
       "itch.io": "Página indie con descarga directa de APK y notas de versión.",
-      "Appteka": "Catálogo Android independiente con compilaciones APK verificadas.",
+      "Appteka": "Ficha obsoleta — ya no recibe compilaciones actuales. Usa GitHub Releases.",
       "Komi Store": "Tienda de apps Android FOSS curada por la comunidad.",
       "AlternativeTo": "Reseñas de la comunidad, etiquetas y listado de alternativas abiertas.",
       "Amazon Appstore": "Listado antiguo — ya no recibe compilaciones actuales. Usa GitHub Releases."
@@ -779,13 +779,21 @@
       {
         "title": "Activa Opciones de desarrollador (7× N.º de compilación)",
         "body": "Abre Ajustes → Información del teléfono (en Samsung: Información de software) y toca 7 veces en Número de compilación hasta ver «¡Ya eres desarrollador!».",
-        "chips": ["Ajustes", "Información del teléfono", "N.º compilación (7×)"],
+        "chips": [
+          "Ajustes",
+          "Información del teléfono",
+          "N.º compilación (7×)"
+        ],
         "toast": "🎉 ¡Ya eres desarrollador!"
       },
       {
         "title": "Activa «Apps de desarrolladores no verificados»",
         "body": "Ve a Ajustes → Sistema → Opciones de desarrollador (o búscalo en Ajustes), localiza Apps de desarrolladores no verificados y activa Permitir.",
-        "chips": ["Sistema", "Opciones de desarrollador", "No verificados"]
+        "chips": [
+          "Sistema",
+          "Opciones de desarrollador",
+          "No verificados"
+        ]
       },
       {
         "title": "Confirma tu bloqueo de pantalla y reinicia",
