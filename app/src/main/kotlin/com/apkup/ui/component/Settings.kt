@@ -1,6 +1,8 @@
 package com.apkup.ui.component
 
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -50,6 +52,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.apkup.R
+import com.apkup.ui.theme.ApkUpTheme
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -134,7 +137,7 @@ fun SwitchSetting(
             .padding(horizontal = 2.dp, vertical = 4.dp),
         verticalAlignment = CenterVertically
     ) {
-        SettingIconBadge(icon = icon, contentDescription = text)
+        SettingIconBadge(icon = icon, contentDescription = text, active = value)
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -180,20 +183,42 @@ fun SwitchSetting(
 @Composable
 private fun SettingIconBadge(
     @DrawableRes icon: Int,
-    contentDescription: String
-) = Box(
-    modifier = Modifier
-        .size(32.dp)
-        .clip(RoundedCornerShape(10.dp))
-        .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-    contentAlignment = Alignment.Center
+    contentDescription: String,
+    active: Boolean = true
 ) {
-    Icon(
-        painter = painterResource(id = icon),
-        contentDescription = contentDescription,
-        tint = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.size(18.dp)
+    val isReducedMotion = ApkUpTheme.isReducedMotion
+    val containerColor by animateColorAsState(
+        targetValue = if (active) {
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.72f)
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerHigh
+        },
+        animationSpec = tween(durationMillis = if (isReducedMotion) 60 else 180),
+        label = "SettingIconContainer"
     )
+    val iconTint by animateColorAsState(
+        targetValue = if (active) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        },
+        animationSpec = tween(durationMillis = if (isReducedMotion) 60 else 180),
+        label = "SettingIconTint"
+    )
+    Box(
+        modifier = Modifier
+            .size(32.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(containerColor),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(id = icon),
+            contentDescription = contentDescription,
+            tint = iconTint,
+            modifier = Modifier.size(18.dp)
+        )
+    }
 }
 
 @Composable
@@ -235,7 +260,7 @@ fun SplitSwitchSetting(
                 .padding(vertical = 6.dp, horizontal = 4.dp),
             verticalAlignment = CenterVertically
         ) {
-            SettingIconBadge(icon = icon, contentDescription = text)
+            SettingIconBadge(icon = icon, contentDescription = text, active = value)
             Column(
                 modifier = Modifier
                     .weight(1f)

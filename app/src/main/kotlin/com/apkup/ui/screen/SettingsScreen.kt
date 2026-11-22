@@ -960,33 +960,38 @@ fun Settings(
 					Row(
 						modifier = Modifier
 							.fillMaxWidth()
-							.padding(horizontal = 4.dp, vertical = 10.dp),
+							.heightIn(min = 48.dp)
+							.padding(horizontal = 4.dp, vertical = 6.dp),
 						verticalAlignment = Alignment.CenterVertically
 					) {
 						Box(
 							modifier = Modifier
-								.size(38.dp)
+								.size(32.dp)
 								.clip(RoundedCornerShape(10.dp))
-								.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+								.background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.72f)),
 							contentAlignment = Alignment.Center
 						) {
 							Icon(
 								imageVector = Icons.Rounded.SwapVert,
 								contentDescription = null,
 								tint = MaterialTheme.colorScheme.primary,
-								modifier = Modifier.size(20.dp)
+								modifier = Modifier.size(18.dp)
 							)
 						}
-						Spacer(modifier = Modifier.width(12.dp))
-						Column(modifier = Modifier.weight(1f)) {
+						Spacer(modifier = Modifier.width(10.dp))
+						Column(
+							modifier = Modifier.weight(1f),
+							verticalArrangement = Arrangement.spacedBy(1.dp)
+						) {
 							Text(
 								text = stringResource(R.string.settings_source_priority_title),
-								style = MaterialTheme.typography.bodyLarge,
+								style = MaterialTheme.typography.bodyMedium,
+								fontWeight = FontWeight.Medium,
 								color = MaterialTheme.colorScheme.onSurface
 							)
 							Text(
 								text = priorityPreview,
-								style = MaterialTheme.typography.bodySmall,
+								style = MaterialTheme.typography.labelSmall,
 								color = MaterialTheme.colorScheme.onSurfaceVariant,
 								maxLines = 1,
 								overflow = TextOverflow.Ellipsis
@@ -995,7 +1000,8 @@ fun Settings(
 						Icon(
 							imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
 							contentDescription = null,
-							tint = MaterialTheme.colorScheme.onSurfaceVariant
+							tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+							modifier = Modifier.size(20.dp)
 						)
 					}
 				}
@@ -1248,7 +1254,12 @@ fun Settings(
 									}
 								)
 							}
-							if (autoInstallEnabled) {
+							val isReducedMotionAuto = ApkUpTheme.isReducedMotion
+							AnimatedVisibility(
+								visible = autoInstallEnabled,
+								enter = if (isReducedMotionAuto) fadeIn(tween(60)) else expandVertically(spring(stiffness = Spring.StiffnessMediumLow)) + fadeIn(),
+								exit = if (isReducedMotionAuto) fadeOut(tween(60)) else shrinkVertically(spring(stiffness = Spring.StiffnessMediumLow)) + fadeOut()
+							) {
 								Row(
 									modifier = Modifier
 										.fillMaxWidth()
@@ -1380,11 +1391,18 @@ fun Settings(
 								color = MaterialTheme.colorScheme.onSurfaceVariant
 							)
 						}
+						val advancedChevronRotation by animateFloatAsState(
+							targetValue = if (isAdvancedExpanded) 180f else 0f,
+							animationSpec = if (ApkUpTheme.isReducedMotion) tween(60) else spring(stiffness = Spring.StiffnessMediumLow),
+							label = "advanced_chevron"
+						)
 						Icon(
-							imageVector = if (isAdvancedExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+							imageVector = Icons.Default.KeyboardArrowDown,
 							contentDescription = null,
 							tint = MaterialTheme.colorScheme.onSurfaceVariant,
-							modifier = Modifier.size(22.dp)
+							modifier = Modifier
+								.size(22.dp)
+								.graphicsLayer { rotationZ = advancedChevronRotation }
 						)
 					}
 
@@ -1520,11 +1538,18 @@ fun Settings(
 											}
 										}
 									}
+									val permissionsChevronRotation by animateFloatAsState(
+										targetValue = if (isPermissionsExpanded) 180f else 0f,
+										animationSpec = if (ApkUpTheme.isReducedMotion) tween(60) else spring(stiffness = Spring.StiffnessMediumLow),
+										label = "permissions_chevron"
+									)
 									Icon(
-										imageVector = if (isPermissionsExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+										imageVector = Icons.Default.KeyboardArrowDown,
 										contentDescription = null,
 										tint = MaterialTheme.colorScheme.onSurfaceVariant,
-										modifier = Modifier.size(20.dp)
+										modifier = Modifier
+											.size(20.dp)
+											.graphicsLayer { rotationZ = permissionsChevronRotation }
 									)
 								}
 								AnimatedVisibility(
