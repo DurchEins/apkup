@@ -12,11 +12,15 @@
 > [!NOTE]
 > **TL;DR (In 5 Seconds):** Be kind, keep bug reports and feedback factual, and respect that everyone here — including maintainers and translators — contributes in their free time.
 
+<a id="our-pledge"></a>
+
 ## Our Pledge
 
 We pledge to make participation in **ApkUp** welcoming, safe, and equitable for all.
 
 We are committed to fostering an environment that respects and promotes the dignity, rights, and contributions of all individuals, regardless of characteristics including race, ethnicity, caste, color, age, physical characteristics, neurodiversity, disability, sex or gender, gender identity or expression, sexual orientation, language, philosophy or religion, national or social origin, socio-economic position, level of education, or other status. The same privileges of participation are extended to everyone who participates in good faith and in accordance with this Covenant.
+
+<a id="behavior-at-a-glance"></a>
 
 ## Behavior at a Glance
 
@@ -33,6 +37,9 @@ While acknowledging differences in social norms, we all strive to meet our commu
 
 > [!NOTE]
 > **Solo-Maintainer Reality Check:** ApkUp is developed and maintained in spare time by **DurchEins** (`@DurchEins`). There is no 24/7 SLA or guaranteed response window — please remain patient when waiting for code reviews, bug fixes, or feature responses. Unreviewed, repetitive, or low-effort spam PRs/issues may be closed without merge.
+
+> [!TIP]
+> **🌍 Translators & Community Heroes:** ApkUp speaks **9 languages** thanks to volunteer contributors on [Hosted Weblate](https://hosted.weblate.org/engage/apkup/). Always keep translation reviews constructive — phrasing nuances often vary by dialect or UI width limits on mobile screens.
 
 ## Detailed Expectations & Enforcement
 
@@ -86,6 +93,8 @@ If a review by the project maintainer finds that this Code of Conduct has been v
 - **Report a Code of Conduct Violation:** Use GitHub's confidential **[Private Reporting Form](https://github.com/DurchEins/apkup/security/advisories/new)** (`@DurchEins`).
 - **Need Technical App Help Instead?** If you are experiencing an APK update or Shizuku problem rather than misconduct, please check the **[ApkUp Wiki](https://github.com/DurchEins/apkup/wiki)** or open a **[Support / Bug Issue](https://github.com/DurchEins/apkup/issues/new/choose)**.
 
+> **Quick moderation links:** [`#our-pledge`](#our-pledge) · [`#behavior-at-a-glance`](#behavior-at-a-glance) · [`#unsere-verpflichtung`](#unsere-verpflichtung) · [`#verhalten-auf-einen-blick`](#verhalten-auf-einen-blick)
+
 ## Scope & Attribution
 
 - **Scope:** <kbd>GitHub Issues</kbd> · <kbd>Pull Requests</kbd> · <kbd>Discussions</kbd> · <kbd>Hosted Weblate</kbd> · Official project representation
@@ -108,11 +117,15 @@ If a review by the project maintainer finds that this Code of Conduct has been v
 > [!NOTE]
 > **Kurzfassung (in 5 Sekunden):** Geh freundlich und respektvoll mit anderen um, bleib bei Fehlermeldungen sachlich und denk daran, dass alle hier – Maintainer wie Übersetzer – in ihrer Freizeit mitwirken.
 
+<a id="unsere-verpflichtung"></a>
+
 ## Unsere Verpflichtung
 
 Wir verpflichten uns, die Teilnahme an **ApkUp** für alle einladend, sicher und fair zu gestalten.
 
 Wir setzen uns für ein Umfeld ein, das die Würde, Rechte und Beiträge aller Menschen respektiert und fördert – unabhängig von Herkunft, Ethnie, Hautfarbe, Alter, körperlichen Merkmalen, Neurodiversität, Behinderung, Geschlecht oder Geschlechtsidentität, sexueller Orientierung, Sprache, Weltanschauung oder Religion, sozialer Herkunft, Bildungsstand oder sonstigem Status. Dieselben Teilhaberechte gelten für alle, die sich in gutem Glauben und im Einklang mit diesem Kodex beteiligen.
+
+<a id="verhalten-auf-einen-blick"></a>
 
 ## Verhalten auf einen Blick
 
@@ -129,6 +142,9 @@ Auch wenn sich soziale Normen unterscheiden und Aussagen je nach Kultur oder Mut
 
 > [!NOTE]
 > **Hinweis zum Solo-Maintainer-Projekt:** ApkUp wird von **DurchEins** (`@DurchEins`) in der Freizeit entwickelt und gepflegt. Es gibt keinen 24/7-Support oder feste Reaktionszeiten – bitte hab Verständnis, wenn Reviews, Fixes oder Antworten etwas Zeit brauchen. Offensichtlicher Spam oder ungeprüfte Low-Effort-PRs können kommentarlos geschlossen werden.
+
+> [!TIP]
+> **🌍 Übersetzer & Community-Helden:** Dank freiwilliger Helfer auf [Hosted Weblate](https://hosted.weblate.org/engage/apkup/) spricht ApkUp **9 Sprachen**. Bitte halte Korrekturvorschläge stets konstruktiv – Formulierungen hängen oft vom Dialekt oder knappen Platzlimits auf Handy-Displays ab.
 
 ## Ausführliche Regeln & Durchsetzung
 
@@ -181,6 +197,8 @@ Bei einem festgestellten Verstoß ergreift der Projektbetreuer je nach Schwere u
 
 - **Verstoß gegen den Verhaltenskodex melden:** Nutze vertraulich das **[private Meldeformular auf GitHub](https://github.com/DurchEins/apkup/security/advisories/new)** (`@DurchEins`).
 - **Technische App-Hilfe gesucht?** Wenn du stattdessen ein Problem mit Updates oder Shizuku hast, schau ins **[ApkUp Wiki](https://github.com/DurchEins/apkup/wiki)** oder eröffne ein **[Support- / Bug-Issue](https://github.com/DurchEins/apkup/issues/new/choose)**.
+
+> **Schnell-Anker zum Verlinken:** [`#our-pledge`](#our-pledge) · [`#behavior-at-a-glance`](#behavior-at-a-glance) · [`#unsere-verpflichtung`](#unsere-verpflichtung) · [`#verhalten-auf-einen-blick`](#verhalten-auf-einen-blick)
 
 ## Geltungsbereich & Herkunft
 

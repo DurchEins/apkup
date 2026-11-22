@@ -75,7 +75,7 @@ If you discover a potential security vulnerability in ApkUp (especially regardin
 - **Step-by-step reproduction** or Proof-of-Concept (PoC)
 - **Expected security impact** (e.g., signature bypass, arbitrary file write, credential leak)
 
-We will acknowledge and investigate reports promptly, coordinate a fix, and release a patch before any public details are shared.
+- **Coordinated Disclosure Policy:** Best-effort acknowledgement within **7 days**; we kindly ask researchers to allow coordinated disclosure until a patched release is published (typically within **30–90 days**).
 
 ---
 
@@ -105,6 +105,7 @@ Nur die über GitHub Actions signierten Release-APKs auf **GitHub Releases** sin
 - **Verschlüsselte Speicherung & Datenisolierung:** Einstellungen und optionale Tokens liegen per **Google Tink (`AES-256-GCM`)** im Android Keystore verschlüsselt, Cloud-Backups sind deaktiviert (`allowBackup="false"`), Downloads liegen im privaten `cacheDir`. Weitere Details stehen in **[PRIVACY.md](PRIVACY.md)**.
 - **Archiv-, Netzwerk- & UI-Härtung:** Schutz vor Zip-Slip und Entpackbomben bei `.apkm`-Bundles, ausschließlich HTTPS mit strikt host-isolierten Tokens, Tapjacking-Schutz und automatische Redaktion sensibler Daten in Diagnose-Logs.
 - **Checkliste für Meldungen:** Bitte nenne betroffene ApkUp-/Android-Version, betroffene Komponente/Quelle, Reproduktionsschritte bzw. PoC und mögliche Auswirkungen.
+- **Koordinierte Offenlegung (Coordinated Disclosure):** Best-Effort-Rückmeldung innerhalb von **7 Tagen**; wir bitten Sicherheitsforscher um eine koordinierte Offenlegung, bis ein gepatchtes Release veröffentlicht ist (üblicherweise innerhalb von **30–90 Tagen**).
 
 </details>
 
