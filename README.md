@@ -323,15 +323,23 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 ```
 
 <p align="center">
-  <sub><i>Special Thanks: Based on the original open-source project by <a href="https://github.com/rumboalla/apkupdater">rumboalla (APKUpdater)</a>.</i></sub>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/divider-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/divider-light.svg">
+    <img src=".github/assets/divider-dark.svg" width="100%" alt="" />
+  </picture>
 </p>
 
+<p align="center">
+  <a href="#top"><kbd>↑ Back to top</kbd></a><br><br>
+  <a href="https://u24.gov.ua/"><img src="https://img.shields.io/badge/Stand_With-Ukraine-0057B7?style=flat&labelColor=FFD700" alt="Stand With Ukraine — Official United24 Support" /></a>
+</p>
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset=".github/assets/footer-pill-dark.svg">
     <source media="(prefers-color-scheme: light)" srcset=".github/assets/footer-pill-light.svg">
     <img src=".github/assets/footer-pill-dark.svg" width="326" alt="ApkUp — Built with Kotlin & Material 3 Expressive" />
-  </picture><br><br>
-  <a href="#top"><kbd>↑ Back to top</kbd></a><br><br>
-  <a href="https://u24.gov.ua/"><img src="https://img.shields.io/badge/Stand_With-Ukraine-0057B7?style=flat&labelColor=FFD700" alt="Stand With Ukraine — Official United24 Support" /></a>
+  </picture>
+<p align="center">
+  <sub><i>Special Thanks: Based on the original open-source project by <a href="https://github.com/rumboalla/apkupdater">rumboalla (APKUpdater)</a>.</i></sub>
 </p>
