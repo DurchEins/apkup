@@ -110,11 +110,34 @@ jobs:
           (cd release_assets && sha256sum "$(basename "$TARGET_APK")" > "$(basename "$TARGET_APK").sha256")
           APK_SHA256=$(awk '{print $1}' "${TARGET_APK}.sha256")
 
-          CHANGELOG_FILE=$(ls -v fastlane/metadata/android/en-US/changelogs/*.txt 2>/dev/null | tail -n 1)
-          if [ -n "$CHANGELOG_FILE" ] && [ -f "$CHANGELOG_FILE" ]; then
-            CHANGELOG_BODY=$(cat "$CHANGELOG_FILE")
-          else
-            CHANGELOG_BODY="ApkUp Release ${SAFE_LABEL}"
+          CHANGELOG_MD=$(ls -v app/src/main/assets/changelog/*_en.md 2>/dev/null | tail -n 1)
+          CHANGELOG_BODY=""
+          if [ -n "$CHANGELOG_MD" ] && [ -f "$CHANGELOG_MD" ]; then
+            CHANGELOG_BODY=$(awk '
+              /^### / {
+                if (found) exit
+                found=1
+                next
+              }
+              found {
+                if (/^> \[Banner\]/ || /^$/) next
+                if (sub(/^- \*\*/, "- **")) {
+                  line = $0
+                  sub(/\*\* /, ":** ", line)
+                  print line
+                } else {
+                  print
+                }
+              }
+            ' "$CHANGELOG_MD")
+          fi
+          if [ -z "$CHANGELOG_BODY" ]; then
+            CHANGELOG_FILE=$(ls -v fastlane/metadata/android/en-US/changelogs/*.txt 2>/dev/null | tail -n 1)
+            if [ -n "$CHANGELOG_FILE" ] && [ -f "$CHANGELOG_FILE" ]; then
+              CHANGELOG_BODY=$(cat "$CHANGELOG_FILE")
+            else
+              CHANGELOG_BODY="ApkUp Release ${SAFE_LABEL}"
+            fi
           fi
 
           CLEAN_VER="${SAFE_LABEL#v}"
@@ -132,19 +155,11 @@ jobs:
           <div align="center">
 
           ## What's new in ${SAFE_LABEL}${VERSION_CODE:+ (Build ${VERSION_CODE})}
-          ![](https://img.shields.io/badge/Release-${BADGE_LABEL}-${BADGE_COLOR}?style=flat&labelColor=161B22) ${VERSION_CODE:+![](https://img.shields.io/badge/Build-${VERSION_CODE}-38BDF8?style=flat&labelColor=161B22)} [![VirusTotal](https://img.shields.io/badge/VirusTotal-Check_Report-22C55E?style=flat&logo=virustotal&logoColor=white&labelColor=161B22)](https://www.virustotal.com/gui/file/${APK_SHA256}/detection)
+          ![](https://img.shields.io/badge/Release-${BADGE_LABEL}-${BADGE_COLOR}?style=flat&labelColor=161B22) ${VERSION_CODE:+![](https://img.shields.io/badge/Build-${VERSION_CODE}-38BDF8?style=flat&labelColor=161B22)}
 
           </div>
 
           ${CHANGELOG_BODY}
-
-          ---
-
-          > [!TIP]
-          > ### 🎉 Available Across Independent Platforms
-          > Download and update ApkUp via **GitHub**, **Obtainium**, **Zapstore**, **GitLab**, **APKPure**, **itch.io**, and **Appteka**:
-          >
-          > <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22com.apkup%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2FDurchEins%2Fapkup%22%2C%22author%22%3A%22DurchEins%22%2C%22name%22%3A%22ApkUp%22%7D"><img src="https://img.shields.io/badge/Obtainium-1--Click%20Import-6750A4?style=flat&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjY5IDk3IDY1IDU4IiBmaWxsPSJ3aGl0ZSI%2BPHBhdGggZD0ibSAxMDkuODgsMTUzLjIzIGMgLTAuNzMsLTAuMzkgLTUuMDEsLTIuNzYgLTI1LjAzLC0xMy44NyAtNS41NywtMy4wOSAtMTAuOTQsLTYuMDcgLTExLjkyLC02LjYxIC0yLjI0LC0xLjIzIC0yLjU4LC0xLjUzIC0yLjU4LC0yLjI4IDAsLTAuMzkgMC44OSwtMi44NyAyLjk5LC04LjMxIDEuNjQsLTQuMjYgMy4wOSwtOC4wMCAzLjIzLC04LjMwIDAuMzAsLTAuNjkgMC43OSwtMS4yOCAxLjI3LC0xLjUyIDAuNDUsLTAuMjMgMTEuNTgsLTQuMzAgMTIuMTUsLTQuNDQgMC42MSwtMC4xNSAxLjE0LDAuMTQgMS40NSwwLjgwIDAuMTUsMC4zMiAwLjc3LDEuOTUgMS4zOCwzLjYzIDAuNjEsMS42OCAxLjUyLDQuMTYgMi4wMiw1LjUyIDEuMTUsMy4xMSAxLjE5LDMuNTUgMC4zOSw0LjAyIC0wLjIxLDAuMTMgLTEuNTksMC42NyAtMy4wNiwxLjIwIC0xLjQ3LDAuNTQgLTIuODgsMS4wOSAtMy4xMiwxLjIzIC0wLjU2LDAuMzMgLTAuNjUsMC44NCAtMC4yMSwxLjI0IDAuMTgsMC4xNiAzLjAwLDEuNzggNi4yOSwzLjU5IDkuMTcsNS4wNiA4LjY3LDQuODMgOS4yOCw0LjE3IDAuMzAsLTAuMzIgNS43OCwtMTQuMjcgNi4xMCwtMTUuNTEgMC4xMywtMC41MyAwLjEyLC0wLjYwIC0wLjE3LC0wLjg0IC0wLjM5LC0wLjMyIC0wLjM0LC0wLjMzIC0zLjk0LDAuOTQgLTMuNTcsMS4yNiAtMy45MSwxLjI5IC00LjM5LDAuMzQgLTAuMjUsLTAuNTAgLTQuMTAsLTExLjA1IC00LjMzLC0xMS45MCAtMC4xNSwtMC41NSAwLjAzLC0xLjA3IDAuNTAsLTEuMzcgMC4xOSwtMC4xMyAyLjk5LC0xLjIwIDYuMjIsLTIuMzkgNC43OSwtMS43NiA2LjAxLC0yLjE2IDYuNjMsLTIuMTcgMC44MCwtMC4wMSAwLjkxLDAuMDQgMTUuNjUsOC4yMCAxLjAyLDAuNTYgMS41NywxLjE2IDEuNTcsMS43MSAwLDAuMjIgLTMuNjUsOS45MSAtOC4xMiwyMS41NCAtNi4zMCwxNi40MCAtOC4yMCwyMS4yMSAtOC40NywyMS40NSAtMC40NywwLjQxIC0wLjg1LDAuMzkgLTEuNzUsLTAuMDggeiIvPjwvc3ZnPg%3D%3D" alt="Obtainium 1-Click Import" /></a>&nbsp;&nbsp;<a href="https://zapstore.dev/apps/com.apkup"><img src="https://img.shields.io/badge/Zapstore-Available-7C3AED?style=flat&logo=lightning&logoColor=white" alt="Zapstore" /></a>&nbsp;&nbsp;<a href="https://gitlab.com/DurchEins1/apkup/-/releases"><img src="https://img.shields.io/badge/GitLab-Releases-FC6D26?style=flat&logo=gitlab&logoColor=white" alt="GitLab Releases" /></a>&nbsp;&nbsp;<a href="https://apkpure.com/apkup/com.apkup"><img src="https://img.shields.io/badge/APKPure-Available-24C270?style=flat&logo=android&logoColor=white" alt="APKPure" /></a>&nbsp;&nbsp;<a href="https://durcheins.itch.io/apkup"><img src="https://img.shields.io/badge/itch.io-Available-FA5C5C?style=flat&logo=itchdotio&logoColor=white" alt="itch.io" /></a>&nbsp;&nbsp;<a href="https://appteka.store/app/c0cr341070"><img src="https://img.shields.io/badge/Appteka-Available-0EA5E9?style=flat&logo=android&logoColor=white" alt="Appteka" /></a>
 
           ---
 
@@ -157,9 +172,10 @@ jobs:
           <summary><b>📦 Installation & In-App Update Instructions</b></summary>
           <br>
 
-          Download the attached **_[${APK_FILENAME}](https://github.com/DurchEins/apkup/releases/download/${SAFE_LABEL}/${APK_FILENAME})_** below or update directly via the in-app updater (<kbd>Setup</kbd> ➔ <kbd>About</kbd> ➔ <kbd>Check for updates</kbd>).
+          Download the attached **_[${APK_FILENAME}](https://github.com/DurchEins/apkup/releases/download/${SAFE_LABEL}/${APK_FILENAME})_** below or update directly via the in-app updater (<kbd>Settings</kbd> ➔ <kbd>About</kbd> ➔ <kbd>Check Update</kbd>).
 
-          - **Alternative Mirrors:** [Zapstore](https://zapstore.dev/apps/com.apkup) · [Obtainium (1-Click Import)](https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22com.apkup%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2FDurchEins%2Fapkup%22%2C%22author%22%3A%22DurchEins%22%2C%22name%22%3A%22ApkUp%22%7D) · [GitLab Releases](https://gitlab.com/DurchEins1/apkup/-/releases) · [APKPure](https://apkpure.com/apkup/com.apkup) · [itch.io](https://durcheins.itch.io/apkup) · [Appteka](https://appteka.store/app/c0cr341070)
+          - **Alternative Mirrors:** [Zapstore](https://zapstore.dev/apps/com.apkup) · [Obtainium (1-Click Import)](https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22com.apkup%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2FDurchEins%2Fapkup%22%2C%22author%22%3A%22DurchEins%22%2C%22name%22%3A%22ApkUp%22%7D) · [GitLab Releases](https://gitlab.com/DurchEins1/apkup/-/releases) · [AlternativeTo](https://alternativeto.net/software/apkup/about/) · [Komi Store](https://komistore.app) · [APKPure](https://apkpure.com/apkup/com.apkup) · [itch.io](https://durcheins.itch.io/apkup) · [Appteka](https://appteka.store/app/c0cr341070)
+          - **VirusTotal Check:** [Click here.](https://www.virustotal.com/gui/file/${APK_SHA256}/detection)
           - **SHA-256 Checksum:** \`${APK_SHA256}\`
           - **Certificate SHA-256:** \`8e9b512371ee965afc7cc91f23490d3a514623b90d483e638bba8a070a2170b4\`
 
@@ -299,10 +315,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SIGN_WITH: ${{ secrets.ZAPSTORE_SIGN_WITH }}
+          ZAPSTORE_BUNKER_CLIENT_KEY: ${{ secrets.ZAPSTORE_BUNKER_CLIENT_KEY }}
         run: |
           if [ -z "$SIGN_WITH" ]; then
             echo "ZAPSTORE_SIGN_WITH not set; skipping Zapstore publish."
             exit 0
+          fi
+          if [ -n "$ZAPSTORE_BUNKER_CLIENT_KEY" ]; then
+            mkdir -p ~/.config/zsp/bunker-keys
+            chmod 700 ~/.config/zsp ~/.config/zsp/bunker-keys
+            printf '%s' "$ZAPSTORE_BUNKER_CLIENT_KEY" > ~/.config/zsp/bunker-keys/977120758bacb32947cf7df4345630ad9f1a57e6802afb6f6311aaf845c64c6d.key
+            chmod 600 ~/.config/zsp/bunker-keys/977120758bacb32947cf7df4345630ad9f1a57e6802afb6f6311aaf845c64c6d.key
           fi
           go install github.com/zapstore/zsp/v2/cmd/zsp@v2.0.1
           "$(go env GOPATH)/bin/zsp" publish -q zapstore.yaml
