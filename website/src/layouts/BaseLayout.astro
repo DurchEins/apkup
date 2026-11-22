@@ -1,5 +1,6 @@
 ---
 import { getBaseUrl } from '../utils/site';
+import { SITE } from '../data/content';
 import {
   DEFAULT_LOCALE,
   LOCALES,
@@ -176,8 +177,8 @@ const shareUrl = absoluteLocaleUrl(lang, subPath, siteOrigin);
         <button type="button" id="dev-hud-close" aria-label="Close Developer HUD">✕</button>
       </div>
       <div class="dev-hud-grid">
-        <span>Release: <strong>v1.45.0 (211)</strong></span>
-        <span>SDK: <strong>API 29 – 36 (Android 10–17)</strong></span>
+        <span>Release: <strong>v{SITE.fallbackVersion} ({SITE.fallbackBuild})</strong></span>
+        <span>SDK: <strong>API 29 – 37 (Android 10–17)</strong></span>
         <span>ABIs: <strong>arm64-v8a • armeabi-v7a • x86_64</strong></span>
         <span>Signature: <strong>APK Scheme v2/v3 + SHA-256</strong></span>
         <span id="dev-hud-perf">DOM Ready: <strong>-- ms</strong></span>

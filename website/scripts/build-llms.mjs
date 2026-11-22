@@ -113,7 +113,8 @@ if (faqPairs.length > 0) {
   sections.push(`## Frequently Asked Questions (FAQ)\n\n${faqPairs.map((f) => `### ${f.q}\n${f.a}`).join('\n\n')}`);
 }
 
-const changelogEn = readSafe(join(repoRoot, 'app', 'src', 'main', 'assets', 'changelog', '1.45_en.md'));
+const minorPrefix = version.split('.').slice(0, 2).join('.');
+const changelogEn = readSafe(join(repoRoot, 'app', 'src', 'main', 'assets', 'changelog', `${minorPrefix}_en.md`));
 if (changelogEn) {
   sections.push(`## Latest Release Notes (v${version})\n\n${changelogEn}`);
 }

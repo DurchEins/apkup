@@ -110,7 +110,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.minimumInteractiveComponentSize
-import androidx.compose.material3.rememberModalBottomSheetState
+import com.apkup.ui.component.rememberExpandedModalSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -1504,7 +1504,7 @@ private fun AppActionsBottomSheet(
 	onRemoveWatched: ((String) -> Unit)? = null
 ) {
 	val context = LocalContext.current
-	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+	val sheetState = rememberExpandedModalSheetState()
 	val lastUpdatedFormatted = remember(app.lastUpdateTime) {
 		if (app.lastUpdateTime > 0L) {
 			DateUtils.getRelativeTimeSpanString(
@@ -2300,7 +2300,7 @@ private fun WatchAppBottomSheet(
 	onDismiss: () -> Unit,
 	onConfirmWatch: (packageName: String, appName: String, repoUrl: String) -> AppsViewModel.WatchAppAddResult
 ) {
-	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+	val sheetState = rememberExpandedModalSheetState()
 	var packageNameInput by rememberSaveable { mutableStateOf("") }
 	var appNameInput by rememberSaveable { mutableStateOf("") }
 	var repoUrlInput by rememberSaveable { mutableStateOf("") }

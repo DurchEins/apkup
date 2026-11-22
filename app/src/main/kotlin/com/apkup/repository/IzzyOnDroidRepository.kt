@@ -951,9 +951,9 @@ class IzzyOnDroidRepository(
     ): Boolean {
         if (nativeCode.isNullOrEmpty()) return true
         if (supportedAbis.isEmpty()) return true
-        val canonicalSupported = supportedAbis.mapNotNull { canonicalizeAbi(it) ?: it.lowercase(Locale.ROOT) }.toSet()
+        val canonicalSupported = supportedAbis.map { canonicalizeAbi(it) }.toSet()
         return nativeCode.any { raw ->
-            val canon = canonicalizeAbi(raw) ?: raw.lowercase(Locale.ROOT)
+            val canon = canonicalizeAbi(raw)
             canon in canonicalSupported
         }
     }

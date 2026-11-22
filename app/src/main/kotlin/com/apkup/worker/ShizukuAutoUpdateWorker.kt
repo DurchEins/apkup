@@ -191,8 +191,18 @@ internal class ShizukuAutoUpdateRunner(
                     )
                 }
                 if (context != null && prefs.enableRollbackBackups.get()) {
+                    val maxBudgetBytes = com.apkup.util.RollbackBackupManager.budgetMbToBytes(
+                        prefs.rollbackMaxBudgetMb.get()
+                    )
+                    val maxAgeDays = com.apkup.util.RollbackBackupManager.normalizeMaxAgeDays(
+                        prefs.rollbackMaxAgeDays.get()
+                    )
                     com.apkup.util.RollbackBackupManager(context)
-                        .backupInstalledPackageBeforeUpdate(update.packageName)
+                        .backupInstalledPackageBeforeUpdate(
+                            packageName = update.packageName,
+                            maxTotalBytes = maxBudgetBytes,
+                            maxAgeDays = maxAgeDays
+                        )
                 }
                 val installed = installer.installPartsSilently(update.id, update.packageName, parts)
                 if (installed) {

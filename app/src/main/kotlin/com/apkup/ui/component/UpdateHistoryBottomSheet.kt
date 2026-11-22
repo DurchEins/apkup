@@ -44,7 +44,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
+import com.apkup.ui.component.rememberExpandedModalSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -98,7 +98,7 @@ fun UpdateHistoryBottomSheet(
     repoMappingManager: RepoMappingManager = koinInject()
 ) {
     val entries by updatesViewModel.updateHistoryFlow.collectAsStateWithLifecycle()
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberExpandedModalSheetState()
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
     val resources = LocalResources.current

@@ -80,7 +80,7 @@ class CodebergRepository(
             for (app in batch) {
                 val binding = repoMappingManager?.getCompatibleBinding(app.packageName, app.signatureSha256)
                 if (binding != null && binding.isCodeberg) {
-                    val isManualCustom = repoMappingManager?.hasCustomBinding(app.packageName) == true
+                    val isManualCustom = repoMappingManager.hasCustomBinding(app.packageName)
                     if (!RepoHostValidator.isAllowedRepoHost(binding.resolvedHost, allowLanHosts = isManualCustom)) {
                         continue
                     }

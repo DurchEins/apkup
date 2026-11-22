@@ -6,19 +6,20 @@ import android.net.Uri
 import android.os.Build
 import android.util.Log
 import com.google.gson.Gson
+import com.google.gson.annotations.SerializedName
 import java.io.BufferedOutputStream
 import java.io.File
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 data class RollbackBackupMeta(
-    val packageName: String = "",
-    val appName: String = "",
-    val versionName: String = "",
-    val versionCode: Long = 0L,
-    val backedUpAtMillis: Long = 0L,
-    val totalSizeBytes: Long = 0L,
-    val partCount: Int = 1
+    @SerializedName("packageName") val packageName: String = "",
+    @SerializedName("appName") val appName: String = "",
+    @SerializedName("versionName") val versionName: String = "",
+    @SerializedName("versionCode") val versionCode: Long = 0L,
+    @SerializedName("backedUpAtMillis") val backedUpAtMillis: Long = 0L,
+    @SerializedName("totalSizeBytes") val totalSizeBytes: Long = 0L,
+    @SerializedName("partCount") val partCount: Int = 1
 )
 
 class RollbackBackupManager(
@@ -28,7 +29,21 @@ class RollbackBackupManager(
         private const val TAG = "RollbackBackupManager"
         private const val BACKUP_DIR_NAME = "rollback_backups"
         private const val META_FILE_NAME = "meta.json"
+        private const val MILLIS_PER_DAY = 86_400_000L
+        const val DEFAULT_MAX_BUDGET_MB: Int = 1024
+        const val DEFAULT_MAX_AGE_DAYS: Int = 14
         const val DEFAULT_MAX_TOTAL_BYTES: Long = 2L * 1024L * 1024L * 1024L // 2 GB
+        val BUDGET_OPTIONS_MB: List<Int> = listOf(256, 512, 1024, 2048)
+        val MAX_AGE_OPTIONS_DAYS: List<Int> = listOf(7, 14, 30, 0)
+
+        fun normalizeBudgetMb(rawMb: Int): Int =
+            if (rawMb in BUDGET_OPTIONS_MB) rawMb else DEFAULT_MAX_BUDGET_MB
+
+        fun budgetMbToBytes(budgetMb: Int): Long =
+            normalizeBudgetMb(budgetMb).toLong() * 1024L * 1024L
+
+        fun normalizeMaxAgeDays(rawDays: Int): Int =
+            if (rawDays in MAX_AGE_OPTIONS_DAYS) rawDays else DEFAULT_MAX_AGE_DAYS
     }
 
     private val gson = Gson()
@@ -39,12 +54,13 @@ class RollbackBackupManager(
 
     /**
      * Captures the currently installed base APK and any split APKs of [packageName] into private
-     * app storage before an update is installed. Keeps only the latest backup per app and enforces
-     * [maxTotalBytes] via LRU eviction.
+     * app storage before an update is installed. Keeps only the latest backup per app, deletes
+     * backups older than [maxAgeDays] when > 0, and enforces [maxTotalBytes] via LRU eviction.
      */
     fun backupInstalledPackageBeforeUpdate(
         packageName: String,
-        maxTotalBytes: Long = DEFAULT_MAX_TOTAL_BYTES
+        maxTotalBytes: Long = DEFAULT_MAX_TOTAL_BYTES,
+        maxAgeDays: Int = 0
     ): RollbackBackupMeta? = synchronized(lock) {
         val cleanPkg = packageName.trim()
         val pkgDir = getPackageBackupDir(cleanPkg) ?: return null
@@ -119,6 +135,7 @@ class RollbackBackupManager(
                 tempDir.deleteRecursively()
             }
 
+            cleanExpiredBackupsInternal(maxAgeDays, System.currentTimeMillis())
             evictOldestIfOverLimit(maxTotalBytes, keepPackage = cleanPkg)
             meta
         }.onFailure { err ->
@@ -160,6 +177,37 @@ class RollbackBackupManager(
 
     fun totalBackupBytes(): Long = synchronized(lock) {
         listAllBackups().sumOf { it.totalSizeBytes }
+    }
+
+    fun getBackupStats(): Pair<Int, Long> = synchronized(lock) {
+        val all = listAllBackups()
+        all.size to all.sumOf { it.totalSizeBytes }
+    }
+
+    fun cleanExpiredBackups(
+        maxAgeDays: Int,
+        maxTotalBytes: Long,
+        nowMillis: Long = System.currentTimeMillis()
+    ): Int = synchronized(lock) {
+        val expiredDeleted = cleanExpiredBackupsInternal(maxAgeDays, nowMillis)
+        val beforeEvict = listAllBackups().size
+        evictOldestIfOverLimit(maxTotalBytes.coerceAtLeast(0L), keepPackage = "")
+        val afterEvict = listAllBackups().size
+        expiredDeleted + (beforeEvict - afterEvict).coerceAtLeast(0)
+    }
+
+    private fun cleanExpiredBackupsInternal(maxAgeDays: Int, nowMillis: Long): Int {
+        if (maxAgeDays <= 0) return 0
+        val maxAgeMs = maxAgeDays.toLong() * MILLIS_PER_DAY
+        var deleted = 0
+        for (item in listAllBackups()) {
+            if (item.backedUpAtMillis > 0L && (nowMillis - item.backedUpAtMillis) > maxAgeMs) {
+                if (deleteBackup(item.packageName)) {
+                    deleted++
+                }
+            }
+        }
+        return deleted
     }
 
     fun deleteBackup(packageName: String): Boolean = synchronized(lock) {

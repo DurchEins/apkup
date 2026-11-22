@@ -126,6 +126,8 @@ data class ApkUpBackupConfig(
     val autoUpdateWindowStartMinutes: Int? = null,
     val autoUpdateWindowEndMinutes: Int? = null,
     val enableRollbackBackups: Boolean? = null,
+    val rollbackMaxBudgetMb: Int? = null,
+    val rollbackMaxAgeDays: Int? = null,
     val includeSelfUpdatePreReleases: Boolean? = null
 ) {
     companion object {

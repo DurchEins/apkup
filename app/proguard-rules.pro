@@ -40,6 +40,7 @@
 -keep class com.apkup.data.ui.CustomFDroidRepo { *; }
 -keep class com.apkup.data.ui.WatchedAppEntry { *; }
 -keep class com.apkup.repository.KnownRepoEntry { *; }
+-keep class com.apkup.util.RollbackBackupMeta { *; }
 
 # Shizuku
 -keep class rikka.shizuku.** { *; }
@@ -62,7 +63,3 @@
 
 -keep class com.google.protobuf.** { *; }
 -dontwarn com.google.protobuf.**
-
-# SessionInstaller & InstallPart
--keep class com.apkup.util.SessionInstaller** { *; }
--keep class com.apkup.util.InstallPart { *; }

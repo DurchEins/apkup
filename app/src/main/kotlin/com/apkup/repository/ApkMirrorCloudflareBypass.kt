@@ -190,7 +190,7 @@ class AndroidApkMirrorCloudflareBypass(
                             val currentClearance = extractCookieValue(cookieManager.getCookie(url), "cf_clearance")
                             if (currentClearance != null && currentClearance != initialClearance) {
                                 val activeView = webView
-                                val activeTitle = activeView?.title.orEmpty()
+                                val activeTitle = activeView.title.orEmpty()
                                 if (activeTitle.contains("APKMirror", ignoreCase = true)) {
                                     captureDomAndComplete(activeView, url, url, cookieManager, completable)
                                     break

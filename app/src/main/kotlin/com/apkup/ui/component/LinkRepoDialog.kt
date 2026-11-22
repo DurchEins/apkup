@@ -41,7 +41,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
+import com.apkup.ui.component.rememberExpandedModalSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -94,7 +94,7 @@ fun LinkRepoDialog(
     val existingBinding = remember(packageName) { repoMappingManager.getBinding(packageName) }
     val isCustom = remember(packageName) { repoMappingManager.getCustomBindings().containsKey(packageName) }
 
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberExpandedModalSheetState()
     var selectedType by remember { mutableStateOf(existingBinding?.type ?: "github") }
     var repoInput by remember { mutableStateOf(existingBinding?.repo.orEmpty()) }
     var hostInput by remember { mutableStateOf(existingBinding?.host.orEmpty()) }

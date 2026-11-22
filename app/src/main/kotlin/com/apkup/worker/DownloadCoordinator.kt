@@ -510,8 +510,18 @@ class DownloadCoordinator(
             }
 
             if (update.oldVersionCode >= 0L && prefs.enableRollbackBackups.get()) {
+                val maxBudgetBytes = com.apkup.util.RollbackBackupManager.budgetMbToBytes(
+                    prefs.rollbackMaxBudgetMb.get()
+                )
+                val maxAgeDays = com.apkup.util.RollbackBackupManager.normalizeMaxAgeDays(
+                    prefs.rollbackMaxAgeDays.get()
+                )
                 com.apkup.util.RollbackBackupManager(appContext)
-                    .backupInstalledPackageBeforeUpdate(update.packageName)
+                    .backupInstalledPackageBeforeUpdate(
+                        packageName = update.packageName,
+                        maxTotalBytes = maxBudgetBytes,
+                        maxAgeDays = maxAgeDays
+                    )
             }
             val started = installer.installParts(update.id, update.packageName, parts)
             AppJournal.record(

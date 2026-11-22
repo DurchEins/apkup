@@ -16,8 +16,9 @@ const changelogLang = LOCALE_META[lang].changelogLang;
 
 function getReleaseSummary(clLang: 'en' | 'de', version: string): string {
   try {
+    const minorPrefix = version.split('.').slice(0, 2).join('.');
     const md = readFileSync(
-      join(process.cwd(), '..', 'app', 'src', 'main', 'assets', 'changelog', `1.45_${clLang}.md`),
+      join(process.cwd(), '..', 'app', 'src', 'main', 'assets', 'changelog', `${minorPrefix}_${clLang}.md`),
       'utf8'
     );
     const verEsc = version.replace('.', '\\.');

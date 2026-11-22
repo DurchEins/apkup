@@ -82,7 +82,8 @@ class SettingsViewModel(
 	private val gson: Gson = GsonBuilder().setPrettyPrinting().create(),
 	private val okHttpClient: OkHttpClient = OkHttpClient(),
 	private val repoMappingManager: RepoMappingManager? = null,
-	private val appJournal: AppJournal? = null
+	private val appJournal: AppJournal? = null,
+	private val rollbackBackupManager: com.apkup.util.RollbackBackupManager? = null
 ) : ViewModel() {
 
 	companion object {
@@ -811,6 +812,8 @@ class SettingsViewModel(
 			autoUpdateWindowStartMinutes = prefs.autoUpdateWindowStartMinutes.get(),
 			autoUpdateWindowEndMinutes = prefs.autoUpdateWindowEndMinutes.get(),
 			enableRollbackBackups = prefs.enableRollbackBackups.get(),
+			rollbackMaxBudgetMb = getRollbackMaxBudgetMb(),
+			rollbackMaxAgeDays = getRollbackMaxAgeDays(),
 			includeSelfUpdatePreReleases = prefs.includeSelfUpdatePreReleases.get()
 		)
 		return gson.toJson(config)
@@ -818,7 +821,7 @@ class SettingsViewModel(
 
 	fun importBackupJson(rawJson: String): Boolean = importBackupJsonDetailed(rawJson).success
 
-	@Suppress("SENSELESS_COMPARISON")
+	@Suppress("SENSELESS_COMPARISON", "USELESS_CAST")
 	fun importBackupJsonDetailed(rawJson: String): BackupImportResult {
 		if (rawJson.length > MAX_BACKUP_JSON_CHARS) {
 			notifySnack(R.string.backup_import_error)
@@ -1009,6 +1012,12 @@ class SettingsViewModel(
 			config.autoUpdateWindowStartMinutes?.let { prefs.autoUpdateWindowStartMinutes.put(com.apkup.data.ui.UpdateWindowEvaluator.normalizeMinutes(it)) }
 			config.autoUpdateWindowEndMinutes?.let { prefs.autoUpdateWindowEndMinutes.put(com.apkup.data.ui.UpdateWindowEvaluator.normalizeMinutes(it)) }
 			config.enableRollbackBackups?.let { prefs.enableRollbackBackups.put(it) }
+			config.rollbackMaxBudgetMb?.let {
+				prefs.rollbackMaxBudgetMb.put(com.apkup.util.RollbackBackupManager.normalizeBudgetMb(it))
+			}
+			config.rollbackMaxAgeDays?.let {
+				prefs.rollbackMaxAgeDays.put(com.apkup.util.RollbackBackupManager.normalizeMaxAgeDays(it))
+			}
 			prefs.includeSelfUpdatePreReleases.put(config.includeSelfUpdatePreReleases ?: false)
 			config.fdroidRepos?.let { importedRepos ->
 				val presetsById = FDroidRepoConfig.defaultPresets().associateBy { it.id }
@@ -1316,6 +1325,55 @@ class SettingsViewModel(
 	fun getEnableRollbackBackups(): Boolean = prefs.enableRollbackBackups.get()
 	fun setEnableRollbackBackups(enabled: Boolean) {
 		prefs.enableRollbackBackups.put(enabled)
+	}
+
+	fun getRollbackMaxBudgetMb(): Int =
+		com.apkup.util.RollbackBackupManager.normalizeBudgetMb(prefs.rollbackMaxBudgetMb.get())
+
+	fun setRollbackMaxBudgetMb(budgetMb: Int, onApplied: ((Int, Long) -> Unit)? = null) {
+		val normalized = com.apkup.util.RollbackBackupManager.normalizeBudgetMb(budgetMb)
+		prefs.rollbackMaxBudgetMb.put(normalized)
+		applyRollbackRetentionNow(onApplied)
+	}
+
+	fun getRollbackMaxAgeDays(): Int =
+		com.apkup.util.RollbackBackupManager.normalizeMaxAgeDays(prefs.rollbackMaxAgeDays.get())
+
+	fun setRollbackMaxAgeDays(maxAgeDays: Int, onApplied: ((Int, Long) -> Unit)? = null) {
+		val normalized = com.apkup.util.RollbackBackupManager.normalizeMaxAgeDays(maxAgeDays)
+		prefs.rollbackMaxAgeDays.put(normalized)
+		applyRollbackRetentionNow(onApplied)
+	}
+
+	fun getRollbackBackupStats(): Pair<Int, Long> =
+		rollbackBackupManager?.getBackupStats() ?: (0 to 0L)
+
+	fun applyRollbackRetentionNow(onApplied: ((Int, Long) -> Unit)? = null) {
+		val manager = rollbackBackupManager ?: return
+		val budgetBytes = com.apkup.util.RollbackBackupManager.budgetMbToBytes(getRollbackMaxBudgetMb())
+		val maxAgeDays = getRollbackMaxAgeDays()
+		viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+			runCatching { manager.cleanExpiredBackups(maxAgeDays = maxAgeDays, maxTotalBytes = budgetBytes) }
+			val updated = runCatching { manager.getBackupStats() }.getOrDefault(0 to 0L)
+			kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+				onApplied?.invoke(updated.first, updated.second)
+			}
+		}
+	}
+
+	fun clearAllRollbackBackups(onFinished: ((Int, Long) -> Unit)? = null) {
+		val manager = rollbackBackupManager ?: return
+		viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+			val (oldCount, _) = runCatching { manager.getBackupStats() }.getOrDefault(0 to 0L)
+			runCatching { manager.clearAllBackups() }
+			val updated = runCatching { manager.getBackupStats() }.getOrDefault(0 to 0L)
+			if (oldCount > 0) {
+				notifySnack(R.string.rollback_backups_cleared_snack, com.apkup.data.snack.SnackVisualType.SUCCESS)
+			}
+			kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+				onFinished?.invoke(updated.first, updated.second)
+			}
+		}
 	}
 
 	fun importAppWatcherJson(

@@ -244,7 +244,8 @@ val mainModule = module {
 			gson = get(),
 			okHttpClient = get(),
 			repoMappingManager = get(),
-			appJournal = getOrNull()
+			appJournal = getOrNull(),
+			rollbackBackupManager = getOrNull()
 		)
 	}
 
