@@ -205,7 +205,7 @@
       },
       "playstore": {
         "tag": "Anonymous Delta",
-        "desc": "Anonymous session tokens via Aurora Dispenser with a minimized device profile — no Google account required."
+        "desc": "Direct on-device anonymous Play Store sessions (no external dispenser server) with a minimized device profile — no Google account required."
       },
       "selfupdater": {
         "tag": "SHA256SUMS + Beta",
@@ -242,7 +242,7 @@
         },
         "playstore": {
           "source": "Google Play Store",
-          "msg": "Supported anonymously — checks compatible updates via Aurora Dispenser without a Google account."
+          "msg": "Supported anonymously — checks compatible updates directly on-device without a Google account or external dispenser server."
         },
         "custom": {
           "source": "Custom Host",
@@ -363,7 +363,7 @@
       },
       {
         "q": "Does Google Play Store checking require my Google account?",
-        "a": "No. ApkUp uses anonymous session tokens from the community Aurora Dispenser together with a privacy-minimized device compatibility profile (CPU ABI, Android SDK, density, and language) to fetch compatible updates without any personal login."
+        "a": "No. ApkUp generates anonymous Play Store sessions directly on-device (no third-party dispenser server sees your requests) together with a privacy-minimized device compatibility profile (CPU ABI, Android SDK, density, and language) to fetch compatible updates without any personal login."
       },
       {
         "q": "How does ApkUp protect me from tampered or incompatible APKs?",
@@ -617,7 +617,7 @@
     "s2Items": [
       "On first launch, ApkUp presents a Choose Update Sources consent dialog — zero external requests happen beforehand.",
       "F-Droid & IzzyOnDroid indexes are downloaded and compared locally on your device without transmitting your app list.",
-      "Google Play checks use anonymous Aurora Dispenser tokens with a minimized compatibility profile — no personal Google account is used."
+      "Google Play checks generate anonymous sessions directly on-device without a third-party dispenser server, using a minimized compatibility profile — no personal Google account is used."
     ],
     "s3Title": "3. Encrypted Local Storage & Auditing",
     "s3Body": "All preferences, bindings, and optional API tokens are encrypted at rest via Google Tink (AES-256-GCM) backed by Android Keystore. Cloud backups and cleartext HTTP are disabled.",
@@ -946,7 +946,7 @@
           },
           {
             "col1": "Google Play Store",
-            "col2": "Anonymous Aurora Dispenser token (no Google login)",
+            "col2": "Direct on-device anonymous session (no Google login, no dispenser server)",
             "col3": "Minimized device profile (ABI, SDK, density, locale) & HTTP 429 recovery"
           }
         ]
@@ -1127,7 +1127,7 @@
           },
           {
             "col1": "Google Play HTTP 429",
-            "col2": "Temporary anonymous Aurora Dispenser rate limit",
+            "col2": "Temporary anonymous Play Store rate limit",
             "col3": "ApkUp automatically backs off and retries with a fresh anonymous session token"
           },
           {
