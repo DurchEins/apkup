@@ -31,8 +31,8 @@ android {
         applicationId = "com.apkup" + System.getenv("BUILD_TAG").orEmpty().trim()
         minSdk = 29
         targetSdk = 37
-        versionCode = parsedBuildNumber ?: 225
-        versionName = if (parsedBuildNumber == null) "1.45.1 (225)" else "1.45.1-$parsedBuildNumber"
+        versionCode = parsedBuildNumber ?: 226
+        versionName = if (parsedBuildNumber == null) "1.45.1 (226)" else "1.45.1-$parsedBuildNumber"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -170,10 +170,10 @@ android {
 
 dependencies {
     constraints {
-        implementation("com.google.protobuf:protobuf-javalite:4.31.1") {
+        implementation("com.google.protobuf:protobuf-javalite:4.36.1") {
             because("Enforce floor >= 4.28.2 on transitive protobuf from gplayapi to mitigate CVE-2024-7254")
         }
-        implementation("com.google.protobuf:protobuf-java:4.31.1") {
+        implementation("com.google.protobuf:protobuf-java:4.36.1") {
             because("Enforce floor >= 4.28.2 if protobuf-java is ever pulled transitively")
         }
     }
@@ -193,9 +193,9 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
     implementation("com.google.crypto.tink:tink-android:1.24.0")
-    implementation("com.auroraoss:gplayapi:3.5.8")
+    implementation("com.auroraoss:gplayapi:3.6.4")
     implementation("com.google.code.gson:gson:2.15.0")
-    implementation("org.jsoup:jsoup:1.22.1")
+    implementation("org.jsoup:jsoup:1.24.1")
     implementation("com.squareup.okhttp3:okhttp:5.5.1")
     implementation("com.squareup.retrofit2:converter-gson:3.0.0")
     implementation("com.squareup.retrofit2:retrofit:3.0.0")

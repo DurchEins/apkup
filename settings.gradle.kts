@@ -22,15 +22,12 @@ dependencyResolutionManagement {
                 includeGroupAndSubgroups("com.google")
             }
         }
-        exclusiveContent {
-            forRepository {
-                maven("https://gitlab.com/api/v4/projects/18497829/packages/maven")
-            }
-            filter {
+        mavenCentral()
+        maven("https://gitlab.com/api/v4/projects/18497829/packages/maven") {
+            mavenContent {
                 includeGroup("com.auroraoss")
             }
         }
-        mavenCentral()
     }
 }
 
