@@ -45,7 +45,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
+import com.apkup.ui.component.rememberExpandedModalSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -131,7 +131,7 @@ fun rememberCustomTabUriHandler(): androidx.compose.ui.platform.UriHandler {
 fun SupportCommunityBottomSheet(
 	onDismiss: () -> Unit
 ) {
-	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+	val sheetState = rememberExpandedModalSheetState()
 	val openUrl = rememberCustomTabOpener()
 	val bmacTitle = stringResource(R.string.support_bmac_title)
 	val coindropTitle = stringResource(R.string.support_coindrop_title)

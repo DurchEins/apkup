@@ -112,7 +112,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.minimumInteractiveComponentSize
-import androidx.compose.material3.rememberModalBottomSheetState
+import com.apkup.ui.component.rememberExpandedModalSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -1784,7 +1784,7 @@ private fun ActiveQueueBottomSheet(
 	onDismiss: () -> Unit
 ) {
 	val context = LocalContext.current
-	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+	val sheetState = rememberExpandedModalSheetState()
 	val currentActiveTasks = activeTasks
 	val currentCompletedTasks = completedTasks
 
@@ -3603,7 +3603,7 @@ private fun UpdateDetailsSheet(
 ) {
 	val context = LocalContext.current
 	val handler = com.apkup.ui.component.rememberCustomTabUriHandler()
-	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+	val sheetState = rememberExpandedModalSheetState()
 	val liveTask = activeTasksMap[update.id]
 		?: activeTasksMap.values.firstOrNull { it.packageName == update.packageName }
 

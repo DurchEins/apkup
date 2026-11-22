@@ -8,8 +8,10 @@ import coil3.SingletonImageLoader
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import com.apkup.BuildConfig
 import com.apkup.di.mainModule
+import com.apkup.prefs.Prefs
 import com.apkup.util.AppLifecycleTracker
 import com.apkup.util.DownloadStorageManager
+import com.apkup.util.RollbackBackupManager
 import com.apkup.util.SessionInstaller
 import com.apkup.util.addUserAgentInterceptor
 import com.apkup.worker.DownloadCleanupWorker
@@ -57,6 +59,13 @@ class App : Application(), SingletonImageLoader.Factory, KoinComponent {
         // Run filesystem & orphaned session cleanup off the main thread to avoid cold-start ANRs (HIGH-18, LOW-01)
         appStartupScope.launch {
             runCatching { DownloadStorageManager.cleanExpiredDownloads(this@App) }
+            runCatching {
+                val prefs = get<Prefs>()
+                get<RollbackBackupManager>().cleanExpiredBackups(
+                    maxAgeDays = RollbackBackupManager.normalizeMaxAgeDays(prefs.rollbackMaxAgeDays.get()),
+                    maxTotalBytes = RollbackBackupManager.budgetMbToBytes(prefs.rollbackMaxBudgetMb.get())
+                )
+            }
             runCatching { get<SessionInstaller>().cleanOrphanedSessions() }
             runCatching {
                 WorkManager.getInstance(this@App).let { wm ->

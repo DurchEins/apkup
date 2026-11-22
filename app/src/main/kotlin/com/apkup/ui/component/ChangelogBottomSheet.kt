@@ -43,7 +43,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
+import com.apkup.ui.component.rememberExpandedModalSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateMapOf
@@ -127,7 +127,7 @@ fun ChangelogBottomSheet(
             com.apkup.util.isSafeHttpsUrl(target) -> openCustomTab(target)
         }
     }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberExpandedModalSheetState()
     val context = LocalContext.current
     val fallbackTitle = stringResource(R.string.changelog_title)
     val fallbackSubtitle = stringResource(R.string.changelog_menu_subtitle)

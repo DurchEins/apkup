@@ -1,10 +1,10 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import java.io.FileInputStream
+import java.io.StringReader
 import java.util.Properties
 
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.plugin.compose")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.compose)
 }
 
 kotlin {
@@ -21,18 +21,19 @@ android {
         }
     }
 
-    val buildNumber = System.getenv("BUILD_NUMBER").orEmpty().trim()
+    val buildNumber = providers.environmentVariable("BUILD_NUMBER").orNull.orEmpty().trim()
     val parsedBuildNumber = buildNumber.takeIf { it.isNotEmpty() }?.let { raw ->
         raw.toIntOrNull()?.takeIf { it > 0 }
             ?: throw GradleException("BUILD_NUMBER must be a positive integer, got: '$raw'")
     }
+    val buildTag = providers.environmentVariable("BUILD_TAG").orNull.orEmpty().trim()
 
     defaultConfig {
-        applicationId = "com.apkup" + System.getenv("BUILD_TAG").orEmpty().trim()
+        applicationId = "com.apkup" + buildTag
         minSdk = 29
         targetSdk = 37
-        versionCode = parsedBuildNumber ?: 227
-        versionName = if (parsedBuildNumber == null) "1.45.2 (227)" else "1.45.2-$parsedBuildNumber"
+        versionCode = parsedBuildNumber ?: 229
+        versionName = if (parsedBuildNumber == null) "1.45.2 (229)" else "1.45.2-$parsedBuildNumber"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -41,12 +42,12 @@ android {
             var configured = false
 
             // 1. Prefer environment variables (used in CI; immune to Properties backslash corruption)
-            val envKsPath = System.getenv("ANDROID_KEYSTORE_PATH")?.trim().orEmpty()
+            val envKsPath = providers.environmentVariable("ANDROID_KEYSTORE_PATH").orNull?.trim().orEmpty()
             if (envKsPath.isNotEmpty()) {
                 val envKsFile = File(envKsPath)
-                val envStorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD").orEmpty()
-                val envKeyAlias = System.getenv("ANDROID_KEY_ALIAS")?.trim().orEmpty()
-                val envKeyPassword = System.getenv("ANDROID_KEY_PASSWORD").orEmpty()
+                val envStorePassword = providers.environmentVariable("ANDROID_KEYSTORE_PASSWORD").orNull.orEmpty()
+                val envKeyAlias = providers.environmentVariable("ANDROID_KEY_ALIAS").orNull?.trim().orEmpty()
+                val envKeyPassword = providers.environmentVariable("ANDROID_KEY_PASSWORD").orNull.orEmpty()
                 if (envKsFile.isFile && envStorePassword.isNotEmpty() && envKeyAlias.isNotEmpty() && envKeyPassword.isNotEmpty()) {
                     storeFile = envKsFile
                     storePassword = envStorePassword
@@ -63,18 +64,23 @@ android {
             // 2. Fallback to root local.properties for local developer builds
             if (!configured) {
                 try {
-                    val propFile = rootProject.file("local.properties")
-                    if (propFile.isFile) {
+                    val propText = providers.fileContents(
+                        rootProject.layout.projectDirectory.file("local.properties")
+                    ).asText.orNull
+                    if (propText != null) {
                         val props = Properties()
-                        FileInputStream(propFile).use { props.load(it) }
+                        props.load(StringReader(propText))
                         val ksPath = props.getProperty("keystore.file")?.trim()
                         if (!ksPath.isNullOrEmpty()) {
                             val ksFile = File(ksPath)
                             val resolvedFile = when {
                                 ksFile.isAbsolute && ksFile.isFile -> ksFile
-                                rootProject.file(ksPath).isFile -> rootProject.file(ksPath)
-                                file(ksPath).isFile -> file(ksPath)
-                                rootProject.file("app/$ksPath").isFile -> rootProject.file("app/$ksPath")
+                                rootProject.layout.projectDirectory.file(ksPath).asFile.isFile ->
+                                    rootProject.layout.projectDirectory.file(ksPath).asFile
+                                layout.projectDirectory.file(ksPath).asFile.isFile ->
+                                    layout.projectDirectory.file(ksPath).asFile
+                                rootProject.layout.projectDirectory.file("app/$ksPath").asFile.isFile ->
+                                    rootProject.layout.projectDirectory.file("app/$ksPath").asFile
                                 else -> null
                             }
                             val ksPass = props.getProperty("keystore.password")
@@ -98,21 +104,15 @@ android {
             }
 
             if (!configured) {
-                val isCi = System.getenv("CI").equals("true", ignoreCase = true)
-                val isReleaseTaskRequested = gradle.startParameter.taskNames.any {
-                    it.contains("Release", ignoreCase = true)
+                val isCi = providers.environmentVariable("CI").orNull.equals("true", ignoreCase = true)
+                if (!isCi) {
+                    val debugConfig = signingConfigs.getByName("debug")
+                    storeFile = debugConfig.storeFile
+                    storePassword = debugConfig.storePassword
+                    keyAlias = debugConfig.keyAlias
+                    keyPassword = debugConfig.keyPassword
+                    println("Local dev notice: Release keystore not configured; falling back to debug signing config.")
                 }
-                if (isCi && isReleaseTaskRequested) {
-                    throw GradleException(
-                        "CRITICAL: Release signing keystore is not configured in CI! Refusing to sign release build with debug keystore."
-                    )
-                }
-                val debugConfig = signingConfigs.getByName("debug")
-                storeFile = debugConfig.storeFile
-                storePassword = debugConfig.storePassword
-                keyAlias = debugConfig.keyAlias
-                keyPassword = debugConfig.keyPassword
-                println("Local dev notice: Release keystore not configured; falling back to debug signing config.")
             }
             enableV2Signing = true
             enableV3Signing = true
@@ -168,52 +168,64 @@ android {
     }
 }
 
+val isCiEnv = providers.environmentVariable("CI").map { it.equals("true", ignoreCase = true) }.getOrElse(false)
+val hasCiKeystoreEnv = providers.environmentVariable("ANDROID_KEYSTORE_PATH").map { it.isNotBlank() }.getOrElse(false)
+if (isCiEnv && !hasCiKeystoreEnv) {
+    tasks.matching { it.name.contains("Release", ignoreCase = true) }.configureEach {
+        doFirst {
+            throw GradleException(
+                "CRITICAL: Release signing keystore is not configured in CI! Refusing to sign release build with debug keystore."
+            )
+        }
+    }
+}
+
 dependencies {
     constraints {
-        implementation("com.google.protobuf:protobuf-javalite:4.36.1") {
+        implementation(libs.protobuf.javalite) {
             because("Enforce floor >= 4.28.2 on transitive protobuf from gplayapi to mitigate CVE-2024-7254")
         }
-        implementation("com.google.protobuf:protobuf-java:4.36.1") {
+        implementation(libs.protobuf.java) {
             because("Enforce floor >= 4.28.2 if protobuf-java is ever pulled transitively")
         }
     }
 
-    val composeBom = platform("androidx.compose:compose-bom:2026.11.01")
+    val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
-    implementation("androidx.activity:activity-compose:1.13.0")
-    implementation("androidx.browser:browser:1.9.0")
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.material:material-icons-core")
-    implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.core:core-ktx:1.19.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.11.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.11.1")
-    implementation("androidx.navigation:navigation-compose:2.10.2")
-    implementation("androidx.work:work-runtime-ktx:2.12.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
-    implementation("com.google.crypto.tink:tink-android:1.24.0")
-    implementation("com.auroraoss:gplayapi:3.6.4")
-    implementation("com.google.code.gson:gson:2.15.0")
-    implementation("org.jsoup:jsoup:1.24.1")
-    implementation("com.squareup.okhttp3:okhttp:5.5.1")
-    implementation("com.squareup.retrofit2:converter-gson:3.0.0")
-    implementation("com.squareup.retrofit2:retrofit:3.0.0")
-    implementation("io.coil-kt.coil3:coil-compose:3.6.3")
-    implementation("io.coil-kt.coil3:coil-network-okhttp:3.6.3")
-    implementation("io.insert-koin:koin-android:4.2.2")
-    implementation("io.insert-koin:koin-androidx-compose:4.2.2")
-    implementation("dev.rikka.shizuku:api:13.1.5")
-    implementation("dev.rikka.shizuku:provider:13.1.5")
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.browser)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.core)
+    implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.tink.android)
+    implementation(libs.aurora.gplayapi)
+    implementation(libs.gson)
+    implementation(libs.jsoup)
+    implementation(libs.okhttp)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.retrofit)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
+    implementation(libs.shizuku.api)
+    implementation(libs.shizuku.provider)
 
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 
     androidTestImplementation(composeBom)
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
-    androidTestImplementation("androidx.test.ext:junit:1.3.0")
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.androidx.test.espresso.core)
+    androidTestImplementation(libs.androidx.test.ext.junit)
 
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
-    debugImplementation("androidx.compose.ui:ui-tooling")
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    debugImplementation(libs.androidx.compose.ui.tooling)
 }

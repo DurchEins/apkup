@@ -107,7 +107,7 @@ data class GitLabReleaseDto(
     @Suppress("SENSELESS_COMPARISON")
     val safeDescription: String get() = (description as String?).orEmpty()
 
-    @Suppress("SENSELESS_COMPARISON")
+    @Suppress("SENSELESS_COMPARISON", "USELESS_CAST")
     val safeLinks: List<GitLabLinkDto>
         get() = ((assets as GitLabAssetsDto?)?.links as List<GitLabLinkDto>?).orEmpty()
 }

@@ -1,5 +1,6 @@
 package com.apkup.ui.component
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
@@ -22,9 +23,11 @@ import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.DragIndicator
 import androidx.compose.material.icons.rounded.PushPin
 import androidx.compose.material.icons.rounded.RestartAlt
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,7 +38,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -83,7 +85,7 @@ fun SourcePriorityBottomSheet(
     onReset: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberExpandedModalSheetState()
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -280,7 +282,7 @@ fun PinAppSourceBottomSheet(
     currentPreReleaseOverride: String = com.apkup.data.ui.PreReleaseOverride.DEFAULT,
     onSelectPreReleaseOverride: ((String) -> Unit)? = null
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberExpandedModalSheetState()
     var selectedPreRelease by remember(currentPreReleaseOverride) { mutableStateOf(currentPreReleaseOverride) }
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -471,7 +473,7 @@ private fun PinSourceOptionRow(
 fun SourceHealthBottomSheet(
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberExpandedModalSheetState()
     val entries = remember { com.apkup.util.SourceHealthTracker.snapshot() }
     val nowMillis = remember { System.currentTimeMillis() }
 
@@ -584,7 +586,7 @@ fun PreReleaseBottomSheet(
     onToggleChannel: (String, Boolean) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberExpandedModalSheetState()
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -715,7 +717,7 @@ fun UpdateWindowBottomSheet(
     onEndMinutesChanged: (Int) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberExpandedModalSheetState()
     val context = androidx.compose.ui.platform.LocalContext.current
 
     ModalBottomSheet(
@@ -848,6 +850,234 @@ fun UpdateWindowBottomSheet(
                 }
             }
             Spacer(modifier = Modifier.height(4.dp))
+        }
+    }
+}
+
+@Composable
+fun rollbackBudgetLabel(budgetMb: Int): String = when (budgetMb) {
+    256 -> "256 MB"
+    512 -> "512 MB"
+    1024 -> "1 GB"
+    2048 -> "2 GB"
+    else -> "${budgetMb} MB"
+}
+
+@Composable
+fun rollbackMaxAgeLabel(maxAgeDays: Int): String = when (maxAgeDays) {
+    7 -> stringResource(R.string.rollback_ttl_7_days)
+    14 -> stringResource(R.string.rollback_ttl_14_days)
+    30 -> stringResource(R.string.rollback_ttl_30_days)
+    else -> stringResource(R.string.rollback_ttl_never)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RollbackSettingsBottomSheet(
+    enabled: Boolean,
+    budgetMb: Int,
+    maxAgeDays: Int,
+    backupCount: Int,
+    backupTotalBytes: Long,
+    onToggleEnabled: (Boolean) -> Unit,
+    onBudgetSelected: (Int) -> Unit,
+    onMaxAgeSelected: (Int) -> Unit,
+    onClearAllBackups: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberExpandedModalSheetState()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val formattedSize = remember(context, backupTotalBytes) {
+        android.text.format.Formatter.formatShortFileSize(context, backupTotalBytes)
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .navigationBarsPadding()
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.settings_rollback_backups_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = stringResource(R.string.settings_rollback_sheet_desc),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onToggleEnabled(!enabled) }
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.settings_rollback_backups_title),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Switch(checked = enabled, onCheckedChange = onToggleEnabled)
+                }
+            }
+
+            Text(
+                text = stringResource(R.string.settings_rollback_budget_title),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                com.apkup.util.RollbackBackupManager.BUDGET_OPTIONS_MB.forEach { optionMb ->
+                    val selected = budgetMb == optionMb
+                    Surface(
+                        onClick = { if (enabled) onBudgetSelected(optionMb) },
+                        shape = RoundedCornerShape(14.dp),
+                        color = if (selected && enabled) {
+                            MaterialTheme.colorScheme.primaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.surfaceContainerHigh
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Box(
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 12.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = rollbackBudgetLabel(optionMb),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                                color = when {
+                                    !enabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
+                                    selected -> MaterialTheme.colorScheme.onPrimaryContainer
+                                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                },
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            }
+
+            Text(
+                text = stringResource(R.string.settings_rollback_ttl_title),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                com.apkup.util.RollbackBackupManager.MAX_AGE_OPTIONS_DAYS.forEach { optionDays ->
+                    val selected = maxAgeDays == optionDays
+                    Surface(
+                        onClick = { if (enabled) onMaxAgeSelected(optionDays) },
+                        shape = RoundedCornerShape(14.dp),
+                        color = if (selected && enabled) {
+                            MaterialTheme.colorScheme.primaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.surfaceContainerHigh
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Box(
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 12.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = rollbackMaxAgeLabel(optionDays),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                                color = when {
+                                    !enabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
+                                    selected -> MaterialTheme.colorScheme.onPrimaryContainer
+                                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                },
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            }
+
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = if (backupCount > 0) {
+                            stringResource(R.string.settings_rollback_usage_summary, backupCount, formattedSize)
+                        } else {
+                            stringResource(R.string.settings_rollback_usage_empty)
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    OutlinedButton(
+                        onClick = onClearAllBackups,
+                        enabled = backupCount > 0,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        ),
+                        border = BorderStroke(
+                            1.dp,
+                            if (backupCount > 0) {
+                                MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
+                            } else {
+                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                            }
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.DeleteOutline,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.settings_rollback_clear_all_btn),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+            }
         }
     }
 }

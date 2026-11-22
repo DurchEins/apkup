@@ -46,11 +46,15 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetState
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -239,7 +243,7 @@ fun SettingsSection(
 							interactionSource = remember { MutableInteractionSource() },
 							indication = null
 						) {
-							onExpandedChange?.invoke(expanded != true)
+							onExpandedChange(expanded != true)
 						},
 					verticalAlignment = Alignment.CenterVertically,
 					horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -581,3 +585,15 @@ fun ApkUpSplitActionButton(
 		}
 	}
 }
+
+/**
+ * Shared Material 3 sheet state helper matching skip-partially-expanded modal sheet behavior
+ * without relying on deprecated [androidx.compose.material3.rememberModalBottomSheetState].
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun rememberExpandedModalSheetState(): SheetState =
+	rememberBottomSheetState(
+		initialValue = SheetValue.Hidden,
+		enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+	)

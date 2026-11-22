@@ -102,11 +102,14 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
+import androidx.compose.foundation.text.input.TextObfuscationMode
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedSecureTextField
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
@@ -119,7 +122,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.minimumInteractiveComponentSize
-import androidx.compose.material3.rememberModalBottomSheetState
+import com.apkup.ui.component.rememberExpandedModalSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -284,6 +287,13 @@ fun Settings(
 	var showSourceHealthSheet by remember { mutableStateOf(false) }
 	var showPreReleaseSheet by remember { mutableStateOf(false) }
 	var showUpdateWindowSheet by remember { mutableStateOf(false) }
+	var showRollbackSettingsSheet by remember { mutableStateOf(false) }
+	var rollbackStats by remember { mutableStateOf(0 to 0L) }
+	LaunchedEffect(configRefreshKey, showRollbackSettingsSheet) {
+		rollbackStats = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+			viewModel.getRollbackBackupStats()
+		}
+	}
 	var showWifiDownloadSheet by remember { mutableStateOf(false) }
 	var showGitHubTokenDialog by remember { mutableStateOf(false) }
 	var showGitLabTokenDialog by remember { mutableStateOf(false) }
@@ -950,33 +960,38 @@ fun Settings(
 					Row(
 						modifier = Modifier
 							.fillMaxWidth()
-							.padding(horizontal = 4.dp, vertical = 10.dp),
+							.heightIn(min = 48.dp)
+							.padding(horizontal = 4.dp, vertical = 6.dp),
 						verticalAlignment = Alignment.CenterVertically
 					) {
 						Box(
 							modifier = Modifier
-								.size(38.dp)
+								.size(32.dp)
 								.clip(RoundedCornerShape(10.dp))
-								.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+								.background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.72f)),
 							contentAlignment = Alignment.Center
 						) {
 							Icon(
 								imageVector = Icons.Rounded.SwapVert,
 								contentDescription = null,
 								tint = MaterialTheme.colorScheme.primary,
-								modifier = Modifier.size(20.dp)
+								modifier = Modifier.size(18.dp)
 							)
 						}
-						Spacer(modifier = Modifier.width(12.dp))
-						Column(modifier = Modifier.weight(1f)) {
+						Spacer(modifier = Modifier.width(10.dp))
+						Column(
+							modifier = Modifier.weight(1f),
+							verticalArrangement = Arrangement.spacedBy(1.dp)
+						) {
 							Text(
 								text = stringResource(R.string.settings_source_priority_title),
-								style = MaterialTheme.typography.bodyLarge,
+								style = MaterialTheme.typography.bodyMedium,
+								fontWeight = FontWeight.Medium,
 								color = MaterialTheme.colorScheme.onSurface
 							)
 							Text(
 								text = priorityPreview,
-								style = MaterialTheme.typography.bodySmall,
+								style = MaterialTheme.typography.labelSmall,
 								color = MaterialTheme.colorScheme.onSurfaceVariant,
 								maxLines = 1,
 								overflow = TextOverflow.Ellipsis
@@ -985,7 +1000,8 @@ fun Settings(
 						Icon(
 							imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
 							contentDescription = null,
-							tint = MaterialTheme.colorScheme.onSurfaceVariant
+							tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+							modifier = Modifier.size(20.dp)
 						)
 					}
 				}
@@ -1112,15 +1128,38 @@ fun Settings(
 				var rollbackBackupsEnabled by remember(configRefreshKey) {
 					mutableStateOf(viewModel.getEnableRollbackBackups())
 				}
+				val rollbackBudgetMb = remember(configRefreshKey) { viewModel.getRollbackMaxBudgetMb() }
+				val rollbackMaxAgeDays = remember(configRefreshKey) { viewModel.getRollbackMaxAgeDays() }
+				val rollbackBudgetLabel = com.apkup.ui.component.rollbackBudgetLabel(rollbackBudgetMb)
+				val rollbackMaxAgeLabel = com.apkup.ui.component.rollbackMaxAgeLabel(rollbackMaxAgeDays)
+				val rollbackSizeText = remember(context, rollbackStats.second) {
+					android.text.format.Formatter.formatShortFileSize(context, rollbackStats.second)
+				}
+				val rollbackSubtitle = if (rollbackBackupsEnabled) {
+					if (rollbackStats.first > 0) {
+						stringResource(
+							R.string.settings_rollback_subtitle_active,
+							rollbackBudgetLabel,
+							rollbackMaxAgeLabel,
+							rollbackSizeText
+						)
+					} else {
+						"$rollbackBudgetLabel · $rollbackMaxAgeLabel"
+					}
+				} else {
+					stringResource(R.string.settings_rollback_backups_desc)
+				}
 				SwitchSetting(
 					getValue = { rollbackBackupsEnabled },
 					setValue = { enabled ->
 						viewModel.setEnableRollbackBackups(enabled)
 						rollbackBackupsEnabled = enabled
+						configRefreshKey++
 					},
 					text = stringResource(R.string.settings_rollback_backups_title),
 					icon = R.drawable.ic_refresh,
-					subtitle = stringResource(R.string.settings_rollback_backups_desc)
+					subtitle = rollbackSubtitle,
+					onClick = { showRollbackSettingsSheet = true }
 				)
 
 				// Conditional Shizuku Warning Card if enabled but not running
@@ -1215,7 +1254,12 @@ fun Settings(
 									}
 								)
 							}
-							if (autoInstallEnabled) {
+							val isReducedMotionAuto = ApkUpTheme.isReducedMotion
+							AnimatedVisibility(
+								visible = autoInstallEnabled,
+								enter = if (isReducedMotionAuto) fadeIn(tween(60)) else expandVertically(spring(stiffness = Spring.StiffnessMediumLow)) + fadeIn(),
+								exit = if (isReducedMotionAuto) fadeOut(tween(60)) else shrinkVertically(spring(stiffness = Spring.StiffnessMediumLow)) + fadeOut()
+							) {
 								Row(
 									modifier = Modifier
 										.fillMaxWidth()
@@ -1347,11 +1391,18 @@ fun Settings(
 								color = MaterialTheme.colorScheme.onSurfaceVariant
 							)
 						}
+						val advancedChevronRotation by animateFloatAsState(
+							targetValue = if (isAdvancedExpanded) 180f else 0f,
+							animationSpec = if (ApkUpTheme.isReducedMotion) tween(60) else spring(stiffness = Spring.StiffnessMediumLow),
+							label = "advanced_chevron"
+						)
 						Icon(
-							imageVector = if (isAdvancedExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+							imageVector = Icons.Default.KeyboardArrowDown,
 							contentDescription = null,
 							tint = MaterialTheme.colorScheme.onSurfaceVariant,
-							modifier = Modifier.size(22.dp)
+							modifier = Modifier
+								.size(22.dp)
+								.graphicsLayer { rotationZ = advancedChevronRotation }
 						)
 					}
 
@@ -1487,11 +1538,18 @@ fun Settings(
 											}
 										}
 									}
+									val permissionsChevronRotation by animateFloatAsState(
+										targetValue = if (isPermissionsExpanded) 180f else 0f,
+										animationSpec = if (ApkUpTheme.isReducedMotion) tween(60) else spring(stiffness = Spring.StiffnessMediumLow),
+										label = "permissions_chevron"
+									)
 									Icon(
-										imageVector = if (isPermissionsExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+										imageVector = Icons.Default.KeyboardArrowDown,
 										contentDescription = null,
 										tint = MaterialTheme.colorScheme.onSurfaceVariant,
-										modifier = Modifier.size(20.dp)
+										modifier = Modifier
+											.size(20.dp)
+											.graphicsLayer { rotationZ = permissionsChevronRotation }
 									)
 								}
 								AnimatedVisibility(
@@ -2887,6 +2945,39 @@ fun Settings(
 		)
 	}
 
+	if (showRollbackSettingsSheet) {
+		com.apkup.ui.component.RollbackSettingsBottomSheet(
+			enabled = viewModel.getEnableRollbackBackups(),
+			budgetMb = viewModel.getRollbackMaxBudgetMb(),
+			maxAgeDays = viewModel.getRollbackMaxAgeDays(),
+			backupCount = rollbackStats.first,
+			backupTotalBytes = rollbackStats.second,
+			onToggleEnabled = { enabled ->
+				viewModel.setEnableRollbackBackups(enabled)
+				configRefreshKey++
+			},
+			onBudgetSelected = { budgetMb ->
+				viewModel.setRollbackMaxBudgetMb(budgetMb) { count, bytes ->
+					rollbackStats = count to bytes
+				}
+				configRefreshKey++
+			},
+			onMaxAgeSelected = { maxAgeDays ->
+				viewModel.setRollbackMaxAgeDays(maxAgeDays) { count, bytes ->
+					rollbackStats = count to bytes
+				}
+				configRefreshKey++
+			},
+			onClearAllBackups = {
+				viewModel.clearAllRollbackBackups { count, bytes ->
+					rollbackStats = count to bytes
+					configRefreshKey++
+				}
+			},
+			onDismiss = { showRollbackSettingsSheet = false }
+		)
+	}
+
 	if (showWifiDownloadSheet) {
 		WifiDownloadBottomSheet(
 			wifiOnly = viewModel.getDownloadWifiOnly(),
@@ -3042,14 +3133,20 @@ private fun ApiTokenBottomSheet(
 	val resources = LocalResources.current
 	val uriHandler = LocalUriHandler.current
 	val coroutineScope = rememberCoroutineScope()
-	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-	var tokenText by remember { mutableStateOf(initialToken) }
+	val sheetState = rememberExpandedModalSheetState()
+	val tokenState = rememberTextFieldState(initialText = initialToken)
 	var isTokenVisible by remember { mutableStateOf(false) }
 	var isVerifying by remember { mutableStateOf(false) }
 	var isSaving by remember { mutableStateOf(false) }
 	var validationResult by remember { mutableStateOf<TokenValidationResult?>(null) }
 	var validatedTokenValue by remember { mutableStateOf<String?>(null) }
 	var isGuideExpanded by rememberSaveable { mutableStateOf(initialToken.isBlank()) }
+
+	LaunchedEffect(tokenState.text) {
+		if (tokenState.text.toString().trim() != validatedTokenValue) {
+			validationResult = null
+		}
+	}
 
 	fun formatValidationMessage(result: TokenValidationResult): String {
 		return when (result) {
@@ -3243,25 +3340,18 @@ private fun ApiTokenBottomSheet(
 						.padding(14.dp),
 					verticalArrangement = Arrangement.spacedBy(10.dp)
 				) {
-					OutlinedTextField(
-						value = tokenText,
-						onValueChange = {
-							tokenText = it
-							if (it.trim() != validatedTokenValue) {
-								validationResult = null
-							}
-						},
+					OutlinedSecureTextField(
+						state = tokenState,
 						label = { Text(stringResource(R.string.token_input_label)) },
 						placeholder = { Text(placeholder) },
-						singleLine = true,
 						keyboardOptions = KeyboardOptions(
 							keyboardType = KeyboardType.Password,
 							autoCorrectEnabled = false
 						),
-						visualTransformation = if (isTokenVisible) {
-							androidx.compose.ui.text.input.VisualTransformation.None
+						textObfuscationMode = if (isTokenVisible) {
+							TextObfuscationMode.Visible
 						} else {
-							androidx.compose.ui.text.input.PasswordVisualTransformation()
+							TextObfuscationMode.Hidden
 						},
 						trailingIcon = {
 							androidx.compose.material3.IconButton(onClick = { isTokenVisible = !isTokenVisible }) {
@@ -3279,7 +3369,7 @@ private fun ApiTokenBottomSheet(
 					if (onVerifyToken != null) {
 						OutlinedButton(
 							onClick = {
-								val trimmed = tokenText.trim()
+								val trimmed = tokenState.text.toString().trim()
 								if (trimmed.isNotEmpty() && !isVerifying && !isSaving) {
 									isVerifying = true
 									coroutineScope.launch {
@@ -3290,7 +3380,7 @@ private fun ApiTokenBottomSheet(
 									}
 								}
 							},
-							enabled = tokenText.isNotBlank() && !isVerifying && !isSaving,
+							enabled = tokenState.text.isNotBlank() && !isVerifying && !isSaving,
 							modifier = Modifier.fillMaxWidth(),
 							shape = RoundedCornerShape(14.dp)
 						) {
@@ -3374,7 +3464,7 @@ private fun ApiTokenBottomSheet(
 				}
 				Button(
 					onClick = {
-						val trimmed = tokenText.trim()
+						val trimmed = tokenState.text.toString().trim()
 						if (trimmed.isEmpty() || onVerifyToken == null) {
 							onSaveToken(trimmed)
 							onDismiss()
@@ -3456,7 +3546,7 @@ private fun ShizukuSetupBottomSheet(
 	onRequestPermission: () -> Unit,
 	onRecheck: () -> Unit
 ) {
-	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+	val sheetState = rememberExpandedModalSheetState()
 	var recheckPulseCount by remember { mutableIntStateOf(0) }
 	var showRecheckedFeedback by remember { mutableStateOf(false) }
 
@@ -3636,7 +3726,7 @@ private fun RootSetupBottomSheet(
 	onToggleRoot: (Boolean) -> Unit,
 	onDismiss: () -> Unit
 ) {
-	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+	val sheetState = rememberExpandedModalSheetState()
 	var recheckPulseCount by remember { mutableIntStateOf(0) }
 	var showRecheckedFeedback by remember { mutableStateOf(false) }
 
@@ -4345,7 +4435,7 @@ private fun HiddenAppsBottomSheet(
 	onHideMore: (Set<String>) -> Unit,
 	onDismiss: () -> Unit
 ) {
-	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+	val sheetState = rememberExpandedModalSheetState()
 	var isAddingMore by remember { mutableStateOf(false) }
 	var searchQuery by remember { mutableStateOf("") }
 	val selectedToRestore = remember(ignoredPackages) { mutableStateMapOf<String, Boolean>() }
@@ -4674,7 +4764,7 @@ private fun IgnoredVersionsBottomSheet(
 	onClearAll: () -> Unit,
 	onDismiss: () -> Unit
 ) {
-	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+	val sheetState = rememberExpandedModalSheetState()
 	ModalBottomSheet(
 		onDismissRequest = onDismiss,
 		sheetState = sheetState,
@@ -5055,7 +5145,7 @@ private fun BackgroundCheckIntervalBottomSheet(
 	onSelectHours: (Int) -> Unit,
 	onDismiss: () -> Unit
 ) {
-	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+	val sheetState = rememberExpandedModalSheetState()
 	val intervalOptions = listOf(
 		BackgroundCheckInterval.HOURS_6 to ("6h" to R.string.settings_interval_6h),
 		BackgroundCheckInterval.HOURS_12 to ("12h" to R.string.settings_interval_12h),
@@ -5190,7 +5280,7 @@ private fun ApkMirrorSettingsBottomSheet(
 	onDirectChanged: (Boolean) -> Unit,
 	onDismiss: () -> Unit
 ) {
-	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+	val sheetState = rememberExpandedModalSheetState()
 
 	ModalBottomSheet(
 		onDismissRequest = onDismiss,
@@ -5326,7 +5416,7 @@ private fun FDroidReposBottomSheet(
 	onRemoveCustomRepo: (String) -> Unit,
 	onDismiss: () -> Unit
 ) {
-	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+	val sheetState = rememberExpandedModalSheetState()
 	var showAddDialog by remember { mutableStateOf(false) }
 
 	ModalBottomSheet(
@@ -5639,7 +5729,7 @@ private fun WifiDownloadBottomSheet(
 	onBgCheckWifiOnlyChanged: (Boolean) -> Unit,
 	onDismiss: () -> Unit
 ) {
-	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+	val sheetState = rememberExpandedModalSheetState()
 
 	ModalBottomSheet(
 		onDismissRequest = onDismiss,
@@ -5812,7 +5902,7 @@ private fun ObtainiumImportBottomSheet(
 	onDismiss: () -> Unit,
 	onConfirmImport: (importMappings: Boolean, importFDroidRepos: Boolean, selectedWatchedPackages: Set<String>) -> Unit
 ) {
-	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+	val sheetState = rememberExpandedModalSheetState()
 	var importMappings by remember { mutableStateOf(preview.matchedInstalledBindings.isNotEmpty()) }
 	var importFDroidRepos by remember { mutableStateOf(preview.detectedFDroidRepos.isNotEmpty()) }
 	val selectedWatched = remember(preview) {

@@ -6,6 +6,7 @@ import android.util.Base64
 import android.util.Log
 import com.google.crypto.tink.Aead
 import com.google.crypto.tink.KeyTemplates
+import com.google.crypto.tink.RegistryConfiguration
 import com.google.crypto.tink.aead.AeadConfig
 import com.google.crypto.tink.integration.android.AndroidKeysetManager
 import java.nio.charset.StandardCharsets
@@ -289,7 +290,7 @@ class TinkSecurePrefsBackend private constructor(
                 .withMasterKeyUri(MASTER_KEY_URI)
                 .build()
                 .keysetHandle
-            return handle.getPrimitive(Aead::class.java)
+            return handle.getPrimitive(RegistryConfiguration.get(), Aead::class.java)
         }
 
         private fun migrateLegacyKryptoPrefsIfNeeded(

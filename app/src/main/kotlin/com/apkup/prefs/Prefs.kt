@@ -273,6 +273,14 @@ class Prefs(
     val autoUpdateWindowEndMinutes: PrefSlot<Int> = intSlot("autoUpdateWindowEndMinutes", defValue = 7 * 60)
 
     val enableRollbackBackups: PrefSlot<Boolean> = booleanSlot("enableRollbackBackups", defValue = true)
+    val rollbackMaxBudgetMb: PrefSlot<Int> = intSlot(
+        "rollbackMaxBudgetMb",
+        defValue = com.apkup.util.RollbackBackupManager.DEFAULT_MAX_BUDGET_MB
+    )
+    val rollbackMaxAgeDays: PrefSlot<Int> = intSlot(
+        "rollbackMaxAgeDays",
+        defValue = com.apkup.util.RollbackBackupManager.DEFAULT_MAX_AGE_DAYS
+    )
 
     val incompatibleVersionKeys: PrefSlot<List<String>> = jsonSlot(
         key = "incompatibleVersionKeys",

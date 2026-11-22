@@ -11,7 +11,10 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.apkup.prefs.Prefs
 import com.apkup.util.DownloadStorageManager
+import com.apkup.util.RollbackBackupManager
+import org.koin.java.KoinJavaComponent
 import java.util.concurrent.TimeUnit
 
 class DownloadCleanupWorker(
@@ -35,6 +38,15 @@ class DownloadCleanupWorker(
 
     override suspend fun doWork(): Result {
         DownloadStorageManager.cleanExpiredDownloads(applicationContext)
+        runCatching {
+            val prefs = KoinJavaComponent.getKoin().getOrNull<Prefs>()
+                ?: Prefs(com.apkup.prefs.TinkSecurePrefsBackend.create(applicationContext))
+            val manager = KoinJavaComponent.getKoin().getOrNull<RollbackBackupManager>()
+                ?: RollbackBackupManager(applicationContext)
+            val maxBudgetBytes = RollbackBackupManager.budgetMbToBytes(prefs.rollbackMaxBudgetMb.get())
+            val maxAgeDays = RollbackBackupManager.normalizeMaxAgeDays(prefs.rollbackMaxAgeDays.get())
+            manager.cleanExpiredBackups(maxAgeDays = maxAgeDays, maxTotalBytes = maxBudgetBytes)
+        }
         return Result.success()
     }
 }

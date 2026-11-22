@@ -142,4 +142,41 @@ class BackupRestoreTest {
         assertTrue(viewModel.importBackupJson(legacyJson))
         assertFalse(viewModel.getIncludeSelfUpdatePreReleases())
     }
+
+    @Test
+    fun backupExportAndImportPreservesRollbackRetentionConfigAndNormalizesInvalidValues() {
+        val storage = InMemoryPrefsBackend()
+        val prefs = Prefs(storage)
+        val viewModel = SettingsViewModel(prefs = prefs)
+
+        // Defaults must match RollbackBackupManager defaults (1024 MB / 14 days)
+        assertEquals(1024, viewModel.getRollbackMaxBudgetMb())
+        assertEquals(14, viewModel.getRollbackMaxAgeDays())
+
+        viewModel.setRollbackMaxBudgetMb(512)
+        viewModel.setRollbackMaxAgeDays(30)
+        assertEquals(512, viewModel.getRollbackMaxBudgetMb())
+        assertEquals(30, viewModel.getRollbackMaxAgeDays())
+
+        val exportedJson = viewModel.exportBackupJson()
+        assertTrue(exportedJson.contains("\"rollbackMaxBudgetMb\": 512"))
+        assertTrue(exportedJson.contains("\"rollbackMaxAgeDays\": 30"))
+
+        viewModel.setRollbackMaxBudgetMb(256)
+        viewModel.setRollbackMaxAgeDays(0)
+        assertTrue(viewModel.importBackupJson(exportedJson))
+        assertEquals(512, viewModel.getRollbackMaxBudgetMb())
+        assertEquals(30, viewModel.getRollbackMaxAgeDays())
+
+        val invalidJson = """
+            {
+              "schemaVersion": 2,
+              "rollbackMaxBudgetMb": 9999,
+              "rollbackMaxAgeDays": -5
+            }
+        """.trimIndent()
+        assertTrue(viewModel.importBackupJson(invalidJson))
+        assertEquals(1024, viewModel.getRollbackMaxBudgetMb())
+        assertEquals(14, viewModel.getRollbackMaxAgeDays())
+    }
 }
