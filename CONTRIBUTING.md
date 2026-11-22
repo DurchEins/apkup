@@ -8,39 +8,37 @@ Thank you for your interest in contributing to **ApkUp**! Whether you are report
 
 <table>
   <tr>
-    <td width="50%" valign="top">
+    <td width="33%" valign="top">
       <b>🐛 Report a Bug</b><br>
       Found a crash, broken source, or UI glitch?<br><br>
       <a href="https://github.com/DurchEins/apkup/issues/new?template=bug_report.yml"><img src="https://img.shields.io/badge/Open-Bug%20Report-DC2626?style=flat&logo=github" alt="Open Bug Report" /></a>
     </td>
-    <td width="50%" valign="top">
+    <td width="33%" valign="top">
       <b>✨ Request a Feature</b><br>
       Have an idea for a new source, toggle, or UX improvement?<br><br>
       <a href="https://github.com/DurchEins/apkup/issues/new?template=feature_request.yml"><img src="https://img.shields.io/badge/Feature-Request-A855F7?style=flat&logo=github" alt="Request Feature" /></a>
     </td>
-  </tr>
-  <tr>
-    <td width="50%" valign="top">
+    <td width="33%" valign="top">
       <b>🔗 Suggest Repo Mapping</b><br>
       Know the official Git repo for an app not auto-detected?<br><br>
       <a href="https://github.com/DurchEins/apkup/issues/new?template=repo_mapping_request.yml"><img src="https://img.shields.io/badge/Suggest-Repo%20Mapping-0EA5E9?style=flat&logo=github" alt="Suggest Repo Mapping" /></a>
     </td>
-    <td width="50%" valign="top">
-      <b>💻 Code Pull Request</b><br>
-      Ready to fix a bug or add a feature in Kotlin &amp; Compose?<br><br>
-      <a href="https://github.com/DurchEins/apkup/compare"><img src="https://img.shields.io/badge/Create-Pull%20Request-16A34A?style=flat&logo=github" alt="Create Pull Request" /></a>
-    </td>
   </tr>
   <tr>
-    <td width="50%" valign="top">
+    <td width="33%" valign="top">
       <b>🌍 Translate on Weblate</b><br>
       Help translate the app &amp; website in 9+ languages.<br><br>
       <a href="https://hosted.weblate.org/engage/apkup/"><img src="https://img.shields.io/badge/Translate-Weblate-144D3F?style=flat&logo=weblate" alt="Translate on Weblate" /></a>
     </td>
-    <td width="50%" valign="top">
+    <td width="33%" valign="top">
       <b>💬 Translation Issue</b><br>
       Report a typo, context mismatch, or request a new language.<br><br>
       <a href="https://github.com/DurchEins/apkup/issues/new?template=translation.yml"><img src="https://img.shields.io/badge/Translation-Issue-38BDF8?style=flat&logo=github" alt="Open Translation Issue" /></a>
+    </td>
+    <td width="33%" valign="top">
+      <b>💻 Code Pull Request</b><br>
+      Ready to fix a bug or add a feature in Kotlin &amp; Compose?<br><br>
+      <a href="https://github.com/DurchEins/apkup/compare"><img src="https://img.shields.io/badge/Create-Pull%20Request-16A34A?style=flat&logo=github" alt="Create Pull Request" /></a>
     </td>
   </tr>
 </table>
