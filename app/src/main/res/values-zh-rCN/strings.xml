@@ -255,6 +255,17 @@
     <string name="update_history_filter_empty_title">没有匹配的记录</string>
     <string name="update_history_filter_empty_desc">请尝试其他搜索词或重置筛选条件。</string>
     <string name="update_history_filter_reset">重置筛选</string>
+    <string name="batch_safety_title">批量更新安全检查</string>
+    <string name="batch_safety_low_battery">当前电量为 %1$d%% 且未充电。批量更新可能会耗尽剩余电量。</string>
+    <string name="batch_safety_low_storage">仅剩 %1$d MB 可用空间（批量安装建议至少 500 MB）。</string>
+    <string name="batch_safety_continue">仍然继续</string>
+    <string name="batch_retry_failed_banner">%1$d 个更新失败</string>
+    <string name="batch_retry_failed_short">重试失败项</string>
+    <string name="update_snooze_action">稍后提醒</string>
+    <string name="update_snooze_24h">24 小时</string>
+    <string name="update_snooze_3d">3 天</string>
+    <string name="update_snoozed_snack">已暂缓 %1$s</string>
+    <string name="watchlist_auto_removed_installed">已将 %1$s 移出关注列表（已安装）</string>
     <string name="update_history_empty_title">暂无更新记录</string>
     <string name="update_history_empty_desc">当 ApkUp 手动或通过 Shizuku 自动更新应用后，记录将显示在此处并提供旧版本链接。</string>
     <string name="update_history_mode_auto_shizuku">自动 · Shizuku</string>

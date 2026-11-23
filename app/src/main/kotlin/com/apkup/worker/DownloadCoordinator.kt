@@ -113,6 +113,10 @@ class DownloadCoordinator(
     private val _completedTasksFlow = MutableStateFlow<List<DownloadTaskState>>(emptyList())
     val completedTasksFlow: StateFlow<List<DownloadTaskState>> = _completedTasksFlow.asStateFlow()
 
+    private val failedBatchUpdates = ConcurrentHashMap<Int, AppUpdate>()
+    private val _failedBatchUpdatesFlow = MutableStateFlow<List<AppUpdate>>(emptyList())
+    val failedBatchUpdatesFlow: StateFlow<List<AppUpdate>> = _failedBatchUpdatesFlow.asStateFlow()
+
     private val _batchProgressFlow = MutableStateFlow<BatchProgressSummary?>(null)
     val batchProgressFlow: StateFlow<BatchProgressSummary?> = _batchProgressFlow.asStateFlow()
 
@@ -142,6 +146,16 @@ class DownloadCoordinator(
         _completedTasksFlow.value = emptyList()
     }
 
+    fun clearFailedBatchUpdates() {
+        failedBatchUpdates.clear()
+        _failedBatchUpdatesFlow.value = emptyList()
+    }
+
+    private fun recordFailedBatchUpdate(update: AppUpdate) {
+        failedBatchUpdates[update.id] = update
+        _failedBatchUpdatesFlow.value = failedBatchUpdates.values.toList()
+    }
+
     private fun expectedInitialTotalBytes(update: AppUpdate): Long = when {
         update.totalSize > 0L -> update.totalSize
         update.total > 0L -> update.total
@@ -161,6 +175,8 @@ class DownloadCoordinator(
             if (activeTasks.isEmpty()) {
                 completedTasks.clear()
                 _completedTasksFlow.value = emptyList()
+                failedBatchUpdates.clear()
+                _failedBatchUpdatesFlow.value = emptyList()
                 batchStartedAtMs = System.currentTimeMillis()
             }
             val storageDir = DownloadStorageManager.getDownloadDir(appContext)
@@ -602,6 +618,7 @@ class DownloadCoordinator(
             if (error is SecurityException || !File(stagingDir, Downloader.READY_MARKER_FILE).exists()) {
                 runCatching { stagingDir.deleteRecursively() }
             }
+            recordFailedBatchUpdate(update)
             knownUpdatesById.remove(update.id)
             removeTask(update.id)
             installLog.emitStatus(AppInstallStatus(success = false, id = update.id, snack = true))

@@ -348,6 +348,17 @@
     <string name="update_history_filter_empty_title">No matching updates</string>
     <string name="update_history_filter_empty_desc">Try another search term or reset your active filters.</string>
     <string name="update_history_filter_reset">Reset filters</string>
+    <string name="batch_safety_title">Batch update safety check</string>
+    <string name="batch_safety_low_battery">Battery is at %1$d%% and not charging. Large batch updates may drain remaining power.</string>
+    <string name="batch_safety_low_storage">Only %1$d MB of free storage remains (500 MB recommended for batch installs).</string>
+    <string name="batch_safety_continue">Continue anyway</string>
+    <string name="batch_retry_failed_banner">%1$d update(s) failed</string>
+    <string name="batch_retry_failed_short">Retry failed</string>
+    <string name="update_snooze_action">Snooze reminder</string>
+    <string name="update_snooze_24h">24 hours</string>
+    <string name="update_snooze_3d">3 days</string>
+    <string name="update_snoozed_snack">Snoozed %1$s</string>
+    <string name="watchlist_auto_removed_installed">Moved %1$s out of Watchlist — now installed</string>
     <string name="update_history_empty_title">No updates recorded yet</string>
     <string name="update_history_empty_desc">Once ApkUp updates apps manually or automatically via Shizuku, they appear here including a link to the previous version.</string>
     <string name="update_history_mode_auto_shizuku">Auto · Shizuku</string>

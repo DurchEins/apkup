@@ -462,13 +462,23 @@ class ShizukuAutoUpdateWorker(
             result = resolvedResult,
             ignoredVersionIds = if (prefs.ignoreVersionsFilterActive.get()) prefs.ignoredVersions.get() else emptyList(),
             ignoredPackages = if (prefs.ignoreAppsFilterActive.get()) prefs.ignoredApps.get() else emptyList()
-        )
+        ).filterNot { prefs.isUpdateSnoozed(it.packageName, it.versionCode, it.version) }
         if (notifiableUpdates.isEmpty()) {
             return Result.success()
         }
 
+        val storageDir = DownloadStorageManager.getDownloadDir(applicationContext)
+        val safetyStatus = com.apkup.util.checkBatchSafetyStatus(applicationContext, storageDir)
+        if (safetyStatus.hasAnyWarning) {
+            Log.i(
+                "ShizukuAutoUpdateWorker",
+                "Pausing background auto-update due to safety guard (battery=${safetyStatus.batteryPercent}%, charging=${safetyStatus.isCharging}, freeBytes=${safetyStatus.freeStorageBytes})"
+            )
+            return Result.retry()
+        }
+
         val runner = ShizukuAutoUpdateRunner(
-            storageBaseDir = DownloadStorageManager.getDownloadDir(applicationContext),
+            storageBaseDir = storageDir,
             prefs = prefs,
             downloader = downloader,
             apkMirrorResolver = apkMirrorResolver,

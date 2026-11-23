@@ -644,6 +644,8 @@ fun UpdatesScreenSuccess(
 	var showQueueSheet by rememberSaveable { mutableStateOf(false) }
 	val showMobileDataDialog by viewModel.showMobileDataDialog.collectAsStateWithLifecycle()
 	val showBatteryPromptDialog by viewModel.showBatteryPromptDialog.collectAsStateWithLifecycle()
+	val batchSafetyWarning by viewModel.batchSafetyWarning.collectAsStateWithLifecycle()
+	val failedBatchUpdates by viewModel.failedBatchUpdatesFlow.collectAsStateWithLifecycle()
 
 	var selectedSourceFilter by rememberSaveable { mutableStateOf<String?>(null) }
 	var searchExpanded by rememberSaveable { mutableStateOf(false) }
@@ -878,6 +880,65 @@ fun UpdatesScreenSuccess(
 							.toSet()
 					}
 				)
+			}
+
+			AnimatedVisibility(
+				visible = failedBatchUpdates.isNotEmpty() && activeTasks.isEmpty(),
+				enter = if (ApkUpTheme.isReducedMotion) androidx.compose.animation.EnterTransition.None else fadeIn() + expandVertically(),
+				exit = if (ApkUpTheme.isReducedMotion) androidx.compose.animation.ExitTransition.None else fadeOut() + shrinkVertically()
+			) {
+				Surface(
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(horizontal = 16.dp, vertical = 6.dp),
+					shape = RoundedCornerShape(20.dp),
+					color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.72f),
+					border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.25f))
+				) {
+					Row(
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(horizontal = 14.dp, vertical = 10.dp),
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(10.dp)
+					) {
+						Icon(
+							imageVector = Icons.Filled.Warning,
+							contentDescription = null,
+							tint = MaterialTheme.colorScheme.onErrorContainer,
+							modifier = Modifier.size(20.dp)
+						)
+						Text(
+							text = stringResource(R.string.batch_retry_failed_banner, failedBatchUpdates.size),
+							style = MaterialTheme.typography.bodyMedium,
+							fontWeight = FontWeight.SemiBold,
+							color = MaterialTheme.colorScheme.onErrorContainer,
+							modifier = Modifier.weight(1f)
+						)
+						FilledTonalButton(
+							onClick = { viewModel.retryFailedBatchUpdates() },
+							shape = CircleShape,
+							contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+						) {
+							Text(
+								text = stringResource(R.string.batch_retry_failed_short),
+								style = MaterialTheme.typography.labelLarge,
+								fontWeight = FontWeight.SemiBold
+							)
+						}
+						IconButton(
+							onClick = { viewModel.dismissFailedBatchUpdates() },
+							modifier = Modifier.size(32.dp)
+						) {
+							Icon(
+								imageVector = Icons.Filled.Close,
+								contentDescription = stringResource(R.string.action_cancel),
+								tint = MaterialTheme.colorScheme.onErrorContainer,
+								modifier = Modifier.size(18.dp)
+							)
+						}
+					}
+				}
 			}
 
 			if (updates.isNotEmpty() && sourceCounts.isNotEmpty()) {
@@ -1222,6 +1283,44 @@ fun UpdatesScreenSuccess(
 			},
 			dismissButton = {
 				TextButton(onClick = { viewModel.dismissBatteryPromptDialog() }) {
+					Text(text = stringResource(R.string.action_cancel))
+				}
+			}
+		)
+	}
+
+	batchSafetyWarning?.let { safety ->
+		val reasons = buildList {
+			if (safety.isLowBattery && !safety.isCharging && safety.batteryPercent != null) {
+				add(stringResource(R.string.batch_safety_low_battery, safety.batteryPercent))
+			}
+			if (safety.isLowStorage && safety.freeStorageBytes != null) {
+				val freeMb = (safety.freeStorageBytes / (1024L * 1024L)).toInt()
+				add(stringResource(R.string.batch_safety_low_storage, freeMb))
+			}
+		}
+		androidx.compose.material3.AlertDialog(
+			onDismissRequest = { viewModel.dismissBatchSafetyDialog() },
+			title = {
+				Text(
+					text = stringResource(R.string.batch_safety_title),
+					style = MaterialTheme.typography.titleLarge,
+					fontWeight = FontWeight.Bold
+				)
+			},
+			text = {
+				Text(
+					text = reasons.joinToString("\n\n"),
+					style = MaterialTheme.typography.bodyMedium
+				)
+			},
+			confirmButton = {
+				Button(onClick = { viewModel.confirmBatchSafetyProceed() }) {
+					Text(text = stringResource(R.string.batch_safety_continue))
+				}
+			},
+			dismissButton = {
+				TextButton(onClick = { viewModel.dismissBatchSafetyDialog() }) {
 					Text(text = stringResource(R.string.action_cancel))
 				}
 			}
@@ -2833,6 +2932,10 @@ private fun UpdatesList(
 				viewModel.ignoreAppPermanently(packageName)
 				appsViewModel.refresh(false)
 				selectedPackageName = null
+			},
+			onSnoozeUpdate = { chosen, durationMillis ->
+				viewModel.snoozeUpdate(chosen, durationMillis)
+				selectedPackageName = null
 			}
 		)
 	}
@@ -3581,6 +3684,10 @@ private fun CompactUpdatesGrid(
 				viewModel.ignoreAppPermanently(packageName)
 				appsViewModel.refresh(false)
 				selectedPackageName = null
+			},
+			onSnoozeUpdate = { chosen, durationMillis ->
+				viewModel.snoozeUpdate(chosen, durationMillis)
+				selectedPackageName = null
 			}
 		)
 	}
@@ -3599,7 +3706,8 @@ private fun UpdateDetailsSheet(
 	onInstallVariant: (AppUpdate) -> Unit,
 	onSaveApkVariant: (AppUpdate) -> Unit = {},
 	onIgnoreVersion: (Int) -> Unit,
-	onIgnoreAppPermanently: (String) -> Unit
+	onIgnoreAppPermanently: (String) -> Unit,
+	onSnoozeUpdate: (AppUpdate, Long) -> Unit = { _, _ -> }
 ) {
 	val context = LocalContext.current
 	val handler = com.apkup.ui.component.rememberCustomTabUriHandler()
@@ -4036,6 +4144,38 @@ private fun UpdateDetailsSheet(
 						stringResource(R.string.skip_this_version)
 					}
 				)
+			}
+
+			if (!activeVariant.isWatchedApp()) {
+				Row(
+					modifier = Modifier.fillMaxWidth(),
+					horizontalArrangement = Arrangement.spacedBy(8.dp)
+				) {
+					OutlinedButton(
+						onClick = { onSnoozeUpdate(activeVariant, 24L * 60L * 60L * 1000L) },
+						enabled = !isUpdateBusy,
+						shape = CircleShape,
+						modifier = Modifier.weight(1f).heightIn(min = 44.dp)
+					) {
+						Text(
+							text = "${stringResource(R.string.update_snooze_action)} · ${stringResource(R.string.update_snooze_24h)}",
+							maxLines = 1,
+							overflow = TextOverflow.Ellipsis
+						)
+					}
+					OutlinedButton(
+						onClick = { onSnoozeUpdate(activeVariant, 3L * 24L * 60L * 60L * 1000L) },
+						enabled = !isUpdateBusy,
+						shape = CircleShape,
+						modifier = Modifier.weight(1f).heightIn(min = 44.dp)
+					) {
+						Text(
+							text = stringResource(R.string.update_snooze_3d),
+							maxLines = 1,
+							overflow = TextOverflow.Ellipsis
+						)
+					}
+				}
 			}
 
 			TextButton(

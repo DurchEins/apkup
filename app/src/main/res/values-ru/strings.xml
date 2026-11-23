@@ -259,6 +259,17 @@
     <string name="update_history_filter_empty_title">Ничего не найдено</string>
     <string name="update_history_filter_empty_desc">Попробуйте другой запрос или сбросьте фильтры.</string>
     <string name="update_history_filter_reset">Сбросить фильтры</string>
+    <string name="batch_safety_title">Проверка перед пакетным обновлением</string>
+    <string name="batch_safety_low_battery">Заряд батареи %1$d%% без зарядки. Пакетное обновление может быстро разрядить устройство.</string>
+    <string name="batch_safety_low_storage">Свободно всего %1$d МБ (рекомендуется не менее 500 МБ).</string>
+    <string name="batch_safety_continue">Продолжить</string>
+    <string name="batch_retry_failed_banner">Не удалось обновить: %1$d</string>
+    <string name="batch_retry_failed_short">Повторить</string>
+    <string name="update_snooze_action">Напомнить позже</string>
+    <string name="update_snooze_24h">24 часа</string>
+    <string name="update_snooze_3d">3 дня</string>
+    <string name="update_snoozed_snack">%1$s отложено</string>
+    <string name="watchlist_auto_removed_installed">%1$s удалено из отслеживания — установлено</string>
     <string name="update_history_empty_title">Обновлений пока нет</string>
     <string name="update_history_empty_desc">Как только ApkUp обновит приложения вручную или автоматически через Shizuku, они пояятся здесь со ссылкой на предыдущую версию.</string>
     <string name="update_history_mode_auto_shizuku">Авто · Shizuku</string>
