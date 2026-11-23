@@ -74,6 +74,7 @@ import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
@@ -367,6 +368,8 @@ fun AppsScreenSuccess(
 	)
 
 	// 1. Top Bar
+	val shareContext = LocalContext.current
+	val shareChooserTitle = stringResource(R.string.apps_share_list_action)
 	AppsTopBar(
 		totalCount = filteredApps.size,
 		searchExpanded = searchExpanded || searchQuery.isNotBlank(),
@@ -377,6 +380,21 @@ fun AppsScreenSuccess(
 			searchExpanded = !searchExpanded
 		},
 		onAddWatchApp = { showWatchAppSheet = true },
+		onShareApps = if (filteredApps.isNotEmpty()) {
+			{
+				val repoUrls = filteredApps.associate { app ->
+					app.packageName to (customBindings[app.packageName]?.webUrl.orEmpty())
+				}
+				val shareText = com.apkup.util.formatShareableAppList(filteredApps, repoUrls)
+				val sendIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+					type = "text/plain"
+					putExtra(android.content.Intent.EXTRA_TEXT, shareText)
+				}
+				shareContext.startActivity(
+					android.content.Intent.createChooser(sendIntent, shareChooserTitle)
+				)
+			}
+		} else null,
 		sortOrder = sortOrder,
 		onSortOrderChange = { newOrder -> sortOrder = newOrder }
 	)
@@ -2161,6 +2179,7 @@ fun AppsTopBar(
 	searchExpanded: Boolean = false,
 	onToggleSearch: (() -> Unit)? = null,
 	onAddWatchApp: (() -> Unit)? = null,
+	onShareApps: (() -> Unit)? = null,
 	sortOrder: AppsSortOrder = AppsSortOrder.NAME_ASC,
 	onSortOrderChange: ((AppsSortOrder) -> Unit)? = null
 ) = TopAppBar(
@@ -2196,6 +2215,15 @@ fun AppsTopBar(
 	),
 	windowInsets = WindowInsets(0),
 	actions = {
+		if (onShareApps != null) {
+			IconButton(onClick = onShareApps) {
+				Icon(
+					imageVector = Icons.Filled.Share,
+					contentDescription = stringResource(R.string.apps_share_list_action),
+					tint = MaterialTheme.colorScheme.onSurfaceVariant
+				)
+			}
+		}
 		if (onAddWatchApp != null) {
 			IconButton(onClick = onAddWatchApp) {
 				Icon(

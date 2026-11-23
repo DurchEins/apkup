@@ -167,6 +167,25 @@ open class UpdatesNotification(private val context: Context) : AutoUpdateNotifie
             )
             .setAutoCancel(true)
 
+        val prefs = runCatching { org.koin.java.KoinJavaComponent.getKoin().getOrNull<com.apkup.prefs.Prefs>() }.getOrNull()
+        val canSilentInstall = prefs != null && (prefs.useShizukuInstaller.get() || prefs.useRootInstaller.get())
+        if (canSilentInstall && num > 0) {
+            val installIntent = Intent(context, com.apkup.worker.NotificationInstallAllReceiver::class.java).apply {
+                setPackage(context.packageName)
+            }
+            val installPendingIntent = PendingIntent.getBroadcast(
+                context,
+                4,
+                installIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            builder.addAction(
+                R.drawable.ic_install,
+                context.getString(R.string.notification_install_all_action),
+                installPendingIntent
+            )
+        }
+
         NotificationManagerCompat.from(context).notify(updateId, builder.build())
     }
 

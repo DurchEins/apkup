@@ -653,4 +653,27 @@
     <string name="apps_peek_last_updated">Last updated</string>
     <string name="apps_fingerprint_copied">Fingerprint copied</string>
     <string name="apps_newly_updated_badge">Recently updated</string>
+    <string name="widget_updates_description">Shows available ApkUp updates and triggers a quick check</string>
+    <string name="widget_updates_checking">Checking updates…</string>
+    <string name="widget_updates_never_checked">Not checked yet</string>
+    <string name="widget_updates_up_to_date">All apps up to date</string>
+    <string name="widget_updates_last_checked">Last check: %1$s</string>
+    <string name="widget_updates_tap_to_check">Tap refresh to check</string>
+    <plurals name="widget_updates_available">
+        <item quantity="one">%1$d update ready</item>
+        <item quantity="other">%1$d updates ready</item>
+    </plurals>
+    <string name="notification_install_all_action">Install all</string>
+    <string name="batch_retry_failed_short">Retry failed</string>
+    <string name="history_export_action">Export</string>
+    <string name="history_export_csv">Export as CSV</string>
+    <string name="history_export_markdown">Export as Markdown</string>
+    <string name="apps_share_list_action">Share app list</string>
+    <string name="backup_diff_title">Review backup changes</string>
+    <string name="backup_diff_repos">Linked repositories: %1$d → %2$d</string>
+    <string name="backup_diff_watchlist">Watchlist apps: %1$d → %2$d</string>
+    <string name="backup_diff_ignored">Ignored apps: %1$d → %2$d</string>
+    <string name="backup_diff_skipped">Skipped versions: %1$d → %2$d</string>
+    <string name="backup_diff_fdroid">Custom F-Droid repos: %1$d → %2$d</string>
+    <string name="backup_diff_confirm">Import backup</string>
 </resources>

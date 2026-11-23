@@ -116,6 +116,41 @@ fun UpdateHistoryBottomSheet(
     var selectedRollbackPair by remember { mutableStateOf<Pair<String, com.apkup.util.RollbackBackupMeta>?>(null) }
     var rollbackStatusHint by remember { mutableStateOf<String?>(null) }
     var pendingExportPkg by remember { mutableStateOf<String?>(null) }
+    var showExportMenu by remember { mutableStateOf(false) }
+
+    val csvExportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/csv")
+    ) { destUri ->
+        if (destUri != null) {
+            val ok = runCatching {
+                context.contentResolver.openOutputStream(destUri)?.use { out ->
+                    out.write(com.apkup.util.formatUpdateHistoryCsv(entries).toByteArray(Charsets.UTF_8))
+                }
+            }.isSuccess
+            Toast.makeText(
+                context,
+                resources.getString(if (ok) R.string.apk_save_success else R.string.apk_save_error, destUri.lastPathSegment ?: "CSV"),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    val mdExportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/markdown")
+    ) { destUri ->
+        if (destUri != null) {
+            val ok = runCatching {
+                context.contentResolver.openOutputStream(destUri)?.use { out ->
+                    out.write(com.apkup.util.formatUpdateHistoryMarkdown(entries).toByteArray(Charsets.UTF_8))
+                }
+            }.isSuccess
+            Toast.makeText(
+                context,
+                resources.getString(if (ok) R.string.apk_save_success else R.string.apk_save_error, destUri.lastPathSegment ?: "Markdown"),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
     var searchQuery by remember { mutableStateOf("") }
     var filterMode by remember { mutableStateOf(UpdateHistoryFilterMode.ALL) }
     var selectedSourceName by remember { mutableStateOf<String?>(null) }
@@ -228,23 +263,56 @@ fun UpdateHistoryBottomSheet(
                 }
 
                 if (entries.isNotEmpty()) {
-                    TextButton(
-                        onClick = { updatesViewModel.clearUpdateHistory() },
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.DeleteSweep,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(Modifier.width(4.dp))
-                        Text(
-                            text = stringResource(R.string.update_history_clear),
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.error
-                        )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box {
+                            TextButton(
+                                onClick = { showExportMenu = true },
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.history_export_action),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                            androidx.compose.material3.DropdownMenu(
+                                expanded = showExportMenu,
+                                onDismissRequest = { showExportMenu = false }
+                            ) {
+                                androidx.compose.material3.DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.history_export_csv)) },
+                                    onClick = {
+                                        showExportMenu = false
+                                        csvExportLauncher.launch("apkup-history.csv")
+                                    }
+                                )
+                                androidx.compose.material3.DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.history_export_markdown)) },
+                                    onClick = {
+                                        showExportMenu = false
+                                        mdExportLauncher.launch("apkup-history.md")
+                                    }
+                                )
+                            }
+                        }
+                        TextButton(
+                            onClick = { updatesViewModel.clearUpdateHistory() },
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.DeleteSweep,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = stringResource(R.string.update_history_clear),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
                     }
                 }
             }

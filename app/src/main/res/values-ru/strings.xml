@@ -635,4 +635,29 @@
     <string name="apps_peek_last_updated">Последнее обновление</string>
     <string name="apps_fingerprint_copied">Отпечаток скопирован</string>
     <string name="apps_newly_updated_badge">Недавно обновлено</string>
+    <string name="widget_updates_description">Показывает доступные обновления ApkUp и запускает быструю проверку</string>
+    <string name="widget_updates_checking">Проверка…</string>
+    <string name="widget_updates_never_checked">Не проверялось</string>
+    <string name="widget_updates_up_to_date">Всё обновлено</string>
+    <string name="widget_updates_last_checked">Последняя проверка: %1$s</string>
+    <string name="widget_updates_tap_to_check">Нажмите для проверки</string>
+    <plurals name="widget_updates_available">
+        <item quantity="one">%1$d обновление</item>
+        <item quantity="few">%1$d обновления</item>
+        <item quantity="many">%1$d обновлений</item>
+        <item quantity="other">%1$d обновлений</item>
+    </plurals>
+    <string name="notification_install_all_action">Установить всё</string>
+    <string name="batch_retry_failed_short">Повторить</string>
+    <string name="history_export_action">Экспорт</string>
+    <string name="history_export_csv">Экспорт в CSV</string>
+    <string name="history_export_markdown">Экспорт в Markdown</string>
+    <string name="apps_share_list_action">Поделиться списком</string>
+    <string name="backup_diff_title">Просмотр изменений копии</string>
+    <string name="backup_diff_repos">Привязанные репозитории: %1$d → %2$d</string>
+    <string name="backup_diff_watchlist">В списке отслеживания: %1$d → %2$d</string>
+    <string name="backup_diff_ignored">Игнорируемые: %1$d → %2$d</string>
+    <string name="backup_diff_skipped">Пропущенные версии: %1$d → %2$d</string>
+    <string name="backup_diff_fdroid">Свои F-Droid-репозитории: %1$d → %2$d</string>
+    <string name="backup_diff_confirm">Импортировать</string>
 </resources>

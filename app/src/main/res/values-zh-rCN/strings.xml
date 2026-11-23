@@ -629,4 +629,26 @@
     <string name="apps_peek_last_updated">最近更新</string>
     <string name="apps_fingerprint_copied">指纹已复制</string>
     <string name="apps_newly_updated_badge">近期更新</string>
+    <string name="widget_updates_description">显示可用的 ApkUp 更新并触发快速检查</string>
+    <string name="widget_updates_checking">正在检查…</string>
+    <string name="widget_updates_never_checked">尚未检查</string>
+    <string name="widget_updates_up_to_date">全部已是最新</string>
+    <string name="widget_updates_last_checked">上次检查：%1$s</string>
+    <string name="widget_updates_tap_to_check">点击刷新检查</string>
+    <plurals name="widget_updates_available">
+        <item quantity="other">有 %1$d 个可用更新</item>
+    </plurals>
+    <string name="notification_install_all_action">全部安装</string>
+    <string name="batch_retry_failed_short">重试</string>
+    <string name="history_export_action">导出</string>
+    <string name="history_export_csv">导出为 CSV</string>
+    <string name="history_export_markdown">导出为 Markdown</string>
+    <string name="apps_share_list_action">分享应用列表</string>
+    <string name="backup_diff_title">检查备份变更</string>
+    <string name="backup_diff_repos">关联仓库：%1$d → %2$d</string>
+    <string name="backup_diff_watchlist">关注应用：%1$d → %2$d</string>
+    <string name="backup_diff_ignored">已忽略应用：%1$d → %2$d</string>
+    <string name="backup_diff_skipped">已跳过版本：%1$d → %2$d</string>
+    <string name="backup_diff_fdroid">自定义 F-Droid 仓库：%1$d → %2$d</string>
+    <string name="backup_diff_confirm">导入备份</string>
 </resources>

@@ -628,4 +628,26 @@
     <string name="apps_peek_last_updated">最終更新</string>
     <string name="apps_fingerprint_copied">フィンガープリントをコピーしました</string>
     <string name="apps_newly_updated_badge">最近の更新</string>
+    <string name="widget_updates_description">利用可能な ApkUp 更新を表示し、クイックチェックを開始します</string>
+    <string name="widget_updates_checking">確認中…</string>
+    <string name="widget_updates_never_checked">未確認</string>
+    <string name="widget_updates_up_to_date">すべて最新</string>
+    <string name="widget_updates_last_checked">最終確認: %1$s</string>
+    <string name="widget_updates_tap_to_check">タップして確認</string>
+    <plurals name="widget_updates_available">
+        <item quantity="other">%1$d 件の更新あり</item>
+    </plurals>
+    <string name="notification_install_all_action">すべてインストール</string>
+    <string name="batch_retry_failed_short">再試行</string>
+    <string name="history_export_action">エクスポート</string>
+    <string name="history_export_csv">CSV 形式で保存</string>
+    <string name="history_export_markdown">Markdown 形式で保存</string>
+    <string name="apps_share_list_action">アプリ一覧を共有</string>
+    <string name="backup_diff_title">バックアップ変更内容の確認</string>
+    <string name="backup_diff_repos">リンク済みリポジトリ: %1$d → %2$d</string>
+    <string name="backup_diff_watchlist">ウォッチリスト: %1$d → %2$d</string>
+    <string name="backup_diff_ignored">無視するアプリ: %1$d → %2$d</string>
+    <string name="backup_diff_skipped">スキップしたバージョン: %1$d → %2$d</string>
+    <string name="backup_diff_fdroid">カスタム F-Droid リポジトリ: %1$d → %2$d</string>
+    <string name="backup_diff_confirm">インポート</string>
 </resources>

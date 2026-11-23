@@ -821,6 +821,41 @@ class SettingsViewModel(
 
 	fun importBackupJson(rawJson: String): Boolean = importBackupJsonDetailed(rawJson).success
 
+	data class BackupDiffPreview(
+		val customReposBackup: Int,
+		val customReposCurrent: Int,
+		val watchedAppsBackup: Int,
+		val watchedAppsCurrent: Int,
+		val ignoredAppsBackup: Int,
+		val ignoredAppsCurrent: Int,
+		val skippedVersionsBackup: Int,
+		val skippedVersionsCurrent: Int,
+		val customFDroidBackup: Int,
+		val customFDroidCurrent: Int
+	)
+
+	fun previewBackupJson(rawJson: String): BackupDiffPreview? {
+		if (rawJson.length > MAX_BACKUP_JSON_CHARS || ObtainiumManager.isObtainiumJson(rawJson)) {
+			return null
+		}
+		return runCatching {
+			val config = gson.fromJson(rawJson, ApkUpBackupConfig::class.java) ?: return null
+			if (!config.isSupportedSchemaVersion) return null
+			BackupDiffPreview(
+				customReposBackup = config.customRepoBindings.orEmpty().size,
+				customReposCurrent = prefs.readCustomRepoBindingsSafe().size,
+				watchedAppsBackup = config.watchedApps.orEmpty().size,
+				watchedAppsCurrent = prefs.readWatchedAppsSafe().size,
+				ignoredAppsBackup = config.ignoredApps.orEmpty().size,
+				ignoredAppsCurrent = prefs.ignoredApps.get().size,
+				skippedVersionsBackup = config.ignoredVersionEntries.orEmpty().size,
+				skippedVersionsCurrent = prefs.readIgnoredVersionEntriesSafe().size,
+				customFDroidBackup = config.customFDroidRepos.orEmpty().size,
+				customFDroidCurrent = prefs.readCustomFDroidReposSafe().size
+			)
+		}.getOrNull()
+	}
+
 	@Suppress("SENSELESS_COMPARISON", "USELESS_CAST")
 	fun importBackupJsonDetailed(rawJson: String): BackupImportResult {
 		if (rawJson.length > MAX_BACKUP_JSON_CHARS) {

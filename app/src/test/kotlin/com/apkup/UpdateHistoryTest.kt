@@ -168,4 +168,24 @@ class UpdateHistoryTest {
         )
         assertEquals(listOf("com.example.alpha"), bySource.map { it.packageName })
     }
+
+    @Test
+    fun `formatUpdateHistoryCsv and formatUpdateHistoryMarkdown escape special characters`() {
+        val entries = listOf(
+            UpdateHistoryEntry(
+                packageName = "com.example.app",
+                appName = "My, App",
+                oldVersion = "1.0",
+                newVersion = "2.0",
+                sourceName = "GitHub",
+                installedAtMillis = 1_700_000_000_000L
+            )
+        )
+        val csv = com.apkup.util.formatUpdateHistoryCsv(entries)
+        assertTrue(csv.contains("\"My, App\""))
+        assertTrue(csv.contains("com.example.app,1.0,2.0,GitHub"))
+
+        val md = com.apkup.util.formatUpdateHistoryMarkdown(entries)
+        assertTrue(md.contains("| My, App | com.example.app | 1.0 → 2.0 | GitHub |"))
+    }
 }

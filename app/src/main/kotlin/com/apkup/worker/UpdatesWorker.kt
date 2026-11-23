@@ -91,6 +91,18 @@ class UpdatesWorker(
             workManager.enqueueUniquePeriodicWork(TAG, policy, request)
         }
 
+        fun launchImmediate(workManager: WorkManager) {
+            val networkType = if (prefs.backgroundCheckWifiOnly.get()) NetworkType.UNMETERED else NetworkType.CONNECTED
+            val request = OneTimeWorkRequestBuilder<UpdatesWorker>()
+                .setConstraints(Constraints.Builder().setRequiredNetworkType(networkType).build())
+                .build()
+            workManager.enqueueUniqueWork(
+                "${TAG}_immediate",
+                ExistingWorkPolicy.REPLACE,
+                request
+            )
+        }
+
         private fun randomDelayMillis(): Long = if (prefs.useApkMirror.get()) {
             Random.nextLong(0L, 45L * 60L * 1_000L)
         } else {
@@ -161,6 +173,7 @@ class UpdatesWorker(
                 notification.showUpdateNotification(notifiableUpdates.size)
             }
         }
+        com.apkup.widget.UpdatesWidgetProvider.notifyWidgetDataChanged(applicationContext)
         return if (completed.isCompleteFailure && runAttemptCount < 3) Result.retry() else Result.success()
     }
 }
