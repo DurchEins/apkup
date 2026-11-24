@@ -2,13 +2,39 @@
 import { MIRRORS, SITE } from '../data/content';
 import MirrorIcon from './MirrorIcon.astro';
 import { DEFAULT_LOCALE, getTranslations, localePath, type Locale } from '../i18n';
+import sponsorsData from '../../../sponsors.json';
 
 interface Props {
   lang?: Locale;
 }
 
+interface SponsorEntry {
+  name: string;
+  url?: string;
+  avatar?: string;
+  tagline?: string;
+}
+
 const { lang = DEFAULT_LOCALE } = Astro.props;
 const t = getTranslations(lang);
+
+const champions: SponsorEntry[] = Array.isArray(sponsorsData?.champions) ? sponsorsData.champions : [];
+const featured: SponsorEntry[] = Array.isArray(sponsorsData?.featured) ? sponsorsData.featured : [];
+const supporters: SponsorEntry[] = Array.isArray(sponsorsData?.supporters) ? sponsorsData.supporters : [];
+const hasAnySponsors = champions.length > 0 || featured.length > 0 || supporters.length > 0;
+
+const WALL_COPY: Record<Locale, { title: string; subtitle: string; emptyCta: string; champions: string; featured: string; wall: string }> = {
+  en: { title: 'Supporters Wall', subtitle: 'Voluntary recognition for backers keeping ApkUp 100% free & GPL-3.0.', emptyCta: 'Be the first supporter on this wall!', champions: 'Open-Source Champions', featured: 'Featured Supporters', wall: 'Supporters Wall' },
+  de: { title: 'Supporters Wall', subtitle: 'Freiwillige Danksagung an alle, die ApkUp dauerhaft kostenlos & unter GPL-3.0 unterstützen.', emptyCta: 'Sei der erste Unterstützer auf dieser Wall!', champions: 'Open-Source Champions', featured: 'Featured Supporters', wall: 'Supporters Wall' },
+  es: { title: 'Muro de patrocinadores', subtitle: 'Reconocimiento voluntario a quienes mantienen ApkUp 100% libre y GPL-3.0.', emptyCta: '¡Sé la primera persona en apoyar este muro!', champions: 'Open-Source Champions', featured: 'Featured Supporters', wall: 'Supporters Wall' },
+  fr: { title: 'Mur des soutiens', subtitle: 'Remerciements volontaires à celles et ceux qui gardent ApkUp 100% libre et GPL-3.0.', emptyCta: 'Soyez le premier soutien sur ce mur !', champions: 'Open-Source Champions', featured: 'Featured Supporters', wall: 'Supporters Wall' },
+  it: { title: 'Muro dei sostenitori', subtitle: 'Riconoscimento volontario a chi mantiene ApkUp 100% gratuito e GPL-3.0.', emptyCta: 'Diventa il primo sostenitore su questo muro!', champions: 'Open-Source Champions', featured: 'Featured Supporters', wall: 'Supporters Wall' },
+  ja: { title: 'サポーターズウォール', subtitle: 'ApkUp を完全無料・GPL-3.0 で支えてくださる皆さまへの感謝。', emptyCta: '最初のサポーターになりませんか？', champions: 'Open-Source Champions', featured: 'Featured Supporters', wall: 'Supporters Wall' },
+  pt: { title: 'Mural de apoiadores', subtitle: 'Reconhecimento voluntário a quem mantém o ApkUp 100% gratuito e GPL-3.0.', emptyCta: 'Seja o primeiro apoiador neste mural!', champions: 'Open-Source Champions', featured: 'Featured Supporters', wall: 'Supporters Wall' },
+  ru: { title: 'Стена поддержки', subtitle: 'Добровольная благодарность всем, кто помогает ApkUp оставаться бесплатным и GPL-3.0.', emptyCta: 'Станьте первым спонсором на этой стене!', champions: 'Open-Source Champions', featured: 'Featured Supporters', wall: 'Supporters Wall' },
+  'zh-cn': { title: '支持者墙', subtitle: '感谢自愿支持 ApkUp 保持 100% 免费与 GPL-3.0 开源的伙伴们。', emptyCta: '成为这面墙上的第一位支持者！', champions: 'Open-Source Champions', featured: 'Featured Supporters', wall: 'Supporters Wall' },
+};
+const wallCopy = WALL_COPY[lang] ?? WALL_COPY.en;
 ---
 
 <section id="downloads" class="section downloads-section">
@@ -171,6 +197,89 @@ const t = getTranslations(lang);
           <span data-share-copied hidden>{t.downloadsSection.linkCopied}</span>
         </button>
       </div>
+    </div>
+
+    <div class="supporters-wall-card" id="supporters">
+      <div class="supporters-wall-header">
+        <div>
+          <h3>💖 {wallCopy.title}</h3>
+          <p>{wallCopy.subtitle}</p>
+        </div>
+        {!hasAnySponsors && (
+          <a
+            class="btn btn-secondary support-pill"
+            href="https://github.com/sponsors/DurchEins"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="#DB61A2" aria-hidden="true">
+              <path d="m8 14.25.345.666a.75.75 0 0 1-.69 0l-.008-.004-.018-.01a7.152 7.152 0 0 1-.31-.17 22.055 22.055 0 0 1-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.744 2.584l-.018.01-.006.003h-.002ZM4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.58 20.58 0 0 0 8 13.393a20.58 20.58 0 0 0 3.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.749.749 0 0 1-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5Z" />
+            </svg>
+            <span>{wallCopy.emptyCta}</span>
+          </a>
+        )}
+      </div>
+
+      {hasAnySponsors && (
+        <div class="supporters-tiers">
+          {champions.length > 0 && (
+            <div class="supporters-group">
+              <h4>🏛️ {wallCopy.champions}</h4>
+              <div class="supporters-grid supporters-grid-champions">
+                {champions.map((c) => (
+                  <div class="supporter-card supporter-card-champion">
+                    {c.avatar && <img src={c.avatar} alt={c.name} width="44" height="44" loading="lazy" />}
+                    <div>
+                      {c.url ? (
+                        <a href={c.url} target="_blank" rel="noopener noreferrer">{c.name}</a>
+                      ) : (
+                        <strong>{c.name}</strong>
+                      )}
+                      {c.tagline && <p>{c.tagline}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {featured.length > 0 && (
+            <div class="supporters-group">
+              <h4>⭐ {wallCopy.featured}</h4>
+              <div class="supporters-grid">
+                {featured.map((f) => (
+                  <div class="supporter-card supporter-card-featured">
+                    {f.avatar && <img src={f.avatar} alt={f.name} width="36" height="36" loading="lazy" />}
+                    <div>
+                      {f.url ? (
+                        <a href={f.url} target="_blank" rel="noopener noreferrer">{f.name}</a>
+                      ) : (
+                        <strong>{f.name}</strong>
+                      )}
+                      {f.tagline && <p>{f.tagline}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {supporters.length > 0 && (
+            <div class="supporters-group">
+              <h4>🌟 {wallCopy.wall}</h4>
+              <div class="supporters-pills">
+                {supporters.map((s) =>
+                  s.url ? (
+                    <a class="supporter-chip" href={s.url} target="_blank" rel="noopener noreferrer">{s.name}</a>
+                  ) : (
+                    <span class="supporter-chip">{s.name}</span>
+                  )
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   </div>
 </section>
@@ -376,5 +485,108 @@ const t = getTranslations(lang);
       transition: none;
       transform: none;
     }
+  }
+
+  .supporters-wall-card {
+    margin-block-start: 20px;
+    background: var(--bg);
+    border: 1px solid var(--outline-strong);
+    border-radius: var(--radius-lg);
+    padding: clamp(20px, 3vw, 28px);
+  }
+
+  .supporters-wall-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px 24px;
+  }
+
+  .supporters-wall-header h3 {
+    margin: 0 0 4px;
+    font-size: 1.15rem;
+    font-weight: 800;
+  }
+
+  .supporters-wall-header p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+  }
+
+  .supporters-tiers {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-block-start: 18px;
+  }
+
+  .supporters-group h4 {
+    margin: 0 0 10px;
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  .supporters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+
+  .supporter-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    background: var(--surface-low);
+    border: 1px solid var(--outline-strong);
+  }
+
+  .supporter-card-champion {
+    border-color: var(--accent);
+  }
+
+  .supporter-card img {
+    border-radius: 999px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .supporter-card a,
+  .supporter-card strong {
+    font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .supporter-card a:hover {
+    text-decoration: underline;
+  }
+
+  .supporter-card p {
+    margin: 2px 0 0;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+
+  .supporters-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .supporter-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-low);
+    border: 1px solid var(--outline-strong);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+    text-decoration: none;
   }
 </style>

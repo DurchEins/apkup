@@ -261,9 +261,31 @@ If ApkUp saves you time keeping your apps up to date, consider supporting its on
 
 <p align="center">
   <a href="https://github.com/sponsors/DurchEins"><img src=".github/assets/github-sponsors-button.svg" alt="Sponsor DurchEins on GitHub" height="57" /></a>&nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://buymeacoffee.com/durcheins"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="203" height="57" /></a>&nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://coindrop.to/durcheins"><img src=".github/assets/coindrop-button.png" alt="Coindrop.to me" width="229" height="57" /></a>
+  <a href="https://buymeacoffee.com/durcheins"><img src=".github/assets/buymeacoffee-button.svg" alt="Buy Me A Coffee" width="203" height="57" /></a>&nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://coindrop.to/durcheins"><img src=".github/assets/coindrop-button.svg" alt="Coindrop.to me" width="229" height="57" /></a>
 </p>
+
+<br>
+
+<!-- SPONSORS_WALL:START -->
+#### 🏛️ Open-Source Champions ($50+/mo)
+
+> *Be the first Open-Source Champion — privacy-respecting projects welcome! [Sponsor on GitHub](https://github.com/sponsors/DurchEins)*
+
+<details>
+<summary>⭐ <b>Featured Supporters</b> ($15–$25/mo &amp; $50–$100 one-time)</summary>
+
+> *Be the first Featured Supporter on this wall! [Become a sponsor](https://github.com/sponsors/DurchEins)*
+
+</details>
+
+<details>
+<summary>🌟 <b>Supporters Wall</b> ($5–$10/mo &amp; $10–$42 one-time)</summary>
+
+> *Be the first supporter on this wall! [Support ApkUp](https://github.com/sponsors/DurchEins)*
+
+</details>
+<!-- SPONSORS_WALL:END -->
 
 <br>
 
