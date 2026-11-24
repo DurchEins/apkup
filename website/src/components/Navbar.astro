@@ -36,6 +36,9 @@ const homeHref = localePath(lang, '');
         class="icon-pill icon-only"
         aria-label={t.nav.toggleThemeAria}
         title={t.nav.toggleThemeAria}
+        data-label-dark={t.nav.themeModeDark}
+        data-label-light={t.nav.themeModeLight}
+        data-label-a11y={t.nav.themeModeA11y}
       >
         <svg
           class="theme-icon-sun"
@@ -65,6 +68,21 @@ const homeHref = localePath(lang, '');
           aria-hidden="true"
         >
           <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+        </svg>
+        <svg
+          class="theme-icon-a11y"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.85"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 3v18M12 12l6.4-6.4M12 16l7.5-7.5M12 20l5-5" />
         </svg>
       </button>
 
@@ -340,11 +358,19 @@ const homeHref = localePath(lang, '');
     }
   }
 
-  :global([data-theme='dark']) .theme-icon-moon {
+  :global([data-theme='dark']) .theme-icon-moon,
+  :global([data-theme='light']) .theme-icon-sun,
+  .theme-icon-a11y {
     display: none;
   }
-  :global([data-theme='light']) .theme-icon-sun {
+
+  :global([data-theme-mode='a11y']) .theme-icon-sun,
+  :global([data-theme-mode='a11y']) .theme-icon-moon {
     display: none;
+  }
+
+  :global([data-theme-mode='a11y']) .theme-icon-a11y {
+    display: block;
   }
 
   .nav-cta {
@@ -454,7 +480,19 @@ const homeHref = localePath(lang, '');
     justify-content: center;
   }
 
-  @media (max-width: 960px) {
+  @media (max-width: 1180px) {
+    .nav-links a {
+      padding: 8px 9px;
+      font-size: 0.87rem;
+    }
+
+    .nav-cta {
+      padding: 10px 14px;
+      font-size: 0.86rem;
+    }
+  }
+
+  @media (max-width: 1080px) {
     .nav-links {
       display: none;
     }

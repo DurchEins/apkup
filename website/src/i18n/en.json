@@ -14,7 +14,10 @@
     "primaryAria": "Primary navigation",
     "mobileAria": "Mobile navigation",
     "toggleMenuAria": "Toggle navigation menu",
-    "toggleThemeAria": "Toggle light and dark theme",
+    "toggleThemeAria": "Cycle theme: Dark, Light, Accessibility AAA (Solar)",
+    "themeModeDark": "Theme: Dark (switch to Light)",
+    "themeModeLight": "Theme: Light (switch to Accessibility AAA)",
+    "themeModeA11y": "Theme: Accessibility AAA Solar (switch to Dark)",
     "features": "Features",
     "showcase": "Showcase",
     "sources": "Sources",
@@ -1238,16 +1241,16 @@
     "appItems": [
       "Full Jetpack Compose semantics with descriptive contentDescription labels, grouped update cards, headings, and live-region status announcements for scans, queues, and downloads.",
       "WCAG 2.5.3 Label-in-Name consistency for Voice Access and click/custom-action alternatives for pull-to-refresh, long-press batch selection, and drag-and-drop source ordering.",
-      "Minimum 48 dp touch targets on interactive controls, clean focus traversal order, and keyboard-accessible modal bottom sheets.",
-      "High-contrast Light and Dark Material 3 color schemes (>= 4.5:1 AA text contrast), optional Material You Dynamic Color, and dynamic system font scaling without clipped labels.",
+      "Minimum 48 dp touch targets on interactive controls, configurable large 2-column app grid (automatically enforced in Accessibility theme), clean focus traversal, and keyboard-accessible bottom sheets.",
+      "Standard WCAG 2.2 AA Light and Dark Material 3 palettes (>= 4.5:1) plus a dedicated Accessibility AAA theme (>= 7.0:1) with offline solar sunrise/sunset switching, crisp 1.5 dp borders, and automatic Dynamic Color pause.",
       "Respects Android reduced-motion settings cleanly across animations, shimmer loaders, and visual effects."
     ],
     "webTitle": "Website Accessibility Features",
     "webLead": "Built with semantic HTML5 and zero-dependency native ARIA controls across all 9 locales:",
     "webItems": [
-      "Semantic landmarks, skip-to-content navigation, keyboard-accessible menus/tabs/dialogs, and visible high-contrast focus indicators.",
+      "Semantic landmarks, skip-to-content navigation, keyboard-accessible menus/tabs/dialogs, and visible 3 px focus indicators.",
       "Pauseable screenshot showcase respecting prefers-reduced-motion alongside keyboard-triggerable image zoom and focus restoration on dialog close.",
-      "WCAG AA contrast tokens in both Light Off-White and Dark themes, including error, warning, copied, and badge states.",
+      "Three-way theme toggle (Dark, Light, and WCAG 2.2 AAA >= 7.0:1 High-Contrast Solar mode) validated across text, accents, errors, copied badges, and borders.",
       "Responsive layout reflow down to 320 px viewport width and 400% browser zoom without horizontal scrolling traps.",
       "Localized interfaces across 9 languages with accurate document and section lang attributes and keyboard-scrollable code and comparison tables."
     ],

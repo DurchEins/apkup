@@ -14,7 +14,10 @@
     "primaryAria": "Hauptnavigation",
     "mobileAria": "Mobile Navigation",
     "toggleMenuAria": "Navigationsmenü umschalten",
-    "toggleThemeAria": "Helles/dunkles Design umschalten",
+    "toggleThemeAria": "Design wechseln: Dunkel, Hell, Barrierefrei AAA (Sonnenstand)",
+    "themeModeDark": "Design: Dunkel (klicken für Hell)",
+    "themeModeLight": "Design: Hell (klicken für Barrierefrei AAA)",
+    "themeModeA11y": "Design: Barrierefrei AAA Sonnenstand (klicken für Dunkel)",
     "features": "Funktionen",
     "showcase": "Einblicke",
     "sources": "Quellen",
@@ -1238,16 +1241,16 @@
     "appItems": [
       "Vollständige Jetpack-Compose-Semantik mit präzisen Beschreibungen, zusammengefassten Update-Karten, Überschriften und Live-Region-Ansagen für Suchläufe, Warteschlangen und Downloads.",
       "WCAG-2.5.3-Konformität (sichtbarer Text im zugänglichen Namen) für Voice Access sowie Klick- und Barrierefreiheits-Aktionen als Alternative zu Ziehen, Gedrückthalten und Wischen.",
-      "Mindestens 48 dp große Interaktionsflächen bei Steuerelementen, logische Fokus-Reihenfolge und tastaturbedienbare Bottom Sheets.",
-      "Kontraststarke helle und dunkle Material-3-Farbsysteme (>= 4,5:1 AA-Kontrast), optionales Dynamic Color sowie saubere Unterstützung großer Systemschriften.",
+      "Mindestens 48 dp große Interaktionsflächen bei Steuerelementen, umschaltbare 2-Spalten-Rasterdichte (im Barrierefrei-Theme erzwungen), logische Fokus-Reihenfolge und tastaturbedienbare Bottom Sheets.",
+      "WCAG-2.2-AA-Material-3-Paletten (>= 4,5:1) sowie ein eigenes Barrierefreiheits-Theme nach WCAG 2.2 AAA (>= 7,0:1) mit Offline-Sonnenaufgangs-/-untergangs-Wechsel, klaren 1,5-dp-Rahmen und automatischer Dynamic-Color-Pause.",
       "Respektiert Android-Einstellungen für reduzierte Bewegungen über alle Animationen und Effekte hinweg."
     ],
     "webTitle": "Barrierefreiheit auf dieser Webseite",
     "webLead": "Semantisches HTML5 und native WAI-ARIA-Steuerung über alle 9 Sprachversionen hinweg:",
     "webItems": [
-      "Klare Landmarks, „Zum Hauptinhalt springen“-Link, tastaturbedienbare Menüs/Tabs/Dialoge sowie deutlich sichtbare Fokus-Ringe.",
+      "Klare Landmarks, „Zum Hauptinhalt springen“-Link, tastaturbedienbare Menüs/Tabs/Dialoge sowie deutlich sichtbare 3-px-Fokus-Ringe.",
       "Pausierbare Screenshot-Vorschau mit Berücksichtigung von prefers-reduced-motion sowie tastaturbedienbarer Zoom-Ansicht samt Fokus-Rückgabe beim Schließen.",
-      "WCAG-AA-geprüfte Kontraste im hellen Off-White- und im dunklen Design inklusive Fehler-, Warn-, Kopier- und Status-Badges.",
+      "Drei-Wege-Umschalter zwischen Dunkel, Hell und Barrierefreiheits-Modus nach WCAG 2.2 AAA (>= 7,0:1) mit automatischer Offline-Tag/Nacht-Anpassung nach Sonnenstand.",
       "Sauberer Umbruch ab 320 px Viewport-Breite und bis 400 % Browser-Zoom ohne horizontale Scroll-Fallen.",
       "Lokalisierung in 9 Sprachen mit korrekten lang-Attributen sowie tastatur-scrollbaren Tabellen und Code-Blöcken."
     ],

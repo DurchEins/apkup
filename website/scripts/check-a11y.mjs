@@ -44,8 +44,10 @@ function contrastRatio(hex1, hex2) {
 function parseTokenThemes(css) {
   const themes = {};
   const blocks = [
-    { name: 'dark', re: /:root,\s*\n?\[data-theme='dark'\]\s*\{([\s\S]*?)\}/ },
+    { name: 'dark', re: /:root,\s*\r?\n?\[data-theme='dark'\]\s*\{([\s\S]*?)\}/ },
     { name: 'light', re: /\[data-theme='light'\]\s*\{([\s\S]*?)\}/ },
+    { name: 'a11y-dark', re: /\[data-theme='dark'\]\[data-a11y='true'\]\s*\{([\s\S]*?)\}/ },
+    { name: 'a11y-light', re: /\[data-theme='light'\]\[data-a11y='true'\]\s*\{([\s\S]*?)\}/ },
   ];
   for (const b of blocks) {
     const m = css.match(b.re);
@@ -67,26 +69,28 @@ function auditTokens() {
   const css = readFileSync(tokensPath, 'utf8');
   const themes = parseTokenThemes(css);
   const pairs = [
-    ['text', 'bg', 4.5],
-    ['text', 'surface', 4.5],
-    ['text', 'surface-low', 4.5],
-    ['text', 'surface-high', 4.5],
-    ['text-muted', 'bg', 4.5],
-    ['text-muted', 'surface', 4.5],
-    ['text-muted', 'surface-low', 4.5],
-    ['text-muted', 'surface-high', 4.5],
-    ['accent', 'bg', 4.5],
-    ['accent', 'surface', 4.5],
-    ['accent', 'surface-low', 4.5],
-    ['accent', 'surface-high', 4.5],
-    ['accent-ink', 'accent', 4.5],
-    ['accent-soft-ink', 'accent-soft', 4.5],
-    ['tertiary-soft-ink', 'tertiary-soft', 4.5],
-    ['danger', 'danger-soft', 4.5],
+    ['text', 'bg'],
+    ['text', 'surface'],
+    ['text', 'surface-low'],
+    ['text', 'surface-high'],
+    ['text-muted', 'bg'],
+    ['text-muted', 'surface'],
+    ['text-muted', 'surface-low'],
+    ['text-muted', 'surface-high'],
+    ['accent', 'bg'],
+    ['accent', 'surface'],
+    ['accent', 'surface-low'],
+    ['accent', 'surface-high'],
+    ['accent-ink', 'accent'],
+    ['accent-soft-ink', 'accent-soft'],
+    ['tertiary-soft-ink', 'tertiary-soft'],
+    ['danger', 'danger-soft'],
   ];
 
   for (const [themeName, vars] of Object.entries(themes)) {
-    for (const [fg, bg, minRatio] of pairs) {
+    const minRatio = themeName.startsWith('a11y-') ? 7.0 : 4.5;
+    const levelLabel = minRatio >= 7.0 ? 'WCAG AAA' : 'WCAG AA';
+    for (const [fg, bg] of pairs) {
       if (!vars[fg] || !vars[bg]) {
         errors.push(`tokens.css [${themeName}]: Missing token --${fg} or --${bg}`);
         continue;
@@ -94,7 +98,7 @@ function auditTokens() {
       const ratio = contrastRatio(vars[fg], vars[bg]);
       if (ratio < minRatio) {
         errors.push(
-          `tokens.css [${themeName}]: --${fg} (${vars[fg]}) on --${bg} (${vars[bg]}) = ${ratio.toFixed(2)}:1 (< ${minRatio}:1)`
+          `tokens.css [${themeName}]: --${fg} (${vars[fg]}) on --${bg} (${vars[bg]}) = ${ratio.toFixed(2)}:1 (< ${minRatio}:1 ${levelLabel})`
         );
       }
     }
@@ -216,4 +220,4 @@ if (errors.length > 0) {
   process.exit(1);
 }
 
-console.log(`[check-a11y] PASSED: ${htmlCount} built HTML pages + Light/Dark contrast tokens + ARIA/semantic checks.`);
+console.log(`[check-a11y] PASSED: ${htmlCount} built HTML pages + Light/Dark (AA) & A11y Solar Light/Dark (AAA >= 7:1) contrast tokens + ARIA/semantic checks.`);

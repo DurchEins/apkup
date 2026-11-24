@@ -95,12 +95,75 @@ const shareUrl = absoluteLocaleUrl(lang, subPath, siteOrigin);
     <!-- Prevent theme flash & auto-detect language on default root URLs before first paint -->
     <script is:inline define:vars={{ currentLang: lang, basePath: base, cleanSubPath: subPath }}>
       (function () {
+        var ZONE_COORDS = {
+          'Europe/Berlin': [52.52, 13.405],
+          'Europe/Vienna': [48.208, 16.373],
+          'Europe/Zurich': [47.377, 8.542],
+          'Europe/London': [51.507, -0.128],
+          'Europe/Paris': [48.857, 2.352],
+          'Europe/Madrid': [40.417, -3.704],
+          'Europe/Rome': [41.903, 12.496],
+          'Europe/Amsterdam': [52.368, 4.904],
+          'Europe/Warsaw': [52.23, 21.012],
+          'Europe/Moscow': [55.756, 37.617],
+          'America/New_York': [40.713, -74.006],
+          'America/Chicago': [41.878, -87.63],
+          'America/Denver': [39.739, -104.99],
+          'America/Los_Angeles': [34.052, -118.244],
+          'America/Sao_Paulo': [-23.55, -46.633],
+          'Asia/Tokyo': [35.676, 139.65],
+          'Asia/Shanghai': [31.23, 121.474],
+          'Asia/Seoul': [37.566, 126.978],
+          'Asia/Kolkata': [22.573, 88.364],
+          'Australia/Sydney': [-33.869, 151.209]
+        };
+
+        function resolveSolarDark(now) {
+          var tz = '';
+          try {
+            tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+          } catch (e) {}
+          var coords = ZONE_COORDS[tz];
+          var offsetEastMin = -now.getTimezoneOffset();
+          var lat = coords ? coords[0] : (tz.indexOf('Australia/') === 0 || tz.indexOf('Auckland') !== -1 || tz.indexOf('Sao_Paulo') !== -1 ? -33 : 48);
+          var lon = coords ? coords[1] : Math.max(-180, Math.min(180, (offsetEastMin / 60) * 15));
+          var start = new Date(now.getFullYear(), 0, 0);
+          var doy = Math.floor((now - start) / 86400000);
+          var gamma = (2 * Math.PI / 365) * (doy - 1);
+          var eqTime = 229.18 * (0.000075 + 0.001868 * Math.cos(gamma) - 0.032077 * Math.sin(gamma) - 0.014615 * Math.cos(2 * gamma) - 0.040849 * Math.sin(2 * gamma));
+          var decl = 0.006918 - 0.399912 * Math.cos(gamma) + 0.070257 * Math.sin(gamma) - 0.006758 * Math.cos(2 * gamma) + 0.000907 * Math.sin(2 * gamma) - 0.002697 * Math.cos(3 * gamma) + 0.00148 * Math.sin(3 * gamma);
+          var latRad = lat * (Math.PI / 180);
+          var cosHa = Math.cos(90.833 * Math.PI / 180) / (Math.cos(latRad) * Math.cos(decl)) - Math.tan(latRad) * Math.tan(decl);
+          var sr = 540, ss = 900;
+          if (cosHa >= -1 && cosHa <= 1) {
+            var haDeg = Math.acos(cosHa) * (180 / Math.PI);
+            sr = ((720 - 4 * (lon + haDeg) - eqTime + offsetEastMin) % 1440 + 1440) % 1440;
+            ss = ((720 - 4 * (lon - haDeg) - eqTime + offsetEastMin) % 1440 + 1440) % 1440;
+          } else if (cosHa < -1) {
+            sr = 300; ss = 1260;
+          }
+          var mins = now.getHours() * 60 + now.getMinutes();
+          return sr < ss ? (mins < sr || mins >= ss) : (mins < sr && mins >= ss);
+        }
+
+        window.__apkupApplyThemeMode = function (mode) {
+          var root = document.documentElement;
+          var normalized = mode === 'light' || mode === 'a11y' || mode === 'dark' ? mode : 'dark';
+          var resolved = normalized === 'a11y' ? (resolveSolarDark(new Date()) ? 'dark' : 'light') : normalized;
+          root.setAttribute('data-theme-mode', normalized);
+          root.setAttribute('data-theme', resolved);
+          if (normalized === 'a11y') root.setAttribute('data-a11y', 'true');
+          else root.removeAttribute('data-a11y');
+          var meta = document.getElementById('meta-theme-color');
+          if (meta) {
+            meta.setAttribute('content', resolved === 'light' ? (normalized === 'a11y' ? '#FFFFFF' : '#F4F1EA') : (normalized === 'a11y' ? '#090A0D' : '#121316'));
+          }
+          return normalized;
+        };
+
         try {
           var savedTheme = localStorage.getItem('apkup-theme');
-          var theme = savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : 'dark';
-          document.documentElement.setAttribute('data-theme', theme);
-          var meta = document.getElementById('meta-theme-color');
-          if (meta) meta.setAttribute('content', theme === 'light' ? '#F4F1EA' : '#121316');
+          window.__apkupApplyThemeMode(savedTheme);
 
           if (currentLang === 'en') {
             var nonDefault = ['de', 'es', 'fr', 'it', 'ja', 'pt', 'ru', 'zh-cn'];
@@ -198,17 +261,25 @@ const shareUrl = absoluteLocaleUrl(lang, subPath, siteOrigin);
         var root = document.documentElement;
         var themeBtn = document.getElementById('theme-toggle');
 
+        function syncThemeButtonLabel(mode) {
+          if (!themeBtn) return;
+          themeBtn.setAttribute('data-theme-state', mode);
+          themeBtn.setAttribute('aria-pressed', String(mode !== 'dark'));
+          var labelKey = mode === 'a11y' ? 'data-label-a11y' : (mode === 'light' ? 'data-label-light' : 'data-label-dark');
+          var nextLabel = themeBtn.getAttribute(labelKey);
+          if (nextLabel) {
+            themeBtn.setAttribute('aria-label', nextLabel);
+            themeBtn.setAttribute('title', nextLabel);
+          }
+        }
+
         function applyTheme(next) {
           root.classList.add('theme-switching');
-          root.setAttribute('data-theme', next);
-          var meta = document.getElementById('meta-theme-color');
-          if (meta) meta.setAttribute('content', next === 'light' ? '#F4F1EA' : '#121316');
+          var normalized = window.__apkupApplyThemeMode ? window.__apkupApplyThemeMode(next) : next;
           try {
-            localStorage.setItem('apkup-theme', next);
+            localStorage.setItem('apkup-theme', normalized);
           } catch (e) {}
-          if (themeBtn) {
-            themeBtn.setAttribute('aria-pressed', String(next === 'light'));
-          }
+          syncThemeButtonLabel(normalized);
           requestAnimationFrame(function () {
             requestAnimationFrame(function () {
               root.classList.remove('theme-switching');
@@ -217,14 +288,26 @@ const shareUrl = absoluteLocaleUrl(lang, subPath, siteOrigin);
         }
 
         if (themeBtn) {
-          themeBtn.setAttribute('aria-pressed', String(root.getAttribute('data-theme') === 'light'));
+          var initialMode = root.getAttribute('data-theme-mode') || 'dark';
+          syncThemeButtonLabel(initialMode);
           try {
             if (!localStorage.getItem('apkup-theme')) themeBtn.classList.add('is-system-sync');
           } catch (e) {}
           themeBtn.addEventListener('click', function () {
             themeBtn.classList.remove('is-system-sync');
-            var current = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-            applyTheme(current === 'dark' ? 'light' : 'dark');
+            var current = root.getAttribute('data-theme-mode') || 'dark';
+            var next = current === 'dark' ? 'light' : (current === 'light' ? 'a11y' : 'dark');
+            applyTheme(next);
+          });
+          setInterval(function () {
+            if (root.getAttribute('data-theme-mode') === 'a11y' && window.__apkupApplyThemeMode) {
+              window.__apkupApplyThemeMode('a11y');
+            }
+          }, 60000);
+          document.addEventListener('visibilitychange', function () {
+            if (!document.hidden && root.getAttribute('data-theme-mode') === 'a11y' && window.__apkupApplyThemeMode) {
+              window.__apkupApplyThemeMode('a11y');
+            }
           });
         }
 

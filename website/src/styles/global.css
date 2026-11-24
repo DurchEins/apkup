@@ -70,6 +70,20 @@ html.kbd-nav :focus-visible {
   box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.22);
 }
 
+[data-a11y='true'] :focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+html.kbd-nav[data-a11y='true'] :focus-visible {
+  box-shadow: 0 0 0 6px var(--accent-soft);
+}
+
+[data-a11y='true'] .btn,
+[data-a11y='true'] .icon-pill {
+  border-width: 1.5px;
+}
+
 html.lang-switching main {
   opacity: 0.72;
   transition: opacity 120ms ease-out;
@@ -253,6 +267,13 @@ p {
 
 [data-theme='light'] .is-copied {
   color: #047857 !important;
+}
+
+[data-theme='light'][data-a11y='true'] .is-copied,
+[data-theme='dark'][data-a11y='true'] .is-copied {
+  border-color: var(--tertiary) !important;
+  background-color: var(--tertiary-soft) !important;
+  color: var(--tertiary-soft-ink) !important;
 }
 
 .btn-primary .apk-light {
