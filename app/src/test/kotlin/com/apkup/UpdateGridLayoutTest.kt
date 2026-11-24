@@ -146,4 +146,25 @@ class UpdateGridLayoutTest {
 		assertEquals(10f, CompactUpdateCardLayout.gridTopPaddingDp, 0.01f)
 		assertEquals(140f, CompactUpdateCardLayout.gridBottomPaddingDp, 0.01f)
 	}
+
+	@Test
+	fun updateCardContentAppendsShortSha256HashesWhenAvailable() {
+		val update = AppUpdate(
+			name = "Example",
+			packageName = "com.example.app",
+			version = "2.0.0",
+			oldVersion = "1.0.0",
+			versionCode = 20L,
+			oldVersionCode = 10L,
+			source = PlaySource,
+			link = com.apkup.data.ui.Link.Url(
+				link = "https://example.org/app.apk",
+				expectedSha256 = "e5f6a7b89999"
+			),
+			installedShortSha256 = "a1b2c3d4"
+		)
+		val content = update.toUpdateCardContent("Example")
+		assertEquals("1.0.0 [a1b2c3d4]", content.installedVersion)
+		assertEquals("2.0.0 [e5f6a7b8]", content.availableVersion)
+	}
 }

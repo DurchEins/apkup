@@ -52,14 +52,31 @@ internal fun canonicalizeAbi(raw: String): String {
     }
 }
 
+internal fun isSystemWebViewPackage(packageName: String): Boolean {
+    val pkg = packageName.trim().lowercase(Locale.ROOT)
+    return pkg == "com.android.webview" ||
+        pkg == "com.google.android.webview" ||
+        pkg.startsWith("com.google.android.webview.") ||
+        pkg == "com.huawei.webview"
+}
+
+private fun is64BitAbi(abi: String): Boolean = abi == "arm64-v8a" || abi == "x86_64"
+
+private fun is32BitAbi(abi: String): Boolean = abi == "armeabi-v7a" || abi == "armeabi" || abi == "x86"
+
 /**
  * Exact canonical ABI matching (HIGH-09): prevents substring collisions such as `"x86_64".contains("x86")`
  * or `"arm64-v8a".contains("arm")` from selecting 64-bit APKs on 32-bit devices.
+ *
+ * For system WebView packages (`requireAllBitnessForWebView = true`), WebView is loaded via `dlopen()`
+ * by both 64-bit and 32-bit apps on dual-ABI devices, so 32-bit-only builds are rejected on 64-bit
+ * and dual-ABI devices.
  */
 internal fun supportsArchitecture(
     appArchitectures: List<String>,
     supportedAbis: List<String>,
-    deviceArchitecture: String
+    deviceArchitecture: String,
+    requireAllBitnessForWebView: Boolean = false
 ): Boolean {
     if (appArchitectures.isEmpty()) return true
     val canonicalCandidateAbis = appArchitectures
@@ -78,6 +95,22 @@ internal fun supportsArchitecture(
             add(canonicalizeAbi(deviceArchitecture))
         }
     }
+    if (!requireAllBitnessForWebView) {
+        return canonicalCandidateAbis.any { it in canonicalSupported }
+    }
+
+    val deviceHas64Bit = canonicalSupported.any(::is64BitAbi)
+    val deviceHas32Bit = canonicalSupported.any(::is32BitAbi)
+    if (deviceHas64Bit) {
+        val candidateMatches64Bit = canonicalCandidateAbis.any { it in canonicalSupported && is64BitAbi(it) }
+        if (!candidateMatches64Bit) return false
+        if (deviceHas32Bit) {
+            val candidateMatches32Bit = canonicalCandidateAbis.any { it in canonicalSupported && is32BitAbi(it) }
+            if (!candidateMatches32Bit) return false
+        }
+        return true
+    }
+
     return canonicalCandidateAbis.any { it in canonicalSupported }
 }
 

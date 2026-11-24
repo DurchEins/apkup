@@ -178,11 +178,19 @@ class UpdatesRepository(
                     versionCode = AppUpdate::versionCode,
                     sourcePriority = prioritySelector
                 )
+                val shortHashesByPackage = appsToCheck.associate { it.packageName to it.shortSha256 }
                 val enrichedUpdates = enrichWithSourceAlternatives(
                     primaryUpdates = combined.updates,
                     allCandidates = filteredResults.flatMap { it.updates },
                     sourcePriority = prioritySelector
-                )
+                ).map { update ->
+                    val shortHash = shortHashesByPackage[update.packageName].orEmpty()
+                    if (shortHash.isNotEmpty() && update.installedShortSha256.isEmpty()) {
+                        update.copy(installedShortSha256 = shortHash)
+                    } else {
+                        update
+                    }
+                }
                 val totalApps = progressTracker.totalApps
                 val checkedApps = progressTracker.checkedApps()
                 val visibleCheckedApps = visibleCheckedApps(checkedApps, totalApps, isChecking)

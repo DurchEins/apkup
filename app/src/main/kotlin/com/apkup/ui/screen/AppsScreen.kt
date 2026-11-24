@@ -1707,7 +1707,11 @@ private fun AppActionsBottomSheet(
 							color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f)
 						) {
 							Text(
-								text = "v${app.version} (${app.versionCode})",
+								text = com.apkup.util.formatVersionWithShortHash(
+									version = "v${app.version}",
+									versionCode = app.versionCode,
+									shortSha256 = app.shortSha256
+								),
 								style = MaterialTheme.typography.labelMedium,
 								fontWeight = FontWeight.SemiBold,
 								color = MaterialTheme.colorScheme.onPrimaryContainer,

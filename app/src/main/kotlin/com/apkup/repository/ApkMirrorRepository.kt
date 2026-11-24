@@ -18,8 +18,10 @@ import com.apkup.data.ui.Link
 import com.apkup.data.ui.SourceUpdateResult
 import com.apkup.data.ui.filterNewerCandidates
 import com.apkup.data.ui.getPackageNames
+import com.apkup.data.ui.canonicalizeAbi
 import com.apkup.data.ui.isCompatibleFormFactor
 import com.apkup.data.ui.isMeaningfulVersionUpgrade
+import com.apkup.data.ui.isSystemWebViewPackage
 import com.apkup.data.ui.matchesSignature
 import com.apkup.data.ui.supportsArchitecture
 import com.apkup.data.ui.supportsMinApi
@@ -261,16 +263,25 @@ class ApkMirrorRepository(
         val results = newerCandidates
             .asSequence()
             .filter { (data, apk) -> matchesApkSignature(apk, installedByPackage[data.pname]) }
-            .filter { (_, apk) -> filterArch(apk) }
+            .filter { (data, apk) -> filterArch(data.pname, apk) }
             .filter { (_, apk) -> filterMinApi(apk) }
             .filter { (_, apk) -> isCompatibleFormFactor(apk.capabilities, isAndroidTv = false) }
             .groupBy { it.first.pname }
             .mapNotNull { (packageName, packageCandidates) ->
                 val installedApp = installedByPackage[packageName] ?: return@mapNotNull null
+                val preferredAbi = canonicalizeAbi(arch)
                 packageCandidates
-                    .map { (data, apk) -> apk.toAppUpdate(installedApp, data.release) }
-                    .filter { it.isMeaningfulVersionUpgrade() }
-                    .maxByOrNull { it.versionCode }
+                    .filter { (data, apk) -> apk.toAppUpdate(installedApp, data.release).isMeaningfulVersionUpgrade() }
+                    .maxWithOrNull(
+                        compareBy<Pair<com.apkup.data.apkmirror.AppExistsResponseData, AppExistsResponseApk>> {
+                            it.second.versionCode
+                        }.thenBy { (_, apk) ->
+                            apk.arches.any { raw ->
+                                raw.split(',', '+', '/').any { canonicalizeAbi(it) == preferredAbi }
+                            }
+                        }
+                    )
+                    ?.let { (data, apk) -> apk.toAppUpdate(installedApp, data.release) }
             }
         if (BuildConfig.DEBUG) {
             Log.d(
@@ -290,8 +301,13 @@ class ApkMirrorRepository(
         return matchesSignature(apk.signaturesSha1, installed.signature)
     }
 
-    private fun filterArch(app: AppExistsResponseApk) =
-        supportsArchitecture(app.arches, Build.SUPPORTED_ABIS.toList(), arch)
+    private fun filterArch(packageName: String, app: AppExistsResponseApk) =
+        supportsArchitecture(
+            appArchitectures = app.arches,
+            supportedAbis = Build.SUPPORTED_ABIS.toList(),
+            deviceArchitecture = arch,
+            requireAllBitnessForWebView = isSystemWebViewPackage(packageName)
+        )
 
     private fun filterMinApi(apk: AppExistsResponseApk) = supportsMinApi(apk.minapi, api)
 
