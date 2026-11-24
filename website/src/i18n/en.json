@@ -596,7 +596,7 @@
     "title": "Privacy Policy — ApkUp",
     "metaDesc": "Zero-telemetry, on-device storage, and encrypted credential details for ApkUp.",
     "h1": "Privacy Policy",
-    "lead": "Last Updated: November 13, 2026 • Based on PRIVACY.md in the ApkUp repository.",
+    "lead": "Last Updated: November 24, 2026 • Based on PRIVACY.md in the ApkUp repository.",
     "onDeviceBadge": "✓ 100% On-Device",
     "onDeviceItems": [
       "App scan, version matching & SHA-256 verification",
@@ -621,6 +621,12 @@
     ],
     "s3Title": "3. Encrypted Local Storage & Auditing",
     "s3Body": "All preferences, bindings, and optional API tokens are encrypted at rest via Google Tink (AES-256-GCM) backed by Android Keystore. Cloud backups and cleartext HTTP are disabled.",
+    "s4Title": "4. Companion Website (durcheins.github.io/apkup)",
+    "s4Items": [
+      "Hosted statically on GitHub Pages (github.io) with zero first-party tracking cookies, analytics SDKs, or ad networks.",
+      "The Support section embeds the official live GitHub Sponsors button (<iframe> from github.com/sponsors/DurchEins/button), which sends a browser request to GitHub when loaded.",
+      "Optional client-side GitHub API (api.github.com) queries retrieve the latest release metadata and star count; Google Fonts delivers page typography."
+    ],
     "viewGithub": "View PRIVACY.md on GitHub"
   },
   "securityPage": {

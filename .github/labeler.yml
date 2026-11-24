@@ -1,0 +1,30 @@
+android:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'app/**'
+          - 'gradle/**'
+          - '*.gradle.kts'
+
+website:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'website/**'
+          - 'docs/**'
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '*.md'
+          - 'gitbook/**'
+          - 'fastlane/**'
+
+translation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'app/src/main/res/values-*/strings.xml'
+          - 'website/src/i18n/*.json'
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**'

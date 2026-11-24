@@ -45,6 +45,13 @@ jobs:
             rm -rf /tmp/apkup-wiki
           fi
 
+      - name: Generate GitBook docs & update Sponsors SVG
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node website/scripts/generate-gitbook.mjs
+          node website/scripts/update-sponsors-svg.mjs
+
       - name: Install dependencies & build docs/
         working-directory: website
         run: |
@@ -56,7 +63,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/ website/src/data/wiki/ website/public/
+          git add docs/ website/src/data/wiki/ website/public/ gitbook/ .github/assets/github-sponsors-button.svg
           if ! git diff --cached --quiet; then
             git commit -m "chore(website): auto-sync wiki & docs/ build"
             git pull --rebase --autostash origin main

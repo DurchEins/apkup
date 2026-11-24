@@ -596,7 +596,7 @@
     "title": "Datenschutzerklärung — ApkUp",
     "metaDesc": "Keine Telemetrie, rein lokale Speicherung und verschlüsselte Zugangsdaten in ApkUp.",
     "h1": "Datenschutzerklärung",
-    "lead": "Stand: 13. November 2026 • Basiert auf der offiziellen PRIVACY.md im ApkUp-Repository.",
+    "lead": "Stand: 24. November 2026 • Basiert auf der offiziellen PRIVACY.md im ApkUp-Repository.",
     "onDeviceBadge": "✓ 100% Lokal",
     "onDeviceItems": [
       "App-Scan, Versionsabgleich & SHA-256-Prüfung",
@@ -621,6 +621,12 @@
     ],
     "s3Title": "3. Verschlüsselter lokaler Speicher & Open Source",
     "s3Body": "Alle Einstellungen, Verknüpfungen und optionalen Tokens werden per Google Tink (AES-256-GCM) im Android Keystore verschlüsselt. Cloud-Backups und Klartext-HTTP sind deaktiviert.",
+    "s4Title": "4. Begleit-Website (durcheins.github.io/apkup)",
+    "s4Items": [
+      "Statisch über GitHub Pages (github.io) gehostet – ohne Erstanbieter-Tracking-Cookies, Analyse-SDKs oder Werbenetzwerke.",
+      "Der Support-Bereich bindet den offiziellen Live-Button von GitHub Sponsors als <iframe> (github.com/sponsors/DurchEins/button) ein; beim Laden erfolgt eine Anfrage an GitHub.",
+      "Öffentliche Abfragen an die GitHub API (api.github.com) laden aktuelle Release-Infos und Star-Zahlen; Schriftarten werden über Google Fonts bereitgestellt."
+    ],
     "viewGithub": "PRIVACY.md auf GitHub ansehen"
   },
   "securityPage": {

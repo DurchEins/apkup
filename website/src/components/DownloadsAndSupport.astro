@@ -98,6 +98,17 @@ const t = getTranslations(lang);
       </div>
 
       <div class="support-actions">
+        <div class="support-sponsor-iframe-wrap">
+          <iframe
+            src="https://github.com/sponsors/DurchEins/button"
+            title="Sponsor DurchEins"
+            height="32"
+            width="114"
+            loading="lazy"
+            referrerpolicy="no-referrer"
+            style="border: 0; border-radius: 6px; display: block;"
+          ></iframe>
+        </div>
         <a
           class="btn btn-secondary support-pill"
           href={SITE.repoUrl}
@@ -333,6 +344,17 @@ const t = getTranslations(lang);
     flex-wrap: wrap;
     align-items: center;
     gap: 10px;
+  }
+
+  .support-sponsor-iframe-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 4px 8px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-low);
+    border: 1px solid var(--outline-strong);
   }
 
   .support-pill {
