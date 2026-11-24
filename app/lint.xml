@@ -10,4 +10,12 @@
     <!-- ApkUp is distributed outside Google Play and provides an optional user-initiated battery optimization shortcut -->
     <issue id="BatteryLife" severity="warning" />
     <issue id="QueryAllPackagesPermission" severity="ignore" />
+
+    <!-- Enforce Android & Accessibility lint rules as build errors -->
+    <issue id="ContentDescription" severity="error" />
+    <issue id="ClickableViewAccessibility" severity="error" />
+    <issue id="KeyboardInaccessibleWidget" severity="error" />
+    <issue id="LabelFor" severity="error" />
+    <issue id="GetContentDescriptionOverride" severity="error" />
+    <issue id="EditableContentDesc" severity="error" />
 </lint>
