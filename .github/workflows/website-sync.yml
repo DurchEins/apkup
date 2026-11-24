@@ -61,8 +61,8 @@ jobs:
 
       - name: Commit updated docs/ if changed
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "DurchEins"
+          git config user.email "DurchEins@users.noreply.github.com"
           git add docs/ website/src/data/wiki/ website/public/ gitbook/ .github/assets/github-sponsors-button.svg
           if ! git diff --cached --quiet; then
             git commit -m "chore(website): auto-sync wiki & docs/ build"

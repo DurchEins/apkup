@@ -1,0 +1,13 @@
+$schema: https://api.gitbook.com/gitbook-docs.yaml
+version: 1
+
+site:
+  title: ApkUp
+  structure:
+    - type: space
+      key: apkup-docs
+      title: Documentation
+      path: docs
+      default: true
+      content:
+        directory: ./gitbook
