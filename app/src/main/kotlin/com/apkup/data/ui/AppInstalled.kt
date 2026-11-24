@@ -21,7 +21,8 @@ data class AppInstalled(
 	val isSystemApp: Boolean = false,
 	val lastUpdateTime: Long = 0L,
 	val installerPackageName: String = "",
-	val isWatchedOnly: Boolean = false
+	val isWatchedOnly: Boolean = false,
+	val shortSha256: String = ""
 ) {
 	val installOrigin: InstallOrigin
 		get() = resolveInstallOrigin(installerPackageName, isSystemApp)

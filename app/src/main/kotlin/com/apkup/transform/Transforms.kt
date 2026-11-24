@@ -5,6 +5,7 @@ import android.content.pm.PackageInfo
 import android.os.Build
 import com.apkup.data.ui.AppInstalled
 import com.apkup.repository.isSystemAppFlags
+import com.apkup.util.computeShortApkSha256
 import com.apkup.util.getSignatureSha1
 import com.apkup.util.getSignatureSha256
 import com.apkup.util.name
@@ -40,7 +41,8 @@ fun PackageInfo.toAppInstalled(context: Context, ignored: List<String>): AppInst
 		enabled = appInfo?.enabled != false,
 		isSystemApp = isSystem,
 		lastUpdateTime = lastUpdateTime,
-		installerPackageName = context.resolveInstallerPackageName(packageName)
+		installerPackageName = context.resolveInstallerPackageName(packageName),
+		shortSha256 = computeShortApkSha256(sourceDir, lastUpdateTime)
 	)
 }
 

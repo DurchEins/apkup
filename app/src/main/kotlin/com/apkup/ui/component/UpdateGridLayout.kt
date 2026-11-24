@@ -173,12 +173,21 @@ internal data class UpdateCardContent(
 		if (additionalSourcesCount > 0) "$sourceLabel +$additionalSourcesCount" else sourceLabel
 }
 
-internal fun AppUpdate.toUpdateCardContent(resolvedAppName: String) = UpdateCardContent(
-	appName = resolvedAppName.lineSequence().firstOrNull { it.isNotBlank() }?.trim()?.ifBlank { packageName } ?: packageName,
-	packageName = packageName.trim(),
-	installedVersion = oldVersion.trim(),
-	availableVersion = version.trim(),
-	source = source,
-	isInstalling = isInstalling,
-	additionalSourcesCount = (alternativeUpdates.size - 1).coerceAtLeast(0)
-)
+internal fun AppUpdate.toUpdateCardContent(resolvedAppName: String): UpdateCardContent {
+	val expectedAvailableHash = (link as? com.apkup.data.ui.Link.Url)?.expectedSha256.orEmpty()
+	return UpdateCardContent(
+		appName = resolvedAppName.lineSequence().firstOrNull { it.isNotBlank() }?.trim()?.ifBlank { packageName } ?: packageName,
+		packageName = packageName.trim(),
+		installedVersion = com.apkup.util.formatVersionWithShortHash(
+			version = oldVersion.trim(),
+			shortSha256 = installedShortSha256
+		),
+		availableVersion = com.apkup.util.formatVersionWithShortHash(
+			version = version.trim(),
+			shortSha256 = expectedAvailableHash
+		),
+		source = source,
+		isInstalling = isInstalling,
+		additionalSourcesCount = (alternativeUpdates.size - 1).coerceAtLeast(0)
+	)
+}
