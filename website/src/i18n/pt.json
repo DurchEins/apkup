@@ -1266,7 +1266,6 @@
     "soloBody": "O ApkUp é desenvolvido por uma única pessoa como um projeto independente de código aberto. Procuro implementar tudo da forma mais acessível possível, com o melhor do meu conhecimento e consciência — mas sigo aprendendo continuamente. A acessibilidade do aplicativo e do site está em constante evolução, e fico imensamente feliz e grato por cada pequena dica, sugestão ou ajuda da comunidade através de nossas Issues ou Discussões! ❤️",
     "soloIssuesCta": "GitHub Issues (Dicas e bugs) ↗",
     "soloDiscussionsCta": "GitHub Discussions (Ideias e conversa) ↗",
-    "soloGitlabCta": "GitLab Issues ↗",
     "feedbackTitle": "Relatar uma barreira de acessibilidade",
     "feedbackLead": "Encontrou um botão sem rótulo, armadilha de teclado, baixo contraste ou problema no TalkBack? Informe diretamente no GitHub.",
     "feedbackCta": "Abrir issue de acessibilidade no GitHub ↗",

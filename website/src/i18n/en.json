@@ -1266,7 +1266,6 @@
     "soloBody": "ApkUp is built by a single independent developer. I strive to implement every feature as accessibly as possible to the best of my knowledge and conscience — while continuously learning along the way. Accessibility across the app and website is an ongoing effort, and I am genuinely grateful for every single tip, hint, or helping hand from the community via our Issues or Discussions! ❤️",
     "soloIssuesCta": "GitHub Issues (Tips & Bugs) ↗",
     "soloDiscussionsCta": "GitHub Discussions (Ideas & Feedback) ↗",
-    "soloGitlabCta": "GitLab Issues ↗",
     "feedbackTitle": "Report an Accessibility Barrier",
     "feedbackLead": "Found an unlabelled button, keyboard trap, low-contrast text, or screen reader issue in ApkUp or on this website? Please report it directly on GitHub.",
     "feedbackCta": "Open Accessibility Issue on GitHub ↗",

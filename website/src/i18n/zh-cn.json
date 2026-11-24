@@ -1266,7 +1266,6 @@
     "soloBody": "ApkUp 是由我一人独立开发的开源项目。我尽自己所能与良知去把每一项功能做得更加无障碍，但与此同时我也在不断学习。应用与网站的无障碍体验仍在持续完善中，欢迎通过 Issues 或 Discussions 交流——哪怕是来自社区最微小的建议、提醒或帮助，我都会由衷感到开心与感激！ ❤️",
     "soloIssuesCta": "GitHub Issues（建议与反馈）↗",
     "soloDiscussionsCta": "GitHub Discussions（讨论与交流）↗",
-    "soloGitlabCta": "GitLab Issues ↗",
     "feedbackTitle": "报告无障碍障碍",
     "feedbackLead": "如果您在 ApkUp 应用或本网站中发现未标注控件、低对比度或读屏器与键盘操作障碍，欢迎直接在 GitHub 提交反馈。",
     "feedbackCta": "在 GitHub 提交无障碍 Issue ↗",
