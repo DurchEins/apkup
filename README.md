@@ -26,7 +26,7 @@
 </p>
 
 <p align="center">
-  <a href="https://durcheins.github.io/apkup/"><i>Homepage</i></a> • <a href="#-features">Features</a> • <a href="#-downloads">Downloads</a> • <a href="#-screenshots">Screenshots</a> • <a href="#%EF%B8%8F-requirements--tech-stack">Requirements &amp; Tech Stack</a> • <a href="#-quick-guides">Quick-Guides</a> • <a href="#-troubleshooting--wiki">Wiki</a> • <a href="#-support-apkup">Support</a> • <a href="#-translations">Translations</a>
+  <a href="https://durcheins.github.io/apkup/"><i>Homepage</i></a> • <a href="#-features">Features</a> • <a href="#-downloads">Downloads</a> • <a href="#-screenshots">Screenshots</a> • <a href="#%EF%B8%8F-requirements--tech-stack">Requirements &amp; Tech Stack</a> • <a href="#-quick-guides">Quick-Guides</a> • <a href="#-troubleshooting--wiki">Wiki</a> • <a href="ACCESSIBILITY.md">Accessibility</a> • <a href="#-support-apkup">Support</a> • <a href="#-translations">Translations</a>
 </p>
 
 <p align="center">
@@ -244,6 +244,22 @@ Need help configuring update sources, resolving errors, or setting up silent bac
 | ⚡ **Installation & Automation** | [Shizuku & Background Installation](https://github.com/DurchEins/apkup/wiki/Shizuku-&-Background-Installation) ([Quick Setup](https://github.com/DurchEins/apkup/wiki/Setting-up-Shizuku)) • [Installing Unknown Apps](https://github.com/DurchEins/apkup/wiki/Installing-Unknown-Apps) • [Google’s 24h Lock & Keep Android Open](https://github.com/DurchEins/apkup/wiki/Google-24h-Lock-&-Keep-Android-Open) |
 | 🛠️ **Management & Migration** | [Apps, Filters, Rollbacks & Backup](https://github.com/DurchEins/apkup/wiki/App-Management,-Filters,-Background-Checks-&-Backup) • [Obtainium Migration & Sync Guide](https://github.com/DurchEins/apkup/wiki/Obtainium-Migration-&-Sync-Guide) |
 | 🚨 **Troubleshooting** | [Troubleshooting Source Errors](https://github.com/DurchEins/apkup/wiki/Troubleshooting-Source-Errors) *(DNS/Timeouts, 401/403/429 Rate Limits, Cloudflare, Signature Conflicts)* |
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/divider-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/divider-light.svg">
+    <img src=".github/assets/divider-dark.svg" width="100%" alt="" />
+  </picture>
+</p>
+
+## ♿ Accessibility
+
+ApkUp targets **WCAG 2.2 Level AA**, **EN 301 549**, **Android Accessibility Guidelines**, and **WAI-ARIA 1.2** across both the Android app and companion website:
+
+- **Screen Readers & Voice Access:** Complete Jetpack Compose semantics (`contentDescription`, grouped update cards, headings, live regions), WCAG 2.5.3 Label-in-Name consistency, and tap/custom-action alternatives for drag, swipe, and long-press gestures.
+- **Motor & Display Comfort:** Minimum `48.dp` touch targets, keyboard traversal support, >= 4.5:1 AA Light/Dark contrast, dynamic system font scaling, and `ApkUpTheme.isReducedMotion` support.
+- **Resources:** Read the **[Accessibility Policy (`ACCESSIBILITY.md`)](ACCESSIBILITY.md)**, view the **[Web Accessibility Statement](https://durcheins.github.io/apkup/accessibility/)**, or **[Report an Accessibility Barrier](https://github.com/DurchEins/apkup/issues/new?template=accessibility.yml)**.
 
 <p align="center">
   <picture>
