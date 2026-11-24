@@ -880,7 +880,7 @@ p {
 
   .support-card {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(280px, 1fr) minmax(0, 1.35fr);
     align-items: center;
     gap: 24px 36px;
     background: var(--bg);
@@ -905,6 +905,7 @@ p {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: flex-end;
     gap: 10px;
   }
 
@@ -925,6 +926,10 @@ p {
     .support-card {
       grid-template-columns: minmax(0, 1fr);
     }
+
+    .support-actions {
+      justify-content: flex-start;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -933,6 +938,109 @@ p {
       transition: none;
       transform: none;
     }
+  }
+
+  .supporters-wall-card {
+    margin-block-start: 20px;
+    background: var(--bg);
+    border: 1px solid var(--outline-strong);
+    border-radius: var(--radius-lg);
+    padding: clamp(20px, 3vw, 28px);
+  }
+
+  .supporters-wall-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px 24px;
+  }
+
+  .supporters-wall-header h3 {
+    margin: 0 0 4px;
+    font-size: 1.15rem;
+    font-weight: 800;
+  }
+
+  .supporters-wall-header p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+  }
+
+  .supporters-tiers {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-block-start: 18px;
+  }
+
+  .supporters-group h4 {
+    margin: 0 0 10px;
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  .supporters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+
+  .supporter-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    background: var(--surface-low);
+    border: 1px solid var(--outline-strong);
+  }
+
+  .supporter-card-champion {
+    border-color: var(--accent);
+  }
+
+  .supporter-card img {
+    border-radius: 999px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .supporter-card a,
+  .supporter-card strong {
+    font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .supporter-card a:hover {
+    text-decoration: underline;
+  }
+
+  .supporter-card p {
+    margin: 2px 0 0;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+
+  .supporters-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .supporter-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-low);
+    border: 1px solid var(--outline-strong);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+    text-decoration: none;
   }
 
 /* src/components/FaqAndFooter.astro */

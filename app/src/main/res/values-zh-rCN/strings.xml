@@ -255,6 +255,17 @@
     <string name="update_history_filter_empty_title">没有匹配的记录</string>
     <string name="update_history_filter_empty_desc">请尝试其他搜索词或重置筛选条件。</string>
     <string name="update_history_filter_reset">重置筛选</string>
+    <string name="batch_safety_title">批量更新安全检查</string>
+    <string name="batch_safety_low_battery">当前电量为 %1$d%% 且未充电。批量更新可能会耗尽剩余电量。</string>
+    <string name="batch_safety_low_storage">仅剩 %1$d MB 可用空间（批量安装建议至少 500 MB）。</string>
+    <string name="batch_safety_continue">仍然继续</string>
+    <string name="batch_retry_failed_banner">%1$d 个更新失败</string>
+    <string name="batch_retry_failed_short">重试失败项</string>
+    <string name="update_snooze_action">稍后提醒</string>
+    <string name="update_snooze_24h">24 小时</string>
+    <string name="update_snooze_3d">3 天</string>
+    <string name="update_snoozed_snack">已暂缓 %1$s</string>
+    <string name="watchlist_auto_removed_installed">已将 %1$s 移出关注列表（已安装）</string>
     <string name="update_history_empty_title">暂无更新记录</string>
     <string name="update_history_empty_desc">当 ApkUp 手动或通过 Shizuku 自动更新应用后，记录将显示在此处并提供旧版本链接。</string>
     <string name="update_history_mode_auto_shizuku">自动 · Shizuku</string>
@@ -639,4 +650,26 @@
     <string name="apps_grid_density_large">大（2列 • 48 dp）</string>
     <string name="apps_grid_density_compact">紧凑（3列）</string>
     <string name="apps_grid_density_auto_a11y">无障碍主题默认预选 2 列，但您仍可随时在 2 列和 3 列之间自由切换。</string>
+    <string name="widget_updates_description">显示可用的 ApkUp 更新并触发快速检查</string>
+    <string name="widget_updates_checking">正在检查…</string>
+    <string name="widget_updates_never_checked">尚未检查</string>
+    <string name="widget_updates_up_to_date">全部已是最新</string>
+    <string name="widget_updates_last_checked">上次检查：%1$s</string>
+    <string name="widget_updates_tap_to_check">点击刷新检查</string>
+    <plurals name="widget_updates_available">
+        <item quantity="other">有 %1$d 个可用更新</item>
+    </plurals>
+    <string name="notification_install_all_action">全部安装</string>
+    <string name="history_export_action">导出</string>
+    <string name="history_export_csv">导出为 CSV</string>
+    <string name="history_export_markdown">导出为 Markdown</string>
+    <string name="apps_share_list_action">分享应用列表</string>
+    <string name="apps_share_scope_message">选择要包含在分享列表中的已安装应用范围：</string>
+    <string name="backup_diff_title">检查备份变更</string>
+    <string name="backup_diff_repos">关联仓库：%1$d → %2$d</string>
+    <string name="backup_diff_watchlist">关注应用：%1$d → %2$d</string>
+    <string name="backup_diff_ignored">已忽略应用：%1$d → %2$d</string>
+    <string name="backup_diff_skipped">已跳过版本：%1$d → %2$d</string>
+    <string name="backup_diff_fdroid">自定义 F-Droid 仓库：%1$d → %2$d</string>
+    <string name="backup_diff_confirm">导入备份</string>
 </resources>

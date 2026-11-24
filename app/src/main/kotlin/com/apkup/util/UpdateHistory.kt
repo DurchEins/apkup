@@ -188,6 +188,74 @@ internal fun UpdateHistoryEntry.effectivePreviousVersionUrl(
     )
 }
 
+internal fun formatUpdateHistoryCsv(entries: List<UpdateHistoryEntry>): String {
+    fun escapeCsv(value: String): String {
+        val clean = value.replace("\r", " ").replace("\n", " ")
+        return if (clean.contains(',') || clean.contains('"')) {
+            "\"${clean.replace("\"", "\"\"")}\""
+        } else {
+            clean
+        }
+    }
+    val header = "App,Package,Old Version,New Version,Source,Mode,Installed At"
+    val rows = entries.map { e ->
+        val ts = if (e.installedAtMillis > 0L) {
+            java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.US)
+                .format(java.util.Date(e.installedAtMillis))
+        } else ""
+        listOf(
+            escapeCsv(e.appName.ifBlank { e.packageName }),
+            escapeCsv(e.packageName),
+            escapeCsv(e.oldVersion),
+            escapeCsv(e.newVersion),
+            escapeCsv(e.sourceName),
+            escapeCsv(e.installModeName.orEmpty()),
+            escapeCsv(ts)
+        ).joinToString(",")
+    }
+    return (listOf(header) + rows).joinToString("\n")
+}
+
+internal fun formatUpdateHistoryMarkdown(entries: List<UpdateHistoryEntry>): String {
+    val header = "| App | Package | Transition | Source | Date |\n| :--- | :--- | :--- | :--- | :--- |"
+    val rows = entries.map { e ->
+        val name = e.appName.ifBlank { e.packageName }.replace("|", "\\|")
+        val pkg = e.packageName.replace("|", "\\|")
+        val transition = "${e.oldVersion} → ${e.newVersion}".replace("|", "\\|")
+        val src = e.sourceName.replace("|", "\\|")
+        val ts = if (e.installedAtMillis > 0L) {
+            java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.US)
+                .format(java.util.Date(e.installedAtMillis))
+        } else "-"
+        "| $name | $pkg | $transition | $src | $ts |"
+    }
+    return (listOf("# ApkUp Update History", "", header) + rows).joinToString("\n")
+}
+
+internal fun formatShareableAppList(
+    apps: List<com.apkup.data.ui.AppInstalled>,
+    repoUrls: Map<String, String>,
+    scopeLabel: String? = null
+): String {
+    if (apps.isEmpty()) return ""
+    val lines = apps.map { app ->
+        val name = app.name.ifBlank { app.packageName }
+        val ver = app.version.takeIf { it.isNotBlank() && it != "—" }?.let { " ($it)" }.orEmpty()
+        val url = repoUrls[app.packageName]?.takeIf { it.isNotBlank() }
+        if (url != null) {
+            "• $name$ver — $url"
+        } else {
+            "• $name$ver — ${app.packageName}"
+        }
+    }
+    val header = if (!scopeLabel.isNullOrBlank()) {
+        "ApkUp App List — $scopeLabel (${apps.size})"
+    } else {
+        "ApkUp App List (${apps.size})"
+    }
+    return (listOf(header, "") + lines).joinToString("\n")
+}
+
 internal enum class UpdateHistoryFilterMode {
     ALL,
     WITH_BACKUP

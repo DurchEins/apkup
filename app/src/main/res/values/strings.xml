@@ -300,6 +300,8 @@
     <string name="notification_check_title">Checking for updates…</string>
     <string name="notification_check_title_source">Checking for updates (%1$s)…</string>
     <string name="notification_check_progress_text">%1$d of %2$d apps checked</string>
+    <string name="notification_up_to_date_title">All apps are up to date</string>
+    <string name="notification_up_to_date_desc">No new updates found.</string>
 
     <!-- Wi-Fi & Charging Guards -->
     <string name="settings_download_wifi_only">Download updates over Wi-Fi only</string>
@@ -348,6 +350,17 @@
     <string name="update_history_filter_empty_title">No matching updates</string>
     <string name="update_history_filter_empty_desc">Try another search term or reset your active filters.</string>
     <string name="update_history_filter_reset">Reset filters</string>
+    <string name="batch_safety_title">Batch update safety check</string>
+    <string name="batch_safety_low_battery">Battery is at %1$d%% and not charging. Large batch updates may drain remaining power.</string>
+    <string name="batch_safety_low_storage">Only %1$d MB of free storage remains (500 MB recommended for batch installs).</string>
+    <string name="batch_safety_continue">Continue anyway</string>
+    <string name="batch_retry_failed_banner">%1$d update(s) failed</string>
+    <string name="batch_retry_failed_short">Retry failed</string>
+    <string name="update_snooze_action">Snooze reminder</string>
+    <string name="update_snooze_24h">24 hours</string>
+    <string name="update_snooze_3d">3 days</string>
+    <string name="update_snoozed_snack">Snoozed %1$s</string>
+    <string name="watchlist_auto_removed_installed">Moved %1$s out of Watchlist — now installed</string>
     <string name="update_history_empty_title">No updates recorded yet</string>
     <string name="update_history_empty_desc">Once ApkUp updates apps manually or automatically via Shizuku, they appear here including a link to the previous version.</string>
     <string name="update_history_mode_auto_shizuku">Auto · Shizuku</string>
@@ -663,4 +676,27 @@
     <string name="apps_grid_density_large">Large (2 cols • 48 dp)</string>
     <string name="apps_grid_density_compact">Compact (3 cols)</string>
     <string name="apps_grid_density_auto_a11y">2 columns are preselected in the Accessibility theme, but you can switch between 2 and 3 columns anytime.</string>
+    <string name="widget_updates_description">Shows available ApkUp updates and triggers a quick check</string>
+    <string name="widget_updates_checking">Checking updates…</string>
+    <string name="widget_updates_never_checked">Not checked yet</string>
+    <string name="widget_updates_up_to_date">All apps up to date</string>
+    <string name="widget_updates_last_checked">Last check: %1$s</string>
+    <string name="widget_updates_tap_to_check">Tap refresh to check</string>
+    <plurals name="widget_updates_available">
+        <item quantity="one">%1$d update ready</item>
+        <item quantity="other">%1$d updates ready</item>
+    </plurals>
+    <string name="notification_install_all_action">Install all</string>
+    <string name="history_export_action">Export</string>
+    <string name="history_export_csv">Export as CSV</string>
+    <string name="history_export_markdown">Export as Markdown</string>
+    <string name="apps_share_list_action">Share app list</string>
+    <string name="apps_share_scope_message">Choose which installed apps to include in the shared list:</string>
+    <string name="backup_diff_title">Review backup changes</string>
+    <string name="backup_diff_repos">Linked repositories: %1$d → %2$d</string>
+    <string name="backup_diff_watchlist">Watchlist apps: %1$d → %2$d</string>
+    <string name="backup_diff_ignored">Ignored apps: %1$d → %2$d</string>
+    <string name="backup_diff_skipped">Skipped versions: %1$d → %2$d</string>
+    <string name="backup_diff_fdroid">Custom F-Droid repos: %1$d → %2$d</string>
+    <string name="backup_diff_confirm">Import backup</string>
 </resources>

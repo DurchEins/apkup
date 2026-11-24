@@ -6,6 +6,9 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "android"
     groups:
       gradle-minor-and-patch:
         update-types:
@@ -18,6 +21,9 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "ci"
 
   - package-ecosystem: "npm"
     directory: "/website"
@@ -25,6 +31,9 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "website"
     groups:
       npm-minor-and-patch:
         update-types:

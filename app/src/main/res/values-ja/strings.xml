@@ -255,6 +255,17 @@
     <string name="update_history_filter_empty_title">一致する履歴がありません</string>
     <string name="update_history_filter_empty_desc">別の検索語を試すか、フィルターをリセットしてください。</string>
     <string name="update_history_filter_reset">フィルターをリセット</string>
+    <string name="batch_safety_title">一括更新の安全チェック</string>
+    <string name="batch_safety_low_battery">バッテリー残量が %1$d%% で充電されていません。一括更新で電池を消耗する恐れがあります。</string>
+    <string name="batch_safety_low_storage">空き容量が %1$d MB しかありません（一括更新には 500 MB 以上推奨）。</string>
+    <string name="batch_safety_continue">このまま続行</string>
+    <string name="batch_retry_failed_banner">%1$d 件の更新に失敗しました</string>
+    <string name="batch_retry_failed_short">再試行</string>
+    <string name="update_snooze_action">後で通知</string>
+    <string name="update_snooze_24h">24時間</string>
+    <string name="update_snooze_3d">3日間</string>
+    <string name="update_snoozed_snack">%1$s をスヌーズしました</string>
+    <string name="watchlist_auto_removed_installed">%1$s をウォッチリストから移行しました（インストール済み）</string>
     <string name="update_history_empty_title">履歴はまだありません</string>
     <string name="update_history_empty_desc">ApkUpが手動またはShizukuで自動更新したアプリが、旧バージョンへのリンク付きでここに表示されます。</string>
     <string name="update_history_mode_auto_shizuku">自動 · Shizuku</string>
@@ -638,4 +649,26 @@
     <string name="apps_grid_density_large">大 (2列 • 48 dp)</string>
     <string name="apps_grid_density_compact">コンパクト (3列)</string>
     <string name="apps_grid_density_auto_a11y">高コントラストでは2列が初期選択されますが、いつでも2列と3列を切り替えられます。</string>
+    <string name="widget_updates_description">利用可能な ApkUp 更新を表示し、クイックチェックを開始します</string>
+    <string name="widget_updates_checking">確認中…</string>
+    <string name="widget_updates_never_checked">未確認</string>
+    <string name="widget_updates_up_to_date">すべて最新</string>
+    <string name="widget_updates_last_checked">最終確認: %1$s</string>
+    <string name="widget_updates_tap_to_check">タップして確認</string>
+    <plurals name="widget_updates_available">
+        <item quantity="other">%1$d 件の更新あり</item>
+    </plurals>
+    <string name="notification_install_all_action">すべてインストール</string>
+    <string name="history_export_action">エクスポート</string>
+    <string name="history_export_csv">CSV 形式で保存</string>
+    <string name="history_export_markdown">Markdown 形式で保存</string>
+    <string name="apps_share_list_action">アプリ一覧を共有</string>
+    <string name="apps_share_scope_message">共有するリストに含めるアプリの種類を選択してください:</string>
+    <string name="backup_diff_title">バックアップ変更内容の確認</string>
+    <string name="backup_diff_repos">リンク済みリポジトリ: %1$d → %2$d</string>
+    <string name="backup_diff_watchlist">ウォッチリスト: %1$d → %2$d</string>
+    <string name="backup_diff_ignored">無視するアプリ: %1$d → %2$d</string>
+    <string name="backup_diff_skipped">スキップしたバージョン: %1$d → %2$d</string>
+    <string name="backup_diff_fdroid">カスタム F-Droid リポジトリ: %1$d → %2$d</string>
+    <string name="backup_diff_confirm">インポート</string>
 </resources>

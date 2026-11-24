@@ -603,7 +603,7 @@
     "title": "プライバシーポリシー — ApkUp",
     "metaDesc": "テレメトリゼロ、端末内保存、暗号化された認証情報に関するApkUpのプライバシーポリシー。",
     "h1": "プライバシーポリシー",
-    "lead": "最終更新：2026年11月13日 • ApkUpリポジトリのPRIVACY.mdに基づきます。",
+    "lead": "最終更新：2026年11月24日 • ApkUpリポジトリのPRIVACY.mdに基づきます。",
     "onDeviceBadge": "✓ 100% 端末内処理",
     "onDeviceItems": [
       "アプリスキャン、バージョン照合、SHA-256検証",
@@ -628,6 +628,12 @@
     ],
     "s3Title": "3. 暗号化されたローカル保存と公開監査",
     "s3Body": "すべての設定、紐付け、任意のAPIトークンはAndroid Keystoreに基づくGoogle Tink (AES-256-GCM) で保存時に暗号化されます。クラウドバックアップと平文HTTPは無効化されています。",
+    "s4Title": "4. コンパニオンウェブサイト（durcheins.github.io/apkup）",
+    "s4Items": [
+      "GitHub Pages（github.io）で静的ホスティングされており、ファーストパーティの追跡Cookie、解析SDK、広告ネットワークは使用しません。",
+      "サポートセクションには公式のGitHub Sponsorsライブボタン（github.com/sponsors/DurchEins/button の<iframe>）が埋め込まれており、読み込み時にGitHubへリクエストが送信されます。",
+      "公開GitHub API（api.github.com）は最新リリース情報とスター数を取得し、フォントはGoogle Fontsから配信されます。"
+    ],
     "viewGithub": "GitHubでPRIVACY.mdを見る"
   },
   "securityPage": {

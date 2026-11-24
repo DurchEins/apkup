@@ -294,6 +294,8 @@
     <string name="notification_check_title">Suche nach Updates…</string>
     <string name="notification_check_title_source">Suche nach Updates (%1$s)…</string>
     <string name="notification_check_progress_text">%1$d von %2$d Apps geprüft</string>
+    <string name="notification_up_to_date_title">Alle Apps sind aktuell</string>
+    <string name="notification_up_to_date_desc">Keine neuen Updates gefunden.</string>
 
     <!-- WLAN- & Lade-Schutz -->
     <string name="settings_download_wifi_only">Updates nur über WLAN laden</string>
@@ -383,6 +385,17 @@
     <string name="update_history_filter_empty_title">Keine passenden Einträge</string>
     <string name="update_history_filter_empty_desc">Versuche einen anderen Suchbegriff oder setze die Filter zurück.</string>
     <string name="update_history_filter_reset">Filter zurücksetzen</string>
+    <string name="batch_safety_title">Sicherheitscheck vor Batch-Update</string>
+    <string name="batch_safety_low_battery">Akku liegt bei %1$d %% ohne Ladegerät. Größere Batch-Updates können den Restakku schnell verbrauchen.</string>
+    <string name="batch_safety_low_storage">Nur noch %1$d MB Speicher frei (500 MB empfohlen für Batch-Updates).</string>
+    <string name="batch_safety_continue">Trotzdem fortfahren</string>
+    <string name="batch_retry_failed_banner">%1$d Update(s) fehlgeschlagen</string>
+    <string name="batch_retry_failed_short">Erneut versuchen</string>
+    <string name="update_snooze_action">Später erinnern</string>
+    <string name="update_snooze_24h">24 Stunden</string>
+    <string name="update_snooze_3d">3 Tage</string>
+    <string name="update_snoozed_snack">%1$s pausiert</string>
+    <string name="watchlist_auto_removed_installed">%1$s aus Watchlist übernommen — jetzt installiert</string>
     <string name="update_history_empty_title">Noch keine Updates protokolliert</string>
     <string name="update_history_empty_desc">Sobald ApkUp Apps manuell oder automatisch über Shizuku aktualisiert, erscheinen sie hier samt Link zur Vorgängerversion.</string>
     <string name="update_history_mode_auto_shizuku">Auto · Shizuku</string>
@@ -654,4 +667,27 @@
     <string name="apps_grid_density_large">Groß (2 Spalten • 48 dp)</string>
     <string name="apps_grid_density_compact">Kompakt (3 Spalten)</string>
     <string name="apps_grid_density_auto_a11y">Im Barrierefrei-Theme sind 2 Spalten vorausgewählt, du kannst aber jederzeit frei zwischen 2 und 3 Spalten wechseln.</string>
+    <string name="widget_updates_description">Zeigt verfügbare ApkUp-Updates und startet einen Schnell-Check</string>
+    <string name="widget_updates_checking">Suche Updates…</string>
+    <string name="widget_updates_never_checked">Noch nicht geprüft</string>
+    <string name="widget_updates_up_to_date">Alles aktuell</string>
+    <string name="widget_updates_last_checked">Letzter Check: %1$s</string>
+    <string name="widget_updates_tap_to_check">Zum Prüfen tippen</string>
+    <plurals name="widget_updates_available">
+        <item quantity="one">%1$d Update verfügbar</item>
+        <item quantity="other">%1$d Updates verfügbar</item>
+    </plurals>
+    <string name="notification_install_all_action">Alle installieren</string>
+    <string name="history_export_action">Export</string>
+    <string name="history_export_csv">Als CSV exportieren</string>
+    <string name="history_export_markdown">Als Markdown exportieren</string>
+    <string name="apps_share_list_action">App-Liste teilen</string>
+    <string name="apps_share_scope_message">Wähle aus, welche installierten Apps in der geteilten Liste enthalten sein sollen:</string>
+    <string name="backup_diff_title">Backup-Änderungen prüfen</string>
+    <string name="backup_diff_repos">Verknüpfte Repos: %1$d → %2$d</string>
+    <string name="backup_diff_watchlist">Watchlist-Apps: %1$d → %2$d</string>
+    <string name="backup_diff_ignored">Ignorierte Apps: %1$d → %2$d</string>
+    <string name="backup_diff_skipped">Übersprungene Versionen: %1$d → %2$d</string>
+    <string name="backup_diff_fdroid">Eigene F-Droid-Repos: %1$d → %2$d</string>
+    <string name="backup_diff_confirm">Backup importieren</string>
 </resources>

@@ -259,6 +259,17 @@
     <string name="update_history_filter_empty_title">Ничего не найдено</string>
     <string name="update_history_filter_empty_desc">Попробуйте другой запрос или сбросьте фильтры.</string>
     <string name="update_history_filter_reset">Сбросить фильтры</string>
+    <string name="batch_safety_title">Проверка перед пакетным обновлением</string>
+    <string name="batch_safety_low_battery">Заряд батареи %1$d%% без зарядки. Пакетное обновление может быстро разрядить устройство.</string>
+    <string name="batch_safety_low_storage">Свободно всего %1$d МБ (рекомендуется не менее 500 МБ).</string>
+    <string name="batch_safety_continue">Продолжить</string>
+    <string name="batch_retry_failed_banner">Не удалось обновить: %1$d</string>
+    <string name="batch_retry_failed_short">Повторить</string>
+    <string name="update_snooze_action">Напомнить позже</string>
+    <string name="update_snooze_24h">24 часа</string>
+    <string name="update_snooze_3d">3 дня</string>
+    <string name="update_snoozed_snack">%1$s отложено</string>
+    <string name="watchlist_auto_removed_installed">%1$s удалено из отслеживания — установлено</string>
     <string name="update_history_empty_title">Обновлений пока нет</string>
     <string name="update_history_empty_desc">Как только ApkUp обновит приложения вручную или автоматически через Shizuku, они пояятся здесь со ссылкой на предыдущую версию.</string>
     <string name="update_history_mode_auto_shizuku">Авто · Shizuku</string>
@@ -645,4 +656,29 @@
     <string name="apps_grid_density_large">Крупная (2 кол. • 48 dp)</string>
     <string name="apps_grid_density_compact">Компактная (3 кол.)</string>
     <string name="apps_grid_density_auto_a11y">В режиме доступности по умолчанию выбраны 2 колонки, но вы можете переключать 2 и 3 колонки в любое время.</string>
+    <string name="widget_updates_description">Показывает доступные обновления ApkUp и запускает быструю проверку</string>
+    <string name="widget_updates_checking">Проверка…</string>
+    <string name="widget_updates_never_checked">Не проверялось</string>
+    <string name="widget_updates_up_to_date">Всё обновлено</string>
+    <string name="widget_updates_last_checked">Последняя проверка: %1$s</string>
+    <string name="widget_updates_tap_to_check">Нажмите для проверки</string>
+    <plurals name="widget_updates_available">
+        <item quantity="one">%1$d обновление</item>
+        <item quantity="few">%1$d обновления</item>
+        <item quantity="many">%1$d обновлений</item>
+        <item quantity="other">%1$d обновлений</item>
+    </plurals>
+    <string name="notification_install_all_action">Установить всё</string>
+    <string name="history_export_action">Экспорт</string>
+    <string name="history_export_csv">Экспорт в CSV</string>
+    <string name="history_export_markdown">Экспорт в Markdown</string>
+    <string name="apps_share_list_action">Поделиться списком</string>
+    <string name="apps_share_scope_message">Выберите, какие установленные приложения включить в список:</string>
+    <string name="backup_diff_title">Просмотр изменений копии</string>
+    <string name="backup_diff_repos">Привязанные репозитории: %1$d → %2$d</string>
+    <string name="backup_diff_watchlist">В списке отслеживания: %1$d → %2$d</string>
+    <string name="backup_diff_ignored">Игнорируемые: %1$d → %2$d</string>
+    <string name="backup_diff_skipped">Пропущенные версии: %1$d → %2$d</string>
+    <string name="backup_diff_fdroid">Свои F-Droid-репозитории: %1$d → %2$d</string>
+    <string name="backup_diff_confirm">Импортировать</string>
 </resources>

@@ -94,6 +94,9 @@ class UpdatesViewModel(
 	private val _showBatteryPromptDialog = MutableStateFlow(false)
 	val showBatteryPromptDialog: StateFlow<Boolean> = _showBatteryPromptDialog.asStateFlow()
 
+	private val _batchSafetyWarning = MutableStateFlow<com.apkup.util.BatchSafetyStatus?>(null)
+	val batchSafetyWarning: StateFlow<com.apkup.util.BatchSafetyStatus?> = _batchSafetyWarning.asStateFlow()
+
 	private val _readyUpdateIds = MutableStateFlow<Set<Int>>(emptySet())
 	val readyUpdateIds: StateFlow<Set<Int>> = _readyUpdateIds.asStateFlow()
 
@@ -109,11 +112,16 @@ class UpdatesViewModel(
 	val batchProgressFlow: StateFlow<BatchProgressSummary?> =
 		downloadCoordinator?.batchProgressFlow ?: emptyBatchProgress.asStateFlow()
 
+	private val emptyFailedBatchUpdates = MutableStateFlow<List<AppUpdate>>(emptyList())
+	val failedBatchUpdatesFlow: StateFlow<List<AppUpdate>> =
+		downloadCoordinator?.failedBatchUpdatesFlow ?: emptyFailedBatchUpdates.asStateFlow()
+
 	val updateHistoryFlow: StateFlow<List<UpdateHistoryEntry>> = prefs.updateHistoryFlow
 	val pinnedAppSourcesFlow: StateFlow<Map<String, String>> = prefs.pinnedAppSourcesFlow
 
 	private var pendingMobileDataInstallAction: (() -> Unit)? = null
 	private var pendingBatteryInstallAction: (() -> Unit)? = null
+	private var pendingBatchSafetyAction: (() -> Unit)? = null
 
 	@Volatile
 	private var isAppInForeground: Boolean = true
@@ -232,7 +240,8 @@ class UpdatesViewModel(
 			updates = updatedList,
 			hasSourceErrors = state.value.hasSourceErrors(),
 			sourceErrors = state.value.sourceErrors(),
-			lastCheckedAtMillis = state.value.lastCheckedAtMillis()
+			lastCheckedAtMillis = state.value.lastCheckedAtMillis(),
+			refreshWidget = false
 		)
 		updatesRepository.saveSnapshotToCache(
 			result = UpdateCheckResult(
@@ -244,6 +253,7 @@ class UpdatesViewModel(
 			),
 			timestampMillis = state.value.lastCheckedAtMillis() ?: System.currentTimeMillis()
 		)
+		appContext?.let { com.apkup.widget.UpdatesWidgetProvider.notifyWidgetDataChanged(it, isChecking = false) }
 		val msg = runCatching { stringer.get(R.string.watched_mark_seen_snack, update.version) }
 			.getOrDefault("Marked v${update.version} as seen")
 		snackBar.snackBar(viewModelScope, TextSnack(msg, visualType = com.apkup.data.snack.SnackVisualType.SUCCESS))
@@ -381,6 +391,55 @@ class UpdatesViewModel(
 		_showBatteryPromptDialog.value = false
 	}
 
+	fun confirmBatchSafetyProceed() {
+		val action = pendingBatchSafetyAction
+		pendingBatchSafetyAction = null
+		_batchSafetyWarning.value = null
+		action?.invoke()
+	}
+
+	fun dismissBatchSafetyDialog() {
+		pendingBatchSafetyAction = null
+		_batchSafetyWarning.value = null
+	}
+
+	fun retryFailedBatchUpdates() {
+		val failed = failedBatchUpdatesFlow.value
+		if (failed.isEmpty()) return
+		downloadCoordinator?.clearFailedBatchUpdates()
+		installBatchAsync(failed)
+	}
+
+	fun dismissFailedBatchUpdates() {
+		downloadCoordinator?.clearFailedBatchUpdates()
+	}
+
+	private fun installBatchAsync(candidates: List<AppUpdate>) {
+		viewModelScope.launch(Dispatchers.IO) {
+			installBatch(candidates)
+		}
+	}
+
+	fun snoozeUpdate(update: AppUpdate, durationMillis: Long) = viewModelScope.launchWithMutex(uiStateMutex, Dispatchers.IO) {
+		prefs.snoozeUpdate(
+			packageName = update.packageName,
+			appName = update.name,
+			version = update.version,
+			versionCode = update.versionCode,
+			durationMillis = durationMillis
+		)
+		val current = state.value.updates().filterNot { it.id == update.id || it.packageName.equals(update.packageName, ignoreCase = true) }
+		if (state.value is UpdatesUiState.Success) {
+			state.value = successState(current)
+			badger.changeUpdatesBadge(if (current.isEmpty()) "" else current.size.toString())
+			appContext?.let { com.apkup.widget.UpdatesWidgetProvider.notifyWidgetDataChanged(it, isChecking = false) }
+		}
+		snackBar.snackBar(
+			viewModelScope,
+			TextSnack(stringer.get(R.string.update_snoozed_snack, update.name))
+		)
+	}
+
 	fun state(): StateFlow<UpdatesUiState> = state
 
 	@Synchronized
@@ -389,6 +448,7 @@ class UpdatesViewModel(
 		updateCheckJob = null
 		retainedUpdatesDuringCheck = rawLatestUpdates.ifEmpty { state.value.updates() }
 		state.value = updateCheckLoadingState(state.value)
+		appContext?.let { com.apkup.widget.UpdatesWidgetProvider.notifyWidgetDataChanged(it, isChecking = true) }
 	}
 
 	@Synchronized
@@ -592,17 +652,30 @@ class UpdatesViewModel(
 			downloader.hasReadyCachedApk(getCacheDir(), candidate.id, candidate.versionCode)
 		}
 
-		runWithDownloadGuards(isCachedReady = allCachedReady) {
-			viewModelScope.launch(Dispatchers.IO) {
-				if (browserOnly.isNotEmpty()) {
-					snackBar.snackBar(
-						viewModelScope,
-						TextSnack(stringer.get(R.string.install_all_skipped_browser_hint, browserOnly.size))
-					)
+		val proceedInstall = {
+			runWithDownloadGuards(isCachedReady = allCachedReady) {
+				viewModelScope.launch(Dispatchers.IO) {
+					if (browserOnly.isNotEmpty()) {
+						snackBar.snackBar(
+							viewModelScope,
+							TextSnack(stringer.get(R.string.install_all_skipped_browser_hint, browserOnly.size))
+						)
+					}
+					enqueueInstallations(directInstallable)
 				}
-				enqueueInstallations(directInstallable)
 			}
 		}
+
+		val ctx = appContext
+		if (ctx != null && directInstallable.size > 1) {
+			val safetyStatus = com.apkup.util.checkBatchSafetyStatus(ctx, getCacheDir())
+			if (safetyStatus.hasAnyWarning) {
+				pendingBatchSafetyAction = proceedInstall
+				_batchSafetyWarning.value = safetyStatus
+				return
+			}
+		}
+		proceedInstall()
 	}
 
 	private suspend fun enqueueInstallations(candidates: List<AppUpdate>) {
@@ -704,7 +777,8 @@ class UpdatesViewModel(
 			updates = updatedList,
 			hasSourceErrors = state.value.hasSourceErrors(),
 			sourceErrors = state.value.sourceErrors(),
-			lastCheckedAtMillis = state.value.lastCheckedAtMillis()
+			lastCheckedAtMillis = state.value.lastCheckedAtMillis(),
+			refreshWidget = false
 		)
 		updatesRepository.saveSnapshotToCache(
 			result = UpdateCheckResult(
@@ -716,6 +790,7 @@ class UpdatesViewModel(
 			),
 			timestampMillis = state.value.lastCheckedAtMillis() ?: System.currentTimeMillis()
 		)
+		appContext?.let { com.apkup.widget.UpdatesWidgetProvider.notifyWidgetDataChanged(it, isChecking = false) }
 	}
 
 	fun syncIgnoredFromPrefs() = viewModelScope.launchWithMutex(uiStateMutex, Dispatchers.IO) {
@@ -749,7 +824,8 @@ class UpdatesViewModel(
 					updates = updatedList,
 					hasSourceErrors = state.value.hasSourceErrors(),
 					sourceErrors = state.value.sourceErrors(),
-					lastCheckedAtMillis = state.value.lastCheckedAtMillis()
+					lastCheckedAtMillis = state.value.lastCheckedAtMillis(),
+					refreshWidget = false
 				)
 				updatesRepository.saveSnapshotToCache(
 					result = UpdateCheckResult(
@@ -761,6 +837,7 @@ class UpdatesViewModel(
 					),
 					timestampMillis = state.value.lastCheckedAtMillis() ?: System.currentTimeMillis()
 				)
+				appContext?.let { com.apkup.widget.UpdatesWidgetProvider.notifyWidgetDataChanged(it, isChecking = false) }
 				installer.finish(id)
 				refreshReadyUpdateIds()
 			}
@@ -857,7 +934,8 @@ class UpdatesViewModel(
 			updates = remaining,
 			hasSourceErrors = state.value.hasSourceErrors(),
 			sourceErrors = state.value.sourceErrors(),
-			lastCheckedAtMillis = state.value.lastCheckedAtMillis()
+			lastCheckedAtMillis = state.value.lastCheckedAtMillis(),
+			refreshWidget = false
 		)
 		updatesRepository.saveSnapshotToCache(
 			result = UpdateCheckResult(
@@ -869,6 +947,7 @@ class UpdatesViewModel(
 			),
 			timestampMillis = state.value.lastCheckedAtMillis() ?: System.currentTimeMillis()
 		)
+		appContext?.let { com.apkup.widget.UpdatesWidgetProvider.notifyWidgetDataChanged(it, isChecking = false) }
 		installer.finish(id)
 		refreshReadyUpdateIds()
 	}
@@ -950,6 +1029,7 @@ class UpdatesViewModel(
 				} else {
 					state.value = UpdatesUiState.Error
 					badger.changeUpdatesBadge("")
+					appContext?.let { com.apkup.widget.UpdatesWidgetProvider.notifyWidgetDataChanged(it, isChecking = false) }
 				}
 			}
 			is UpdatesUiState.Success -> {
@@ -993,9 +1073,22 @@ class UpdatesViewModel(
 		activeSourceName: String? = state.value.activeSourceName(),
 		sourceErrors: Map<String, String> = state.value.sourceErrors(),
 		lastCheckedAtMillis: Long? = state.value.lastCheckedAtMillis(),
-		notifyCompletionIfBackground: Boolean = false
+		notifyCompletionIfBackground: Boolean = false,
+		refreshWidget: Boolean = !isChecking
 	) {
-		val filtered = updates.filterIgnoredVersions(prefs.ignoredVersions.get())
+		val installedNonWatched = updates.filter { it.oldVersionCode >= 0L }.map { it.packageName }.toSet()
+		val autoRemovedWatched = prefs.removeInstalledWatchedApps(installedNonWatched)
+		if (autoRemovedWatched.isNotEmpty()) {
+			val names = autoRemovedWatched.joinToString(", ") { it.appName }
+			snackBar.snackBar(
+				viewModelScope,
+				TextSnack(stringer.get(R.string.watchlist_auto_removed_installed, names))
+			)
+		}
+
+		val filtered = updates
+			.filterIgnoredVersions(prefs.ignoredVersions.get())
+			.filterNot { prefs.isUpdateSnoozed(it.packageName, it.versionCode, it.version) }
 		state.value = UpdatesUiState.Success(
 			updates = filtered,
 			hasSourceErrors = hasSourceErrors,
@@ -1020,6 +1113,9 @@ class UpdatesViewModel(
 			updatesNotification?.cancelCheckProgressNotification()
 			if (notifyCompletionIfBackground && !isAppInForeground && filtered.isNotEmpty()) {
 				updatesNotification?.showUpdateNotification(filtered.size)
+			}
+			if (refreshWidget) {
+				appContext?.let { com.apkup.widget.UpdatesWidgetProvider.notifyWidgetDataChanged(it, isChecking = false) }
 			}
 		}
 	}

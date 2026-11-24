@@ -3,75 +3,12 @@ const basePath = "/apkup/";
 const cleanSubPath = "compare/";
 
       (function () {
-        var ZONE_COORDS = {
-          'Europe/Berlin': [52.52, 13.405],
-          'Europe/Vienna': [48.208, 16.373],
-          'Europe/Zurich': [47.377, 8.542],
-          'Europe/London': [51.507, -0.128],
-          'Europe/Paris': [48.857, 2.352],
-          'Europe/Madrid': [40.417, -3.704],
-          'Europe/Rome': [41.903, 12.496],
-          'Europe/Amsterdam': [52.368, 4.904],
-          'Europe/Warsaw': [52.23, 21.012],
-          'Europe/Moscow': [55.756, 37.617],
-          'America/New_York': [40.713, -74.006],
-          'America/Chicago': [41.878, -87.63],
-          'America/Denver': [39.739, -104.99],
-          'America/Los_Angeles': [34.052, -118.244],
-          'America/Sao_Paulo': [-23.55, -46.633],
-          'Asia/Tokyo': [35.676, 139.65],
-          'Asia/Shanghai': [31.23, 121.474],
-          'Asia/Seoul': [37.566, 126.978],
-          'Asia/Kolkata': [22.573, 88.364],
-          'Australia/Sydney': [-33.869, 151.209]
-        };
-
-        function resolveSolarDark(now) {
-          var tz = '';
-          try {
-            tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-          } catch (e) {}
-          var coords = ZONE_COORDS[tz];
-          var offsetEastMin = -now.getTimezoneOffset();
-          var lat = coords ? coords[0] : (tz.indexOf('Australia/') === 0 || tz.indexOf('Auckland') !== -1 || tz.indexOf('Sao_Paulo') !== -1 ? -33 : 48);
-          var lon = coords ? coords[1] : Math.max(-180, Math.min(180, (offsetEastMin / 60) * 15));
-          var start = new Date(now.getFullYear(), 0, 0);
-          var doy = Math.floor((now - start) / 86400000);
-          var gamma = (2 * Math.PI / 365) * (doy - 1);
-          var eqTime = 229.18 * (0.000075 + 0.001868 * Math.cos(gamma) - 0.032077 * Math.sin(gamma) - 0.014615 * Math.cos(2 * gamma) - 0.040849 * Math.sin(2 * gamma));
-          var decl = 0.006918 - 0.399912 * Math.cos(gamma) + 0.070257 * Math.sin(gamma) - 0.006758 * Math.cos(2 * gamma) + 0.000907 * Math.sin(2 * gamma) - 0.002697 * Math.cos(3 * gamma) + 0.00148 * Math.sin(3 * gamma);
-          var latRad = lat * (Math.PI / 180);
-          var cosHa = Math.cos(90.833 * Math.PI / 180) / (Math.cos(latRad) * Math.cos(decl)) - Math.tan(latRad) * Math.tan(decl);
-          var sr = 540, ss = 900;
-          if (cosHa >= -1 && cosHa <= 1) {
-            var haDeg = Math.acos(cosHa) * (180 / Math.PI);
-            sr = ((720 - 4 * (lon + haDeg) - eqTime + offsetEastMin) % 1440 + 1440) % 1440;
-            ss = ((720 - 4 * (lon - haDeg) - eqTime + offsetEastMin) % 1440 + 1440) % 1440;
-          } else if (cosHa < -1) {
-            sr = 300; ss = 1260;
-          }
-          var mins = now.getHours() * 60 + now.getMinutes();
-          return sr < ss ? (mins < sr || mins >= ss) : (mins < sr && mins >= ss);
-        }
-
-        window.__apkupApplyThemeMode = function (mode) {
-          var root = document.documentElement;
-          var normalized = mode === 'light' || mode === 'a11y' || mode === 'dark' ? mode : 'dark';
-          var resolved = normalized === 'a11y' ? (resolveSolarDark(new Date()) ? 'dark' : 'light') : normalized;
-          root.setAttribute('data-theme-mode', normalized);
-          root.setAttribute('data-theme', resolved);
-          if (normalized === 'a11y') root.setAttribute('data-a11y', 'true');
-          else root.removeAttribute('data-a11y');
-          var meta = document.getElementById('meta-theme-color');
-          if (meta) {
-            meta.setAttribute('content', resolved === 'light' ? (normalized === 'a11y' ? '#FFFFFF' : '#F4F1EA') : (normalized === 'a11y' ? '#090A0D' : '#121316'));
-          }
-          return normalized;
-        };
-
         try {
           var savedTheme = localStorage.getItem('apkup-theme');
-          window.__apkupApplyThemeMode(savedTheme);
+          var theme = savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : 'dark';
+          document.documentElement.setAttribute('data-theme', theme);
+          var meta = document.getElementById('meta-theme-color');
+          if (meta) meta.setAttribute('content', theme === 'light' ? '#F4F1EA' : '#121316');
 
           if (currentLang === 'en') {
             var nonDefault = ['de', 'es', 'fr', 'it', 'ja', 'pt', 'ru', 'zh-cn'];
@@ -120,8 +57,9 @@ const cleanSubPath = "compare/";
           }
         } catch (e) {}
       })();
-    })();</script></head> <body> <a class="skip-link" href="#main-content"> Перейти к основному содержанию </a> <aside id="kao-local-banner" class="kao-signal-banner is-mini" aria-label="ВНИМАНИЕ: СВОБОДНАЯ УСТАНОВКА APK ПОД УГРОЗОЙ (2026 / 2027)" data-astro-cid-d67wyeir> <div class="container kao-banner-inner" data-astro-cid-d67wyeir> <div class="kao-banner-content" data-astro-cid-d67wyeir> <div class="kao-signal-bar mono" data-astro-cid-d67wyeir> <span class="kao-signal-icon" aria-hidden="true" data-astro-cid-d67wyeir>⚠️</span> <span data-astro-cid-d67wyeir>ВНИМАНИЕ: СВОБОДНАЯ УСТАНОВКА APK ПОД УГРОЗОЙ (2026 / 2027)</span> </div> <p class="kao-banner-text" data-astro-cid-d67wyeir> 24-часовая блокировка Google угрожает свободной установке APK. </p> </div> <div class="kao-banner-actions" data-astro-cid-d67wyeir> <a class="kao-cta-btn" href="/apkup/ru/sideloading/google-lock/" data-astro-cid-d67wyeir> Как снять блокировку 24ч →
-</a>  <button type="button" id="kao-banner-dismiss" class="kao-dismiss-btn" aria-label="Скрыть предупреждение на эту сессию" title="Скрыть предупреждение на эту сессию" data-astro-cid-d67wyeir>
+    })();</script><link rel="stylesheet" href="/apkup/_astro/Footer.C0_6dXJI.css"><style>.subpage-wrap[data-astro-cid-bgl5emh2]{max-width:1060px}.compare-block[data-astro-cid-bgl5emh2]{margin-block-end:56px}.checker-block[data-astro-cid-bgl5emh2]{scroll-margin-block-start:calc(var(--header-height) + 24px)}.compare-table-card[data-astro-cid-bgl5emh2]{background:var(--surface-low);border:1px solid var(--outline);border-radius:var(--radius-lg);padding:8px 18px}.compare-scroll[data-astro-cid-bgl5emh2]{overflow-x:auto}.compare-table[data-astro-cid-bgl5emh2]{table-layout:fixed;border-collapse:collapse;text-align:start;width:100%;font-size:.86rem}.compare-table[data-astro-cid-bgl5emh2] th[data-astro-cid-bgl5emh2]:first-child,.compare-table[data-astro-cid-bgl5emh2] td[data-astro-cid-bgl5emh2]:first-child{width:34%}.compare-table[data-astro-cid-bgl5emh2] th[data-astro-cid-bgl5emh2]:nth-child(2),.compare-table[data-astro-cid-bgl5emh2] td[data-astro-cid-bgl5emh2]:nth-child(2){width:18%}.compare-table[data-astro-cid-bgl5emh2] th[data-astro-cid-bgl5emh2]:nth-child(n+3),.compare-table[data-astro-cid-bgl5emh2] td[data-astro-cid-bgl5emh2]:nth-child(n+3){width:16%}.compare-table[data-astro-cid-bgl5emh2] th[data-astro-cid-bgl5emh2],.compare-table[data-astro-cid-bgl5emh2] td[data-astro-cid-bgl5emh2]{border-block-end:1px solid var(--outline);overflow-wrap:break-word;vertical-align:top;padding:12px 10px}.compare-table[data-astro-cid-bgl5emh2] tr[data-astro-cid-bgl5emh2]:last-child td[data-astro-cid-bgl5emh2]{border-block-end:none}.compare-table[data-astro-cid-bgl5emh2] tbody[data-astro-cid-bgl5emh2] tr[data-astro-cid-bgl5emh2]{transition:background-color .14s ease-out}@media (hover:hover){.compare-table[data-astro-cid-bgl5emh2] tbody[data-astro-cid-bgl5emh2] tr[data-astro-cid-bgl5emh2]:hover{background-color:var(--surface)}}.compare-table[data-astro-cid-bgl5emh2] th[data-astro-cid-bgl5emh2]{color:var(--text-muted);font-size:.82rem;font-weight:800}.compare-table[data-astro-cid-bgl5emh2] td[data-astro-cid-bgl5emh2].is-apkup{color:var(--accent);background:#f59e0b0d;font-weight:700}@media (width<=720px){.compare-table[data-astro-cid-bgl5emh2]{table-layout:auto;min-width:560px}}.compat-card[data-astro-cid-bgl5emh2]{background:var(--surface-low);border:1px solid var(--outline);border-radius:var(--radius-lg);flex-direction:column;gap:16px;padding:clamp(20px,3vw,32px);display:flex}.compat-actions[data-astro-cid-bgl5emh2]{flex-wrap:wrap;gap:12px;display:flex}.compat-textarea[data-astro-cid-bgl5emh2]{border-radius:var(--radius-md);border:1px solid var(--outline-strong);background:var(--bg);width:100%;color:var(--text);resize:vertical;padding:14px;font-size:.85rem}.compat-summary[data-astro-cid-bgl5emh2]{color:var(--accent);margin-bottom:12px;font-size:.85rem;font-weight:700}.compat-rows[data-astro-cid-bgl5emh2]{flex-direction:column;gap:8px;display:flex}.compat-row[data-astro-cid-bgl5emh2]{border-radius:var(--radius-md);background:var(--bg);border:1px solid var(--outline);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;display:flex}.compat-url[data-astro-cid-bgl5emh2]{color:var(--text-muted);word-break:break-all;font-size:.76rem}.compat-err[data-astro-cid-bgl5emh2]{color:var(--danger);margin:0}
+</style></head> <body> <a class="skip-link" href="#main-content"> Перейти к основному содержанию </a> <aside id="kao-local-banner" class="kao-signal-banner is-mini" aria-label="ВНИМАНИЕ: СВОБОДНАЯ УСТАНОВКА APK ПОД УГРОЗОЙ (2026 / 2027)" data-astro-cid-46uzc7rt> <div class="container kao-banner-inner" data-astro-cid-46uzc7rt> <div class="kao-banner-content" data-astro-cid-46uzc7rt> <div class="kao-signal-bar mono" data-astro-cid-46uzc7rt> <span class="kao-signal-icon" aria-hidden="true" data-astro-cid-46uzc7rt>⚠️</span> <span data-astro-cid-46uzc7rt>ВНИМАНИЕ: СВОБОДНАЯ УСТАНОВКА APK ПОД УГРОЗОЙ (2026 / 2027)</span> </div> <p class="kao-banner-text" data-astro-cid-46uzc7rt> 24-часовая блокировка Google угрожает свободной установке APK. </p> </div> <div class="kao-banner-actions" data-astro-cid-46uzc7rt> <a class="kao-cta-btn" href="/apkup/ru/sideloading/google-lock/" data-astro-cid-46uzc7rt> Как снять блокировку 24ч →
+</a>  <button type="button" id="kao-banner-dismiss" class="kao-dismiss-btn" aria-label="Скрыть предупреждение на эту сессию" title="Скрыть предупреждение на эту сессию" data-astro-cid-46uzc7rt>
 ×
 </button> </div> </div> </aside> <script>
   (function () {
@@ -143,7 +81,7 @@ const cleanSubPath = "compare/";
       });
     }
   })();
-</script>  <header class="site-header" data-astro-cid-vus4yyb6> <div class="container nav-inner" data-astro-cid-vus4yyb6> <a class="brand" href="/apkup/ru/" aria-label="Главная ApkUp" data-astro-cid-vus4yyb6> <img src="/apkup/assets/logo.png" alt="" width="36" height="36" class="brand-icon" data-astro-cid-vus4yyb6> <span class="brand-name" data-astro-cid-vus4yyb6>ApkUp</span> </a> <nav class="nav-links" aria-label="Основная навигация" data-astro-cid-vus4yyb6> <a href="/apkup/ru/#features" data-astro-cid-vus4yyb6>Функции</a> <a href="/apkup/ru/#showcase" data-astro-cid-vus4yyb6>Обзор</a> <a href="/apkup/ru/#sources" data-astro-cid-vus4yyb6>Источники</a> <a href="/apkup/ru/changelog/" data-astro-cid-vus4yyb6>Что нового?</a> <a href="/apkup/ru/wiki/" data-astro-cid-vus4yyb6>Вики</a> <a href="/apkup/ru/privacy/" data-astro-cid-vus4yyb6>Приватность</a> <a href="/apkup/ru/downloads/" data-astro-cid-vus4yyb6>Загрузки</a> </nav> <div class="nav-actions" data-astro-cid-vus4yyb6> <button id="theme-toggle" type="button" class="icon-pill icon-only" aria-label="Сменить тему: Тёмная, Светлая, Доступность AAA (Солнце)" title="Сменить тему: Тёмная, Светлая, Доступность AAA (Солнце)" data-label-dark="Тема: Тёмная (переключить на Светлую)" data-label-light="Тема: Светлая (переключить на Доступность AAA)" data-label-a11y="Тема: Доступность AAA по солнцу (переключить на Тёмную)" data-astro-cid-vus4yyb6> <svg class="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-vus4yyb6> <circle cx="12" cy="12" r="4" data-astro-cid-vus4yyb6></circle> <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" data-astro-cid-vus4yyb6></path> </svg> <svg class="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-vus4yyb6> <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" data-astro-cid-vus4yyb6></path> </svg> <svg class="theme-icon-a11y" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-vus4yyb6> <circle cx="12" cy="12" r="9" data-astro-cid-vus4yyb6></circle> <path d="M12 3v18M12 12l6.4-6.4M12 16l7.5-7.5M12 20l5-5" data-astro-cid-vus4yyb6></path> </svg> </button> <a class="btn btn-primary nav-cta" href="/apkup/ru/#downloads" data-astro-cid-vus4yyb6> Скачать </a> <button id="mobile-menu-toggle" type="button" class="icon-pill icon-only mobile-menu-btn" aria-expanded="false" aria-controls="mobile-nav-panel" aria-label="Открыть/закрыть меню" data-astro-cid-vus4yyb6> <svg class="menu-icon-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" data-astro-cid-vus4yyb6> <line x1="4" y1="7" x2="20" y2="7" data-astro-cid-vus4yyb6></line> <line x1="4" y1="12" x2="20" y2="12" data-astro-cid-vus4yyb6></line> <line x1="4" y1="17" x2="20" y2="17" data-astro-cid-vus4yyb6></line> </svg> <svg class="menu-icon-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" data-astro-cid-vus4yyb6> <path d="M18 6 6 18M6 6l12 12" data-astro-cid-vus4yyb6></path> </svg> </button> </div> </div> <nav id="mobile-nav-panel" class="mobile-nav-panel" aria-label="Мобильная навигация" hidden data-astro-cid-vus4yyb6> <div class="container mobile-nav-list" data-astro-cid-vus4yyb6> <a href="/apkup/ru/#features" data-astro-cid-vus4yyb6>Функции</a> <a href="/apkup/ru/#showcase" data-astro-cid-vus4yyb6>Обзор</a> <a href="/apkup/ru/#sources" data-astro-cid-vus4yyb6>Источники</a> <a href="/apkup/ru/changelog/" data-astro-cid-vus4yyb6>Что нового?</a> <a href="/apkup/ru/wiki/" data-astro-cid-vus4yyb6>Вики</a> <a href="/apkup/ru/privacy/" data-astro-cid-vus4yyb6>Приватность</a> <a href="/apkup/ru/downloads/" data-astro-cid-vus4yyb6>Загрузки</a> <a class="btn btn-primary mobile-nav-cta" href="/apkup/ru/#downloads" data-astro-cid-vus4yyb6> Скачать </a> </div> </nav> </header> <script>
+</script>  <header class="site-header" data-astro-cid-l7arcky5> <div class="container nav-inner" data-astro-cid-l7arcky5> <a class="brand" href="/apkup/ru/" aria-label="Главная ApkUp" data-astro-cid-l7arcky5> <img src="/apkup/assets/logo.png" alt="" width="36" height="36" class="brand-icon" data-astro-cid-l7arcky5> <span class="brand-name" data-astro-cid-l7arcky5>ApkUp</span> </a> <nav class="nav-links" aria-label="Основная навигация" data-astro-cid-l7arcky5> <a href="/apkup/ru/#features" data-astro-cid-l7arcky5>Функции</a> <a href="/apkup/ru/#showcase" data-astro-cid-l7arcky5>Обзор</a> <a href="/apkup/ru/#sources" data-astro-cid-l7arcky5>Источники</a> <a href="/apkup/ru/changelog/" data-astro-cid-l7arcky5>Что нового?</a> <a href="/apkup/ru/wiki/" data-astro-cid-l7arcky5>Вики</a> <a href="/apkup/ru/privacy/" data-astro-cid-l7arcky5>Приватность</a> <a href="/apkup/ru/downloads/" data-astro-cid-l7arcky5>Загрузки</a> </nav> <div class="nav-actions" data-astro-cid-l7arcky5> <button id="theme-toggle" type="button" class="icon-pill icon-only" aria-label="Переключить светлую/тёмную тему" title="Переключить светлую/тёмную тему" data-astro-cid-l7arcky5> <svg class="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-l7arcky5> <circle cx="12" cy="12" r="4" data-astro-cid-l7arcky5></circle> <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" data-astro-cid-l7arcky5></path> </svg> <svg class="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-l7arcky5> <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" data-astro-cid-l7arcky5></path> </svg> </button> <a class="btn btn-primary nav-cta" href="/apkup/ru/#downloads" data-astro-cid-l7arcky5> Скачать </a> <button id="mobile-menu-toggle" type="button" class="icon-pill icon-only mobile-menu-btn" aria-expanded="false" aria-controls="mobile-nav-panel" aria-label="Открыть/закрыть меню" data-astro-cid-l7arcky5> <svg class="menu-icon-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" data-astro-cid-l7arcky5> <line x1="4" y1="7" x2="20" y2="7" data-astro-cid-l7arcky5></line> <line x1="4" y1="12" x2="20" y2="12" data-astro-cid-l7arcky5></line> <line x1="4" y1="17" x2="20" y2="17" data-astro-cid-l7arcky5></line> </svg> <svg class="menu-icon-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" data-astro-cid-l7arcky5> <path d="M18 6 6 18M6 6l12 12" data-astro-cid-l7arcky5></path> </svg> </button> </div> </div> <nav id="mobile-nav-panel" class="mobile-nav-panel" aria-label="Мобильная навигация" hidden data-astro-cid-l7arcky5> <div class="container mobile-nav-list" data-astro-cid-l7arcky5> <a href="/apkup/ru/#features" data-astro-cid-l7arcky5>Функции</a> <a href="/apkup/ru/#showcase" data-astro-cid-l7arcky5>Обзор</a> <a href="/apkup/ru/#sources" data-astro-cid-l7arcky5>Источники</a> <a href="/apkup/ru/changelog/" data-astro-cid-l7arcky5>Что нового?</a> <a href="/apkup/ru/wiki/" data-astro-cid-l7arcky5>Вики</a> <a href="/apkup/ru/privacy/" data-astro-cid-l7arcky5>Приватность</a> <a href="/apkup/ru/downloads/" data-astro-cid-l7arcky5>Загрузки</a> <a class="btn btn-primary mobile-nav-cta" href="/apkup/ru/#downloads" data-astro-cid-l7arcky5> Скачать </a> </div> </nav> </header> <script>
   (function () {
     var btn = document.getElementById('mobile-menu-toggle');
     var panel = document.getElementById('mobile-nav-panel');
@@ -154,7 +92,6 @@ const cleanSubPath = "compare/";
       var href = (a.getAttribute('href') || '').replace(/\/$/, '');
       if (href.indexOf('#') === -1 && href && path === href) {
         a.classList.add('is-current');
-        a.setAttribute('aria-current', 'page');
       }
     });
 
@@ -168,10 +105,7 @@ const cleanSubPath = "compare/";
           navLinks.forEach(function (a) {
             var h = a.getAttribute('href') || '';
             if (h.indexOf('#') !== -1) {
-              var isMatch = h.slice(h.indexOf('#')) === hash;
-              a.classList.toggle('is-current', isMatch);
-              if (isMatch) a.setAttribute('aria-current', 'true');
-              else a.removeAttribute('aria-current');
+              a.classList.toggle('is-current', h.slice(h.indexOf('#')) === hash);
             }
           });
         });
@@ -181,10 +115,9 @@ const cleanSubPath = "compare/";
 
     if (!btn || !panel) return;
 
-    function closeMenu(focusBtn) {
+    function closeMenu() {
       panel.hidden = true;
       btn.setAttribute('aria-expanded', 'false');
-      if (focusBtn) btn.focus();
     }
 
     btn.addEventListener('click', function (e) {
@@ -192,23 +125,19 @@ const cleanSubPath = "compare/";
       var nextOpen = panel.hidden;
       panel.hidden = !nextOpen;
       btn.setAttribute('aria-expanded', String(nextOpen));
-      if (nextOpen) {
-        var firstLink = panel.querySelector('a');
-        if (firstLink) firstLink.focus();
-      }
     });
 
     panel.querySelectorAll('a').forEach(function (a) {
-      a.addEventListener('click', function () { closeMenu(false); });
+      a.addEventListener('click', closeMenu);
     });
 
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && !panel.hidden) closeMenu(true);
+      if (e.key === 'Escape' && !panel.hidden) closeMenu();
     });
 
     document.addEventListener('click', function (e) {
       if (!panel.hidden && !panel.contains(e.target) && !btn.contains(e.target)) {
-        closeMenu(false);
+        closeMenu();
       }
     });
 
@@ -217,7 +146,6 @@ const cleanSubPath = "compare/";
     if (brand) {
       var clicks = 0;
       var clickTimer = null;
-      var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       brand.addEventListener('click', function (e) {
         clicks++;
         clearTimeout(clickTimer);
@@ -225,26 +153,21 @@ const cleanSubPath = "compare/";
         if (clicks >= 5) {
           e.preventDefault();
           clicks = 0;
-          if (!prefersReducedMotion) {
-            var rect = brand.getBoundingClientRect();
-            for (var i = 0; i < 12; i++) {
-              var spark = document.createElement('span');
-              spark.className = 'brand-spark';
-              spark.setAttribute('aria-hidden', 'true');
-              var angle = (Math.PI * 2 * i) / 12;
-              var dist = 28 + Math.random() * 24;
-              spark.style.left = rect.left + 20 + 'px';
-              spark.style.top = rect.top + 20 + 'px';
-              spark.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
-              spark.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
-              document.body.appendChild(spark);
-              setTimeout((function (el) { return function () { el.remove(); }; })(spark), 700);
-            }
+          var rect = brand.getBoundingClientRect();
+          for (var i = 0; i < 12; i++) {
+            var spark = document.createElement('span');
+            spark.className = 'brand-spark';
+            var angle = (Math.PI * 2 * i) / 12;
+            var dist = 28 + Math.random() * 24;
+            spark.style.left = rect.left + 20 + 'px';
+            spark.style.top = rect.top + 20 + 'px';
+            spark.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+            spark.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+            document.body.appendChild(spark);
+            setTimeout((function (el) { return function () { el.remove(); }; })(spark), 700);
           }
           var toast = document.createElement('div');
           toast.className = 'brand-toast mono';
-          toast.setAttribute('role', 'status');
-          toast.setAttribute('aria-live', 'polite');
           toast.textContent = 'Open Source since 2026 ⚡';
           document.body.appendChild(toast);
           setTimeout(function () { toast.remove(); }, 2400);
@@ -252,17 +175,15 @@ const cleanSubPath = "compare/";
       });
     }
   })();
-</script> <main id="main-content" class="section" data-astro-cid-4px7z4rv> <div class="container subpage-wrap" data-astro-cid-4px7z4rv> <div id="comparison" class="compare-block" data-astro-cid-4px7z4rv> <div class="section-header" data-astro-cid-4px7z4rv> <h1 class="section-title" data-astro-cid-4px7z4rv>Почему ApkUp? Подробное сравнение</h1> <p class="section-subtitle" data-astro-cid-4px7z4rv>Как ApkUp объединяет автоматический поиск по множеству источников, криптографическую проверку и совместимость с Obtainium по сравнению с другими приложениями.</p> </div> <div class="compare-table-card" data-astro-cid-4px7z4rv> <div class="compare-scroll" tabindex="0" role="region" aria-label="Почему ApkUp? Подробное сравнение" data-astro-cid-4px7z4rv> <table class="compare-table" data-astro-cid-4px7z4rv> <thead data-astro-cid-4px7z4rv> <tr data-astro-cid-4px7z4rv> <th data-astro-cid-4px7z4rv>Возможность / Функция</th> <th class="is-apkup" data-astro-cid-4px7z4rv>ApkUp</th> <th data-astro-cid-4px7z4rv>Obtainium</th> <th data-astro-cid-4px7z4rv>Aurora Store</th> <th data-astro-cid-4px7z4rv>F-Droid</th> </tr> </thead> <tbody data-astro-cid-4px7z4rv> <tr data-astro-cid-4px7z4rv> <td data-astro-cid-4px7z4rv>Автоматический поиск обновлений для уже установленных приложений без URL</td> <td class="is-apkup mono" data-astro-cid-4px7z4rv>✓ Автоматически (7 источников)</td> <td class="mono" data-astro-cid-4px7z4rv>✕ Ручной URL на приложение</td> <td class="mono" data-astro-cid-4px7z4rv>✓ Только Play Store</td> <td class="mono" data-astro-cid-4px7z4rv>✓ Только F-Droid</td> </tr><tr data-astro-cid-4px7z4rv> <td data-astro-cid-4px7z4rv>Единая экосистема (Play Store + FOSS + Git-хостинги + APKMirror)</td> <td class="is-apkup mono" data-astro-cid-4px7z4rv>✓ Всё в одном</td> <td class="mono" data-astro-cid-4px7z4rv>◐ Без Play Store</td> <td class="mono" data-astro-cid-4px7z4rv>✕ Только Play Store</td> <td class="mono" data-astro-cid-4px7z4rv>✕ Только F-Droid</td> </tr><tr data-astro-cid-4px7z4rv> <td data-astro-cid-4px7z4rv>Анонимные обновления Google Play Store без аккаунта Google</td> <td class="is-apkup mono" data-astro-cid-4px7z4rv>✓ Встроено (Aurora Delta)</td> <td class="mono" data-astro-cid-4px7z4rv>✕ Не поддерживается</td> <td class="mono" data-astro-cid-4px7z4rv>✓ Встроено</td> <td class="mono" data-astro-cid-4px7z4rv>✕ Не поддерживается</td> </tr><tr data-astro-cid-4px7z4rv> <td data-astro-cid-4px7z4rv>Прямая загрузка APKMirror в приложении и установка .apkm сплитов</td> <td class="is-apkup mono" data-astro-cid-4px7z4rv>✓ Нативно + WebView Cloudflare</td> <td class="mono" data-astro-cid-4px7z4rv>◐ Только отслеживание</td> <td class="mono" data-astro-cid-4px7z4rv>✕ Не поддерживается</td> <td class="mono" data-astro-cid-4px7z4rv>✕ Не поддерживается</td> </tr><tr data-astro-cid-4px7z4rv> <td data-astro-cid-4px7z4rv>Инкрементальные диффы F-Droid Index V2 (RFC 7396) и TOFU-пиннинг</td> <td class="is-apkup mono" data-astro-cid-4px7z4rv>✓ Нативный Index V2 + Diff</td> <td class="mono" data-astro-cid-4px7z4rv>◐ Полный индекс</td> <td class="mono" data-astro-cid-4px7z4rv>✕ Не поддерживается</td> <td class="mono" data-astro-cid-4px7z4rv>✓ Нативный Index V2</td> </tr><tr data-astro-cid-4px7z4rv> <td data-astro-cid-4px7z4rv>Пакетный GraphQL GitHub, вложенные подгруппы GitLab и Codeberg</td> <td class="is-apkup mono" data-astro-cid-4px7z4rv>✓ Полностью + Regex</td> <td class="mono" data-astro-cid-4px7z4rv>✓ REST API + Regex</td> <td class="mono" data-astro-cid-4px7z4rv>✕ Не поддерживается</td> <td class="mono" data-astro-cid-4px7z4rv>✕ Не поддерживается</td> </tr><tr data-astro-cid-4px7z4rv> <td data-astro-cid-4px7z4rv>Глобальный приоритет источников (Drag &amp; Drop) и закрепление по приложению</td> <td class="is-apkup mono" data-astro-cid-4px7z4rv>✓ Приоритет + Закрепление</td> <td class="mono" data-astro-cid-4px7z4rv>✕ 1 источник на приложение</td> <td class="mono" data-astro-cid-4px7z4rv>✕ 1 источник</td> <td class="mono" data-astro-cid-4px7z4rv>◐ Только приоритет репо</td> </tr><tr data-astro-cid-4px7z4rv> <td data-astro-cid-4px7z4rv>Проверка подписи APK v2/v3 до установки и защита от даунгрейда</td> <td class="is-apkup mono" data-astro-cid-4px7z4rv>✓ Предварительная проверка</td> <td class="mono" data-astro-cid-4px7z4rv>◐ Только системный запрос</td> <td class="mono" data-astro-cid-4px7z4rv>◐ Только системный запрос</td> <td class="mono" data-astro-cid-4px7z4rv>✓ Подпись индекса</td> </tr><tr data-astro-cid-4px7z4rv> <td data-astro-cid-4px7z4rv>Автоматические локальные бэкапы отката (со сплитами) до обновления</td> <td class="is-apkup mono" data-astro-cid-4px7z4rv>✓ До 2 ГБ + 1 нажатие</td> <td class="mono" data-astro-cid-4px7z4rv>✕ Нет</td> <td class="mono" data-astro-cid-4px7z4rv>✕ Нет</td> <td class="mono" data-astro-cid-4px7z4rv>◐ Только архив репо</td> </tr><tr data-astro-cid-4px7z4rv> <td data-astro-cid-4px7z4rv>Предварительная проверка совместимости minSdk и CPU ABI</td> <td class="is-apkup mono" data-astro-cid-4px7z4rv>✓ Предотвращает сбои</td> <td class="mono" data-astro-cid-4px7z4rv>◐ По имени файла</td> <td class="mono" data-astro-cid-4px7z4rv>✓ Профиль устройства</td> <td class="mono" data-astro-cid-4px7z4rv>✓ Метаданные индекса</td> </tr><tr data-astro-cid-4px7z4rv> <td data-astro-cid-4px7z4rv>Глобальные и индивидуальные пре-релиз каналы (Beta, RC, Alpha, Nightly)</td> <td class="is-apkup mono" data-astro-cid-4px7z4rv>✓ 4 раздельных канала</td> <td class="mono" data-astro-cid-4px7z4rv>◐ Общий переключатель</td> <td class="mono" data-astro-cid-4px7z4rv>✕ Только трек Play Store</td> <td class="mono" data-astro-cid-4px7z4rv>◐ Общий переключатель</td> </tr><tr data-astro-cid-4px7z4rv> <td data-astro-cid-4px7z4rv>Тихие фоновые обновления через Shizuku (без Root) и Root (su)</td> <td class="is-apkup mono" data-astro-cid-4px7z4rv>✓ Shizuku + Root (su)</td> <td class="mono" data-astro-cid-4px7z4rv>✓ Shizuku + Root</td> <td class="mono" data-astro-cid-4px7z4rv>✓ Shizuku + Root</td> <td class="mono" data-astro-cid-4px7z4rv>✓ Shizuku / Привилег. расш.</td> </tr><tr data-astro-cid-4px7z4rv> <td data-astro-cid-4px7z4rv>Активные временные окна, тихие часы и правила Wi-Fi / зарядки</td> <td class="is-apkup mono" data-astro-cid-4px7z4rv>✓ Окна + догон пропусков</td> <td class="mono" data-astro-cid-4px7z4rv>◐ Интервал + Wi-Fi/зарядка</td> <td class="mono" data-astro-cid-4px7z4rv>◐ Только интервал</td> <td class="mono" data-astro-cid-4px7z4rv>◐ Только Wi-Fi / зарядка</td> </tr><tr data-astro-cid-4px7z4rv> <td data-astro-cid-4px7z4rv>Список отслеживания + импорт/экспорт Obtainium и App Watcher</td> <td class="is-apkup mono" data-astro-cid-4px7z4rv>✓ 2-сторонний Obtainium + Watcher</td> <td class="mono" data-astro-cid-4px7z4rv>✓ Track-only + JSON</td> <td class="mono" data-astro-cid-4px7z4rv>✕ Без синхр. Obtainium</td> <td class="mono" data-astro-cid-4px7z4rv>✕ Без синхр. Obtainium</td> </tr><tr data-astro-cid-4px7z4rv> <td data-astro-cid-4px7z4rv>Экспорт .apk или .apks в любую папку SAF и кэш 24ч</td> <td class="is-apkup mono" data-astro-cid-4px7z4rv>✓ Сохранить APK/.apks + 24ч кэш</td> <td class="mono" data-astro-cid-4px7z4rv>◐ Обычная папка</td> <td class="mono" data-astro-cid-4px7z4rv>✓ Экспорт пакета</td> <td class="mono" data-astro-cid-4px7z4rv>◐ Только кэш</td> </tr><tr data-astro-cid-4px7z4rv> <td data-astro-cid-4px7z4rv>Аппаратное шифрование Google Tink AES-256-GCM и изоляция хостов</td> <td class="is-apkup mono" data-astro-cid-4px7z4rv>✓ Android Keystore AES-256</td> <td class="mono" data-astro-cid-4px7z4rv>◐ Память приложения</td> <td class="mono" data-astro-cid-4px7z4rv>◐ Память приложения</td> <td class="mono" data-astro-cid-4px7z4rv>✓ Токены не нужны</td> </tr> </tbody> </table> </div> </div> </div> <div id="checker" class="checker-block" data-astro-cid-4px7z4rv> <div class="section-header" data-astro-cid-4px7z4rv> <h2 class="section-title" data-astro-cid-4px7z4rv>Проверка источников и JSON Obtainium</h2> <p class="section-subtitle" data-astro-cid-4px7z4rv>100% офлайн в вашем браузере — ничего не отправляется на сервер. Вставьте экспорт JSON Obtainium или выберите файл для предпросмотра.</p> </div> <div class="compat-card" data-astro-cid-4px7z4rv> <div class="compat-actions" data-astro-cid-4px7z4rv> <label class="btn btn-primary" for="obt-file-input" data-astro-cid-4px7z4rv> Выбрать JSON-файл Obtainium </label> <input type="file" id="obt-file-input" accept=".json,application/json" hidden data-astro-cid-4px7z4rv> <button type="button" class="btn btn-secondary" id="obt-sample-btn" data-astro-cid-4px7z4rv> Загрузить пример </button> </div> <textarea id="obt-json-input" class="compat-textarea mono" rows="7" placeholder="{&quot;apps&quot;: [{&quot;id&quot;: &quot;com.apkup&quot;, &quot;url&quot;: &quot;https://github.com/DurchEins/apkup&quot;, &quot;name&quot;: &quot;ApkUp&quot;}]}" aria-label="Содержимое JSON-экспорта Obtainium" data-astro-cid-4px7z4rv></textarea> <div id="obt-report" class="compat-report" role="status" aria-live="polite" data-astro-cid-4px7z4rv></div> </div> </div> </div> </main> <footer class="site-footer" data-astro-cid-yfspknxm> <div class="container footer-inner" data-astro-cid-yfspknxm> <div class="footer-brand" data-astro-cid-yfspknxm> <img src="/apkup/assets/logo.png" alt="" width="34" height="34" class="footer-icon" data-astro-cid-yfspknxm> <div class="footer-brand-text" data-astro-cid-yfspknxm> <strong data-astro-cid-yfspknxm>ApkUp</strong> <p class="footer-copy" data-astro-cid-yfspknxm>
-Copyright © 2026  <a href="https://github.com/DurchEins" target="_blank" rel="noopener noreferrer" class="footer-author-link" data-astro-cid-yfspknxm>DurchEins</a> </p> </div> </div> <nav class="footer-links" aria-label="Ссылки подвала" data-astro-cid-yfspknxm> <a href="/apkup/ru/downloads/" data-astro-cid-yfspknxm>Загрузки</a> <a href="/apkup/ru/sideloading/" data-astro-cid-yfspknxm>Неизвестные приложения</a> <a href="/apkup/ru/sideloading/google-lock/" data-astro-cid-yfspknxm>Блокировка Google 24ч</a> <a href="/apkup/ru/changelog/" data-astro-cid-yfspknxm>Что нового?</a> <a href="/apkup/ru/wiki/" data-astro-cid-yfspknxm>Вики</a> <a href="/apkup/ru/compare/" data-astro-cid-yfspknxm>Проверка источников</a> <a href="/apkup/ru/privacy/" data-astro-cid-yfspknxm>Приватность</a> <a href="/apkup/ru/security/" data-astro-cid-yfspknxm>Безопасность</a> <a href="/apkup/ru/accessibility/" data-astro-cid-yfspknxm>Доступность</a> <a href="https://github.com/DurchEins/apkup" target="_blank" rel="noopener noreferrer" data-astro-cid-yfspknxm>GitHub</a> <a href="https://github.com/DurchEins/apkup/wiki" target="_blank" rel="noopener noreferrer" data-astro-cid-yfspknxm>GitHub Wiki</a> <a href="https://github.com/DurchEins/apkup/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="footer-build-pill mono" data-astro-cid-yfspknxm>GPL-3.0</a> <a href="https://github.com/DurchEins/apkup/releases/latest" target="_blank" rel="noopener noreferrer" class="footer-build-pill mono" title="Официальный релиз" data-astro-cid-yfspknxm>
+</script> <main id="main-content" class="section" data-astro-cid-bgl5emh2> <div class="container subpage-wrap" data-astro-cid-bgl5emh2> <div id="comparison" class="compare-block" data-astro-cid-bgl5emh2> <div class="section-header" data-astro-cid-bgl5emh2> <h1 class="section-title" data-astro-cid-bgl5emh2>Почему ApkUp? Подробное сравнение</h1> <p class="section-subtitle" data-astro-cid-bgl5emh2>Как ApkUp объединяет автоматический поиск по множеству источников, криптографическую проверку и совместимость с Obtainium по сравнению с другими приложениями.</p> </div> <div class="compare-table-card" data-astro-cid-bgl5emh2> <div class="compare-scroll" data-astro-cid-bgl5emh2> <table class="compare-table" data-astro-cid-bgl5emh2> <thead data-astro-cid-bgl5emh2> <tr data-astro-cid-bgl5emh2> <th data-astro-cid-bgl5emh2>Возможность / Функция</th> <th class="is-apkup" data-astro-cid-bgl5emh2>ApkUp</th> <th data-astro-cid-bgl5emh2>Obtainium</th> <th data-astro-cid-bgl5emh2>Aurora Store</th> <th data-astro-cid-bgl5emh2>F-Droid</th> </tr> </thead> <tbody data-astro-cid-bgl5emh2> <tr data-astro-cid-bgl5emh2> <td data-astro-cid-bgl5emh2>Автоматический поиск обновлений для уже установленных приложений без URL</td> <td class="is-apkup mono" data-astro-cid-bgl5emh2>✓ Автоматически (7 источников)</td> <td class="mono" data-astro-cid-bgl5emh2>✕ Ручной URL на приложение</td> <td class="mono" data-astro-cid-bgl5emh2>✓ Только Play Store</td> <td class="mono" data-astro-cid-bgl5emh2>✓ Только F-Droid</td> </tr><tr data-astro-cid-bgl5emh2> <td data-astro-cid-bgl5emh2>Единая экосистема (Play Store + FOSS + Git-хостинги + APKMirror)</td> <td class="is-apkup mono" data-astro-cid-bgl5emh2>✓ Всё в одном</td> <td class="mono" data-astro-cid-bgl5emh2>◐ Без Play Store</td> <td class="mono" data-astro-cid-bgl5emh2>✕ Только Play Store</td> <td class="mono" data-astro-cid-bgl5emh2>✕ Только F-Droid</td> </tr><tr data-astro-cid-bgl5emh2> <td data-astro-cid-bgl5emh2>Анонимные обновления Google Play Store без аккаунта Google</td> <td class="is-apkup mono" data-astro-cid-bgl5emh2>✓ Встроено (Aurora Delta)</td> <td class="mono" data-astro-cid-bgl5emh2>✕ Не поддерживается</td> <td class="mono" data-astro-cid-bgl5emh2>✓ Встроено</td> <td class="mono" data-astro-cid-bgl5emh2>✕ Не поддерживается</td> </tr><tr data-astro-cid-bgl5emh2> <td data-astro-cid-bgl5emh2>Прямая загрузка APKMirror в приложении и установка .apkm сплитов</td> <td class="is-apkup mono" data-astro-cid-bgl5emh2>✓ Нативно + WebView Cloudflare</td> <td class="mono" data-astro-cid-bgl5emh2>◐ Только отслеживание</td> <td class="mono" data-astro-cid-bgl5emh2>✕ Не поддерживается</td> <td class="mono" data-astro-cid-bgl5emh2>✕ Не поддерживается</td> </tr><tr data-astro-cid-bgl5emh2> <td data-astro-cid-bgl5emh2>Инкрементальные диффы F-Droid Index V2 (RFC 7396) и TOFU-пиннинг</td> <td class="is-apkup mono" data-astro-cid-bgl5emh2>✓ Нативный Index V2 + Diff</td> <td class="mono" data-astro-cid-bgl5emh2>◐ Полный индекс</td> <td class="mono" data-astro-cid-bgl5emh2>✕ Не поддерживается</td> <td class="mono" data-astro-cid-bgl5emh2>✓ Нативный Index V2</td> </tr><tr data-astro-cid-bgl5emh2> <td data-astro-cid-bgl5emh2>Пакетный GraphQL GitHub, вложенные подгруппы GitLab и Codeberg</td> <td class="is-apkup mono" data-astro-cid-bgl5emh2>✓ Полностью + Regex</td> <td class="mono" data-astro-cid-bgl5emh2>✓ REST API + Regex</td> <td class="mono" data-astro-cid-bgl5emh2>✕ Не поддерживается</td> <td class="mono" data-astro-cid-bgl5emh2>✕ Не поддерживается</td> </tr><tr data-astro-cid-bgl5emh2> <td data-astro-cid-bgl5emh2>Глобальный приоритет источников (Drag &amp; Drop) и закрепление по приложению</td> <td class="is-apkup mono" data-astro-cid-bgl5emh2>✓ Приоритет + Закрепление</td> <td class="mono" data-astro-cid-bgl5emh2>✕ 1 источник на приложение</td> <td class="mono" data-astro-cid-bgl5emh2>✕ 1 источник</td> <td class="mono" data-astro-cid-bgl5emh2>◐ Только приоритет репо</td> </tr><tr data-astro-cid-bgl5emh2> <td data-astro-cid-bgl5emh2>Проверка подписи APK v2/v3 до установки и защита от даунгрейда</td> <td class="is-apkup mono" data-astro-cid-bgl5emh2>✓ Предварительная проверка</td> <td class="mono" data-astro-cid-bgl5emh2>◐ Только системный запрос</td> <td class="mono" data-astro-cid-bgl5emh2>◐ Только системный запрос</td> <td class="mono" data-astro-cid-bgl5emh2>✓ Подпись индекса</td> </tr><tr data-astro-cid-bgl5emh2> <td data-astro-cid-bgl5emh2>Автоматические локальные бэкапы отката (со сплитами) до обновления</td> <td class="is-apkup mono" data-astro-cid-bgl5emh2>✓ До 2 ГБ + 1 нажатие</td> <td class="mono" data-astro-cid-bgl5emh2>✕ Нет</td> <td class="mono" data-astro-cid-bgl5emh2>✕ Нет</td> <td class="mono" data-astro-cid-bgl5emh2>◐ Только архив репо</td> </tr><tr data-astro-cid-bgl5emh2> <td data-astro-cid-bgl5emh2>Предварительная проверка совместимости minSdk и CPU ABI</td> <td class="is-apkup mono" data-astro-cid-bgl5emh2>✓ Предотвращает сбои</td> <td class="mono" data-astro-cid-bgl5emh2>◐ По имени файла</td> <td class="mono" data-astro-cid-bgl5emh2>✓ Профиль устройства</td> <td class="mono" data-astro-cid-bgl5emh2>✓ Метаданные индекса</td> </tr><tr data-astro-cid-bgl5emh2> <td data-astro-cid-bgl5emh2>Глобальные и индивидуальные пре-релиз каналы (Beta, RC, Alpha, Nightly)</td> <td class="is-apkup mono" data-astro-cid-bgl5emh2>✓ 4 раздельных канала</td> <td class="mono" data-astro-cid-bgl5emh2>◐ Общий переключатель</td> <td class="mono" data-astro-cid-bgl5emh2>✕ Только трек Play Store</td> <td class="mono" data-astro-cid-bgl5emh2>◐ Общий переключатель</td> </tr><tr data-astro-cid-bgl5emh2> <td data-astro-cid-bgl5emh2>Тихие фоновые обновления через Shizuku (без Root) и Root (su)</td> <td class="is-apkup mono" data-astro-cid-bgl5emh2>✓ Shizuku + Root (su)</td> <td class="mono" data-astro-cid-bgl5emh2>✓ Shizuku + Root</td> <td class="mono" data-astro-cid-bgl5emh2>✓ Shizuku + Root</td> <td class="mono" data-astro-cid-bgl5emh2>✓ Shizuku / Привилег. расш.</td> </tr><tr data-astro-cid-bgl5emh2> <td data-astro-cid-bgl5emh2>Активные временные окна, тихие часы и правила Wi-Fi / зарядки</td> <td class="is-apkup mono" data-astro-cid-bgl5emh2>✓ Окна + догон пропусков</td> <td class="mono" data-astro-cid-bgl5emh2>◐ Интервал + Wi-Fi/зарядка</td> <td class="mono" data-astro-cid-bgl5emh2>◐ Только интервал</td> <td class="mono" data-astro-cid-bgl5emh2>◐ Только Wi-Fi / зарядка</td> </tr><tr data-astro-cid-bgl5emh2> <td data-astro-cid-bgl5emh2>Список отслеживания + импорт/экспорт Obtainium и App Watcher</td> <td class="is-apkup mono" data-astro-cid-bgl5emh2>✓ 2-сторонний Obtainium + Watcher</td> <td class="mono" data-astro-cid-bgl5emh2>✓ Track-only + JSON</td> <td class="mono" data-astro-cid-bgl5emh2>✕ Без синхр. Obtainium</td> <td class="mono" data-astro-cid-bgl5emh2>✕ Без синхр. Obtainium</td> </tr><tr data-astro-cid-bgl5emh2> <td data-astro-cid-bgl5emh2>Экспорт .apk или .apks в любую папку SAF и кэш 24ч</td> <td class="is-apkup mono" data-astro-cid-bgl5emh2>✓ Сохранить APK/.apks + 24ч кэш</td> <td class="mono" data-astro-cid-bgl5emh2>◐ Обычная папка</td> <td class="mono" data-astro-cid-bgl5emh2>✓ Экспорт пакета</td> <td class="mono" data-astro-cid-bgl5emh2>◐ Только кэш</td> </tr><tr data-astro-cid-bgl5emh2> <td data-astro-cid-bgl5emh2>Аппаратное шифрование Google Tink AES-256-GCM и изоляция хостов</td> <td class="is-apkup mono" data-astro-cid-bgl5emh2>✓ Android Keystore AES-256</td> <td class="mono" data-astro-cid-bgl5emh2>◐ Память приложения</td> <td class="mono" data-astro-cid-bgl5emh2>◐ Память приложения</td> <td class="mono" data-astro-cid-bgl5emh2>✓ Токены не нужны</td> </tr> </tbody> </table> </div> </div> </div> <div id="checker" class="checker-block" data-astro-cid-bgl5emh2> <div class="section-header" data-astro-cid-bgl5emh2> <h2 class="section-title" data-astro-cid-bgl5emh2>Проверка источников и JSON Obtainium</h2> <p class="section-subtitle" data-astro-cid-bgl5emh2>100% офлайн в вашем браузере — ничего не отправляется на сервер. Вставьте экспорт JSON Obtainium или выберите файл для предпросмотра.</p> </div> <div class="compat-card" data-astro-cid-bgl5emh2> <div class="compat-actions" data-astro-cid-bgl5emh2> <label class="btn btn-primary" for="obt-file-input" data-astro-cid-bgl5emh2> Выбрать JSON-файл Obtainium </label> <input type="file" id="obt-file-input" accept=".json,application/json" hidden data-astro-cid-bgl5emh2> <button type="button" class="btn btn-secondary" id="obt-sample-btn" data-astro-cid-bgl5emh2> Загрузить пример </button> </div> <textarea id="obt-json-input" class="compat-textarea mono" rows="7" placeholder="{&quot;apps&quot;: [{&quot;id&quot;: &quot;com.apkup&quot;, &quot;url&quot;: &quot;https://github.com/DurchEins/apkup&quot;, &quot;name&quot;: &quot;ApkUp&quot;}]}" aria-label="Содержимое JSON-экспорта Obtainium" data-astro-cid-bgl5emh2></textarea> <div id="obt-report" class="compat-report" hidden data-astro-cid-bgl5emh2></div> </div> </div> </div> </main> <footer class="site-footer" data-astro-cid-jo6i4kqk> <div class="container footer-inner" data-astro-cid-jo6i4kqk> <div class="footer-brand" data-astro-cid-jo6i4kqk> <img src="/apkup/assets/logo.png" alt="" width="34" height="34" class="footer-icon" data-astro-cid-jo6i4kqk> <div class="footer-brand-text" data-astro-cid-jo6i4kqk> <strong data-astro-cid-jo6i4kqk>ApkUp</strong> <p class="footer-copy" data-astro-cid-jo6i4kqk>
+Copyright © 2026  <a href="https://github.com/DurchEins" target="_blank" rel="noopener noreferrer" class="footer-author-link" data-astro-cid-jo6i4kqk>DurchEins</a> </p> </div> </div> <nav class="footer-links" aria-label="Footer links" data-astro-cid-jo6i4kqk> <a href="/apkup/ru/downloads/" data-astro-cid-jo6i4kqk>Загрузки</a> <a href="/apkup/ru/sideloading/" data-astro-cid-jo6i4kqk>Неизвестные приложения</a> <a href="/apkup/ru/sideloading/google-lock/" data-astro-cid-jo6i4kqk>Блокировка Google 24ч</a> <a href="/apkup/ru/changelog/" data-astro-cid-jo6i4kqk>Что нового?</a> <a href="/apkup/ru/wiki/" data-astro-cid-jo6i4kqk>Вики</a> <a href="/apkup/ru/compare/" data-astro-cid-jo6i4kqk>Проверка источников</a> <a href="/apkup/ru/privacy/" data-astro-cid-jo6i4kqk>Приватность</a> <a href="/apkup/ru/security/" data-astro-cid-jo6i4kqk>Безопасность</a> <a href="https://github.com/DurchEins/apkup" target="_blank" rel="noopener noreferrer" data-astro-cid-jo6i4kqk>GitHub</a> <a href="https://github.com/sponsors/DurchEins" target="_blank" rel="noopener noreferrer" data-astro-cid-jo6i4kqk>Sponsor</a> <a href="https://github.com/DurchEins/apkup/wiki" target="_blank" rel="noopener noreferrer" data-astro-cid-jo6i4kqk>GitHub Wiki</a> <a href="https://github.com/DurchEins/apkup/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="footer-build-pill mono" data-astro-cid-jo6i4kqk>GPL-3.0</a> <a href="https://github.com/DurchEins/apkup/releases/latest" target="_blank" rel="noopener noreferrer" class="footer-build-pill mono" title="Официальный релиз" data-astro-cid-jo6i4kqk>
 v1.46.0 (231)
-</a> <a href="https://u24.gov.ua/" target="_blank" rel="noopener noreferrer" class="footer-build-pill footer-ukraine-pill" aria-label="Stand with Ukraine — Official United24 Support" data-astro-cid-yfspknxm> <svg width="16" height="11" viewBox="0 0 16 11" aria-hidden="true" class="ua-flag" data-astro-cid-yfspknxm> <defs data-astro-cid-yfspknxm> <clipPath id="ua-clip" data-astro-cid-yfspknxm><rect width="16" height="11" rx="2" data-astro-cid-yfspknxm></rect></clipPath> </defs> <g clip-path="url(#ua-clip)" data-astro-cid-yfspknxm> <rect width="16" height="5.5" fill="#0057B7" data-astro-cid-yfspknxm></rect> <rect y="5.5" width="16" height="5.5" fill="#FFD700" data-astro-cid-yfspknxm></rect> </g> </svg> <span data-astro-cid-yfspknxm>Stand with Ukraine</span> </a> </nav> <div class="footer-i18n-bar" data-astro-cid-yfspknxm> <div class="lang-picker-wrap" id="footer-lang-wrap" data-astro-cid-yfspknxm> <button type="button" id="footer-lang-btn" class="lang-picker-btn" aria-expanded="false" aria-haspopup="menu" aria-controls="footer-lang-menu" aria-label="Русский (RU) — Выбрать язык" data-astro-cid-yfspknxm> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-yfspknxm> <circle cx="12" cy="12" r="10" data-astro-cid-yfspknxm></circle> <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" data-astro-cid-yfspknxm></path> </svg> <span data-astro-cid-yfspknxm>Русский <span class="mono lang-code" data-astro-cid-yfspknxm>(RU)</span></span> <svg class="lang-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-yfspknxm> <path d="m6 9 6 6 6-6" data-astro-cid-yfspknxm></path> </svg> </button> <div id="footer-lang-menu" class="lang-picker-menu" role="menu" aria-label="Выбрать язык" hidden data-astro-cid-yfspknxm> <a href="/apkup/compare/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="en" lang="en" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>English</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>EN</span>  </span> </a><a href="/apkup/de/compare/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="de" lang="de" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>Deutsch</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>DE</span>  </span> </a><a href="/apkup/es/compare/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="es" lang="es" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>Español</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>ES</span>  </span> </a><a href="/apkup/fr/compare/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="fr" lang="fr" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>Français</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>FR</span>  </span> </a><a href="/apkup/it/compare/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="it" lang="it" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>Italiano</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>IT</span>  </span> </a><a href="/apkup/ja/compare/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="ja" lang="ja" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>日本語</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>JA</span>  </span> </a><a href="/apkup/pt/compare/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="pt" lang="pt" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>Português</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>PT</span>  </span> </a><a href="/apkup/ru/compare/" role="menuitemradio" aria-checked="true" class="lang-menu-item is-active" data-lang-option="ru" lang="ru" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>Русский</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>RU</span> <span aria-hidden="true" data-astro-cid-yfspknxm>✓</span> </span> </a><a href="/apkup/zh-cn/compare/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="zh-cn" lang="zh-CN" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>简体中文</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>ZH-CN</span>  </span> </a> </div> </div> <a href="https://hosted.weblate.org/engage/apkup/" target="_blank" rel="noopener noreferrer" class="help-translate-link" data-astro-cid-yfspknxm> Помочь с переводом → </a> </div> </div> </footer> <script>
+</a> <a href="https://u24.gov.ua/" target="_blank" rel="noopener noreferrer" class="footer-build-pill footer-ukraine-pill" aria-label="Stand with Ukraine — Official United24 Support" data-astro-cid-jo6i4kqk> <svg width="16" height="11" viewBox="0 0 16 11" aria-hidden="true" class="ua-flag" data-astro-cid-jo6i4kqk> <defs data-astro-cid-jo6i4kqk> <clipPath id="ua-clip" data-astro-cid-jo6i4kqk><rect width="16" height="11" rx="2" data-astro-cid-jo6i4kqk></rect></clipPath> </defs> <g clip-path="url(#ua-clip)" data-astro-cid-jo6i4kqk> <rect width="16" height="5.5" fill="#0057B7" data-astro-cid-jo6i4kqk></rect> <rect y="5.5" width="16" height="5.5" fill="#FFD700" data-astro-cid-jo6i4kqk></rect> </g> </svg> <span data-astro-cid-jo6i4kqk>Stand with Ukraine</span> </a> </nav> <div class="footer-i18n-bar" data-astro-cid-jo6i4kqk> <div class="lang-picker-wrap" id="footer-lang-wrap" data-astro-cid-jo6i4kqk> <button type="button" id="footer-lang-btn" class="lang-picker-btn" aria-expanded="false" aria-haspopup="menu" aria-controls="footer-lang-menu" aria-label="Выбрать язык" data-astro-cid-jo6i4kqk> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-jo6i4kqk> <circle cx="12" cy="12" r="10" data-astro-cid-jo6i4kqk></circle> <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" data-astro-cid-jo6i4kqk></path> </svg> <span data-astro-cid-jo6i4kqk>Русский <span class="mono lang-code" data-astro-cid-jo6i4kqk>(RU)</span></span> <svg class="lang-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-jo6i4kqk> <path d="m6 9 6 6 6-6" data-astro-cid-jo6i4kqk></path> </svg> </button> <div id="footer-lang-menu" class="lang-picker-menu" role="menu" aria-label="Выбрать язык" hidden data-astro-cid-jo6i4kqk> <a href="/apkup/compare/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="en" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>English</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>EN</span>  </span> </a><a href="/apkup/de/compare/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="de" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Deutsch</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>DE</span>  </span> </a><a href="/apkup/es/compare/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="es" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Español</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>ES</span>  </span> </a><a href="/apkup/fr/compare/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="fr" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Français</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>FR</span>  </span> </a><a href="/apkup/it/compare/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="it" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Italiano</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>IT</span>  </span> </a><a href="/apkup/ja/compare/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="ja" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>日本語</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>JA</span>  </span> </a><a href="/apkup/pt/compare/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="pt" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Português</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>PT</span>  </span> </a><a href="/apkup/ru/compare/" role="menuitemradio" aria-checked="true" class="lang-menu-item is-active" data-lang-option="ru" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Русский</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>RU</span> <span aria-hidden="true" data-astro-cid-jo6i4kqk>✓</span> </span> </a><a href="/apkup/zh-cn/compare/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="zh-cn" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>简体中文</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>ZH-CN</span>  </span> </a> </div> </div> <a href="https://hosted.weblate.org/engage/apkup/" target="_blank" rel="noopener noreferrer" class="help-translate-link" data-astro-cid-jo6i4kqk> Помочь с переводом → </a> </div> </div> </footer> <script>
   (function () {
     var wrap = document.getElementById('footer-lang-wrap');
     var btn = document.getElementById('footer-lang-btn');
     var menu = document.getElementById('footer-lang-menu');
     if (!wrap || !btn || !menu) return;
-
-    var menuItems = Array.prototype.slice.call(menu.querySelectorAll('[role="menuitemradio"]'));
 
     function closeMenu(focusBtn) {
       if (menu.hidden) return;
@@ -271,42 +192,15 @@ v1.46.0 (231)
       if (focusBtn) btn.focus();
     }
 
-    function openMenu(focusTarget) {
+    function openMenu() {
       menu.hidden = false;
       btn.setAttribute('aria-expanded', 'true');
-      var target = focusTarget || menu.querySelector('[aria-checked="true"]') || menuItems[0];
-      if (target) target.focus();
     }
 
     btn.addEventListener('click', function (e) {
       e.stopPropagation();
       if (menu.hidden) openMenu();
       else closeMenu(false);
-    });
-
-    btn.addEventListener('keydown', function (e) {
-      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-        e.preventDefault();
-        openMenu(e.key === 'ArrowUp' ? menuItems[menuItems.length - 1] : menuItems[0]);
-      }
-    });
-
-    menu.addEventListener('keydown', function (e) {
-      if (!menuItems.length) return;
-      var idx = menuItems.indexOf(document.activeElement);
-      var nextIdx = -1;
-      if (e.key === 'ArrowDown') nextIdx = (idx + 1) % menuItems.length;
-      else if (e.key === 'ArrowUp') nextIdx = (idx - 1 + menuItems.length) % menuItems.length;
-      else if (e.key === 'Home') nextIdx = 0;
-      else if (e.key === 'End') nextIdx = menuItems.length - 1;
-      else if (e.key === 'Tab') {
-        closeMenu(false);
-        return;
-      }
-      if (nextIdx >= 0) {
-        e.preventDefault();
-        menuItems[nextIdx].focus();
-      }
     });
 
     document.addEventListener('click', function (e) {
@@ -346,25 +240,17 @@ const canonicalShareUrl = "https://durcheins.github.io/apkup/ru/compare/";
         var root = document.documentElement;
         var themeBtn = document.getElementById('theme-toggle');
 
-        function syncThemeButtonLabel(mode) {
-          if (!themeBtn) return;
-          themeBtn.setAttribute('data-theme-state', mode);
-          themeBtn.setAttribute('aria-pressed', String(mode !== 'dark'));
-          var labelKey = mode === 'a11y' ? 'data-label-a11y' : (mode === 'light' ? 'data-label-light' : 'data-label-dark');
-          var nextLabel = themeBtn.getAttribute(labelKey);
-          if (nextLabel) {
-            themeBtn.setAttribute('aria-label', nextLabel);
-            themeBtn.setAttribute('title', nextLabel);
-          }
-        }
-
         function applyTheme(next) {
           root.classList.add('theme-switching');
-          var normalized = window.__apkupApplyThemeMode ? window.__apkupApplyThemeMode(next) : next;
+          root.setAttribute('data-theme', next);
+          var meta = document.getElementById('meta-theme-color');
+          if (meta) meta.setAttribute('content', next === 'light' ? '#F4F1EA' : '#121316');
           try {
-            localStorage.setItem('apkup-theme', normalized);
+            localStorage.setItem('apkup-theme', next);
           } catch (e) {}
-          syncThemeButtonLabel(normalized);
+          if (themeBtn) {
+            themeBtn.setAttribute('aria-pressed', String(next === 'light'));
+          }
           requestAnimationFrame(function () {
             requestAnimationFrame(function () {
               root.classList.remove('theme-switching');
@@ -373,26 +259,14 @@ const canonicalShareUrl = "https://durcheins.github.io/apkup/ru/compare/";
         }
 
         if (themeBtn) {
-          var initialMode = root.getAttribute('data-theme-mode') || 'dark';
-          syncThemeButtonLabel(initialMode);
+          themeBtn.setAttribute('aria-pressed', String(root.getAttribute('data-theme') === 'light'));
           try {
             if (!localStorage.getItem('apkup-theme')) themeBtn.classList.add('is-system-sync');
           } catch (e) {}
           themeBtn.addEventListener('click', function () {
             themeBtn.classList.remove('is-system-sync');
-            var current = root.getAttribute('data-theme-mode') || 'dark';
-            var next = current === 'dark' ? 'light' : (current === 'light' ? 'a11y' : 'dark');
-            applyTheme(next);
-          });
-          setInterval(function () {
-            if (root.getAttribute('data-theme-mode') === 'a11y' && window.__apkupApplyThemeMode) {
-              window.__apkupApplyThemeMode('a11y');
-            }
-          }, 60000);
-          document.addEventListener('visibilitychange', function () {
-            if (!document.hidden && root.getAttribute('data-theme-mode') === 'a11y' && window.__apkupApplyThemeMode) {
-              window.__apkupApplyThemeMode('a11y');
-            }
+            var current = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+            applyTheme(current === 'dark' ? 'light' : 'dark');
           });
         }
 
@@ -558,13 +432,14 @@ const canonicalShareUrl = "https://durcheins.github.io/apkup/ru/compare/";
       if (!report) return;
       var text = (raw || '').trim();
       if (!text) {
-        report.innerHTML = '';
+        report.hidden = true;
         return;
       }
       try {
         var parsed = JSON.parse(text);
         var apps = Array.isArray(parsed) ? parsed : Array.isArray(parsed.apps) ? parsed.apps : [];
         if (!apps.length) {
+          report.hidden = false;
           report.innerHTML = '<p class="compat-err">' + escapeHtml(reportMsg.empty) + '</p>';
           return;
         }
@@ -581,10 +456,12 @@ const canonicalShareUrl = "https://durcheins.github.io/apkup/ru/compare/";
             '</div>'
           );
         });
+        report.hidden = false;
         report.innerHTML =
           '<div class="compat-summary mono">' + apps.length + ' ' + escapeHtml(reportMsg.appsFound) + '</div>' +
           '<div class="compat-rows">' + rows.join('') + '</div>';
       } catch (e) {
+        report.hidden = false;
         report.innerHTML = '<p class="compat-err">' + escapeHtml(reportMsg.invalidJson) + '</p>';
       }
     }

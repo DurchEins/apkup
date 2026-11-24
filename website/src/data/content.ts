@@ -5,6 +5,7 @@ export interface LangPair {
 
 export const SITE = {
   repoUrl: 'https://github.com/DurchEins/apkup',
+  sponsorsUrl: 'https://github.com/sponsors/DurchEins',
   releasesUrl: 'https://github.com/DurchEins/apkup/releases/latest',
   wikiUrl: 'https://github.com/DurchEins/apkup/wiki',
   issuesUrl: 'https://github.com/DurchEins/apkup/issues',

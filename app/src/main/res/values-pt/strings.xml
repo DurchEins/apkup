@@ -257,6 +257,17 @@
     <string name="update_history_filter_empty_title">Nenhum resultado</string>
     <string name="update_history_filter_empty_desc">Tente outro termo ou redefina os filtros.</string>
     <string name="update_history_filter_reset">Redefinir filtros</string>
+    <string name="batch_safety_title">Verificação de segurança</string>
+    <string name="batch_safety_low_battery">A bateria está em %1$d%% e não está carregando. Atualizações em lote podem esgotá-la.</string>
+    <string name="batch_safety_low_storage">Restam apenas %1$d MB livres (500 MB recomendados para lotes).</string>
+    <string name="batch_safety_continue">Continuar mesmo assim</string>
+    <string name="batch_retry_failed_banner">%1$d atualização(ões) falhou(aram)</string>
+    <string name="batch_retry_failed_short">Tentar novamente</string>
+    <string name="update_snooze_action">Adiar lembrete</string>
+    <string name="update_snooze_24h">24 horas</string>
+    <string name="update_snooze_3d">3 dias</string>
+    <string name="update_snoozed_snack">%1$s adiado</string>
+    <string name="watchlist_auto_removed_installed">%1$s removido da Watchlist — instalado</string>
     <string name="update_history_empty_title">Nenhuma atualização registrada</string>
     <string name="update_history_empty_desc">Assim que o ApkUp atualizar apps manualmente ou automaticamente via Shizuku, eles aparecerão aqui com link para a versão anterior.</string>
     <string name="update_history_mode_auto_shizuku">Auto · Shizuku</string>
@@ -642,4 +653,27 @@
     <string name="apps_grid_density_large">Grande (2 col. • 48 dp)</string>
     <string name="apps_grid_density_compact">Compacta (3 col.)</string>
     <string name="apps_grid_density_auto_a11y">No tema Acessibilidade 2 colunas vêm pré-selecionadas, mas você pode alternar entre 2 e 3 a qualquer momento.</string>
+    <string name="widget_updates_description">Mostra atualizações disponíveis do ApkUp e inicia uma verificação rápida</string>
+    <string name="widget_updates_checking">Verificando…</string>
+    <string name="widget_updates_never_checked">Nunca verificado</string>
+    <string name="widget_updates_up_to_date">Tudo atualizado</string>
+    <string name="widget_updates_last_checked">Última verificação: %1$s</string>
+    <string name="widget_updates_tap_to_check">Toque para verificar</string>
+    <plurals name="widget_updates_available">
+        <item quantity="one">%1$d atualização</item>
+        <item quantity="other">%1$d atualizações</item>
+    </plurals>
+    <string name="notification_install_all_action">Instalar tudo</string>
+    <string name="history_export_action">Exportar</string>
+    <string name="history_export_csv">Exportar como CSV</string>
+    <string name="history_export_markdown">Exportar como Markdown</string>
+    <string name="apps_share_list_action">Compartilhar lista</string>
+    <string name="apps_share_scope_message">Escolha quais aplicativos instalados incluir na lista compartilhada:</string>
+    <string name="backup_diff_title">Revisar alterações do backup</string>
+    <string name="backup_diff_repos">Repositórios vinculados: %1$d → %2$d</string>
+    <string name="backup_diff_watchlist">Apps na Watchlist: %1$d → %2$d</string>
+    <string name="backup_diff_ignored">Apps ignorados: %1$d → %2$d</string>
+    <string name="backup_diff_skipped">Versões ignoradas: %1$d → %2$d</string>
+    <string name="backup_diff_fdroid">Repos F-Droid personalizados: %1$d → %2$d</string>
+    <string name="backup_diff_confirm">Importar backup</string>
 </resources>

@@ -380,6 +380,7 @@ class ShizukuAutoUpdateWorker(
 
     companion object {
         const val WORK_NAME = "ShizukuAutoUpdateWorker"
+        const val KEY_FORCE_IMMEDIATE = "force_immediate"
 
         fun enqueue(
             workManager: WorkManager,
@@ -422,10 +423,14 @@ class ShizukuAutoUpdateWorker(
     private val repoMappingManager: RepoMappingManager by inject()
 
     override suspend fun doWork(): Result {
-        if ((!prefs.useShizukuInstaller.get() && !prefs.useRootInstaller.get()) || !prefs.autoInstallUpdates.get()) {
+        val forceImmediate = inputData.getBoolean(KEY_FORCE_IMMEDIATE, false)
+        if (!prefs.useShizukuInstaller.get() && !prefs.useRootInstaller.get()) {
             return Result.success()
         }
-        if (!prefs.isUpdateWindowAllowedNow()) {
+        if (!forceImmediate && !prefs.autoInstallUpdates.get()) {
+            return Result.success()
+        }
+        if (!forceImmediate && !prefs.isUpdateWindowAllowedNow()) {
             val delayMins = prefs.minutesUntilNextUpdateWindow()
             if (delayMins > 0) {
                 enqueue(
@@ -462,13 +467,23 @@ class ShizukuAutoUpdateWorker(
             result = resolvedResult,
             ignoredVersionIds = if (prefs.ignoreVersionsFilterActive.get()) prefs.ignoredVersions.get() else emptyList(),
             ignoredPackages = if (prefs.ignoreAppsFilterActive.get()) prefs.ignoredApps.get() else emptyList()
-        )
+        ).filterNot { prefs.isUpdateSnoozed(it.packageName, it.versionCode, it.version) }
         if (notifiableUpdates.isEmpty()) {
             return Result.success()
         }
 
+        val storageDir = DownloadStorageManager.getDownloadDir(applicationContext)
+        val safetyStatus = com.apkup.util.checkBatchSafetyStatus(applicationContext, storageDir)
+        if (safetyStatus.hasAnyWarning) {
+            Log.i(
+                "ShizukuAutoUpdateWorker",
+                "Pausing background auto-update due to safety guard (battery=${safetyStatus.batteryPercent}%, charging=${safetyStatus.isCharging}, freeBytes=${safetyStatus.freeStorageBytes})"
+            )
+            return Result.retry()
+        }
+
         val runner = ShizukuAutoUpdateRunner(
-            storageBaseDir = DownloadStorageManager.getDownloadDir(applicationContext),
+            storageBaseDir = storageDir,
             prefs = prefs,
             downloader = downloader,
             apkMirrorResolver = apkMirrorResolver,
@@ -478,6 +493,7 @@ class ShizukuAutoUpdateWorker(
             context = applicationContext
         )
         runner.execute(notifiableUpdates)
+        com.apkup.widget.UpdatesWidgetProvider.notifyWidgetDataChanged(applicationContext, isChecking = false)
         return Result.success()
     }
 }

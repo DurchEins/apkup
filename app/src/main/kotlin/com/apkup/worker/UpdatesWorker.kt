@@ -6,15 +6,20 @@ package com.apkup.worker
  * compares versions, and triggers a system notification or autonomous Shizuku installation if new updates are available.
  */
 import android.content.Context
+import android.content.pm.ServiceInfo
+import android.os.Build
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
+import androidx.work.ForegroundInfo
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import com.apkup.data.ui.UpdateCheckResult
 import com.apkup.data.ui.isWatchedApp
 import com.apkup.prefs.Prefs
@@ -39,6 +44,7 @@ class UpdatesWorker(
     companion object : KoinComponent {
         private const val TAG = "UpdatesWorker"
         private const val WINDOW_CATCHUP_WORK_NAME = "UpdatesWorkerWindowCatchUp"
+        const val KEY_USER_INITIATED = "user_initiated"
         private val prefs: Prefs by inject()
 
         fun cancel(workManager: WorkManager) {
@@ -91,6 +97,19 @@ class UpdatesWorker(
             workManager.enqueueUniquePeriodicWork(TAG, policy, request)
         }
 
+        fun launchImmediate(workManager: WorkManager) {
+            val request = OneTimeWorkRequestBuilder<UpdatesWorker>()
+                .setInputData(workDataOf(KEY_USER_INITIATED to true))
+                .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+                .build()
+            workManager.enqueueUniqueWork(
+                "${TAG}_immediate",
+                ExistingWorkPolicy.REPLACE,
+                request
+            )
+        }
+
         private fun randomDelayMillis(): Long = if (prefs.useApkMirror.get()) {
             Random.nextLong(0L, 45L * 60L * 1_000L)
         } else {
@@ -105,63 +124,104 @@ class UpdatesWorker(
     private val installer: SessionInstaller by inject()
     private val repoMappingManager: RepoMappingManager by inject()
 
+    override suspend fun getForegroundInfo(): ForegroundInfo {
+        val progressNotification = notification.buildCheckProgressNotification()
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ForegroundInfo(
+                UpdatesNotification.CHECK_PROGRESS_NOTIFICATION_ID,
+                progressNotification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+            )
+        } else {
+            ForegroundInfo(
+                UpdatesNotification.CHECK_PROGRESS_NOTIFICATION_ID,
+                progressNotification
+            )
+        }
+    }
+
     override suspend fun doWork(): Result {
-        if (!prefs.hasCompletedOnboarding.get()) {
-            return Result.success()
-        }
-        if (!prefs.isUpdateWindowAllowedNow()) {
-            val delayMins = prefs.minutesUntilNextUpdateWindow()
-            if (delayMins > 0) {
-                scheduleWindowCatchUp(WorkManager.getInstance(applicationContext), delayMins)
+        val userInitiated = inputData.getBoolean(KEY_USER_INITIATED, false)
+        try {
+            if (!prefs.hasCompletedOnboarding.get()) {
+                return Result.success()
             }
-            return Result.success()
-        }
-        var finalResult: UpdateCheckResult<com.apkup.data.ui.AppUpdate>? = null
-        var lastEmission: UpdateCheckResult<com.apkup.data.ui.AppUpdate>? = null
-        withTimeoutOrNull(90_000L) {
-            updatesRepository.updates().collect { emission ->
-                lastEmission = emission
-                if (!emission.isChecking) {
-                    finalResult = emission
+            if (!userInitiated && !prefs.isUpdateWindowAllowedNow()) {
+                val delayMins = prefs.minutesUntilNextUpdateWindow()
+                if (delayMins > 0) {
+                    scheduleWindowCatchUp(WorkManager.getInstance(applicationContext), delayMins)
+                }
+                return Result.success()
+            }
+            var finalResult: UpdateCheckResult<com.apkup.data.ui.AppUpdate>? = null
+            var lastEmission: UpdateCheckResult<com.apkup.data.ui.AppUpdate>? = null
+            withTimeoutOrNull(90_000L) {
+                updatesRepository.updates().collect { emission ->
+                    lastEmission = emission
+                    if (userInitiated && emission.isChecking) {
+                        notification.showCheckProgressNotification(
+                            checkedApps = emission.checkedApps,
+                            totalApps = emission.totalApps,
+                            activeSource = emission.activeSourceName
+                        )
+                    }
+                    if (!emission.isChecking) {
+                        finalResult = emission
+                    }
                 }
             }
-        }
-        val completed = finalResult ?: lastEmission ?: return Result.retry()
-        val notifiableUpdates = filterNotifiableUpdates(
-            result = completed,
-            ignoredVersionIds = if (prefs.ignoreVersionsFilterActive.get()) prefs.ignoredVersions.get() else emptyList(),
-            ignoredPackages = if (prefs.ignoreAppsFilterActive.get()) prefs.ignoredApps.get() else emptyList()
-        )
-        if (notifiableUpdates.isNotEmpty()) {
-            val autoInstallEnabled = (prefs.useShizukuInstaller.get() || prefs.useRootInstaller.get()) &&
-                prefs.autoInstallUpdates.get()
-            if (autoInstallEnabled) {
-                val wifiOnly = prefs.autoInstallWifiOnly.get()
-                val chargingOnly = prefs.autoInstallChargingOnly.get()
-                if (areAutoInstallConstraintsMet(applicationContext, wifiOnly, chargingOnly)) {
-                    val runner = ShizukuAutoUpdateRunner(
-                        storageBaseDir = DownloadStorageManager.getDownloadDir(applicationContext),
-                        prefs = prefs,
-                        downloader = downloader,
-                        apkMirrorResolver = apkMirrorResolver,
-                        installer = installer,
-                        notification = notification,
-                        repoMappingManager = repoMappingManager,
-                        context = applicationContext
-                    )
-                    runner.execute(notifiableUpdates)
+            val completed = finalResult ?: lastEmission ?: return Result.retry()
+            val notifiableUpdates = filterNotifiableUpdates(
+                result = completed,
+                ignoredVersionIds = if (prefs.ignoreVersionsFilterActive.get()) prefs.ignoredVersions.get() else emptyList(),
+                ignoredPackages = if (prefs.ignoreAppsFilterActive.get()) prefs.ignoredApps.get() else emptyList()
+            ).filterNot { prefs.isUpdateSnoozed(it.packageName, it.versionCode, it.version) }
+            if (notifiableUpdates.isNotEmpty()) {
+                val autoInstallEnabled = (prefs.useShizukuInstaller.get() || prefs.useRootInstaller.get()) &&
+                    prefs.autoInstallUpdates.get()
+                if (autoInstallEnabled) {
+                    val wifiOnly = prefs.autoInstallWifiOnly.get()
+                    val chargingOnly = prefs.autoInstallChargingOnly.get()
+                    if (areAutoInstallConstraintsMet(applicationContext, wifiOnly, chargingOnly)) {
+                        val runner = ShizukuAutoUpdateRunner(
+                            storageBaseDir = DownloadStorageManager.getDownloadDir(applicationContext),
+                            prefs = prefs,
+                            downloader = downloader,
+                            apkMirrorResolver = apkMirrorResolver,
+                            installer = installer,
+                            notification = notification,
+                            repoMappingManager = repoMappingManager,
+                            context = applicationContext
+                        )
+                        runner.execute(notifiableUpdates)
+                    } else {
+                        if (userInitiated) {
+                            notification.showUpdateNotification(notifiableUpdates.size)
+                        }
+                        ShizukuAutoUpdateWorker.enqueue(
+                            workManager = WorkManager.getInstance(applicationContext),
+                            wifiOnly = wifiOnly,
+                            chargingOnly = chargingOnly
+                        )
+                    }
                 } else {
-                    ShizukuAutoUpdateWorker.enqueue(
-                        workManager = WorkManager.getInstance(applicationContext),
-                        wifiOnly = wifiOnly,
-                        chargingOnly = chargingOnly
-                    )
+                    notification.showUpdateNotification(notifiableUpdates.size)
                 }
-            } else {
-                notification.showUpdateNotification(notifiableUpdates.size)
+            } else if (userInitiated) {
+                if (completed.isCompleteFailure) {
+                    notification.showUpdateCheckFailedNotification()
+                } else {
+                    notification.showUpToDateNotification()
+                }
             }
+            return if (completed.isCompleteFailure && runAttemptCount < 3) Result.retry() else Result.success()
+        } finally {
+            notification.cancelCheckProgressNotification()
+            com.apkup.widget.UpdatesWidgetProvider.notifyWidgetDataChanged(
+                context = applicationContext,
+                isChecking = false
+            )
         }
-        return if (completed.isCompleteFailure && runAttemptCount < 3) Result.retry() else Result.success()
     }
 }
 

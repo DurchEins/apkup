@@ -32,8 +32,8 @@ android {
         applicationId = "com.apkup" + buildTag
         minSdk = 29
         targetSdk = 37
-        versionCode = parsedBuildNumber ?: 234
-        versionName = if (parsedBuildNumber == null) "1.47.0 (234)" else "1.47.0-$parsedBuildNumber"
+        versionCode = parsedBuildNumber ?: 237
+        versionName = if (parsedBuildNumber == null) "1.47.0 (237)" else "1.47.0-$parsedBuildNumber"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders["appLabel"] = "@string/app_name"
     }

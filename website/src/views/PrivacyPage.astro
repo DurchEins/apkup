@@ -56,6 +56,13 @@ const p = t.privacyPage;
         <article class="priv-card">
           <h2>{p.s3Title}</h2>
           <p>{p.s3Body}</p>
+        </article>
+
+        <article class="priv-card">
+          <h2>{p.s4Title}</h2>
+          <ul>
+            {p.s4Items.map((item) => <li>{item}</li>)}
+          </ul>
           <div style="margin-top: 14px;">
             <a class="btn btn-secondary" href={SITE.privacyUrl} target="_blank" rel="noopener noreferrer">
               {p.viewGithub}

@@ -603,7 +603,7 @@
     "title": "隐私政策 — ApkUp",
     "metaDesc": "ApkUp 的零遥测、本地存储与加密凭据说明。",
     "h1": "隐私政策",
-    "lead": "最后更新：2026 年 11 月 13 日 • 基于 ApkUp 仓库中的 PRIVACY.md。",
+    "lead": "最后更新：2026 年 11 月 24 日 • 基于 ApkUp 仓库中的 PRIVACY.md。",
     "onDeviceBadge": "✓ 100% 本地运行",
     "onDeviceItems": [
       "应用扫描、版本比对与 SHA-256 校验",
@@ -628,6 +628,12 @@
     ],
     "s3Title": "3. 加密本地存储与开源审计",
     "s3Body": "所有偏好设置、仓库绑定与可选 API 令牌均通过由 Android Keystore 保护的 Google Tink (AES-256-GCM) 静态加密。云备份与明文 HTTP 均已禁用。",
+    "s4Title": "4. 配套官方网站（durcheins.github.io/apkup）",
+    "s4Items": [
+      "通过 GitHub Pages（github.io）静态托管，不使用任何第一方追踪 Cookie、统计 SDK 或广告网络。",
+      "支持板块嵌入了官方 GitHub Sponsors 实时按钮（来自 github.com/sponsors/DurchEins/button 的 <iframe>），加载时会向 GitHub 发送浏览器请求。",
+      "公开的 GitHub API（api.github.com）请求用于获取最新发布版本与 Star 数量；网页字体由 Google Fonts 提供。"
+    ],
     "viewGithub": "在 GitHub 查看 PRIVACY.md"
   },
   "securityPage": {

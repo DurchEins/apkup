@@ -166,6 +166,16 @@ class Prefs(
 
     val ignoreAppsFilterActive: PrefSlot<Boolean> = booleanSlot("ignoreAppsFilterActive", defValue = true)
     val ignoreVersionsFilterActive: PrefSlot<Boolean> = booleanSlot("ignoreVersionsFilterActive", defValue = true)
+    val autoCleanupDownloadsAfterInstall: PrefSlot<Boolean> = booleanSlot("autoCleanupDownloadsAfterInstall", defValue = true)
+
+    val snoozedUpdates: PrefSlot<List<com.apkup.data.ui.SnoozedUpdateEntry>> = jsonSlot(
+        key = "snoozedUpdates",
+        type = object : TypeToken<List<com.apkup.data.ui.SnoozedUpdateEntry>>() {}.type,
+        defProvider = { emptyList() },
+        onChanged = { _snoozedUpdatesFlow.value = it }
+    )
+    private val _snoozedUpdatesFlow = MutableStateFlow(readSnoozedUpdatesSafe())
+    val snoozedUpdatesFlow: StateFlow<List<com.apkup.data.ui.SnoozedUpdateEntry>> = _snoozedUpdatesFlow.asStateFlow()
     val updatesDisplayMode: PrefSlot<Int> = intSlot("updatesDisplayMode", defValue = 0)
     val appsViewMode: PrefSlot<String> = stringSlot("appsViewMode", defValue = "list")
     val appsGridColumns: PrefSlot<Int> = intSlot("appsGridColumns", defValue = 2)
@@ -722,6 +732,63 @@ class Prefs(
         val updated = readWatchedAppsSafe()
             .filterNot { it.packageName.equals(pkg, ignoreCase = true) }
         writeWatchedApps(updated)
+    }
+
+    fun removeInstalledWatchedApps(installedPackages: Set<String>): List<WatchedAppEntry> = synchronized(lock) {
+        if (installedPackages.isEmpty()) return@synchronized emptyList()
+        val lowerInstalled = installedPackages.map { it.trim().lowercase() }.toSet()
+        val current = readWatchedAppsSafe()
+        val removed = current.filter { it.packageName.trim().lowercase() in lowerInstalled }
+        if (removed.isNotEmpty()) {
+            writeWatchedApps(current.filterNot { it.packageName.trim().lowercase() in lowerInstalled })
+        }
+        removed
+    }
+
+    fun readSnoozedUpdatesSafe(nowMillis: Long = System.currentTimeMillis()): List<com.apkup.data.ui.SnoozedUpdateEntry> =
+        synchronized(lock) {
+            runCatching { snoozedUpdates.get() }
+                .getOrDefault(emptyList())
+                .filter { it.packageName.isNotBlank() && it.snoozeUntilMillis > nowMillis }
+        }
+
+    fun snoozeUpdate(
+        packageName: String,
+        appName: String,
+        version: String,
+        versionCode: Long,
+        durationMillis: Long,
+        nowMillis: Long = System.currentTimeMillis()
+    ) = synchronized(lock) {
+        val pkg = packageName.trim()
+        if (pkg.isBlank() || durationMillis <= 0L) return@synchronized
+        val entry = com.apkup.data.ui.SnoozedUpdateEntry(
+            packageName = pkg,
+            appName = appName.trim().ifBlank { pkg },
+            version = version,
+            versionCode = versionCode,
+            snoozeUntilMillis = nowMillis + durationMillis
+        )
+        val updated = readSnoozedUpdatesSafe(nowMillis)
+            .filterNot { it.packageName.equals(pkg, ignoreCase = true) } + entry
+        snoozedUpdates.put(updated)
+    }
+
+    fun unsnoozeUpdate(packageName: String) = synchronized(lock) {
+        val pkg = packageName.trim()
+        if (pkg.isBlank()) return@synchronized
+        val updated = readSnoozedUpdatesSafe()
+            .filterNot { it.packageName.equals(pkg, ignoreCase = true) }
+        snoozedUpdates.put(updated)
+    }
+
+    fun isUpdateSnoozed(
+        packageName: String,
+        versionCode: Long,
+        version: String,
+        nowMillis: Long = System.currentTimeMillis()
+    ): Boolean = readSnoozedUpdatesSafe(nowMillis).any {
+        it.isActiveFor(packageName, versionCode, version, nowMillis)
     }
 
     fun readSourcePriorityOrderSafe(): List<String> = synchronized(lock) {
