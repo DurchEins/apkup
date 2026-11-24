@@ -62,6 +62,32 @@ const a = t.accessibilityPage;
           <section class="a11y-card a11y-card-wide" aria-labelledby="a11y-solo-heading">
             <h2 id="a11y-solo-heading">{a.soloTitle}</h2>
             <p>{a.soloBody}</p>
+            <div class="a11y-actions">
+              <a
+                class="btn btn-secondary"
+                href={`${SITE.repoUrl}/issues`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {a.soloIssuesCta || 'GitHub Issues ↗'}
+              </a>
+              <a
+                class="btn btn-secondary"
+                href={`${SITE.repoUrl}/discussions`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {a.soloDiscussionsCta || 'GitHub Discussions ↗'}
+              </a>
+              <a
+                class="btn btn-secondary"
+                href="https://gitlab.com/DurchEins/apkup/-/issues"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {a.soloGitlabCta || 'GitLab Issues ↗'}
+              </a>
+            </div>
           </section>
         )}
 
