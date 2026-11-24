@@ -631,4 +631,18 @@
     <string name="a11y_close_search">Закрыть поиск</string>
     <string name="a11y_select_item">Выбрать %1$s</string>
     <string name="a11y_deselect_item">Снять выбор с %1$s</string>
+    <string name="theme_a11y">Доступность</string>
+    <string name="a11y_theme_mode_title">Солнечный режим доступности</string>
+    <string name="a11y_submode_auto_sun">Авто солнце</string>
+    <string name="a11y_submode_light">Светлая AAA</string>
+    <string name="a11y_submode_dark">Тёмная AAA</string>
+    <string name="a11y_sun_schedule_info">Офлайн-переключение по солнцу: Светлая %1$s – %2$s (без геолокации)</string>
+    <string name="a11y_sun_custom_info">Своё расписание: Светлая %1$s – %2$s</string>
+    <string name="a11y_sun_customize_btn">Настроить время</string>
+    <string name="a11y_sun_reset_btn">По солнцу</string>
+    <string name="dynamic_color_paused_a11y">Приостановлено в режиме доступности для гарантии контраста 7:1 (AAA)</string>
+    <string name="apps_grid_density_title">Плотность сетки приложений</string>
+    <string name="apps_grid_density_large">Крупная (2 кол. • 48 dp)</string>
+    <string name="apps_grid_density_compact">Компактная (3 кол.)</string>
+    <string name="apps_grid_density_auto_a11y">В режиме доступности автоматически включены 2 колонки с кнопками 48 dp.</string>
 </resources>

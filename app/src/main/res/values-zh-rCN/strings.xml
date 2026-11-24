@@ -625,4 +625,18 @@
     <string name="a11y_close_search">关闭搜索</string>
     <string name="a11y_select_item">选择 %1$s</string>
     <string name="a11y_deselect_item">取消选择 %1$s</string>
+    <string name="theme_a11y">无障碍</string>
+    <string name="a11y_theme_mode_title">无障碍日出日落模式</string>
+    <string name="a11y_submode_auto_sun">自动日照</string>
+    <string name="a11y_submode_light">浅色 AAA</string>
+    <string name="a11y_submode_dark">深色 AAA</string>
+    <string name="a11y_sun_schedule_info">离线日照切换：浅色 %1$s – %2$s（无需位置权限）</string>
+    <string name="a11y_sun_custom_info">自定义切换时间：浅色 %1$s – %2$s</string>
+    <string name="a11y_sun_customize_btn">自定义时间</string>
+    <string name="a11y_sun_reset_btn">恢复日照自动</string>
+    <string name="dynamic_color_paused_a11y">无障碍主题启用时已暂停，以确保 7:1 (AAA) 对比度</string>
+    <string name="apps_grid_density_title">应用网格密度</string>
+    <string name="apps_grid_density_large">大（2列 • 48 dp）</string>
+    <string name="apps_grid_density_compact">紧凑（3列）</string>
+    <string name="apps_grid_density_auto_a11y">无障碍主题下自动固定为 2 列与 48 dp 触控目标。</string>
 </resources>

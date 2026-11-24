@@ -624,4 +624,18 @@
     <string name="a11y_close_search">検索を閉じる</string>
     <string name="a11y_select_item">%1$s を選択</string>
     <string name="a11y_deselect_item">%1$s の選択を解除</string>
+    <string name="theme_a11y">高コントラスト</string>
+    <string name="a11y_theme_mode_title">太陽連動コントラストモード</string>
+    <string name="a11y_submode_auto_sun">自動(太陽)</string>
+    <string name="a11y_submode_light">ライト AAA</string>
+    <string name="a11y_submode_dark">ダーク AAA</string>
+    <string name="a11y_sun_schedule_info">オフライン太陽切替: ライト %1$s – %2$s (位置情報不要)</string>
+    <string name="a11y_sun_custom_info">カスタム切替時刻: ライト %1$s – %2$s</string>
+    <string name="a11y_sun_customize_btn">時刻を設定</string>
+    <string name="a11y_sun_reset_btn">太陽自動に戻す</string>
+    <string name="dynamic_color_paused_a11y">7:1 (AAA) コントラスト維持のため高コントラスト中は一時停止</string>
+    <string name="apps_grid_density_title">アプリグリッド密度</string>
+    <string name="apps_grid_density_large">大 (2列 • 48 dp)</string>
+    <string name="apps_grid_density_compact">コンパクト (3列)</string>
+    <string name="apps_grid_density_auto_a11y">高コントラストテーマでは48 dpボタン付きの2列表示が自動適用されます。</string>
 </resources>

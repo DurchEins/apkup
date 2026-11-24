@@ -26,22 +26,34 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.apkup.ui.theme.ApkUpTheme
 
 internal const val INSTALLED_APPS_COMPACT_BREAKPOINT_DP = 600f
 internal const val INSTALLED_APPS_PORTRAIT_COLUMNS = 3
+internal const val INSTALLED_APPS_ACCESSIBLE_COLUMNS = 2
 internal const val INSTALLED_APPS_MIN_TILE_WIDTH_DP = 110f
 internal const val INSTALLED_APPS_GRID_HORIZONTAL_PADDING_DP = 10f
 internal const val INSTALLED_APPS_GRID_SPACING_DP = 8f
 
-internal fun installedAppsGridColumnCount(availableWidthDp: Float): Int {
+internal fun installedAppsGridColumnCount(
+    availableWidthDp: Float,
+    preferredPortraitColumns: Int = INSTALLED_APPS_PORTRAIT_COLUMNS,
+    forceAccessibleGrid: Boolean = false
+): Int {
+    val portraitColumns = if (forceAccessibleGrid) {
+        INSTALLED_APPS_ACCESSIBLE_COLUMNS
+    } else {
+        preferredPortraitColumns.coerceIn(INSTALLED_APPS_ACCESSIBLE_COLUMNS, INSTALLED_APPS_PORTRAIT_COLUMNS)
+    }
     if (availableWidthDp < INSTALLED_APPS_COMPACT_BREAKPOINT_DP) {
-        return INSTALLED_APPS_PORTRAIT_COLUMNS
+        return portraitColumns
     }
     val contentWidthDp = (availableWidthDp - (INSTALLED_APPS_GRID_HORIZONTAL_PADDING_DP * 2f))
         .coerceAtLeast(INSTALLED_APPS_MIN_TILE_WIDTH_DP)
     val rawColumns = ((contentWidthDp + INSTALLED_APPS_GRID_SPACING_DP) /
         (INSTALLED_APPS_MIN_TILE_WIDTH_DP + INSTALLED_APPS_GRID_SPACING_DP)).toInt()
-    return rawColumns.coerceIn(4, 6)
+    val maxExpanded = if (forceAccessibleGrid || portraitColumns == INSTALLED_APPS_ACCESSIBLE_COLUMNS) 4 else 6
+    return rawColumns.coerceIn(portraitColumns, maxExpanded)
 }
 
 @Composable
@@ -51,11 +63,18 @@ fun LoadingGrid() = InstalledLoadingGrid()
 fun InstalledLoadingGrid() = InstalledGrid(false) {
     items(16) {
         val cardShape = RoundedCornerShape(24.dp)
+        val highContrast = ApkUpTheme.isHighContrast
         ElevatedCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(134.dp)
-                ,
+                .border(
+                    BorderStroke(
+                        if (highContrast) 1.5.dp else 1.dp,
+                        if (highContrast) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
+                    ),
+                    cardShape
+                ),
             shape = cardShape,
             colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
         ) {
@@ -74,9 +93,15 @@ fun InstalledLoadingGrid() = InstalledGrid(false) {
 fun InstalledGrid(
     scroll: Boolean = true,
     state: LazyGridState = rememberLazyGridState(),
+    preferredPortraitColumns: Int = INSTALLED_APPS_PORTRAIT_COLUMNS,
     content: LazyGridScope.() -> Unit
 ) = BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-    val columns = installedAppsGridColumnCount(maxWidth.value)
+    val highContrast = ApkUpTheme.isHighContrast
+    val columns = installedAppsGridColumnCount(
+        availableWidthDp = maxWidth.value,
+        preferredPortraitColumns = preferredPortraitColumns,
+        forceAccessibleGrid = highContrast
+    )
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
         state = state,

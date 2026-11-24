@@ -122,10 +122,12 @@ import com.apkup.ui.component.SupportLinks
 import com.apkup.ui.component.SupportReminderDialog
 import com.apkup.ui.theme.ApkUpTheme
 import com.apkup.ui.theme.AppTheme
+import com.apkup.ui.theme.THEME_ACCESSIBILITY
 import com.apkup.util.Badger
 import com.apkup.data.snack.SnackVisualType
 import com.apkup.data.snack.TextSnack
 import com.apkup.util.SnackBar
+import com.apkup.util.SolarScheduleCalculator
 import com.apkup.util.Themer
 import com.apkup.viewmodel.AppsViewModel
 import com.apkup.viewmodel.MainViewModel
@@ -148,6 +150,7 @@ fun MainScreen(
 ) {
     val context = LocalContext.current
     val badger = koinInject<Badger>()
+    val themer = koinInject<Themer>()
 
     val appsViewModel: AppsViewModel = koinViewModel()
     val updatesViewModel: UpdatesViewModel = koinViewModel()
@@ -171,6 +174,7 @@ fun MainScreen(
             when (event) {
                 Lifecycle.Event.ON_START,
                 Lifecycle.Event.ON_RESUME -> {
+                    themer.refreshSolarTheme()
                     updatesViewModel.setAppInForeground(true)
                     settingsViewModel.refreshShizukuStatus()
                     runCatching {
@@ -223,12 +227,28 @@ fun MainScreen(
     CheckNotificationIntent(mainViewModel, updatesViewModel, navController)
     IntentListener(mainViewModel, updatesViewModel, navController)
 
-    val themer = koinInject<Themer>()
     val theme = themer.flow().collectAsStateWithLifecycle().value
     val dynamicColor = themer.dynamicColorFlow().collectAsStateWithLifecycle().value
+    val themeMode = themer.themeModeFlow().collectAsStateWithLifecycle().value
+    val highContrast = themer.highContrastFlow().collectAsStateWithLifecycle().value
+    val a11ySubMode = themer.a11ySubModeFlow().collectAsStateWithLifecycle().value
+    val a11ySunriseMinutes = themer.a11ySunriseMinutesFlow().collectAsStateWithLifecycle().value
+    val a11ySunsetMinutes = themer.a11ySunsetMinutesFlow().collectAsStateWithLifecycle().value
     val snackBarHostState = handleSnackBar()
 
-    AppTheme(darkTheme = theme, dynamicColor = dynamicColor) {
+    LaunchedEffect(themeMode, a11ySubMode, a11ySunriseMinutes, a11ySunsetMinutes) {
+        themer.refreshSolarTheme()
+        while (themeMode == THEME_ACCESSIBILITY && a11ySubMode == SolarScheduleCalculator.SUBMODE_AUTO_SUN) {
+            val waitMillis = SolarScheduleCalculator.millisUntilNextTransition(
+                customSunriseMinutes = a11ySunriseMinutes,
+                customSunsetMinutes = a11ySunsetMinutes
+            )
+            kotlinx.coroutines.delay(waitMillis)
+            themer.refreshSolarTheme()
+        }
+    }
+
+    AppTheme(darkTheme = theme, dynamicColor = dynamicColor, highContrast = highContrast) {
         Scaffold(
             containerColor = MaterialTheme.colorScheme.background
         ) { padding ->

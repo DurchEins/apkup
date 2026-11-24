@@ -53,6 +53,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.apkup.R
 import com.apkup.ui.theme.ApkUpTheme
 
@@ -90,13 +91,28 @@ fun SegmentedButtonSetting(
                         activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
                         activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     ),
+                    icon = {
+                        if (options.size < 4) {
+                            SegmentedButtonDefaults.Icon(active = index == position)
+                        }
+                    },
                     onClick = {
                         position = index
                         setValue(position)
                     },
                     selected = index == position
                 ) {
-                    Text(label, style = MaterialTheme.typography.labelMedium)
+                    AutoResizeText(
+                        text = label,
+                        style = if (options.size >= 4) {
+                            MaterialTheme.typography.labelSmall
+                        } else {
+                            MaterialTheme.typography.labelMedium
+                        },
+                        color = Color.Unspecified,
+                        maxLines = 1,
+                        minFontSize = 8.5.sp
+                    )
                 }
             }
         }

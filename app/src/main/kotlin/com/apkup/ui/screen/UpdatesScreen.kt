@@ -170,6 +170,7 @@ import com.apkup.ui.component.CollapsibleScrollHeader
 import com.apkup.ui.component.rememberCollapsibleHeaderState
 import com.apkup.data.ui.ApkMirrorSource
 import com.apkup.data.ui.AppUpdate
+import com.apkup.data.ui.cleanChangelogSpeechText
 import com.apkup.data.ui.cleanChangelogText
 import com.apkup.data.ui.FDroidSource
 import com.apkup.data.ui.GitHubSource
@@ -2885,6 +2886,7 @@ private fun UpdateCard(
 		card.appName
 	)
 	val cardShape = MaterialTheme.shapes.large
+	val highContrast = ApkUpTheme.isHighContrast
 	Surface(
 		modifier = modifier
 			.fillMaxWidth()
@@ -2914,10 +2916,11 @@ private fun UpdateCard(
 			else -> MaterialTheme.colorScheme.surfaceContainerLow
 		},
 		border = BorderStroke(
-			width = if (isSelected || isFailed) 1.5.dp else 1.dp,
+			width = if (isSelected || isFailed || highContrast) 1.5.dp else 1.dp,
 			color = when {
 				isSelected -> MaterialTheme.colorScheme.primary
 				isFailed -> MaterialTheme.colorScheme.error
+				highContrast -> MaterialTheme.colorScheme.outlineVariant
 				else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
 			}
 		)
@@ -3119,11 +3122,18 @@ private fun UpdateCard(
 
 			// Changelog snippet if available
 			val cleanChangelog = remember(update.whatsNew) { cleanChangelogText(update.whatsNew) }
+			val cleanChangelogSpeech = remember(update.whatsNew) { cleanChangelogSpeechText(update.whatsNew) }
 			if (cleanChangelog.isNotBlank()) {
 				Surface(
 					shape = RoundedCornerShape(10.dp),
 					color = MaterialTheme.colorScheme.surfaceContainer,
-					modifier = Modifier.fillMaxWidth()
+					modifier = Modifier
+						.fillMaxWidth()
+						.semantics(mergeDescendants = true) {
+							if (cleanChangelogSpeech.isNotBlank()) {
+								contentDescription = cleanChangelogSpeech
+							}
+						}
 				) {
 					Row(
 						modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
@@ -3968,9 +3978,19 @@ private fun UpdateDetailsSheet(
 				}
 			}
 
+			val cleanDetailsChangelog = remember(activeVariant.whatsNew) {
+				cleanChangelogText(activeVariant.whatsNew)
+			}
+			val cleanDetailsSpeech = remember(activeVariant.whatsNew) {
+				cleanChangelogSpeechText(activeVariant.whatsNew)
+			}
+			val detailHighContrast = ApkUpTheme.isHighContrast
 			Surface(
 				shape = RoundedCornerShape(24.dp),
-				border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
+				border = BorderStroke(
+					if (detailHighContrast) 1.5.dp else 1.dp,
+					if (detailHighContrast) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+				),
 				color = MaterialTheme.colorScheme.surfaceContainer,
 				modifier = Modifier.fillMaxWidth()
 			) {
@@ -3986,12 +4006,17 @@ private fun UpdateDetailsSheet(
 						modifier = Modifier.semantics { heading() }
 					)
 					Text(
-						text = activeVariant.whatsNew.ifBlank { stringResource(R.string.whats_new_empty) },
+						text = cleanDetailsChangelog.ifBlank { stringResource(R.string.whats_new_empty) },
 						style = MaterialTheme.typography.bodyMedium,
-						color = if (activeVariant.whatsNew.isNotBlank()) {
+						color = if (cleanDetailsChangelog.isNotBlank()) {
 							MaterialTheme.colorScheme.onSurface
 						} else {
 							MaterialTheme.colorScheme.onSurfaceVariant
+						},
+						modifier = Modifier.semantics {
+							if (cleanDetailsSpeech.isNotBlank()) {
+								contentDescription = cleanDetailsSpeech
+							}
 						}
 					)
 				}
@@ -4010,7 +4035,10 @@ private fun UpdateDetailsSheet(
 				}
 				Surface(
 					shape = RoundedCornerShape(24.dp),
-					border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
+					border = BorderStroke(
+						if (detailHighContrast) 1.5.dp else 1.dp,
+						if (detailHighContrast) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+					),
 					color = MaterialTheme.colorScheme.surfaceContainerHigh,
 					modifier = Modifier.fillMaxWidth()
 				) {

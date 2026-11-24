@@ -221,9 +221,17 @@ fun SettingsSection(
 			}
 		)
 
+	val highContrast = ApkUpTheme.isHighContrast
 	ElevatedCard(
 		modifier = cardModifier.border(
-			BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
+			BorderStroke(
+				if (highContrast) 1.5.dp else 1.dp,
+				if (highContrast) {
+					MaterialTheme.colorScheme.outlineVariant
+				} else {
+					MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+				}
+			),
 			shape
 		),
 		shape = shape,

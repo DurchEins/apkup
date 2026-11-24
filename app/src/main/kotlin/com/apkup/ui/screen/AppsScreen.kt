@@ -111,7 +111,9 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.minimumInteractiveComponentSize
+import com.apkup.ui.component.installedAppsGridColumnCount
 import com.apkup.ui.component.rememberExpandedModalSheetState
+import com.apkup.util.Themer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -223,6 +225,8 @@ fun AppsScreenSuccess(
 	var showWatchAppSheet by rememberSaveable { mutableStateOf(false) }
 	var sortOrder by rememberSaveable { mutableStateOf(AppsSortOrder.NAME_ASC) }
 	val snackBar: SnackBar = koinInject()
+	val themer: Themer = koinInject()
+	val configuredGridColumns by themer.appsGridColumnsFlow().collectAsStateWithLifecycle()
 
 	// Tier 1 Predictive Back: If search is active, back press dismisses search first
 	BackHandler(enabled = searchExpanded || searchQuery.isNotBlank()) {
@@ -650,9 +654,15 @@ fun AppsScreenSuccess(
 						}
 					}
 				} else {
-					// 2-Spalten-Grid (exakt 2 Spalten im Hochformat)
+					// Konfigurierbares Raster: 2 große Spalten (48dp) oder kompakt 3 Spalten
+					val highContrast = ApkUpTheme.isHighContrast
 					BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-						val columns = if (maxWidth < 600.dp) 2 else (maxWidth / 180.dp).toInt().coerceIn(2, 5)
+						val columns = installedAppsGridColumnCount(
+							availableWidthDp = maxWidth.value,
+							preferredPortraitColumns = configuredGridColumns,
+							forceAccessibleGrid = highContrast
+						)
+						val useLargeTouchTargets = highContrast || columns <= 2
 						LazyVerticalGrid(
 							columns = GridCells.Fixed(columns),
 							state = gridState,
@@ -667,6 +677,7 @@ fun AppsScreenSuccess(
 										AppGridItem(
 											app = app,
 											pinnedSourceKey = pinnedAppSources[app.packageName],
+											enlargedTouchTargets = useLargeTouchTargets,
 											onOpenPinSource = { pinTargetApp = app },
 											onIgnore = { pkg ->
 												viewModel.ignore(pkg)
@@ -715,6 +726,7 @@ fun AppsScreenSuccess(
 											AppGridItem(
 												app = app,
 												pinnedSourceKey = pinnedAppSources[app.packageName],
+												enlargedTouchTargets = useLargeTouchTargets,
 												onOpenPinSource = { pinTargetApp = app },
 												onIgnore = { pkg ->
 													viewModel.ignore(pkg)
@@ -981,13 +993,22 @@ private fun rememberRepoLinkGlowBorder(
 		previousRepo = currentRepo
 	}
 
+	val highContrast = ApkUpTheme.isHighContrast
 	val borderColor by androidx.compose.animation.animateColorAsState(
-		targetValue = if (isGlowing) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+		targetValue = when {
+			isGlowing -> MaterialTheme.colorScheme.primary
+			highContrast -> MaterialTheme.colorScheme.outlineVariant
+			else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+		},
 		animationSpec = ApkUpTheme.motion.fastEffectsSpec(),
 		label = "RepoLinkGlowBorderColor"
 	)
 	val borderWidth by androidx.compose.animation.core.animateDpAsState(
-		targetValue = if (isGlowing) 2.dp else 1.dp,
+		targetValue = when {
+			isGlowing -> 2.dp
+			highContrast -> 1.5.dp
+			else -> 1.dp
+		},
 		animationSpec = ApkUpTheme.motion.fastSpatialSpec(),
 		label = "RepoLinkGlowBorderWidth"
 	)
@@ -1282,6 +1303,7 @@ private fun AppListItem(
 private fun AppGridItem(
 	app: AppInstalled,
 	pinnedSourceKey: String? = null,
+	enlargedTouchTargets: Boolean = false,
 	onOpenPinSource: () -> Unit = {},
 	repoMappingManager: RepoMappingManager = koinInject(),
 	onIgnore: (String) -> Unit,
@@ -1333,10 +1355,10 @@ private fun AppGridItem(
 		Column(
 			modifier = Modifier
 				.fillMaxWidth()
-				.padding(12.dp),
+				.padding(if (enlargedTouchTargets) 10.dp else 12.dp),
 			verticalArrangement = Arrangement.spacedBy(8.dp)
 		) {
-			// Top Row: 44dp App Icon + Launch Button + Menu
+			// Top Row: App Icon + Launch Button + Menu
 			Row(
 				modifier = Modifier.fillMaxWidth(),
 				horizontalArrangement = Arrangement.SpaceBetween,
@@ -1344,7 +1366,7 @@ private fun AppGridItem(
 			) {
 				Box(
 					modifier = Modifier
-						.size(44.dp)
+						.size(if (enlargedTouchTargets) 40.dp else 44.dp)
 						.clip(RoundedCornerShape(12.dp))
 						.background(MaterialTheme.colorScheme.surfaceContainerHigh),
 					contentAlignment = Alignment.Center
@@ -1352,40 +1374,58 @@ private fun AppGridItem(
 					LoadingImageApp(app.packageName, Modifier.fillMaxSize())
 				}
 				Row(
-					horizontalArrangement = Arrangement.spacedBy(2.dp),
+					horizontalArrangement = Arrangement.spacedBy(if (enlargedTouchTargets) 0.dp else 2.dp),
 					verticalAlignment = Alignment.CenterVertically
 				) {
 					val appDisplayName = app.name.ifBlank { app.packageName }
 					if (!app.isWatchedOnly) {
-						Surface(
-							onClick = { launchAppOrSettings(context, app.packageName) },
-							shape = CircleShape,
-							color = MaterialTheme.colorScheme.surfaceContainerHigh,
-							modifier = Modifier.size(30.dp)
+						Box(
+							modifier = (if (enlargedTouchTargets) Modifier.minimumInteractiveComponentSize() else Modifier)
+								.clip(CircleShape)
+								.clickable(
+									role = Role.Button,
+									onClick = { launchAppOrSettings(context, app.packageName) }
+								),
+							contentAlignment = Alignment.Center
 						) {
-							Box(contentAlignment = Alignment.Center) {
-								Icon(
-									imageVector = Icons.AutoMirrored.Rounded.OpenInNew,
-									contentDescription = "${stringResource(R.string.apps_launch_action)} $appDisplayName",
-									tint = MaterialTheme.colorScheme.primary,
-									modifier = Modifier.size(15.dp)
-								)
+							Surface(
+								shape = CircleShape,
+								color = MaterialTheme.colorScheme.surfaceContainerHigh,
+								modifier = Modifier.size(30.dp)
+							) {
+								Box(contentAlignment = Alignment.Center) {
+									Icon(
+										imageVector = Icons.AutoMirrored.Rounded.OpenInNew,
+										contentDescription = "${stringResource(R.string.apps_launch_action)} $appDisplayName",
+										tint = MaterialTheme.colorScheme.primary,
+										modifier = Modifier.size(15.dp)
+									)
+								}
 							}
 						}
 					}
-					Surface(
-						onClick = { showActionsSheet = true },
-						shape = CircleShape,
-						color = Color.Transparent,
-						modifier = Modifier.size(28.dp)
+					Box(
+						modifier = (if (enlargedTouchTargets) Modifier.minimumInteractiveComponentSize() else Modifier)
+							.clip(CircleShape)
+							.clickable(
+								role = Role.Button,
+								onClick = { showActionsSheet = true }
+							),
+						contentAlignment = Alignment.Center
 					) {
-						Box(contentAlignment = Alignment.Center) {
-							Icon(
-								imageVector = Icons.Rounded.MoreVert,
-								contentDescription = "${stringResource(R.string.updates_detail_view)} $appDisplayName",
-								tint = MaterialTheme.colorScheme.onSurfaceVariant,
-								modifier = Modifier.size(18.dp)
-							)
+						Surface(
+							shape = CircleShape,
+							color = Color.Transparent,
+							modifier = Modifier.size(28.dp)
+						) {
+							Box(contentAlignment = Alignment.Center) {
+								Icon(
+									imageVector = Icons.Rounded.MoreVert,
+									contentDescription = "${stringResource(R.string.updates_detail_view)} $appDisplayName",
+									tint = MaterialTheme.colorScheme.onSurfaceVariant,
+									modifier = Modifier.size(18.dp)
+								)
+							}
 						}
 					}
 				}

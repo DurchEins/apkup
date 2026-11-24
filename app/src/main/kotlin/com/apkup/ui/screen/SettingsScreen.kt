@@ -193,6 +193,7 @@ import com.apkup.data.obtainium.ObtainiumImportPreview
 import com.apkup.data.ui.AppsUiState
 import com.apkup.R
 import com.apkup.ui.theme.ApkUpTheme
+import com.apkup.ui.theme.THEME_ACCESSIBILITY
 import com.apkup.data.selfupdate.SelfUpdateState
 import com.apkup.data.ui.AppInstalled
 import com.apkup.data.ui.BackgroundCheckInterval
@@ -208,6 +209,7 @@ import com.apkup.ui.component.NavigationSettingItem
 import com.apkup.util.AppJournal
 import com.apkup.util.DownloadStorageManager
 import com.apkup.util.SessionInstaller
+import com.apkup.util.SolarScheduleCalculator
 import com.apkup.util.openSafeHttpsUri
 import com.apkup.viewmodel.AppsViewModel
 import com.apkup.viewmodel.MainViewModel
@@ -796,40 +798,200 @@ fun Settings(
 				var currentDisplayMode by remember(configRefreshKey) {
 					mutableIntStateOf(viewModel.getUpdatesDisplayMode())
 				}
+				var currentThemeMode by remember(configRefreshKey) {
+					mutableIntStateOf(viewModel.getTheme())
+				}
+				var currentA11ySubMode by remember(configRefreshKey) {
+					mutableIntStateOf(viewModel.getA11yThemeSubMode())
+				}
+				var currentSunriseMinutes by remember(configRefreshKey) {
+					mutableIntStateOf(viewModel.getA11ySunriseMinutes())
+				}
+				var currentSunsetMinutes by remember(configRefreshKey) {
+					mutableIntStateOf(viewModel.getA11ySunsetMinutes())
+				}
+				var currentGridColumns by remember(configRefreshKey) {
+					mutableIntStateOf(viewModel.getAppsGridColumns())
+				}
 				SettingsSection(stringResource(R.string.settings_section_appearance)) {
-				SegmentedButtonSetting(
-					stringResource(R.string.theme),
-					listOf(
-						stringResource(R.string.theme_system),
-						stringResource(R.string.theme_dark),
-						stringResource(R.string.theme_light)
-					),
-					{ viewModel.getTheme() },
-					{ viewModel.setTheme(it) },
-					R.drawable.ic_theme
-				)
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-					SwitchSetting(
-						getValue = { viewModel.getDynamicColor() },
-						setValue = { viewModel.setDynamicColor(it) },
-						text = stringResource(R.string.dynamic_color_title),
-						subtitle = stringResource(R.string.dynamic_color_subtitle),
+					SegmentedButtonSetting(
+						text = stringResource(R.string.theme),
+						options = listOf(
+							stringResource(R.string.theme_system),
+							stringResource(R.string.theme_dark),
+							stringResource(R.string.theme_light),
+							stringResource(R.string.theme_a11y)
+						),
+						getValue = { currentThemeMode },
+						setValue = { selectedTheme ->
+							currentThemeMode = selectedTheme
+							viewModel.setTheme(selectedTheme)
+						},
 						icon = R.drawable.ic_theme
 					)
+					AnimatedVisibility(visible = currentThemeMode == THEME_ACCESSIBILITY) {
+						Column(
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(top = 4.dp, bottom = 4.dp),
+							verticalArrangement = Arrangement.spacedBy(8.dp)
+						) {
+							SegmentedButtonSetting(
+								text = stringResource(R.string.a11y_theme_mode_title),
+								options = listOf(
+									stringResource(R.string.a11y_submode_auto_sun),
+									stringResource(R.string.a11y_submode_light),
+									stringResource(R.string.a11y_submode_dark)
+								),
+								getValue = { currentA11ySubMode },
+								setValue = { subMode ->
+									currentA11ySubMode = subMode
+									viewModel.setA11yThemeSubMode(subMode)
+								},
+								icon = R.drawable.ic_theme
+							)
+							if (currentA11ySubMode == SolarScheduleCalculator.SUBMODE_AUTO_SUN) {
+								val window = remember(currentSunriseMinutes, currentSunsetMinutes) {
+									SolarScheduleCalculator.resolveEffectiveWindow(
+										customSunriseMinutes = currentSunriseMinutes,
+										customSunsetMinutes = currentSunsetMinutes
+									)
+								}
+								val sunriseText = SolarScheduleCalculator.formatMinutesHHmm(window.sunriseMinutes)
+								val sunsetText = SolarScheduleCalculator.formatMinutesHHmm(window.sunsetMinutes)
+								val highContrast = ApkUpTheme.isHighContrast
+								Surface(
+									shape = MaterialTheme.shapes.medium,
+									color = MaterialTheme.colorScheme.surfaceContainer,
+									border = BorderStroke(
+										if (highContrast) 1.5.dp else 1.dp,
+										if (highContrast) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+									),
+									modifier = Modifier.fillMaxWidth()
+								) {
+									Column(
+										modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+										verticalArrangement = Arrangement.spacedBy(8.dp)
+									) {
+										Text(
+											text = stringResource(
+												if (window.isCustom) R.string.a11y_sun_custom_info else R.string.a11y_sun_schedule_info,
+												sunriseText,
+												sunsetText
+											),
+											style = MaterialTheme.typography.bodySmall,
+											color = MaterialTheme.colorScheme.onSurface
+										)
+										Row(
+											modifier = Modifier.fillMaxWidth(),
+											horizontalArrangement = Arrangement.spacedBy(8.dp),
+											verticalAlignment = CenterVertically
+										) {
+											OutlinedButton(
+												onClick = {
+													val is24h = android.text.format.DateFormat.is24HourFormat(context)
+													val initSunriseHour = window.sunriseMinutes / 60
+													val initSunriseMin = window.sunriseMinutes % 60
+													android.app.TimePickerDialog(
+														context,
+														{ _, sunriseHour, sunriseMin ->
+															val chosenSunrise = sunriseHour * 60 + sunriseMin
+															val initSunsetHour = window.sunsetMinutes / 60
+															val initSunsetMin = window.sunsetMinutes % 60
+															android.app.TimePickerDialog(
+																context,
+																{ _, sunsetHour, sunsetMin ->
+																	val chosenSunset = sunsetHour * 60 + sunsetMin
+																	currentSunriseMinutes = chosenSunrise
+																	currentSunsetMinutes = chosenSunset
+																	viewModel.setA11ySunTimes(chosenSunrise, chosenSunset)
+																},
+																initSunsetHour,
+																initSunsetMin,
+																is24h
+															).show()
+														},
+														initSunriseHour,
+														initSunriseMin,
+														is24h
+													).show()
+												},
+												modifier = Modifier.heightIn(min = 48.dp)
+											) {
+												Text(
+													text = stringResource(R.string.a11y_sun_customize_btn),
+													style = MaterialTheme.typography.labelMedium
+												)
+											}
+											if (window.isCustom) {
+												TextButton(
+													onClick = {
+														currentSunriseMinutes = SolarScheduleCalculator.UNSET_MINUTES
+														currentSunsetMinutes = SolarScheduleCalculator.UNSET_MINUTES
+														viewModel.resetA11ySunSchedule()
+													},
+													modifier = Modifier.heightIn(min = 48.dp)
+												) {
+													Text(
+														text = stringResource(R.string.a11y_sun_reset_btn),
+														style = MaterialTheme.typography.labelMedium
+													)
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+						SwitchSetting(
+							getValue = { viewModel.getDynamicColor() },
+							setValue = { viewModel.setDynamicColor(it) },
+							text = stringResource(R.string.dynamic_color_title),
+							subtitle = if (currentThemeMode == THEME_ACCESSIBILITY) {
+								stringResource(R.string.dynamic_color_paused_a11y)
+							} else {
+								stringResource(R.string.dynamic_color_subtitle)
+							},
+							icon = R.drawable.ic_theme
+						)
+					}
+					SegmentedButtonSetting(
+						text = stringResource(R.string.apps_grid_density_title),
+						options = listOf(
+							stringResource(R.string.apps_grid_density_large),
+							stringResource(R.string.apps_grid_density_compact)
+						),
+						getValue = { if (currentGridColumns == 3) 1 else 0 },
+						setValue = { selectedIndex ->
+							val cols = if (selectedIndex == 1) 3 else 2
+							currentGridColumns = cols
+							viewModel.setAppsGridColumns(cols)
+						},
+						icon = R.drawable.ic_system
+					)
+					if (currentThemeMode == THEME_ACCESSIBILITY) {
+						Text(
+							text = stringResource(R.string.apps_grid_density_auto_a11y),
+							style = MaterialTheme.typography.labelSmall,
+							color = MaterialTheme.colorScheme.onSurfaceVariant,
+							modifier = Modifier.padding(start = 46.dp, bottom = 2.dp)
+						)
+					}
+					SegmentedButtonSetting(
+						stringResource(R.string.updates_display_mode),
+						listOf(stringResource(R.string.updates_detail_view), stringResource(R.string.updates_compact_view)),
+						{ currentDisplayMode },
+						{
+							currentDisplayMode = it
+							viewModel.setUpdatesDisplayMode(it)
+						},
+						R.drawable.ic_download
+					)
+					UpdateDisplayModePreview(displayMode = currentDisplayMode)
 				}
-				SegmentedButtonSetting(
-					stringResource(R.string.updates_display_mode),
-					listOf(stringResource(R.string.updates_detail_view), stringResource(R.string.updates_compact_view)),
-					{ currentDisplayMode },
-					{
-						currentDisplayMode = it
-						viewModel.setUpdatesDisplayMode(it)
-					},
-					R.drawable.ic_download
-				)
-				UpdateDisplayModePreview(displayMode = currentDisplayMode)
 			}
-		}
 
 		// Sektion 2: Update-Quellen
 		item(key = "section_sources_${configRefreshKey}_${fdroidRepos.hashCode()}") {

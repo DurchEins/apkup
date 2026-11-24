@@ -128,7 +128,11 @@ data class ApkUpBackupConfig(
     val enableRollbackBackups: Boolean? = null,
     val rollbackMaxBudgetMb: Int? = null,
     val rollbackMaxAgeDays: Int? = null,
-    val includeSelfUpdatePreReleases: Boolean? = null
+    val includeSelfUpdatePreReleases: Boolean? = null,
+    val a11yThemeSubMode: Int? = null,
+    val a11ySunriseMinutes: Int? = null,
+    val a11ySunsetMinutes: Int? = null,
+    val appsGridColumns: Int? = null
 ) {
     companion object {
         const val CURRENT_SCHEMA_VERSION = 2

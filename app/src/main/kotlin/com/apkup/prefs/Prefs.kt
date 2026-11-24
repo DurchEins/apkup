@@ -7,6 +7,7 @@ import com.apkup.data.ui.CustomFDroidRepo
 import com.apkup.data.ui.IgnoredVersionEntry
 import com.apkup.data.ui.UpdateHistoryEntry
 import com.apkup.data.ui.WatchedAppEntry
+import com.apkup.util.SolarScheduleCalculator
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -167,6 +168,7 @@ class Prefs(
     val ignoreVersionsFilterActive: PrefSlot<Boolean> = booleanSlot("ignoreVersionsFilterActive", defValue = true)
     val updatesDisplayMode: PrefSlot<Int> = intSlot("updatesDisplayMode", defValue = 0)
     val appsViewMode: PrefSlot<String> = stringSlot("appsViewMode", defValue = "list")
+    val appsGridColumns: PrefSlot<Int> = intSlot("appsGridColumns", defValue = 2)
     val appsSortOrder: PrefSlot<String> = stringSlot("appsSortOrder", defValue = "NAME_ASC")
     val updatesSortOrder: PrefSlot<String> = stringSlot("updatesSortOrder", defValue = "NAME_ASC")
 
@@ -298,6 +300,9 @@ class Prefs(
     val enableBackgroundChecks: PrefSlot<Boolean> = booleanSlot("enableAlarm", defValue = true)
     val backgroundCheckIntervalHours: PrefSlot<Int> = intSlot("backgroundCheckIntervalHours", defValue = 24)
     val theme: PrefSlot<Int> = intSlot("theme", defValue = 0)
+    val a11yThemeSubMode: PrefSlot<Int> = intSlot("a11yThemeSubMode", defValue = SolarScheduleCalculator.SUBMODE_AUTO_SUN)
+    val a11ySunriseMinutes: PrefSlot<Int> = intSlot("a11ySunriseMinutes", defValue = SolarScheduleCalculator.UNSET_MINUTES)
+    val a11ySunsetMinutes: PrefSlot<Int> = intSlot("a11ySunsetMinutes", defValue = SolarScheduleCalculator.UNSET_MINUTES)
     val dynamicColor: PrefSlot<Boolean> = booleanSlot("dynamicColor", defValue = false)
     val lastTab: PrefSlot<String> = stringSlot("lastTab", defValue = com.apkup.data.ui.Screen.Updates.route)
 

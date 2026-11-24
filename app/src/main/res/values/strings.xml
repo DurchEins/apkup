@@ -649,4 +649,18 @@
     <string name="a11y_close_search">Close search</string>
     <string name="a11y_select_item">Select %1$s</string>
     <string name="a11y_deselect_item">Deselect %1$s</string>
+    <string name="theme_a11y">Accessibility</string>
+    <string name="a11y_theme_mode_title">Accessibility solar mode</string>
+    <string name="a11y_submode_auto_sun">Auto Sun</string>
+    <string name="a11y_submode_light">Light AAA</string>
+    <string name="a11y_submode_dark">Dark AAA</string>
+    <string name="a11y_sun_schedule_info">Offline solar switch: Light %1$s – %2$s (no location permission)</string>
+    <string name="a11y_sun_custom_info">Custom switch times: Light %1$s – %2$s</string>
+    <string name="a11y_sun_customize_btn">Custom times</string>
+    <string name="a11y_sun_reset_btn">Use solar auto</string>
+    <string name="dynamic_color_paused_a11y">Paused while Accessibility AAA theme is active to guarantee 7:1 contrast</string>
+    <string name="apps_grid_density_title">Apps grid density</string>
+    <string name="apps_grid_density_large">Large (2 cols • 48 dp)</string>
+    <string name="apps_grid_density_compact">Compact (3 cols)</string>
+    <string name="apps_grid_density_auto_a11y">Accessibility theme enforces 2 columns with 48 dp action targets.</string>
 </resources>
