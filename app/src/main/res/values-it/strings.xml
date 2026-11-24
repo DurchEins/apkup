@@ -647,6 +647,7 @@
     <string name="history_export_csv">Esporta in CSV</string>
     <string name="history_export_markdown">Esporta in Markdown</string>
     <string name="apps_share_list_action">Condividi elenco</string>
+    <string name="apps_share_scope_message">Scegli quali app installate includere nell\'elenco condiviso:</string>
     <string name="backup_diff_title">Verifica modifiche backup</string>
     <string name="backup_diff_repos">Repository collegati: %1$d → %2$d</string>
     <string name="backup_diff_watchlist">App in Watchlist: %1$d → %2$d</string>

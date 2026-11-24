@@ -10,6 +10,7 @@ import com.apkup.data.ui.AppsQuickFilter
 import com.apkup.data.ui.AppsSortOrder
 import com.apkup.data.ui.AppsUiState
 import com.apkup.data.ui.WatchedAppEntry
+import com.apkup.data.ui.filterAndSortInstalledApps
 import com.apkup.prefs.Prefs
 import com.apkup.repository.AppsRepository
 import com.apkup.repository.RepoMappingManager
@@ -34,6 +35,12 @@ class AppsViewModel(
 	enum class ScopeTab {
 		USER,
 		SYSTEM
+	}
+
+	enum class ShareAppsScope {
+		USER,
+		SYSTEM,
+		ALL
 	}
 
 	enum class WatchAppAddResult {
@@ -206,6 +213,26 @@ class AppsViewModel(
 	fun ignore(packageName: String) = viewModelScope.launchWithMutex(mutex, Dispatchers.IO) {
 		prefs.toggleIgnoredApp(packageName)
 		refreshAndGetLocked(false)
+	}
+
+	suspend fun loadAppsForShare(
+		scope: ShareAppsScope,
+		sortOrder: AppsSortOrder
+	): List<AppInstalled> = withContext(Dispatchers.IO) {
+		val installed = repository.getApps(includeSystem = scope != ShareAppsScope.USER)
+			.getOrDefault(emptyList())
+		val scoped = when (scope) {
+			ShareAppsScope.USER -> installed.filterNot { it.isSystemApp }
+			ShareAppsScope.SYSTEM -> installed.filter { it.isSystemApp }
+			ShareAppsScope.ALL -> installed
+		}
+		filterAndSortInstalledApps(
+			apps = scoped,
+			searchQuery = "",
+			quickFilter = AppsQuickFilter.ALL,
+			sortOrder = sortOrder,
+			mappedPackages = getMappedPackages()
+		)
 	}
 
 	private fun buildLoadingState() = AppsUiState.Loading

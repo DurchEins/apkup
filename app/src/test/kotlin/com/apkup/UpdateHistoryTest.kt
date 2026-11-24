@@ -215,6 +215,16 @@ class UpdateHistoryTest {
         assertTrue(!formatted.contains("**"))
         assertTrue(!formatted.contains("###"))
         assertTrue(!formatted.contains("`"))
+
+        val scoped = com.apkup.util.formatShareableAppList(
+            apps = apps,
+            repoUrls = emptyMap(),
+            scopeLabel = "System Apps"
+        )
+        assertTrue(scoped.startsWith("ApkUp App List — System Apps (2)\n\n"))
+        assertTrue(!scoped.contains("**"))
+        assertTrue(!scoped.contains("###"))
+        assertTrue(!scoped.contains("`"))
     }
 
     @Test

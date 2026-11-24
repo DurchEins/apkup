@@ -670,6 +670,7 @@
     <string name="history_export_csv">Export as CSV</string>
     <string name="history_export_markdown">Export as Markdown</string>
     <string name="apps_share_list_action">Share app list</string>
+    <string name="apps_share_scope_message">Choose which installed apps to include in the shared list:</string>
     <string name="backup_diff_title">Review backup changes</string>
     <string name="backup_diff_repos">Linked repositories: %1$d → %2$d</string>
     <string name="backup_diff_watchlist">Watchlist apps: %1$d → %2$d</string>

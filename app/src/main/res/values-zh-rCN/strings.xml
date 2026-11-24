@@ -643,6 +643,7 @@
     <string name="history_export_csv">导出为 CSV</string>
     <string name="history_export_markdown">导出为 Markdown</string>
     <string name="apps_share_list_action">分享应用列表</string>
+    <string name="apps_share_scope_message">选择要包含在分享列表中的已安装应用范围：</string>
     <string name="backup_diff_title">检查备份变更</string>
     <string name="backup_diff_repos">关联仓库：%1$d → %2$d</string>
     <string name="backup_diff_watchlist">关注应用：%1$d → %2$d</string>

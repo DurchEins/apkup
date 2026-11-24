@@ -642,6 +642,7 @@
     <string name="history_export_csv">CSV 形式で保存</string>
     <string name="history_export_markdown">Markdown 形式で保存</string>
     <string name="apps_share_list_action">アプリ一覧を共有</string>
+    <string name="apps_share_scope_message">共有するリストに含めるアプリの種類を選択してください:</string>
     <string name="backup_diff_title">バックアップ変更内容の確認</string>
     <string name="backup_diff_repos">リンク済みリポジトリ: %1$d → %2$d</string>
     <string name="backup_diff_watchlist">ウォッチリスト: %1$d → %2$d</string>

@@ -89,6 +89,7 @@ import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -108,6 +109,7 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
@@ -217,6 +219,7 @@ fun AppsScreenSuccess(
 	var searchExpanded by rememberSaveable { mutableStateOf(false) }
 	var showHistorySheet by rememberSaveable { mutableStateOf(false) }
 	var showWatchAppSheet by rememberSaveable { mutableStateOf(false) }
+	var showShareScopeDialog by rememberSaveable { mutableStateOf(false) }
 	var sortOrder by rememberSaveable { mutableStateOf(AppsSortOrder.NAME_ASC) }
 	val snackBar: SnackBar = koinInject()
 
@@ -383,46 +386,8 @@ fun AppsScreenSuccess(
 			searchExpanded = !searchExpanded
 		},
 		onAddWatchApp = { showWatchAppSheet = true },
-		onShareApps = if (filteredApps.isNotEmpty()) {
-			{
-				val repoUrls = filteredApps.associate { app ->
-					app.packageName to (customBindings[app.packageName]?.webUrl.orEmpty())
-				}
-				val shareText = com.apkup.util.formatShareableAppList(filteredApps, repoUrls)
-				if (shareText.length <= 4_000) {
-					val sendIntent = Intent(Intent.ACTION_SEND).apply {
-						type = "text/plain"
-						putExtra(Intent.EXTRA_TEXT, shareText)
-					}
-					shareContext.startActivity(
-						Intent.createChooser(sendIntent, shareChooserTitle)
-					)
-				} else {
-					shareScope.launch {
-						val uri = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-							val exportsDir = java.io.File(shareContext.cacheDir, "exports").apply { mkdirs() }
-							val exportFile = java.io.File(exportsDir, "apkup-app-list.txt")
-							exportFile.writeText(shareText, Charsets.UTF_8)
-							FileProvider.getUriForFile(
-								shareContext,
-								"${shareContext.packageName}.fileprovider",
-								exportFile
-							)
-						}
-						val sendIntent = Intent(Intent.ACTION_SEND).apply {
-							type = "text/plain"
-							putExtra(Intent.EXTRA_STREAM, uri)
-							putExtra(Intent.EXTRA_SUBJECT, shareChooserTitle)
-							clipData = ClipData.newRawUri("ApkUp App List", uri)
-							addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-						}
-						shareContext.startActivity(
-							Intent.createChooser(sendIntent, shareChooserTitle)
-								.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-						)
-					}
-				}
-			}
+		onShareApps = if (state.apps.isNotEmpty()) {
+			{ showShareScopeDialog = true }
 		} else null,
 		sortOrder = sortOrder,
 		onSortOrderChange = { newOrder -> sortOrder = newOrder }
@@ -819,6 +784,88 @@ fun AppsScreenSuccess(
 				}
 			}
 		}
+	}
+
+	if (showShareScopeDialog) {
+		val shareScopeItems = listOf(
+			AppsViewModel.ShareAppsScope.USER to stringResource(R.string.apps_filter_user),
+			AppsViewModel.ShareAppsScope.SYSTEM to stringResource(R.string.apps_filter_system),
+			AppsViewModel.ShareAppsScope.ALL to stringResource(R.string.apps_filter_all)
+		)
+		AlertDialog(
+			onDismissRequest = { showShareScopeDialog = false },
+			title = { Text(stringResource(R.string.apps_share_list_action)) },
+			text = {
+				Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+					Text(
+						text = stringResource(R.string.apps_share_scope_message),
+						style = MaterialTheme.typography.bodyMedium,
+						color = MaterialTheme.colorScheme.onSurfaceVariant
+					)
+					shareScopeItems.forEach { (scope, label) ->
+						FilledTonalButton(
+							onClick = {
+								showShareScopeDialog = false
+								shareScope.launch {
+									val appsToShare = viewModel.loadAppsForShare(scope, sortOrder)
+									if (appsToShare.isEmpty()) return@launch
+									val repoUrls = appsToShare.associate { app ->
+										app.packageName to (customBindings[app.packageName]?.webUrl.orEmpty())
+									}
+									val shareText = com.apkup.util.formatShareableAppList(
+										apps = appsToShare,
+										repoUrls = repoUrls,
+										scopeLabel = label
+									)
+									runCatching {
+										if (shareText.length <= 4_000) {
+											val sendIntent = Intent(Intent.ACTION_SEND).apply {
+												type = "text/plain"
+												putExtra(Intent.EXTRA_TEXT, shareText)
+											}
+											shareContext.startActivity(
+												Intent.createChooser(sendIntent, shareChooserTitle)
+											)
+										} else {
+											val uri = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+												val exportsDir = java.io.File(shareContext.cacheDir, "exports").apply { mkdirs() }
+												val exportFile = java.io.File(exportsDir, "apkup-app-list.txt")
+												exportFile.writeText(shareText, Charsets.UTF_8)
+												FileProvider.getUriForFile(
+													shareContext,
+													"${shareContext.packageName}.fileprovider",
+													exportFile
+												)
+											}
+											val sendIntent = Intent(Intent.ACTION_SEND).apply {
+												type = "text/plain"
+												putExtra(Intent.EXTRA_STREAM, uri)
+												putExtra(Intent.EXTRA_SUBJECT, shareChooserTitle)
+												clipData = ClipData.newRawUri("ApkUp App List", uri)
+												addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+											}
+											shareContext.startActivity(
+												Intent.createChooser(sendIntent, shareChooserTitle)
+													.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+											)
+										}
+									}
+								}
+							},
+							modifier = Modifier.fillMaxWidth()
+						) {
+							Text(label)
+						}
+					}
+				}
+			},
+			confirmButton = {},
+			dismissButton = {
+				TextButton(onClick = { showShareScopeDialog = false }) {
+					Text(stringResource(R.string.action_cancel))
+				}
+			}
+		)
 	}
 
 	if (showHistorySheet) {

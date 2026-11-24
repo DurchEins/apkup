@@ -234,7 +234,8 @@ internal fun formatUpdateHistoryMarkdown(entries: List<UpdateHistoryEntry>): Str
 
 internal fun formatShareableAppList(
     apps: List<com.apkup.data.ui.AppInstalled>,
-    repoUrls: Map<String, String>
+    repoUrls: Map<String, String>,
+    scopeLabel: String? = null
 ): String {
     if (apps.isEmpty()) return ""
     val lines = apps.map { app ->
@@ -247,7 +248,12 @@ internal fun formatShareableAppList(
             "• $name$ver — ${app.packageName}"
         }
     }
-    return (listOf("ApkUp App List (${apps.size})", "") + lines).joinToString("\n")
+    val header = if (!scopeLabel.isNullOrBlank()) {
+        "ApkUp App List — $scopeLabel (${apps.size})"
+    } else {
+        "ApkUp App List (${apps.size})"
+    }
+    return (listOf(header, "") + lines).joinToString("\n")
 }
 
 internal enum class UpdateHistoryFilterMode {

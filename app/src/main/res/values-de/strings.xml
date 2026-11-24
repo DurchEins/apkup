@@ -661,6 +661,7 @@
     <string name="history_export_csv">Als CSV exportieren</string>
     <string name="history_export_markdown">Als Markdown exportieren</string>
     <string name="apps_share_list_action">App-Liste teilen</string>
+    <string name="apps_share_scope_message">Wähle aus, welche installierten Apps in der geteilten Liste enthalten sein sollen:</string>
     <string name="backup_diff_title">Backup-Änderungen prüfen</string>
     <string name="backup_diff_repos">Verknüpfte Repos: %1$d → %2$d</string>
     <string name="backup_diff_watchlist">Watchlist-Apps: %1$d → %2$d</string>
