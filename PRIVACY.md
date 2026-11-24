@@ -1,8 +1,8 @@
 # Privacy Policy for ApkUp
 
-**Last Updated:** November 13, 2026
+**Last Updated:** November 24, 2026
 
-ApkUp is an open-source, client-side Android application developed by DurchEins. This Privacy Policy explains how ApkUp handles data and respects user privacy.
+ApkUp is an open-source, client-side Android application developed by DurchEins. This Privacy Policy explains how both the ApkUp Android app and its companion documentation website handle data and respect user privacy.
 
 ---
 
@@ -38,13 +38,24 @@ All local settings, repository bindings, and optional API tokens are stored excl
 
 ---
 
-### 4. Open Source Auditing
+### 4. Companion Website (`durcheins.github.io/apkup`)
+The official companion website for ApkUp uses zero first-party tracking cookies, zero advertising networks, and zero analytics SDKs. When you visit pages on `durcheins.github.io/apkup`, the following external services may be contacted directly by your browser:
+- **GitHub Pages (`github.io`):** Serves static HTML, CSS, and client-side JavaScript files under GitHub's infrastructure and Privacy Statement.
+- **GitHub Sponsors Live Button (`github.com/sponsors/DurchEins/button`):** The Support section embeds the official interactive GitHub Sponsors `<iframe>` (`loading="lazy"`). Loading this frame sends a request from your browser to `github.com` (and allows logged-in GitHub users to see their live sponsorship state) under GitHub's Privacy Statement.
+- **GitHub Public API (`api.github.com`):** Client-side scripts optionally fetch the latest public release metadata and repository star count without personal tokens or tracking cookies.
+- **Google Fonts (`fonts.googleapis.com` / `fonts.gstatic.com`):** Delivers the *Plus Jakarta Sans* and *JetBrains Mono* web fonts requested by page stylesheets.
+
+Local site preferences such as dark/light theme (`apkup-theme`), selected language (`apkup-lang`), and banner dismissal state remain exclusively in your browser's local storage.
+
+---
+
+### 5. Open Source Auditing
 ApkUp is licensed under the **GNU General Public License v3.0 (GPLv3)**. Its entire source code is publicly accessible and open to independent security audits at:  
 https://github.com/DurchEins/apkup
 
 ---
 
-### 5. Contact
+### 6. Contact
 If you have any questions or concerns regarding this Privacy Policy, please reach out via GitHub:
 - **Issue Tracker:** https://github.com/DurchEins/apkup/issues
 - **Security Advisories (Confidential):** https://github.com/DurchEins/apkup/security/advisories/new

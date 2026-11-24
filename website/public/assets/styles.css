@@ -816,6 +816,17 @@ p {
     gap: 10px;
   }
 
+  .support-sponsor-iframe-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 4px 8px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-low);
+    border: 1px solid var(--outline-strong);
+  }
+
   .support-pill {
     background: var(--surface-low);
     border-color: var(--outline-strong);

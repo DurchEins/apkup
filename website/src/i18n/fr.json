@@ -596,7 +596,7 @@
     "title": "Politique de confidentialité — ApkUp",
     "metaDesc": "Zéro télémétrie, stockage local et identifiants chiffrés pour ApkUp.",
     "h1": "Politique de confidentialité",
-    "lead": "Dernière mise à jour : 13 novembre 2026 • Basée sur PRIVACY.md dans le dépôt ApkUp.",
+    "lead": "Dernière mise à jour : 24 novembre 2026 • Basée sur PRIVACY.md dans le dépôt ApkUp.",
     "onDeviceBadge": "✓ 100% sur l'appareil",
     "onDeviceItems": [
       "Analyse des apps, comparaison des versions & vérification SHA-256",
@@ -621,6 +621,12 @@
     ],
     "s3Title": "3. Stockage local chiffré & audit ouvert",
     "s3Body": "Tous les réglages, liaisons et jetons optionnels sont chiffrés au repos via Google Tink (AES-256-GCM) dans Android Keystore. Sauvegardes cloud et HTTP en clair sont désactivés.",
+    "s4Title": "4. Site web compagnon (durcheins.github.io/apkup)",
+    "s4Items": [
+      "Hébergé statiquement sur GitHub Pages (github.io) sans cookies de suivi propriétaires, SDK d'analyse ni régies publicitaires.",
+      "La section Support intègre le bouton officiel en direct GitHub Sponsors (<iframe> de github.com/sponsors/DurchEins/button), générant une requête vers GitHub lors du chargement.",
+      "L'API publique GitHub (api.github.com) récupère la dernière version et le nombre d'étoiles ; les polices sont fournies via Google Fonts."
+    ],
     "viewGithub": "Voir PRIVACY.md sur GitHub"
   },
   "securityPage": {
