@@ -54,6 +54,7 @@ import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -75,11 +76,17 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.apkup.R
 import com.apkup.ui.theme.ApkUpTheme
 import kotlinx.coroutines.launch
 import kotlin.math.PI
@@ -235,15 +242,23 @@ fun SettingsSection(
 			verticalArrangement = Arrangement.spacedBy(10.dp)
 		) {
 			if (isCollapsible) {
+				val headerStateLabel = stringResource(
+					if (expanded == true) R.string.a11y_state_expanded else R.string.a11y_state_collapsed
+				)
 				Row(
 					modifier = Modifier
 						.fillMaxWidth()
 						.clip(MaterialTheme.shapes.small)
 						.clickable(
 							interactionSource = remember { MutableInteractionSource() },
-							indication = null
+							indication = null,
+							role = Role.Button
 						) {
 							onExpandedChange(expanded != true)
+						}
+						.semantics(mergeDescendants = true) {
+							heading()
+							stateDescription = headerStateLabel
 						},
 					verticalAlignment = Alignment.CenterVertically,
 					horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -309,7 +324,8 @@ fun SettingsSection(
 					text = title,
 					style = MaterialTheme.typography.titleMedium,
 					fontWeight = FontWeight.Bold,
-					color = MaterialTheme.colorScheme.primary
+					color = MaterialTheme.colorScheme.primary,
+					modifier = Modifier.semantics { heading() }
 				)
 				content()
 			}
@@ -560,6 +576,7 @@ fun ApkUpSplitActionButton(
 				),
 				contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
 				modifier = Modifier
+					.minimumInteractiveComponentSize()
 					.height(40.dp)
 					.then(
 						if (menuContentDescription != null) {
@@ -571,7 +588,7 @@ fun ApkUpSplitActionButton(
 			) {
 				Icon(
 					imageVector = Icons.Default.KeyboardArrowDown,
-					contentDescription = menuContentDescription,
+					contentDescription = null,
 					modifier = Modifier.size(18.dp)
 				)
 			}

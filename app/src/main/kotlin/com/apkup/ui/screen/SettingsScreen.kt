@@ -163,6 +163,10 @@ import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -1211,11 +1215,7 @@ fun Settings(
 							.fillMaxWidth()
 							.padding(start = 12.dp, end = 4.dp, top = 2.dp, bottom = 4.dp),
 						shape = RoundedCornerShape(14.dp),
-						color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
-						onClick = {
-							viewModel.setAutoInstallUpdates(!autoInstallEnabled)
-							configRefreshKey++
-						}
+						color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f)
 					) {
 						Column(
 							modifier = Modifier
@@ -1224,7 +1224,17 @@ fun Settings(
 							verticalArrangement = Arrangement.spacedBy(8.dp)
 						) {
 							Row(
-								modifier = Modifier.fillMaxWidth(),
+								modifier = Modifier
+									.fillMaxWidth()
+									.clip(RoundedCornerShape(10.dp))
+									.toggleable(
+										value = autoInstallEnabled,
+										role = Role.Switch,
+										onValueChange = { enabled ->
+											viewModel.setAutoInstallUpdates(enabled)
+											configRefreshKey++
+										}
+									),
 								verticalAlignment = CenterVertically,
 								horizontalArrangement = Arrangement.spacedBy(10.dp)
 							) {
@@ -1248,10 +1258,7 @@ fun Settings(
 								}
 								androidx.compose.material3.Switch(
 									checked = autoInstallEnabled,
-									onCheckedChange = {
-										viewModel.setAutoInstallUpdates(it)
-										configRefreshKey++
-									}
+									onCheckedChange = null
 								)
 							}
 							val isReducedMotionAuto = ApkUpTheme.isReducedMotion
@@ -1355,11 +1362,18 @@ fun Settings(
 						.padding(14.dp),
 					verticalArrangement = Arrangement.spacedBy(10.dp)
 				) {
+					val advancedStateDesc = stringResource(
+						if (isAdvancedExpanded) R.string.a11y_state_expanded else R.string.a11y_state_collapsed
+					)
 					Row(
 						modifier = Modifier
 							.fillMaxWidth()
 							.clip(RoundedCornerShape(12.dp))
-							.clickable { isAdvancedExpanded = !isAdvancedExpanded }
+							.clickable(role = Role.Button) { isAdvancedExpanded = !isAdvancedExpanded }
+							.semantics(mergeDescendants = true) {
+								heading()
+								stateDescription = advancedStateDesc
+							}
 							.padding(vertical = 4.dp),
 						verticalAlignment = CenterVertically,
 						horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -1421,7 +1435,8 @@ fun Settings(
 									text = stringResource(R.string.settings_section_app_management),
 									style = MaterialTheme.typography.labelLarge,
 									fontWeight = FontWeight.Bold,
-									color = MaterialTheme.colorScheme.primary
+									color = MaterialTheme.colorScheme.primary,
+									modifier = Modifier.semantics { heading() }
 								)
 								SwitchSetting(
 									getValue = { viewModel.getShowSystemApps() },
@@ -1496,11 +1511,18 @@ fun Settings(
 									),
 								verticalArrangement = Arrangement.spacedBy(8.dp)
 							) {
+								val permissionsStateDesc = stringResource(
+									if (isPermissionsExpanded) R.string.a11y_state_expanded else R.string.a11y_state_collapsed
+								)
 								Row(
 									modifier = Modifier
 										.fillMaxWidth()
 										.clip(RoundedCornerShape(12.dp))
-										.clickable { isPermissionsExpanded = !isPermissionsExpanded }
+										.clickable(role = Role.Button) { isPermissionsExpanded = !isPermissionsExpanded }
+										.semantics(mergeDescendants = true) {
+											heading()
+											stateDescription = permissionsStateDesc
+										}
 										.padding(horizontal = 4.dp, vertical = 6.dp),
 									verticalAlignment = CenterVertically,
 									horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -1873,7 +1895,8 @@ fun Settings(
 									text = stringResource(R.string.settings_section_diagnostics),
 									style = MaterialTheme.typography.labelLarge,
 									fontWeight = FontWeight.Bold,
-									color = MaterialTheme.colorScheme.primary
+									color = MaterialTheme.colorScheme.primary,
+									modifier = Modifier.semantics { heading() }
 								)
 								Text(
 									text = stringResource(R.string.settings_diagnostics_description),
@@ -1884,14 +1907,18 @@ fun Settings(
 									modifier = Modifier
 										.fillMaxWidth()
 										.clip(RoundedCornerShape(12.dp))
-										.clickable { includeLogcatInDiagnostics = !includeLogcatInDiagnostics }
+										.toggleable(
+											value = includeLogcatInDiagnostics,
+											role = Role.Checkbox,
+											onValueChange = { includeLogcatInDiagnostics = it }
+										)
 										.padding(vertical = 2.dp),
 									verticalAlignment = CenterVertically,
 									horizontalArrangement = Arrangement.spacedBy(8.dp)
 								) {
 									Checkbox(
 										checked = includeLogcatInDiagnostics,
-										onCheckedChange = { includeLogcatInDiagnostics = it }
+										onCheckedChange = null
 									)
 									Text(
 										text = stringResource(R.string.settings_diagnostics_include_logcat),
@@ -2447,9 +2474,9 @@ fun Settings(
 							}
 							Box(
 								modifier = Modifier
-									.size(40.dp)
+									.minimumInteractiveComponentSize()
 									.clip(CircleShape)
-									.clickable { showSelfUpdateBetaInfoDialog = true },
+									.clickable(role = Role.Button) { showSelfUpdateBetaInfoDialog = true },
 								contentAlignment = Alignment.Center
 							) {
 								Icon(
@@ -3247,10 +3274,17 @@ private fun ApiTokenBottomSheet(
 							.padding(14.dp),
 						verticalArrangement = Arrangement.spacedBy(8.dp)
 					) {
+						val guideStateDesc = stringResource(
+							if (isGuideExpanded) R.string.a11y_state_expanded else R.string.a11y_state_collapsed
+						)
 						Row(
 							modifier = Modifier
 								.fillMaxWidth()
-								.clickable { isGuideExpanded = !isGuideExpanded },
+								.clip(RoundedCornerShape(8.dp))
+								.clickable(role = Role.Button) { isGuideExpanded = !isGuideExpanded }
+								.semantics(mergeDescendants = true) {
+									stateDescription = guideStateDesc
+								},
 							horizontalArrangement = Arrangement.SpaceBetween,
 							verticalAlignment = CenterVertically
 						) {
@@ -4082,11 +4116,17 @@ private fun UpdateDisplayModePreview(displayMode: Int) {
 				.padding(12.dp),
 			verticalArrangement = Arrangement.spacedBy(8.dp)
 		) {
+			val previewStateDesc = stringResource(
+				if (isExpanded) R.string.a11y_state_expanded else R.string.a11y_state_collapsed
+			)
 			Row(
 				modifier = Modifier
 					.fillMaxWidth()
 					.clip(RoundedCornerShape(8.dp))
-					.clickable { isExpanded = !isExpanded }
+					.clickable(role = Role.Button) { isExpanded = !isExpanded }
+					.semantics(mergeDescendants = true) {
+						stateDescription = previewStateDesc
+					}
 					.padding(vertical = 2.dp),
 				horizontalArrangement = Arrangement.SpaceBetween,
 				verticalAlignment = CenterVertically
@@ -4520,23 +4560,26 @@ private fun HiddenAppsBottomSheet(
 							val appName = installedByPackage[pkg]?.name ?: pkg
 							val isChecked = selectedToRestore[pkg] == true
 							Surface(
-								modifier = Modifier
-									.fillMaxWidth()
-									.clip(RoundedCornerShape(16.dp))
-									.clickable { selectedToRestore[pkg] = !isChecked },
+								modifier = Modifier.fillMaxWidth(),
 								shape = RoundedCornerShape(16.dp),
 								color = MaterialTheme.colorScheme.surfaceContainerHigh
 							) {
 								Row(
 									modifier = Modifier
 										.fillMaxWidth()
+										.clip(RoundedCornerShape(16.dp))
+										.toggleable(
+											value = isChecked,
+											role = Role.Checkbox,
+											onValueChange = { selectedToRestore[pkg] = it }
+										)
 										.padding(horizontal = 12.dp, vertical = 10.dp),
 									verticalAlignment = CenterVertically,
 									horizontalArrangement = Arrangement.spacedBy(12.dp)
 								) {
 									Checkbox(
 										checked = isChecked,
-										onCheckedChange = { selectedToRestore[pkg] = it }
+										onCheckedChange = null
 									)
 									Box(
 										modifier = Modifier
@@ -4680,23 +4723,26 @@ private fun HiddenAppsBottomSheet(
 					items(candidates, key = { it.packageName }) { app ->
 						val isChecked = selectedToHide[app.packageName] == true
 						Surface(
-							modifier = Modifier
-								.fillMaxWidth()
-								.clip(RoundedCornerShape(14.dp))
-								.clickable { selectedToHide[app.packageName] = !isChecked },
+							modifier = Modifier.fillMaxWidth(),
 							shape = RoundedCornerShape(14.dp),
 							color = MaterialTheme.colorScheme.surfaceContainerHigh
 						) {
 							Row(
 								modifier = Modifier
 									.fillMaxWidth()
+									.clip(RoundedCornerShape(14.dp))
+									.toggleable(
+										value = isChecked,
+										role = Role.Checkbox,
+										onValueChange = { selectedToHide[app.packageName] = it }
+									)
 									.padding(horizontal = 12.dp, vertical = 8.dp),
 								verticalAlignment = CenterVertically,
 								horizontalArrangement = Arrangement.spacedBy(12.dp)
 							) {
 								Checkbox(
 									checked = isChecked,
-									onCheckedChange = { selectedToHide[app.packageName] = it }
+									onCheckedChange = null
 								)
 								Box(
 									modifier = Modifier
@@ -4934,7 +4980,8 @@ fun SettingsTopBar() = TopAppBar(
 		Text(
 			text = stringResource(R.string.tab_settings),
 			style = MaterialTheme.typography.headlineMedium,
-			fontWeight = FontWeight.Bold
+			fontWeight = FontWeight.Bold,
+			modifier = Modifier.semantics { heading() }
 		)
 	},
 	colors = TopAppBarDefaults.topAppBarColors(
@@ -4954,7 +5001,7 @@ fun SettingsTopBar() = TopAppBar(
 		) {
 			Icon(
 				imageVector = Icons.Filled.Settings,
-				contentDescription = stringResource(R.string.tab_settings),
+				contentDescription = null,
 				tint = MaterialTheme.colorScheme.onPrimaryContainer,
 				modifier = Modifier.size(18.dp)
 			)
@@ -5210,7 +5257,9 @@ private fun BackgroundCheckIntervalBottomSheet(
 			}
 
 			Column(
-				modifier = Modifier.fillMaxWidth(),
+				modifier = Modifier
+					.fillMaxWidth()
+					.selectableGroup(),
 				verticalArrangement = Arrangement.spacedBy(8.dp)
 			) {
 				intervalOptions.forEach { (interval, meta) ->
@@ -5219,7 +5268,7 @@ private fun BackgroundCheckIntervalBottomSheet(
 						modifier = Modifier
 							.fillMaxWidth()
 							.clip(RoundedCornerShape(16.dp))
-							.clickable {
+							.selectable(selected = isSelected, role = Role.RadioButton) {
 								onSelectHours(interval.hours)
 								onDismiss()
 							},
@@ -5346,6 +5395,12 @@ private fun ApkMirrorSettingsBottomSheet(
 				Row(
 					modifier = Modifier
 						.fillMaxWidth()
+						.clip(RoundedCornerShape(16.dp))
+						.toggleable(
+							value = directEnabled,
+							role = Role.Switch,
+							onValueChange = onDirectChanged
+						)
 						.padding(horizontal = 16.dp, vertical = 14.dp),
 					verticalAlignment = Alignment.CenterVertically,
 					horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -5364,7 +5419,7 @@ private fun ApkMirrorSettingsBottomSheet(
 					}
 					Switch(
 						checked = directEnabled,
-						onCheckedChange = onDirectChanged
+						onCheckedChange = null
 					)
 				}
 			}
@@ -5600,14 +5655,15 @@ private fun FDroidReposBottomSheet(
 								) {
 									Icon(
 										imageVector = Icons.Default.Delete,
-										contentDescription = stringResource(R.string.fdroid_repo_delete_cd),
+										contentDescription = "${stringResource(R.string.fdroid_repo_delete_cd)}: ${repo.name}",
 										tint = MaterialTheme.colorScheme.error
 									)
 								}
 							}
 							Switch(
 								checked = repo.enabled,
-								onCheckedChange = { enabled -> onToggleRepo(repo.id, enabled) }
+								onCheckedChange = { enabled -> onToggleRepo(repo.id, enabled) },
+								modifier = Modifier.semantics { contentDescription = repo.name }
 							)
 						}
 					}
@@ -5796,6 +5852,11 @@ private fun WifiDownloadBottomSheet(
 					Row(
 						modifier = Modifier
 							.fillMaxWidth()
+							.toggleable(
+								value = wifiOnly,
+								role = Role.Switch,
+								onValueChange = onWifiOnlyChanged
+							)
 							.padding(horizontal = 16.dp, vertical = 14.dp),
 						verticalAlignment = Alignment.CenterVertically,
 						horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -5814,7 +5875,7 @@ private fun WifiDownloadBottomSheet(
 						}
 						Switch(
 							checked = wifiOnly,
-							onCheckedChange = onWifiOnlyChanged
+							onCheckedChange = null
 						)
 					}
 
@@ -5828,6 +5889,11 @@ private fun WifiDownloadBottomSheet(
 					Row(
 						modifier = Modifier
 							.fillMaxWidth()
+							.toggleable(
+								value = chargingOnly,
+								role = Role.Switch,
+								onValueChange = onChargingOnlyChanged
+							)
 							.padding(horizontal = 16.dp, vertical = 14.dp),
 						verticalAlignment = Alignment.CenterVertically,
 						horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -5846,7 +5912,7 @@ private fun WifiDownloadBottomSheet(
 						}
 						Switch(
 							checked = chargingOnly,
-							onCheckedChange = onChargingOnlyChanged
+							onCheckedChange = null
 						)
 					}
 
@@ -5860,6 +5926,11 @@ private fun WifiDownloadBottomSheet(
 					Row(
 						modifier = Modifier
 							.fillMaxWidth()
+							.toggleable(
+								value = bgCheckWifiOnly,
+								role = Role.Switch,
+								onValueChange = onBgCheckWifiOnlyChanged
+							)
 							.padding(horizontal = 16.dp, vertical = 14.dp),
 						verticalAlignment = Alignment.CenterVertically,
 						horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -5878,7 +5949,7 @@ private fun WifiDownloadBottomSheet(
 						}
 						Switch(
 							checked = bgCheckWifiOnly,
-							onCheckedChange = onBgCheckWifiOnlyChanged
+							onCheckedChange = null
 						)
 					}
 				}
@@ -5970,12 +6041,17 @@ private fun ObtainiumImportBottomSheet(
 						Row(
 							modifier = Modifier
 								.fillMaxWidth()
-								.clickable { importMappings = !importMappings }
+								.clip(RoundedCornerShape(14.dp))
+								.toggleable(
+									value = importMappings,
+									role = Role.Checkbox,
+									onValueChange = { importMappings = it }
+								)
 								.padding(horizontal = 12.dp, vertical = 10.dp),
 							verticalAlignment = Alignment.CenterVertically,
 							horizontalArrangement = Arrangement.spacedBy(8.dp)
 						) {
-							Checkbox(checked = importMappings, onCheckedChange = { importMappings = it })
+							Checkbox(checked = importMappings, onCheckedChange = null)
 							Column(modifier = Modifier.weight(1f)) {
 								Text(
 									text = stringResource(R.string.obtainium_import_section_mappings, preview.matchedInstalledBindings.size),
@@ -6006,12 +6082,17 @@ private fun ObtainiumImportBottomSheet(
 						Row(
 							modifier = Modifier
 								.fillMaxWidth()
-								.clickable { importFDroidRepos = !importFDroidRepos }
+								.clip(RoundedCornerShape(14.dp))
+								.toggleable(
+									value = importFDroidRepos,
+									role = Role.Checkbox,
+									onValueChange = { importFDroidRepos = it }
+								)
 								.padding(horizontal = 12.dp, vertical = 10.dp),
 							verticalAlignment = Alignment.CenterVertically,
 							horizontalArrangement = Arrangement.spacedBy(8.dp)
 						) {
-							Checkbox(checked = importFDroidRepos, onCheckedChange = { importFDroidRepos = it })
+							Checkbox(checked = importFDroidRepos, onCheckedChange = null)
 							Column(modifier = Modifier.weight(1f)) {
 								Text(
 									text = stringResource(R.string.obtainium_import_section_fdroid, preview.detectedFDroidRepos.size),
@@ -6055,14 +6136,19 @@ private fun ObtainiumImportBottomSheet(
 								Row(
 									modifier = Modifier
 										.fillMaxWidth()
-										.clickable { selectedWatched[candidate.packageName] = !checked }
-										.padding(vertical = 2.dp),
+										.clip(RoundedCornerShape(10.dp))
+										.toggleable(
+											value = checked,
+											role = Role.Checkbox,
+											onValueChange = { selectedWatched[candidate.packageName] = it }
+										)
+										.padding(vertical = 4.dp),
 									verticalAlignment = Alignment.CenterVertically,
 									horizontalArrangement = Arrangement.spacedBy(8.dp)
 								) {
 									Checkbox(
 										checked = checked,
-										onCheckedChange = { selectedWatched[candidate.packageName] = it }
+										onCheckedChange = null
 									)
 									Column(modifier = Modifier.weight(1f)) {
 										Text(

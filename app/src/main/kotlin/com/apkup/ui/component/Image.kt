@@ -26,10 +26,11 @@ import kotlinx.coroutines.withContext
 private fun BaseLoadingImage(
     request: ImageRequest,
     modifier: Modifier,
-    color: Color = Color.Transparent
+    color: Color = Color.Transparent,
+    contentDescription: String? = null
 ) = AsyncImage(
     model = request,
-    contentDescription = stringResource(R.string.app_cd),
+    contentDescription = contentDescription,
     modifier = modifier
         .padding(10.dp)
         .clip(RoundedCornerShape(8.dp))
@@ -43,7 +44,8 @@ private fun BaseLoadingImage(
 fun LoadingImageApp(
     packageName: String,
     modifier: Modifier = Modifier,
-    color: Color = Color.Transparent
+    color: Color = Color.Transparent,
+    contentDescription: String? = null
 ) {
     val context = LocalContext.current
     val icon = produceState<Drawable?>(initialValue = null, packageName) {
@@ -53,5 +55,5 @@ fun LoadingImageApp(
         .data(icon)
         .size(Size(192, 192))
         .build()
-    BaseLoadingImage(request, modifier, color)
+    BaseLoadingImage(request, modifier, color, contentDescription)
 }

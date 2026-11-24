@@ -148,6 +148,16 @@ import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -437,7 +447,9 @@ fun UpdatesTopBar(
 					maxLines = 1,
 					softWrap = false,
 					overflow = TextOverflow.Ellipsis,
-					modifier = Modifier.weight(1f, fill = false)
+					modifier = Modifier
+						.weight(1f, fill = false)
+						.semantics { heading() }
 				)
 				if (updatesCount != null && updatesCount > 0) {
 					Surface(
@@ -464,7 +476,9 @@ fun UpdatesTopBar(
 				IconButton(onClick = onToggleSearch) {
 					Icon(
 						imageVector = if (searchExpanded) Icons.Filled.Clear else Icons.Filled.Search,
-						contentDescription = stringResource(R.string.updates_search_placeholder)
+						contentDescription = stringResource(
+							if (searchExpanded) R.string.a11y_close_search else R.string.updates_search_placeholder
+						)
 					)
 				}
 			}
@@ -534,7 +548,7 @@ fun UpdatesTopBar(
 			) {
 				Icon(
 					imageVector = Icons.Rounded.Update,
-					contentDescription = stringResource(R.string.tab_updates),
+					contentDescription = null,
 					tint = MaterialTheme.colorScheme.primary,
 					modifier = Modifier.size(20.dp)
 				)
@@ -1347,7 +1361,7 @@ private fun DockedUpdatesSearchBar(
 				}) {
 					Icon(
 						imageVector = Icons.Filled.Clear,
-						contentDescription = null,
+						contentDescription = stringResource(R.string.a11y_clear_search),
 						tint = MaterialTheme.colorScheme.onSurfaceVariant
 					)
 				}
@@ -1558,7 +1572,8 @@ private fun UpdatesHeroBanner(
 								fontWeight = FontWeight.Bold,
 								color = MaterialTheme.colorScheme.onSurface,
 								maxLines = 1,
-								overflow = TextOverflow.Ellipsis
+								overflow = TextOverflow.Ellipsis,
+								modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
 							)
 							Text(
 								text = liveSubtitle,
@@ -1735,6 +1750,7 @@ private fun UpdatesHeroBanner(
 							label = stringResource(R.string.install_all),
 							iconRes = R.drawable.ic_install,
 							onClick = onInstallAll,
+							menuContentDescription = stringResource(R.string.updates_more_actions_cd),
 							menuContent = { dismiss ->
 								if (onOpenHistory != null) {
 									DropdownMenuItem(
@@ -2041,11 +2057,11 @@ private fun ActiveQueueBottomSheet(
 								}
 								IconButton(
 									onClick = { onCancelTask(task.id) },
-									modifier = Modifier.size(32.dp)
+									modifier = Modifier.minimumInteractiveComponentSize()
 								) {
 									Icon(
 										imageVector = Icons.Filled.Close,
-										contentDescription = stringResource(R.string.action_cancel),
+										contentDescription = "${stringResource(R.string.action_cancel)} $appName",
 										tint = MaterialTheme.colorScheme.onSurfaceVariant,
 										modifier = Modifier.size(18.dp)
 									)
@@ -2864,6 +2880,10 @@ private fun UpdateCard(
 	val effProgress = liveTask?.progress ?: update.progress
 	val effTotal = liveTask?.total?.takeIf { it > 0L } ?: update.total
 
+	val selectActionLabel = stringResource(
+		if (isSelected) R.string.a11y_deselect_item else R.string.a11y_select_item,
+		card.appName
+	)
 	val cardShape = MaterialTheme.shapes.large
 	Surface(
 		modifier = modifier
@@ -2873,6 +2893,19 @@ private fun UpdateCard(
 				onClick = onSelect,
 				onLongClick = onLongPress
 			)
+			.semantics {
+				if (isSelectable) {
+					customActions = listOf(
+						CustomAccessibilityAction(selectActionLabel) {
+							onLongPress()
+							true
+						}
+					)
+				}
+				if (isSelectionMode && isSelectable) {
+					selected = isSelected
+				}
+			}
 			.animateContentSize(animationSpec = ApkUpTheme.motion.defaultSpatialSpec()),
 		shape = cardShape,
 		color = when {
@@ -3159,6 +3192,14 @@ private fun UpdateCard(
 
 			// Bottom Actions: Details link & Install Button (hidden in selection mode)
 			if (!isSelectionMode) {
+				val detailsActionText = stringResource(R.string.updates_detail_view)
+				val installActionText = stringResource(
+					when {
+						isCachedReady -> R.string.install_cached_action
+						update.isWatchedApp() -> R.string.install_action
+						else -> R.string.update_action
+					}
+				)
 				Row(
 					modifier = Modifier.fillMaxWidth(),
 					verticalAlignment = Alignment.CenterVertically,
@@ -3166,10 +3207,13 @@ private fun UpdateCard(
 				) {
 					TextButton(
 						onClick = onSelect,
-						contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)
+						contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+						modifier = Modifier.semantics {
+							contentDescription = "$detailsActionText ${card.appName}"
+						}
 					) {
 						Text(
-							text = stringResource(R.string.updates_detail_view),
+							text = detailsActionText,
 							style = MaterialTheme.typography.labelMedium,
 							color = MaterialTheme.colorScheme.onSurfaceVariant
 						)
@@ -3182,7 +3226,10 @@ private fun UpdateCard(
 							colors = ButtonDefaults.buttonColors(
 								containerColor = MaterialTheme.colorScheme.primary,
 								contentColor = MaterialTheme.colorScheme.onPrimary
-							)
+							),
+							modifier = Modifier.semantics {
+								contentDescription = "$installActionText ${card.appName}"
+							}
 						) {
 							Icon(
 								painter = painterResource(R.drawable.ic_install),
@@ -3191,13 +3238,7 @@ private fun UpdateCard(
 							)
 							Spacer(Modifier.width(6.dp))
 							Text(
-								text = stringResource(
-									when {
-										isCachedReady -> R.string.install_cached_action
-										update.isWatchedApp() -> R.string.install_action
-										else -> R.string.update_action
-									}
-								),
+								text = installActionText,
 								style = MaterialTheme.typography.labelMedium,
 								fontWeight = FontWeight.Bold
 							)
@@ -3280,6 +3321,17 @@ private fun CompactUpdatesGrid(
 				val isSelected = update.id in selectedUpdateIds
 				val isFailed = update.id in failedUpdateIds
 				val isCachedReady = update.id in readyUpdateIds || update.alternativeUpdates.any { it.id in readyUpdateIds }
+				val compactSelectActionLabel = stringResource(
+					if (isSelected) R.string.a11y_deselect_item else R.string.a11y_select_item,
+					card.appName
+				)
+				val compactInstallActionText = stringResource(
+					when {
+						isCachedReady -> R.string.install_cached_action
+						update.isWatchedApp() -> R.string.install_action
+						else -> R.string.update_action
+					}
+				)
 				val cardShape = RoundedCornerShape(14.dp)
 				StaggeredCascadeItem(
 					index = index,
@@ -3304,6 +3356,19 @@ private fun CompactUpdatesGrid(
 								}
 							}
 						)
+						.semantics {
+							if (isSelectable) {
+								customActions = listOf(
+									CustomAccessibilityAction(compactSelectActionLabel) {
+										onToggleSelection(update.id)
+										true
+									}
+								)
+							}
+							if (isSelectionMode && isSelectable) {
+								selected = isSelected
+							}
+						}
 						.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
 					shape = cardShape,
 					color = when {
@@ -3531,16 +3596,22 @@ private fun CompactUpdatesGrid(
 								onClick = {
 									onRequestInstall(update)
 								},
-								modifier = Modifier
-									.size(36.dp)
-									.background(MaterialTheme.colorScheme.surfaceContainer, CircleShape)
+								modifier = Modifier.minimumInteractiveComponentSize()
 							) {
-								Icon(
-									painter = painterResource(R.drawable.ic_install),
-									contentDescription = null,
-									tint = MaterialTheme.colorScheme.primary,
-									modifier = Modifier.size(16.dp)
-								)
+								Box(
+									modifier = Modifier
+										.size(36.dp)
+										.clip(CircleShape)
+										.background(MaterialTheme.colorScheme.surfaceContainer),
+									contentAlignment = Alignment.Center
+								) {
+									Icon(
+										painter = painterResource(R.drawable.ic_install),
+										contentDescription = "$compactInstallActionText ${card.appName}",
+										tint = MaterialTheme.colorScheme.primary,
+										modifier = Modifier.size(16.dp)
+									)
+								}
 							}
 						}
 					}
@@ -3661,7 +3732,8 @@ private fun UpdateDetailsSheet(
 					Text(
 						text = appName,
 						style = MaterialTheme.typography.titleLarge,
-						fontWeight = FontWeight.Bold
+						fontWeight = FontWeight.Bold,
+						modifier = Modifier.semantics { heading() }
 					)
 					Text(
 						text = activeVariant.packageName,
@@ -3706,7 +3778,11 @@ private fun UpdateDetailsSheet(
 								enabled = !isUpdateBusy,
 								modifier = Modifier
 									.weight(1f)
-									.heightIn(min = 44.dp),
+									.heightIn(min = 48.dp)
+									.semantics {
+										role = Role.RadioButton
+										selected = isSelected
+									},
 								shape = CircleShape,
 								color = if (isSelected) {
 									MaterialTheme.colorScheme.secondaryContainer
@@ -3906,7 +3982,8 @@ private fun UpdateDetailsSheet(
 						text = stringResource(R.string.whats_new_title),
 						style = MaterialTheme.typography.titleSmall,
 						fontWeight = FontWeight.SemiBold,
-						color = MaterialTheme.colorScheme.primary
+						color = MaterialTheme.colorScheme.primary,
+						modifier = Modifier.semantics { heading() }
 					)
 					Text(
 						text = activeVariant.whatsNew.ifBlank { stringResource(R.string.whats_new_empty) },

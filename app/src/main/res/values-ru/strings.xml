@@ -624,4 +624,11 @@
     <string name="apps_peek_last_updated">Последнее обновление</string>
     <string name="apps_fingerprint_copied">Отпечаток скопирован</string>
     <string name="apps_newly_updated_badge">Недавно обновлено</string>
+    <string name="updates_more_actions_cd">Дополнительные действия обновления</string>
+    <string name="a11y_state_expanded">Развёрнуто</string>
+    <string name="a11y_state_collapsed">Свёрнуто</string>
+    <string name="a11y_clear_search">Очистить поиск</string>
+    <string name="a11y_close_search">Закрыть поиск</string>
+    <string name="a11y_select_item">Выбрать %1$s</string>
+    <string name="a11y_deselect_item">Снять выбор с %1$s</string>
 </resources>

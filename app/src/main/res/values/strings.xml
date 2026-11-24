@@ -642,4 +642,11 @@
     <string name="apps_peek_last_updated">Last updated</string>
     <string name="apps_fingerprint_copied">Fingerprint copied</string>
     <string name="apps_newly_updated_badge">Recently updated</string>
+    <string name="updates_more_actions_cd">More update actions</string>
+    <string name="a11y_state_expanded">Expanded</string>
+    <string name="a11y_state_collapsed">Collapsed</string>
+    <string name="a11y_clear_search">Clear search</string>
+    <string name="a11y_close_search">Close search</string>
+    <string name="a11y_select_item">Select %1$s</string>
+    <string name="a11y_deselect_item">Deselect %1$s</string>
 </resources>

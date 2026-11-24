@@ -621,4 +621,11 @@
     <string name="apps_peek_last_updated">Última atualização</string>
     <string name="apps_fingerprint_copied">Impressão digital copiada</string>
     <string name="apps_newly_updated_badge">Atualizado recentemente</string>
+    <string name="updates_more_actions_cd">Mais ações de atualização</string>
+    <string name="a11y_state_expanded">Expandido</string>
+    <string name="a11y_state_collapsed">Recolhido</string>
+    <string name="a11y_clear_search">Limpar pesquisa</string>
+    <string name="a11y_close_search">Fechar pesquisa</string>
+    <string name="a11y_select_item">Selecionar %1$s</string>
+    <string name="a11y_deselect_item">Desmarcar %1$s</string>
 </resources>

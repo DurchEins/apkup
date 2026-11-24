@@ -62,6 +62,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -137,6 +138,12 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -491,7 +498,9 @@ fun AppsScreenSuccess(
 			color = MaterialTheme.colorScheme.surfaceContainerLow
 		) {
 			Row(
-				modifier = Modifier.padding(2.dp),
+				modifier = Modifier
+					.padding(2.dp)
+					.selectableGroup(),
 				horizontalArrangement = Arrangement.spacedBy(2.dp),
 				verticalAlignment = Alignment.CenterVertically
 			) {
@@ -499,7 +508,11 @@ fun AppsScreenSuccess(
 				Surface(
 					onClick = { viewModel.setViewMode("list") },
 					shape = CircleShape,
-					color = if (isList) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
+					color = if (isList) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+					modifier = Modifier.semantics {
+						role = Role.Tab
+						selected = isList
+					}
 				) {
 					Icon(
 						imageVector = Icons.AutoMirrored.Rounded.List,
@@ -513,7 +526,11 @@ fun AppsScreenSuccess(
 				Surface(
 					onClick = { viewModel.setViewMode("grid") },
 					shape = CircleShape,
-					color = if (!isList) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
+					color = if (!isList) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+					modifier = Modifier.semantics {
+						role = Role.Tab
+						selected = !isList
+					}
 				) {
 					Icon(
 						imageVector = Icons.Rounded.GridView,
@@ -1182,18 +1199,29 @@ private fun AppListItem(
 					verticalAlignment = Alignment.CenterVertically,
 					horizontalArrangement = Arrangement.spacedBy(4.dp)
 				) {
-					// 32dp Quick Launch Button (hidden for uninstalled watched apps)
+					val appDisplayName = app.name.ifBlank { app.packageName }
+					// 32dp Quick Launch visual inside >= 48dp accessible touch target (hidden for uninstalled watched apps)
 					if (!app.isWatchedOnly) {
-						Surface(
-							onClick = { launchAppOrSettings(context, app.packageName) },
-							shape = CircleShape,
-							color = MaterialTheme.colorScheme.surfaceContainerHigh,
-							modifier = Modifier.size(32.dp)
+						Box(
+							modifier = Modifier
+								.minimumInteractiveComponentSize()
+								.clip(CircleShape)
+								.clickable(
+									role = Role.Button,
+									onClick = { launchAppOrSettings(context, app.packageName) }
+								),
+							contentAlignment = Alignment.Center
 						) {
-							Box(contentAlignment = Alignment.Center) {
+							Box(
+								modifier = Modifier
+									.size(32.dp)
+									.clip(CircleShape)
+									.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+								contentAlignment = Alignment.Center
+							) {
 								Icon(
 									imageVector = Icons.AutoMirrored.Rounded.OpenInNew,
-									contentDescription = stringResource(R.string.apps_launch_action),
+									contentDescription = "${stringResource(R.string.apps_launch_action)} $appDisplayName",
 									tint = MaterialTheme.colorScheme.primary,
 									modifier = Modifier.size(16.dp)
 								)
@@ -1201,21 +1229,23 @@ private fun AppListItem(
 						}
 					}
 
-					// 28dp Context Menu Trigger
-					Surface(
-						onClick = { showActionsSheet = true },
-						shape = CircleShape,
-						color = Color.Transparent,
-						modifier = Modifier.size(28.dp)
+					// Context Menu Trigger with >= 48dp touch target
+					Box(
+						modifier = Modifier
+							.minimumInteractiveComponentSize()
+							.clip(CircleShape)
+							.clickable(
+								role = Role.Button,
+								onClick = { showActionsSheet = true }
+							),
+						contentAlignment = Alignment.Center
 					) {
-						Box(contentAlignment = Alignment.Center) {
-							Icon(
-								imageVector = Icons.Rounded.MoreVert,
-								contentDescription = null,
-								tint = MaterialTheme.colorScheme.onSurfaceVariant,
-								modifier = Modifier.size(18.dp)
-							)
-						}
+						Icon(
+							imageVector = Icons.Rounded.MoreVert,
+							contentDescription = "${stringResource(R.string.updates_detail_view)} $appDisplayName",
+							tint = MaterialTheme.colorScheme.onSurfaceVariant,
+							modifier = Modifier.size(18.dp)
+						)
 					}
 				}
 			}
@@ -1325,6 +1355,7 @@ private fun AppGridItem(
 					horizontalArrangement = Arrangement.spacedBy(2.dp),
 					verticalAlignment = Alignment.CenterVertically
 				) {
+					val appDisplayName = app.name.ifBlank { app.packageName }
 					if (!app.isWatchedOnly) {
 						Surface(
 							onClick = { launchAppOrSettings(context, app.packageName) },
@@ -1335,7 +1366,7 @@ private fun AppGridItem(
 							Box(contentAlignment = Alignment.Center) {
 								Icon(
 									imageVector = Icons.AutoMirrored.Rounded.OpenInNew,
-									contentDescription = stringResource(R.string.apps_launch_action),
+									contentDescription = "${stringResource(R.string.apps_launch_action)} $appDisplayName",
 									tint = MaterialTheme.colorScheme.primary,
 									modifier = Modifier.size(15.dp)
 								)
@@ -1351,7 +1382,7 @@ private fun AppGridItem(
 						Box(contentAlignment = Alignment.Center) {
 							Icon(
 								imageVector = Icons.Rounded.MoreVert,
-								contentDescription = null,
+								contentDescription = "${stringResource(R.string.updates_detail_view)} $appDisplayName",
 								tint = MaterialTheme.colorScheme.onSurfaceVariant,
 								modifier = Modifier.size(18.dp)
 							)
@@ -1571,7 +1602,9 @@ private fun AppActionsBottomSheet(
 							color = MaterialTheme.colorScheme.onSurface,
 							maxLines = 1,
 							overflow = TextOverflow.Ellipsis,
-							modifier = Modifier.weight(1f, fill = false)
+							modifier = Modifier
+								.weight(1f, fill = false)
+								.semantics { heading() }
 						)
 						NewlyUpdatedPulseDot(lastUpdateTime = app.lastUpdateTime)
 					}
@@ -2127,7 +2160,7 @@ private fun DockedAppsSearchBar(
 				}) {
 					Icon(
 						imageVector = Icons.Filled.Clear,
-						contentDescription = null,
+						contentDescription = stringResource(R.string.a11y_clear_search),
 						tint = MaterialTheme.colorScheme.onSurfaceVariant
 					)
 				}
@@ -2172,7 +2205,8 @@ fun AppsTopBar(
 			Text(
 				text = stringResource(R.string.tab_apps),
 				style = MaterialTheme.typography.headlineMedium,
-				fontWeight = FontWeight.Bold
+				fontWeight = FontWeight.Bold,
+				modifier = Modifier.semantics { heading() }
 			)
 			if (totalCount != null) {
 				Surface(
@@ -2209,7 +2243,9 @@ fun AppsTopBar(
 			IconButton(onClick = onToggleSearch) {
 				Icon(
 					imageVector = if (searchExpanded) Icons.Filled.Clear else Icons.Filled.Search,
-					contentDescription = stringResource(R.string.apps_search_placeholder)
+					contentDescription = stringResource(
+						if (searchExpanded) R.string.a11y_close_search else R.string.apps_search_placeholder
+					)
 				)
 			}
 		}
@@ -2279,7 +2315,7 @@ fun AppsTopBar(
 		) {
 			Icon(
 				imageVector = Icons.Outlined.Home,
-				contentDescription = stringResource(R.string.tab_apps),
+				contentDescription = null,
 				tint = MaterialTheme.colorScheme.primary,
 				modifier = Modifier.size(18.dp)
 			)

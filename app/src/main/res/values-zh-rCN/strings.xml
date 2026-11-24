@@ -618,4 +618,11 @@
     <string name="apps_peek_last_updated">最近更新</string>
     <string name="apps_fingerprint_copied">指纹已复制</string>
     <string name="apps_newly_updated_badge">近期更新</string>
+    <string name="updates_more_actions_cd">更多更新操作</string>
+    <string name="a11y_state_expanded">已展开</string>
+    <string name="a11y_state_collapsed">已折叠</string>
+    <string name="a11y_clear_search">清除搜索</string>
+    <string name="a11y_close_search">关闭搜索</string>
+    <string name="a11y_select_item">选择 %1$s</string>
+    <string name="a11y_deselect_item">取消选择 %1$s</string>
 </resources>

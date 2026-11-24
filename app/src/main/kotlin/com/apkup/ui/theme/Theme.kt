@@ -36,8 +36,8 @@ import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import com.apkup.util.isDark
 
-private val LightColors = lightColorScheme(
-    primary = Color(0xFFB45309),
+internal val LightColors = lightColorScheme(
+    primary = Color(0xFF92400E),
     onPrimary = Color.White,
     primaryContainer = Color(0xFFFEF3C7),
     onPrimaryContainer = Color(0xFF451A03),
@@ -68,7 +68,7 @@ private val LightColors = lightColorScheme(
     outlineVariant = Color(0xFFD6D0C4)
 )
 
-private val DarkColors = darkColorScheme(
+internal val DarkColors = darkColorScheme(
     primary = Color(0xFFF59E0B),
     onPrimary = Color(0xFF451A03),
     primaryContainer = Color(0xFF4D2800),
@@ -116,12 +116,12 @@ data class ApkUpExtendedColors(
     val onInfoContainer: Color
 )
 
-private val LightExtendedColors = ApkUpExtendedColors(
+internal val LightExtendedColors = ApkUpExtendedColors(
     success = Color(0xFF1E7E45),
     onSuccess = Color.White,
     successContainer = Color(0xFFD7F5E3),
     onSuccessContainer = Color(0xFF0A361C),
-    warning = Color(0xFFC25900),
+    warning = Color(0xFF92400E),
     onWarning = Color.White,
     warningContainer = Color(0xFFFFE4CC),
     onWarningContainer = Color(0xFF451D00),
@@ -131,7 +131,7 @@ private val LightExtendedColors = ApkUpExtendedColors(
     onInfoContainer = Color(0xFF092A45)
 )
 
-private val DarkExtendedColors = ApkUpExtendedColors(
+internal val DarkExtendedColors = ApkUpExtendedColors(
     success = Color(0xFF6EE7A0),
     onSuccess = Color(0xFF052E16),
     successContainer = Color(0xFF134E2A),

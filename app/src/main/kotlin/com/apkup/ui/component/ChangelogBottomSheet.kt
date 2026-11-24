@@ -58,6 +58,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -215,7 +219,8 @@ fun ChangelogBottomSheet(
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.semantics { heading() }
                     )
                     AutoResizeText(
                         text = "ApkUp ${BuildConfig.VERSION_NAME}",
@@ -227,8 +232,7 @@ fun ChangelogBottomSheet(
                 }
 
                 IconButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.size(36.dp)
+                    onClick = onDismiss
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.Close,
@@ -299,12 +303,19 @@ private fun ChangelogMonthAccordion(
     onToggle: () -> Unit,
     onLinkClick: (String) -> Unit
 ) {
+    val expandStateLabel = stringResource(
+        if (isExpanded) R.string.a11y_state_expanded else R.string.a11y_state_collapsed
+    )
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(10.dp))
-                .clickable(onClick = onToggle)
+                .clickable(role = Role.Button, onClick = onToggle)
+                .semantics(mergeDescendants = true) {
+                    heading()
+                    stateDescription = expandStateLabel
+                }
                 .padding(vertical = 16.dp, horizontal = 2.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween

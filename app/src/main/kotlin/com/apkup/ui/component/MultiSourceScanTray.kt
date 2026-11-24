@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -147,6 +148,7 @@ fun MultiSourceScanTray(
                         .animateContentSize(
                             animationSpec = ApkUpTheme.motion.defaultSpatialSpec()
                         )
+                        .semantics(mergeDescendants = true) {}
                 ) {
                     Row(
                         modifier = Modifier
@@ -162,7 +164,7 @@ fun MultiSourceScanTray(
                         )
                         Icon(
                             painter = painterResource(iconRes),
-                            contentDescription = source.name,
+                            contentDescription = null,
                             modifier = Modifier.size(15.dp),
                             tint = MaterialTheme.colorScheme.primary
                         )
@@ -179,7 +181,9 @@ fun MultiSourceScanTray(
             } else {
                 // Compact state: 34dp outer Box containing 32dp circular surface + unclipped floating badge
                 Box(
-                    modifier = Modifier.size(34.dp),
+                    modifier = Modifier
+                        .size(34.dp)
+                        .semantics(mergeDescendants = true) {},
                     contentAlignment = Alignment.Center
                 ) {
                     Surface(

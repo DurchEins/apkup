@@ -617,4 +617,11 @@
     <string name="apps_peek_last_updated">最終更新</string>
     <string name="apps_fingerprint_copied">フィンガープリントをコピーしました</string>
     <string name="apps_newly_updated_badge">最近の更新</string>
+    <string name="updates_more_actions_cd">その他の更新アクション</string>
+    <string name="a11y_state_expanded">展開済み</string>
+    <string name="a11y_state_collapsed">折りたたみ済み</string>
+    <string name="a11y_clear_search">検索をクリア</string>
+    <string name="a11y_close_search">検索を閉じる</string>
+    <string name="a11y_select_item">%1$s を選択</string>
+    <string name="a11y_deselect_item">%1$s の選択を解除</string>
 </resources>

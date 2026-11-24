@@ -16,6 +16,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -38,6 +41,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -58,6 +62,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -232,8 +240,9 @@ fun SourcePriorityBottomSheet(
                                     modifier = Modifier.size(20.dp)
                                 )
                                 Spacer(modifier = Modifier.width(10.dp))
+                                val sourceTitle = sourcePriorityLabel(key)
                                 Text(
-                                    text = sourcePriorityLabel(key),
+                                    text = sourceTitle,
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.Medium,
                                     color = MaterialTheme.colorScheme.onSurface,
@@ -244,22 +253,22 @@ fun SourcePriorityBottomSheet(
                                 IconButton(
                                     onClick = { onMove(index, -1) },
                                     enabled = index > 0,
-                                    modifier = Modifier.size(36.dp)
+                                    modifier = Modifier.minimumInteractiveComponentSize()
                                 ) {
                                     Icon(
                                         imageVector = Icons.Rounded.ArrowUpward,
-                                        contentDescription = stringResource(R.string.settings_source_priority_move_up),
+                                        contentDescription = "${stringResource(R.string.settings_source_priority_move_up)}: $sourceTitle",
                                         modifier = Modifier.size(18.dp)
                                     )
                                 }
                                 IconButton(
                                     onClick = { onMove(index, 1) },
                                     enabled = index < order.lastIndex,
-                                    modifier = Modifier.size(36.dp)
+                                    modifier = Modifier.minimumInteractiveComponentSize()
                                 ) {
                                     Icon(
                                         imageVector = Icons.Rounded.ArrowDownward,
-                                        contentDescription = stringResource(R.string.settings_source_priority_move_down),
+                                        contentDescription = "${stringResource(R.string.settings_source_priority_move_down)}: $sourceTitle",
                                         modifier = Modifier.size(18.dp)
                                     )
                                 }
@@ -335,7 +344,9 @@ fun PinAppSourceBottomSheet(
                         modifier = Modifier.padding(bottom = 2.dp)
                     )
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .selectableGroup(),
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         val options = listOf(
@@ -355,7 +366,10 @@ fun PinAppSourceBottomSheet(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clip(RoundedCornerShape(12.dp))
-                                    .clickable {
+                                    .selectable(
+                                        selected = isSelected,
+                                        role = Role.RadioButton
+                                    ) {
                                         selectedPreRelease = modeKey
                                         onSelectPreReleaseOverride(modeKey)
                                     }
@@ -437,7 +451,7 @@ private fun PinSourceOptionRow(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .clickable(onClick = onClick)
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
     ) {
         Row(
             modifier = Modifier
@@ -620,7 +634,12 @@ fun PreReleaseBottomSheet(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onToggleEnabled(!enabled) }
+                        .clip(RoundedCornerShape(16.dp))
+                        .toggleable(
+                            value = enabled,
+                            role = Role.Switch,
+                            onValueChange = onToggleEnabled
+                        )
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -632,7 +651,7 @@ fun PreReleaseBottomSheet(
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f)
                     )
-                    Switch(checked = enabled, onCheckedChange = onToggleEnabled)
+                    Switch(checked = enabled, onCheckedChange = null)
                 }
             }
 
@@ -668,7 +687,12 @@ fun PreReleaseBottomSheet(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(16.dp))
-                            .clickable(enabled = enabled) { onToggleChannel(channelKey, !checked) }
+                            .toggleable(
+                                value = checked,
+                                enabled = enabled,
+                                role = Role.Switch,
+                                onValueChange = { onToggleChannel(channelKey, it) }
+                            )
                     ) {
                         Row(
                             modifier = Modifier
@@ -693,7 +717,7 @@ fun PreReleaseBottomSheet(
                             Switch(
                                 checked = checked,
                                 enabled = enabled,
-                                onCheckedChange = { onToggleChannel(channelKey, it) }
+                                onCheckedChange = null
                             )
                         }
                     }
@@ -753,7 +777,12 @@ fun UpdateWindowBottomSheet(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onToggleEnabled(!enabled) }
+                        .clip(RoundedCornerShape(16.dp))
+                        .toggleable(
+                            value = enabled,
+                            role = Role.Switch,
+                            onValueChange = onToggleEnabled
+                        )
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -765,12 +794,14 @@ fun UpdateWindowBottomSheet(
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f)
                     )
-                    Switch(checked = enabled, onCheckedChange = onToggleEnabled)
+                    Switch(checked = enabled, onCheckedChange = null)
                 }
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .selectableGroup(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 val modes = listOf(
@@ -780,14 +811,20 @@ fun UpdateWindowBottomSheet(
                 modes.forEach { (mKey, mLabel) ->
                     val selected = mode == mKey
                     Surface(
-                        onClick = { if (enabled) onModeChanged(mKey) },
                         shape = RoundedCornerShape(14.dp),
                         color = if (selected && enabled) {
                             MaterialTheme.colorScheme.primaryContainer
                         } else {
                             MaterialTheme.colorScheme.surfaceContainerHigh
                         },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(14.dp))
+                            .selectable(
+                                selected = selected,
+                                enabled = enabled,
+                                role = Role.RadioButton
+                            ) { onModeChanged(mKey) }
                     ) {
                         Box(
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 12.dp),
@@ -925,7 +962,12 @@ fun RollbackSettingsBottomSheet(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onToggleEnabled(!enabled) }
+                        .clip(RoundedCornerShape(16.dp))
+                        .toggleable(
+                            value = enabled,
+                            role = Role.Switch,
+                            onValueChange = onToggleEnabled
+                        )
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -937,7 +979,7 @@ fun RollbackSettingsBottomSheet(
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f)
                     )
-                    Switch(checked = enabled, onCheckedChange = onToggleEnabled)
+                    Switch(checked = enabled, onCheckedChange = null)
                 }
             }
 
@@ -948,20 +990,28 @@ fun RollbackSettingsBottomSheet(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .selectableGroup(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 com.apkup.util.RollbackBackupManager.BUDGET_OPTIONS_MB.forEach { optionMb ->
                     val selected = budgetMb == optionMb
                     Surface(
-                        onClick = { if (enabled) onBudgetSelected(optionMb) },
                         shape = RoundedCornerShape(14.dp),
                         color = if (selected && enabled) {
                             MaterialTheme.colorScheme.primaryContainer
                         } else {
                             MaterialTheme.colorScheme.surfaceContainerHigh
                         },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(14.dp))
+                            .selectable(
+                                selected = selected,
+                                enabled = enabled,
+                                role = Role.RadioButton
+                            ) { onBudgetSelected(optionMb) }
                     ) {
                         Box(
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 12.dp),
@@ -991,20 +1041,28 @@ fun RollbackSettingsBottomSheet(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .selectableGroup(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 com.apkup.util.RollbackBackupManager.MAX_AGE_OPTIONS_DAYS.forEach { optionDays ->
                     val selected = maxAgeDays == optionDays
                     Surface(
-                        onClick = { if (enabled) onMaxAgeSelected(optionDays) },
                         shape = RoundedCornerShape(14.dp),
                         color = if (selected && enabled) {
                             MaterialTheme.colorScheme.primaryContainer
                         } else {
                             MaterialTheme.colorScheme.surfaceContainerHigh
                         },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(14.dp))
+                            .selectable(
+                                selected = selected,
+                                enabled = enabled,
+                                role = Role.RadioButton
+                            ) { onMaxAgeSelected(optionDays) }
                     ) {
                         Box(
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 12.dp),

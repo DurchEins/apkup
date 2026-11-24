@@ -48,6 +48,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -72,7 +74,7 @@ fun SegmentedButtonSetting(
 ) {
     val currentExternal = getValue()
     var position by remember(currentExternal) { mutableIntStateOf(currentExternal) }
-    SettingIconBadge(icon = icon, contentDescription = text)
+    SettingIconBadge(icon = icon, contentDescription = null)
     Column(Modifier.padding(start = 10.dp).weight(1f)) {
         Text(
             text = text,
@@ -131,13 +133,13 @@ fun SwitchSetting(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 46.dp)
+            .heightIn(min = 48.dp)
             .clip(RoundedCornerShape(14.dp))
             .toggleable(value = value, role = Role.Switch, onValueChange = onToggle)
             .padding(horizontal = 2.dp, vertical = 4.dp),
         verticalAlignment = CenterVertically
     ) {
-        SettingIconBadge(icon = icon, contentDescription = text, active = value)
+        SettingIconBadge(icon = icon, contentDescription = null, active = value)
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -160,7 +162,7 @@ fun SwitchSetting(
         }
         Switch(
             checked = value,
-            onCheckedChange = onToggle,
+            onCheckedChange = null,
             thumbContent = {
                 if (value) {
                     Icon(
@@ -183,7 +185,7 @@ fun SwitchSetting(
 @Composable
 private fun SettingIconBadge(
     @DrawableRes icon: Int,
-    contentDescription: String,
+    contentDescription: String? = null,
     active: Boolean = true
 ) {
     val isReducedMotion = ApkUpTheme.isReducedMotion
@@ -252,7 +254,7 @@ fun SplitSwitchSetting(
                 .clip(RoundedCornerShape(12.dp))
                 .then(
                     if (onClick != null) {
-                        Modifier.clickable(onClick = onClick)
+                        Modifier.clickable(role = Role.Button, onClick = onClick)
                     } else {
                         Modifier.toggleable(value = value, role = Role.Switch, onValueChange = onToggle)
                     }
@@ -260,7 +262,7 @@ fun SplitSwitchSetting(
                 .padding(vertical = 6.dp, horizontal = 4.dp),
             verticalAlignment = CenterVertically
         ) {
-            SettingIconBadge(icon = icon, contentDescription = text, active = value)
+            SettingIconBadge(icon = icon, contentDescription = null, active = value)
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -323,8 +325,10 @@ fun SplitSwitchSetting(
         // Right Target: Switch toggle
         Switch(
             checked = value,
-            onCheckedChange = onToggle,
-            modifier = Modifier.padding(start = if (onClick != null) 4.dp else 0.dp),
+            onCheckedChange = if (onClick != null) onToggle else null,
+            modifier = Modifier
+                .padding(start = if (onClick != null) 4.dp else 0.dp)
+                .semantics { contentDescription = text },
             thumbContent = {
                 if (value) {
                     Icon(
@@ -359,7 +363,7 @@ fun NavigationSettingItem(
             .fillMaxWidth()
             .heightIn(min = 48.dp)
             .clip(RoundedCornerShape(14.dp))
-            .clickable(onClick = onClick)
+            .clickable(role = Role.Button, onClick = onClick)
             .padding(horizontal = 4.dp, vertical = 6.dp),
         verticalAlignment = CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
