@@ -1,6 +1,7 @@
 package com.apkup.util
 
 import android.annotation.SuppressLint
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -71,27 +72,36 @@ open class UpdatesNotification(private val context: Context) : AutoUpdateNotifie
         const val UpdateAction = "com.apkup.action.OPEN_UPDATES"
         const val RETRY_FAILED_ACTION = "com.apkup.action.RETRY_FAILED_UPDATES"
         const val UPDATE_CHANNEL_ID = "update_notification_channel"
+        const val CHECK_PROGRESS_NOTIFICATION_ID = 43
         private const val CHECK_PROGRESS_CHANNEL_ID = "update_check_progress_channel"
     }
 
     private val notificationManager get() = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     private val updateId = 42
-    private val checkProgressId = 43
+    private val checkProgressId = CHECK_PROGRESS_NOTIFICATION_ID
 
-    @SuppressLint("MissingPermission")
-    fun showCheckProgressNotification(
-        checkedApps: Int?,
-        totalApps: Int?,
-        activeSource: String?
-    ) {
-        if (!areNotificationsEnabled()) return
-        createCheckProgressChannel()
-
+    private fun openUpdatesPendingIntent(requestCode: Int, action: String = UpdateAction): PendingIntent {
         val intent = Intent(context, MainActivity::class.java).apply {
             setPackage(context.packageName)
-            flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            action = UpdateAction
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or
+                Intent.FLAG_ACTIVITY_SINGLE_TOP
+            this.action = action
         }
+        return PendingIntent.getActivity(
+            context,
+            requestCode,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+    }
+
+    fun buildCheckProgressNotification(
+        checkedApps: Int? = null,
+        totalApps: Int? = null,
+        activeSource: String? = null
+    ): Notification {
+        createCheckProgressChannel()
 
         val title = if (!activeSource.isNullOrBlank()) {
             context.getString(R.string.notification_check_title_source, activeSource)
@@ -110,7 +120,7 @@ open class UpdatesNotification(private val context: Context) : AutoUpdateNotifie
             context.getString(R.string.updates_checking)
         }
 
-        val builder = NotificationCompat.Builder(context, CHECK_PROGRESS_CHANNEL_ID)
+        return NotificationCompat.Builder(context, CHECK_PROGRESS_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_refresh)
             .setContentTitle(title)
             .setContentText(contentText)
@@ -123,22 +133,55 @@ open class UpdatesNotification(private val context: Context) : AutoUpdateNotifie
                 if (hasDeterminateProgress) checkedApps.coerceIn(0, totalApps) else 0,
                 !hasDeterminateProgress
             )
-            .setContentIntent(
-                PendingIntent.getActivity(
-                    context,
-                    1,
-                    intent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-            )
+            .setContentIntent(openUpdatesPendingIntent(requestCode = 1))
+            .build()
+    }
 
-        NotificationManagerCompat.from(context).notify(checkProgressId, builder.build())
+    @SuppressLint("MissingPermission")
+    fun showCheckProgressNotification(
+        checkedApps: Int?,
+        totalApps: Int?,
+        activeSource: String?
+    ) {
+        if (!areNotificationsEnabled()) return
+        NotificationManagerCompat.from(context).notify(
+            checkProgressId,
+            buildCheckProgressNotification(checkedApps, totalApps, activeSource)
+        )
     }
 
     fun cancelCheckProgressNotification() {
         runCatching {
             NotificationManagerCompat.from(context).cancel(checkProgressId)
         }
+    }
+
+    @SuppressLint("MissingPermission")
+    fun showUpToDateNotification() {
+        if (!areNotificationsEnabled()) return
+        createNotificationChannel()
+        val builder = NotificationCompat.Builder(context, UPDATE_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_install)
+            .setContentTitle(context.getString(R.string.notification_up_to_date_title))
+            .setContentText(context.getString(R.string.notification_up_to_date_desc))
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setContentIntent(openUpdatesPendingIntent(requestCode = 5))
+            .setAutoCancel(true)
+        NotificationManagerCompat.from(context).notify(updateId, builder.build())
+    }
+
+    @SuppressLint("MissingPermission")
+    fun showUpdateCheckFailedNotification() {
+        if (!areNotificationsEnabled()) return
+        createNotificationChannel()
+        val builder = NotificationCompat.Builder(context, UPDATE_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_install)
+            .setContentTitle(context.getString(R.string.updates_error_title))
+            .setContentText(context.getString(R.string.updates_error_message))
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setContentIntent(openUpdatesPendingIntent(requestCode = 6))
+            .setAutoCancel(true)
+        NotificationManagerCompat.from(context).notify(updateId, builder.build())
     }
 
     @SuppressLint("MissingPermission")
@@ -166,6 +209,25 @@ open class UpdatesNotification(private val context: Context) : AutoUpdateNotifie
                 )
             )
             .setAutoCancel(true)
+
+        val prefs = runCatching { org.koin.java.KoinJavaComponent.getKoin().getOrNull<com.apkup.prefs.Prefs>() }.getOrNull()
+        val canSilentInstall = prefs != null && (prefs.useShizukuInstaller.get() || prefs.useRootInstaller.get())
+        if (canSilentInstall && num > 0) {
+            val installIntent = Intent(context, com.apkup.worker.NotificationInstallAllReceiver::class.java).apply {
+                setPackage(context.packageName)
+            }
+            val installPendingIntent = PendingIntent.getBroadcast(
+                context,
+                4,
+                installIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            builder.addAction(
+                R.drawable.ic_install,
+                context.getString(R.string.notification_install_all_action),
+                installPendingIntent
+            )
+        }
 
         NotificationManagerCompat.from(context).notify(updateId, builder.build())
     }

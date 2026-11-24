@@ -452,6 +452,17 @@ fun Settings(
 		}
 	}
 
+	var pendingBackupDiff by remember { mutableStateOf<Pair<String, com.apkup.viewmodel.SettingsViewModel.BackupDiffPreview>?>(null) }
+
+	val executeBackupImport: (String) -> Unit = { rawJson ->
+		val imported = viewModel.importBackupJson(rawJson)
+		if (imported) {
+			configRefreshKey++
+			appsViewModel.refresh(false)
+			updatesViewModel.syncIgnoredFromPrefs()
+		}
+	}
+
 	val importBackupLauncher = rememberLauncherForActivityResult(
 		ActivityResultContracts.OpenDocument()
 	) { uri ->
@@ -460,11 +471,11 @@ fun Settings(
 				val rawJson = readUtf8FromSafUri(context, uri)
 				withContext(Dispatchers.Main) {
 					if (!rawJson.isNullOrBlank()) {
-						val imported = viewModel.importBackupJson(rawJson)
-						if (imported) {
-							configRefreshKey++
-							appsViewModel.refresh(false)
-							updatesViewModel.syncIgnoredFromPrefs()
+						val diff = viewModel.previewBackupJson(rawJson)
+						if (diff != null) {
+							pendingBackupDiff = rawJson to diff
+						} else {
+							executeBackupImport(rawJson)
 						}
 					} else {
 						viewModel.notifyBackupExported(false)
@@ -472,6 +483,58 @@ fun Settings(
 				}
 			}
 		}
+	}
+
+	pendingBackupDiff?.let { (rawJson, diff) ->
+		androidx.compose.material3.AlertDialog(
+			onDismissRequest = { pendingBackupDiff = null },
+			title = {
+				Text(
+					text = stringResource(R.string.backup_diff_title),
+					style = MaterialTheme.typography.titleLarge,
+					fontWeight = FontWeight.Bold
+				)
+			},
+			text = {
+				Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+					Text(
+						text = stringResource(R.string.backup_diff_repos, diff.customReposCurrent, diff.customReposBackup),
+						style = MaterialTheme.typography.bodyMedium
+					)
+					Text(
+						text = stringResource(R.string.backup_diff_watchlist, diff.watchedAppsCurrent, diff.watchedAppsBackup),
+						style = MaterialTheme.typography.bodyMedium
+					)
+					Text(
+						text = stringResource(R.string.backup_diff_ignored, diff.ignoredAppsCurrent, diff.ignoredAppsBackup),
+						style = MaterialTheme.typography.bodyMedium
+					)
+					Text(
+						text = stringResource(R.string.backup_diff_skipped, diff.skippedVersionsCurrent, diff.skippedVersionsBackup),
+						style = MaterialTheme.typography.bodyMedium
+					)
+					Text(
+						text = stringResource(R.string.backup_diff_fdroid, diff.customFDroidCurrent, diff.customFDroidBackup),
+						style = MaterialTheme.typography.bodyMedium
+					)
+				}
+			},
+			confirmButton = {
+				androidx.compose.material3.Button(
+					onClick = {
+						pendingBackupDiff = null
+						executeBackupImport(rawJson)
+					}
+				) {
+					Text(text = stringResource(R.string.backup_diff_confirm))
+				}
+			},
+			dismissButton = {
+				androidx.compose.material3.TextButton(onClick = { pendingBackupDiff = null }) {
+					Text(text = stringResource(R.string.action_cancel))
+				}
+			}
+		)
 	}
 
 	var overscrollOffset by remember { mutableFloatStateOf(0f) }

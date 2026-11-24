@@ -1,10 +1,12 @@
 package com.apkup.ui.screen
 
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import android.text.format.DateUtils
+import androidx.core.content.FileProvider
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -74,6 +76,7 @@ import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
@@ -86,6 +89,7 @@ import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -105,6 +109,7 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
@@ -214,6 +219,7 @@ fun AppsScreenSuccess(
 	var searchExpanded by rememberSaveable { mutableStateOf(false) }
 	var showHistorySheet by rememberSaveable { mutableStateOf(false) }
 	var showWatchAppSheet by rememberSaveable { mutableStateOf(false) }
+	var showShareScopeDialog by rememberSaveable { mutableStateOf(false) }
 	var sortOrder by rememberSaveable { mutableStateOf(AppsSortOrder.NAME_ASC) }
 	val snackBar: SnackBar = koinInject()
 
@@ -367,6 +373,9 @@ fun AppsScreenSuccess(
 	)
 
 	// 1. Top Bar
+	val shareContext = LocalContext.current
+	val shareScope = rememberCoroutineScope()
+	val shareChooserTitle = stringResource(R.string.apps_share_list_action)
 	AppsTopBar(
 		totalCount = filteredApps.size,
 		searchExpanded = searchExpanded || searchQuery.isNotBlank(),
@@ -377,6 +386,9 @@ fun AppsScreenSuccess(
 			searchExpanded = !searchExpanded
 		},
 		onAddWatchApp = { showWatchAppSheet = true },
+		onShareApps = if (state.apps.isNotEmpty()) {
+			{ showShareScopeDialog = true }
+		} else null,
 		sortOrder = sortOrder,
 		onSortOrderChange = { newOrder -> sortOrder = newOrder }
 	)
@@ -772,6 +784,88 @@ fun AppsScreenSuccess(
 				}
 			}
 		}
+	}
+
+	if (showShareScopeDialog) {
+		val shareScopeItems = listOf(
+			AppsViewModel.ShareAppsScope.USER to stringResource(R.string.apps_filter_user),
+			AppsViewModel.ShareAppsScope.SYSTEM to stringResource(R.string.apps_filter_system),
+			AppsViewModel.ShareAppsScope.ALL to stringResource(R.string.apps_filter_all)
+		)
+		AlertDialog(
+			onDismissRequest = { showShareScopeDialog = false },
+			title = { Text(stringResource(R.string.apps_share_list_action)) },
+			text = {
+				Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+					Text(
+						text = stringResource(R.string.apps_share_scope_message),
+						style = MaterialTheme.typography.bodyMedium,
+						color = MaterialTheme.colorScheme.onSurfaceVariant
+					)
+					shareScopeItems.forEach { (scope, label) ->
+						FilledTonalButton(
+							onClick = {
+								showShareScopeDialog = false
+								shareScope.launch {
+									val appsToShare = viewModel.loadAppsForShare(scope, sortOrder)
+									if (appsToShare.isEmpty()) return@launch
+									val repoUrls = appsToShare.associate { app ->
+										app.packageName to (customBindings[app.packageName]?.webUrl.orEmpty())
+									}
+									val shareText = com.apkup.util.formatShareableAppList(
+										apps = appsToShare,
+										repoUrls = repoUrls,
+										scopeLabel = label
+									)
+									runCatching {
+										if (shareText.length <= 4_000) {
+											val sendIntent = Intent(Intent.ACTION_SEND).apply {
+												type = "text/plain"
+												putExtra(Intent.EXTRA_TEXT, shareText)
+											}
+											shareContext.startActivity(
+												Intent.createChooser(sendIntent, shareChooserTitle)
+											)
+										} else {
+											val uri = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+												val exportsDir = java.io.File(shareContext.cacheDir, "exports").apply { mkdirs() }
+												val exportFile = java.io.File(exportsDir, "apkup-app-list.txt")
+												exportFile.writeText(shareText, Charsets.UTF_8)
+												FileProvider.getUriForFile(
+													shareContext,
+													"${shareContext.packageName}.fileprovider",
+													exportFile
+												)
+											}
+											val sendIntent = Intent(Intent.ACTION_SEND).apply {
+												type = "text/plain"
+												putExtra(Intent.EXTRA_STREAM, uri)
+												putExtra(Intent.EXTRA_SUBJECT, shareChooserTitle)
+												clipData = ClipData.newRawUri("ApkUp App List", uri)
+												addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+											}
+											shareContext.startActivity(
+												Intent.createChooser(sendIntent, shareChooserTitle)
+													.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+											)
+										}
+									}
+								}
+							},
+							modifier = Modifier.fillMaxWidth()
+						) {
+							Text(label)
+						}
+					}
+				}
+			},
+			confirmButton = {},
+			dismissButton = {
+				TextButton(onClick = { showShareScopeDialog = false }) {
+					Text(stringResource(R.string.action_cancel))
+				}
+			}
+		)
 	}
 
 	if (showHistorySheet) {
@@ -2161,6 +2255,7 @@ fun AppsTopBar(
 	searchExpanded: Boolean = false,
 	onToggleSearch: (() -> Unit)? = null,
 	onAddWatchApp: (() -> Unit)? = null,
+	onShareApps: (() -> Unit)? = null,
 	sortOrder: AppsSortOrder = AppsSortOrder.NAME_ASC,
 	onSortOrderChange: ((AppsSortOrder) -> Unit)? = null
 ) = TopAppBar(
@@ -2196,6 +2291,15 @@ fun AppsTopBar(
 	),
 	windowInsets = WindowInsets(0),
 	actions = {
+		if (onShareApps != null) {
+			IconButton(onClick = onShareApps) {
+				Icon(
+					imageVector = Icons.Filled.Share,
+					contentDescription = stringResource(R.string.apps_share_list_action),
+					tint = MaterialTheme.colorScheme.onSurfaceVariant
+				)
+			}
+		}
 		if (onAddWatchApp != null) {
 			IconButton(onClick = onAddWatchApp) {
 				Icon(

@@ -632,4 +632,27 @@
     <string name="apps_peek_last_updated">Última actualización</string>
     <string name="apps_fingerprint_copied">Huella copiada</string>
     <string name="apps_newly_updated_badge">Actualizado recientemente</string>
+    <string name="widget_updates_description">Muestra actualizaciones de ApkUp disponibles y permite comprobar rápido</string>
+    <string name="widget_updates_checking">Buscando…</string>
+    <string name="widget_updates_never_checked">Sin comprobar</string>
+    <string name="widget_updates_up_to_date">Todo al día</string>
+    <string name="widget_updates_last_checked">Última vez: %1$s</string>
+    <string name="widget_updates_tap_to_check">Toca para comprobar</string>
+    <plurals name="widget_updates_available">
+        <item quantity="one">%1$d actualización</item>
+        <item quantity="other">%1$d actualizaciones</item>
+    </plurals>
+    <string name="notification_install_all_action">Instalar todo</string>
+    <string name="history_export_action">Exportar</string>
+    <string name="history_export_csv">Exportar como CSV</string>
+    <string name="history_export_markdown">Exportar como Markdown</string>
+    <string name="apps_share_list_action">Compartir lista</string>
+    <string name="apps_share_scope_message">Elige qué aplicaciones instaladas incluir en la lista compartida:</string>
+    <string name="backup_diff_title">Revisar copia de seguridad</string>
+    <string name="backup_diff_repos">Repositorios vinculados: %1$d → %2$d</string>
+    <string name="backup_diff_watchlist">Apps en Watchlist: %1$d → %2$d</string>
+    <string name="backup_diff_ignored">Apps ignoradas: %1$d → %2$d</string>
+    <string name="backup_diff_skipped">Versiones omitidas: %1$d → %2$d</string>
+    <string name="backup_diff_fdroid">Repos F-Droid propios: %1$d → %2$d</string>
+    <string name="backup_diff_confirm">Importar copia</string>
 </resources>

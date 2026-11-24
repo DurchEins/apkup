@@ -380,6 +380,7 @@ class ShizukuAutoUpdateWorker(
 
     companion object {
         const val WORK_NAME = "ShizukuAutoUpdateWorker"
+        const val KEY_FORCE_IMMEDIATE = "force_immediate"
 
         fun enqueue(
             workManager: WorkManager,
@@ -422,10 +423,14 @@ class ShizukuAutoUpdateWorker(
     private val repoMappingManager: RepoMappingManager by inject()
 
     override suspend fun doWork(): Result {
-        if ((!prefs.useShizukuInstaller.get() && !prefs.useRootInstaller.get()) || !prefs.autoInstallUpdates.get()) {
+        val forceImmediate = inputData.getBoolean(KEY_FORCE_IMMEDIATE, false)
+        if (!prefs.useShizukuInstaller.get() && !prefs.useRootInstaller.get()) {
             return Result.success()
         }
-        if (!prefs.isUpdateWindowAllowedNow()) {
+        if (!forceImmediate && !prefs.autoInstallUpdates.get()) {
+            return Result.success()
+        }
+        if (!forceImmediate && !prefs.isUpdateWindowAllowedNow()) {
             val delayMins = prefs.minutesUntilNextUpdateWindow()
             if (delayMins > 0) {
                 enqueue(
@@ -488,6 +493,7 @@ class ShizukuAutoUpdateWorker(
             context = applicationContext
         )
         runner.execute(notifiableUpdates)
+        com.apkup.widget.UpdatesWidgetProvider.notifyWidgetDataChanged(applicationContext, isChecking = false)
         return Result.success()
     }
 }
