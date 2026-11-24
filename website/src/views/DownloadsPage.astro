@@ -143,15 +143,15 @@ const downloadSchema = {
             </button>
           </div>
           <div class="dl-compare-wrap">
+            <label for="sha256-compare-input" class="sr-only">{d.shaCompareAria}</label>
             <input
               type="text"
               id="sha256-compare-input"
               class="dl-compare-input mono"
               placeholder={d.shaComparePlaceholder}
-              aria-label={d.shaCompareAria}
               spellcheck="false"
             />
-            <span class="dl-compare-badge mono" id="sha256-compare-badge" hidden></span>
+            <span class="dl-compare-badge mono" id="sha256-compare-badge" role="status" aria-live="polite"></span>
           </div>
         </div>
 
@@ -187,6 +187,7 @@ const downloadSchema = {
                 type="button"
                 class="btn btn-secondary dl-copy-sm"
                 data-copy-cmd="sha256sum -c SHA256SUMS"
+                aria-label={`${d.copy} — Linux / macOS`}
               >
                 {d.copy}
               </button>
@@ -200,6 +201,7 @@ const downloadSchema = {
                 type="button"
                 class="btn btn-secondary dl-copy-sm"
                 data-copy-cmd="Get-FileHash .\ApkUp-*.apk -Algorithm SHA256"
+                aria-label={`${d.copy} — Windows PowerShell`}
               >
                 {d.copy}
               </button>
@@ -352,11 +354,10 @@ const downloadSchema = {
         var val = (cmpInput.value || '').trim().toLowerCase();
         var liveHash = (shaText.split(/\s+/)[0] || '').toLowerCase();
         if (!val) {
-          cmpBadge.hidden = true;
+          cmpBadge.textContent = '';
           cmpBadge.className = 'dl-compare-badge mono';
           return;
         }
-        cmpBadge.hidden = false;
         if (liveHash && val === liveHash) {
           cmpBadge.textContent = shaMatchMsg;
           cmpBadge.className = 'dl-compare-badge mono is-match';
@@ -636,6 +637,12 @@ const downloadSchema = {
     transform: scale(1.04);
   }
 
+  :global([data-theme='light']) .dl-copy-sm.is-copied {
+    background: rgba(4, 120, 87, 0.12);
+    border-color: rgba(4, 120, 87, 0.5);
+    color: #047857;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .dl-copy-sm,
     .dl-copy-sm.is-copied {
@@ -727,19 +734,20 @@ const downloadSchema = {
   .dl-compare-wrap {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 8px;
   }
 
   .dl-compare-input {
-    flex: 1;
+    flex: 1 1 200px;
     min-width: 0;
+    max-width: 100%;
     padding: 7px 11px;
     border-radius: var(--radius-md);
     border: 1px solid var(--outline);
     background: var(--bg);
     color: var(--text);
     font-size: 0.78rem;
-    outline: none;
   }
 
   .dl-compare-input:focus {
@@ -754,6 +762,10 @@ const downloadSchema = {
     white-space: nowrap;
   }
 
+  .dl-compare-badge:empty {
+    display: none;
+  }
+
   .dl-compare-badge.is-match {
     background: rgba(16, 185, 129, 0.16);
     color: #6ee7b7;
@@ -764,6 +776,18 @@ const downloadSchema = {
     background: rgba(239, 68, 68, 0.16);
     color: #fca5a5;
     border: 1px solid rgba(239, 68, 68, 0.45);
+  }
+
+  :global([data-theme='light']) .dl-compare-badge.is-match {
+    background: rgba(4, 120, 87, 0.12);
+    color: #065f46;
+    border-color: rgba(4, 120, 87, 0.45);
+  }
+
+  :global([data-theme='light']) .dl-compare-badge.is-mismatch {
+    background: rgba(185, 28, 28, 0.12);
+    color: #b91c1c;
+    border-color: rgba(185, 28, 28, 0.45);
   }
 
   .dl-mirror-card {
@@ -872,7 +896,8 @@ const downloadSchema = {
     top: calc(100% + 8px);
     left: 0;
     z-index: 40;
-    width: min(340px, 82vw);
+    width: min(340px, calc(100vw - 48px));
+    max-width: calc(100vw - 32px);
     background: var(--surface-high);
     border: 1px solid var(--accent);
     border-radius: var(--radius-md);
@@ -936,6 +961,12 @@ const downloadSchema = {
     background: rgba(239, 68, 68, 0.14);
     color: #fca5a5;
     border: 1px solid rgba(239, 68, 68, 0.35);
+  }
+
+  :global([data-theme='light']) .pill-warn {
+    background: rgba(185, 28, 28, 0.12);
+    color: #b91c1c;
+    border-color: rgba(185, 28, 28, 0.38);
   }
 
   @media (max-width: 820px) {

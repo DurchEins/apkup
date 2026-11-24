@@ -43,7 +43,7 @@ const summaryText =
     <div class="qr-header">
       <div>
         <span class="pill-badge pill-amber mono" id="qr-version-pill">v{SITE.fallbackVersion}</span>
-        <h3 id="qr-modal-title">{t.qrModal.title}</h3>
+        <h2 id="qr-modal-title">{t.qrModal.title}</h2>
       </div>
       <button type="button" class="qr-close" id="qr-close-btn" aria-label={t.qrModal.closeAria}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
@@ -170,7 +170,10 @@ const summaryText =
         '</svg>';
     }
 
-    function openQrModal() {
+    var lastQrTrigger = null;
+
+    function openQrModal(triggerEl) {
+      lastQrTrigger = triggerEl || document.activeElement;
       var primaryLink = document.querySelector('[data-apk-link]');
       var currentUrl = primaryLink ? primaryLink.getAttribute('href') || fallbackUrl : fallbackUrl;
       var heroPill = document.getElementById('hero-version-pill');
@@ -188,7 +191,7 @@ const summaryText =
     }
 
     document.querySelectorAll('[data-open-qr]').forEach(function (btn) {
-      btn.addEventListener('click', openQrModal);
+      btn.addEventListener('click', function () { openQrModal(btn); });
     });
 
     if (closeBtn) {
@@ -199,6 +202,12 @@ const summaryText =
 
     dialog.addEventListener('click', function (e) {
       if (e.target === dialog) dialog.close();
+    });
+
+    dialog.addEventListener('close', function () {
+      if (lastQrTrigger && typeof lastQrTrigger.focus === 'function') {
+        lastQrTrigger.focus();
+      }
     });
   })();
 </script>
@@ -308,15 +317,15 @@ const summaryText =
     text-align: start;
   }
 
-  .qr-header h3 {
+  .qr-header h2 {
     margin: 8px 0 0;
     font-size: 1.18rem;
     font-weight: 800;
   }
 
   .qr-close {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border-radius: var(--radius-pill);
     border: 1px solid var(--outline);
     background: var(--surface);

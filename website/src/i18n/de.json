@@ -25,6 +25,7 @@
     "download": "Herunterladen"
   },
   "footer": {
+    "navAria": "Fußzeilen-Navigation",
     "downloads": "Downloads",
     "installUnknownApps": "Unbekannte Apps",
     "googleLock": "Googles 24h-Sperre",
@@ -33,6 +34,7 @@
     "sourceChecker": "Quellen-Check",
     "privacy": "Datenschutz",
     "security": "Sicherheit",
+    "accessibility": "Barrierefreiheit",
     "canonicalRelease": "Offizielles Release",
     "langPickerAria": "Sprache wählen",
     "helpTranslate": "Übersetzung verbessern →"
@@ -110,6 +112,8 @@
     "title": "Optimiert für einhändige Bedienung",
     "subtitle": "Entdecke die echte App-Oberfläche – wähle unten einen Bereich oder tippe auf das Smartphone zum Vergrößern.",
     "tablistAria": "App-Screenshots",
+    "pauseAria": "Automatischen Screenshot-Wechsel pausieren",
+    "playAria": "Automatischen Screenshot-Wechsel fortsetzen",
     "lightboxAria": "Screenshot-Vorschau",
     "closePreviewAria": "Vorschau schließen",
     "screens": {
@@ -1219,5 +1223,39 @@
         ]
       }
     }
+  },
+  "accessibilityPage": {
+    "title": "Barrierefreiheitserklärung — ApkUp",
+    "metaDesc": "Erklärung zur Barrierefreiheit von ApkUp: WCAG 2.2 AA & EN 301 549 Status, TalkBack-, Voice-Access- & Switch-Access-Unterstützung sowie Feedback-Kanal.",
+    "badge": "WCAG 2.2 AA • EN 301 549",
+    "h1": "Erklärung zur Barrierefreiheit",
+    "lead": "ApkUp wird konsequent für eine zuverlässige Bedienung mit Android TalkBack, Voice Access, Schalterzugriff (Switch Access), externen Tastaturen und Bildschirmlupen entwickelt – sowohl in der Android-App als auch auf dieser Webseite.",
+    "statusTitle": "Konformitätsstatus & Prüfstand",
+    "statusPill": "WCAG 2.2 AA • Material 3",
+    "statusBody": "Die ApkUp-Android-App und diese Webseite orientieren sich an WCAG 2.2 Level AA, EN 301 549, den Android Accessibility Guidelines sowie WAI-ARIA 1.2 (letzte vollständige Prüfung: 24. November 2026).",
+    "appTitle": "Barrierefreiheit in der Android-App",
+    "appLead": "Geprüft in Updates, Apps, Setup, Dialogen, Bottom Sheets und System-Benachrichtigungen:",
+    "appItems": [
+      "Vollständige Jetpack-Compose-Semantik mit präzisen Beschreibungen, zusammengefassten Update-Karten, Überschriften und Live-Region-Ansagen für Suchläufe, Warteschlangen und Downloads.",
+      "WCAG-2.5.3-Konformität (sichtbarer Text im zugänglichen Namen) für Voice Access sowie Klick- und Barrierefreiheits-Aktionen als Alternative zu Ziehen, Gedrückthalten und Wischen.",
+      "Mindestens 48 dp große Interaktionsflächen bei Steuerelementen, logische Fokus-Reihenfolge und tastaturbedienbare Bottom Sheets.",
+      "Kontraststarke helle und dunkle Material-3-Farbsysteme (>= 4,5:1 AA-Kontrast), optionales Dynamic Color sowie saubere Unterstützung großer Systemschriften.",
+      "Respektiert Android-Einstellungen für reduzierte Bewegungen über alle Animationen und Effekte hinweg."
+    ],
+    "webTitle": "Barrierefreiheit auf dieser Webseite",
+    "webLead": "Semantisches HTML5 und native WAI-ARIA-Steuerung über alle 9 Sprachversionen hinweg:",
+    "webItems": [
+      "Klare Landmarks, „Zum Hauptinhalt springen“-Link, tastaturbedienbare Menüs/Tabs/Dialoge sowie deutlich sichtbare Fokus-Ringe.",
+      "Pausierbare Screenshot-Vorschau mit Berücksichtigung von prefers-reduced-motion sowie tastaturbedienbarer Zoom-Ansicht samt Fokus-Rückgabe beim Schließen.",
+      "WCAG-AA-geprüfte Kontraste im hellen Off-White- und im dunklen Design inklusive Fehler-, Warn-, Kopier- und Status-Badges.",
+      "Sauberer Umbruch ab 320 px Viewport-Breite und bis 400 % Browser-Zoom ohne horizontale Scroll-Fallen.",
+      "Lokalisierung in 9 Sprachen mit korrekten lang-Attributen sowie tastatur-scrollbaren Tabellen und Code-Blöcken."
+    ],
+    "limitsTitle": "Bekannte Einschränkungen & laufende Tests",
+    "limitsBody": "Externe Release-Notes aus Drittquellen (z. B. GitHub oder GitLab) stammen von den jeweiligen App-Entwicklern. Android-Systemdialoge (Entwickleroptionen, Unbekannte Apps, Shizuku-Kopplung) unterliegen der Oberfläche des Geräteherstellers. Manuelle TalkBack- und Voice-Access-Tests auf weiteren Android-Geräten laufen fortlaufend.",
+    "feedbackTitle": "Barriere melden",
+    "feedbackLead": "Du hast einen unbeschrifteten Button, eine Tastaturfalle, schwachen Kontrast oder ein Screenreader-Problem in ApkUp oder auf dieser Seite entdeckt? Melde es direkt über GitHub.",
+    "feedbackCta": "Barriere-Issue auf GitHub öffnen ↗",
+    "feedbackSecondary": "Technische Richtlinie (ACCESSIBILITY.md) ↗"
   }
 }

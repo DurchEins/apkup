@@ -25,6 +25,7 @@
     "download": "ダウンロード"
   },
   "footer": {
+    "navAria": "フッターリンク",
     "downloads": "ダウンロード",
     "installUnknownApps": "提供元不明のアプリ",
     "googleLock": "Google 24時間ロック",
@@ -33,6 +34,7 @@
     "sourceChecker": "ソースチェッカー",
     "privacy": "プライバシー",
     "security": "セキュリティ",
+    "accessibility": "アクセシビリティ",
     "canonicalRelease": "公式リリース",
     "langPickerAria": "言語を選択",
     "helpTranslate": "翻訳に協力する →"
@@ -110,6 +112,8 @@
     "title": "片手操作に最適化されたデザイン",
     "subtitle": "実際のアプリUIをご覧ください。下のタブで画面を切り替えたり、端末プレビューをタップして拡大できます。",
     "tablistAria": "アプリスクリーンショット",
+    "pauseAria": "スクリーンショットの自動切り替えを一時停止",
+    "playAria": "スクリーンショットの自動切り替えを再開",
     "lightboxAria": "スクリーンショットプレビュー",
     "closePreviewAria": "プレビューを閉じる",
     "screens": {
@@ -1219,5 +1223,39 @@
         ]
       }
     }
+  },
+  "accessibilityPage": {
+    "title": "アクセシビリティ方針 — ApkUp",
+    "metaDesc": "ApkUpのアクセシビリティ方針、WCAG 2.2 AA & EN 301 549準拠状況、TalkBack・Voice Access対応、既知の制限、および報告窓口。",
+    "badge": "WCAG 2.2 AA • EN 301 549",
+    "h1": "アクセシビリティ方針",
+    "lead": "ApkUpは、Androidアプリおよび本ウェブサイトの両方で、Android TalkBack、Voice Access、スイッチアクセス、外付けキーボード、画面拡大鏡を使って確実に操作できるよう設計されています。",
+    "statusTitle": "準拠状況と監査日",
+    "statusPill": "WCAG 2.2 AA • Material 3",
+    "statusBody": "ApkUp Androidアプリおよび本ウェブサイトは、WCAG 2.2 レベルAA、EN 301 549、Androidアクセシビリティガイドライン、およびWAI-ARIA 1.2への準拠を目指しています（最終監査日: 2026年11月24日）。",
+    "appTitle": "Androidアプリのアクセシビリティ機能",
+    "appLead": "更新、アプリ、設定、ダイアログ、ボトムシート、通知で検証済み:",
+    "appItems": [
+      "Jetpack Composeセマンティクスを完全実装し、明確なcontentDescription、カード単位のグループ化、見出し、ライブリージョン通知を備えています。",
+      "Voice Access向けのWCAG 2.5.3ラベル整合性と、スワイプ・長押し・ドラッグ操作に対するタップおよびカスタムアクション代替を提供しています。",
+      "すべての主要操作で最小48 dpのタッチ領域を確保し、論理的なフォーカス順序とキーボード操作可能なシートを実現しています。",
+      "ライト・ダーク双方の高コントラスト配色（4.5:1以上）、Dynamic Color、および文字サイズ拡大への対応を行っています。",
+      "システムのアニメーション軽減設定をすべての動きとエフェクトに反映します。"
+    ],
+    "webTitle": "ウェブサイトのアクセシビリティ機能",
+    "webLead": "全9言語でセマンティックHTML5とネイティブARIAを採用:",
+    "webItems": [
+      "明確なランドマーク、本文スキップリンク、全インタラクティブ要素のキーボード操作、視認性の高いフォーカスリングを実装しています。",
+      "一時停止可能なスクリーンショット表示、prefers-reduced-motion対応、キーボード対応の拡大プレビューとフォーカス復帰を備えています。",
+      "ライト・ダーク両テーマおよび各種ステータスバッジでWCAG AAコントラスト基準を満たしています。",
+      "320 px幅や400%ズームでも横スクロールを発生させずレイアウトを維持します。",
+      "9言語ごとに正確なlang属性を設定し、テーブルやコードブロックをキーボードでスクロールできます。"
+    ],
+    "limitsTitle": "既知の制限事項",
+    "limitsBody": "外部リポジトリから取得するサードパーティのリリースノートは各開発元の記述に依存し、Androidシステム設定画面は端末メーカーのUIに依存します。",
+    "feedbackTitle": "アクセシビリティの問題を報告する",
+    "feedbackLead": "ラベルのないボタン、低コントラスト、キーボードやスクリーンリーダーの不具合を見つけた場合は、GitHubから直接ご報告ください。",
+    "feedbackCta": "GitHubでアクセシビリティIssueを開く ↗",
+    "feedbackSecondary": "技術方針 (ACCESSIBILITY.md) を読む ↗"
   }
 }

@@ -27,7 +27,8 @@ for (const dir of ['src/components', 'src/views', 'src/pages']) {
     const match = src.match(/<style>([\s\S]*?)<\/style>/);
     if (match) {
       const rel = relative(root, filePath).replace(/\\/g, '/');
-      chunks.push(`/* ${rel} */\n${match[1].trim()}`);
+      const css = match[1].trim().replace(/:global\(([^)]+)\)/g, '$1');
+      chunks.push(`/* ${rel} */\n${css}`);
     }
   }
 }

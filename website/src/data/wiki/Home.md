@@ -55,4 +55,5 @@ Every main guide is structured into clear layers:
 - 🏠 **[ApkUp GitHub Repository & README](https://github.com/DurchEins/apkup)**
 - 📦 **[Latest Releases & Checksums](https://github.com/DurchEins/apkup/releases)**
 - 🐛 **[Report a Bug or Request a Feature](https://github.com/DurchEins/apkup/issues)**
+- ♿ **[Accessibility Policy (`ACCESSIBILITY.md`)](https://github.com/DurchEins/apkup/blob/main/ACCESSIBILITY.md)** & **[Web Accessibility Statement](https://durcheins.github.io/apkup/accessibility/)**
 - 🛡️ **[Security Policy (`SECURITY.md`)](https://github.com/DurchEins/apkup/blob/main/SECURITY.md)**

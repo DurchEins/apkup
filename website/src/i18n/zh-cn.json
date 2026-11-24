@@ -25,6 +25,7 @@
     "download": "下载"
   },
   "footer": {
+    "navAria": "页脚导航链接",
     "downloads": "下载",
     "installUnknownApps": "安装未知应用",
     "googleLock": "Google 24小时锁定",
@@ -33,6 +34,7 @@
     "sourceChecker": "源兼容性检查",
     "privacy": "隐私政策",
     "security": "安全架构",
+    "accessibility": "无障碍声明",
     "canonicalRelease": "官方正式版",
     "langPickerAria": "选择语言",
     "helpTranslate": "协助翻译 →"
@@ -110,6 +112,8 @@
     "title": "专为单手拇指操作人体工学设计",
     "subtitle": "探索真实应用界面 —— 在下方切换页面，或点击手机预览图放大查看。",
     "tablistAria": "应用截图",
+    "pauseAria": "暂停自动切换应用截图",
+    "playAria": "恢复自动切换应用截图",
     "lightboxAria": "截图预览",
     "closePreviewAria": "关闭预览",
     "screens": {
@@ -1219,5 +1223,39 @@
         ]
       }
     }
+  },
+  "accessibilityPage": {
+    "title": "无障碍声明 — ApkUp",
+    "metaDesc": "ApkUp 无障碍承诺、WCAG 2.2 AA 与 EN 301 549 合规状态、TalkBack 与 Voice Access 支持、已知限制及反馈途径。",
+    "badge": "WCAG 2.2 AA • EN 301 549",
+    "h1": "无障碍声明",
+    "lead": "ApkUp 旨在通过 Android TalkBack、Voice Access、开关控制、外接键盘与屏幕放大功能在应用及本网站上实现稳定可靠的无障碍体验。",
+    "statusTitle": "合规状态与审计日期",
+    "statusPill": "WCAG 2.2 AA • Material 3",
+    "statusBody": "ApkUp Android 应用与本网站均以全面符合 WCAG 2.2 AA 级、EN 301 549、Android 无障碍指南及 WAI-ARIA 1.2 为目标（最近全面审计：2026年11月24日）。",
+    "appTitle": "Android 应用无障碍特性",
+    "appLead": "已在更新、应用、设置、对话框与系统通知中完成验证：",
+    "appItems": [
+      "完整的 Jetpack Compose 语义树，包含清晰的 contentDescription、成组卡片、标题角色与实时区域播报。",
+      "符合 WCAG 2.5.3“名称包含可见标签”要求，支持 Voice Access 并为滑动、长按和拖拽提供点击与自定义操作替代方案。",
+      "主要控件保持至少 48 dp 触控目标尺寸，具备清晰的焦点遍历顺序和键盘可达的底部弹窗。",
+      "浅色与深色高对比度 Material 3 配色方案（对比度不低于 4.5:1），支持 Dynamic Color 及系统字体放大不截断。",
+      "全面遵循系统减弱动态效果设置。"
+    ],
+    "webTitle": "网站无障碍特性",
+    "webLead": "全部 9 种语言版本均采用语义化 HTML5 与原生 WAI-ARIA 控件：",
+    "webItems": [
+      "明确的页面地标、跳转主内容链接、完整键盘导航及清晰可见的高对比度焦点指示环。",
+      "支持手动暂停截图轮播并自动响应 prefers-reduced-motion，图片预览支持键盘触发并在关闭时恢复焦点。",
+      "浅色与深色模式及所有提示标签、复制状态与徽章均通过 WCAG AA 对比度验证。",
+      "在 320 px 视口宽度及 400% 浏览器缩放下流畅重排，避免横向溢出卡死。",
+      "准确设置全部 9 种语言区域的 lang 属性，表格与代码块支持键盘聚焦滚动。"
+    ],
+    "limitsTitle": "已知限制",
+    "limitsBody": "从上游仓库抓取的第三方更新日志取决于原开发者编写内容，部分 Android 系统授权界面（如开发者选项和 Shizuku 配对）取决于设备厂商界面。",
+    "feedbackTitle": "报告无障碍障碍",
+    "feedbackLead": "如果您在 ApkUp 应用或本网站中发现未标注控件、低对比度或读屏器与键盘操作障碍，欢迎直接在 GitHub 提交反馈。",
+    "feedbackCta": "在 GitHub 提交无障碍 Issue ↗",
+    "feedbackSecondary": "查看技术策略 (ACCESSIBILITY.md) ↗"
   }
 }

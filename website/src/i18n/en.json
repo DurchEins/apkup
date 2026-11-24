@@ -25,6 +25,7 @@
     "download": "Download"
   },
   "footer": {
+    "navAria": "Footer links",
     "downloads": "Downloads",
     "installUnknownApps": "Install Unknown Apps",
     "googleLock": "Google 24h Lock",
@@ -33,6 +34,7 @@
     "sourceChecker": "Source Checker",
     "privacy": "Privacy",
     "security": "Security",
+    "accessibility": "Accessibility",
     "canonicalRelease": "Canonical Release",
     "langPickerAria": "Select language",
     "helpTranslate": "Help translate →"
@@ -110,6 +112,8 @@
     "title": "Designed for thumb-zone ergonomics",
     "subtitle": "Explore the real app interface — switch between screens below or tap the phone preview to zoom in.",
     "tablistAria": "App screenshots",
+    "pauseAria": "Pause automatic screenshot rotation",
+    "playAria": "Resume automatic screenshot rotation",
     "lightboxAria": "Screenshot preview",
     "closePreviewAria": "Close preview",
     "screens": {
@@ -1219,5 +1223,39 @@
         ]
       }
     }
+  },
+  "accessibilityPage": {
+    "title": "Accessibility Statement — ApkUp",
+    "metaDesc": "Accessibility commitment, WCAG 2.2 AA & EN 301 549 status, Android TalkBack / Voice Access support, known limitations, and feedback process for ApkUp.",
+    "badge": "WCAG 2.2 AA • EN 301 549",
+    "h1": "Accessibility Statement",
+    "lead": "ApkUp is designed for reliable operation with Android TalkBack, Voice Access, Switch Access, hardware keyboards, and screen magnification — both inside the Android app and on this website.",
+    "statusTitle": "Conformance Status & Audit Date",
+    "statusPill": "WCAG 2.2 AA • Material 3",
+    "statusBody": "Both the ApkUp Android application and the companion website target full conformance with WCAG 2.2 Level AA, EN 301 549, Android Accessibility Guidelines, and WAI-ARIA 1.2 (last full audit: November 24, 2026).",
+    "appTitle": "Android App Accessibility Features",
+    "appLead": "Verified across Updates, Apps, Setup, onboarding dialogs, bottom sheets, and system notifications:",
+    "appItems": [
+      "Full Jetpack Compose semantics with descriptive contentDescription labels, grouped update cards, headings, and live-region status announcements for scans, queues, and downloads.",
+      "WCAG 2.5.3 Label-in-Name consistency for Voice Access and click/custom-action alternatives for pull-to-refresh, long-press batch selection, and drag-and-drop source ordering.",
+      "Minimum 48 dp touch targets on interactive controls, clean focus traversal order, and keyboard-accessible modal bottom sheets.",
+      "High-contrast Light and Dark Material 3 color schemes (>= 4.5:1 AA text contrast), optional Material You Dynamic Color, and dynamic system font scaling without clipped labels.",
+      "Respects Android reduced-motion settings cleanly across animations, shimmer loaders, and visual effects."
+    ],
+    "webTitle": "Website Accessibility Features",
+    "webLead": "Built with semantic HTML5 and zero-dependency native ARIA controls across all 9 locales:",
+    "webItems": [
+      "Semantic landmarks, skip-to-content navigation, keyboard-accessible menus/tabs/dialogs, and visible high-contrast focus indicators.",
+      "Pauseable screenshot showcase respecting prefers-reduced-motion alongside keyboard-triggerable image zoom and focus restoration on dialog close.",
+      "WCAG AA contrast tokens in both Light Off-White and Dark themes, including error, warning, copied, and badge states.",
+      "Responsive layout reflow down to 320 px viewport width and 400% browser zoom without horizontal scrolling traps.",
+      "Localized interfaces across 9 languages with accurate document and section lang attributes and keyboard-scrollable code and comparison tables."
+    ],
+    "limitsTitle": "Known Limitations & Continuous Testing",
+    "limitsBody": "Third-party release notes fetched dynamically from upstream repositories (such as GitHub or GitLab releases) are authored by external developers and may contain varying formatting. Android OS system prompts (Developer Options, Install unknown apps, and Shizuku pairing) depend on the device manufacturer’s system UI. Manual on-device TalkBack and Voice Access verification across Android OEM skins remains ongoing.",
+    "feedbackTitle": "Report an Accessibility Barrier",
+    "feedbackLead": "Found an unlabelled button, keyboard trap, low-contrast text, or screen reader issue in ApkUp or on this website? Please report it directly on GitHub.",
+    "feedbackCta": "Open Accessibility Issue on GitHub ↗",
+    "feedbackSecondary": "Read Technical Policy (ACCESSIBILITY.md) ↗"
   }
 }

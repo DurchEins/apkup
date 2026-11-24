@@ -25,6 +25,7 @@
     "download": "Descargar"
   },
   "footer": {
+    "navAria": "Enlaces del pie de página",
     "downloads": "Descargas",
     "installUnknownApps": "Apps desconocidas",
     "googleLock": "Bloqueo 24h de Google",
@@ -33,6 +34,7 @@
     "sourceChecker": "Comprobador de fuentes",
     "privacy": "Privacidad",
     "security": "Seguridad",
+    "accessibility": "Accesibilidad",
     "canonicalRelease": "Versión oficial",
     "langPickerAria": "Seleccionar idioma",
     "helpTranslate": "Ayudar a traducir →"
@@ -110,6 +112,8 @@
     "title": "Diseñado para usarse cómodamente con una mano",
     "subtitle": "Explora la interfaz real de la app: cambia de pantalla abajo o toca el teléfono para ampliar.",
     "tablistAria": "Capturas de la aplicación",
+    "pauseAria": "Pausar la rotación automática de capturas",
+    "playAria": "Reanudar la rotación automática de capturas",
     "lightboxAria": "Vista previa de captura",
     "closePreviewAria": "Cerrar vista previa",
     "screens": {
@@ -1219,5 +1223,39 @@
         ]
       }
     }
+  },
+  "accessibilityPage": {
+    "title": "Declaración de accesibilidad — ApkUp",
+    "metaDesc": "Compromiso de accesibilidad de ApkUp, cumplimiento WCAG 2.2 AA y EN 301 549, soporte de TalkBack y Voice Access, limitaciones y canal de contacto.",
+    "badge": "WCAG 2.2 AA • EN 301 549",
+    "h1": "Declaración de accesibilidad",
+    "lead": "ApkUp está diseñado para funcionar de forma fiable con Android TalkBack, Voice Access, Accesibilidad con interruptores, teclado físico y ampliación de pantalla en la app y en esta web.",
+    "statusTitle": "Estado de conformidad",
+    "statusPill": "WCAG 2.2 AA • Material 3",
+    "statusBody": "Tanto la app Android de ApkUp como el sitio web buscan la plena conformidad con WCAG 2.2 Nivel AA, EN 301 549, las guías de accesibilidad de Android y WAI-ARIA 1.2 (última auditoría: 24 de noviembre de 2026).",
+    "appTitle": "Accesibilidad en la app Android",
+    "appLead": "Verificado en Actualizaciones, Apps, Ajustes, diálogos y notificaciones:",
+    "appItems": [
+      "Semántica completa en Jetpack Compose con etiquetas contentDescription claras, tarjetas agrupadas, encabezados y anuncios dinámicos.",
+      "Coherencia Nombre en etiqueta (WCAG 2.5.3) para Voice Access y alternativas por toque o acción personalizada frente a gestos.",
+      "Áreas táctiles mínimas de 48 dp y recorrido de foco lógico en pantallas y hojas modales.",
+      "Esquemas claro y oscuro Material 3 de alto contraste (>= 4,5:1 AA), Dynamic Color opcional y escalado tipográfico.",
+      "Respeto íntegro de la configuración de reducción de movimiento del sistema."
+    ],
+    "webTitle": "Accesibilidad en la web",
+    "webLead": "HTML5 semántico y controles ARIA nativos en los 9 idiomas:",
+    "webItems": [
+      "Regiones semánticas, enlace para saltar al contenido, navegación por teclado completa e indicadores visibles de foco.",
+      "Carrusel de capturas pausable, compatible con prefers-reduced-motion y visor ampliado accesible.",
+      "Contraste WCAG AA garantizado en temas claro y oscuro, incluidas etiquetas de estado y error.",
+      "Ajuste adaptable hasta 320 px de ancho y zoom del 400 % sin desplazamiento horizontal forzado.",
+      "Interfaz localizada en 9 idiomas con atributos lang precisos y tablas desplazables por teclado."
+    ],
+    "limitsTitle": "Limitaciones conocidas",
+    "limitsBody": "Las notas de versión externas obtenidas de repositorios de terceros dependen de cada autor, y los cuadros del sistema Android dependen del fabricante del dispositivo.",
+    "feedbackTitle": "Informar de un problema",
+    "feedbackLead": "¿Encontraste un botón sin etiqueta, bajo contraste o un fallo con el lector de pantalla? Avísanos directamente en GitHub.",
+    "feedbackCta": "Abrir incidencia de accesibilidad en GitHub ↗",
+    "feedbackSecondary": "Ver política técnica (ACCESSIBILITY.md) ↗"
   }
 }

@@ -44,4 +44,5 @@
 ### 🔗 Project
 * 📦 **[GitHub Releases](https://github.com/DurchEins/apkup/releases)**
 * 🐛 **[Issues & Feedback](https://github.com/DurchEins/apkup/issues)**
+* ♿ **[Accessibility Policy](https://github.com/DurchEins/apkup/blob/main/ACCESSIBILITY.md)**
 * 🛡️ **[Security Policy](https://github.com/DurchEins/apkup/blob/main/SECURITY.md)**

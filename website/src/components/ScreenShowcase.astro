@@ -23,26 +23,46 @@ type ScreenKey = keyof typeof t.showcase.screens;
 
     <div class="showcase-shell">
       <div class="showcase-controls">
-        <div class="tab-list" role="tablist" aria-label={t.showcase.tablistAria}>
-          {
-            SHOWCASE_SCREENS.map((screen, idx) => {
-              const s = t.showcase.screens[screen.id as ScreenKey];
-              return (
-                <button
-                  type="button"
-                  role="tab"
-                  class={`tab-btn ${idx === 0 ? 'is-active' : ''}`}
-                  id={`tab-${screen.id}`}
-                  aria-selected={idx === 0 ? 'true' : 'false'}
-                  aria-controls={`panel-${screen.id}`}
-                  tabindex={idx === 0 ? 0 : -1}
-                  data-screen-tab={screen.id}
-                >
-                  {s.label}
-                </button>
-              );
-            })
-          }
+        <div class="showcase-toolbar">
+          <div class="tab-list" role="tablist" aria-label={t.showcase.tablistAria}>
+            {
+              SHOWCASE_SCREENS.map((screen, idx) => {
+                const s = t.showcase.screens[screen.id as ScreenKey];
+                return (
+                  <button
+                    type="button"
+                    role="tab"
+                    class={`tab-btn ${idx === 0 ? 'is-active' : ''}`}
+                    id={`tab-${screen.id}`}
+                    aria-selected={idx === 0 ? 'true' : 'false'}
+                    aria-controls={`panel-${screen.id}`}
+                    tabindex={idx === 0 ? 0 : -1}
+                    data-screen-tab={screen.id}
+                  >
+                    {s.label}
+                  </button>
+                );
+              })
+            }
+          </div>
+          <button
+            type="button"
+            id="showcase-pause-btn"
+            class="showcase-pause-btn"
+            aria-pressed="false"
+            aria-label={t.showcase.pauseAria}
+            title={t.showcase.pauseAria}
+            data-pause-label={t.showcase.pauseAria}
+            data-play-label={t.showcase.playAria}
+          >
+            <svg class="icon-pause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <rect x="6" y="5" width="4" height="14" rx="1" />
+              <rect x="14" y="5" width="4" height="14" rx="1" />
+            </svg>
+            <svg class="icon-play" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" hidden>
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </button>
         </div>
 
         <div class="showcase-panels">
@@ -68,34 +88,46 @@ type ScreenKey = keyof typeof t.showcase.screens;
       </div>
 
       <div class="showcase-device">
-        <div class="device-bezel">
-          {
-            SHOWCASE_SCREENS.map((screen, idx) => {
-              const s = t.showcase.screens[screen.id as ScreenKey];
-              const imgRel = screen.enImg.replace('assets/screenshots/en/', `assets/screenshots/${screenshotDir}/`);
-              return (
-                <div
-                  class={`screen-slot ${idx === 0 ? 'is-active' : ''}`}
-                  data-screen-media={screen.id}
-                  hidden={idx !== 0}
-                >
-                  <img
-                    src={`${base}${imgRel}`}
-                    alt={s.alt}
-                    width="360"
-                    height="780"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </div>
-              );
-            })
-          }
-        </div>
+        <button
+          type="button"
+          id="showcase-zoom-btn"
+          class="device-zoom-btn"
+          aria-label={t.showcase.lightboxAria}
+        >
+          <span class="device-bezel">
+            {
+              SHOWCASE_SCREENS.map((screen, idx) => {
+                const s = t.showcase.screens[screen.id as ScreenKey];
+                const imgRel = screen.enImg.replace('assets/screenshots/en/', `assets/screenshots/${screenshotDir}/`);
+                return (
+                  <span
+                    class={`screen-slot ${idx === 0 ? 'is-active' : ''}`}
+                    data-screen-media={screen.id}
+                    hidden={idx !== 0}
+                  >
+                    <img
+                      src={`${base}${imgRel}`}
+                      alt={s.alt}
+                      width="360"
+                      height="780"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </span>
+                );
+              })
+            }
+          </span>
+        </button>
       </div>
     </div>
   </div>
 </section>
+
+<dialog id="shot-lightbox" class="shot-lightbox" aria-label={t.showcase.lightboxAria}>
+  <button type="button" id="shot-lightbox-close" class="shot-lightbox-close" aria-label={t.showcase.closePreviewAria}><span aria-hidden="true">✕</span></button>
+  <img id="shot-lightbox-img" src="" alt="" />
+</dialog>
 
 <script is:inline>
   (function () {
@@ -151,33 +183,76 @@ type ScreenKey = keyof typeof t.showcase.screens;
     });
 
     var showcaseEl = document.getElementById('showcase');
+    var pauseBtn = document.getElementById('showcase-pause-btn');
     var autoIdx = 0;
-    var paused = false;
+    var userPaused = false;
+    var hoverOrFocusPaused = false;
     var autoTimer = null;
-    if (showcaseEl && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function syncPauseState() {
+      var isPaused = userPaused || reducedMotion;
+      if (showcaseEl) showcaseEl.classList.toggle('is-paused', isPaused);
+      if (pauseBtn) {
+        pauseBtn.setAttribute('aria-pressed', String(userPaused));
+        var label = userPaused
+          ? pauseBtn.getAttribute('data-play-label')
+          : pauseBtn.getAttribute('data-pause-label');
+        if (label) {
+          pauseBtn.setAttribute('aria-label', label);
+          pauseBtn.setAttribute('title', label);
+        }
+        var pauseIcon = pauseBtn.querySelector('.icon-pause');
+        var playIcon = pauseBtn.querySelector('.icon-play');
+        if (pauseIcon) pauseIcon.hidden = userPaused;
+        if (playIcon) playIcon.hidden = !userPaused;
+      }
+    }
+
+    if (reducedMotion && pauseBtn) {
+      pauseBtn.hidden = true;
+    }
+
+    if (showcaseEl && !reducedMotion) {
       function startAuto() {
         clearInterval(autoTimer);
         autoTimer = setInterval(function () {
-          if (paused) return;
+          if (userPaused || hoverOrFocusPaused) return;
           autoIdx = (autoIdx + 1) % tabs.length;
           activate(tabs[autoIdx].getAttribute('data-screen-tab'), false);
         }, 3200);
       }
-      showcaseEl.addEventListener('mouseenter', function () { paused = true; });
-      showcaseEl.addEventListener('mouseleave', function () { paused = false; });
-      tabs.forEach(function (t, i) {
-        t.addEventListener('click', function () { autoIdx = i; paused = true; });
+      showcaseEl.addEventListener('mouseenter', function () { hoverOrFocusPaused = true; });
+      showcaseEl.addEventListener('mouseleave', function () { hoverOrFocusPaused = false; });
+      showcaseEl.addEventListener('focusin', function () { hoverOrFocusPaused = true; });
+      showcaseEl.addEventListener('focusout', function (e) {
+        if (!showcaseEl.contains(e.relatedTarget)) hoverOrFocusPaused = false;
       });
+      if (pauseBtn) {
+        pauseBtn.addEventListener('click', function () {
+          userPaused = !userPaused;
+          syncPauseState();
+        });
+      }
+      tabs.forEach(function (t, i) {
+        t.addEventListener('click', function () {
+          autoIdx = i;
+          userPaused = true;
+          syncPauseState();
+        });
+      });
+      syncPauseState();
       startAuto();
+    } else {
+      syncPauseState();
     }
 
     var lightbox = document.getElementById('shot-lightbox');
     var lightboxImg = document.getElementById('shot-lightbox-img');
     var lightboxClose = document.getElementById('shot-lightbox-close');
-    var phoneStage = document.querySelector('#showcase .device-bezel');
-    if (phoneStage && lightbox && lightboxImg) {
-      phoneStage.style.cursor = 'zoom-in';
-      phoneStage.addEventListener('click', function () {
+    var zoomBtn = document.getElementById('showcase-zoom-btn');
+    if (zoomBtn && lightbox && lightboxImg) {
+      zoomBtn.addEventListener('click', function () {
         var activeSlot = document.querySelector('[data-screen-media].is-active');
         if (!activeSlot) return;
         var img = activeSlot.querySelector('img');
@@ -190,14 +265,12 @@ type ScreenKey = keyof typeof t.showcase.screens;
       lightbox.addEventListener('click', function (e) {
         if (e.target === lightbox) lightbox.close();
       });
+      lightbox.addEventListener('close', function () {
+        zoomBtn.focus();
+      });
     }
   })();
 </script>
-
-<dialog id="shot-lightbox" class="shot-lightbox" aria-label={t.showcase.lightboxAria}>
-  <button type="button" id="shot-lightbox-close" class="shot-lightbox-close" aria-label={t.showcase.closePreviewAria}>✕</button>
-  <img id="shot-lightbox-img" src="" alt="" />
-</dialog>
 
 <style>
   .showcase-section {
@@ -212,11 +285,49 @@ type ScreenKey = keyof typeof t.showcase.screens;
     gap: clamp(28px, 5vw, 56px);
   }
 
+  .showcase-toolbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-block-end: 24px;
+  }
+
   .tab-list {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-block-end: 24px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .showcase-pause-btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--outline);
+    background: var(--surface);
+    color: var(--text);
+  }
+
+  .showcase-pause-btn[hidden] {
+    display: none;
+  }
+
+  .showcase-pause-btn[aria-pressed='true'] {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  @media (hover: hover) {
+    .showcase-pause-btn:hover {
+      background: var(--surface-high);
+      border-color: var(--outline-strong);
+    }
   }
 
   .tab-btn {
@@ -250,7 +361,9 @@ type ScreenKey = keyof typeof t.showcase.screens;
     animation: tabProgress 3.2s linear infinite;
   }
 
-  #showcase:hover .tab-btn.is-active::after {
+  #showcase:hover .tab-btn.is-active::after,
+  #showcase:focus-within .tab-btn.is-active::after,
+  #showcase.is-paused .tab-btn.is-active::after {
     animation-play-state: paused;
   }
 
@@ -285,8 +398,8 @@ type ScreenKey = keyof typeof t.showcase.screens;
     position: absolute;
     top: 10px;
     right: 10px;
-    width: 34px;
-    height: 34px;
+    min-width: 44px;
+    min-height: 44px;
     border-radius: 999px;
     border: 1px solid var(--outline-strong);
     background: var(--surface-high);
@@ -339,13 +452,31 @@ type ScreenKey = keyof typeof t.showcase.screens;
     justify-content: center;
   }
 
+  .device-zoom-btn {
+    padding: 0;
+    border: none;
+    background: transparent;
+    border-radius: 34px;
+    cursor: zoom-in;
+    display: block;
+  }
+
   .device-bezel {
+    display: block;
     width: min(310px, 82vw);
     padding: 10px;
     border-radius: 34px;
     background: var(--bg);
     border: 1px solid var(--outline-strong);
     box-shadow: var(--shadow-elevated);
+  }
+
+  .screen-slot {
+    display: block;
+  }
+
+  .screen-slot[hidden] {
+    display: none;
   }
 
   .screen-slot img {
@@ -366,6 +497,9 @@ type ScreenKey = keyof typeof t.showcase.screens;
     .tab-btn:active {
       transition: none;
       transform: none;
+    }
+    .tab-btn.is-active::after {
+      animation: none;
     }
   }
   [data-screen-media].is-active {
