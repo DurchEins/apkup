@@ -639,7 +639,6 @@
         <item quantity="other">有 %1$d 个可用更新</item>
     </plurals>
     <string name="notification_install_all_action">全部安装</string>
-    <string name="batch_retry_failed_short">重试</string>
     <string name="history_export_action">导出</string>
     <string name="history_export_csv">导出为 CSV</string>
     <string name="history_export_markdown">导出为 Markdown</string>

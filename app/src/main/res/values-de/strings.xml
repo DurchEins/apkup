@@ -294,6 +294,8 @@
     <string name="notification_check_title">Suche nach Updates…</string>
     <string name="notification_check_title_source">Suche nach Updates (%1$s)…</string>
     <string name="notification_check_progress_text">%1$d von %2$d Apps geprüft</string>
+    <string name="notification_up_to_date_title">Alle Apps sind aktuell</string>
+    <string name="notification_up_to_date_desc">Keine neuen Updates gefunden.</string>
 
     <!-- WLAN- & Lade-Schutz -->
     <string name="settings_download_wifi_only">Updates nur über WLAN laden</string>
@@ -655,7 +657,6 @@
         <item quantity="other">%1$d Updates verfügbar</item>
     </plurals>
     <string name="notification_install_all_action">Alle installieren</string>
-    <string name="batch_retry_failed_short">Erneut versuchen</string>
     <string name="history_export_action">Export</string>
     <string name="history_export_csv">Als CSV exportieren</string>
     <string name="history_export_markdown">Als Markdown exportieren</string>

@@ -188,4 +188,94 @@ class UpdateHistoryTest {
         val md = com.apkup.util.formatUpdateHistoryMarkdown(entries)
         assertTrue(md.contains("| My, App | com.example.app | 1.0 → 2.0 | GitHub |"))
     }
+
+    @Test
+    fun `formatShareableAppList produces clean plain text without Markdown symbols`() {
+        val apps = listOf(
+            com.apkup.data.ui.AppInstalled(
+                name = "NewPipe",
+                packageName = "org.schabi.newpipe",
+                version = "0.27.3",
+                versionCode = 1000L
+            ),
+            com.apkup.data.ui.AppInstalled(
+                name = "Signal",
+                packageName = "org.thoughtcrime.securesms",
+                version = "7.23.2",
+                versionCode = 2000L
+            )
+        )
+        val formatted = com.apkup.util.formatShareableAppList(
+            apps = apps,
+            repoUrls = mapOf("org.schabi.newpipe" to "https://github.com/TeamNewPipe/NewPipe")
+        )
+        assertTrue(formatted.startsWith("ApkUp App List (2)\n\n"))
+        assertTrue(formatted.contains("• NewPipe (0.27.3) — https://github.com/TeamNewPipe/NewPipe"))
+        assertTrue(formatted.contains("• Signal (7.23.2) — org.thoughtcrime.securesms"))
+        assertTrue(!formatted.contains("**"))
+        assertTrue(!formatted.contains("###"))
+        assertTrue(!formatted.contains("`"))
+    }
+
+    @Test
+    fun `countVisibleWidgetUpdates excludes watched, ignored, and snoozed entries`() {
+        val prefs = Prefs(InMemoryPrefsBackend())
+        val ignoredUpdate = com.apkup.data.ui.CachedAppUpdateDto(
+            name = "IgnoredVer",
+            packageName = "com.example.ignoredver",
+            version = "2.0",
+            oldVersion = "1.0",
+            versionCode = 20L,
+            oldVersionCode = 10L,
+            sourceName = GitHubSource.name
+        )
+        val computedIgnoredId = "${GitHubSource.name}.com.example.ignoredver.20.2.0".hashCode()
+        prefs.ignoredVersions.put(listOf(computedIgnoredId))
+        prefs.addIgnoredApp("com.example.ignoredapp")
+        prefs.snoozeUpdate("com.example.snoozed", "Beta", "3.0", 30L, 60_000L)
+
+        val snapshot = com.apkup.data.ui.CachedUpdateSnapshot(
+            timestampMillis = 1_700_000_000_000L,
+            updates = listOf(
+                com.apkup.data.ui.CachedAppUpdateDto(
+                    name = "VisibleApp",
+                    packageName = "com.example.visible",
+                    version = "1.1",
+                    oldVersion = "1.0",
+                    versionCode = 11L,
+                    oldVersionCode = 10L,
+                    sourceName = GitHubSource.name
+                ),
+                ignoredUpdate,
+                com.apkup.data.ui.CachedAppUpdateDto(
+                    name = "IgnoredApp",
+                    packageName = "com.example.ignoredapp",
+                    version = "1.5",
+                    oldVersion = "1.0",
+                    versionCode = 15L,
+                    oldVersionCode = 10L,
+                    sourceName = GitHubSource.name
+                ),
+                com.apkup.data.ui.CachedAppUpdateDto(
+                    name = "SnoozedApp",
+                    packageName = "com.example.snoozed",
+                    version = "3.0",
+                    oldVersion = "2.0",
+                    versionCode = 30L,
+                    oldVersionCode = 20L,
+                    sourceName = GitHubSource.name
+                ),
+                com.apkup.data.ui.CachedAppUpdateDto(
+                    name = "WatchedApp",
+                    packageName = "com.example.watched",
+                    version = "1.0",
+                    oldVersion = "",
+                    versionCode = 1L,
+                    oldVersionCode = -1L,
+                    sourceName = GitHubSource.name
+                )
+            )
+        )
+        assertEquals(1, com.apkup.widget.countVisibleWidgetUpdates(snapshot, prefs))
+    }
 }

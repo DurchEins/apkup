@@ -31,15 +31,32 @@
             android:textSize="14sp"
             android:textStyle="bold" />
 
-        <ImageButton
-            android:id="@+id/widget_refresh_button"
+        <FrameLayout
             android:layout_width="34dp"
             android:layout_height="34dp"
-            android:background="@drawable/widget_updates_pill_bg"
-            android:contentDescription="@string/widget_updates_tap_to_check"
-            android:padding="7dp"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_refresh" />
+            android:background="@drawable/widget_updates_pill_bg">
+
+            <ImageButton
+                android:id="@+id/widget_refresh_button"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/widget_updates_pill_bg"
+                android:contentDescription="@string/widget_updates_tap_to_check"
+                android:padding="7dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_refresh" />
+
+            <ProgressBar
+                android:id="@+id/widget_refresh_progress"
+                style="?android:attr/progressBarStyleSmall"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:contentDescription="@string/widget_updates_checking"
+                android:indeterminate="true"
+                android:indeterminateTint="@color/widget_on_primary_container"
+                android:visibility="gone" />
+        </FrameLayout>
     </LinearLayout>
 
     <TextView
@@ -51,6 +68,7 @@
         android:ellipsize="end"
         android:gravity="center_vertical"
         android:maxLines="2"
+        android:text="@string/widget_updates_never_checked"
         android:textColor="@color/widget_on_surface"
         android:textSize="18sp"
         android:textStyle="bold" />
@@ -61,6 +79,7 @@
         android:layout_height="wrap_content"
         android:ellipsize="end"
         android:maxLines="1"
+        android:text="@string/widget_updates_tap_to_check"
         android:textColor="@color/widget_on_surface_variant"
         android:textSize="12sp" />
 </LinearLayout>

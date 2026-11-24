@@ -638,7 +638,6 @@
         <item quantity="other">%1$d 件の更新あり</item>
     </plurals>
     <string name="notification_install_all_action">すべてインストール</string>
-    <string name="batch_retry_failed_short">再試行</string>
     <string name="history_export_action">エクスポート</string>
     <string name="history_export_csv">CSV 形式で保存</string>
     <string name="history_export_markdown">Markdown 形式で保存</string>

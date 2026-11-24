@@ -1,10 +1,12 @@
 package com.apkup.ui.screen
 
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import android.text.format.DateUtils
+import androidx.core.content.FileProvider
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -369,6 +371,7 @@ fun AppsScreenSuccess(
 
 	// 1. Top Bar
 	val shareContext = LocalContext.current
+	val shareScope = rememberCoroutineScope()
 	val shareChooserTitle = stringResource(R.string.apps_share_list_action)
 	AppsTopBar(
 		totalCount = filteredApps.size,
@@ -386,13 +389,39 @@ fun AppsScreenSuccess(
 					app.packageName to (customBindings[app.packageName]?.webUrl.orEmpty())
 				}
 				val shareText = com.apkup.util.formatShareableAppList(filteredApps, repoUrls)
-				val sendIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-					type = "text/plain"
-					putExtra(android.content.Intent.EXTRA_TEXT, shareText)
+				if (shareText.length <= 4_000) {
+					val sendIntent = Intent(Intent.ACTION_SEND).apply {
+						type = "text/plain"
+						putExtra(Intent.EXTRA_TEXT, shareText)
+					}
+					shareContext.startActivity(
+						Intent.createChooser(sendIntent, shareChooserTitle)
+					)
+				} else {
+					shareScope.launch {
+						val uri = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+							val exportsDir = java.io.File(shareContext.cacheDir, "exports").apply { mkdirs() }
+							val exportFile = java.io.File(exportsDir, "apkup-app-list.txt")
+							exportFile.writeText(shareText, Charsets.UTF_8)
+							FileProvider.getUriForFile(
+								shareContext,
+								"${shareContext.packageName}.fileprovider",
+								exportFile
+							)
+						}
+						val sendIntent = Intent(Intent.ACTION_SEND).apply {
+							type = "text/plain"
+							putExtra(Intent.EXTRA_STREAM, uri)
+							putExtra(Intent.EXTRA_SUBJECT, shareChooserTitle)
+							clipData = ClipData.newRawUri("ApkUp App List", uri)
+							addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+						}
+						shareContext.startActivity(
+							Intent.createChooser(sendIntent, shareChooserTitle)
+								.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+						)
+					}
 				}
-				shareContext.startActivity(
-					android.content.Intent.createChooser(sendIntent, shareChooserTitle)
-				)
 			}
 		} else null,
 		sortOrder = sortOrder,

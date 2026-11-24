@@ -300,6 +300,8 @@
     <string name="notification_check_title">Checking for updates…</string>
     <string name="notification_check_title_source">Checking for updates (%1$s)…</string>
     <string name="notification_check_progress_text">%1$d of %2$d apps checked</string>
+    <string name="notification_up_to_date_title">All apps are up to date</string>
+    <string name="notification_up_to_date_desc">No new updates found.</string>
 
     <!-- Wi-Fi & Charging Guards -->
     <string name="settings_download_wifi_only">Download updates over Wi-Fi only</string>
@@ -664,7 +666,6 @@
         <item quantity="other">%1$d updates ready</item>
     </plurals>
     <string name="notification_install_all_action">Install all</string>
-    <string name="batch_retry_failed_short">Retry failed</string>
     <string name="history_export_action">Export</string>
     <string name="history_export_csv">Export as CSV</string>
     <string name="history_export_markdown">Export as Markdown</string>

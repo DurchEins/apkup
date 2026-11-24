@@ -648,7 +648,6 @@
         <item quantity="other">%1$d обновлений</item>
     </plurals>
     <string name="notification_install_all_action">Установить всё</string>
-    <string name="batch_retry_failed_short">Повторить</string>
     <string name="history_export_action">Экспорт</string>
     <string name="history_export_csv">Экспорт в CSV</string>
     <string name="history_export_markdown">Экспорт в Markdown</string>

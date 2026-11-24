@@ -643,7 +643,6 @@
         <item quantity="other">%1$d mises à jour</item>
     </plurals>
     <string name="notification_install_all_action">Tout installer</string>
-    <string name="batch_retry_failed_short">Réessayer</string>
     <string name="history_export_action">Exporter</string>
     <string name="history_export_csv">Exporter en CSV</string>
     <string name="history_export_markdown">Exporter en Markdown</string>

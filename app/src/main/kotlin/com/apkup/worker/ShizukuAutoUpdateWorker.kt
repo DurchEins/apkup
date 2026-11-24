@@ -493,6 +493,7 @@ class ShizukuAutoUpdateWorker(
             context = applicationContext
         )
         runner.execute(notifiableUpdates)
+        com.apkup.widget.UpdatesWidgetProvider.notifyWidgetDataChanged(applicationContext, isChecking = false)
         return Result.success()
     }
 }

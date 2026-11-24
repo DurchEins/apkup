@@ -5,4 +5,5 @@
     <color name="widget_on_surface_variant">@android:color/system_neutral2_200</color>
     <color name="widget_primary_container">@android:color/system_accent1_700</color>
     <color name="widget_on_primary_container">@android:color/system_accent1_50</color>
+    <color name="widget_ripple">#33FFFFFF</color>
 </resources>

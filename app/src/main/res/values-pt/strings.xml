@@ -643,7 +643,6 @@
         <item quantity="other">%1$d atualizações</item>
     </plurals>
     <string name="notification_install_all_action">Instalar tudo</string>
-    <string name="batch_retry_failed_short">Tentar novamente</string>
     <string name="history_export_action">Exportar</string>
     <string name="history_export_csv">Exportar como CSV</string>
     <string name="history_export_markdown">Exportar como Markdown</string>

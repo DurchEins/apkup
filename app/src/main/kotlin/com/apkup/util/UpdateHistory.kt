@@ -242,12 +242,12 @@ internal fun formatShareableAppList(
         val ver = app.version.takeIf { it.isNotBlank() && it != "—" }?.let { " ($it)" }.orEmpty()
         val url = repoUrls[app.packageName]?.takeIf { it.isNotBlank() }
         if (url != null) {
-            "- **$name**$ver — $url"
+            "• $name$ver — $url"
         } else {
-            "- **$name**$ver (`${app.packageName}`)"
+            "• $name$ver — ${app.packageName}"
         }
     }
-    return (listOf("### ApkUp App List", "") + lines).joinToString("\n")
+    return (listOf("ApkUp App List (${apps.size})", "") + lines).joinToString("\n")
 }
 
 internal enum class UpdateHistoryFilterMode {
