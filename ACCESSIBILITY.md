@@ -7,6 +7,8 @@
 
 > [!NOTE]
 > **Found an accessibility barrier?** Please open a dedicated **[Accessibility Barrier Issue](https://github.com/DurchEins/apkup/issues/new?template=accessibility.yml)** or view the localized web statement on **[ApkUp Accessibility](https://durcheins.github.io/apkup/accessibility/)**.
+>
+> **A personal note from the solo developer:** ApkUp is developed by a single independent developer. I strive to implement every feature as accessibly as possible to the best of my knowledge and conscience — while continuously learning along the way. Accessibility across the app and website is an ongoing effort, and I am genuinely grateful for every single tip, hint, or helping hand from the community!
 
 ---
 

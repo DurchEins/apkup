@@ -1256,6 +1256,8 @@
     ],
     "limitsTitle": "Limites connues",
     "limitsBody": "Les notes de version tierces proviennent des dépôts en amont respectifs et les fenêtres système Android dépendent des surcouches constructeurs.",
+    "soloTitle": "Un mot personnel du développeur",
+    "soloBody": "ApkUp est développé par une seule personne en tant que projet open source indépendant. Je m'efforce de rendre chaque fonctionnalité aussi accessible que possible en toute conscience, tout en continuant d'apprendre chaque jour. L'accessibilité de l'application et du site évolue en permanence, et je suis sincèrement reconnaissant pour le moindre conseil, retour ou coup de main de la communauté !",
     "feedbackTitle": "Signaler un obstacle d'accessibilité",
     "feedbackLead": "Vous avez repéré un bouton sans libellé, un piège clavier, un manque de contraste ou un souci TalkBack ? Signalez-le directement sur GitHub.",
     "feedbackCta": "Ouvrir un ticket d'accessibilité sur GitHub ↗",

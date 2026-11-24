@@ -631,15 +631,15 @@
     <string name="theme_a11y">Accessibilité</string>
     <string name="a11y_theme_mode_title">Mode solaire d\'accessibilité</string>
     <string name="a11y_submode_auto_sun">Auto Soleil</string>
-    <string name="a11y_submode_light">Clair AAA</string>
-    <string name="a11y_submode_dark">Sombre AAA</string>
+    <string name="a11y_submode_light">Clair</string>
+    <string name="a11y_submode_dark">Sombre</string>
     <string name="a11y_sun_schedule_info">Bascule solaire hors ligne : Clair %1$s – %2$s (sans géolocalisation)</string>
     <string name="a11y_sun_custom_info">Horaires personnalisés : Clair %1$s – %2$s</string>
     <string name="a11y_sun_customize_btn">Ajuster heures</string>
     <string name="a11y_sun_reset_btn">Utiliser soleil auto</string>
-    <string name="dynamic_color_paused_a11y">En pause avec le thème Accessibilité pour garantir un contraste 7:1 (AAA)</string>
+    <string name="dynamic_color_paused_a11y">En pause avec le thème Accessibilité pour garantir un contraste maximal (7:1)</string>
     <string name="apps_grid_density_title">Densité de la grille</string>
     <string name="apps_grid_density_large">Grand (2 col. • 48 dp)</string>
     <string name="apps_grid_density_compact">Compact (3 col.)</string>
-    <string name="apps_grid_density_auto_a11y">Le thème Accessibilité impose 2 colonnes avec cibles de 48 dp.</string>
+    <string name="apps_grid_density_auto_a11y">2 colonnes sont présélectionnées avec le thème Accessibilité, mais vous pouvez basculer entre 2 et 3 à tout moment.</string>
 </resources>

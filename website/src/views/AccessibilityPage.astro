@@ -58,6 +58,13 @@ const a = t.accessibilityPage;
           <p>{a.limitsBody}</p>
         </section>
 
+        {a.soloTitle && a.soloBody && (
+          <section class="a11y-card a11y-card-wide" aria-labelledby="a11y-solo-heading">
+            <h2 id="a11y-solo-heading">{a.soloTitle}</h2>
+            <p>{a.soloBody}</p>
+          </section>
+        )}
+
         <section class="a11y-card a11y-card-wide" aria-labelledby="a11y-feedback-heading">
           <h2 id="a11y-feedback-heading">{a.feedbackTitle}</h2>
           <p>{a.feedbackLead}</p>

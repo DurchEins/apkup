@@ -643,15 +643,15 @@
     <string name="theme_a11y">Barrierefrei</string>
     <string name="a11y_theme_mode_title">Barrierefreiheits-Modus (Sonnenstand)</string>
     <string name="a11y_submode_auto_sun">Auto Sonne</string>
-    <string name="a11y_submode_light">Hell AAA</string>
-    <string name="a11y_submode_dark">Dunkel AAA</string>
+    <string name="a11y_submode_light">Hell</string>
+    <string name="a11y_submode_dark">Dunkel</string>
     <string name="a11y_sun_schedule_info">Offline-Sonnenwechsel: Hell %1$s – %2$s (ohne Standortzugriff)</string>
     <string name="a11y_sun_custom_info">Eigene Wechselzeiten: Hell %1$s – %2$s</string>
     <string name="a11y_sun_customize_btn">Zeiten anpassen</string>
     <string name="a11y_sun_reset_btn">Sonnenstand nutzen</string>
-    <string name="dynamic_color_paused_a11y">Im Barrierefrei-Theme pausiert, um mindestens 7:1 Kontrast (WCAG AAA) zu garantieren</string>
+    <string name="dynamic_color_paused_a11y">Im Barrierefrei-Theme pausiert, um maximalen Kontrast (7:1) zu garantieren</string>
     <string name="apps_grid_density_title">Apps-Rastergröße</string>
     <string name="apps_grid_density_large">Groß (2 Spalten • 48 dp)</string>
     <string name="apps_grid_density_compact">Kompakt (3 Spalten)</string>
-    <string name="apps_grid_density_auto_a11y">Im Barrierefrei-Theme sind automatisch 2 Spalten mit 48-dp-Trefferflächen aktiv.</string>
+    <string name="apps_grid_density_auto_a11y">Im Barrierefrei-Theme sind 2 Spalten vorausgewählt, du kannst aber jederzeit frei zwischen 2 und 3 Spalten wechseln.</string>
 </resources>

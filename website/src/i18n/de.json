@@ -1241,7 +1241,7 @@
     "appItems": [
       "Vollständige Jetpack-Compose-Semantik mit präzisen Beschreibungen, zusammengefassten Update-Karten, Überschriften und Live-Region-Ansagen für Suchläufe, Warteschlangen und Downloads.",
       "WCAG-2.5.3-Konformität (sichtbarer Text im zugänglichen Namen) für Voice Access sowie Klick- und Barrierefreiheits-Aktionen als Alternative zu Ziehen, Gedrückthalten und Wischen.",
-      "Mindestens 48 dp große Interaktionsflächen bei Steuerelementen, umschaltbare 2-Spalten-Rasterdichte (im Barrierefrei-Theme erzwungen), logische Fokus-Reihenfolge und tastaturbedienbare Bottom Sheets.",
+      "Mindestens 48 dp große Interaktionsflächen bei Steuerelementen, umschaltbare 2-Spalten-Rasterdichte (im Barrierefrei-Theme vorausgewählt), logische Fokus-Reihenfolge und tastaturbedienbare Bottom Sheets.",
       "WCAG-2.2-AA-Material-3-Paletten (>= 4,5:1) sowie ein eigenes Barrierefreiheits-Theme nach WCAG 2.2 AAA (>= 7,0:1) mit Offline-Sonnenaufgangs-/-untergangs-Wechsel, klaren 1,5-dp-Rahmen und automatischer Dynamic-Color-Pause.",
       "Respektiert Android-Einstellungen für reduzierte Bewegungen über alle Animationen und Effekte hinweg."
     ],
@@ -1256,6 +1256,8 @@
     ],
     "limitsTitle": "Bekannte Einschränkungen & laufende Tests",
     "limitsBody": "Externe Release-Notes aus Drittquellen (z. B. GitHub oder GitLab) stammen von den jeweiligen App-Entwicklern. Android-Systemdialoge (Entwickleroptionen, Unbekannte Apps, Shizuku-Kopplung) unterliegen der Oberfläche des Geräteherstellers. Manuelle TalkBack- und Voice-Access-Tests auf weiteren Android-Geräten laufen fortlaufend.",
+    "soloTitle": "Persönliches Wort des Entwicklers",
+    "soloBody": "ApkUp wird von mir alleine als unabhängiges Open-Source-Projekt entwickelt. Ich versuche nach bestem Wissen und Gewissen, jede Funktion so barrierefrei wie möglich umzusetzen – lerne dabei aber selbst ständig dazu. Die Barrierefreiheit von App und Webseite wird fortlaufend weiterentwickelt, und ich bin für jeden noch so kleinen Tipp, Hinweis oder jede Hilfe aus der Community von Herzen dankbar!",
     "feedbackTitle": "Barriere melden",
     "feedbackLead": "Du hast einen unbeschrifteten Button, eine Tastaturfalle, schwachen Kontrast oder ein Screenreader-Problem in ApkUp oder auf dieser Seite entdeckt? Melde es direkt über GitHub.",
     "feedbackCta": "Barriere-Issue auf GitHub öffnen ↗",

@@ -660,7 +660,7 @@ fun AppsScreenSuccess(
 						val columns = installedAppsGridColumnCount(
 							availableWidthDp = maxWidth.value,
 							preferredPortraitColumns = configuredGridColumns,
-							forceAccessibleGrid = highContrast
+							forceAccessibleGrid = false
 						)
 						val useLargeTouchTargets = highContrast || columns <= 2
 						LazyVerticalGrid(

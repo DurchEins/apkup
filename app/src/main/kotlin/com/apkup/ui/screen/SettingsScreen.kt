@@ -826,6 +826,10 @@ fun Settings(
 						setValue = { selectedTheme ->
 							currentThemeMode = selectedTheme
 							viewModel.setTheme(selectedTheme)
+							if (selectedTheme == THEME_ACCESSIBILITY) {
+								currentGridColumns = 2
+								viewModel.setAppsGridColumns(2)
+							}
 						},
 						icon = R.drawable.ic_theme
 					)
@@ -968,6 +972,7 @@ fun Settings(
 							val cols = if (selectedIndex == 1) 3 else 2
 							currentGridColumns = cols
 							viewModel.setAppsGridColumns(cols)
+							appsViewModel.setViewMode("grid")
 						},
 						icon = R.drawable.ic_system
 					)
