@@ -35,7 +35,6 @@ android {
         versionCode = parsedBuildNumber ?: 237
         versionName = if (parsedBuildNumber == null) "1.47.0 (237)" else "1.47.0-$parsedBuildNumber"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        manifestPlaceholders["appLabel"] = "@string/app_name"
     }
 
     signingConfigs {
@@ -120,19 +119,10 @@ android {
         }
     }
 
-    testBuildType = if (providers.gradleProperty("a11yTest").isPresent) "a11y" else "debug"
-
     buildTypes {
         getByName("debug") {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
-        }
-        create("a11y") {
-            initWith(getByName("debug"))
-            applicationIdSuffix = ".a11y"
-            versionNameSuffix = "-a11y"
-            matchingFallbacks += listOf("debug")
-            manifestPlaceholders["appLabel"] = "ApkUp A11y"
         }
         getByName("release") {
             signingConfig = signingConfigs.getByName("release")
@@ -246,6 +236,4 @@ dependencies {
 
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
-    "a11yImplementation"(libs.androidx.compose.ui.test.manifest)
-    "a11yImplementation"(libs.androidx.compose.ui.tooling)
 }
