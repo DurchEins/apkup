@@ -50,6 +50,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -823,7 +824,12 @@ fun AppsScreenSuccess(
 		)
 		AlertDialog(
 			onDismissRequest = { showShareScopeDialog = false },
-			title = { Text(stringResource(R.string.apps_share_list_action)) },
+			title = {
+				Text(
+					text = stringResource(R.string.apps_share_list_action),
+					modifier = Modifier.semantics { heading() }
+				)
+			},
 			text = {
 				Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
 					Text(
@@ -881,7 +887,7 @@ fun AppsScreenSuccess(
 									}
 								}
 							},
-							modifier = Modifier.fillMaxWidth()
+							modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
 						) {
 							Text(label)
 						}
@@ -890,7 +896,10 @@ fun AppsScreenSuccess(
 			},
 			confirmButton = {},
 			dismissButton = {
-				TextButton(onClick = { showShareScopeDialog = false }) {
+				TextButton(
+					onClick = { showShareScopeDialog = false },
+					modifier = Modifier.heightIn(min = 48.dp)
+				) {
 					Text(stringResource(R.string.action_cancel))
 				}
 			}

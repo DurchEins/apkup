@@ -902,13 +902,18 @@ fun UpdatesScreenSuccess(
 				enter = if (ApkUpTheme.isReducedMotion) androidx.compose.animation.EnterTransition.None else fadeIn() + expandVertically(),
 				exit = if (ApkUpTheme.isReducedMotion) androidx.compose.animation.ExitTransition.None else fadeOut() + shrinkVertically()
 			) {
+				val failedHighContrast = ApkUpTheme.isHighContrast
 				Surface(
 					modifier = Modifier
 						.fillMaxWidth()
-						.padding(horizontal = 16.dp, vertical = 6.dp),
+						.padding(horizontal = 16.dp, vertical = 6.dp)
+						.semantics { liveRegion = LiveRegionMode.Polite },
 					shape = RoundedCornerShape(20.dp),
-					color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.72f),
-					border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.25f))
+					color = if (failedHighContrast) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.72f),
+					border = BorderStroke(
+						if (failedHighContrast) 1.5.dp else 1.dp,
+						if (failedHighContrast) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.error.copy(alpha = 0.25f)
+					)
 				) {
 					Row(
 						modifier = Modifier
@@ -943,7 +948,7 @@ fun UpdatesScreenSuccess(
 						}
 						IconButton(
 							onClick = { viewModel.dismissFailedBatchUpdates() },
-							modifier = Modifier.size(32.dp)
+							modifier = Modifier.size(48.dp)
 						) {
 							Icon(
 								imageVector = Icons.Filled.Close,
@@ -1320,7 +1325,8 @@ fun UpdatesScreenSuccess(
 				Text(
 					text = stringResource(R.string.batch_safety_title),
 					style = MaterialTheme.typography.titleLarge,
-					fontWeight = FontWeight.Bold
+					fontWeight = FontWeight.Bold,
+					modifier = Modifier.semantics { heading() }
 				)
 			},
 			text = {
@@ -1330,12 +1336,18 @@ fun UpdatesScreenSuccess(
 				)
 			},
 			confirmButton = {
-				Button(onClick = { viewModel.confirmBatchSafetyProceed() }) {
+				Button(
+					onClick = { viewModel.confirmBatchSafetyProceed() },
+					modifier = Modifier.heightIn(min = 48.dp)
+				) {
 					Text(text = stringResource(R.string.batch_safety_continue))
 				}
 			},
 			dismissButton = {
-				TextButton(onClick = { viewModel.dismissBatchSafetyDialog() }) {
+				TextButton(
+					onClick = { viewModel.dismissBatchSafetyDialog() },
+					modifier = Modifier.heightIn(min = 48.dp)
+				) {
 					Text(text = stringResource(R.string.action_cancel))
 				}
 			}
@@ -4260,11 +4272,11 @@ private fun UpdateDetailsSheet(
 						onClick = { onSnoozeUpdate(activeVariant, 24L * 60L * 60L * 1000L) },
 						enabled = !isUpdateBusy,
 						shape = CircleShape,
-						modifier = Modifier.weight(1f).heightIn(min = 44.dp)
+						modifier = Modifier.weight(1f).heightIn(min = 48.dp)
 					) {
 						Text(
 							text = "${stringResource(R.string.update_snooze_action)} · ${stringResource(R.string.update_snooze_24h)}",
-							maxLines = 1,
+							maxLines = 2,
 							overflow = TextOverflow.Ellipsis
 						)
 					}
@@ -4272,11 +4284,11 @@ private fun UpdateDetailsSheet(
 						onClick = { onSnoozeUpdate(activeVariant, 3L * 24L * 60L * 60L * 1000L) },
 						enabled = !isUpdateBusy,
 						shape = CircleShape,
-						modifier = Modifier.weight(1f).heightIn(min = 44.dp)
+						modifier = Modifier.weight(1f).heightIn(min = 48.dp)
 					) {
 						Text(
 							text = stringResource(R.string.update_snooze_3d),
-							maxLines = 1,
+							maxLines = 2,
 							overflow = TextOverflow.Ellipsis
 						)
 					}

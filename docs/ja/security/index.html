@@ -3,12 +3,75 @@ const basePath = "/apkup/";
 const cleanSubPath = "security/";
 
       (function () {
+        var ZONE_COORDS = {
+          'Europe/Berlin': [52.52, 13.405],
+          'Europe/Vienna': [48.208, 16.373],
+          'Europe/Zurich': [47.377, 8.542],
+          'Europe/London': [51.507, -0.128],
+          'Europe/Paris': [48.857, 2.352],
+          'Europe/Madrid': [40.417, -3.704],
+          'Europe/Rome': [41.903, 12.496],
+          'Europe/Amsterdam': [52.368, 4.904],
+          'Europe/Warsaw': [52.23, 21.012],
+          'Europe/Moscow': [55.756, 37.617],
+          'America/New_York': [40.713, -74.006],
+          'America/Chicago': [41.878, -87.63],
+          'America/Denver': [39.739, -104.99],
+          'America/Los_Angeles': [34.052, -118.244],
+          'America/Sao_Paulo': [-23.55, -46.633],
+          'Asia/Tokyo': [35.676, 139.65],
+          'Asia/Shanghai': [31.23, 121.474],
+          'Asia/Seoul': [37.566, 126.978],
+          'Asia/Kolkata': [22.573, 88.364],
+          'Australia/Sydney': [-33.869, 151.209]
+        };
+
+        function resolveSolarDark(now) {
+          var tz = '';
+          try {
+            tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+          } catch (e) {}
+          var coords = ZONE_COORDS[tz];
+          var offsetEastMin = -now.getTimezoneOffset();
+          var lat = coords ? coords[0] : (tz.indexOf('Australia/') === 0 || tz.indexOf('Auckland') !== -1 || tz.indexOf('Sao_Paulo') !== -1 ? -33 : 48);
+          var lon = coords ? coords[1] : Math.max(-180, Math.min(180, (offsetEastMin / 60) * 15));
+          var start = new Date(now.getFullYear(), 0, 0);
+          var doy = Math.floor((now - start) / 86400000);
+          var gamma = (2 * Math.PI / 365) * (doy - 1);
+          var eqTime = 229.18 * (0.000075 + 0.001868 * Math.cos(gamma) - 0.032077 * Math.sin(gamma) - 0.014615 * Math.cos(2 * gamma) - 0.040849 * Math.sin(2 * gamma));
+          var decl = 0.006918 - 0.399912 * Math.cos(gamma) + 0.070257 * Math.sin(gamma) - 0.006758 * Math.cos(2 * gamma) + 0.000907 * Math.sin(2 * gamma) - 0.002697 * Math.cos(3 * gamma) + 0.00148 * Math.sin(3 * gamma);
+          var latRad = lat * (Math.PI / 180);
+          var cosHa = Math.cos(90.833 * Math.PI / 180) / (Math.cos(latRad) * Math.cos(decl)) - Math.tan(latRad) * Math.tan(decl);
+          var sr = 540, ss = 900;
+          if (cosHa >= -1 && cosHa <= 1) {
+            var haDeg = Math.acos(cosHa) * (180 / Math.PI);
+            sr = ((720 - 4 * (lon + haDeg) - eqTime + offsetEastMin) % 1440 + 1440) % 1440;
+            ss = ((720 - 4 * (lon - haDeg) - eqTime + offsetEastMin) % 1440 + 1440) % 1440;
+          } else if (cosHa < -1) {
+            sr = 300; ss = 1260;
+          }
+          var mins = now.getHours() * 60 + now.getMinutes();
+          return sr < ss ? (mins < sr || mins >= ss) : (mins < sr && mins >= ss);
+        }
+
+        window.__apkupApplyThemeMode = function (mode) {
+          var root = document.documentElement;
+          var normalized = mode === 'light' || mode === 'a11y' || mode === 'dark' ? mode : 'dark';
+          var resolved = normalized === 'a11y' ? (resolveSolarDark(new Date()) ? 'dark' : 'light') : normalized;
+          root.setAttribute('data-theme-mode', normalized);
+          root.setAttribute('data-theme', resolved);
+          if (normalized === 'a11y') root.setAttribute('data-a11y', 'true');
+          else root.removeAttribute('data-a11y');
+          var meta = document.getElementById('meta-theme-color');
+          if (meta) {
+            meta.setAttribute('content', resolved === 'light' ? (normalized === 'a11y' ? '#FFFFFF' : '#F4F1EA') : (normalized === 'a11y' ? '#090A0D' : '#121316'));
+          }
+          return normalized;
+        };
+
         try {
           var savedTheme = localStorage.getItem('apkup-theme');
-          var theme = savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : 'dark';
-          document.documentElement.setAttribute('data-theme', theme);
-          var meta = document.getElementById('meta-theme-color');
-          if (meta) meta.setAttribute('content', theme === 'light' ? '#F4F1EA' : '#121316');
+          window.__apkupApplyThemeMode(savedTheme);
 
           if (currentLang === 'en') {
             var nonDefault = ['de', 'es', 'fr', 'it', 'ja', 'pt', 'ru', 'zh-cn'];
@@ -57,9 +120,8 @@ const cleanSubPath = "security/";
           }
         } catch (e) {}
       })();
-    })();</script><link rel="stylesheet" href="/apkup/_astro/Footer.C0_6dXJI.css"><style>.sec-shield-pill[data-astro-cid-fvpxqvwq]{border-radius:var(--radius-pill);background:var(--tertiary-soft);color:var(--tertiary-soft-ink);border:1px solid #6ee7b759;align-items:center;gap:8px;margin-bottom:14px;padding:5px 14px;font-size:.78rem;font-weight:700;display:inline-flex;position:relative;overflow:hidden}.sec-shield-pill[data-astro-cid-fvpxqvwq]:after{content:"";inset-block:0;background:linear-gradient(90deg,#0000,#ffffff40,#0000);width:40%;animation:3.2s ease-in-out infinite secGleam;position:absolute;left:0;transform:translate(-140%)}@keyframes secGleam{0%,70%{transform:translate(-140%)}to{transform:translate(320%)}}@media (prefers-reduced-motion:reduce){.sec-shield-pill[data-astro-cid-fvpxqvwq]:after{animation:none}}.subpage-wrap[data-astro-cid-fvpxqvwq]{max-width:900px}.sec-grid[data-astro-cid-fvpxqvwq]{flex-direction:column;gap:20px;display:flex}.sec-card[data-astro-cid-fvpxqvwq]{background:var(--surface-low);border:1px solid var(--outline);border-radius:var(--radius-lg);padding:clamp(22px,3vw,30px)}.sec-card[data-astro-cid-fvpxqvwq] h2[data-astro-cid-fvpxqvwq]{margin:0 0 10px;font-size:1.3rem;font-weight:800}.sec-card[data-astro-cid-fvpxqvwq]>p[data-astro-cid-fvpxqvwq]{color:var(--text-muted);margin:0 0 16px;line-height:1.6}.sec-table-wrap[data-astro-cid-fvpxqvwq]{overflow-x:auto}.sec-table[data-astro-cid-fvpxqvwq]{border-collapse:collapse;text-align:start;width:100%}.sec-table[data-astro-cid-fvpxqvwq] th[data-astro-cid-fvpxqvwq],.sec-table[data-astro-cid-fvpxqvwq] td[data-astro-cid-fvpxqvwq]{border-block-end:1px solid var(--outline);padding:12px 14px}.sec-table[data-astro-cid-fvpxqvwq] th[data-astro-cid-fvpxqvwq]{color:var(--text-muted);font-size:.85rem;font-weight:700}.sec-pillars[data-astro-cid-fvpxqvwq]{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;display:grid}.sec-pillar[data-astro-cid-fvpxqvwq]{background:var(--bg);border:1px solid var(--outline);border-radius:var(--radius-md);flex-direction:column;gap:10px;padding:18px;display:flex}.sec-pillar-head[data-astro-cid-fvpxqvwq]{flex-direction:column;align-items:flex-start;gap:8px;display:flex}.sec-pillar[data-astro-cid-fvpxqvwq] h3[data-astro-cid-fvpxqvwq]{margin:0;font-size:1.04rem;font-weight:700}.sec-pillar[data-astro-cid-fvpxqvwq] p[data-astro-cid-fvpxqvwq]{color:var(--text-muted);margin:0;font-size:.92rem;line-height:1.55}.sec-steps[data-astro-cid-fvpxqvwq]{color:var(--text-muted);flex-direction:column;gap:8px;margin:0 0 20px;padding-inline-start:20px;line-height:1.55;display:flex}.sec-actions[data-astro-cid-fvpxqvwq]{flex-wrap:wrap;gap:12px;display:flex}@media (width<=760px){.sec-pillars[data-astro-cid-fvpxqvwq]{grid-template-columns:minmax(0,1fr)}}
-</style></head> <body> <a class="skip-link" href="#main-content"> メインコンテンツへスキップ </a> <aside id="kao-local-banner" class="kao-signal-banner is-mini" aria-label="警告：Androidサイドローディングの危機 (2026 / 2027)" data-astro-cid-46uzc7rt> <div class="container kao-banner-inner" data-astro-cid-46uzc7rt> <div class="kao-banner-content" data-astro-cid-46uzc7rt> <div class="kao-signal-bar mono" data-astro-cid-46uzc7rt> <span class="kao-signal-icon" aria-hidden="true" data-astro-cid-46uzc7rt>⚠️</span> <span data-astro-cid-46uzc7rt>警告：Androidサイドローディングの危機 (2026 / 2027)</span> </div> <p class="kao-banner-text" data-astro-cid-46uzc7rt> Googleの24時間開発者ロックが自由なAPKインストールを脅かしています。 </p> </div> <div class="kao-banner-actions" data-astro-cid-46uzc7rt> <a class="kao-cta-btn" href="/apkup/ja/sideloading/google-lock/" data-astro-cid-46uzc7rt> 24時間ロック解除ガイド →
-</a>  <button type="button" id="kao-banner-dismiss" class="kao-dismiss-btn" aria-label="このセッションで警告バナーを閉じる" title="このセッションで警告バナーを閉じる" data-astro-cid-46uzc7rt>
+    })();</script></head> <body> <a class="skip-link" href="#main-content"> メインコンテンツへスキップ </a> <aside id="kao-local-banner" class="kao-signal-banner is-mini" aria-label="警告：Androidサイドローディングの危機 (2026 / 2027)" data-astro-cid-d67wyeir> <div class="container kao-banner-inner" data-astro-cid-d67wyeir> <div class="kao-banner-content" data-astro-cid-d67wyeir> <div class="kao-signal-bar mono" data-astro-cid-d67wyeir> <span class="kao-signal-icon" aria-hidden="true" data-astro-cid-d67wyeir>⚠️</span> <span data-astro-cid-d67wyeir>警告：Androidサイドローディングの危機 (2026 / 2027)</span> </div> <p class="kao-banner-text" data-astro-cid-d67wyeir> Googleの24時間開発者ロックが自由なAPKインストールを脅かしています。 </p> </div> <div class="kao-banner-actions" data-astro-cid-d67wyeir> <a class="kao-cta-btn" href="/apkup/ja/sideloading/google-lock/" data-astro-cid-d67wyeir> 24時間ロック解除ガイド →
+</a>  <button type="button" id="kao-banner-dismiss" class="kao-dismiss-btn" aria-label="このセッションで警告バナーを閉じる" title="このセッションで警告バナーを閉じる" data-astro-cid-d67wyeir>
 ×
 </button> </div> </div> </aside> <script>
   (function () {
@@ -81,7 +143,7 @@ const cleanSubPath = "security/";
       });
     }
   })();
-</script>  <header class="site-header" data-astro-cid-l7arcky5> <div class="container nav-inner" data-astro-cid-l7arcky5> <a class="brand" href="/apkup/ja/" aria-label="ApkUp ホーム" data-astro-cid-l7arcky5> <img src="/apkup/assets/logo.png" alt="" width="36" height="36" class="brand-icon" data-astro-cid-l7arcky5> <span class="brand-name" data-astro-cid-l7arcky5>ApkUp</span> </a> <nav class="nav-links" aria-label="メインナビゲーション" data-astro-cid-l7arcky5> <a href="/apkup/ja/#features" data-astro-cid-l7arcky5>機能</a> <a href="/apkup/ja/#showcase" data-astro-cid-l7arcky5>画面紹介</a> <a href="/apkup/ja/#sources" data-astro-cid-l7arcky5>ソース</a> <a href="/apkup/ja/changelog/" data-astro-cid-l7arcky5>更新情報</a> <a href="/apkup/ja/wiki/" data-astro-cid-l7arcky5>Wiki</a> <a href="/apkup/ja/privacy/" data-astro-cid-l7arcky5>プライバシー</a> <a href="/apkup/ja/downloads/" data-astro-cid-l7arcky5>ダウンロード</a> </nav> <div class="nav-actions" data-astro-cid-l7arcky5> <button id="theme-toggle" type="button" class="icon-pill icon-only" aria-label="ライト/ダークテーマを切り替え" title="ライト/ダークテーマを切り替え" data-astro-cid-l7arcky5> <svg class="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-l7arcky5> <circle cx="12" cy="12" r="4" data-astro-cid-l7arcky5></circle> <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" data-astro-cid-l7arcky5></path> </svg> <svg class="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-l7arcky5> <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" data-astro-cid-l7arcky5></path> </svg> </button> <a class="btn btn-primary nav-cta" href="/apkup/ja/#downloads" data-astro-cid-l7arcky5> ダウンロード </a> <button id="mobile-menu-toggle" type="button" class="icon-pill icon-only mobile-menu-btn" aria-expanded="false" aria-controls="mobile-nav-panel" aria-label="ナビゲーションメニューを切り替え" data-astro-cid-l7arcky5> <svg class="menu-icon-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" data-astro-cid-l7arcky5> <line x1="4" y1="7" x2="20" y2="7" data-astro-cid-l7arcky5></line> <line x1="4" y1="12" x2="20" y2="12" data-astro-cid-l7arcky5></line> <line x1="4" y1="17" x2="20" y2="17" data-astro-cid-l7arcky5></line> </svg> <svg class="menu-icon-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" data-astro-cid-l7arcky5> <path d="M18 6 6 18M6 6l12 12" data-astro-cid-l7arcky5></path> </svg> </button> </div> </div> <nav id="mobile-nav-panel" class="mobile-nav-panel" aria-label="モバイルナビゲーション" hidden data-astro-cid-l7arcky5> <div class="container mobile-nav-list" data-astro-cid-l7arcky5> <a href="/apkup/ja/#features" data-astro-cid-l7arcky5>機能</a> <a href="/apkup/ja/#showcase" data-astro-cid-l7arcky5>画面紹介</a> <a href="/apkup/ja/#sources" data-astro-cid-l7arcky5>ソース</a> <a href="/apkup/ja/changelog/" data-astro-cid-l7arcky5>更新情報</a> <a href="/apkup/ja/wiki/" data-astro-cid-l7arcky5>Wiki</a> <a href="/apkup/ja/privacy/" data-astro-cid-l7arcky5>プライバシー</a> <a href="/apkup/ja/downloads/" data-astro-cid-l7arcky5>ダウンロード</a> <a class="btn btn-primary mobile-nav-cta" href="/apkup/ja/#downloads" data-astro-cid-l7arcky5> ダウンロード </a> </div> </nav> </header> <script>
+</script>  <header class="site-header" data-astro-cid-vus4yyb6> <div class="container nav-inner" data-astro-cid-vus4yyb6> <a class="brand" href="/apkup/ja/" aria-label="ApkUp ホーム" data-astro-cid-vus4yyb6> <img src="/apkup/assets/logo.png" alt="" width="36" height="36" class="brand-icon" data-astro-cid-vus4yyb6> <span class="brand-name" data-astro-cid-vus4yyb6>ApkUp</span> </a> <nav class="nav-links" aria-label="メインナビゲーション" data-astro-cid-vus4yyb6> <a href="/apkup/ja/#features" data-astro-cid-vus4yyb6>機能</a> <a href="/apkup/ja/#showcase" data-astro-cid-vus4yyb6>画面紹介</a> <a href="/apkup/ja/#sources" data-astro-cid-vus4yyb6>ソース</a> <a href="/apkup/ja/changelog/" data-astro-cid-vus4yyb6>更新情報</a> <a href="/apkup/ja/wiki/" data-astro-cid-vus4yyb6>Wiki</a> <a href="/apkup/ja/privacy/" data-astro-cid-vus4yyb6>プライバシー</a> <a href="/apkup/ja/downloads/" data-astro-cid-vus4yyb6>ダウンロード</a> </nav> <div class="nav-actions" data-astro-cid-vus4yyb6> <button id="theme-toggle" type="button" class="icon-pill icon-only" aria-label="テーマ切替: ダーク / ライト / 高コントラスト AAA (太陽連動)" title="テーマ切替: ダーク / ライト / 高コントラスト AAA (太陽連動)" data-label-dark="テーマ: ダーク (ライトに切替)" data-label-light="テーマ: ライト (高コントラスト AAA に切替)" data-label-a11y="テーマ: 高コントラスト AAA 太陽連動 (ダークに切替)" data-astro-cid-vus4yyb6> <svg class="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-vus4yyb6> <circle cx="12" cy="12" r="4" data-astro-cid-vus4yyb6></circle> <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" data-astro-cid-vus4yyb6></path> </svg> <svg class="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-vus4yyb6> <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" data-astro-cid-vus4yyb6></path> </svg> <svg class="theme-icon-a11y" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-vus4yyb6> <circle cx="12" cy="12" r="9" data-astro-cid-vus4yyb6></circle> <path d="M12 3v18M12 12l6.4-6.4M12 16l7.5-7.5M12 20l5-5" data-astro-cid-vus4yyb6></path> </svg> </button> <a class="btn btn-primary nav-cta" href="/apkup/ja/#downloads" data-astro-cid-vus4yyb6> ダウンロード </a> <button id="mobile-menu-toggle" type="button" class="icon-pill icon-only mobile-menu-btn" aria-expanded="false" aria-controls="mobile-nav-panel" aria-label="ナビゲーションメニューを切り替え" data-astro-cid-vus4yyb6> <svg class="menu-icon-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" data-astro-cid-vus4yyb6> <line x1="4" y1="7" x2="20" y2="7" data-astro-cid-vus4yyb6></line> <line x1="4" y1="12" x2="20" y2="12" data-astro-cid-vus4yyb6></line> <line x1="4" y1="17" x2="20" y2="17" data-astro-cid-vus4yyb6></line> </svg> <svg class="menu-icon-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" data-astro-cid-vus4yyb6> <path d="M18 6 6 18M6 6l12 12" data-astro-cid-vus4yyb6></path> </svg> </button> </div> </div> <nav id="mobile-nav-panel" class="mobile-nav-panel" aria-label="モバイルナビゲーション" hidden data-astro-cid-vus4yyb6> <div class="container mobile-nav-list" data-astro-cid-vus4yyb6> <a href="/apkup/ja/#features" data-astro-cid-vus4yyb6>機能</a> <a href="/apkup/ja/#showcase" data-astro-cid-vus4yyb6>画面紹介</a> <a href="/apkup/ja/#sources" data-astro-cid-vus4yyb6>ソース</a> <a href="/apkup/ja/changelog/" data-astro-cid-vus4yyb6>更新情報</a> <a href="/apkup/ja/wiki/" data-astro-cid-vus4yyb6>Wiki</a> <a href="/apkup/ja/privacy/" data-astro-cid-vus4yyb6>プライバシー</a> <a href="/apkup/ja/downloads/" data-astro-cid-vus4yyb6>ダウンロード</a> <a class="btn btn-primary mobile-nav-cta" href="/apkup/ja/#downloads" data-astro-cid-vus4yyb6> ダウンロード </a> </div> </nav> </header> <script>
   (function () {
     var btn = document.getElementById('mobile-menu-toggle');
     var panel = document.getElementById('mobile-nav-panel');
@@ -92,6 +154,7 @@ const cleanSubPath = "security/";
       var href = (a.getAttribute('href') || '').replace(/\/$/, '');
       if (href.indexOf('#') === -1 && href && path === href) {
         a.classList.add('is-current');
+        a.setAttribute('aria-current', 'page');
       }
     });
 
@@ -105,7 +168,10 @@ const cleanSubPath = "security/";
           navLinks.forEach(function (a) {
             var h = a.getAttribute('href') || '';
             if (h.indexOf('#') !== -1) {
-              a.classList.toggle('is-current', h.slice(h.indexOf('#')) === hash);
+              var isMatch = h.slice(h.indexOf('#')) === hash;
+              a.classList.toggle('is-current', isMatch);
+              if (isMatch) a.setAttribute('aria-current', 'true');
+              else a.removeAttribute('aria-current');
             }
           });
         });
@@ -115,9 +181,10 @@ const cleanSubPath = "security/";
 
     if (!btn || !panel) return;
 
-    function closeMenu() {
+    function closeMenu(focusBtn) {
       panel.hidden = true;
       btn.setAttribute('aria-expanded', 'false');
+      if (focusBtn) btn.focus();
     }
 
     btn.addEventListener('click', function (e) {
@@ -125,19 +192,23 @@ const cleanSubPath = "security/";
       var nextOpen = panel.hidden;
       panel.hidden = !nextOpen;
       btn.setAttribute('aria-expanded', String(nextOpen));
+      if (nextOpen) {
+        var firstLink = panel.querySelector('a');
+        if (firstLink) firstLink.focus();
+      }
     });
 
     panel.querySelectorAll('a').forEach(function (a) {
-      a.addEventListener('click', closeMenu);
+      a.addEventListener('click', function () { closeMenu(false); });
     });
 
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && !panel.hidden) closeMenu();
+      if (e.key === 'Escape' && !panel.hidden) closeMenu(true);
     });
 
     document.addEventListener('click', function (e) {
       if (!panel.hidden && !panel.contains(e.target) && !btn.contains(e.target)) {
-        closeMenu();
+        closeMenu(false);
       }
     });
 
@@ -146,6 +217,7 @@ const cleanSubPath = "security/";
     if (brand) {
       var clicks = 0;
       var clickTimer = null;
+      var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       brand.addEventListener('click', function (e) {
         clicks++;
         clearTimeout(clickTimer);
@@ -153,21 +225,26 @@ const cleanSubPath = "security/";
         if (clicks >= 5) {
           e.preventDefault();
           clicks = 0;
-          var rect = brand.getBoundingClientRect();
-          for (var i = 0; i < 12; i++) {
-            var spark = document.createElement('span');
-            spark.className = 'brand-spark';
-            var angle = (Math.PI * 2 * i) / 12;
-            var dist = 28 + Math.random() * 24;
-            spark.style.left = rect.left + 20 + 'px';
-            spark.style.top = rect.top + 20 + 'px';
-            spark.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
-            spark.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
-            document.body.appendChild(spark);
-            setTimeout((function (el) { return function () { el.remove(); }; })(spark), 700);
+          if (!prefersReducedMotion) {
+            var rect = brand.getBoundingClientRect();
+            for (var i = 0; i < 12; i++) {
+              var spark = document.createElement('span');
+              spark.className = 'brand-spark';
+              spark.setAttribute('aria-hidden', 'true');
+              var angle = (Math.PI * 2 * i) / 12;
+              var dist = 28 + Math.random() * 24;
+              spark.style.left = rect.left + 20 + 'px';
+              spark.style.top = rect.top + 20 + 'px';
+              spark.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+              spark.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+              document.body.appendChild(spark);
+              setTimeout((function (el) { return function () { el.remove(); }; })(spark), 700);
+            }
           }
           var toast = document.createElement('div');
           toast.className = 'brand-toast mono';
+          toast.setAttribute('role', 'status');
+          toast.setAttribute('aria-live', 'polite');
           toast.textContent = 'Open Source since 2026 ⚡';
           document.body.appendChild(toast);
           setTimeout(function () { toast.remove(); }, 2400);
@@ -175,15 +252,17 @@ const cleanSubPath = "security/";
       });
     }
   })();
-</script> <main id="main-content" class="section" data-astro-cid-fvpxqvwq> <div class="container subpage-wrap" data-astro-cid-fvpxqvwq> <div class="section-header" data-astro-cid-fvpxqvwq> <span class="sec-shield-pill mono" data-astro-cid-fvpxqvwq> <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" data-astro-cid-fvpxqvwq> <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" data-astro-cid-fvpxqvwq></path> </svg> <span data-astro-cid-fvpxqvwq>トラッキングゼロ • APK署名 v2/v3</span> </span> <h1 class="section-title" data-astro-cid-fvpxqvwq>セキュリティポリシーとアーキテクチャ</h1> <p class="section-subtitle" data-astro-cid-fvpxqvwq>SECURITY.mdに基づく完全なセキュリティ文書：サポート対象バージョン、暗号学的検証、責任ある脆弱性報告。</p> </div> <div class="sec-grid" data-astro-cid-fvpxqvwq> <article class="sec-card" data-astro-cid-fvpxqvwq> <h2 data-astro-cid-fvpxqvwq>サポート対象バージョン</h2> <p data-astro-cid-fvpxqvwq>以下のバージョンのApkUpに対してセキュリティパッチを積極的に提供しています：</p> <div class="sec-table-wrap" data-astro-cid-fvpxqvwq> <table class="sec-table" data-astro-cid-fvpxqvwq> <thead data-astro-cid-fvpxqvwq> <tr data-astro-cid-fvpxqvwq> <th data-astro-cid-fvpxqvwq>バージョン</th> <th data-astro-cid-fvpxqvwq>状態</th> </tr> </thead> <tbody data-astro-cid-fvpxqvwq> <tr data-astro-cid-fvpxqvwq> <td class="mono" data-astro-cid-fvpxqvwq>1.46.x (以降)</td> <td data-astro-cid-fvpxqvwq> <span class="pill-badge pill-emerald" data-astro-cid-fvpxqvwq> ✓ サポート中 </span> </td> </tr><tr data-astro-cid-fvpxqvwq> <td class="mono" data-astro-cid-fvpxqvwq>1.45.x</td> <td data-astro-cid-fvpxqvwq> <span class="pill-badge pill-emerald" data-astro-cid-fvpxqvwq> ✓ サポート中 </span> </td> </tr><tr data-astro-cid-fvpxqvwq> <td class="mono" data-astro-cid-fvpxqvwq>&lt; 1.45</td> <td data-astro-cid-fvpxqvwq> <span class="pill-badge pill-danger" data-astro-cid-fvpxqvwq> ✕ サポート終了 </span> </td> </tr><tr data-astro-cid-fvpxqvwq> <td class="mono" data-astro-cid-fvpxqvwq>1.45.x</td> <td data-astro-cid-fvpxqvwq> <span class="pill-badge pill-emerald" data-astro-cid-fvpxqvwq> ✓ サポート中 </span> </td> </tr><tr data-astro-cid-fvpxqvwq> <td class="mono" data-astro-cid-fvpxqvwq>1.44.x</td> <td data-astro-cid-fvpxqvwq> <span class="pill-badge pill-emerald" data-astro-cid-fvpxqvwq> ✓ サポート中 </span> </td> </tr><tr data-astro-cid-fvpxqvwq> <td class="mono" data-astro-cid-fvpxqvwq>&lt; 1.44</td> <td data-astro-cid-fvpxqvwq> <span class="pill-badge pill-danger" data-astro-cid-fvpxqvwq> ✕ サポート終了 </span> </td> </tr> </tbody> </table> </div> </article> <article class="sec-card" data-astro-cid-fvpxqvwq> <h2 data-astro-cid-fvpxqvwq>多層防御セキュリティアーキテクチャ</h2> <p data-astro-cid-fvpxqvwq>ApkUpは更新ライフサイクルのすべての段階で多層検証を実施します：</p> <div class="sec-pillars" data-astro-cid-fvpxqvwq> <div class="sec-pillar" data-astro-cid-fvpxqvwq> <div class="sec-pillar-head" data-astro-cid-fvpxqvwq> <span class="pill-badge mono pill-amber" data-astro-cid-fvpxqvwq> apksig v2 / v3 </span> <h3 data-astro-cid-fvpxqvwq>暗号学的APK署名検証</h3> </div> <p data-astro-cid-fvpxqvwq>ダウンロードしたAPKや.apkmをPackageInstaller、Shizuku、Root (su) に渡す前に、ApkIntegrityVerifierがv2/v3署名証明書をインストール済みアプリと照合し、不一致やダウングレードを阻止します。</p> </div><div class="sec-pillar" data-astro-cid-fvpxqvwq> <div class="sec-pillar-head" data-astro-cid-fvpxqvwq> <span class="pill-badge mono pill-amber" data-astro-cid-fvpxqvwq> SHA-256 + X.509 TOFU </span> <h3 data-astro-cid-fvpxqvwq>署名済みF-Droid / IzzyOnDroidインデックスとSHA-256</h3> </div> <p data-astro-cid-fvpxqvwq>リポジトリインデックス (entry.jar / index-v1.jar) は固定された64文字SHA-256 X.509証明書フィンガープリントで検証され、ダウンロード済みAPK（SHA256SUMSによる自己更新含む）もSHA-256で検証されます。</p> </div><div class="sec-pillar" data-astro-cid-fvpxqvwq> <div class="sec-pillar-head" data-astro-cid-fvpxqvwq> <span class="pill-badge mono pill-neutral" data-astro-cid-fvpxqvwq> Zip-Slip Guard + cacheDir </span> <h3 data-astro-cid-fvpxqvwq>堅牢化されたアーカイブ展開とストレージ分離</h3> </div> <p data-astro-cid-fvpxqvwq>すべてのダウンロードはプライベート内部ストレージ (cacheDir) に保存され、.apkm展開ではZip-Slipと展開爆弾の上限を厳格に適用し、平文HTTPとクラウドバックアップは無効化されています。</p> </div><div class="sec-pillar" data-astro-cid-fvpxqvwq> <div class="sec-pillar-head" data-astro-cid-fvpxqvwq> <span class="pill-badge mono pill-emerald" data-astro-cid-fvpxqvwq> Google Tink AES-256-GCM </span> <h3 data-astro-cid-fvpxqvwq>暗号化された認証情報とホスト分離</h3> </div> <p data-astro-cid-fvpxqvwq>ローカル設定と任意トークンはAndroid Keystore上のGoogle Tink (AES-256-GCM) で暗号化されます。Authorizationヘッダーは対象APIホストに固定され、外部リダイレクト時に除去されます。</p> </div> </div> </article> <article class="sec-card sec-report-card" data-astro-cid-fvpxqvwq> <h2 data-astro-cid-fvpxqvwq>脆弱性の報告</h2> <p data-astro-cid-fvpxqvwq>ApkUpに潜在的なセキュリティ脆弱性（特にAPK署名検証、.apkm展開、Shizuku / Root su実行、認証情報保存、ネットワーク通信）を発見した場合は、公開GitHub IssueやSNSで公開しないでください。</p> <ol class="sec-steps" data-astro-cid-fvpxqvwq> <li data-astro-cid-fvpxqvwq>GitHubの機密チャネル Private Vulnerability Reporting をご利用ください。</li><li data-astro-cid-fvpxqvwq>問題の詳細、再現手順、影響を受けるバージョン、可能であればPoCをご記載ください。</li><li data-astro-cid-fvpxqvwq>報告は迅速に調査し、公開前に修正パッチをリリースします。</li> </ol> <div class="sec-actions" data-astro-cid-fvpxqvwq> <a class="btn btn-primary" href="https://github.com/DurchEins/apkup/security/advisories/new" target="_blank" rel="noopener noreferrer" data-astro-cid-fvpxqvwq> 脆弱性を報告する（非公開） </a> <a class="btn btn-secondary" href="https://github.com/DurchEins/apkup/blob/main/SECURITY.md" target="_blank" rel="noopener noreferrer" data-astro-cid-fvpxqvwq> GitHubでSECURITY.mdを見る </a> </div> </article> </div> </div> </main> <footer class="site-footer" data-astro-cid-jo6i4kqk> <div class="container footer-inner" data-astro-cid-jo6i4kqk> <div class="footer-brand" data-astro-cid-jo6i4kqk> <img src="/apkup/assets/logo.png" alt="" width="34" height="34" class="footer-icon" data-astro-cid-jo6i4kqk> <div class="footer-brand-text" data-astro-cid-jo6i4kqk> <strong data-astro-cid-jo6i4kqk>ApkUp</strong> <p class="footer-copy" data-astro-cid-jo6i4kqk>
-Copyright © 2026  <a href="https://github.com/DurchEins" target="_blank" rel="noopener noreferrer" class="footer-author-link" data-astro-cid-jo6i4kqk>DurchEins</a> </p> </div> </div> <nav class="footer-links" aria-label="Footer links" data-astro-cid-jo6i4kqk> <a href="/apkup/ja/downloads/" data-astro-cid-jo6i4kqk>ダウンロード</a> <a href="/apkup/ja/sideloading/" data-astro-cid-jo6i4kqk>提供元不明のアプリ</a> <a href="/apkup/ja/sideloading/google-lock/" data-astro-cid-jo6i4kqk>Google 24時間ロック</a> <a href="/apkup/ja/changelog/" data-astro-cid-jo6i4kqk>更新情報</a> <a href="/apkup/ja/wiki/" data-astro-cid-jo6i4kqk>Wiki</a> <a href="/apkup/ja/compare/" data-astro-cid-jo6i4kqk>ソースチェッカー</a> <a href="/apkup/ja/privacy/" data-astro-cid-jo6i4kqk>プライバシー</a> <a href="/apkup/ja/security/" data-astro-cid-jo6i4kqk>セキュリティ</a> <a href="https://github.com/DurchEins/apkup" target="_blank" rel="noopener noreferrer" data-astro-cid-jo6i4kqk>GitHub</a> <a href="https://github.com/sponsors/DurchEins" target="_blank" rel="noopener noreferrer" data-astro-cid-jo6i4kqk>Sponsor</a> <a href="https://github.com/DurchEins/apkup/wiki" target="_blank" rel="noopener noreferrer" data-astro-cid-jo6i4kqk>GitHub Wiki</a> <a href="https://github.com/DurchEins/apkup/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="footer-build-pill mono" data-astro-cid-jo6i4kqk>GPL-3.0</a> <a href="https://github.com/DurchEins/apkup/releases/latest" target="_blank" rel="noopener noreferrer" class="footer-build-pill mono" title="公式リリース" data-astro-cid-jo6i4kqk>
+</script> <main id="main-content" class="section" data-astro-cid-zpmz4k3r> <div class="container subpage-wrap" data-astro-cid-zpmz4k3r> <div class="section-header" data-astro-cid-zpmz4k3r> <span class="sec-shield-pill mono" data-astro-cid-zpmz4k3r> <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" data-astro-cid-zpmz4k3r> <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" data-astro-cid-zpmz4k3r></path> </svg> <span data-astro-cid-zpmz4k3r>トラッキングゼロ • APK署名 v2/v3</span> </span> <h1 class="section-title" data-astro-cid-zpmz4k3r>セキュリティポリシーとアーキテクチャ</h1> <p class="section-subtitle" data-astro-cid-zpmz4k3r>SECURITY.mdに基づく完全なセキュリティ文書：サポート対象バージョン、暗号学的検証、責任ある脆弱性報告。</p> </div> <div class="sec-grid" data-astro-cid-zpmz4k3r> <article class="sec-card" data-astro-cid-zpmz4k3r> <h2 data-astro-cid-zpmz4k3r>サポート対象バージョン</h2> <p data-astro-cid-zpmz4k3r>以下のバージョンのApkUpに対してセキュリティパッチを積極的に提供しています：</p> <div class="sec-table-wrap" data-astro-cid-zpmz4k3r> <table class="sec-table" data-astro-cid-zpmz4k3r> <thead data-astro-cid-zpmz4k3r> <tr data-astro-cid-zpmz4k3r> <th data-astro-cid-zpmz4k3r>バージョン</th> <th data-astro-cid-zpmz4k3r>状態</th> </tr> </thead> <tbody data-astro-cid-zpmz4k3r> <tr data-astro-cid-zpmz4k3r> <td class="mono" data-astro-cid-zpmz4k3r>1.46.x (以降)</td> <td data-astro-cid-zpmz4k3r> <span class="pill-badge pill-emerald" data-astro-cid-zpmz4k3r> ✓ サポート中 </span> </td> </tr><tr data-astro-cid-zpmz4k3r> <td class="mono" data-astro-cid-zpmz4k3r>1.45.x</td> <td data-astro-cid-zpmz4k3r> <span class="pill-badge pill-emerald" data-astro-cid-zpmz4k3r> ✓ サポート中 </span> </td> </tr><tr data-astro-cid-zpmz4k3r> <td class="mono" data-astro-cid-zpmz4k3r>&lt; 1.45</td> <td data-astro-cid-zpmz4k3r> <span class="pill-badge pill-danger" data-astro-cid-zpmz4k3r> ✕ サポート終了 </span> </td> </tr><tr data-astro-cid-zpmz4k3r> <td class="mono" data-astro-cid-zpmz4k3r>1.45.x</td> <td data-astro-cid-zpmz4k3r> <span class="pill-badge pill-emerald" data-astro-cid-zpmz4k3r> ✓ サポート中 </span> </td> </tr><tr data-astro-cid-zpmz4k3r> <td class="mono" data-astro-cid-zpmz4k3r>1.44.x</td> <td data-astro-cid-zpmz4k3r> <span class="pill-badge pill-emerald" data-astro-cid-zpmz4k3r> ✓ サポート中 </span> </td> </tr><tr data-astro-cid-zpmz4k3r> <td class="mono" data-astro-cid-zpmz4k3r>&lt; 1.44</td> <td data-astro-cid-zpmz4k3r> <span class="pill-badge pill-danger" data-astro-cid-zpmz4k3r> ✕ サポート終了 </span> </td> </tr> </tbody> </table> </div> </article> <article class="sec-card" data-astro-cid-zpmz4k3r> <h2 data-astro-cid-zpmz4k3r>多層防御セキュリティアーキテクチャ</h2> <p data-astro-cid-zpmz4k3r>ApkUpは更新ライフサイクルのすべての段階で多層検証を実施します：</p> <div class="sec-pillars" data-astro-cid-zpmz4k3r> <div class="sec-pillar" data-astro-cid-zpmz4k3r> <div class="sec-pillar-head" data-astro-cid-zpmz4k3r> <span class="pill-badge mono pill-amber" data-astro-cid-zpmz4k3r> apksig v2 / v3 </span> <h3 data-astro-cid-zpmz4k3r>暗号学的APK署名検証</h3> </div> <p data-astro-cid-zpmz4k3r>ダウンロードしたAPKや.apkmをPackageInstaller、Shizuku、Root (su) に渡す前に、ApkIntegrityVerifierがv2/v3署名証明書をインストール済みアプリと照合し、不一致やダウングレードを阻止します。</p> </div><div class="sec-pillar" data-astro-cid-zpmz4k3r> <div class="sec-pillar-head" data-astro-cid-zpmz4k3r> <span class="pill-badge mono pill-amber" data-astro-cid-zpmz4k3r> SHA-256 + X.509 TOFU </span> <h3 data-astro-cid-zpmz4k3r>署名済みF-Droid / IzzyOnDroidインデックスとSHA-256</h3> </div> <p data-astro-cid-zpmz4k3r>リポジトリインデックス (entry.jar / index-v1.jar) は固定された64文字SHA-256 X.509証明書フィンガープリントで検証され、ダウンロード済みAPK（SHA256SUMSによる自己更新含む）もSHA-256で検証されます。</p> </div><div class="sec-pillar" data-astro-cid-zpmz4k3r> <div class="sec-pillar-head" data-astro-cid-zpmz4k3r> <span class="pill-badge mono pill-neutral" data-astro-cid-zpmz4k3r> Zip-Slip Guard + cacheDir </span> <h3 data-astro-cid-zpmz4k3r>堅牢化されたアーカイブ展開とストレージ分離</h3> </div> <p data-astro-cid-zpmz4k3r>すべてのダウンロードはプライベート内部ストレージ (cacheDir) に保存され、.apkm展開ではZip-Slipと展開爆弾の上限を厳格に適用し、平文HTTPとクラウドバックアップは無効化されています。</p> </div><div class="sec-pillar" data-astro-cid-zpmz4k3r> <div class="sec-pillar-head" data-astro-cid-zpmz4k3r> <span class="pill-badge mono pill-emerald" data-astro-cid-zpmz4k3r> Google Tink AES-256-GCM </span> <h3 data-astro-cid-zpmz4k3r>暗号化された認証情報とホスト分離</h3> </div> <p data-astro-cid-zpmz4k3r>ローカル設定と任意トークンはAndroid Keystore上のGoogle Tink (AES-256-GCM) で暗号化されます。Authorizationヘッダーは対象APIホストに固定され、外部リダイレクト時に除去されます。</p> </div> </div> </article> <article class="sec-card sec-report-card" data-astro-cid-zpmz4k3r> <h2 data-astro-cid-zpmz4k3r>脆弱性の報告</h2> <p data-astro-cid-zpmz4k3r>ApkUpに潜在的なセキュリティ脆弱性（特にAPK署名検証、.apkm展開、Shizuku / Root su実行、認証情報保存、ネットワーク通信）を発見した場合は、公開GitHub IssueやSNSで公開しないでください。</p> <ol class="sec-steps" data-astro-cid-zpmz4k3r> <li data-astro-cid-zpmz4k3r>GitHubの機密チャネル Private Vulnerability Reporting をご利用ください。</li><li data-astro-cid-zpmz4k3r>問題の詳細、再現手順、影響を受けるバージョン、可能であればPoCをご記載ください。</li><li data-astro-cid-zpmz4k3r>報告は迅速に調査し、公開前に修正パッチをリリースします。</li> </ol> <div class="sec-actions" data-astro-cid-zpmz4k3r> <a class="btn btn-primary" href="https://github.com/DurchEins/apkup/security/advisories/new" target="_blank" rel="noopener noreferrer" data-astro-cid-zpmz4k3r> 脆弱性を報告する（非公開） </a> <a class="btn btn-secondary" href="https://github.com/DurchEins/apkup/blob/main/SECURITY.md" target="_blank" rel="noopener noreferrer" data-astro-cid-zpmz4k3r> GitHubでSECURITY.mdを見る </a> </div> </article> </div> </div> </main> <footer class="site-footer" data-astro-cid-yfspknxm> <div class="container footer-inner" data-astro-cid-yfspknxm> <div class="footer-brand" data-astro-cid-yfspknxm> <img src="/apkup/assets/logo.png" alt="" width="34" height="34" class="footer-icon" data-astro-cid-yfspknxm> <div class="footer-brand-text" data-astro-cid-yfspknxm> <strong data-astro-cid-yfspknxm>ApkUp</strong> <p class="footer-copy" data-astro-cid-yfspknxm>
+Copyright © 2026  <a href="https://github.com/DurchEins" target="_blank" rel="noopener noreferrer" class="footer-author-link" data-astro-cid-yfspknxm>DurchEins</a> </p> </div> </div> <nav class="footer-links" aria-label="フッターリンク" data-astro-cid-yfspknxm> <a href="/apkup/ja/downloads/" data-astro-cid-yfspknxm>ダウンロード</a> <a href="/apkup/ja/sideloading/" data-astro-cid-yfspknxm>提供元不明のアプリ</a> <a href="/apkup/ja/sideloading/google-lock/" data-astro-cid-yfspknxm>Google 24時間ロック</a> <a href="/apkup/ja/changelog/" data-astro-cid-yfspknxm>更新情報</a> <a href="/apkup/ja/wiki/" data-astro-cid-yfspknxm>Wiki</a> <a href="/apkup/ja/compare/" data-astro-cid-yfspknxm>ソースチェッカー</a> <a href="/apkup/ja/privacy/" data-astro-cid-yfspknxm>プライバシー</a> <a href="/apkup/ja/security/" data-astro-cid-yfspknxm>セキュリティ</a> <a href="/apkup/ja/accessibility/" data-astro-cid-yfspknxm>アクセシビリティ</a> <a href="https://github.com/DurchEins/apkup" target="_blank" rel="noopener noreferrer" data-astro-cid-yfspknxm>GitHub</a> <a href="https://github.com/sponsors/DurchEins" target="_blank" rel="noopener noreferrer" data-astro-cid-yfspknxm>Sponsor</a> <a href="https://github.com/DurchEins/apkup/wiki" target="_blank" rel="noopener noreferrer" data-astro-cid-yfspknxm>GitHub Wiki</a> <a href="https://github.com/DurchEins/apkup/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="footer-build-pill mono" data-astro-cid-yfspknxm>GPL-3.0</a> <a href="https://github.com/DurchEins/apkup/releases/latest" target="_blank" rel="noopener noreferrer" class="footer-build-pill mono" title="公式リリース" data-astro-cid-yfspknxm>
 v1.46.0 (231)
-</a> <a href="https://u24.gov.ua/" target="_blank" rel="noopener noreferrer" class="footer-build-pill footer-ukraine-pill" aria-label="Stand with Ukraine — Official United24 Support" data-astro-cid-jo6i4kqk> <svg width="16" height="11" viewBox="0 0 16 11" aria-hidden="true" class="ua-flag" data-astro-cid-jo6i4kqk> <defs data-astro-cid-jo6i4kqk> <clipPath id="ua-clip" data-astro-cid-jo6i4kqk><rect width="16" height="11" rx="2" data-astro-cid-jo6i4kqk></rect></clipPath> </defs> <g clip-path="url(#ua-clip)" data-astro-cid-jo6i4kqk> <rect width="16" height="5.5" fill="#0057B7" data-astro-cid-jo6i4kqk></rect> <rect y="5.5" width="16" height="5.5" fill="#FFD700" data-astro-cid-jo6i4kqk></rect> </g> </svg> <span data-astro-cid-jo6i4kqk>Stand with Ukraine</span> </a> </nav> <div class="footer-i18n-bar" data-astro-cid-jo6i4kqk> <div class="lang-picker-wrap" id="footer-lang-wrap" data-astro-cid-jo6i4kqk> <button type="button" id="footer-lang-btn" class="lang-picker-btn" aria-expanded="false" aria-haspopup="menu" aria-controls="footer-lang-menu" aria-label="言語を選択" data-astro-cid-jo6i4kqk> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-jo6i4kqk> <circle cx="12" cy="12" r="10" data-astro-cid-jo6i4kqk></circle> <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" data-astro-cid-jo6i4kqk></path> </svg> <span data-astro-cid-jo6i4kqk>日本語 <span class="mono lang-code" data-astro-cid-jo6i4kqk>(JA)</span></span> <svg class="lang-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-jo6i4kqk> <path d="m6 9 6 6 6-6" data-astro-cid-jo6i4kqk></path> </svg> </button> <div id="footer-lang-menu" class="lang-picker-menu" role="menu" aria-label="言語を選択" hidden data-astro-cid-jo6i4kqk> <a href="/apkup/security/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="en" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>English</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>EN</span>  </span> </a><a href="/apkup/de/security/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="de" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Deutsch</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>DE</span>  </span> </a><a href="/apkup/es/security/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="es" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Español</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>ES</span>  </span> </a><a href="/apkup/fr/security/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="fr" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Français</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>FR</span>  </span> </a><a href="/apkup/it/security/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="it" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Italiano</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>IT</span>  </span> </a><a href="/apkup/ja/security/" role="menuitemradio" aria-checked="true" class="lang-menu-item is-active" data-lang-option="ja" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>日本語</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>JA</span> <span aria-hidden="true" data-astro-cid-jo6i4kqk>✓</span> </span> </a><a href="/apkup/pt/security/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="pt" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Português</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>PT</span>  </span> </a><a href="/apkup/ru/security/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="ru" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Русский</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>RU</span>  </span> </a><a href="/apkup/zh-cn/security/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="zh-cn" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>简体中文</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>ZH-CN</span>  </span> </a> </div> </div> <a href="https://hosted.weblate.org/engage/apkup/" target="_blank" rel="noopener noreferrer" class="help-translate-link" data-astro-cid-jo6i4kqk> 翻訳に協力する → </a> </div> </div> </footer> <script>
+</a> <a href="https://u24.gov.ua/" target="_blank" rel="noopener noreferrer" class="footer-build-pill footer-ukraine-pill" aria-label="Stand with Ukraine — Official United24 Support" data-astro-cid-yfspknxm> <svg width="16" height="11" viewBox="0 0 16 11" aria-hidden="true" class="ua-flag" data-astro-cid-yfspknxm> <defs data-astro-cid-yfspknxm> <clipPath id="ua-clip" data-astro-cid-yfspknxm><rect width="16" height="11" rx="2" data-astro-cid-yfspknxm></rect></clipPath> </defs> <g clip-path="url(#ua-clip)" data-astro-cid-yfspknxm> <rect width="16" height="5.5" fill="#0057B7" data-astro-cid-yfspknxm></rect> <rect y="5.5" width="16" height="5.5" fill="#FFD700" data-astro-cid-yfspknxm></rect> </g> </svg> <span data-astro-cid-yfspknxm>Stand with Ukraine</span> </a> </nav> <div class="footer-i18n-bar" data-astro-cid-yfspknxm> <div class="lang-picker-wrap" id="footer-lang-wrap" data-astro-cid-yfspknxm> <button type="button" id="footer-lang-btn" class="lang-picker-btn" aria-expanded="false" aria-haspopup="menu" aria-controls="footer-lang-menu" aria-label="日本語 (JA) — 言語を選択" data-astro-cid-yfspknxm> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-yfspknxm> <circle cx="12" cy="12" r="10" data-astro-cid-yfspknxm></circle> <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" data-astro-cid-yfspknxm></path> </svg> <span data-astro-cid-yfspknxm>日本語 <span class="mono lang-code" data-astro-cid-yfspknxm>(JA)</span></span> <svg class="lang-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-yfspknxm> <path d="m6 9 6 6 6-6" data-astro-cid-yfspknxm></path> </svg> </button> <div id="footer-lang-menu" class="lang-picker-menu" role="menu" aria-label="言語を選択" hidden data-astro-cid-yfspknxm> <a href="/apkup/security/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="en" lang="en" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>English</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>EN</span>  </span> </a><a href="/apkup/de/security/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="de" lang="de" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>Deutsch</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>DE</span>  </span> </a><a href="/apkup/es/security/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="es" lang="es" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>Español</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>ES</span>  </span> </a><a href="/apkup/fr/security/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="fr" lang="fr" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>Français</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>FR</span>  </span> </a><a href="/apkup/it/security/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="it" lang="it" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>Italiano</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>IT</span>  </span> </a><a href="/apkup/ja/security/" role="menuitemradio" aria-checked="true" class="lang-menu-item is-active" data-lang-option="ja" lang="ja" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>日本語</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>JA</span> <span aria-hidden="true" data-astro-cid-yfspknxm>✓</span> </span> </a><a href="/apkup/pt/security/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="pt" lang="pt" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>Português</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>PT</span>  </span> </a><a href="/apkup/ru/security/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="ru" lang="ru" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>Русский</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>RU</span>  </span> </a><a href="/apkup/zh-cn/security/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="zh-cn" lang="zh-CN" data-astro-cid-yfspknxm> <span class="lang-item-name" data-astro-cid-yfspknxm>简体中文</span> <span class="lang-item-right mono" data-astro-cid-yfspknxm> <span data-astro-cid-yfspknxm>ZH-CN</span>  </span> </a> </div> </div> <a href="https://hosted.weblate.org/engage/apkup/" target="_blank" rel="noopener noreferrer" class="help-translate-link" data-astro-cid-yfspknxm> 翻訳に協力する → </a> </div> </div> </footer> <script>
   (function () {
     var wrap = document.getElementById('footer-lang-wrap');
     var btn = document.getElementById('footer-lang-btn');
     var menu = document.getElementById('footer-lang-menu');
     if (!wrap || !btn || !menu) return;
+
+    var menuItems = Array.prototype.slice.call(menu.querySelectorAll('[role="menuitemradio"]'));
 
     function closeMenu(focusBtn) {
       if (menu.hidden) return;
@@ -192,15 +271,42 @@ v1.46.0 (231)
       if (focusBtn) btn.focus();
     }
 
-    function openMenu() {
+    function openMenu(focusTarget) {
       menu.hidden = false;
       btn.setAttribute('aria-expanded', 'true');
+      var target = focusTarget || menu.querySelector('[aria-checked="true"]') || menuItems[0];
+      if (target) target.focus();
     }
 
     btn.addEventListener('click', function (e) {
       e.stopPropagation();
       if (menu.hidden) openMenu();
       else closeMenu(false);
+    });
+
+    btn.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        openMenu(e.key === 'ArrowUp' ? menuItems[menuItems.length - 1] : menuItems[0]);
+      }
+    });
+
+    menu.addEventListener('keydown', function (e) {
+      if (!menuItems.length) return;
+      var idx = menuItems.indexOf(document.activeElement);
+      var nextIdx = -1;
+      if (e.key === 'ArrowDown') nextIdx = (idx + 1) % menuItems.length;
+      else if (e.key === 'ArrowUp') nextIdx = (idx - 1 + menuItems.length) % menuItems.length;
+      else if (e.key === 'Home') nextIdx = 0;
+      else if (e.key === 'End') nextIdx = menuItems.length - 1;
+      else if (e.key === 'Tab') {
+        closeMenu(false);
+        return;
+      }
+      if (nextIdx >= 0) {
+        e.preventDefault();
+        menuItems[nextIdx].focus();
+      }
     });
 
     document.addEventListener('click', function (e) {
@@ -240,17 +346,25 @@ const canonicalShareUrl = "https://durcheins.github.io/apkup/ja/security/";
         var root = document.documentElement;
         var themeBtn = document.getElementById('theme-toggle');
 
+        function syncThemeButtonLabel(mode) {
+          if (!themeBtn) return;
+          themeBtn.setAttribute('data-theme-state', mode);
+          themeBtn.setAttribute('aria-pressed', String(mode !== 'dark'));
+          var labelKey = mode === 'a11y' ? 'data-label-a11y' : (mode === 'light' ? 'data-label-light' : 'data-label-dark');
+          var nextLabel = themeBtn.getAttribute(labelKey);
+          if (nextLabel) {
+            themeBtn.setAttribute('aria-label', nextLabel);
+            themeBtn.setAttribute('title', nextLabel);
+          }
+        }
+
         function applyTheme(next) {
           root.classList.add('theme-switching');
-          root.setAttribute('data-theme', next);
-          var meta = document.getElementById('meta-theme-color');
-          if (meta) meta.setAttribute('content', next === 'light' ? '#F4F1EA' : '#121316');
+          var normalized = window.__apkupApplyThemeMode ? window.__apkupApplyThemeMode(next) : next;
           try {
-            localStorage.setItem('apkup-theme', next);
+            localStorage.setItem('apkup-theme', normalized);
           } catch (e) {}
-          if (themeBtn) {
-            themeBtn.setAttribute('aria-pressed', String(next === 'light'));
-          }
+          syncThemeButtonLabel(normalized);
           requestAnimationFrame(function () {
             requestAnimationFrame(function () {
               root.classList.remove('theme-switching');
@@ -259,14 +373,26 @@ const canonicalShareUrl = "https://durcheins.github.io/apkup/ja/security/";
         }
 
         if (themeBtn) {
-          themeBtn.setAttribute('aria-pressed', String(root.getAttribute('data-theme') === 'light'));
+          var initialMode = root.getAttribute('data-theme-mode') || 'dark';
+          syncThemeButtonLabel(initialMode);
           try {
             if (!localStorage.getItem('apkup-theme')) themeBtn.classList.add('is-system-sync');
           } catch (e) {}
           themeBtn.addEventListener('click', function () {
             themeBtn.classList.remove('is-system-sync');
-            var current = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-            applyTheme(current === 'dark' ? 'light' : 'dark');
+            var current = root.getAttribute('data-theme-mode') || 'dark';
+            var next = current === 'dark' ? 'light' : (current === 'light' ? 'a11y' : 'dark');
+            applyTheme(next);
+          });
+          setInterval(function () {
+            if (root.getAttribute('data-theme-mode') === 'a11y' && window.__apkupApplyThemeMode) {
+              window.__apkupApplyThemeMode('a11y');
+            }
+          }, 60000);
+          document.addEventListener('visibilitychange', function () {
+            if (!document.hidden && root.getAttribute('data-theme-mode') === 'a11y' && window.__apkupApplyThemeMode) {
+              window.__apkupApplyThemeMode('a11y');
+            }
           });
         }
 
