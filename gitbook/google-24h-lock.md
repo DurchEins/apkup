@@ -1,3 +1,8 @@
+---
+description: "How to permanently unlock unverified developer apps in Android Developer Options and avoid the 7-day reset trap."
+icon: lock
+---
+
 # Google's 24-Hour Sideloading Lock (2026/2027) & Keep Android Open
 
 Starting with Google's regional enforcement on **September 30, 2026** (including Brazil, Indonesia, Singapore, and Thailand) and its **global rollout in January 2027**, certified Android devices introduce mandatory developer identity verification via Google Play Protect. This page explains what changes for everyday users, how to permanently unlock independent apps in Developer Options, and why ApkUp supports **[Keep Android Open](https://keepandroidopen.org)**.
@@ -17,19 +22,37 @@ Under Google's **Android Developer Verification** policy (enforced via Google Pl
 
 If Play Protect blocks an independent APK with an *"Unverified developer"* notice, Google places the override inside **Developer Options** behind a one-time **24-hour cooldown**:
 
-1. **Enable Developer Options:**
-   - Open **Settings → About Phone** (on Samsung: *Software information*).
-   - Scroll to **Build Number** and tap it **7 times** until *"You are now a developer!"* appears.
-2. **Open the Unverified Developers Setting:**
-   - Go to **Settings → System → Developer Options** (or search for *Developer Options* in Settings).
-   - Tap **Apps from unverified developers** → **Allow apps from unverified developers**.
-3. **Confirm Lock Screen & Restart:**
-   - Enter your PIN/password/biometrics and **restart your phone** when prompted.
-4. **Wait the 24-Hour Cooldown:**
-   - Android starts a mandatory **24-hour waiting period** after reboot.
-5. **Choose "Allow Indefinitely" (Avoid the 7-Day Trap!):**
-   - After 24 hours, return to **Developer Options → Apps from unverified developers**.
-   - Select **Allow indefinitely** (do **not** pick the *7-day temporary window*, or Android will turn the setting back off after 7 days and force another 24-hour wait!).
+{% stepper %}
+{% step %}
+### Enable Developer Options
+
+Open **Settings → About Phone** (on Samsung: *Software information*) and tap **Build Number** **7 times** until *"You are now a developer!"* appears.
+{% endstep %}
+{% step %}
+### Open Unverified Developers Setting
+
+Go to **Settings → System → Developer Options** → **Apps from unverified developers** → **Allow apps from unverified developers**.
+{% endstep %}
+{% step %}
+### Confirm Lock Screen & Restart
+
+Enter your PIN/password/biometrics and **restart your phone** when prompted.
+{% endstep %}
+{% step %}
+### Wait the 24-Hour Cooldown
+
+Android starts a mandatory **24-hour waiting period** after reboot.
+{% endstep %}
+{% step %}
+### Choose "Allow Indefinitely"
+
+After 24 hours, return to **Developer Options → Apps from unverified developers** and select **Allow indefinitely**.
+
+{% hint style="danger" %}
+Do **not** pick the *7-day temporary window*, or Android will turn the setting back off after 7 days and force another 24-hour wait!
+{% endhint %}
+{% endstep %}
+{% endstepper %}
 
 ---
 
@@ -43,8 +66,8 @@ Without unlocking Developer Options, tapping direct APKs from GitHub, GitLab, Co
 
 ### Related Guides & Campaign
 
-- [Dedicated 24h Lock & Keep Android Open Page](/apkup/sideloading/google-lock/)
+- [Dedicated 24h Lock & Keep Android Open Page](https://durcheins.github.io/apkup/sideloading/google-lock/)
 - [Keep Android Open Campaign](https://keepandroidopen.org) • [Campaign Banner](https://keepandroidopen.org/banner/)
-- [Installing Unknown Apps (General Wiki)](/apkup/wiki/#doc-sideloading)
-- [Root & Background Installation](/apkup/wiki/#doc-shizuku-deep)
-- [Setting up Shizuku (Quick Guide)](/apkup/wiki/#doc-shizuku-setup)
+- [Installing Unknown Apps (General Wiki)](installing-unknown-apps.md)
+- [Root & Background Installation](shizuku-background-installation.md)
+- [Setting up Shizuku (Quick Guide)](setting-up-shizuku.md)

@@ -1,3 +1,8 @@
+---
+description: "Configure Personal Access Tokens for higher API rate limits, GraphQL batching, and private or self-hosted repositories."
+icon: key
+---
+
 # 🔑 Configuring GitHub, GitLab & Codeberg Personal Access Tokens
 
 ← Back to [Wiki Home](home.md) · [Troubleshooting Rate Limits & Auth](troubleshooting.md#3-authentication--rate-limits-http-401-403-429)

@@ -1,3 +1,8 @@
+---
+description: "Verify ApkUp APK SHA-256 checksums locally on Windows, Linux, and macOS, plus automatic v2/v3 signing certificate protection."
+icon: shield-check
+---
+
 # SHA-256 Checksums & APK Signature Verification
 
 Every APK you download from GitHub Releases or a mirror can be verified in seconds before you install it. This guide explains what **SHA-256** and **APK signing certificates** are, why they protect you, and how to check them step by step.
@@ -18,19 +23,19 @@ A **SHA-256 checksum** (also called a hash or digest) is a unique **64-character
 
 You can verify the downloaded `.apk` file on your PC or Mac in 10 seconds before transferring or installing it:
 
-### Windows (PowerShell)
-
-1. Open **PowerShell** in your Downloads folder (or `cd $HOME\Downloads`).
+{% tabs %}
+{% tab title="Windows (PowerShell)" %}
+1. Open **PowerShell** in your Downloads folder (`cd $HOME\Downloads`).
 2. Run:
 
 ```powershell
 Get-FileHash .\ApkUp-*.apk -Algorithm SHA256
 ```
 
-3. Compare the printed `Hash` (case-insensitive) with the **Live SHA-256 Checksum** shown on [ApkUp Downloads](/apkup/downloads/) or in `SHA256SUMS` on GitHub Releases.
+3. Compare the printed `Hash` with the checksum shown on [ApkUp Downloads](https://durcheins.github.io/apkup/downloads/) or in `SHA256SUMS` on GitHub Releases.
+{% endtab %}
 
-### Linux
-
+{% tab title="Linux" %}
 1. Download both the `.apk` and `SHA256SUMS` from [GitHub Releases](https://github.com/DurchEins/apkup/releases/latest) into the same folder.
 2. Run:
 
@@ -39,9 +44,9 @@ sha256sum -c SHA256SUMS
 ```
 
 3. Look for **`ApkUp-v....apk: OK`**.
+{% endtab %}
 
-### macOS
-
+{% tab title="macOS" %}
 1. Open **Terminal** in your Downloads folder (`cd ~/Downloads`).
 2. Run:
 
@@ -49,7 +54,9 @@ sha256sum -c SHA256SUMS
 shasum -a 256 ApkUp-*.apk
 ```
 
-3. Compare the output hash with the official hash on [ApkUp Downloads](/apkup/downloads/).
+3. Compare the output hash with the official hash on [ApkUp Downloads](https://durcheins.github.io/apkup/downloads/).
+{% endtab %}
+{% endtabs %}
 
 ---
 
@@ -63,6 +70,6 @@ You do **not** have to run manual checks when updating apps inside ApkUp:
 
 ### Related Links
 
-- [Downloads, Live SHA-256 & All Mirrors](/apkup/downloads/)
-- [Security Policy](/apkup/security/)
+- [Downloads, Live SHA-256 & All Mirrors](https://durcheins.github.io/apkup/downloads/)
+- [Security Policy](https://durcheins.github.io/apkup/security/)
 - [GitHub Releases (Canonical APK + SHA256SUMS)](https://github.com/DurchEins/apkup/releases/latest)

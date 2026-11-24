@@ -28,33 +28,39 @@ function renderLink(item) {
 function renderChampions(champions) {
   if (champions.length === 0) {
     return [
-      '#### 🏛️ Open-Source Champions ($50+/mo)',
+      '### 🏛️ Open-Source Champions ($50+/mo)',
       '',
-      `> *Be the first Open-Source Champion — privacy-respecting projects welcome! [Sponsor on GitHub](${SPONSORS_URL})*`,
+      `*Privacy-respecting projects & teams welcome — <a href="${SPONSORS_URL}">become the first Open-Source Champion →</a>*`,
     ].join('\n');
   }
 
-  const cards = champions.map((c) => {
+  const rows = champions.map((c) => {
     const avatar = c.avatar
-      ? `<img src="${escapeHtml(c.avatar)}" width="48" height="48" alt="${escapeHtml(c.name)}" /> `
-      : '';
+      ? `<img src="${escapeHtml(c.avatar)}" width="48" height="48" alt="${escapeHtml(c.name)}" />`
+      : '🏛️';
     const tagline = c.tagline ? `<br><sub>${escapeHtml(c.tagline)}</sub>` : '';
-    return `- ${avatar}${renderLink(c)}${tagline}`;
+    return `| ${avatar} | ${renderLink(c)}${tagline} |`;
   });
 
-  return ['#### 🏛️ Open-Source Champions ($50+/mo)', '', ...cards].join('\n');
+  return [
+    '### 🏛️ Open-Source Champions ($50+/mo)',
+    '',
+    '| | Champion |',
+    '| :---: | :--- |',
+    ...rows,
+  ].join('\n');
 }
 
 function renderFeatured(featured) {
   const count = featured.length;
-  const summary = `⭐ <b>Featured Supporters</b> ($15–$25/mo &amp; $50–$100 one-time)${count > 0 ? ` (${count})` : ''}`;
+  const summary = `⭐ <b>Featured Supporters</b> — $15–$25/mo &amp; $50–$100 one-time${count > 0 ? ` (${count})` : ''}`;
 
   if (count === 0) {
     return [
       '<details>',
       `<summary>${summary}</summary>`,
       '',
-      `> *Be the first Featured Supporter on this wall! [Become a sponsor](${SPONSORS_URL})*`,
+      `*Be the first Featured Supporter on this wall — <a href="${SPONSORS_URL}">become a sponsor →</a>*`,
       '',
       '</details>',
     ].join('\n');
@@ -64,7 +70,7 @@ function renderFeatured(featured) {
     const img = f.avatar
       ? `<img src="${escapeHtml(f.avatar)}" width="40" height="40" alt="${escapeHtml(f.name)}" />`
       : '⭐';
-    const note = f.tagline ? ` — <sub>${escapeHtml(f.tagline)}</sub>` : '';
+    const note = f.tagline ? `<br><sub>${escapeHtml(f.tagline)}</sub>` : '';
     return `| ${img} | ${renderLink(f)}${note} |`;
   });
 
@@ -72,7 +78,7 @@ function renderFeatured(featured) {
     '<details>',
     `<summary>${summary}</summary>`,
     '',
-    '| | Supporter |',
+    '| | Featured Supporter |',
     '| :---: | :--- |',
     ...rows,
     '',
@@ -82,14 +88,14 @@ function renderFeatured(featured) {
 
 function renderSupporters(supporters) {
   const count = supporters.length;
-  const summary = `🌟 <b>Supporters Wall</b> ($5–$10/mo &amp; $10–$42 one-time)${count > 0 ? ` (${count})` : ''}`;
+  const summary = `🌟 <b>Supporters Wall</b> — $5–$10/mo &amp; $10–$42 one-time${count > 0 ? ` (${count})` : ''}`;
 
   if (count === 0) {
     return [
       '<details>',
       `<summary>${summary}</summary>`,
       '',
-      `> *Be the first supporter on this wall! [Support ApkUp](${SPONSORS_URL})*`,
+      `*Be the first supporter on this wall — <a href="${SPONSORS_URL}">support ApkUp →</a>*`,
       '',
       '</details>',
     ].join('\n');

@@ -1,4 +1,9 @@
-﻿# 🌐 Update Sources, Repository Linking & Signature Protection in ApkUp
+---
+description: "How Google Play, APKMirror, F-Droid, IzzyOnDroid, GitHub, GitLab, and Codeberg work with source priority, pinning, and signature checks."
+icon: globe
+---
+
+# 🌐 Update Sources, Repository Linking & Signature Protection in ApkUp
 
 This guide explains how ApkUp's update sources work together, how **Source Priority & Per-App Pinning** choose the best download, how **Pre-Release Channels** and **Signature Verification** protect your device, and how to link custom GitHub, GitLab, or Codeberg/Forgejo repositories.
 

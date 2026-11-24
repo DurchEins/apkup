@@ -1,3 +1,8 @@
+---
+description: "Manage watchlist, ignored apps, APK exports, quiet-hour update windows, rollback backups, and encrypted JSON settings backups."
+icon: sliders
+---
+
 # 🛠️ App Management, Filters, Background Checks & Backup/Restore in ApkUp
 
 This guide explains how to skip faulty updates, ignore apps, track uninstalled apps via your Watchlist, export APKs, schedule background update windows, use rollback backups, opt into ApkUp beta updates, and transfer your configuration between devices.

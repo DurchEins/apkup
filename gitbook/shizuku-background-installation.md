@@ -1,3 +1,8 @@
+---
+description: "Deep dive into silent batch installs, WorkManager background checks, optional Root (su) fallback, and Android 14+ BAL handling."
+icon: gears
+---
+
 # Shizuku & Silent Background Installations in ApkUp
 
 ← Back to [Wiki Home](home.md) · Beginner Walkthrough: [Setting up Shizuku](setting-up-shizuku.md)

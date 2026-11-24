@@ -1,3 +1,8 @@
+---
+description: "Central knowledge base for ApkUp: multi-source Android updates, Shizuku automation, SHA-256 verification, and troubleshooting."
+icon: book-open
+---
+
 # 📖 Welcome to the Official ApkUp Wiki
 
 Welcome to the central knowledge base for **ApkUp** — an open-source, privacy-first Android app updater built with Kotlin, Jetpack Compose, and Material 3 Expressive.
@@ -9,6 +14,18 @@ Every main guide is structured into clear layers:
 
 ---
 
+
+<table data-view="cards">
+<thead><tr><th>Guide</th><th>What you will learn</th><th data-hidden data-card-target data-type="content-ref">Link</th></tr></thead>
+<tbody>
+<tr><td><strong>🌐 Update Sources & Security</strong></td><td>Play Store, F-Droid Index V2, APKMirror, GitHub/GitLab/Codeberg, Priority &amp; Signatures</td><td><a href="update-sources.md">update-sources.md</a></td></tr>
+<tr><td><strong>⚡ Setting up Shizuku</strong></td><td>Silent background updates &amp; one-tap batch installs without Root</td><td><a href="setting-up-shizuku.md">setting-up-shizuku.md</a></td></tr>
+<tr><td><strong>🛡️ SHA-256 &amp; Signatures</strong></td><td>Verify APK checksums on Windows, Linux &amp; macOS + automatic v2/v3 checks</td><td><a href="sha256-signature-verification.md">sha256-signature-verification.md</a></td></tr>
+<tr><td><strong>🛠️ Management &amp; Backups</strong></td><td>Watchlist, quiet hours, rollback backups &amp; encrypted settings export</td><td><a href="app-management-and-backup.md">app-management-and-backup.md</a></td></tr>
+<tr><td><strong>🔄 Obtainium Migration</strong></td><td>Import Obtainium JSON exports with interactive preview in seconds</td><td><a href="obtainium-sync.md">obtainium-sync.md</a></td></tr>
+<tr><td><strong>🚨 Troubleshooting</strong></td><td>Quick fixes for DNS, 401/403/429 rate limits, Cloudflare &amp; signature errors</td><td><a href="troubleshooting.md">troubleshooting.md</a></td></tr>
+</tbody>
+</table>
 ## 🗺️ Recommended Reading Order
 
 ### 1. [🌐 Update Sources, Repository Linking & Signature Protection](update-sources.md)

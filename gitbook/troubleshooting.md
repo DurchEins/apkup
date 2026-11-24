@@ -1,3 +1,8 @@
+---
+description: "Direct fixes for DNS errors, HTTP 401/403/429 rate limits, APKMirror Cloudflare challenges, signature mismatches, and repo filters."
+icon: triangle-exclamation
+---
+
 # 🚨 Troubleshooting Source Errors in ApkUp
 
 When checking for updates or downloading packages, ApkUp communicates with multiple independent providers (Google Play Store, APKMirror, F-Droid / IzzyOnDroid, GitHub, GitLab, and Codeberg / Forgejo). If a source check or installation fails, ApkUp links directly to the matching section below.

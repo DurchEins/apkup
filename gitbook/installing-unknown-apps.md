@@ -1,8 +1,13 @@
+---
+description: "Step-by-step guide to Android Install Unknown Apps permissions plus power-user installation via Shizuku, ADB, and Root."
+icon: download
+---
+
 # Installing Unknown Apps on Android (Sideloading Guide)
 
 Android allows installing apps outside the Google Play Store (**sideloading**). This guide covers Android's classic **"Install unknown apps"** permission as well as power-user installation via **Shizuku**, **ADB**, and **Root (su)**.
 
-> Looking for help with Google's 2026/2027 24-hour Developer Options cooldown? See **[Google's 24h Lock & Keep Android Open](/apkup/wiki/#doc-google-lock)** or the dedicated [24h Lock Page](/apkup/sideloading/google-lock/).
+> Looking for help with Google's 2026/2027 24-hour Developer Options cooldown? See **[Google's 24h Lock & Keep Android Open](google-24h-lock.md)** or the dedicated [24h Lock Page](https://durcheins.github.io/apkup/sideloading/google-lock/).
 
 ---
 
@@ -10,7 +15,7 @@ Android allows installing apps outside the Google Play Store (**sideloading**). 
 
 On standard Android 10–17 devices:
 
-1. **Download the latest signed APK** from [ApkUp Downloads](/apkup/downloads/) or [GitHub Releases](https://github.com/DurchEins/apkup/releases/latest).
+1. **Download the latest signed APK** from [ApkUp Downloads](https://durcheins.github.io/apkup/downloads/) or [GitHub Releases](https://github.com/DurchEins/apkup/releases/latest).
 2. Tap the downloaded APK file in your browser or file manager.
 3. If Android shows *"For your security, your phone currently isn't allowed to install unknown apps from this source"*:
    - Tap **Settings** in the prompt.
@@ -33,7 +38,7 @@ Because ADB and elevated installer sessions operate through Android's developer 
 
 ### Related Guides
 
-- [Dedicated Unknown Apps Page](/apkup/sideloading/)
-- [Google's 24h Lock & Keep Android Open](/apkup/wiki/#doc-google-lock)
-- [Setting up Shizuku (Quick Guide)](/apkup/wiki/#doc-shizuku-setup)
-- [SHA-256 Checksums & APK Signature Verification](/apkup/wiki/#doc-sha256)
+- [Dedicated Unknown Apps Page](https://durcheins.github.io/apkup/sideloading/)
+- [Google's 24h Lock & Keep Android Open](google-24h-lock.md)
+- [Setting up Shizuku (Quick Guide)](setting-up-shizuku.md)
+- [SHA-256 Checksums & APK Signature Verification](sha256-signature-verification.md)

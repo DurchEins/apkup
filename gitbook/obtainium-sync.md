@@ -1,3 +1,8 @@
+---
+description: "Import Obtainium JSON exports into ApkUp with interactive preview for repo links, regex filters, F-Droid repos, and watchlist items."
+icon: arrows-rotate
+---
+
 # 🔄 Obtainium Migration & Sync Guide
 
 ApkUp features native integration with [Obtainium](https://github.com/ImranR98/Obtainium) JSON exports so you can migrate your tracked apps, custom repository bindings, regex asset filters, and F-Droid repositories in seconds.
@@ -69,4 +74,6 @@ Even when a custom repository offers a higher `versionCode`, ApkUp extracts the 
 To back up or transfer your **ApkUp** configuration (including custom repo links, ignored apps, source priority, and preferences) to another phone via Android's Storage Access Framework (SAF), follow the full guide:
 👉 **[Guide: Backing up settings and restoring them on a new phone](app-management-and-backup.md#16-guide-backing-up-settings-and-restoring-them-on-a-new-phone)**
 
-*(Note: Personal Access Tokens are stored encrypted on-device via Google Tink `AES-256-GCM` and are never exported in plaintext JSON backups.)*
+{% hint style="info" %}
+Personal Access Tokens are stored encrypted on-device via Google Tink `AES-256-GCM` and are never exported in plaintext JSON backups.
+{% endhint %}

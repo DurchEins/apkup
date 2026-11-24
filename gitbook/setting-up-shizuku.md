@@ -1,3 +1,8 @@
+---
+description: "Quick setup checklist to enable silent background app updates in ApkUp using Shizuku via Wireless Debugging, USB ADB, or Root."
+icon: bolt
+---
+
 # ⚡ Setting up Shizuku for Silent Updates
 
 [Shizuku](https://shizuku.rikka.app) lets **ApkUp** install updates silently in the background **without Root** — no more tapping "Install" and "Update" on 20 consecutive popups.
@@ -26,38 +31,57 @@ This page is the **quick setup checklist**. For the technical architecture, dual
 
 ---
 
-## 2. Method A: Wireless Debugging (Android 11+, No PC)
+## 2. Choose Your Shizuku Start Method
 
-1. Install **Shizuku** from Google Play, F-Droid, or [GitHub Releases](https://github.com/RikkaApps/Shizuku/releases).
-2. Enable **Developer Options**: **Android Settings ➔ About Phone** ➔ tap **Build Number** 7 times.
-3. Connect your phone to Wi-Fi.
-4. Open **Shizuku**:
-   * Under *Start via Wireless Debugging*, tap **Pairing**.
-   * Tap **Developer Options** in the prompt.
-   * Enable **Wireless Debugging**, tap its title to open its submenu, and tap **Pair device with pairing code**.
-   * Enter the 6-digit code in the Shizuku notification prompt.
-5. Return to Shizuku and tap **Start**.
+{% tabs %}
+{% tab title="Wireless Debugging (Android 11+, No PC)" %}
+{% stepper %}
+{% step %}
+### Install Shizuku
 
-> **Tip:** You only pair once. After a phone reboot, simply open Shizuku and tap **Start** (takes ~3 seconds).
+Install **Shizuku** from Google Play, F-Droid, or [GitHub Releases](https://github.com/RikkaApps/Shizuku/releases).
+{% endstep %}
+{% step %}
+### Enable Developer Options & Wi-Fi
 
----
+Open **Android Settings ➔ About Phone** and tap **Build Number** 7 times, then connect your phone to Wi-Fi.
+{% endstep %}
+{% step %}
+### Pair with Wireless Debugging
 
-## 3. Method B: PC / Mac (USB ADB)
+Open **Shizuku** ➔ **Pairing** ➔ **Developer Options** ➔ enable **Wireless Debugging**, tap its title, choose **Pair device with pairing code**, and enter the 6-digit code in the Shizuku notification.
+{% endstep %}
+{% step %}
+### Start Shizuku
 
-For Android 10 or if Wireless Debugging is unavailable:
+Return to **Shizuku** and tap **Start**.
+
+{% hint style="success" %}
+You only pair once. After a reboot, simply open Shizuku and tap **Start** (takes ~3 seconds).
+{% endhint %}
+{% endstep %}
+{% endstepper %}
+{% endtab %}
+
+{% tab title="PC / Mac (USB ADB)" %}
+For Android 10 or when Wireless Debugging is unavailable:
+
 1. Enable **USB Debugging** in **Developer Options** and connect via USB.
 2. Run the command shown inside Shizuku:
-   ```bash
-   adb shell sh /sdcard/Android/data/moe.shizuku.privileged.api/start.sh
-   ```
 
----
+```bash
+adb shell sh /sdcard/Android/data/moe.shizuku.privileged.api/start.sh
+```
+{% endtab %}
 
-## 4. Method C: Rooted Devices
-
+{% tab title="Rooted Devices" %}
 If your device uses Magisk, KernelSU, or APatch:
+
 1. Open **Shizuku** ➔ tap **Start (for rooted devices)** and grant superuser permission.
-*(Alternatively, ApkUp also supports its own optional **Root Installer (`su`)** under **Setup ➔ Installation & Automation** — see [Section 3.10](shizuku-background-installation.md#310-optional-root-installer-su-fallback).)*
+
+*(Alternatively, ApkUp supports its own optional **Root Installer (`su`)** under **Setup ➔ Installation & Automation** — see [Section 3.10](shizuku-background-installation.md#310-optional-root-installer-su-fallback).)*
+{% endtab %}
+{% endtabs %}
 
 ---
 

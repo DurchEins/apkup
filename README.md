@@ -268,21 +268,21 @@ If ApkUp saves you time keeping your apps up to date, consider supporting its on
 <br>
 
 <!-- SPONSORS_WALL:START -->
-#### 🏛️ Open-Source Champions ($50+/mo)
+### 🏛️ Open-Source Champions ($50+/mo)
 
-> *Be the first Open-Source Champion — privacy-respecting projects welcome! [Sponsor on GitHub](https://github.com/sponsors/DurchEins)*
+*Privacy-respecting projects & teams welcome — <a href="https://github.com/sponsors/DurchEins">become the first Open-Source Champion →</a>*
 
 <details>
-<summary>⭐ <b>Featured Supporters</b> ($15–$25/mo &amp; $50–$100 one-time)</summary>
+<summary>⭐ <b>Featured Supporters</b> — $15–$25/mo &amp; $50–$100 one-time</summary>
 
-> *Be the first Featured Supporter on this wall! [Become a sponsor](https://github.com/sponsors/DurchEins)*
+*Be the first Featured Supporter on this wall — <a href="https://github.com/sponsors/DurchEins">become a sponsor →</a>*
 
 </details>
 
 <details>
-<summary>🌟 <b>Supporters Wall</b> ($5–$10/mo &amp; $10–$42 one-time)</summary>
+<summary>🌟 <b>Supporters Wall</b> — $5–$10/mo &amp; $10–$42 one-time</summary>
 
-> *Be the first supporter on this wall! [Support ApkUp](https://github.com/sponsors/DurchEins)*
+*Be the first supporter on this wall — <a href="https://github.com/sponsors/DurchEins">support ApkUp →</a>*
 
 </details>
 <!-- SPONSORS_WALL:END -->

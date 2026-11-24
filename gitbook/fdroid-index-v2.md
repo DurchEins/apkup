@@ -1,3 +1,8 @@
+---
+description: "F-Droid, IzzyOnDroid, and custom HTTPS repositories with Index V2 incremental diffs, JAR certificate pinning, and SHA-256 checks."
+icon: box-archive
+---
+
 # 📦 F-Droid & Index V2 Repositories in ApkUp
 
 ← Back to [Wiki Home](home.md) · [Troubleshooting Source Errors](troubleshooting.md#8-f-droid--izzyondroid--codeberg--forgejo-issues)
