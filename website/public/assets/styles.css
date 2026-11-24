@@ -788,7 +788,7 @@ p {
 
   .support-card {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(280px, 1fr) minmax(0, 1.35fr);
     align-items: center;
     gap: 24px 36px;
     background: var(--bg);
@@ -813,18 +813,8 @@ p {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: flex-end;
     gap: 10px;
-  }
-
-  .support-sponsor-iframe-wrap {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 44px;
-    padding: 4px 8px;
-    border-radius: var(--radius-pill);
-    background: var(--surface-low);
-    border: 1px solid var(--outline-strong);
   }
 
   .support-pill {
@@ -843,6 +833,10 @@ p {
   @media (max-width: 960px) {
     .support-card {
       grid-template-columns: minmax(0, 1fr);
+    }
+
+    .support-actions {
+      justify-content: flex-start;
     }
   }
 
