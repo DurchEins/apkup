@@ -55,7 +55,8 @@ jobs:
               { label: 'shizuku', re: /\b(shizuku|sui|binder)\b/ },
               { label: 'root', re: /\b(root|magisk|kernelsu|apatch|su installer)\b/ },
               { label: 'export-backup', re: /\b(save apk|export apk|apk export|backup|rollback|downgrade|obtainium|appwatcher|app watcher|save locally|locally)\b/ },
-              { label: 'ui-design', re: /\b(ui|ux|design|theme|dark mode|light mode|material|layout|font|icon|translation|language|übersetzung|sprache)\b/ },
+              { label: 'ui-design', re: /\b(ui|ux|design|theme|dark mode|light mode|material|layout|font|icon)\b/ },
+              { label: 'translation', re: /\b(translation|translations|language|languages|l10n|i18n|weblate|übersetzung|sprache)\b/ },
               { label: 'accessibility', re: /\b(accessibility|a11y|talkback|screen reader|contrast|font scale)\b/ },
               { label: 'documentation', re: /\b(wiki|readme|docs|documentation|dokumentation)\b/ }
             ];
