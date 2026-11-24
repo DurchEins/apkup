@@ -257,6 +257,17 @@
     <string name="update_history_filter_empty_title">Nessuna corrispondenza</string>
     <string name="update_history_filter_empty_desc">Prova un altro termine o reimposta i filtri.</string>
     <string name="update_history_filter_reset">Reimposta filtri</string>
+    <string name="batch_safety_title">Controllo sicurezza batch</string>
+    <string name="batch_safety_low_battery">Batteria al %1$d%% senza caricatore. Gli aggiornamenti multipli potrebbero scaricarla.</string>
+    <string name="batch_safety_low_storage">Solo %1$d MB liberi disponibili (consigliati 500 MB).</string>
+    <string name="batch_safety_continue">Continua comunque</string>
+    <string name="batch_retry_failed_banner">%1$d aggiornamento/i non riuscito/i</string>
+    <string name="batch_retry_failed_short">Riprova</string>
+    <string name="update_snooze_action">Posticipa avviso</string>
+    <string name="update_snooze_24h">24 ore</string>
+    <string name="update_snooze_3d">3 giorni</string>
+    <string name="update_snoozed_snack">%1$s posticipata</string>
+    <string name="watchlist_auto_removed_installed">%1$s rimossa dalla Watchlist — ora installata</string>
     <string name="update_history_empty_title">Nessun aggiornamento registrato</string>
     <string name="update_history_empty_desc">Quando ApkUp aggiorna le app manualmente o in automatico tramite Shizuku, appariranno qui con il link alla versione precedente.</string>
     <string name="update_history_mode_auto_shizuku">Auto · Shizuku</string>

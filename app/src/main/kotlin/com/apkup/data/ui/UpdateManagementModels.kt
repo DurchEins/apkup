@@ -54,6 +54,33 @@ data class IgnoredVersionEntry(
     }
 }
 
+@androidx.annotation.Keep
+data class SnoozedUpdateEntry(
+    @com.google.gson.annotations.SerializedName("packageName")
+    val packageName: String = "",
+    @com.google.gson.annotations.SerializedName("appName")
+    val appName: String = "",
+    @com.google.gson.annotations.SerializedName("version")
+    val version: String = "",
+    @com.google.gson.annotations.SerializedName("versionCode")
+    val versionCode: Long = 0L,
+    @com.google.gson.annotations.SerializedName("snoozeUntilMillis")
+    val snoozeUntilMillis: Long = 0L
+) {
+    fun isActiveFor(
+        targetPackageName: String,
+        targetVersionCode: Long,
+        targetVersion: String,
+        nowMillis: Long = System.currentTimeMillis()
+    ): Boolean {
+        if (snoozeUntilMillis <= nowMillis) return false
+        if (packageName.isBlank() || !packageName.equals(targetPackageName, ignoreCase = true)) return false
+        if (versionCode > 0L && targetVersionCode > 0L) return versionCode == targetVersionCode
+        if (version.isNotBlank() && targetVersion.isNotBlank()) return version == targetVersion
+        return true
+    }
+}
+
 data class CachedAppUpdateDto(
     val name: String = "",
     val packageName: String = "",

@@ -257,6 +257,17 @@
     <string name="update_history_filter_empty_title">Aucun résultat</string>
     <string name="update_history_filter_empty_desc">Essayez un autre mot-clé ou réinitialisez les filtres.</string>
     <string name="update_history_filter_reset">Réinitialiser</string>
+    <string name="batch_safety_title">Vérification avant mise à jour</string>
+    <string name="batch_safety_low_battery">Batterie à %1$d %% sans chargeur. Les mises à jour groupées peuvent l’épuiser.</string>
+    <string name="batch_safety_low_storage">Il ne reste que %1$d Mo libres (500 Mo recommandés).</string>
+    <string name="batch_safety_continue">Continuer quand même</string>
+    <string name="batch_retry_failed_banner">%1$d mise(s) à jour échouée(s)</string>
+    <string name="batch_retry_failed_short">Réessayer</string>
+    <string name="update_snooze_action">Rappeler plus tard</string>
+    <string name="update_snooze_24h">24 heures</string>
+    <string name="update_snooze_3d">3 jours</string>
+    <string name="update_snoozed_snack">%1$s reportée</string>
+    <string name="watchlist_auto_removed_installed">%1$s retirée de la Watchlist — installée</string>
     <string name="update_history_empty_title">Aucune mise à jour enregistrée</string>
     <string name="update_history_empty_desc">Dès qu’ApkUp met à jour des applications manuellement ou automatiquement via Shizuku, elles apparaissent ici avec un lien vers la version précédente.</string>
     <string name="update_history_mode_auto_shizuku">Auto · Shizuku</string>

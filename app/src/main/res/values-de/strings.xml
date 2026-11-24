@@ -383,6 +383,17 @@
     <string name="update_history_filter_empty_title">Keine passenden Einträge</string>
     <string name="update_history_filter_empty_desc">Versuche einen anderen Suchbegriff oder setze die Filter zurück.</string>
     <string name="update_history_filter_reset">Filter zurücksetzen</string>
+    <string name="batch_safety_title">Sicherheitscheck vor Batch-Update</string>
+    <string name="batch_safety_low_battery">Akku liegt bei %1$d %% ohne Ladegerät. Größere Batch-Updates können den Restakku schnell verbrauchen.</string>
+    <string name="batch_safety_low_storage">Nur noch %1$d MB Speicher frei (500 MB empfohlen für Batch-Updates).</string>
+    <string name="batch_safety_continue">Trotzdem fortfahren</string>
+    <string name="batch_retry_failed_banner">%1$d Update(s) fehlgeschlagen</string>
+    <string name="batch_retry_failed_short">Erneut versuchen</string>
+    <string name="update_snooze_action">Später erinnern</string>
+    <string name="update_snooze_24h">24 Stunden</string>
+    <string name="update_snooze_3d">3 Tage</string>
+    <string name="update_snoozed_snack">%1$s pausiert</string>
+    <string name="watchlist_auto_removed_installed">%1$s aus Watchlist übernommen — jetzt installiert</string>
     <string name="update_history_empty_title">Noch keine Updates protokolliert</string>
     <string name="update_history_empty_desc">Sobald ApkUp Apps manuell oder automatisch über Shizuku aktualisiert, erscheinen sie hier samt Link zur Vorgängerversion.</string>
     <string name="update_history_mode_auto_shizuku">Auto · Shizuku</string>

@@ -69,6 +69,7 @@ open class UpdatesNotification(private val context: Context) : AutoUpdateNotifie
 
     companion object {
         const val UpdateAction = "com.apkup.action.OPEN_UPDATES"
+        const val RETRY_FAILED_ACTION = "com.apkup.action.RETRY_FAILED_UPDATES"
         const val UPDATE_CHANNEL_ID = "update_notification_channel"
         private const val CHECK_PROGRESS_CHANNEL_ID = "update_check_progress_channel"
     }
@@ -233,6 +234,25 @@ open class UpdatesNotification(private val context: Context) : AutoUpdateNotifie
                 )
             )
             .setAutoCancel(true)
+
+        if (manual.isNotEmpty()) {
+            val retryIntent = Intent(context, MainActivity::class.java).apply {
+                setPackage(context.packageName)
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                action = RETRY_FAILED_ACTION
+            }
+            val retryPendingIntent = PendingIntent.getActivity(
+                context,
+                3,
+                retryIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            builder.addAction(
+                R.drawable.ic_install,
+                context.getString(R.string.batch_retry_failed_short),
+                retryPendingIntent
+            )
+        }
 
         NotificationManagerCompat.from(context).notify(updateId, builder.build())
     }
