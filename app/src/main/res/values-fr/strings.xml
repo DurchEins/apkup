@@ -96,11 +96,7 @@
     <string name="shizuku_status_missing_permission">Non autorisé</string>
     <string name="shizuku_setup_recheck">Revérifier l\'état</string>
     <string name="shizuku_setup_rechecked_feedback">État vérifié et mis à jour</string>
-    <string name="shizuku_setup_close">Fermer</string>
-    <string name="updates_display_mode">Affichage des mises à jour</string>
-    <string name="updates_detail_view">Détail</string>
-    <string name="updates_compact_view">Compact</string>
-    <string name="settings_background_checks">Vérification auto en arrière-plan</string>
+    <string name="shizuku_setup_close">Fermer</string>    <string name="updates_detail_view">Détail</string>    <string name="settings_background_checks">Vérification auto en arrière-plan</string>
     <string name="settings_background_interval_title">Intervalle de vérification</string>
     <string name="settings_interval_6h">Toutes les 6 heures</string>
     <string name="settings_interval_12h">Toutes les 12 heures</string>
@@ -185,9 +181,7 @@
     <!-- Settings Sections -->
     <string name="settings_section_appearance">Apparence et disposition</string>
     <string name="settings_section_sources">Sources de mise à jour</string>
-    <string name="settings_section_app_management">Gestion des applications</string>
-    <string name="settings_preview_title">Aperçu en direct</string>
-
+    <string name="settings_section_app_management">Gestion des applications</string>
     <string name="hidden_apps_title">Applications masquées définitivement</string>
     <string name="hidden_apps_explanation">Ces applications sont totalement ignorées. Elles n\'apparaîtront ni dans votre liste ni dans les prochaines recherches de mises à jour.</string>
     <string name="hidden_apps_badge_count">%1$d apps</string>

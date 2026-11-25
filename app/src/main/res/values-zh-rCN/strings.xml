@@ -96,11 +96,7 @@
     <string name="shizuku_status_missing_permission">未授权</string>
     <string name="shizuku_setup_recheck">重新检查状态</string>
     <string name="shizuku_setup_rechecked_feedback">已检查并更新实时状态</string>
-    <string name="shizuku_setup_close">关闭</string>
-    <string name="updates_display_mode">更新显示方式</string>
-    <string name="updates_detail_view">详细</string>
-    <string name="updates_compact_view">紧凑</string>
-    <string name="settings_background_checks">后台自动检查更新</string>
+    <string name="shizuku_setup_close">关闭</string>    <string name="updates_detail_view">详细</string>    <string name="settings_background_checks">后台自动检查更新</string>
     <string name="settings_background_interval_title">检查频率</string>
     <string name="settings_interval_6h">每 6 小时</string>
     <string name="settings_interval_12h">每 12 小时</string>
@@ -185,9 +181,7 @@
     <!-- Settings Sections -->
     <string name="settings_section_appearance">外观与布局</string>
     <string name="settings_section_sources">更新源</string>
-    <string name="settings_section_app_management">应用管理</string>
-    <string name="settings_preview_title">实时预览</string>
-
+    <string name="settings_section_app_management">应用管理</string>
     <string name="hidden_apps_title">永久隐藏的应用</string>
     <string name="hidden_apps_explanation">这些应用将被完全忽略，既不会出现在应用列表中，也不会在后续更新检查中扫描。</string>
     <string name="hidden_apps_badge_count">%1$d 个应用</string>

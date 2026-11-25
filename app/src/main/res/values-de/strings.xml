@@ -97,11 +97,7 @@
     <string name="shizuku_status_missing_permission">Berechtigung fehlt</string>
     <string name="shizuku_setup_recheck">Status erneut prüfen</string>
     <string name="shizuku_setup_rechecked_feedback">Live-Status überprüft und aktualisiert</string>
-    <string name="shizuku_setup_close">Schließen</string>
-    <string name="updates_display_mode">Update-Ansicht</string>
-    <string name="updates_detail_view">Details</string>
-    <string name="updates_compact_view">Kompakt</string>
-    <string name="settings_background_checks">Automatische Hintergrundprüfung</string>
+    <string name="shizuku_setup_close">Schließen</string>    <string name="updates_detail_view">Details</string>    <string name="settings_background_checks">Automatische Hintergrundprüfung</string>
     <string name="settings_background_interval_title">Prüfintervall</string>
     <string name="settings_interval_6h">Alle 6 Stunden</string>
     <string name="settings_interval_12h">Alle 12 Stunden</string>
@@ -239,9 +235,7 @@
     <string name="settings_section_background_checks">Automatische Suche &amp; Zeitplan</string>
     <string name="settings_section_install_automation">Installation &amp; Automatisierung</string>
     <string name="settings_section_app_management">App-Verwaltung</string>
-    <string name="settings_section_backup_restore">Datensicherung &amp; Export</string>
-    <string name="settings_preview_title">Live-Vorschau</string>
-
+    <string name="settings_section_backup_restore">Datensicherung &amp; Export</string>
     <string name="hidden_apps_title">Dauerhaft ausgeblendete Apps</string>
     <string name="hidden_apps_explanation">Diese Apps werden komplett ignoriert. Sie erscheinen weder in deiner App-Liste noch bei zukünftigen Update-Prüfungen.</string>
     <string name="hidden_apps_badge_count">%1$d Apps</string>

@@ -175,7 +175,6 @@ class Prefs(
     )
     private val _snoozedUpdatesFlow = MutableStateFlow(readSnoozedUpdatesSafe())
     val snoozedUpdatesFlow: StateFlow<List<com.apkup.data.ui.SnoozedUpdateEntry>> = _snoozedUpdatesFlow.asStateFlow()
-    val updatesDisplayMode: PrefSlot<Int> = intSlot("updatesDisplayMode", defValue = 0)
     val appsViewMode: PrefSlot<String> = stringSlot("appsViewMode", defValue = "list")
     val appsSortOrder: PrefSlot<String> = stringSlot("appsSortOrder", defValue = "NAME_ASC")
     val updatesSortOrder: PrefSlot<String> = stringSlot("updatesSortOrder", defValue = "NAME_ASC")

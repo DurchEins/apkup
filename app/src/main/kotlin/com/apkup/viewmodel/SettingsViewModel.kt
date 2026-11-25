@@ -372,8 +372,6 @@ class SettingsViewModel(
 		}
 	}
 
-	fun getUpdatesDisplayMode() = prefs.updatesDisplayMode.get()
-	fun setUpdatesDisplayMode(mode: Int) = prefs.updatesDisplayMode.put(mode)
 	fun getUseApkMirror() = prefs.useApkMirror.get()
 	fun setUseApkMirror(b: Boolean) = prefs.useApkMirror.put(b)
 	fun getDirectApkMirrorDownloads(): Boolean = prefs.directApkMirrorDownloads.get()
@@ -776,7 +774,6 @@ class SettingsViewModel(
 			ignoredVersions = prefs.ignoredVersions.get(),
 			ignoredVersionEntries = prefs.readIgnoredVersionEntriesSafe(),
 			showSystemApps = prefs.showSystemApps.get(),
-			updatesDisplayMode = prefs.updatesDisplayMode.get(),
 			useApkMirror = prefs.useApkMirror.get(),
 			directApkMirrorDownloads = prefs.directApkMirrorDownloads.get(),
 			usePlay = prefs.usePlay.get(),
@@ -935,7 +932,6 @@ class SettingsViewModel(
 			prefs.ignoredVersions.put(sanitizedIgnoredVersions)
 			prefs.ignoredVersionEntries.put(sanitizedEntries)
 			prefs.setShowSystemApps(config.showSystemApps ?: false)
-			prefs.updatesDisplayMode.put((config.updatesDisplayMode ?: 0).coerceIn(0, 1))
 			prefs.useApkMirror.put(config.useApkMirror ?: true)
 			prefs.directApkMirrorDownloads.put(config.directApkMirrorDownloads ?: true)
 			prefs.usePlay.put(config.usePlay ?: true)

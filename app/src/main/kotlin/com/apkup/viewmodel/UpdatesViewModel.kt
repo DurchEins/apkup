@@ -259,8 +259,6 @@ class UpdatesViewModel(
 		snackBar.snackBar(viewModelScope, TextSnack(msg, visualType = com.apkup.data.snack.SnackVisualType.SUCCESS))
 	}
 
-	fun getUpdatesDisplayMode(): Int = prefs.updatesDisplayMode.get()
-
 	fun isDirectApkMirrorEnabled(): Boolean = prefs.directApkMirrorDownloads.get()
 
 	fun isUseApkMirrorEnabled(): Boolean = prefs.useApkMirror.get()

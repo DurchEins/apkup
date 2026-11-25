@@ -37,19 +37,16 @@ class PrefsTest {
     }
 
     @Test
-    fun shizukuAndDisplayModeDefaultsAndSavedValuesRemainAvailable() {
+    fun shizukuDefaultsAndSavedValuesRemainAvailable() {
         val storage = InMemoryPrefsBackend()
         val freshPrefs = Prefs(storage)
 
         assertFalse(freshPrefs.useShizukuInstaller.get())
-        assertEquals(0, freshPrefs.updatesDisplayMode.get())
 
         freshPrefs.useShizukuInstaller.put(true)
-        freshPrefs.updatesDisplayMode.put(1)
         val reopenedPrefs = Prefs(storage)
 
         assertTrue(reopenedPrefs.useShizukuInstaller.get())
-        assertEquals(1, reopenedPrefs.updatesDisplayMode.get())
     }
 
     @Test
@@ -60,13 +57,11 @@ class PrefsTest {
         assertFalse(freshPrefs.showSystemApps.get())
         freshPrefs.showSystemApps.put(true)
         freshPrefs.usePlay.put(false)
-        freshPrefs.updatesDisplayMode.put(1)
 
         val reopenedPrefs = Prefs(storage)
 
         assertTrue(reopenedPrefs.showSystemApps.get())
         assertFalse(reopenedPrefs.usePlay.get())
-        assertEquals(1, reopenedPrefs.updatesDisplayMode.get())
     }
 
     @Test

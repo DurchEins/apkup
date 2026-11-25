@@ -96,11 +96,7 @@
     <string name="shizuku_status_missing_permission">Permesso mancante</string>
     <string name="shizuku_setup_recheck">Verifica stato</string>
     <string name="shizuku_setup_rechecked_feedback">Stato verificato e aggiornato</string>
-    <string name="shizuku_setup_close">Chiudi</string>
-    <string name="updates_display_mode">Visualizzazione aggiornamenti</string>
-    <string name="updates_detail_view">Dettagli</string>
-    <string name="updates_compact_view">Compatta</string>
-    <string name="settings_background_checks">Verifica automatica in background</string>
+    <string name="shizuku_setup_close">Chiudi</string>    <string name="updates_detail_view">Dettagli</string>    <string name="settings_background_checks">Verifica automatica in background</string>
     <string name="settings_background_interval_title">Intervallo di controllo</string>
     <string name="settings_interval_6h">Ogni 6 ore</string>
     <string name="settings_interval_12h">Ogni 12 ore</string>
@@ -185,9 +181,7 @@
     <!-- Settings Sections -->
     <string name="settings_section_appearance">Aspetto e layout</string>
     <string name="settings_section_sources">Fonti di aggiornamento</string>
-    <string name="settings_section_app_management">Gestione app</string>
-    <string name="settings_preview_title">Anteprima dal vivo</string>
-
+    <string name="settings_section_app_management">Gestione app</string>
     <string name="hidden_apps_title">App nascoste definitivamente</string>
     <string name="hidden_apps_explanation">Queste app sono completamente ignorate. Non appariranno nell\'elenco né nei futuri controlli di aggiornamento.</string>
     <string name="hidden_apps_badge_count">%1$d app</string>

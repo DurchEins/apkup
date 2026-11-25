@@ -96,11 +96,7 @@
     <string name="shizuku_status_missing_permission">Нет разрешения</string>
     <string name="shizuku_setup_recheck">Проверить статус снова</string>
     <string name="shizuku_setup_rechecked_feedback">Статус проверен и обновлен</string>
-    <string name="shizuku_setup_close">Закрыть</string>
-    <string name="updates_display_mode">Отображение обновлений</string>
-    <string name="updates_detail_view">Подробно</string>
-    <string name="updates_compact_view">Компактно</string>
-    <string name="settings_background_checks">Автоматическая фоновая проверка</string>
+    <string name="shizuku_setup_close">Закрыть</string>    <string name="updates_detail_view">Подробно</string>    <string name="settings_background_checks">Автоматическая фоновая проверка</string>
     <string name="settings_background_interval_title">Интервал проверки</string>
     <string name="settings_interval_6h">Каждые 6 часов</string>
     <string name="settings_interval_12h">Каждые 12 часов</string>
@@ -185,9 +181,7 @@
     <!-- Settings Sections -->
     <string name="settings_section_appearance">Внешний вид и макет</string>
     <string name="settings_section_sources">Источники обновлений</string>
-    <string name="settings_section_app_management">Управление приложениями</string>
-    <string name="settings_preview_title">Интерактивный предпросмотр</string>
-
+    <string name="settings_section_app_management">Управление приложениями</string>
     <string name="hidden_apps_title">Навсегда скрытые приложения</string>
     <string name="hidden_apps_explanation">Эти приложения полностью игнорируются. Они не появятся в списке и не будут проверяться на обновления.</string>
     <string name="hidden_apps_badge_count">Приложений: %1$d</string>

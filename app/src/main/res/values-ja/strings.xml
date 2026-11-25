@@ -96,11 +96,7 @@
     <string name="shizuku_status_missing_permission">権限なし</string>
     <string name="shizuku_setup_recheck">状態を再確認</string>
     <string name="shizuku_setup_rechecked_feedback">ステータスを更新しました</string>
-    <string name="shizuku_setup_close">閉じる</string>
-    <string name="updates_display_mode">更新の表示形式</string>
-    <string name="updates_detail_view">詳細</string>
-    <string name="updates_compact_view">コンパクト</string>
-    <string name="settings_background_checks">バックグラウンド自動確認</string>
+    <string name="shizuku_setup_close">閉じる</string>    <string name="updates_detail_view">詳細</string>    <string name="settings_background_checks">バックグラウンド自動確認</string>
     <string name="settings_background_interval_title">確認間隔</string>
     <string name="settings_interval_6h">6時間ごと</string>
     <string name="settings_interval_12h">12時間ごと</string>
@@ -185,9 +181,7 @@
     <!-- Settings Sections -->
     <string name="settings_section_appearance">外観とレイアウト</string>
     <string name="settings_section_sources">更新ソース</string>
-    <string name="settings_section_app_management">アプリ管理</string>
-    <string name="settings_preview_title">ライブプレビュー</string>
-
+    <string name="settings_section_app_management">アプリ管理</string>
     <string name="hidden_apps_title">完全に除外したアプリ</string>
     <string name="hidden_apps_explanation">これらのアプリは完全に無視され、アプリ一覧にも今後の更新確認にも表示されません。</string>
     <string name="hidden_apps_badge_count">%1$d 個</string>

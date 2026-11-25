@@ -96,11 +96,7 @@
     <string name="shizuku_status_missing_permission">Sin permiso</string>
     <string name="shizuku_setup_recheck">Comprobar estado de nuevo</string>
     <string name="shizuku_setup_rechecked_feedback">Estado comprobado y actualizado</string>
-    <string name="shizuku_setup_close">Cerrar</string>
-    <string name="updates_display_mode">Vista de actualizaciones</string>
-    <string name="updates_detail_view">Detalle</string>
-    <string name="updates_compact_view">Compacta</string>
-    <string name="settings_background_checks">Búsqueda automática en segundo plano</string>
+    <string name="shizuku_setup_close">Cerrar</string>    <string name="updates_detail_view">Detalle</string>    <string name="settings_background_checks">Búsqueda automática en segundo plano</string>
     <string name="settings_background_interval_title">Intervalo de comprobación</string>
     <string name="settings_interval_6h">Cada 6 horas</string>
     <string name="settings_interval_12h">Cada 12 horas</string>
@@ -185,9 +181,7 @@
     <!-- Settings Sections -->
     <string name="settings_section_appearance">Apariencia y diseño</string>
     <string name="settings_section_sources">Fuentes de actualización</string>
-    <string name="settings_section_app_management">Gestión de apps</string>
-    <string name="settings_preview_title">Vista previa en vivo</string>
-
+    <string name="settings_section_app_management">Gestión de apps</string>
     <string name="hidden_apps_title">Apps ocultas permanentemente</string>
     <string name="hidden_apps_explanation">Estas apps se ignoran por completo. No aparecerán en tu lista de apps ni en futuras búsquedas de actualizaciones.</string>
     <string name="hidden_apps_badge_count">%1$d apps</string>
