@@ -31,7 +31,7 @@
 
 <p align="center">
   <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/github/downloads/DurchEins/apkup/total?style=flat&label=GitHub%20Downloads&color=F59E0B&logo=github" alt="Total GitHub Downloads" /></a>
-  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.46.0%20(231)-A855F7?style=flat" alt="Current Version: 1.46.0 (231)" /></a>
+  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.47.0%20(237)-A855F7?style=flat" alt="Current Version: 1.47.0 (237)" /></a>
   <img src="https://img.shields.io/badge/Min%20SDK-29%20(Android%2010%2B)-3DDC84?style=flat&logo=android" alt="Minimum Android SDK 29 (Android 10 or higher)" />
   <a href="PRIVACY.md"><img src="https://img.shields.io/badge/Privacy-No%20Ads%20%7C%20No%20Tracking-2EA44F?style=flat" alt="Privacy: No Ads, No Tracking" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-blue?style=flat" alt="License: GNU GPL-3.0" /></a>
@@ -53,7 +53,7 @@
 
 | ⚡ Downloads & Automation | 🎨 Design & Ecosystem |
 | :--- | :--- |
-| • **Batch Downloads & ETA:** Install multiple updates at once with live speed & remaining time<br>• **[Silent Background Updates](https://durcheins.github.io/apkup/wiki/#shizuku-deep):** Hands-free updates via Shizuku or optional Root with Wi-Fi & charging rules<br>• **APK Export & Smart Cache:** Save `.apk` / `.apks` files or install cached downloads without re-downloading<br>• **[Rollback Backups](https://durcheins.github.io/apkup/wiki/#management):** Optional pre-update backups & automatic device compatibility checks | • **Material 3 Expressive:** Brand-Amber theme, Dynamic Color, dark/light modes & smooth animations<br>• **9 Official Languages:** English, German, Spanish, French, Portuguese, Italian, Russian, Chinese & Japanese<br>• **Smart Link Routing:** Opens web links in matching installed apps first or in-app Chrome Custom Tabs<br>• **[Watchlist & Obtainium Sync](https://durcheins.github.io/apkup/wiki/#obtainium):** Track uninstalled apps and import/export Obtainium & App Watcher lists |
+| • **Batch Downloads & ETA:** Install multiple updates at once with live speed & remaining time<br>• **[Silent Background Updates](https://durcheins.github.io/apkup/wiki/#shizuku-deep):** Hands-free updates via Shizuku or optional Root with Wi-Fi & charging rules<br>• **APK Export & Smart Cache:** Save `.apk` / `.apks` files or install cached downloads without re-downloading<br>• **[Rollback Backups](https://durcheins.github.io/apkup/wiki/#management):** Optional pre-update backups & automatic device compatibility checks | • **Material 3 Expressive & Accessible Mode:** Brand-Amber theme, Dynamic Color, WCAG 2.2 high-contrast Accessible UI & solar Auto/Light/Dark modes<br>• **9 Official Languages:** English, German, Spanish, French, Portuguese, Italian, Russian, Chinese & Japanese<br>• **Smart Link Routing:** Opens web links in matching installed apps first or in-app Chrome Custom Tabs<br>• **[Watchlist & Obtainium Sync](https://durcheins.github.io/apkup/wiki/#obtainium):** Track uninstalled apps and import/export Obtainium & App Watcher lists |
 
 <details>
 <summary><b>📋 Full Feature Breakdown</b></summary>
@@ -79,7 +79,7 @@
   * **Native App Priority & Chrome Custom Tabs:** External links prefer matching installed native apps first and seamlessly fall back to in-app Chrome Custom Tabs.
   * Instant search bars and flexible sorting across both **Updates** (*Name A–Z / Z–A, Source, Newest Release Date*) and **Apps** (*Name A–Z / Z–A, Source, Recently Updated*).
   * Localized in **9 official languages**: English, German, Spanish, French, Portuguese, Italian, Russian, Simplified Chinese, and Japanese.
-  * Multiple display modes (*Compact Grid Tiles* vs. *Detailed List*), quick-filter chips (including *GitHub / Sideload* and *Watched*), and monthly-grouped in-app changelogs.
+  * **Accessible Mode & Home Widget:** Dedicated high-contrast Accessible UI (48 dp touch targets, single-column lists, one-tap selection, disabled animations, solar *Auto / Light / Dark* theme with 15-minute steps), a home screen widget for available updates, quick-filter chips (including *GitHub / Sideload* and *Watched*), monthly-grouped in-app changelogs, and a 9-language [Accessibility Statement](ACCESSIBILITY.md).
 * **⚡ Reliable WorkManager Downloads, APK Export, 24h Cache & Autonomous Installs:**
   * **User-Initiated Data Transfer Worker & Batch ETA:** Interactive downloads, multi-select batch installs (TopAppBar selection mode), and filtered batch updates (*Install All*) run reliably via AndroidX `WorkManager` (`UpdateDownloadWorker`) with live overall batch percentage, smoothed transfer speed, ETA, and instant per-item or global cancellation.
   * **Save APK & Split `.apks` Bundles:** Export single `.apk` installers or bundled `.apks` split packages directly into `Download/ApkUp/` (or any custom SAF folder configured in Setup) without installing.

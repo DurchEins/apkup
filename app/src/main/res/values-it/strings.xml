@@ -97,9 +97,7 @@
     <string name="shizuku_setup_recheck">Verifica stato</string>
     <string name="shizuku_setup_rechecked_feedback">Stato verificato e aggiornato</string>
     <string name="shizuku_setup_close">Chiudi</string>
-    <string name="updates_display_mode">Visualizzazione aggiornamenti</string>
     <string name="updates_detail_view">Dettagli</string>
-    <string name="updates_compact_view">Compatta</string>
     <string name="settings_background_checks">Verifica automatica in background</string>
     <string name="settings_background_interval_title">Intervallo di controllo</string>
     <string name="settings_interval_6h">Ogni 6 ore</string>
@@ -186,7 +184,6 @@
     <string name="settings_section_appearance">Aspetto e layout</string>
     <string name="settings_section_sources">Fonti di aggiornamento</string>
     <string name="settings_section_app_management">Gestione app</string>
-    <string name="settings_preview_title">Anteprima dal vivo</string>
 
     <string name="hidden_apps_title">App nascoste definitivamente</string>
     <string name="hidden_apps_explanation">Queste app sono completamente ignorate. Non appariranno nell\'elenco né nei futuri controlli di aggiornamento.</string>
@@ -604,7 +601,6 @@
     <string name="self_update_prerelease_badge">Beta / Preliminare</string>
     <string name="self_update_prerelease_notice">Questa è una versione preliminare di ApkUp pensata per i test anticipati.</string>
     <string name="dynamic_color_title">Colore dinamico (Material You)</string>
-    <string name="dynamic_color_subtitle">Adatta i colori dell\'app al tuo sfondo</string>
     <string name="about_support_bento_title">Supporta ApkUp</string>
     <string name="about_support_bento_subtitle">Stella, recensione · Buy Me a Coffee &amp; Coindrop</string>
     <string name="support_sheet_title">Supporta ApkUp</string>
@@ -649,10 +645,6 @@
     <string name="a11y_sun_customize_btn">Regola orari</string>
     <string name="a11y_sun_reset_btn">Usa sole auto</string>
     <string name="dynamic_color_paused_a11y">In pausa col tema Accessibilità per garantire il massimo contrasto (7:1)</string>
-    <string name="apps_grid_density_title">Densità griglia app</string>
-    <string name="apps_grid_density_large">Grande (2 col. • 48 dp)</string>
-    <string name="apps_grid_density_compact">Compatta (3 col.)</string>
-    <string name="apps_grid_density_auto_a11y">Nel tema Accessibilità sono preselezionate 2 colonne, ma puoi passare tra 2 e 3 colonne in qualsiasi momento.</string>
     <string name="widget_updates_description">Mostra gli aggiornamenti ApkUp disponibili e avvia un controllo rapido</string>
     <string name="widget_updates_checking">Controllo…</string>
     <string name="widget_updates_never_checked">Mai controllato</string>
@@ -706,4 +698,5 @@
     <string name="a11y_version_to">a</string>
     <string name="updates_select_action">Seleziona</string>
     <string name="a11y_selected_label">Selezionato</string>
+    <string name="updates_missing_prehash_hint">La fonte non fornisce un hash preliminare; Android verifica la firma dell\'app durante l\'installazione.</string>
 </resources>

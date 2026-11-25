@@ -117,7 +117,6 @@ data class ApkUpBackupConfig(
     val ignoredVersions: List<Int>? = emptyList(),
     val ignoredVersionEntries: List<IgnoredVersionEntry>? = emptyList(),
     val showSystemApps: Boolean? = false,
-    val updatesDisplayMode: Int? = 0,
     val useApkMirror: Boolean? = true,
     val directApkMirrorDownloads: Boolean? = true,
     val usePlay: Boolean? = true,

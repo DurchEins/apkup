@@ -97,9 +97,7 @@
     <string name="shizuku_setup_recheck">状態を再確認</string>
     <string name="shizuku_setup_rechecked_feedback">ステータスを更新しました</string>
     <string name="shizuku_setup_close">閉じる</string>
-    <string name="updates_display_mode">更新の表示形式</string>
     <string name="updates_detail_view">詳細</string>
-    <string name="updates_compact_view">コンパクト</string>
     <string name="settings_background_checks">バックグラウンド自動確認</string>
     <string name="settings_background_interval_title">確認間隔</string>
     <string name="settings_interval_6h">6時間ごと</string>
@@ -186,7 +184,6 @@
     <string name="settings_section_appearance">外観とレイアウト</string>
     <string name="settings_section_sources">更新ソース</string>
     <string name="settings_section_app_management">アプリ管理</string>
-    <string name="settings_preview_title">ライブプレビュー</string>
 
     <string name="hidden_apps_title">完全に除外したアプリ</string>
     <string name="hidden_apps_explanation">これらのアプリは完全に無視され、アプリ一覧にも今後の更新確認にも表示されません。</string>
@@ -600,7 +597,6 @@
     <string name="self_update_prerelease_badge">ベータ / プレリリース</string>
     <string name="self_update_prerelease_notice">これは早期テスト向けの ApkUp プレリリース版です。</string>
     <string name="dynamic_color_title">ダイナミック カラー (Material You)</string>
-    <string name="dynamic_color_subtitle">壁紙に合わせてアプリの色を自動調整します</string>
     <string name="about_support_bento_title">ApkUp を支援</string>
     <string name="about_support_bento_subtitle">スター、レビュー · Buy Me a Coffee &amp; Coindrop</string>
     <string name="support_sheet_title">ApkUp を支援</string>
@@ -645,10 +641,6 @@
     <string name="a11y_sun_customize_btn">時刻を設定</string>
     <string name="a11y_sun_reset_btn">太陽自動に戻す</string>
     <string name="dynamic_color_paused_a11y">7:1 の高コントラスト維持のため高コントラスト中は一時停止</string>
-    <string name="apps_grid_density_title">アプリグリッド密度</string>
-    <string name="apps_grid_density_large">大 (2列 • 48 dp)</string>
-    <string name="apps_grid_density_compact">コンパクト (3列)</string>
-    <string name="apps_grid_density_auto_a11y">高コントラストでは2列が初期選択されますが、いつでも2列と3列を切り替えられます。</string>
     <string name="widget_updates_description">利用可能な ApkUp 更新を表示し、クイックチェックを開始します</string>
     <string name="widget_updates_checking">確認中…</string>
     <string name="widget_updates_never_checked">未確認</string>
@@ -701,4 +693,5 @@
     <string name="a11y_version_to">から</string>
     <string name="updates_select_action">選択</string>
     <string name="a11y_selected_label">選択済み</string>
+    <string name="updates_missing_prehash_hint">取得元から事前ハッシュが提供されていません。インストール時に Android がアプリ署名を検証します。</string>
 </resources>

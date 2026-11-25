@@ -99,9 +99,7 @@
     <string name="shizuku_setup_recheck">Check status again</string>
     <string name="shizuku_setup_rechecked_feedback">Live status checked and updated</string>
     <string name="shizuku_setup_close">Close</string>
-    <string name="updates_display_mode">Update display</string>
     <string name="updates_detail_view">Detail</string>
-    <string name="updates_compact_view">Compact</string>
     <string name="settings_background_checks">Automatic background update checks</string>
     <string name="settings_background_interval_title">Check interval</string>
     <string name="settings_interval_6h">Every 6 hours</string>
@@ -222,7 +220,6 @@
     <string name="theme_dark">Dark</string>
     <string name="theme_light">Light</string>
     <string name="dynamic_color_title">Dynamic Color (Material You)</string>
-    <string name="dynamic_color_subtitle">Adapt app colors to your wallpaper</string>
     <string name="about_copyright">Copyright &#169; 2026 DurchEins &#8226; GPL-3.0</string>
     <string name="about_tribute">Redesigned from the ground up with love by DurchEins. ♥</string>
     <string name="about_original_project">Based on the original project by rumboalla (GPL-3.0)</string>
@@ -246,7 +243,6 @@
     <string name="settings_section_install_automation">Installation &amp; Automation</string>
     <string name="settings_section_app_management">App Management</string>
     <string name="settings_section_backup_restore">Backup &amp; Export</string>
-    <string name="settings_preview_title">Live preview</string>
 
     <string name="hidden_apps_title">Permanently hidden apps</string>
     <string name="hidden_apps_explanation">These apps are completely ignored. They will neither appear in your app list nor in future update checks.</string>
@@ -672,10 +668,6 @@
     <string name="a11y_sun_customize_btn">Custom times</string>
     <string name="a11y_sun_reset_btn">Use solar auto</string>
     <string name="dynamic_color_paused_a11y">Paused while Accessibility theme is active to guarantee maximum 7:1 contrast</string>
-    <string name="apps_grid_density_title">Apps grid density</string>
-    <string name="apps_grid_density_large">Large (2 cols • 48 dp)</string>
-    <string name="apps_grid_density_compact">Compact (3 cols)</string>
-    <string name="apps_grid_density_auto_a11y">2 columns are preselected in the Accessibility theme, but you can switch between 2 and 3 columns anytime.</string>
     <string name="widget_updates_description">Shows available ApkUp updates and triggers a quick check</string>
     <string name="widget_updates_checking">Checking updates…</string>
     <string name="widget_updates_never_checked">Not checked yet</string>
@@ -729,4 +721,5 @@
     <string name="a11y_version_to">to</string>
     <string name="updates_select_action">Select</string>
     <string name="a11y_selected_label">Selected</string>
+    <string name="updates_missing_prehash_hint">Source does not provide a pre-download hash; Android verifies the app signature on install.</string>
 </resources>

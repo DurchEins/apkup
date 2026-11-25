@@ -16,9 +16,9 @@ We actively provide security patches for the following versions of ApkUp:
 
 | Version | Support Status | Scope |
 | :--- | :--- | :--- |
-| `1.46.x` (or newer) | ✅ **Full support** | Active bug fixes & security patches |
-| `1.45.x` | ⚠️ **Security fixes only** | Critical security patches until next minor release |
-| `< 1.45` | ❌ **Unsupported** | Please update to the latest release |
+| `1.47.x` (or newer) | ✅ **Full support** | Active bug fixes & security patches |
+| `1.46.x` | ⚠️ **Security fixes only** | Critical security patches until next minor release |
+| `< 1.46` | ❌ **Unsupported** | Please update to the latest release |
 
 ---
 
@@ -89,9 +89,9 @@ If you discover a potential security vulnerability in ApkUp (especially regardin
 ### Unterstützte Versionen
 | Version | Status | Hinweis |
 | :--- | :--- | :--- |
-| `1.45.x` (oder neuer) | ✅ **Voller Support** | Aktive Bugfixes & Sicherheitsupdates |
-| `1.44.x` | ⚠️ **Nur Sicherheitsfixes** | Kritische Sicherheitsupdates bis zum nächsten Minor-Release |
-| `< 1.44` | ❌ **Nicht unterstützt** | Bitte auf die aktuellste Version aktualisieren |
+| `1.47.x` (oder neuer) | ✅ **Voller Support** | Aktive Bugfixes & Sicherheitsupdates |
+| `1.46.x` | ⚠️ **Nur Sicherheitsfixes** | Kritische Sicherheitsupdates bis zum nächsten Minor-Release |
+| `< 1.46` | ❌ **Nicht unterstützt** | Bitte auf die aktuellste Version aktualisieren |
 
 ### Offizieller Signatur-Fingerprint (SHA-256) & Single-Artifact-Prinzip
 Nur die über GitHub Actions signierten Release-APKs auf **GitHub Releases** sind kanonisch (identische Binärdatei & Prüfsumme auf allen offiziellen Mirrors). Offizieller Zertifikat-SHA-256-Fingerprint:

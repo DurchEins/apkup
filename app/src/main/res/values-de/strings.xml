@@ -98,9 +98,7 @@
     <string name="shizuku_setup_recheck">Status erneut prüfen</string>
     <string name="shizuku_setup_rechecked_feedback">Live-Status überprüft und aktualisiert</string>
     <string name="shizuku_setup_close">Schließen</string>
-    <string name="updates_display_mode">Update-Ansicht</string>
     <string name="updates_detail_view">Details</string>
-    <string name="updates_compact_view">Kompakt</string>
     <string name="settings_background_checks">Automatische Hintergrundprüfung</string>
     <string name="settings_background_interval_title">Prüfintervall</string>
     <string name="settings_interval_6h">Alle 6 Stunden</string>
@@ -216,7 +214,6 @@
     <string name="theme_dark">Dunkel</string>
     <string name="theme_light">Hell</string>
     <string name="dynamic_color_title">Dynamic Color (Material You)</string>
-    <string name="dynamic_color_subtitle">App-Farben an das Hintergrundbild anpassen</string>
     <string name="about_copyright">Copyright &#169; 2026 DurchEins &#8226; GPL-3.0</string>
     <string name="about_tribute">Mit viel Liebe von DurchEins von Grund auf neu gestaltet. ♥</string>
     <string name="about_original_project">Basierend auf dem Originalprojekt von rumboalla (GPL-3.0)</string>
@@ -240,7 +237,6 @@
     <string name="settings_section_install_automation">Installation &amp; Automatisierung</string>
     <string name="settings_section_app_management">App-Verwaltung</string>
     <string name="settings_section_backup_restore">Datensicherung &amp; Export</string>
-    <string name="settings_preview_title">Live-Vorschau</string>
 
     <string name="hidden_apps_title">Dauerhaft ausgeblendete Apps</string>
     <string name="hidden_apps_explanation">Diese Apps werden komplett ignoriert. Sie erscheinen weder in deiner App-Liste noch bei zukünftigen Update-Prüfungen.</string>
@@ -663,10 +659,6 @@
     <string name="a11y_sun_customize_btn">Zeiten anpassen</string>
     <string name="a11y_sun_reset_btn">Sonnenstand nutzen</string>
     <string name="dynamic_color_paused_a11y">Im Barrierefrei-Theme pausiert, um maximalen Kontrast (7:1) zu garantieren</string>
-    <string name="apps_grid_density_title">Apps-Rastergröße</string>
-    <string name="apps_grid_density_large">Groß (2 Spalten • 48 dp)</string>
-    <string name="apps_grid_density_compact">Kompakt (3 Spalten)</string>
-    <string name="apps_grid_density_auto_a11y">Im Barrierefrei-Theme sind 2 Spalten vorausgewählt, du kannst aber jederzeit frei zwischen 2 und 3 Spalten wechseln.</string>
     <string name="widget_updates_description">Zeigt verfügbare ApkUp-Updates und startet einen Schnell-Check</string>
     <string name="widget_updates_checking">Suche Updates…</string>
     <string name="widget_updates_never_checked">Noch nicht geprüft</string>
@@ -720,4 +712,5 @@
     <string name="a11y_version_to">auf</string>
     <string name="updates_select_action">Auswählen</string>
     <string name="a11y_selected_label">Ausgewählt</string>
+    <string name="updates_missing_prehash_hint">Quelle liefert keinen Vorab-Hash; Android prüft die App-Signatur beim Installieren.</string>
 </resources>

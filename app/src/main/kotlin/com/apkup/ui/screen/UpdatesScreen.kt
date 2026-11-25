@@ -101,6 +101,7 @@ import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -110,7 +111,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.minimumInteractiveComponentSize
 import com.apkup.ui.component.rememberExpandedModalSheetState
 import androidx.compose.runtime.Composable
@@ -121,6 +126,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -186,7 +193,6 @@ import com.apkup.data.ui.Source
 import com.apkup.data.ui.hasPotentialSignatureConflict
 import com.apkup.service.DownloadTaskState
 import com.apkup.ui.component.AppEmptyState
-import com.apkup.ui.component.CompactUpdateCardLayout
 import com.apkup.ui.component.GrandFestivalEmptyState
 import com.apkup.ui.component.MultiSourceScanTray
 import com.apkup.ui.component.ScanSourceStatus
@@ -629,9 +635,7 @@ fun UpdatesScreenSuccess(
 
 	val context = LocalContext.current
 	val handler = com.apkup.ui.component.rememberCustomTabUriHandler()
-	val displayMode = viewModel.getUpdatesDisplayMode()
 	val isAccessibleUi = ApkUpTheme.isAccessibleUi
-	val effectiveDisplayMode = if (isAccessibleUi) 0 else displayMode
 	val view = LocalView.current
 	DisposableEffect(isChecking) {
 		view.keepScreenOn = isChecking
@@ -1161,34 +1165,6 @@ fun UpdatesScreenSuccess(
 			),
 			modifier = Modifier.weight(1f)
 		)
-		effectiveDisplayMode == 1 -> {
-			UpdatesPullToRefreshBox(
-				isChecking = isChecking,
-				onRefresh = { viewModel.refresh() },
-				modifier = Modifier.weight(1f)
-			) {
-				CompactUpdatesGrid(
-					viewModel = viewModel,
-					appsViewModel = appsViewModel,
-					updates = displayedUpdates,
-					scrollResetKey = Triple(sortOrder, selectedSourceFilter, searchQuery.trim()),
-					activeTasksMap = activeTasksMap,
-					readyUpdateIds = readyUpdateIds,
-					failedUpdateIds = failedUpdateIds,
-					jumpToErrorTick = jumpToErrorTick,
-					extraBottomPadding = 0.dp,
-					handler = handler,
-					modifier = Modifier
-						.fillMaxSize()
-						.nestedScroll(collapsibleHeaderState.nestedScrollConnection),
-					onRequestInstall = requestInstallSingle,
-					onRequestSaveApk = requestSaveApkSingle,
-					isSelectionMode = isSelectionMode,
-					selectedUpdateIds = selectedUpdateIds,
-					onToggleSelection = toggleSelection
-				)
-			}
-		}
 		else -> {
 			UpdatesPullToRefreshBox(
 				isChecking = isChecking,
@@ -2992,6 +2968,43 @@ private fun TrustShieldBadge(
 	)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MissingPreDownloadHashBadge(
+	modifier: Modifier = Modifier
+) {
+	val hint = stringResource(R.string.updates_missing_prehash_hint)
+	val tooltipState = rememberTooltipState(isPersistent = false)
+	val scope = rememberCoroutineScope()
+	TooltipBox(
+		positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+		tooltip = {
+			PlainTooltip {
+				Text(text = hint)
+			}
+		},
+		state = tooltipState,
+		modifier = modifier
+	) {
+		Box(
+			modifier = Modifier
+				.clip(CircleShape)
+				.clickable(role = Role.Button, onClickLabel = hint) {
+					scope.launch { tooltipState.show() }
+				}
+				.padding(2.dp),
+			contentAlignment = Alignment.Center
+		) {
+			Icon(
+				imageVector = Icons.Outlined.Shield,
+				contentDescription = hint,
+				tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
+				modifier = Modifier.size(14.dp)
+			)
+		}
+	}
+}
+
 @Composable
 private fun SourceIconWithCooldown(
 	source: Source,
@@ -3363,6 +3376,9 @@ private fun UpdateCard(
 								maxLines = if (isAccessibleUi) 2 else 1,
 								overflow = TextOverflow.Ellipsis
 							)
+							if ((update.link as? Link.Url)?.expectedSha256.isNullOrBlank()) {
+								MissingPreDownloadHashBadge()
+							}
 						}
 					} else {
 						Row(
@@ -3390,6 +3406,9 @@ private fun UpdateCard(
 								maxLines = if (isAccessibleUi) 2 else 1,
 								overflow = TextOverflow.Ellipsis
 							)
+							if ((update.link as? Link.Url)?.expectedSha256.isNullOrBlank()) {
+								MissingPreDownloadHashBadge()
+							}
 						}
 					}
 					// Row 2: Source Badge & Multi-Source Indicator Badge
@@ -3645,417 +3664,6 @@ private fun UpdateCard(
 	}
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
-@Composable
-private fun CompactUpdatesGrid(
-	viewModel: UpdatesViewModel,
-	appsViewModel: AppsViewModel = koinViewModel(),
-	updates: List<AppUpdate>,
-	scrollResetKey: Any = Unit,
-	activeTasksMap: Map<Int, DownloadTaskState> = emptyMap(),
-	readyUpdateIds: Set<Int> = emptySet(),
-	failedUpdateIds: Set<Int> = emptySet(),
-	jumpToErrorTick: Int = 0,
-	extraBottomPadding: androidx.compose.ui.unit.Dp = 0.dp,
-	handler: UriHandler,
-	modifier: Modifier,
-	onRequestInstall: (AppUpdate) -> Unit,
-	onRequestSaveApk: (AppUpdate) -> Unit,
-	isSelectionMode: Boolean = false,
-	selectedUpdateIds: Set<Int> = emptySet(),
-	onToggleSelection: (Int) -> Unit = {}
-) {
-	var selectedPackageName by remember { mutableStateOf<String?>(null) }
-	val selectedUpdate = updates.find { it.packageName == selectedPackageName }
-	val haptic = LocalHapticFeedback.current
-	val gridState = rememberLazyGridState()
-	var lastScrollResetKey by remember { mutableStateOf(scrollResetKey) }
-	LaunchedEffect(scrollResetKey) {
-		if (lastScrollResetKey != scrollResetKey) {
-			lastScrollResetKey = scrollResetKey
-			gridState.scrollToItem(0)
-		}
-	}
-	LaunchedEffect(jumpToErrorTick) {
-		if (jumpToErrorTick > 0) {
-			val idx = updates.indexOfFirst { it.id in failedUpdateIds }
-			if (idx >= 0) {
-				gridState.animateScrollToItem(idx)
-			}
-		}
-	}
-
-	BoxWithConstraints(modifier) {
-		val columns = updateGridColumnCount(maxWidth.value, compact = true)
-		LazyVerticalGrid(
-			columns = GridCells.Fixed(columns),
-			state = gridState,
-			modifier = Modifier.fillMaxSize(),
-			contentPadding = PaddingValues(
-				start = CompactUpdateCardLayout.gridHorizontalPaddingDp.dp,
-				top = CompactUpdateCardLayout.gridTopPaddingDp.dp,
-				end = CompactUpdateCardLayout.gridHorizontalPaddingDp.dp,
-				bottom = CompactUpdateCardLayout.gridBottomPaddingDp.dp + extraBottomPadding
-			),
-			verticalArrangement = Arrangement.spacedBy(CompactUpdateCardLayout.gridSpacingDp.dp),
-			horizontalArrangement = Arrangement.spacedBy(CompactUpdateCardLayout.gridSpacingDp.dp)
-		) {
-			gridItemsIndexed(items = updates, key = { _, u -> u.id }) { index, update ->
-				val context = LocalContext.current
-				val appName = update.name.ifBlank {
-					context.getAppName(update.packageName).ifBlank { update.packageName }
-				}
-				val card = update.toUpdateCardContent(appName)
-				val liveTask = activeTasksMap[update.id]
-					?: activeTasksMap.values.firstOrNull { it.packageName == update.packageName }
-				val effInstalling = liveTask?.let { it.isInstalling || !it.isQueued } ?: card.isInstalling
-				val effQueued = liveTask?.isQueued ?: update.isQueued
-				val effProgress = liveTask?.progress ?: update.progress
-				val effTotal = liveTask?.total?.takeIf { it > 0L } ?: update.total
-				val isSelectable = !effInstalling && !effQueued
-				val isSelected = update.id in selectedUpdateIds
-				val isFailed = update.id in failedUpdateIds
-				val isCachedReady = update.id in readyUpdateIds || update.alternativeUpdates.any { it.id in readyUpdateIds }
-				val compactSelectActionLabel = stringResource(
-					if (isSelected) R.string.a11y_deselect_item else R.string.a11y_select_item,
-					card.appName
-				)
-				val compactInstallActionText = stringResource(
-					when {
-						isCachedReady -> R.string.install_cached_action
-						update.isWatchedApp() -> R.string.install_action
-						else -> R.string.update_action
-					}
-				)
-				val cardShape = RoundedCornerShape(14.dp)
-				StaggeredCascadeItem(
-					index = index,
-					modifier = Modifier.animateItem()
-				) {
-				Surface(
-					modifier = Modifier
-						.fillMaxWidth()
-						.clip(cardShape)
-						.combinedClickable(
-							onClick = {
-								if (isSelectionMode) {
-									if (isSelectable) onToggleSelection(update.id)
-								} else {
-									selectedPackageName = update.packageName
-								}
-							},
-							onLongClick = {
-								if (isSelectable) {
-									haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-									onToggleSelection(update.id)
-								}
-							}
-						)
-						.semantics {
-							if (isSelectable) {
-								customActions = listOf(
-									CustomAccessibilityAction(compactSelectActionLabel) {
-										onToggleSelection(update.id)
-										true
-									}
-								)
-							}
-							if (isSelectionMode && isSelectable) {
-								selected = isSelected
-							}
-						}
-						.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
-					shape = cardShape,
-					color = when {
-						isSelected -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f)
-						isFailed -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.28f)
-						else -> MaterialTheme.colorScheme.surfaceContainerLow
-					},
-					border = when {
-						isSelected -> BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
-						isFailed -> BorderStroke(1.5.dp, MaterialTheme.colorScheme.error)
-						else -> null
-					}
-				) {
-					Row(
-						modifier = Modifier
-							.fillMaxWidth()
-							.padding(horizontal = 14.dp, vertical = 10.dp),
-						verticalAlignment = Alignment.CenterVertically,
-						horizontalArrangement = Arrangement.spacedBy(12.dp)
-					) {
-						// 42dp app icon
-						Box(modifier = Modifier.size(42.dp)) {
-							Box(
-								modifier = Modifier
-									.fillMaxSize()
-									.clip(RoundedCornerShape(12.dp))
-									.background(MaterialTheme.colorScheme.surfaceContainer),
-								contentAlignment = Alignment.Center
-							) {
-								LoadingImageApp(
-									card.packageName,
-									Modifier.fillMaxSize()
-								)
-							}
-							if (isSelected) {
-								Surface(
-									shape = CircleShape,
-									color = MaterialTheme.colorScheme.primary,
-									border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.surface),
-									modifier = Modifier
-										.align(Alignment.BottomEnd)
-										.size(18.dp)
-								) {
-									Box(contentAlignment = Alignment.Center) {
-										Icon(
-											imageVector = Icons.Filled.Check,
-											contentDescription = null,
-											tint = MaterialTheme.colorScheme.onPrimary,
-											modifier = Modifier.size(11.dp)
-										)
-									}
-								}
-							} else if (isSelectionMode && isSelectable) {
-								Box(
-									modifier = Modifier
-										.align(Alignment.BottomEnd)
-										.size(18.dp)
-										.clip(CircleShape)
-										.background(MaterialTheme.colorScheme.surfaceContainerHigh)
-										.border(1.5.dp, MaterialTheme.colorScheme.outline, CircleShape)
-								)
-							}
-						}
-
-						// Main Text (Title, versions, source)
-						Column(
-							modifier = Modifier.weight(1f),
-							verticalArrangement = Arrangement.spacedBy(2.dp)
-						) {
-							Row(
-								modifier = Modifier.fillMaxWidth(),
-								horizontalArrangement = Arrangement.SpaceBetween,
-								verticalAlignment = Alignment.CenterVertically
-							) {
-								Text(
-									text = card.appName,
-									style = MaterialTheme.typography.titleSmall,
-									fontWeight = FontWeight.SemiBold,
-									color = MaterialTheme.colorScheme.onSurface,
-									maxLines = 1,
-									overflow = TextOverflow.Ellipsis,
-									modifier = Modifier.weight(1f, fill = false)
-								)
-								if (update.totalSize > 0L) {
-									Text(
-										text = formatSizeMegabytes(update.totalSize),
-										style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-										color = MaterialTheme.colorScheme.onSurfaceVariant
-									)
-								}
-							}
-
-							Row(
-								verticalAlignment = Alignment.CenterVertically,
-								horizontalArrangement = Arrangement.spacedBy(4.dp)
-							) {
-								if (update.isWatchedApp()) {
-									Surface(
-										shape = RoundedCornerShape(5.dp),
-										color = MaterialTheme.colorScheme.secondaryContainer
-									) {
-										Text(
-											text = stringResource(R.string.updates_watched_new_badge),
-											style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.5.sp, fontWeight = FontWeight.SemiBold),
-											color = MaterialTheme.colorScheme.onSecondaryContainer,
-											modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
-											maxLines = 1
-										)
-									}
-									Text(
-										text = card.availableVersion.ifBlank { "—" },
-										style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-										fontWeight = FontWeight.Bold,
-										color = MaterialTheme.colorScheme.primary,
-										maxLines = 1,
-										overflow = TextOverflow.Ellipsis,
-										modifier = Modifier.weight(1f, fill = false)
-									)
-									Text(
-										text = "•",
-										style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-										color = MaterialTheme.colorScheme.outline
-									)
-								} else {
-									Text(
-										text = card.installedVersion.ifBlank { "—" },
-										style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-										color = MaterialTheme.colorScheme.onSurfaceVariant,
-										maxLines = 1,
-										overflow = TextOverflow.Ellipsis,
-										modifier = Modifier.weight(1f, fill = false)
-									)
-									Text(
-										text = "→",
-										style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-										color = MaterialTheme.colorScheme.primary,
-										fontWeight = FontWeight.Bold
-									)
-									Text(
-										text = card.availableVersion.ifBlank { "—" },
-										style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-										fontWeight = FontWeight.Bold,
-										color = MaterialTheme.colorScheme.primary,
-										maxLines = 1,
-										overflow = TextOverflow.Ellipsis,
-										modifier = Modifier.weight(1f, fill = false)
-									)
-									Text(
-										text = "•",
-										style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-										color = MaterialTheme.colorScheme.outline
-									)
-								}
-								val resolvedSourceLabel = sourceName(card.source)
-								Row(
-									verticalAlignment = Alignment.CenterVertically,
-									horizontalArrangement = Arrangement.spacedBy(4.dp)
-								) {
-									SourceIconWithCooldown(source = card.source)
-									Text(
-										text = resolvedSourceLabel,
-										style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-										color = MaterialTheme.colorScheme.onSurfaceVariant,
-										maxLines = 1
-									)
-									val isVerifiedReady = isCachedReady || (liveTask != null && liveTask.total > 0L && liveTask.progress >= liveTask.total)
-									TrustShieldBadge(isVerified = isVerifiedReady)
-									if (card.additionalSourcesCount > 0) {
-										Surface(
-											shape = RoundedCornerShape(4.dp),
-											color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f)
-										) {
-											Text(
-												text = "+${card.additionalSourcesCount}",
-												modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
-												style = MaterialTheme.typography.labelSmall.copy(
-													fontSize = 9.sp,
-													fontWeight = FontWeight.Bold
-												),
-												color = MaterialTheme.colorScheme.onPrimaryContainer
-											)
-										}
-									}
-								}
-							}
-
-							if (effInstalling || effQueued) {
-								val isSaveOnlyTask = liveTask?.isSaveOnly == true
-								val compactLabel = when {
-									liveTask?.isInstalling == true && isSaveOnlyTask -> stringResource(R.string.queue_status_saving)
-									liveTask?.isInstalling == true -> stringResource(R.string.queue_status_installing)
-									liveTask?.isResolvingLink == true && effProgress == 0L -> stringResource(R.string.queue_status_resolving_apkmirror)
-									effQueued && !effInstalling -> stringResource(R.string.queued_update)
-									effTotal > 0L && effProgress > 0L -> {
-										val pct = ((effProgress * 100) / effTotal).toInt().coerceIn(0, 100)
-										"$pct%"
-									}
-									isSaveOnlyTask -> stringResource(R.string.queue_status_saving)
-									else -> stringResource(R.string.installing_update)
-								}
-								Row(
-									verticalAlignment = Alignment.CenterVertically,
-									horizontalArrangement = Arrangement.spacedBy(6.dp),
-									modifier = Modifier.padding(top = 2.dp)
-								) {
-									LinearProgressIndicator(
-										progress = { if (effTotal > 0L && effProgress > 0L) (effProgress.toFloat() / effTotal).coerceIn(0f, 1f) else 0f },
-										modifier = Modifier.weight(1f).height(3.dp),
-										color = MaterialTheme.colorScheme.primary,
-										trackColor = MaterialTheme.colorScheme.surfaceContainer
-									)
-									Text(
-										text = compactLabel,
-										style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-										fontWeight = FontWeight.Bold,
-										color = MaterialTheme.colorScheme.primary
-									)
-								}
-							}
-						}
-
-						// Right Action: Fast download button (hidden in selection mode)
-						if (!isSelectionMode && card.canInstall && !effQueued && !effInstalling) {
-							IconButton(
-								onClick = {
-									onRequestInstall(update)
-								},
-								modifier = Modifier.minimumInteractiveComponentSize()
-							) {
-								Box(
-									modifier = Modifier
-										.size(36.dp)
-										.clip(CircleShape)
-										.background(MaterialTheme.colorScheme.surfaceContainer),
-									contentAlignment = Alignment.Center
-								) {
-									Icon(
-										painter = painterResource(R.drawable.ic_install),
-										contentDescription = "$compactInstallActionText ${card.appName}",
-										tint = MaterialTheme.colorScheme.primary,
-										modifier = Modifier.size(16.dp)
-									)
-								}
-							}
-						}
-					}
-				}
-				}
-			}
-		}
-	}
-
-	selectedUpdate?.let { update ->
-		val pinnedAppSources by viewModel.pinnedAppSourcesFlow.collectAsStateWithLifecycle()
-		UpdateDetailsSheet(
-			update = update,
-			activeTasksMap = activeTasksMap,
-			isCachedReady = update.id in readyUpdateIds || update.alternativeUpdates.any { it.id in readyUpdateIds },
-			readyUpdateIds = readyUpdateIds,
-			pinnedSourceKey = pinnedAppSources[update.packageName],
-			onTogglePinSource = { key -> viewModel.pinAppSource(update.packageName, key) },
-			onDismiss = { selectedPackageName = null },
-			onInstallVariant = { chosen ->
-				onRequestInstall(chosen)
-				if (chosen.isBrowserOnlyUpdate) {
-					selectedPackageName = null
-				}
-			},
-			onSaveApkVariant = { chosen ->
-				onRequestSaveApk(chosen)
-			},
-			onIgnoreVersion = { versionId ->
-				if (update.isWatchedApp()) {
-					viewModel.markWatchedAppSeen(update)
-				} else {
-					viewModel.ignoreVersion(versionId)
-				}
-				selectedPackageName = null
-			},
-			onIgnoreAppPermanently = { packageName ->
-				viewModel.ignoreAppPermanently(packageName)
-				appsViewModel.refresh(false)
-				selectedPackageName = null
-			},
-			onSnoozeUpdate = { chosen, durationMillis ->
-				viewModel.snoozeUpdate(chosen, durationMillis)
-				selectedPackageName = null
-			}
-		)
-	}
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun UpdateDetailsSheet(
@@ -4140,21 +3748,29 @@ private fun UpdateDetailsSheet(
 						style = MaterialTheme.typography.bodySmall,
 						color = MaterialTheme.colorScheme.onSurfaceVariant
 					)
-					Surface(
-						shape = CircleShape,
-						color = MaterialTheme.colorScheme.primaryContainer
+					Row(
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(6.dp)
 					) {
-						Text(
-							text = if (activeVariant.isWatchedApp()) {
-								"${stringResource(R.string.updates_watched_new_badge)} · ${card.availableVersion.ifBlank { "—" }}"
-							} else {
-								"${card.installedVersion.ifBlank { "—" }} → ${card.availableVersion.ifBlank { "—" }}"
-							},
-							modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-							style = MaterialTheme.typography.labelMedium,
-							fontWeight = FontWeight.SemiBold,
-							color = MaterialTheme.colorScheme.onPrimaryContainer
-						)
+						Surface(
+							shape = CircleShape,
+							color = MaterialTheme.colorScheme.primaryContainer
+						) {
+							Text(
+								text = if (activeVariant.isWatchedApp()) {
+									"${stringResource(R.string.updates_watched_new_badge)} · ${card.availableVersion.ifBlank { "—" }}"
+								} else {
+									"${card.installedVersion.ifBlank { "—" }} → ${card.availableVersion.ifBlank { "—" }}"
+								},
+								modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+								style = MaterialTheme.typography.labelMedium,
+								fontWeight = FontWeight.SemiBold,
+								color = MaterialTheme.colorScheme.onPrimaryContainer
+							)
+						}
+						if ((activeVariant.link as? Link.Url)?.expectedSha256.isNullOrBlank()) {
+							MissingPreDownloadHashBadge()
+						}
 					}
 				}
 			}
