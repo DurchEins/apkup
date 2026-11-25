@@ -2467,7 +2467,7 @@ private fun ActiveQueueBottomSheet(
 	}
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun UpdatesSourceFilterRow(
 	totalCount: Int,
@@ -2475,19 +2475,13 @@ private fun UpdatesSourceFilterRow(
 	selectedSource: String?,
 	onSelectSource: (String?) -> Unit
 ) {
-	Row(
-		modifier = Modifier
-			.fillMaxWidth()
-			.horizontalScroll(rememberScrollState())
-			.padding(horizontal = 12.dp, vertical = 4.dp),
-		horizontalArrangement = Arrangement.spacedBy(6.dp),
-		verticalAlignment = Alignment.CenterVertically
-	) {
+	val isAccessibleUi = ApkUpTheme.isAccessibleUi
+	val chipsContent: @Composable () -> Unit = {
 		val allSelected = selectedSource == null
 		FilterChip(
 			selected = allSelected,
 			onClick = { onSelectSource(null) },
-			modifier = Modifier.height(32.dp),
+			modifier = if (isAccessibleUi) Modifier.heightIn(min = 48.dp) else Modifier.height(32.dp),
 			label = {
 				Row(
 					verticalAlignment = Alignment.CenterVertically,
@@ -2495,7 +2489,7 @@ private fun UpdatesSourceFilterRow(
 				) {
 					Text(
 						text = stringResource(R.string.apps_filter_all),
-						style = MaterialTheme.typography.labelSmall,
+						style = if (isAccessibleUi) MaterialTheme.typography.labelLarge else MaterialTheme.typography.labelSmall,
 						fontWeight = if (allSelected) FontWeight.Bold else FontWeight.Medium
 					)
 					Surface(
@@ -2505,7 +2499,7 @@ private fun UpdatesSourceFilterRow(
 					) {
 						Text(
 							text = totalCount.toString(),
-							style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+							style = MaterialTheme.typography.labelSmall.copy(fontSize = if (isAccessibleUi) 12.sp else 10.sp),
 							fontWeight = FontWeight.Bold,
 							color = if (allSelected) MaterialTheme.colorScheme.onSecondaryContainer
 							else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -2524,7 +2518,16 @@ private fun UpdatesSourceFilterRow(
 				}
 			} else null,
 			shape = CircleShape,
-			border = null,
+			border = if (isAccessibleUi) {
+				FilterChipDefaults.filterChipBorder(
+					enabled = true,
+					selected = allSelected,
+					borderColor = MaterialTheme.colorScheme.outline,
+					selectedBorderColor = MaterialTheme.colorScheme.primary,
+					borderWidth = 1.5.dp,
+					selectedBorderWidth = 1.5.dp
+				)
+			} else null,
 			colors = FilterChipDefaults.filterChipColors(
 				selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
 				selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -2540,7 +2543,7 @@ private fun UpdatesSourceFilterRow(
 				FilterChip(
 					selected = isSelected,
 					onClick = { onSelectSource(if (isSelected) null else source.name) },
-					modifier = Modifier.height(32.dp),
+					modifier = if (isAccessibleUi) Modifier.heightIn(min = 48.dp) else Modifier.height(32.dp),
 					label = {
 						Row(
 							verticalAlignment = Alignment.CenterVertically,
@@ -2548,7 +2551,7 @@ private fun UpdatesSourceFilterRow(
 						) {
 							Text(
 								text = sourceName(source),
-								style = MaterialTheme.typography.labelSmall,
+								style = if (isAccessibleUi) MaterialTheme.typography.labelLarge else MaterialTheme.typography.labelSmall,
 								fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
 							)
 							Surface(
@@ -2558,7 +2561,7 @@ private fun UpdatesSourceFilterRow(
 							) {
 								Text(
 									text = count.toString(),
-									style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+									style = MaterialTheme.typography.labelSmall.copy(fontSize = if (isAccessibleUi) 12.sp else 10.sp),
 									fontWeight = FontWeight.Bold,
 									color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer
 									else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -2586,7 +2589,16 @@ private fun UpdatesSourceFilterRow(
 						}
 					},
 					shape = CircleShape,
-					border = null,
+					border = if (isAccessibleUi) {
+						FilterChipDefaults.filterChipBorder(
+							enabled = true,
+							selected = isSelected,
+							borderColor = MaterialTheme.colorScheme.outline,
+							selectedBorderColor = MaterialTheme.colorScheme.primary,
+							borderWidth = 1.5.dp,
+							selectedBorderWidth = 1.5.dp
+						)
+					} else null,
 					colors = FilterChipDefaults.filterChipColors(
 						selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
 						selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -2596,6 +2608,28 @@ private fun UpdatesSourceFilterRow(
 					)
 				)
 			}
+		}
+	}
+	if (isAccessibleUi) {
+		androidx.compose.foundation.layout.FlowRow(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(horizontal = 12.dp, vertical = 4.dp),
+			horizontalArrangement = Arrangement.spacedBy(8.dp),
+			verticalArrangement = Arrangement.spacedBy(8.dp)
+		) {
+			chipsContent()
+		}
+	} else {
+		Row(
+			modifier = Modifier
+				.fillMaxWidth()
+				.horizontalScroll(rememberScrollState())
+				.padding(horizontal = 12.dp, vertical = 4.dp),
+			horizontalArrangement = Arrangement.spacedBy(6.dp),
+			verticalAlignment = Alignment.CenterVertically
+		) {
+			chipsContent()
 		}
 	}
 }
@@ -4078,7 +4112,7 @@ private fun UpdateDetailsSheet(
 			modifier = Modifier
 				.fillMaxWidth()
 				.verticalScroll(rememberScrollState())
-				.padding(start = 24.dp, end = 24.dp, top = if (isWideScreen) 24.dp else 0.dp, bottom = 28.dp),
+				.padding(start = 24.dp, end = 24.dp, top = if (isWideScreen || ApkUpTheme.isAccessibleUi) 20.dp else 0.dp, bottom = 28.dp),
 			verticalArrangement = Arrangement.spacedBy(14.dp)
 		) {
 			Row(verticalAlignment = Alignment.CenterVertically) {

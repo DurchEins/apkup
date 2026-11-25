@@ -1796,20 +1796,23 @@ private fun AppActionsBottomSheet(
 		}
 	}
 
+	val isAccessibleSheet = ApkUpTheme.isAccessibleUi
 	ModalBottomSheet(
 		onDismissRequest = onDismiss,
 		sheetState = sheetState,
 		containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
 		contentColor = MaterialTheme.colorScheme.onSurface,
-		dragHandle = {
-			Box(
-				modifier = Modifier
-					.padding(vertical = 12.dp)
-					.width(36.dp)
-					.height(4.dp)
-					.clip(CircleShape)
-					.background(MaterialTheme.colorScheme.outlineVariant)
-			)
+		dragHandle = if (isAccessibleSheet) null else {
+			{
+				Box(
+					modifier = Modifier
+						.padding(vertical = 12.dp)
+						.width(36.dp)
+						.height(4.dp)
+						.clip(CircleShape)
+						.background(MaterialTheme.colorScheme.outlineVariant)
+				)
+			}
 		}
 	) {
 		Column(
@@ -1818,7 +1821,7 @@ private fun AppActionsBottomSheet(
 				.verticalScroll(rememberScrollState())
 				.navigationBarsPadding()
 				.padding(horizontal = 20.dp)
-				.padding(bottom = 24.dp),
+				.padding(top = if (isAccessibleSheet) 18.dp else 0.dp, bottom = 24.dp),
 			verticalArrangement = Arrangement.spacedBy(12.dp)
 		) {
 			// Top Header: Icon, Name, Package Name
