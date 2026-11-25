@@ -49,6 +49,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -374,72 +375,88 @@ fun NavigationSettingItem(
     badgeContentColor: Color? = null,
     onClick: () -> Unit
 ) {
-    Row(
+    val isAccessibleUi = ApkUpTheme.isAccessibleUi
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(14.dp),
+        color = if (isAccessibleUi) MaterialTheme.colorScheme.surfaceContainer else Color.Transparent,
+        border = if (isAccessibleUi) BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant) else null,
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 48.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = 4.dp, vertical = 6.dp),
-        verticalAlignment = CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+            .heightIn(min = if (isAccessibleUi) 56.dp else 48.dp)
+            .semantics { role = Role.Button }
     ) {
-        if (icon != null) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(icon),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(18.dp)
-                )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = if (isAccessibleUi) 12.dp else 4.dp,
+                    vertical = if (isAccessibleUi) 10.dp else 6.dp
+                ),
+            verticalAlignment = CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            if (icon != null) {
+                Box(
+                    modifier = Modifier
+                        .size(if (isAccessibleUi) 36.dp else 32.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(icon),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
-        }
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            if (!subtitle.isNullOrBlank()) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = if (isAccessibleUi) 2 else 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                if (!subtitle.isNullOrBlank()) {
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = if (isAccessibleUi) 2 else 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
-        }
-        if (!badgeText.isNullOrBlank()) {
-            Surface(
-                shape = CircleShape,
-                color = badgeContainerColor ?: MaterialTheme.colorScheme.secondaryContainer
-            ) {
-                Text(
-                    text = badgeText,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = badgeContentColor ?: MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                    maxLines = 1
-                )
+            if (!badgeText.isNullOrBlank()) {
+                Surface(
+                    shape = CircleShape,
+                    color = badgeContainerColor ?: MaterialTheme.colorScheme.secondaryContainer,
+                    border = if (isAccessibleUi) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null
+                ) {
+                    Text(
+                        text = badgeText,
+                        style = if (isAccessibleUi) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = badgeContentColor ?: MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.padding(
+                            horizontal = if (isAccessibleUi) 10.dp else 8.dp,
+                            vertical = if (isAccessibleUi) 4.dp else 2.dp
+                        ),
+                        maxLines = 1
+                    )
+                }
             }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = if (isAccessibleUi) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                modifier = Modifier.size(20.dp)
+            )
         }
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-            modifier = Modifier.size(20.dp)
-        )
     }
 }
 

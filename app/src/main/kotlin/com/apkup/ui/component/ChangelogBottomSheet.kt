@@ -188,7 +188,7 @@ fun ChangelogBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp)
+                .padding(start = 24.dp, end = 24.dp, top = if (isAccessibleUi) 18.dp else 0.dp)
                 .navigationBarsPadding()
         ) {
             // Top Header (Google "What's new" style with App Icon, Title & Close X button)
@@ -234,7 +234,8 @@ fun ChangelogBottomSheet(
                 }
 
                 IconButton(
-                    onClick = onDismiss
+                    onClick = onDismiss,
+                    modifier = Modifier.size(48.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.Close,
@@ -459,9 +460,11 @@ private fun ChangelogPillBadge(
         }
     }
 
+    val isAccessibleBadge = ApkUpTheme.isAccessibleUi
     Surface(
         shape = CircleShape,
         color = containerColor,
+        border = if (isAccessibleBadge) BorderStroke(1.5.dp, contentColor.copy(alpha = 0.5f)) else null,
         modifier = if (isLatest && !isReducedMotion && shimmerProgress.value < 1f) {
             val p = shimmerProgress.value
             val fadeAlpha = ((1f - p) / 0.25f).coerceIn(0f, 1f) * 0.45f
@@ -500,6 +503,55 @@ private fun ChangelogPillBadge(
 
 @Composable
 private fun ChangelogFeatureBannerCard(banner: ChangelogBanner) {
+    if (ApkUpTheme.isAccessibleUi) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(14.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                if (banner.badgeText.isNotBlank()) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+                    ) {
+                        Text(
+                            text = banner.badgeText,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_changelog),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text(
+                        text = banner.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
+        return
+    }
     val bgBrush = Brush.verticalGradient(
         colors = listOf(
             Color(0xFF11131A),
@@ -601,6 +653,7 @@ private fun ChangelogBulletRow(
     entry: ChangelogEntry,
     onLinkClick: (String) -> Unit
 ) {
+    val isAccessibleUi = ApkUpTheme.isAccessibleUi
     val linkColor = MaterialTheme.colorScheme.primary
     val linkStyle = androidx.compose.ui.text.TextLinkStyles(
         style = SpanStyle(
@@ -639,7 +692,11 @@ private fun ChangelogBulletRow(
                 var cursor = 0
                 for (match in CHANGELOG_LINK_REGEX.findAll(desc)) {
                     if (match.range.first > cursor) {
-                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
+                        withStyle(
+                            SpanStyle(
+                                color = if (isAccessibleUi) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        ) {
                             append(desc.substring(cursor, match.range.first))
                         }
                     }
@@ -656,7 +713,11 @@ private fun ChangelogBulletRow(
                     cursor = match.range.last + 1
                 }
                 if (cursor < desc.length) {
-                    withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
+                    withStyle(
+                        SpanStyle(
+                            color = if (isAccessibleUi) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    ) {
                         append(desc.substring(cursor))
                     }
                 }

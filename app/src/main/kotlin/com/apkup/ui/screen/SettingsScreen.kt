@@ -1085,7 +1085,7 @@ fun Settings(
 							)
 						}
 					}
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !isAccessibleUi) {
 						SwitchSetting(
 							getValue = { viewModel.getDynamicColor() },
 							setValue = { viewModel.setDynamicColor(it) },
@@ -4807,16 +4807,25 @@ private fun HiddenAppsBottomSheet(
 		installedApps.associateBy { it.packageName }
 	}
 
+	val isAccessibleSheet = ApkUpTheme.isAccessibleUi
 	ModalBottomSheet(
 		onDismissRequest = onDismiss,
 		sheetState = sheetState,
+		dragHandle = if (isAccessibleSheet) null else {
+			{ BottomSheetDefaults.DragHandle() }
+		},
 		shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
 		containerColor = MaterialTheme.colorScheme.surfaceContainerLow
 	) {
 		Column(
 			modifier = Modifier
 				.fillMaxWidth()
-				.padding(horizontal = 20.dp, vertical = 8.dp)
+				.padding(
+					start = 20.dp,
+					end = 20.dp,
+					top = if (isAccessibleSheet) 18.dp else 8.dp,
+					bottom = 16.dp
+				)
 				.navigationBarsPadding(),
 			verticalArrangement = Arrangement.spacedBy(12.dp)
 		) {
@@ -4966,7 +4975,7 @@ private fun HiddenAppsBottomSheet(
 							selectedToHide.clear()
 							isAddingMore = true
 						},
-						modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp),
+						modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
 						shape = CircleShape
 					) {
 						Icon(
@@ -4976,6 +4985,15 @@ private fun HiddenAppsBottomSheet(
 						)
 						Spacer(modifier = Modifier.width(6.dp))
 						Text(stringResource(R.string.hidden_apps_hide_more))
+					}
+					if (isAccessibleSheet) {
+						OutlinedButton(
+							onClick = onDismiss,
+							modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+							shape = CircleShape
+						) {
+							Text(stringResource(R.string.a11y_close_action))
+						}
 					}
 				}
 			} else {
@@ -5133,17 +5151,24 @@ private fun IgnoredVersionsBottomSheet(
 	onDismiss: () -> Unit
 ) {
 	val sheetState = rememberExpandedModalSheetState()
+	val isAccessibleSheet = ApkUpTheme.isAccessibleUi
 	ModalBottomSheet(
 		onDismissRequest = onDismiss,
 		sheetState = sheetState,
 		containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-		dragHandle = { BottomSheetDefaults.DragHandle() }
+		dragHandle = if (isAccessibleSheet) null else {
+			{ BottomSheetDefaults.DragHandle() }
+		}
 	) {
 		Column(
 			modifier = Modifier
 				.fillMaxWidth()
-				.padding(horizontal = 20.dp)
-				.padding(bottom = 32.dp)
+				.padding(
+					start = 20.dp,
+					end = 20.dp,
+					top = if (isAccessibleSheet) 18.dp else 0.dp,
+					bottom = 32.dp
+				)
 				.verticalScroll(rememberScrollState()),
 			verticalArrangement = Arrangement.spacedBy(14.dp)
 		) {
@@ -5233,7 +5258,7 @@ private fun IgnoredVersionsBottomSheet(
 										style = MaterialTheme.typography.bodyMedium,
 										fontWeight = FontWeight.SemiBold,
 										color = MaterialTheme.colorScheme.onSurface,
-										maxLines = 1,
+										maxLines = if (isAccessibleSheet) 2 else 1,
 										overflow = TextOverflow.Ellipsis
 									)
 									val subtitleParts = buildList {
@@ -5246,14 +5271,15 @@ private fun IgnoredVersionsBottomSheet(
 											text = subtitleParts.joinToString(" "),
 											style = MaterialTheme.typography.labelSmall,
 											color = MaterialTheme.colorScheme.onSurfaceVariant,
-											maxLines = 1,
+											maxLines = if (isAccessibleSheet) 2 else 1,
 											overflow = TextOverflow.Ellipsis
 										)
 									}
 								}
 								FilledTonalButton(
 									onClick = { onUnignore(entry.id) },
-									contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+									contentPadding = PaddingValues(horizontal = 12.dp, vertical = if (isAccessibleSheet) 8.dp else 4.dp),
+									modifier = if (isAccessibleSheet) Modifier.heightIn(min = 48.dp) else Modifier,
 									shape = CircleShape
 								) {
 									Icon(
@@ -5264,7 +5290,7 @@ private fun IgnoredVersionsBottomSheet(
 									Spacer(modifier = Modifier.width(4.dp))
 									Text(
 										text = stringResource(R.string.action_unignore_version),
-										style = MaterialTheme.typography.labelSmall,
+										style = if (isAccessibleSheet) MaterialTheme.typography.labelLarge else MaterialTheme.typography.labelSmall,
 										fontWeight = FontWeight.SemiBold
 									)
 								}
@@ -5276,6 +5302,7 @@ private fun IgnoredVersionsBottomSheet(
 						onClick = onClearAll,
 						modifier = Modifier
 							.fillMaxWidth()
+							.heightIn(min = 48.dp)
 							.padding(top = 4.dp),
 						shape = CircleShape
 					) {
@@ -5287,6 +5314,15 @@ private fun IgnoredVersionsBottomSheet(
 						Spacer(modifier = Modifier.width(6.dp))
 						Text(stringResource(R.string.action_clear_ignored_versions))
 					}
+				}
+			}
+			if (isAccessibleSheet) {
+				OutlinedButton(
+					onClick = onDismiss,
+					modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+					shape = CircleShape
+				) {
+					Text(stringResource(R.string.a11y_close_action))
 				}
 			}
 		}
