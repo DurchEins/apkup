@@ -254,6 +254,26 @@ object ReleaseAssetFilter {
         assetFilterRegex: String? = null,
         preferFossFlavor: Boolean = false
     ): T? {
+        val core = com.apkup.core.domain.CoreEngineHolder.engine
+        if (core != null && assets.isNotEmpty()) {
+            val inputs = assets.mapIndexed { idx, item ->
+                com.apkup.core.domain.ApkAssetInput(index = idx, filename = getFilename(item))
+            }
+            val pickedIdx = runCatching {
+                core.selectBestApkAssetIndex(
+                    assets = inputs,
+                    supportedAbis = supportedAbis.toList(),
+                    requiredSubstring = requiredSubstring,
+                    assetFilterRegex = assetFilterRegex,
+                    preferFossFlavor = preferFossFlavor
+                )
+            }.getOrNull()
+            if (pickedIdx != null && pickedIdx in assets.indices) {
+                return assets[pickedIdx]
+            }
+            if (pickedIdx == null) return null
+        }
+
         val requiredLower = requiredSubstring?.trim()?.lowercase(Locale.ROOT)?.takeIf { it.isNotEmpty() }
         val compiledRegex = if (assetFilterRegex.isNullOrBlank()) null else compileSafeRegex(assetFilterRegex) ?: return null
 
@@ -406,6 +426,46 @@ object ReleaseAssetFilter {
         parsed.segments.size == 1 && parsed.segments[0] >= 100_000L
 
     fun isNewer(currentVersion: String, candidateTag: String): Boolean {
+        val core = com.apkup.core.domain.CoreEngineHolder.engine
+        if (core != null) {
+            return runCatching { core.isNewerVersion(currentVersion, candidateTag) }
+                .getOrElse { isNewerKotlin(currentVersion, candidateTag) }
+        }
+        return isNewerKotlin(currentVersion, candidateTag)
+    }
+
+    fun evaluateBatch(
+        requests: List<com.apkup.core.domain.BatchVersionEvalInput>
+    ): Map<String, com.apkup.core.domain.BatchVersionEvalOutput> {
+        if (requests.isEmpty()) return emptyMap()
+        val startedNs = System.nanoTime()
+        val core = com.apkup.core.domain.CoreEngineHolder.engine
+        val results = if (core != null) {
+            runCatching { core.evaluateUpdateCandidatesBatch(requests) }
+                .getOrElse { evaluateBatchKotlin(requests) }
+        } else {
+            evaluateBatchKotlin(requests)
+        }
+        val micros = ((System.nanoTime() - startedNs) / 1000L).coerceAtLeast(1L)
+        com.apkup.core.domain.EngineTelemetryRegistry.recordVersionBatch(micros, requests.size)
+        return results.associateBy { it.id }
+    }
+
+    private fun evaluateBatchKotlin(
+        requests: List<com.apkup.core.domain.BatchVersionEvalInput>
+    ): List<com.apkup.core.domain.BatchVersionEvalOutput> = requests.map { req ->
+        val cleaned = cleanVersionString(req.candidateTag)
+        val pre = isPreReleaseVersion(req.candidateTag, false)
+        com.apkup.core.domain.BatchVersionEvalOutput(
+            id = req.id,
+            cleanedCandidate = cleaned,
+            isNewer = isNewerKotlin(req.currentVersion, cleaned),
+            isPreRelease = pre,
+            preReleaseChannel = if (pre) classifyPreReleaseChannel(req.candidateTag) else null
+        )
+    }
+
+    internal fun isNewerKotlin(currentVersion: String, candidateTag: String): Boolean {
         if (currentVersion.isBlank()) return cleanVersionString(candidateTag).isNotBlank()
         val current = parseSemVer(currentVersion)
         val candidate = parseSemVer(candidateTag)

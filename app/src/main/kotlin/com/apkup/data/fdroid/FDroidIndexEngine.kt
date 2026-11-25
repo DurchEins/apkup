@@ -143,6 +143,32 @@ object FDroidIndexEngine {
         tempDir: File? = null
     ): VerifiedJarPayload<FDroidV2Entry> {
         val dir = tempDir?.apply { mkdirs() }
+        val core = com.apkup.core.domain.CoreEngineHolder.engine
+        if (core != null) {
+            val tempJar = File.createTempFile("fdroid_entry_", ".jar", dir)
+            val tempOut = File.createTempFile("fdroid_entry_", ".json", dir)
+            try {
+                copyStreamBounded(jarStream, tempJar, MAX_ENTRY_JAR_BYTES, "entry.jar")
+                val res = core.verifyAndExtractFDroidJar(
+                    jarPath = tempJar.absolutePath,
+                    targetEntryName = "entry.json",
+                    expectedCertSha256 = expectedCertSha256,
+                    allowUnpinnedCert = allowUnpinnedCert,
+                    outputEntryPath = tempOut.absolutePath,
+                    maxJarBytes = MAX_ENTRY_JAR_BYTES,
+                    maxTargetBytes = MAX_ENTRY_JSON_BYTES
+                )
+                com.apkup.core.domain.EngineTelemetryRegistry.recordFDroidJarVerify(res.elapsedMicros)
+                val parsed = tempOut.bufferedReader(Charsets.UTF_8).use { reader ->
+                    gson.fromJson(reader, FDroidV2Entry::class.java)
+                } ?: throw IOException("Malformed entry.json inside verified entry.jar")
+                return VerifiedJarPayload(parsed, res.signerSha256Hex)
+            } finally {
+                runCatching { if (tempJar.exists()) tempJar.delete() }
+                runCatching { if (tempOut.exists()) tempOut.delete() }
+            }
+        }
+
         val tempJar = File.createTempFile("fdroid_entry_", ".jar", dir)
         var extractedBytes: ByteArray? = null
 
@@ -179,6 +205,28 @@ object FDroidIndexEngine {
         return VerifiedJarPayload(parsed, verifiedCertFp)
     }
 
+    private fun copyStreamBounded(
+        input: InputStream,
+        dest: File,
+        maxBytes: Long,
+        label: String
+    ) {
+        val buffer = ByteArray(16_384)
+        var total = 0L
+        FileOutputStream(dest).use { out ->
+            var r = input.read(buffer)
+            while (r != -1) {
+                total += r
+                if (total > maxBytes) {
+                    throw IOException("$label exceeds maximum allowed size ($maxBytes bytes)")
+                }
+                out.write(buffer, 0, r)
+                r = input.read(buffer)
+            }
+            out.flush()
+        }
+    }
+
     /**
      * Extracts `index-v1.json` from a signed `index-v1.jar` stream to [targetFile] atomically,
      * verifying the JAR cryptographic signature against [expectedCertSha256] BEFORE committing [targetFile].
@@ -190,6 +238,27 @@ object FDroidIndexEngine {
         allowUnpinnedCert: Boolean = false
     ): String {
         targetFile.parentFile?.mkdirs()
+        val core = com.apkup.core.domain.CoreEngineHolder.engine
+        if (core != null) {
+            val tempJar = File(targetFile.parentFile, "${targetFile.name}.jar.tmp")
+            if (tempJar.exists()) tempJar.delete()
+            try {
+                copyStreamBounded(jarStream, tempJar, MAX_INDEX_JSON_BYTES, "index-v1.jar")
+                val res = core.verifyAndExtractFDroidJar(
+                    jarPath = tempJar.absolutePath,
+                    targetEntryName = "index-v1.json",
+                    expectedCertSha256 = expectedCertSha256,
+                    allowUnpinnedCert = allowUnpinnedCert,
+                    outputEntryPath = targetFile.absolutePath,
+                    maxJarBytes = MAX_INDEX_JSON_BYTES,
+                    maxTargetBytes = MAX_INDEX_JSON_BYTES
+                )
+                com.apkup.core.domain.EngineTelemetryRegistry.recordFDroidJarVerify(res.elapsedMicros)
+                return res.signerSha256Hex
+            } finally {
+                runCatching { if (tempJar.exists()) tempJar.delete() }
+            }
+        }
         val tempFile = File(targetFile.parentFile, "${targetFile.name}.tmp")
         val tempJar = File(targetFile.parentFile, "${targetFile.name}.jar.tmp")
         if (tempFile.exists()) tempFile.delete()
@@ -245,6 +314,20 @@ object FDroidIndexEngine {
         gson: Gson,
         preferredLocale: Locale = Locale.getDefault()
     ): IzzyIndexResponse {
+        val core = com.apkup.core.domain.CoreEngineHolder.engine
+        if (core != null) {
+            val res = core.streamFilterFDroidV2Index(
+                indexPath = file.absolutePath,
+                installedPackages = installedPackages?.toList()
+            )
+            com.apkup.core.domain.EngineTelemetryRegistry.recordFDroidParse(
+                res.elapsedMicros,
+                res.matchedPackageCount
+            )
+            val filtered = gson.fromJson(res.filteredJson, FDroidV2Index::class.java)
+                ?: FDroidV2Index()
+            return filtered.toIzzyIndexResponse(preferredLocale)
+        }
         FileInputStream(file).buffered(32_768).use { fileIn ->
             InputStreamReader(fileIn, Charsets.UTF_8).use { isr ->
                 JsonReader(isr).use { reader ->
@@ -305,6 +388,19 @@ object FDroidIndexEngine {
         installedPackages: Set<String>?,
         gson: Gson
     ): IzzyIndexResponse {
+        val core = com.apkup.core.domain.CoreEngineHolder.engine
+        if (core != null) {
+            val res = core.streamFilterFDroidV1Index(
+                indexPath = file.absolutePath,
+                installedPackages = installedPackages?.toList()
+            )
+            com.apkup.core.domain.EngineTelemetryRegistry.recordFDroidParse(
+                res.elapsedMicros,
+                res.matchedPackageCount
+            )
+            return gson.fromJson(res.filteredJson, IzzyIndexResponse::class.java)
+                ?: IzzyIndexResponse()
+        }
         val pkgListType = object : TypeToken<List<IzzyPackageInfo>>() {}.type
         FileInputStream(file).buffered(32_768).use { fileIn ->
             InputStreamReader(fileIn, Charsets.UTF_8).use { isr ->

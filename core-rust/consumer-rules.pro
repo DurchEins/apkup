@@ -1,0 +1,7 @@
+-keep class com.sun.jna.** { *; }
+-keep class * implements com.sun.jna.Library { *; }
+-keep class * implements com.sun.jna.Structure { *; }
+-keepclassmembers class * extends com.sun.jna.Structure { *; }
+-keep class uniffi.apkup_rust_core.** { *; }
+-dontwarn java.awt.**
+-dontwarn com.sun.jna.**

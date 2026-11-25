@@ -32,4 +32,7 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "apkup"
+include(":core-domain")
+include(":core-rust")
+include(":core-android")
 include(":app")

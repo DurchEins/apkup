@@ -99,15 +99,34 @@ object ApkIntegrityVerifier {
     }
 
     fun computeFileSha256(file: File): String {
+        val core = com.apkup.core.domain.CoreEngineHolder.engine
+        if (core != null) {
+            return runCatching {
+                val res = core.computeFileSha256(file.absolutePath)
+                com.apkup.core.domain.EngineTelemetryRegistry.recordSha256(res.elapsedMicros, res.bytesHashed)
+                res.sha256Hex
+            }.getOrElse { computeFileSha256Fallback(file) }
+        }
+        return computeFileSha256Fallback(file)
+    }
+
+    private fun computeFileSha256Fallback(file: File): String {
+        val startedNs = System.nanoTime()
         val digest = MessageDigest.getInstance("SHA-256")
+        var totalBytes = 0L
         file.inputStream().buffered().use { input ->
             val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
             var read = input.read(buffer)
             while (read >= 0) {
-                if (read > 0) digest.update(buffer, 0, read)
+                if (read > 0) {
+                    digest.update(buffer, 0, read)
+                    totalBytes += read
+                }
                 read = input.read(buffer)
             }
         }
+        val elapsedMicros = ((System.nanoTime() - startedNs) / 1000L).coerceAtLeast(1L)
+        com.apkup.core.domain.EngineTelemetryRegistry.recordSha256(elapsedMicros, totalBytes)
         return digest.digest().joinToString("") { "%02x".format(it) }
     }
 

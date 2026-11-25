@@ -4,7 +4,22 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- Rich Rust-Dark Background -->
     <path
-        android:fillColor="#FF0F1117"
+        android:fillColor="#FF1F0C05"
         android:pathData="M0,0h108v108h-108z" />
+    <!-- Diagonal Rust-Orange Lab Accent -->
+    <path
+        android:fillColor="#FF5A2108"
+        android:pathData="M0,70 L108,24 L108,108 L0,108 Z" />
+    <path
+        android:fillColor="#FFE65100"
+        android:fillAlpha="0.35"
+        android:pathData="M0,84 L108,42 L108,108 L0,108 Z" />
+    <!-- Subtle Top-Right Rust Ring -->
+    <path
+        android:pathData="M78,18 A16,16 0 1,1 77.9,18 Z"
+        android:strokeWidth="2.5"
+        android:strokeColor="#FFFF7043"
+        android:strokeAlpha="0.55" />
 </vector>

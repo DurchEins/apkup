@@ -119,6 +119,7 @@ class GitHubRepository(
             }
         }
 
+        val fetchedCandidates = mutableListOf<Triple<AppInstalled, RepoBinding, GitHubReleaseDto>>()
         appBindings.chunked(BATCH_NOTIFY_SIZE).forEach { batch ->
             for ((app, binding) in batch) {
                 if (binding != null) {
@@ -140,9 +141,7 @@ class GitHubRepository(
                         val release = fetchLatestRelease(binding.repo, includePreReleases = allowPreReleases)
                         successfulRequests++
                         if (release != null && !release.draft && (allowPreReleases || !release.prerelease)) {
-                            buildAppUpdate(app, binding, release)?.let { update ->
-                                updates.add(update)
-                            }
+                            fetchedCandidates.add(Triple(app, binding, release))
                         }
                     } catch (ce: CancellationException) {
                         throw ce
@@ -156,6 +155,27 @@ class GitHubRepository(
                 }
             }
             onBatchSuccess(batch.map { it.first.packageName })
+        }
+
+        // Chunky FFI batch version evaluation across all fetched GitHub releases
+        if (fetchedCandidates.isNotEmpty()) {
+            val batchInputs = fetchedCandidates.map { (app, _, release) ->
+                val candidateTag = release.safeTagName.ifBlank { release.safeName }
+                com.apkup.core.domain.BatchVersionEvalInput(
+                    id = app.packageName,
+                    currentVersion = app.version,
+                    candidateTag = candidateTag
+                )
+            }
+            val batchResults = ReleaseAssetFilter.evaluateBatch(batchInputs)
+            for ((app, binding, release) in fetchedCandidates) {
+                val eval = batchResults[app.packageName]
+                if (eval != null && eval.isNewer) {
+                    buildAppUpdate(app, binding, release, preEvaluatedCleanCandidate = eval.cleanedCandidate)?.let { update ->
+                        updates.add(update)
+                    }
+                }
+            }
         }
 
         if (BuildConfig.DEBUG) {
@@ -239,11 +259,15 @@ class GitHubRepository(
     private fun buildAppUpdate(
         app: AppInstalled,
         binding: RepoBinding,
-        release: GitHubReleaseDto
+        release: GitHubReleaseDto,
+        preEvaluatedCleanCandidate: String? = null
     ): AppUpdate? {
-        val candidateTag = release.safeTagName.ifBlank { release.safeName }
-        val cleanCandidate = ReleaseAssetFilter.cleanVersionString(candidateTag)
-        if (!ReleaseAssetFilter.isNewer(app.version, cleanCandidate)) return null
+        val cleanCandidate = preEvaluatedCleanCandidate ?: run {
+            val candidateTag = release.safeTagName.ifBlank { release.safeName }
+            val cleaned = ReleaseAssetFilter.cleanVersionString(candidateTag)
+            if (!ReleaseAssetFilter.isNewer(app.version, cleaned)) return null
+            cleaned
+        }
 
         val bestApk = ReleaseAssetFilter.findBestApk(
             assets = release.safeAssets,

@@ -46,6 +46,7 @@ class App : Application(), SingletonImageLoader.Factory, KoinComponent {
 
     override fun onCreate() {
         super.onCreate()
+        com.apkup.core.android.RustCoreEngineProvider.init()
         registerActivityLifecycleCallbacks(AppLifecycleTracker)
 
         startKoin {

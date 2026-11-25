@@ -2080,6 +2080,7 @@ fun Settings(
 			}
 		}
 		item(key = "section_about") {
+			val engineSnapshot by com.apkup.core.domain.EngineTelemetryRegistry.snapshot.collectAsStateWithLifecycle()
 			Column(modifier = Modifier.fillMaxWidth()) {
 				SettingsSection(stringResource(R.string.about)) {
 					// 1. Unified Hero-Card
@@ -2150,6 +2151,30 @@ fun Settings(
 									fontWeight = FontWeight.SemiBold,
 									color = MaterialTheme.colorScheme.primary,
 									maxLines = 1
+								)
+							}
+							Surface(
+								shape = CircleShape,
+								color = if (engineSnapshot.nativeLoaded) {
+									MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f)
+								} else {
+									MaterialTheme.colorScheme.secondaryContainer
+								}
+							) {
+								Text(
+									text = if (engineSnapshot.nativeLoaded) {
+										stringResource(R.string.lab_engine_badge_title)
+									} else {
+										stringResource(R.string.lab_engine_badge_fallback)
+									},
+									style = MaterialTheme.typography.labelSmall,
+									fontWeight = FontWeight.Bold,
+									color = if (engineSnapshot.nativeLoaded) {
+										MaterialTheme.colorScheme.onPrimaryContainer
+									} else {
+										MaterialTheme.colorScheme.onSecondaryContainer
+									},
+									modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
 								)
 							}
 							AnimatedContent(
@@ -2262,9 +2287,10 @@ fun Settings(
 							.height(IntrinsicSize.Min),
 						horizontalArrangement = Arrangement.spacedBy(8.dp)
 					) {
+						val isLabBuild = BuildConfig.APPLICATION_ID == "com.apkup.rust" || BuildConfig.APPLICATION_ID == "com.apkup.kmp"
 						Surface(
 							onClick = {
-								if (!isCheckingSelfUpdate) {
+								if (!isLabBuild && !isCheckingSelfUpdate) {
 									mainViewModel.checkForSelfUpdate(manual = true, context = context)
 								}
 							},
@@ -2356,6 +2382,7 @@ fun Settings(
 								) {
 									Text(
 										text = when {
+											isLabBuild -> stringResource(R.string.lab_self_update_disabled_title)
 											isCheckingSelfUpdate -> stringResource(R.string.self_update_bento_checking_title)
 											isUpToDateSelfUpdate -> stringResource(R.string.self_update_bento_uptodate_title)
 											isErrorSelfUpdate -> stringResource(R.string.self_update_bento_error_title)
@@ -2369,6 +2396,7 @@ fun Settings(
 									)
 									Text(
 										text = when {
+											isLabBuild -> stringResource(R.string.lab_self_update_disabled_subtitle)
 											isCheckingSelfUpdate -> stringResource(R.string.self_update_bento_checking_subtitle)
 											isUpToDateSelfUpdate -> stringResource(R.string.self_update_bento_uptodate_subtitle)
 											isErrorSelfUpdate -> stringResource(R.string.self_update_bento_error_subtitle)
@@ -2438,6 +2466,8 @@ fun Settings(
 					}
 
 					// 3a. Kompakte Opt-In-Zeile für ApkUp Beta-/Vorab-Updates (direkt unter Update prüfen / Was ist neu)
+					val isLabBuildForToggle = BuildConfig.APPLICATION_ID == "com.apkup.rust" || BuildConfig.APPLICATION_ID == "com.apkup.kmp"
+					if (!isLabBuildForToggle) {
 					var includeSelfUpdatePreReleases by remember(configRefreshKey) {
 						mutableStateOf(viewModel.getIncludeSelfUpdatePreReleases())
 					}
@@ -2561,6 +2591,91 @@ fun Settings(
 								}
 							}
 						)
+					}
+					}
+
+					// 3a-lab. Live Engine Benchmark & Telemetry Card (Lab Builds only)
+					if (isLabBuildForToggle) {
+						var isRunningBench by remember { mutableStateOf(false) }
+						Surface(
+							modifier = Modifier.fillMaxWidth(),
+							shape = RoundedCornerShape(14.dp),
+							color = MaterialTheme.colorScheme.surfaceContainerHigh,
+							border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f))
+						) {
+							Column(
+								modifier = Modifier
+									.fillMaxWidth()
+									.padding(horizontal = 12.dp, vertical = 10.dp),
+								verticalArrangement = Arrangement.spacedBy(6.dp)
+							) {
+								Text(
+									text = stringResource(R.string.lab_benchmark_title),
+									style = MaterialTheme.typography.labelLarge,
+									fontWeight = FontWeight.Bold,
+									color = MaterialTheme.colorScheme.primary
+								)
+								Text(
+									text = stringResource(
+										R.string.lab_benchmark_scan,
+										engineSnapshot.lastScanDurationMs,
+										engineSnapshot.lastVersionBatchMicros,
+										engineSnapshot.lastVersionBatchCount
+									),
+									style = MaterialTheme.typography.labelSmall,
+									fontFamily = FontFamily.Monospace,
+									color = MaterialTheme.colorScheme.onSurface
+								)
+								Text(
+									text = stringResource(
+										R.string.lab_benchmark_fdroid,
+										String.format(java.util.Locale.US, "%.2f", engineSnapshot.lastFDroidJarVerifyMs),
+										String.format(java.util.Locale.US, "%.2f", engineSnapshot.lastFDroidParseMs),
+										engineSnapshot.lastFDroidMatchedPackages
+									),
+									style = MaterialTheme.typography.labelSmall,
+									fontFamily = FontFamily.Monospace,
+									color = MaterialTheme.colorScheme.onSurfaceVariant
+								)
+								Text(
+									text = stringResource(
+										R.string.lab_benchmark_sha256,
+										String.format(java.util.Locale.US, "%.2f", engineSnapshot.lastSha256DurationMs),
+										String.format(java.util.Locale.US, "%.1f", engineSnapshot.selfTestThroughputMbps)
+									),
+									style = MaterialTheme.typography.labelSmall,
+									fontFamily = FontFamily.Monospace,
+									color = MaterialTheme.colorScheme.onSurfaceVariant
+								)
+								FilledTonalButton(
+									onClick = {
+										if (!isRunningBench) {
+											isRunningBench = true
+											coroutineScope.launch(Dispatchers.IO) {
+												runCatching {
+													val apkFile = File(context.applicationInfo.sourceDir)
+													if (apkFile.isFile) {
+														com.apkup.util.ApkIntegrityVerifier.computeFileSha256(apkFile)
+													}
+												}
+												withContext(Dispatchers.Main) {
+													isRunningBench = false
+												}
+											}
+										}
+									},
+									enabled = !isRunningBench,
+									shape = CircleShape,
+									modifier = Modifier.fillMaxWidth()
+								) {
+									Text(
+										text = stringResource(R.string.lab_benchmark_run_button),
+										style = MaterialTheme.typography.labelMedium,
+										fontWeight = FontWeight.SemiBold
+									)
+								}
+							}
+						}
 					}
 
 					// 3b. Zweite Bento-Zeile (GitHub & Hilfe/Wiki nebeneinander unter der Beta-Karte)
