@@ -80,7 +80,7 @@ fun sourcePriorityLabel(key: String): String = when (key) {
     SourcePriorityKeys.PLAY -> stringResource(R.string.source_play)
     SourcePriorityKeys.GITHUB -> stringResource(R.string.source_github)
     SourcePriorityKeys.CODEBERG -> stringResource(R.string.source_codeberg)
-    SourcePriorityKeys.FDROID -> stringResource(R.string.source_izzyondroid)
+    SourcePriorityKeys.FDROID -> stringResource(R.string.source_fdroid_izzyondroid)
     SourcePriorityKeys.CUSTOM_FDROID -> stringResource(R.string.source_custom_fdroid)
     SourcePriorityKeys.GITLAB -> stringResource(R.string.source_gitlab)
     SourcePriorityKeys.APKMIRROR -> stringResource(R.string.source_apkmirror)

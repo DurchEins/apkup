@@ -133,6 +133,7 @@
     <string name="apkmirror_resolution_failed_fallback">APKMirror download link resolution failed. Opening browser…</string>
     <string name="source_play">Google Play Store</string>
     <string name="source_izzyondroid" translatable="false">IzzyOnDroid</string>
+    <string name="source_fdroid_izzyondroid" translatable="false">F-Droid &amp; IzzyOnDroid</string>
     <string name="source_fdroid" translatable="false">F-Droid</string>
     <string name="source_github" translatable="false">GitHub</string>
     <string name="source_gitlab" translatable="false">GitLab</string>
