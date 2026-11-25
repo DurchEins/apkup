@@ -61,3 +61,7 @@ npm run check:a11y
 - **Third-Party Upstream Changelogs:** Release notes fetched live from external repositories (GitHub, GitLab, Codeberg, F-Droid) are authored by upstream developers and may include unformatted raw markdown or external images.
 - **Android System Flows:** System dialogs for *Install unknown apps*, Developer Options (*24-hour unverified developer lock*), and *Shizuku* pairing are controlled by the device OEM and Android OS.
 - **Continuous Hardware Validation:** While static checks, Compose semantics tests, contrast audits, and desktop/mobile browser checks run locally, physical on-device verification across additional OEM Android skins with TalkBack and Voice Access remains an ongoing process.
+
+## Wiki & User Guide
+
+For step-by-step instructions on enabling **Accessible Mode**, configuring the high-contrast solar **Auto / Light / Dark** theme, and using TalkBack or one-tap selection in ApkUp, see **[Accessibility & Accessible Mode](https://github.com/DurchEins/apkup/wiki/Accessibility-%26-Accessible-Mode)** in the official Wiki.
