@@ -32,8 +32,8 @@ android {
         applicationId = "com.apkup" + buildTag
         minSdk = 29
         targetSdk = 37
-        versionCode = parsedBuildNumber ?: 237
-        versionName = if (parsedBuildNumber == null) "1.47.0 (237)" else "1.47.0-$parsedBuildNumber"
+        versionCode = parsedBuildNumber ?: 238
+        versionName = if (parsedBuildNumber == null) "1.47.0 (238)" else "1.47.0-$parsedBuildNumber"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
