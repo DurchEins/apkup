@@ -16,6 +16,7 @@ import com.apkup.data.ui.filterInstalledApps
 import com.apkup.data.ui.filterNewerCandidates
 import com.apkup.data.ui.hasPotentialSignatureConflict
 import com.apkup.data.ui.isCompatibleFormFactor
+import com.apkup.data.ui.isSystemWebViewPackage
 import com.apkup.data.ui.isVerifiableVersionUpgrade
 import com.apkup.data.ui.matchesSignature
 import com.apkup.data.ui.resolveInstallOrigin
@@ -723,6 +724,56 @@ class UpdateProcessingTest {
 
         assertEquals(listOf(playAlt), directQueue)
         assertTrue(browserSkipped.isEmpty())
+    }
+
+    @Test
+    fun systemWebViewRejects32BitOnlyApkOn64BitAndDualAbiDevices() {
+        assertTrue(isSystemWebViewPackage("com.google.android.webview"))
+        assertTrue(isSystemWebViewPackage("com.google.android.webview.beta"))
+        assertTrue(isSystemWebViewPackage("com.android.webview"))
+        assertFalse(isSystemWebViewPackage("com.whatsapp"))
+
+        val dualAbis = listOf("arm64-v8a", "armeabi-v7a")
+        val only64Abis = listOf("arm64-v8a")
+        val only32Abis = listOf("armeabi-v7a")
+
+        // Dual-ABI device rejects 32-bit-only and 64-bit-only WebView, accepts dual-ABI & universal
+        assertFalse(supportsArchitecture(listOf("armeabi-v7a"), dualAbis, "arm64-v8a", requireAllBitnessForWebView = true))
+        assertFalse(supportsArchitecture(listOf("arm64-v8a"), dualAbis, "arm64-v8a", requireAllBitnessForWebView = true))
+        assertTrue(supportsArchitecture(listOf("arm64-v8a", "armeabi-v7a"), dualAbis, "arm64-v8a", requireAllBitnessForWebView = true))
+        assertTrue(supportsArchitecture(listOf("universal"), dualAbis, "arm64-v8a", requireAllBitnessForWebView = true))
+
+        // 64-bit-only device rejects 32-bit-only WebView, accepts 64-bit WebView
+        assertFalse(supportsArchitecture(listOf("armeabi-v7a"), only64Abis, "arm64-v8a", requireAllBitnessForWebView = true))
+        assertTrue(supportsArchitecture(listOf("arm64-v8a"), only64Abis, "arm64-v8a", requireAllBitnessForWebView = true))
+
+        // 32-bit-only device still accepts 32-bit WebView; non-WebView apps remain permissive
+        assertTrue(supportsArchitecture(listOf("armeabi-v7a"), only32Abis, "armeabi-v7a", requireAllBitnessForWebView = true))
+        assertTrue(supportsArchitecture(listOf("armeabi-v7a"), dualAbis, "arm64-v8a", requireAllBitnessForWebView = false))
+    }
+
+    @Test
+    fun computeShortApkSha256HashesFileAndFormatsVersionLabel() {
+        val tempFile = java.io.File.createTempFile("apkup-hash-test", ".apk")
+        try {
+            tempFile.writeText("apkup-test-payload")
+            val hash1 = com.apkup.util.computeShortApkSha256(tempFile.absolutePath, 12345L)
+            val hash2 = com.apkup.util.computeShortApkSha256(tempFile.absolutePath, 12345L)
+            assertEquals(8, hash1.length)
+            assertEquals(hash1, hash2)
+            assertEquals("", com.apkup.util.computeShortApkSha256("${tempFile.absolutePath}.missing", 1L))
+
+            assertEquals(
+                "v1.2.3 (100) [$hash1]",
+                com.apkup.util.formatVersionWithShortHash("v1.2.3", 100L, hash1)
+            )
+            assertEquals(
+                "v1.2.3 (100)",
+                com.apkup.util.formatVersionWithShortHash("v1.2.3", 100L, "")
+            )
+        } finally {
+            tempFile.delete()
+        }
     }
 
     private data class VersionCandidate(

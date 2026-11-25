@@ -20,7 +20,8 @@ data class AppUpdate(
 	val offerType: Int = 1,
 	val installOrigin: InstallOrigin = InstallOrigin.SYSTEM,
 	val installerPackageName: String = "",
-	val alternativeUpdates: List<AppUpdate> = emptyList()
+	val alternativeUpdates: List<AppUpdate> = emptyList(),
+	val installedShortSha256: String = ""
 ) {
 	val isDirectInstallable: Boolean
 		get() = isDirectInstallable(directApkMirrorEnabled = false)
