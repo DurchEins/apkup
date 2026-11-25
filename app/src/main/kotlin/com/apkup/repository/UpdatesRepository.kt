@@ -59,6 +59,7 @@ class UpdatesRepository(
 
     fun updates(installedAppsSnapshot: Result<List<AppInstalled>>? = null) = channelFlow<UpdateCheckResult<AppUpdate>> {
         val checkStartedAt = SystemClock.elapsedRealtime()
+        com.apkup.shared.engine.KmpTelemetryRegistry.resetScanCounters()
         val appLoadStartedAt = SystemClock.elapsedRealtime()
         val installedAppsResult = installedAppsSnapshot ?: appsRepository.getApps()
         val installedApps = installedAppsResult.getOrElse {
@@ -261,8 +262,13 @@ class UpdatesRepository(
                 synchronized(sourceResultsLock) { sourceResults += result.second }
                 val isStillChecking = pending.isNotEmpty()
                 val nextResult = currentResult(isChecking = isStillChecking)
-                if (!isStillChecking && !nextResult.isCompleteFailure) {
-                    saveSnapshotToCache(nextResult)
+                if (!isStillChecking) {
+                    com.apkup.shared.engine.KmpTelemetryRegistry.recordScanDuration(
+                        SystemClock.elapsedRealtime() - checkStartedAt
+                    )
+                    if (!nextResult.isCompleteFailure) {
+                        saveSnapshotToCache(nextResult)
+                    }
                 }
                 send(nextResult)
             }

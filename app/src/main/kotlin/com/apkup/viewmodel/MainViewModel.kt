@@ -118,6 +118,10 @@ class MainViewModel(
     }
 
     fun checkForSelfUpdate(manual: Boolean = false, context: Context? = null) = viewModelScope.launch(Dispatchers.IO) {
+        if (BuildConfig.APPLICATION_ID == "com.apkup.rust" || BuildConfig.APPLICATION_ID == "com.apkup.kmp") {
+            _selfUpdateState.value = SelfUpdateState.Idle
+            return@launch
+        }
         val repo = selfUpdateRepository ?: return@launch
         if (manual && _selfUpdateState.value is SelfUpdateState.Checking) return@launch
         val startMs = System.currentTimeMillis()

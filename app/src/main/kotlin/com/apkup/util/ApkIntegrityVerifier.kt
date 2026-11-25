@@ -98,18 +98,8 @@ object ApkIntegrityVerifier {
         }
     }
 
-    fun computeFileSha256(file: File): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        file.inputStream().buffered().use { input ->
-            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-            var read = input.read(buffer)
-            while (read >= 0) {
-                if (read > 0) digest.update(buffer, 0, read)
-                read = input.read(buffer)
-            }
-        }
-        return digest.digest().joinToString("") { "%02x".format(it) }
-    }
+    fun computeFileSha256(file: File): String =
+        com.apkup.shared.platform.computeFileSha256Hex(file.absolutePath).sha256Hex
 
     fun verifyFileSha256(file: File, expectedSha256Raw: String) {
         val normalizedExpected = normalizeSha256Hex(expectedSha256Raw)

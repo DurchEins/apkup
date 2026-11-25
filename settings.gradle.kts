@@ -32,4 +32,6 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "apkup"
+include(":shared")
 include(":app")
+include(":desktop-app")

@@ -669,4 +669,12 @@
     <string name="backup_diff_skipped">Übersprungene Versionen: %1$d → %2$d</string>
     <string name="backup_diff_fdroid">Eigene F-Droid-Repos: %1$d → %2$d</string>
     <string name="backup_diff_confirm">Backup importieren</string>
+    <string name="lab_engine_badge_title">Kotlin Multiplatform Core (:shared · Ktor)</string>
+    <string name="lab_self_update_disabled_title">Lab-Build</string>
+    <string name="lab_self_update_disabled_subtitle">Self-Update deaktiviert</string>
+    <string name="lab_benchmark_title">Engine-Telemetrie &amp; Benchmark</string>
+    <string name="lab_benchmark_scan">Letzter Scan: %1$d ms · Batch: %2$d µs (%3$d Checks)</string>
+    <string name="lab_benchmark_fdroid">F-Droid JAR-Verify: %1$s ms · Index-Parse: %2$s ms (%3$d Pakete)</string>
+    <string name="lab_benchmark_sha256">Shared SHA-256: %1$s ms (%2$s MB/s)</string>
+    <string name="lab_benchmark_run_button">APK-Hash-Benchmark starten</string>
 </resources>

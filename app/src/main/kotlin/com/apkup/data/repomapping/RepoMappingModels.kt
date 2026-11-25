@@ -253,86 +253,14 @@ object ReleaseAssetFilter {
         requiredSubstring: String? = null,
         assetFilterRegex: String? = null,
         preferFossFlavor: Boolean = false
-    ): T? {
-        val requiredLower = requiredSubstring?.trim()?.lowercase(Locale.ROOT)?.takeIf { it.isNotEmpty() }
-        val compiledRegex = if (assetFilterRegex.isNullOrBlank()) null else compileSafeRegex(assetFilterRegex) ?: return null
-
-        val apkAssets = assets.filter { asset ->
-            val fname = getFilename(asset)
-            fname.endsWith(".apk", ignoreCase = true) &&
-                (requiredLower == null || fname.lowercase(Locale.ROOT).contains(requiredLower)) &&
-                (compiledRegex == null || compiledRegex.containsMatchIn(fname))
-        }
-        if (apkAssets.isEmpty()) return null
-
-        val deviceSupportedAbis = supportedAbis.map { it.lowercase(Locale.ROOT) }
-        val primaryAbi = deviceSupportedAbis.firstOrNull() ?: "arm64-v8a"
-
-        val scored = apkAssets.mapNotNull { asset ->
-            val filename = getFilename(asset).lowercase(Locale.ROOT)
-
-            // Exclude non-installable or debug APK types (F-09)
-            if (filename.endsWith("-unaligned.apk") ||
-                filename.endsWith("-sources.apk") ||
-                filename.endsWith("-debug.apk") ||
-                filename.endsWith("_debug.apk") ||
-                filename.contains("-debug-")
-            ) {
-                return@mapNotNull null
-            }
-
-            var detectedAbi: String? = null
-            for ((canonicalAbi, aliases) in KNOWN_INCOMPATIBLE_ABIS) {
-                if (aliases.any { alias ->
-                        filename.contains(
-                            Regex(
-                                "[._-]${Regex.escape(alias)}[._-]|^${Regex.escape(alias)}[._-]|[._-]${Regex.escape(alias)}\\.apk$"
-                            )
-                        )
-                    }
-                ) {
-                    detectedAbi = canonicalAbi
-                    break
-                }
-            }
-
-            val baseScore = if (detectedAbi != null) {
-                if (detectedAbi !in deviceSupportedAbis) {
-                    return@mapNotNull null
-                }
-                if (detectedAbi == primaryAbi) 100 else 80
-            } else {
-                val isExplicitUniversal = filename.contains("universal")
-                if (isExplicitUniversal) 60 else 50
-            }
-
-            val flavorAdjustment = computeFlavorAdjustment(filename, preferFossFlavor)
-            Pair(asset, baseScore + flavorAdjustment)
-        }
-
-        return scored.maxByOrNull { it.second }?.first
-    }
-
-    private fun computeFlavorAdjustment(lowercaseFilename: String, preferFossFlavor: Boolean): Int {
-        var adjustment = 0
-        if (hasFlavorToken(lowercaseFilename, "debug")) adjustment -= 60
-        if (hasFlavorToken(lowercaseFilename, "huawei")) adjustment -= 25
-
-        if (preferFossFlavor) {
-            if (listOf("foss", "libre", "fdroid", "nogms").any { hasFlavorToken(lowercaseFilename, it) }) {
-                adjustment += 15
-            }
-            if (listOf("gplay", "gms", "playstore", "proprietary").any { hasFlavorToken(lowercaseFilename, it) }) {
-                adjustment -= 30
-            }
-        }
-        return adjustment
-    }
-
-    private fun hasFlavorToken(lowercaseFilename: String, token: String): Boolean {
-        val escaped = Regex.escape(token)
-        return lowercaseFilename.contains(Regex("(^|[._-])$escaped([._-]|\\.apk$)"))
-    }
+    ): T? = com.apkup.shared.engine.KmpAssetSelector.findBestApk(
+        assets = assets,
+        getFilename = getFilename,
+        supportedAbis = supportedAbis.toList(),
+        requiredSubstring = requiredSubstring,
+        assetFilterRegex = assetFilterRegex,
+        preferFossFlavor = preferFossFlavor
+    )
 
     data class ParsedSemVer(
         val segments: List<Long>,
@@ -405,35 +333,13 @@ object ReleaseAssetFilter {
     fun isBareBuildNumberTag(parsed: ParsedSemVer): Boolean =
         parsed.segments.size == 1 && parsed.segments[0] >= 100_000L
 
-    fun isNewer(currentVersion: String, candidateTag: String): Boolean {
-        if (currentVersion.isBlank()) return cleanVersionString(candidateTag).isNotBlank()
-        val current = parseSemVer(currentVersion)
-        val candidate = parseSemVer(candidateTag)
-        if (candidate.segments.isEmpty()) return false
+    fun evaluateBatch(
+        requests: List<com.apkup.shared.engine.KmpBatchVersionRequest>
+    ): List<com.apkup.shared.engine.KmpBatchVersionResult> =
+        com.apkup.shared.engine.KmpVersionEngine.evaluateBatch(requests)
 
-        // Guard against bare date/build-number tags (e.g. "v2026072802") falsely beating a
-        // multi-segment semantic version (e.g. "2.4.0-261014").
-        if (current.segments.size >= 2 && current.segments[0] < 10_000L && isBareBuildNumberTag(candidate)) {
-            return false
-        }
-
-        val maxLen = maxOf(current.segments.size, candidate.segments.size)
-        for (i in 0 until maxLen) {
-            val c = current.segments.getOrElse(i) { 0L }
-            val n = candidate.segments.getOrElse(i) { 0L }
-            if (n != c) return n > c
-        }
-
-        // A final release is newer than a pre-release with same numeric segments (SemVer 2.0 Section 11.3)
-        if (current.preRelease != null && candidate.preRelease == null) return true
-        if (current.preRelease == null && candidate.preRelease != null) return false
-
-        if (current.preRelease != null && candidate.preRelease != null) {
-            return comparePreRelease(candidate.preRelease, current.preRelease) > 0
-        }
-
-        return false
-    }
+    fun isNewer(currentVersion: String, candidateTag: String): Boolean =
+        com.apkup.shared.engine.KmpVersionEngine.isNewer(currentVersion, candidateTag)
 
     internal fun comparePreRelease(candidate: String, current: String): Int {
         val candTokens = candidate.split('.', '-', '_').filter { it.isNotEmpty() }

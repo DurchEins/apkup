@@ -47,7 +47,7 @@ class UpdatesWidgetProvider : AppWidgetProvider() {
     }
 
     companion object {
-        const val ACTION_REFRESH_WIDGET = "com.apkup.action.WIDGET_REFRESH"
+        const val ACTION_REFRESH_WIDGET = "${com.apkup.BuildConfig.APPLICATION_ID}.action.WIDGET_REFRESH"
 
         fun notifyWidgetDataChanged(context: Context, isChecking: Boolean = false) {
             runCatching {

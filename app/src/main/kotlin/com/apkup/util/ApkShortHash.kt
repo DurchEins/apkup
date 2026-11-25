@@ -20,17 +20,8 @@ internal fun computeShortApkSha256(apkPath: String, lastUpdateTime: Long = 0L): 
 	if (!file.isFile || !file.canRead()) return ""
 
 	val digest = runCatching {
-		val md = MessageDigest.getInstance("SHA-256")
-		val buffer = ByteArray(16 * 1024)
-		file.inputStream().use { input ->
-			while (true) {
-				val read = input.read(buffer)
-				if (read <= 0) break
-				md.update(buffer, 0, read)
-			}
-		}
-		md.digest()
-			.joinToString(separator = "") { b -> "%02x".format(Locale.ROOT, b) }
+		com.apkup.shared.platform.computeFileSha256Hex(file.absolutePath)
+			.sha256Hex
 			.take(ApkShortHashCache.SHORT_HASH_LENGTH)
 	}.getOrDefault("")
 

@@ -4,7 +4,22 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- Deep KMP-Violet Background -->
     <path
-        android:fillColor="#FF0F1117"
+        android:fillColor="#FF140B29"
         android:pathData="M0,0h108v108h-108z" />
+    <!-- Diagonal KMP-Violet Lab Accent -->
+    <path
+        android:fillColor="#FF4C1D95"
+        android:pathData="M0,70 L108,24 L108,108 L0,108 Z" />
+    <path
+        android:fillColor="#FF7F52FF"
+        android:fillAlpha="0.38"
+        android:pathData="M0,84 L108,42 L108,108 L0,108 Z" />
+    <!-- Subtle Top-Right KMP Ring -->
+    <path
+        android:pathData="M78,18 A16,16 0 1,1 77.9,18 Z"
+        android:strokeWidth="2.5"
+        android:strokeColor="#FFB388FF"
+        android:strokeAlpha="0.6" />
 </vector>

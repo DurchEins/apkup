@@ -120,6 +120,7 @@ class GitHubRepository(
         }
 
         appBindings.chunked(BATCH_NOTIFY_SIZE).forEach { batch ->
+            val fetchedCandidates = mutableListOf<Triple<AppInstalled, RepoBinding, GitHubReleaseDto>>()
             for ((app, binding) in batch) {
                 if (binding != null) {
                     val slugPair = parseOwnerAndRepo(binding.repo)
@@ -140,9 +141,7 @@ class GitHubRepository(
                         val release = fetchLatestRelease(binding.repo, includePreReleases = allowPreReleases)
                         successfulRequests++
                         if (release != null && !release.draft && (allowPreReleases || !release.prerelease)) {
-                            buildAppUpdate(app, binding, release)?.let { update ->
-                                updates.add(update)
-                            }
+                            fetchedCandidates.add(Triple(app, binding, release))
                         }
                     } catch (ce: CancellationException) {
                         throw ce
@@ -152,6 +151,24 @@ class GitHubRepository(
                             firstFailureReason = e.message ?: e.javaClass.simpleName
                         }
                         Log.w("GitHubRepository", "GitHub check failed for ${binding.repo}: ${e.javaClass.simpleName}")
+                    }
+                }
+            }
+            if (fetchedCandidates.isNotEmpty()) {
+                val batchResults = ReleaseAssetFilter.evaluateBatch(
+                    fetchedCandidates.map { (app, _, release) ->
+                        com.apkup.shared.engine.KmpBatchVersionRequest(
+                            id = app.packageName,
+                            currentVersion = app.version,
+                            candidateTag = release.safeTagName.ifBlank { release.safeName }
+                        )
+                    }
+                ).associateBy { it.id }
+                for ((app, binding, release) in fetchedCandidates) {
+                    if (batchResults[app.packageName]?.isNewer == true) {
+                        buildAppUpdate(app, binding, release)?.let { update ->
+                            updates.add(update)
+                        }
                     }
                 }
             }

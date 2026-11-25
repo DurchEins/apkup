@@ -82,6 +82,7 @@ object FDroidIndexEngine {
             }
 
             var verifiedFp: String? = null
+            val verifyStartedNs = System.nanoTime()
             JarFile(tempJarFile, true).use { jarFile ->
                 var entryCount = 0
                 val entries = jarFile.entries()
@@ -124,7 +125,11 @@ object FDroidIndexEngine {
                 }
             }
 
-            return verifiedFp ?: throw IOException("$targetEntryName not found inside $jarName")
+            return (verifiedFp ?: throw IOException("$targetEntryName not found inside $jarName")).also {
+                com.apkup.shared.engine.KmpTelemetryRegistry.recordFDroidJarVerify(
+                    ((System.nanoTime() - verifyStartedNs) / 1000L).coerceAtLeast(1L)
+                )
+            }
         } finally {
             runCatching { if (tempJarFile.exists()) tempJarFile.delete() }
         }
@@ -245,6 +250,7 @@ object FDroidIndexEngine {
         gson: Gson,
         preferredLocale: Locale = Locale.getDefault()
     ): IzzyIndexResponse {
+        val parseStartedNs = System.nanoTime()
         FileInputStream(file).buffered(32_768).use { fileIn ->
             InputStreamReader(fileIn, Charsets.UTF_8).use { isr ->
                 JsonReader(isr).use { reader ->
@@ -288,6 +294,10 @@ object FDroidIndexEngine {
                     }
                     reader.endObject()
 
+                    com.apkup.shared.engine.KmpTelemetryRegistry.recordFDroidParse(
+                        elapsedMicros = ((System.nanoTime() - parseStartedNs) / 1000L).coerceAtLeast(1L),
+                        matchedPackages = matchedPackages.size
+                    )
                     return FDroidV2Index(
                         repo = repoMeta,
                         packages = matchedPackages
@@ -305,6 +315,7 @@ object FDroidIndexEngine {
         installedPackages: Set<String>?,
         gson: Gson
     ): IzzyIndexResponse {
+        val parseStartedNs = System.nanoTime()
         val pkgListType = object : TypeToken<List<IzzyPackageInfo>>() {}.type
         FileInputStream(file).buffered(32_768).use { fileIn ->
             InputStreamReader(fileIn, Charsets.UTF_8).use { isr ->
@@ -365,6 +376,10 @@ object FDroidIndexEngine {
                     }
                     reader.endObject()
 
+                    com.apkup.shared.engine.KmpTelemetryRegistry.recordFDroidParse(
+                        elapsedMicros = ((System.nanoTime() - parseStartedNs) / 1000L).coerceAtLeast(1L),
+                        matchedPackages = packages.size
+                    )
                     return IzzyIndexResponse(
                         repo = repoInfo,
                         apps = apps,

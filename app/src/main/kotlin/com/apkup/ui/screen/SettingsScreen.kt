@@ -201,6 +201,7 @@ import com.apkup.ui.component.AutoResizeText
 import com.apkup.ui.component.SwitchSetting
 import com.apkup.ui.component.SplitSwitchSetting
 import com.apkup.ui.component.NavigationSettingItem
+import com.apkup.util.ApkIntegrityVerifier
 import com.apkup.util.AppJournal
 import com.apkup.util.DownloadStorageManager
 import com.apkup.util.SessionInstaller
@@ -2080,6 +2081,10 @@ fun Settings(
 			}
 		}
 		item(key = "section_about") {
+			val engineSnapshot by com.apkup.shared.engine.KmpTelemetryRegistry.snapshot.collectAsStateWithLifecycle()
+			val isLabBuild = BuildConfig.APPLICATION_ID == "com.apkup.rust" || BuildConfig.APPLICATION_ID == "com.apkup.kmp"
+			val benchmarkScope = rememberCoroutineScope()
+			var isRunningShaBenchmark by remember { mutableStateOf(false) }
 			Column(modifier = Modifier.fillMaxWidth()) {
 				SettingsSection(stringResource(R.string.about)) {
 					// 1. Unified Hero-Card
@@ -2151,6 +2156,22 @@ fun Settings(
 									color = MaterialTheme.colorScheme.primary,
 									maxLines = 1
 								)
+							}
+							if (isLabBuild) {
+								Surface(
+									shape = RoundedCornerShape(50),
+									color = MaterialTheme.colorScheme.secondaryContainer,
+									border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.35f)),
+									modifier = Modifier.padding(top = 2.dp)
+								) {
+									Text(
+										text = stringResource(R.string.lab_engine_badge_title),
+										style = MaterialTheme.typography.labelSmall,
+										fontWeight = FontWeight.SemiBold,
+										color = MaterialTheme.colorScheme.onSecondaryContainer,
+										modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
+									)
+								}
 							}
 							AnimatedContent(
 								targetState = isEasterEggActive,
@@ -2264,10 +2285,11 @@ fun Settings(
 					) {
 						Surface(
 							onClick = {
-								if (!isCheckingSelfUpdate) {
+								if (!isLabBuild && !isCheckingSelfUpdate) {
 									mainViewModel.checkForSelfUpdate(manual = true, context = context)
 								}
 							},
+							enabled = !isLabBuild,
 							modifier = Modifier
 								.weight(1f)
 								.fillMaxHeight(),
@@ -2356,6 +2378,7 @@ fun Settings(
 								) {
 									Text(
 										text = when {
+											isLabBuild -> stringResource(R.string.lab_self_update_disabled_title)
 											isCheckingSelfUpdate -> stringResource(R.string.self_update_bento_checking_title)
 											isUpToDateSelfUpdate -> stringResource(R.string.self_update_bento_uptodate_title)
 											isErrorSelfUpdate -> stringResource(R.string.self_update_bento_error_title)
@@ -2369,6 +2392,7 @@ fun Settings(
 									)
 									Text(
 										text = when {
+											isLabBuild -> stringResource(R.string.lab_self_update_disabled_subtitle)
 											isCheckingSelfUpdate -> stringResource(R.string.self_update_bento_checking_subtitle)
 											isUpToDateSelfUpdate -> stringResource(R.string.self_update_bento_uptodate_subtitle)
 											isErrorSelfUpdate -> stringResource(R.string.self_update_bento_error_subtitle)
@@ -2437,130 +2461,204 @@ fun Settings(
 						}
 					}
 
-					// 3a. Kompakte Opt-In-Zeile für ApkUp Beta-/Vorab-Updates (direkt unter Update prüfen / Was ist neu)
-					var includeSelfUpdatePreReleases by remember(configRefreshKey) {
-						mutableStateOf(viewModel.getIncludeSelfUpdatePreReleases())
-					}
-					var showSelfUpdateBetaInfoDialog by remember { mutableStateOf(false) }
-					Surface(
-						modifier = Modifier.fillMaxWidth(),
-						shape = RoundedCornerShape(14.dp),
-						color = MaterialTheme.colorScheme.surfaceContainerHigh,
-						border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
-					) {
-						Row(
-							modifier = Modifier
-								.fillMaxWidth()
-								.clip(RoundedCornerShape(14.dp))
-								.toggleable(
-									value = includeSelfUpdatePreReleases,
-									role = Role.Switch,
-									onValueChange = { enabled ->
-										viewModel.setIncludeSelfUpdatePreReleases(enabled)
-										includeSelfUpdatePreReleases = enabled
+					// 3a. Kompakte Opt-In-Zeile für ApkUp Beta-/Vorab-Updates (oder Lab Engine Telemetry Card)
+					if (isLabBuild) {
+						Surface(
+							modifier = Modifier.fillMaxWidth(),
+							shape = RoundedCornerShape(14.dp),
+							color = MaterialTheme.colorScheme.surfaceContainerHigh,
+							border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+						) {
+							Column(
+								modifier = Modifier
+									.fillMaxWidth()
+									.padding(horizontal = 12.dp, vertical = 10.dp),
+								verticalArrangement = Arrangement.spacedBy(4.dp)
+							) {
+								Text(
+									text = stringResource(R.string.lab_benchmark_title),
+									style = MaterialTheme.typography.labelMedium,
+									fontWeight = FontWeight.Bold,
+									color = MaterialTheme.colorScheme.primary
+								)
+								Text(
+									text = stringResource(
+										R.string.lab_benchmark_scan,
+										engineSnapshot.lastScanDurationMs,
+										engineSnapshot.lastVersionBatchMicros,
+										engineSnapshot.lastVersionBatchCount
+									),
+									style = MaterialTheme.typography.labelSmall,
+									color = MaterialTheme.colorScheme.onSurface
+								)
+								Text(
+									text = stringResource(
+										R.string.lab_benchmark_fdroid,
+										String.format(java.util.Locale.US, "%.2f", engineSnapshot.lastFDroidJarVerifyMs),
+										String.format(java.util.Locale.US, "%.2f", engineSnapshot.lastFDroidParseMs),
+										engineSnapshot.lastFDroidMatchedPackages
+									),
+									style = MaterialTheme.typography.labelSmall,
+									color = MaterialTheme.colorScheme.onSurfaceVariant
+								)
+								Text(
+									text = stringResource(
+										R.string.lab_benchmark_sha256,
+										String.format(java.util.Locale.US, "%.2f", engineSnapshot.lastSha256DurationMs),
+										String.format(java.util.Locale.US, "%.1f", engineSnapshot.lastSha256ThroughputMbps)
+									),
+									style = MaterialTheme.typography.labelSmall,
+									color = MaterialTheme.colorScheme.onSurfaceVariant
+								)
+								FilledTonalButton(
+									onClick = {
+										if (!isRunningShaBenchmark) {
+											isRunningShaBenchmark = true
+											benchmarkScope.launch {
+												withContext(Dispatchers.IO) {
+													ApkIntegrityVerifier.computeFileSha256(File(context.applicationInfo.sourceDir))
+												}
+												isRunningShaBenchmark = false
+											}
+										}
+									},
+									enabled = !isRunningShaBenchmark,
+									shape = RoundedCornerShape(10.dp),
+									contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+									modifier = Modifier.padding(top = 4.dp)
+								) {
+									Text(
+										text = stringResource(R.string.lab_benchmark_run_button),
+										style = MaterialTheme.typography.labelMedium
+									)
+								}
+							}
+						}
+					} else {
+						var includeSelfUpdatePreReleases by remember(configRefreshKey) {
+							mutableStateOf(viewModel.getIncludeSelfUpdatePreReleases())
+						}
+						var showSelfUpdateBetaInfoDialog by remember { mutableStateOf(false) }
+						Surface(
+							modifier = Modifier.fillMaxWidth(),
+							shape = RoundedCornerShape(14.dp),
+							color = MaterialTheme.colorScheme.surfaceContainerHigh,
+							border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+						) {
+							Row(
+								modifier = Modifier
+									.fillMaxWidth()
+									.clip(RoundedCornerShape(14.dp))
+									.toggleable(
+										value = includeSelfUpdatePreReleases,
+										role = Role.Switch,
+										onValueChange = { enabled ->
+											viewModel.setIncludeSelfUpdatePreReleases(enabled)
+											includeSelfUpdatePreReleases = enabled
+										}
+									)
+									.padding(horizontal = 10.dp, vertical = 7.dp),
+								verticalAlignment = CenterVertically,
+								horizontalArrangement = Arrangement.spacedBy(8.dp)
+							) {
+								Box(
+									modifier = Modifier
+										.size(28.dp)
+										.clip(RoundedCornerShape(8.dp))
+										.background(
+											if (includeSelfUpdatePreReleases) {
+												MaterialTheme.colorScheme.tertiaryContainer
+											} else {
+												MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.65f)
+											}
+										),
+									contentAlignment = Alignment.Center
+								) {
+									Icon(
+										painter = painterResource(R.drawable.ic_refresh),
+										contentDescription = null,
+										tint = if (includeSelfUpdatePreReleases) {
+											MaterialTheme.colorScheme.onTertiaryContainer
+										} else {
+											MaterialTheme.colorScheme.primary
+										},
+										modifier = Modifier.size(15.dp)
+									)
+								}
+								Column(
+									modifier = Modifier.weight(1f),
+									verticalArrangement = Arrangement.spacedBy(1.dp)
+								) {
+									Text(
+										text = stringResource(R.string.self_update_prerelease_title),
+										style = MaterialTheme.typography.labelMedium,
+										fontWeight = FontWeight.SemiBold,
+										color = MaterialTheme.colorScheme.onSurface,
+										maxLines = 1,
+										overflow = TextOverflow.Ellipsis
+									)
+									Text(
+										text = stringResource(R.string.self_update_prerelease_subtitle_short),
+										style = MaterialTheme.typography.labelSmall,
+										color = MaterialTheme.colorScheme.onSurfaceVariant,
+										maxLines = 1,
+										overflow = TextOverflow.Ellipsis
+									)
+								}
+								Box(
+									modifier = Modifier
+										.size(40.dp)
+										.clip(CircleShape)
+										.clickable { showSelfUpdateBetaInfoDialog = true },
+									contentAlignment = Alignment.Center
+								) {
+									Icon(
+										painter = painterResource(R.drawable.ic_info),
+										contentDescription = stringResource(R.string.self_update_prerelease_title),
+										tint = MaterialTheme.colorScheme.onSurfaceVariant,
+										modifier = Modifier.size(16.dp)
+									)
+								}
+								Switch(
+									checked = includeSelfUpdatePreReleases,
+									onCheckedChange = null,
+									thumbContent = {
+										Icon(
+											imageVector = if (includeSelfUpdatePreReleases) Icons.Default.Check else Icons.Default.Close,
+											contentDescription = null,
+											modifier = Modifier.size(SwitchDefaults.IconSize)
+										)
 									}
 								)
-								.padding(horizontal = 10.dp, vertical = 7.dp),
-							verticalAlignment = CenterVertically,
-							horizontalArrangement = Arrangement.spacedBy(8.dp)
-						) {
-							Box(
-								modifier = Modifier
-									.size(28.dp)
-									.clip(RoundedCornerShape(8.dp))
-									.background(
-										if (includeSelfUpdatePreReleases) {
-											MaterialTheme.colorScheme.tertiaryContainer
-										} else {
-											MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.65f)
-										}
-									),
-								contentAlignment = Alignment.Center
-							) {
-								Icon(
-									painter = painterResource(R.drawable.ic_refresh),
-									contentDescription = null,
-									tint = if (includeSelfUpdatePreReleases) {
-										MaterialTheme.colorScheme.onTertiaryContainer
-									} else {
-										MaterialTheme.colorScheme.primary
-									},
-									modifier = Modifier.size(15.dp)
-								)
 							}
-							Column(
-								modifier = Modifier.weight(1f),
-								verticalArrangement = Arrangement.spacedBy(1.dp)
-							) {
-								Text(
-									text = stringResource(R.string.self_update_prerelease_title),
-									style = MaterialTheme.typography.labelMedium,
-									fontWeight = FontWeight.SemiBold,
-									color = MaterialTheme.colorScheme.onSurface,
-									maxLines = 1,
-									overflow = TextOverflow.Ellipsis
-								)
-								Text(
-									text = stringResource(R.string.self_update_prerelease_subtitle_short),
-									style = MaterialTheme.typography.labelSmall,
-									color = MaterialTheme.colorScheme.onSurfaceVariant,
-									maxLines = 1,
-									overflow = TextOverflow.Ellipsis
-								)
-							}
-							Box(
-								modifier = Modifier
-									.size(40.dp)
-									.clip(CircleShape)
-									.clickable { showSelfUpdateBetaInfoDialog = true },
-								contentAlignment = Alignment.Center
-							) {
-								Icon(
-									painter = painterResource(R.drawable.ic_info),
-									contentDescription = stringResource(R.string.self_update_prerelease_title),
-									tint = MaterialTheme.colorScheme.onSurfaceVariant,
-									modifier = Modifier.size(16.dp)
-								)
-							}
-							Switch(
-								checked = includeSelfUpdatePreReleases,
-								onCheckedChange = null,
-								thumbContent = {
-									Icon(
-										imageVector = if (includeSelfUpdatePreReleases) Icons.Default.Check else Icons.Default.Close,
-										contentDescription = null,
-										modifier = Modifier.size(SwitchDefaults.IconSize)
+						}
+
+						if (showSelfUpdateBetaInfoDialog) {
+							AlertDialog(
+								onDismissRequest = { showSelfUpdateBetaInfoDialog = false },
+								shape = RoundedCornerShape(24.dp),
+								containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+								title = {
+									Text(
+										text = stringResource(R.string.self_update_prerelease_title),
+										style = MaterialTheme.typography.titleMedium,
+										fontWeight = FontWeight.Bold
 									)
+								},
+								text = {
+									Text(
+										text = stringResource(R.string.self_update_prerelease_subtitle),
+										style = MaterialTheme.typography.bodyMedium,
+										color = MaterialTheme.colorScheme.onSurfaceVariant
+									)
+								},
+								confirmButton = {
+									TextButton(onClick = { showSelfUpdateBetaInfoDialog = false }) {
+										Text(stringResource(android.R.string.ok))
+									}
 								}
 							)
 						}
-					}
-
-					if (showSelfUpdateBetaInfoDialog) {
-						AlertDialog(
-							onDismissRequest = { showSelfUpdateBetaInfoDialog = false },
-							shape = RoundedCornerShape(24.dp),
-							containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-							title = {
-								Text(
-									text = stringResource(R.string.self_update_prerelease_title),
-									style = MaterialTheme.typography.titleMedium,
-									fontWeight = FontWeight.Bold
-								)
-							},
-							text = {
-								Text(
-									text = stringResource(R.string.self_update_prerelease_subtitle),
-									style = MaterialTheme.typography.bodyMedium,
-									color = MaterialTheme.colorScheme.onSurfaceVariant
-								)
-							},
-							confirmButton = {
-								TextButton(onClick = { showSelfUpdateBetaInfoDialog = false }) {
-									Text(stringResource(android.R.string.ok))
-								}
-							}
-						)
 					}
 
 					// 3b. Zweite Bento-Zeile (GitHub & Hilfe/Wiki nebeneinander unter der Beta-Karte)

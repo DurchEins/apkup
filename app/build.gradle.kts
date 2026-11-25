@@ -29,11 +29,11 @@ android {
     val buildTag = providers.environmentVariable("BUILD_TAG").orNull.orEmpty().trim()
 
     defaultConfig {
-        applicationId = "com.apkup" + buildTag
+        applicationId = "com.apkup.kmp" + buildTag
         minSdk = 29
         targetSdk = 37
-        versionCode = parsedBuildNumber ?: 236
-        versionName = if (parsedBuildNumber == null) "1.47.0 (236)" else "1.47.0-$parsedBuildNumber"
+        versionCode = parsedBuildNumber ?: 240
+        versionName = if (parsedBuildNumber == null) "1.47.0-kmp (240)" else "1.47.0-kmp-$parsedBuildNumber"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -199,6 +199,7 @@ dependencies {
 
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
+    implementation(project(":shared"))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.browser)
     implementation(libs.androidx.compose.material3)
