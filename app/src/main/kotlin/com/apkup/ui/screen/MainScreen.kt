@@ -877,11 +877,9 @@ fun AccessibleDockedBottomBar(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            NavigationBadgeBox(
-                                badge = badge,
-                                isLoadingUpdates = isLiveChecking,
-                                warningContainer = extendedColors.warning,
-                                onWarning = extendedColors.onWarning
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 Icon(
                                     imageVector = if (selected) screen.iconSelected else screen.icon,
@@ -889,6 +887,37 @@ fun AccessibleDockedBottomBar(
                                     tint = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.size(24.dp)
                                 )
+                                if (badge.isNotEmpty()) {
+                                    val isWarning = badge == "!"
+                                    val displayText = if (isWarning) "!" else formatCapsuleBadge(badge)
+                                    val badgeDesc = if (isWarning) {
+                                        stringResource(R.string.a11y_nav_badge_attention)
+                                    } else {
+                                        stringResource(R.string.a11y_nav_badge_count, displayText)
+                                    }
+                                    Badge(
+                                        containerColor = if (isWarning) extendedColors.warning else MaterialTheme.colorScheme.error,
+                                        contentColor = if (isWarning) extendedColors.onWarning else MaterialTheme.colorScheme.onError,
+                                        modifier = Modifier
+                                            .defaultMinSize(minWidth = 24.dp, minHeight = 24.dp)
+                                            .semantics { contentDescription = badgeDesc }
+                                    ) {
+                                        Text(
+                                            text = displayText,
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Bold
+                                            ),
+                                            modifier = Modifier.padding(horizontal = 4.dp)
+                                        )
+                                    }
+                                } else if (isLiveChecking) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(14.dp),
+                                        strokeWidth = 2.dp,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
                             }
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(

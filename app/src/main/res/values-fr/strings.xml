@@ -641,7 +641,7 @@
     <string name="a11y_deselect_item">Désélectionner %1$s</string>
     <string name="theme_a11y">Accessibilité</string>
     <string name="a11y_theme_mode_title">Mode solaire d\'accessibilité</string>
-    <string name="a11y_submode_auto_sun">Auto Soleil</string>
+    <string name="a11y_submode_auto_sun">Auto</string>
     <string name="a11y_submode_light">Clair</string>
     <string name="a11y_submode_dark">Sombre</string>
     <string name="a11y_sun_schedule_info">Bascule solaire hors ligne : Clair %1$s – %2$s (sans géolocalisation)</string>

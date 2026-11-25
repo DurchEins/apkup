@@ -655,7 +655,7 @@
     <string name="a11y_deselect_item">Auswahl für %1$s aufheben</string>
     <string name="theme_a11y">Barrierefrei</string>
     <string name="a11y_theme_mode_title">Barrierefreiheits-Modus (Sonnenstand)</string>
-    <string name="a11y_submode_auto_sun">Auto Sonne</string>
+    <string name="a11y_submode_auto_sun">Auto</string>
     <string name="a11y_submode_light">Hell</string>
     <string name="a11y_submode_dark">Dunkel</string>
     <string name="a11y_sun_schedule_info">Offline-Sonnenwechsel: Hell %1$s – %2$s (ohne Standortzugriff)</string>

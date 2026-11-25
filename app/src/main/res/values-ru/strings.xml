@@ -644,7 +644,7 @@
     <string name="a11y_deselect_item">Снять выбор с %1$s</string>
     <string name="theme_a11y">Доступность</string>
     <string name="a11y_theme_mode_title">Солнечный режим доступности</string>
-    <string name="a11y_submode_auto_sun">Авто солнце</string>
+    <string name="a11y_submode_auto_sun">Авто</string>
     <string name="a11y_submode_light">Светлая</string>
     <string name="a11y_submode_dark">Тёмная</string>
     <string name="a11y_sun_schedule_info">Офлайн-переключение по солнцу: Светлая %1$s – %2$s (без геолокации)</string>

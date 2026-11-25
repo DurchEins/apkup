@@ -641,7 +641,7 @@
     <string name="a11y_deselect_item">Deseleziona %1$s</string>
     <string name="theme_a11y">Accessibilità</string>
     <string name="a11y_theme_mode_title">Modalità solare accessibilità</string>
-    <string name="a11y_submode_auto_sun">Auto Sole</string>
+    <string name="a11y_submode_auto_sun">Auto</string>
     <string name="a11y_submode_light">Chiaro</string>
     <string name="a11y_submode_dark">Scuro</string>
     <string name="a11y_sun_schedule_info">Cambio solare offline: Chiaro %1$s – %2$s (senza posizione)</string>

@@ -638,7 +638,7 @@
     <string name="a11y_deselect_item">取消选择 %1$s</string>
     <string name="theme_a11y">无障碍</string>
     <string name="a11y_theme_mode_title">无障碍日出日落模式</string>
-    <string name="a11y_submode_auto_sun">自动日照</string>
+    <string name="a11y_submode_auto_sun">自动</string>
     <string name="a11y_submode_light">浅色</string>
     <string name="a11y_submode_dark">深色</string>
     <string name="a11y_sun_schedule_info">离线日照切换：浅色 %1$s – %2$s（无需位置权限）</string>

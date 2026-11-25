@@ -637,7 +637,7 @@
     <string name="a11y_deselect_item">%1$s の選択を解除</string>
     <string name="theme_a11y">高コントラスト</string>
     <string name="a11y_theme_mode_title">太陽連動コントラストモード</string>
-    <string name="a11y_submode_auto_sun">自動(太陽)</string>
+    <string name="a11y_submode_auto_sun">自動</string>
     <string name="a11y_submode_light">ライト</string>
     <string name="a11y_submode_dark">ダーク</string>
     <string name="a11y_sun_schedule_info">オフライン太陽切替: ライト %1$s – %2$s (位置情報不要)</string>

@@ -664,7 +664,7 @@
     <string name="a11y_deselect_item">Deselect %1$s</string>
     <string name="theme_a11y">Accessibility</string>
     <string name="a11y_theme_mode_title">Accessibility solar mode</string>
-    <string name="a11y_submode_auto_sun">Auto Sun</string>
+    <string name="a11y_submode_auto_sun">Auto</string>
     <string name="a11y_submode_light">Light</string>
     <string name="a11y_submode_dark">Dark</string>
     <string name="a11y_sun_schedule_info">Offline solar switch: Light %1$s – %2$s (no location permission)</string>
