@@ -428,49 +428,52 @@ Nur die über GitHub Actions signierten Release-APKs auf **GitHub Releases** sin
 
 Welcome to the central knowledge base for **ApkUp** — an open-source, privacy-first Android app updater built with Kotlin, Jetpack Compose, and Material 3 Expressive.
 
-- 🟢 **User Guides & FAQs:** Every feature guide is written in plain language for everyday users, followed by practical **Frequently Asked Questions (FAQ)**.
-- 💻 **Technical Overview:** A dedicated, comprehensive category for architecture, protocols, cryptography, CI/CD, testing, and Android internals.
+Every main guide is structured into clear layers:
+- 🟢 **Part 1 (Plain Language):** Everyday step-by-step instructions without technical jargon.
+- 💻 **Part 2 (Technical Deep Dive):** Architecture, cryptography, Android Binder IPC, and security guarantees.
+- ❓ **Part 3 (FAQ & Edge Cases):** Practical answers to common real-world questions.
 
 ---
 
-## 🟢 User Guides & FAQs
+## 🗺️ Recommended Reading Order
 
-### 1. 🌐 Update Sources, Repository Linking & Signature Protection
-* **Main Guide:** [Update Sources, Repository Linking & Signature Protection](https://github.com/DurchEins/apkup/wiki/Update-Sources,-Repository-Linking-&-Signature-Protection) — How Google Play, APKMirror, F-Droid/IzzyOnDroid, GitHub, GitLab, and Codeberg/Forgejo work together, how **Source Priority & Per-App Pinning** work, how **Signature Verification** protects you, and how to link custom repositories.
-* **Specialized Guides:**
-  * [📦 F-Droid & Index V2 Repositories](https://github.com/DurchEins/apkup/wiki/F-Droid-&-Index-V2-Repositories)
-  * [🔑 Configuring GitHub, GitLab & Codeberg Personal Access Tokens](https://github.com/DurchEins/apkup/wiki/Configuring-GitHub-&-GitLab-Tokens)
-
-### 2. ⚡ Shizuku & Silent Background Installations
-* **Main Guide:** [Shizuku & Silent Background Installations](https://github.com/DurchEins/apkup/wiki/Shizuku-&-Background-Installation) — Why Android normally prompts for every update, how **Shizuku** enables one-tap batch updates and silent background installs without Root, and how the optional **Root Installer (`su`)** works.
-* **Quick Setup:** [⚡ Setting up Shizuku](https://github.com/DurchEins/apkup/wiki/Setting-up-Shizuku) — Step-by-step walkthrough for Wireless Debugging (Android 11+), USB ADB, Root, and OEM battery settings.
-
-### 3. 🛠️ App Management, Filters, Background Checks & Backup
-* **Main Guide:** [App Management, Filters, Background Checks & Backup](https://github.com/DurchEins/apkup/wiki/App-Management,-Filters,-Background-Checks-&-Backup) — Skipping versions vs. ignoring apps, Watchlist & **App Watcher Import**, searching/sorting, exporting APKs (`.apk` / `.apkm`), **Home Screen Updates Widget (Preview)**, **Background Update Time Windows**, **Configurable Rollback Backups**, **Self-Updater Beta Opt-In**, and JSON settings backup.
-* **Accessibility Guide:** [♿ Accessibility & Accessible Mode](https://github.com/DurchEins/apkup/wiki/Accessibility-%26-Accessible-Mode) — One-tap Accessible UI, 48 dp touch targets, TalkBack support, and the high-contrast solar `Auto / Light / Dark` theme.
-* **Migration Guide:** [🔄 Obtainium Migration & Sync Guide](https://github.com/DurchEins/apkup/wiki/Obtainium-Migration-%26-Sync-Guide)
-
-### 4. 🚨 Troubleshooting Source Errors & Error Codes
-* **Main Guide:** [Troubleshooting Source Errors & Error Codes](https://github.com/DurchEins/apkup/wiki/Troubleshooting-Source-Errors) — Direct self-help for DNS/connection timeouts, HTTP 401/403/429 rate limits, APKMirror `404` & Cloudflare challenges, signature conflicts, and custom repository linking.
-
-### 5. 📲 Installing Unknown Apps & ⚠️ Google’s 24h Lock
-* **Sideloading:** [📲 Installing Unknown Apps](https://github.com/DurchEins/apkup/wiki/Installing-Unknown-Apps) — Step-by-step instructions for Android’s *“Allow from this source”* permission.
-* **Google’s 24h Lock:** [⚠️ Google’s 24h Lock & Keep Android Open](https://github.com/DurchEins/apkup/wiki/Google-24h-Lock-&-Keep-Android-Open) — How to permanently unlock *“Apps from unverified developers”* (*Allow indefinitely*) for the 2026/2027 Play Protect rollout.
+### 1. [🌐 Update Sources, Repository Linking & Signature Protection](https://github.com/DurchEins/apkup/wiki/Update-Sources,-Repository-Linking-&-Signature-Protection)
+* **For Everyone:** How Google Play, APKMirror, F-Droid/IzzyOnDroid, GitHub, GitLab, and Codeberg/Forgejo work together, how global **Source Priority & Per-App Pinning** decide which source wins, how **Pre-Release Channels** and **Signature Verification** protect you, and how to link custom repositories.
+* **For Experts:** Parallel multi-source aggregation, SHA-1/SHA-256 certificate verification, `.apkm` split extraction (Zip-Slip protection), direct `gplayapi 4.0.0` session & HTTP 429 rotation, and 3-tier repository resolution.
+* **Specialized Source Guides:**
+  * [📦 F-Droid & Index V2 Repositories](https://github.com/DurchEins/apkup/wiki/F-Droid-&-Index-V2-Repositories) — Streaming `index-v2.json`, incremental diffs (`RFC 7396`), built-in presets, and TOFU certificate pinning.
+  * [🔑 Configuring GitHub, GitLab & Codeberg Personal Access Tokens](https://github.com/DurchEins/apkup/wiki/Configuring-GitHub-&-GitLab-Tokens) — Raise GitHub limits from 60 to 5,000 requests/hour, enable GraphQL batching, access multi-level GitLab subgroups, and test tokens live.
 
 ---
 
-## 💻 Technical Overview
+### 2. [⚡ Shizuku & Silent Background Installations (plus Optional Root)](https://github.com/DurchEins/apkup/wiki/Shizuku-&-Background-Installation)
+* **For Everyone:** Why Android normally prompts for every update, how **Shizuku** enables one-tap batch updates and silent background installs without Root, and how the optional **Root Installer (`su`)** fallback works.
+* **Quick Setup:** [⚡ Setting up Shizuku](https://github.com/DurchEins/apkup/wiki/Setting-up-Shizuku) — Step-by-step walkthrough for Wireless Debugging (Android 11+), USB ADB, Root, and OEM battery settings (Xiaomi/HyperOS, Samsung, OnePlus).
+* **For Experts:** Dual-path installation pipeline (`Shizuku` ➔ `su` ➔ `PackageInstaller`), `pm install-create -r -i com.android.vending`, foreground services, and Android 14+ BAL resilience.
 
-Comprehensive architectural and engineering documentation for developers, contributors, and security reviewers:
+---
 
-1. 🌐 **[Update Sources, Networking & Parsing](https://github.com/DurchEins/apkup/wiki/Tech-Update-Sources,-Networking-&-Parsing)** — Multi-source aggregation, `gplayapi`, F-Droid Index-V2 (`RFC 7396`), APKMirror `.apkm` & Cloudflare handling, GitHub GraphQL & token isolation.
-2. ⚡ **[Installation, Shizuku, Root & WorkManager](https://github.com/DurchEins/apkup/wiki/Tech-Installation,-Shizuku,-Root-&-WorkManager)** — `UpdateDownloadWorker`, 24h cache, `SessionInstaller` (`PackageInstaller`), Shizuku Binder IPC, `RootInstaller` (`su`), and rollback backups.
-3. 🛡️ **[Security, Cryptography & Privacy](https://github.com/DurchEins/apkup/wiki/Tech-Security,-Cryptography-&-Privacy)** — `ApkIntegrityVerifier` (v2/v3 signatures, SHA-256, downgrade guard), Google Tink `AES-256-GCM`, Zip-Slip/decompression-bomb limits, Tapjacking & `AppJournal` redaction.
-4. 🎨 **[UI, Accessibility & Website Architecture](https://github.com/DurchEins/apkup/wiki/Tech-UI,-Accessibility-&-Website-Architecture)** — Jetpack Compose Material 3 Expressive, `a11yAccessibleUi`, `AccessibleTypography`, `SolarScheduleCalculator`, Astro 9-language site & `check-a11y.mjs`.
-5. 🚀 **[CI/CD, Single-Artifact Releases & Checksums](https://github.com/DurchEins/apkup/wiki/Tech-CI-CD,-Single-Artifact-Releases-&-Checksums)** — Semantic versioning, PR checks, `release.yml` canonical APK, `SHA256SUMS`, Self-Updater & mirrors.
-6. 💾 **[Data Storage, Prefs, Backups, Logs & Widget](https://github.com/DurchEins/apkup/wiki/Tech-Data-Storage,-Prefs,-Backups,-Logs-&-Widget)** — `SecurePrefsStore` allowlist, `CachedUpdateSnapshot`, `ApkUpBackupConfig` schema, `AppJournal`, and `UpdatesWidgetProvider` (`RemoteViews` Preview).
-7. 🧪 **[Build System, R8 & Automated Tests](https://github.com/DurchEins/apkup/wiki/Tech-Build-System,-R8-&-Automated-Tests)** — Gradle configuration, Debug vs. Release (R8), `PrefsTest`, `ChangelogBottomSheetTest`, `AccessibilityAuditTest`, and `lintDebug`.
-8. 🌍 **[Localization, Weblate & Asset Pipeline](https://github.com/DurchEins/apkup/wiki/Tech-Localization,-Weblate-&-Assets)** — 9-locale `strings.xml` & `website/src/i18n/*.json` parity, Hosted Weblate, changelog asset parser, Fastlane & adaptive SVGs.
+### 3. [🛠️ App Management, Filters, Background Checks & Backup](https://github.com/DurchEins/apkup/wiki/App-Management,-Filters,-Background-Checks-&-Backup)
+* **For Everyone:** Skipping versions vs. ignoring apps, Watchlist & **App Watcher Import**, searching/sorting, exporting APKs (`.apk` / `.apkm`), **Background Update Time Windows**, **Configurable Rollback Backups**, **ApkUp Self-Updater Beta Opt-In**, and transferring settings via JSON backup.
+* **For Experts:** Package exclusion vs. `versionCode` pinning, Android `WorkManager` scheduling, persistent update snapshot cache, offline sanitized diagnostic logs, and Storage Access Framework (SAF) JSON security.
+* **Migration Guide:** [🔄 Obtainium Migration & Sync Guide](https://github.com/DurchEins/apkup/wiki/Obtainium-Migration-&-Sync-Guide) — Import Obtainium JSON exports with interactive preview, repo bindings, F-Droid repos, and Watchlist candidates.
+
+---
+
+### 4. [🚨 Troubleshooting Source Errors & Error Codes](https://github.com/DurchEins/apkup/wiki/Troubleshooting-Source-Errors)
+* **Instant Self-Help:** Direct solutions for every error badge and diagnostic code in ApkUp:
+  * [DNS Resolution Failed & Connection Timeouts](https://github.com/DurchEins/apkup/wiki/Troubleshooting-Source-Errors#dns-resolution-failed)
+  * [Authentication & Rate Limits (`HTTP 401 / 403 / 429`)](https://github.com/DurchEins/apkup/wiki/Troubleshooting-Source-Errors#auth-and-rate-limits)
+  * [APKMirror `404 Not Found` & Server Errors (`5xx`)](https://github.com/DurchEins/apkup/wiki/Troubleshooting-Source-Errors#server-errors)
+  * [APKMirror Cloudflare Challenges & Browser Fallback](https://github.com/DurchEins/apkup/wiki/Troubleshooting-Source-Errors#apkmirror-cloudflare)
+  * [Signature Conflicts (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`)](https://github.com/DurchEins/apkup/wiki/Troubleshooting-Source-Errors#signature-conflicts)
+  * [Custom Repository Linking & No Matching APK Asset](https://github.com/DurchEins/apkup/wiki/Troubleshooting-Source-Errors#custom-repo-linking)
+
+---
+
+### 5. [📲 Installing Unknown Apps](https://github.com/DurchEins/apkup/wiki/Installing-Unknown-Apps) & [⚠️ Google’s 24h Lock](https://github.com/DurchEins/apkup/wiki/Google-24h-Lock-&-Keep-Android-Open)
+* **Installing Unknown Apps:** Step-by-step instructions for Android’s classic *“Allow from this source”* permission plus power-user installation via **Shizuku**, **ADB**, and **Root (`su`)**.
+* **Google’s 24h Lock & Keep Android Open:** How to permanently unlock *“Apps from unverified developers”* (*Allow indefinitely*, avoiding the 7-day reset trap) for the 2026/2027 Play Protect rollout, and why ApkUp supports [Keep Android Open](https://keepandroidopen.org).
 
 ---
 
@@ -479,8 +482,6 @@ Comprehensive architectural and engineering documentation for developers, contri
 - 📦 **[Latest Releases & Checksums](https://github.com/DurchEins/apkup/releases)**
 - 🐛 **[Report a Bug or Request a Feature](https://github.com/DurchEins/apkup/issues)**
 - 🛡️ **[Security Policy (`SECURITY.md`)](https://github.com/DurchEins/apkup/blob/main/SECURITY.md)**
-- ♿ **[Accessibility Statement (`ACCESSIBILITY.md`)](https://github.com/DurchEins/apkup/blob/main/ACCESSIBILITY.md)**
-- 💡 **GitHub ProTip:** Append `.patch` or `.diff` to any commit or PR URL (e.g. [PR #29 Diff](https://github.com/DurchEins/apkup/pull/29.diff)) for Git's plaintext view.
 
 ---
 
@@ -520,7 +521,7 @@ This guide explains how ApkUp's update sources work together, how **Source Prior
 ---
 
 <a id="-part-1-explained-simply-for-everyone"></a>
-## 📖 User Guide
+## 🟢 Part 1: Explained Simply for Everyone
 
 <a id="11-which-update-sources-does-apkup-search"></a>
 ### 1.1 Which update sources does ApkUp search?
@@ -581,7 +582,79 @@ When an app offers updates on multiple sources simultaneously, ApkUp keeps your 
 ---
 
 <a id="-part-2-technical-documentation-for-experts--power-users"></a>
-## ❓ Frequently Asked Questions (FAQ)
+## 💻 Part 2: Technical Documentation for Experts & Power Users
+
+<a id="21-parallel-multi-source-aggregation--version-verification"></a>
+### 2.1 Parallel Multi-Source Aggregation & Version Verification
+ApkUp queries all enabled sources concurrently and in isolation, so one slow or unreachable provider never blocks the others:
+
+```mermaid
+flowchart LR
+    Installed["Local Package Scanner\n(Installed Apps + Certificates)"] --> Orchestrator["Update Aggregator\n(Source Priority & Pinning)"]
+    
+    Orchestrator --> Play["Google Play Store\n(Anonymous gplayapi)"]
+    Orchestrator --> AM["APKMirror\n(REST v2 Batch API)"]
+    Orchestrator --> FD["F-Droid / IzzyOnDroid\n(Index V2 + Diffs)"]
+    Orchestrator --> GH["GitHub\n(REST / GraphQL)"]
+    Orchestrator --> GL["GitLab\n(API v4 Releases)"]
+    Orchestrator --> CB["Codeberg / Forgejo\n(API v1 Releases)"]
+    
+    Play & AM & FD & GH & GL & CB --> Dedupe["Deduplication, Signature\n& Compatibility Guard"]
+    Dedupe --> UI["Updates Overview\n(Primary Card + Alternative Sources)"]
+```
+
+**Two-Stage Version Verification + Compatibility Guard:**
+1. Strictly higher Android `versionCode` (when provided by the source) and semantic version progression.
+2. Pre-install compatibility check verifying device `minSdk`, supported CPU `ABI`s, and signing certificates before launching installation.
+
+[⬆️ Back to Table of Contents](#-table-of-contents)
+
+---
+
+<a id="22-cryptographic-signature-verification-sha-1--sha-256--origin-detection"></a>
+### 2.2 Cryptographic Signature Verification (SHA-1 & SHA-256) & Origin Detection
+ApkUp computes both **SHA-1** and **SHA-256** signing fingerprints via `PackageManager` (`GET_SIGNING_CERTIFICATES` on API 28+):
+- **APKMirror:** Strictly matches the remote SHA-1 fingerprint against the installed app.
+- **F-Droid / IzzyOnDroid:** Matches the local certificate against the `signer` SHA-256 hash recorded in the repository index.
+- **Install Origin Detection:** Uses `PackageManager.getInstallSourceInfo()` to flag cross-source signature mismatches proactively.
+- **Local Export Exception:** When using **Save APK**, file/archive/SHA-256 integrity is verified without blocking export if the installed app uses a different signer.
+
+[⬆️ Back to Table of Contents](#-table-of-contents)
+
+---
+
+<a id="23-direct-apkmirror-resolution--hardened-apkm-split-extraction"></a>
+### 2.3 Direct APKMirror Resolution & Hardened `.apkm` Split Extraction
+1. **Three-Stage Link Resolution:** Variant page ➔ time-signed download page ➔ final CDN stream.
+2. **Cooldown & Anti-Bot Handling:** Enforces per-app 10-minute cooldowns on failures, opens an in-app Cloudflare WebView when interactive verification is needed, and falls back to the system browser if still blocked.
+3. **Hardened `.apkm` Extraction:** Inspects true ZIP structure (`AndroidManifest.xml` at root vs. embedded split `.apk`s), rejects Zip-Slip (`..` / path traversal) entries, and writes atomic `.part` downloads before finalizing.
+
+[⬆️ Back to Table of Contents](#-table-of-contents)
+
+---
+
+<a id="24-google-play-store-dispenser-resilience--http-429-recovery"></a>
+### 2.4 Google Play Store Engine (`gplayapi 4.0.0`) & HTTP 429 Recovery
+Starting with **v1.46.0+**, anonymous Play Store queries run **directly on-device** via `gplayapi 4.0.0` (`PlayClient` and `DefaultPlaySessions`) without relying on an external Aurora Dispenser server:
+- **Stronger Privacy & Data Minimization:** Because no third-party dispenser server sits in the middle, no external intermediary ever sees your IP address or update-check timestamps. Traffic flows directly between your device and Google Play while keeping the privacy-friendly Pixel 7a baseline profile and requiring no Google account.
+- **Higher Reliability & HTTP 429 Recovery:** Eliminates external dispenser outages and bottlenecks. On `HTTP 429`, ApkUp rotates the anonymous session in a synchronized manner with cooldown protection so concurrent checks and downloads share the refreshed session cleanly.
+
+[⬆️ Back to Table of Contents](#-table-of-contents)
+
+---
+
+<a id="25-three-tier-repository-resolution-for-github-gitlab--codeberg"></a>
+### 2.5 Three-Tier Repository Resolution for GitHub, GitLab & Codeberg
+1. **Priority 1 – Custom User Bindings:** Manually linked repositories (plus optional asset regex).
+2. **Priority 2 – Built-in Project Catalog:** Curated package-to-repo mappings bundled with ApkUp.
+3. **Priority 3 – Automatic Source Discovery & FOSS Flavor Heuristic:** Upstream URLs discovered from F-Droid/IzzyOnDroid indexes, preferring FOSS builds for F-Droid-origin apps and deprioritizing `-debug` / incompatible artifacts.
+
+[⬆️ Back to Table of Contents](#-table-of-contents)
+
+---
+
+<a id="-part-3-frequently-asked-questions-faq"></a>
+## ❓ Part 3: Frequently Asked Questions (FAQ)
 
 <a id="31-why-does-apkup-show-a-warning-icon-for-a-signature-conflict"></a>
 ### 3.1 Why does ApkUp show a warning icon for a "Signature Conflict"?
@@ -619,10 +692,6 @@ Yes! `.apkm` files are split APK bundles (base app + language/ABI/density splits
 * ⚡ **[Shizuku & Background Installation](https://github.com/DurchEins/apkup/wiki/Shizuku-&-Background-Installation)** — Silent installs & optional Root fallback.
 
 [⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-> 💻 **Looking for architectural internals, protocols, or security proofs?** Explore the **[Technical Overview](https://github.com/DurchEins/apkup/wiki#-technical-overview)** section.
 
 ---
 
@@ -950,7 +1019,7 @@ This document explains how to set up and how **Shizuku** and the background inst
 
 <a id="-part-1-explained-simply-for-everyone-plain-language"></a>
 <a name="-part-1-explained-simply-for-everyone-plain-language"></a>
-## 📖 User Guide
+## 🟢 Part 1: Explained Simply for Everyone (Plain Language)
 
 <a id="11-why-does-android-normally-ask-for-confirmation-on-every-update"></a>
 <a name="11-why-does-android-normally-ask-for-confirmation-on-every-update"></a>
@@ -1030,7 +1099,96 @@ Since version **v1.32**, ApkUp includes a dedicated background download service 
 
 <a id="-part-2-technical-documentation-for-experts--power-users"></a>
 <a name="-part-2-technical-documentation-for-experts--power-users"></a>
-## ❓ Frequently Asked Questions (FAQ)
+## 💻 Part 2: Technical Documentation for Experts & Power Users
+
+<a id="21-architecture-of-the-dual-path-installation-pipeline"></a>
+<a name="21-architecture-of-the-dual-path-installation-pipeline"></a>
+### 2.1 Architecture of the Dual-Path Installation Pipeline
+To guarantee maximum reliability for both single and batch updates, ApkUp uses a **Dual-Path Strategy with Automatic Fallback**. All installation jobs are processed sequentially through a synchronized queue (Mutex lock):
+
+```mermaid
+flowchart TD
+    Start["Installation Job (Single APK / Split Bundle)"] --> Mutex["Sequential Session Synchronization"]
+    Mutex --> CheckPref{"Shizuku Mode Enabled?"}
+    
+    CheckPref -- "Yes" --> CheckBinder{"Shizuku Binder & Permission Ready?"}
+    CheckPref -- "No" --> NativePath["Standard Android PackageInstaller API"]
+    
+    CheckBinder -- "Ready" --> ShizukuExec["Privileged PackageManager Shell Transaction"]
+    CheckBinder -- "Not Ready / Denied" --> FallbackNotice["Notice + Automatic Fallback"]
+    
+    ShizukuExec --> ShizukuSuccess{"Exit Code == 0 & 'Success'?"}
+    ShizukuSuccess -- "Yes" --> Cleanup["Clean Temporary Files & Report Success"]
+    ShizukuSuccess -- "No (Error)" --> FallbackNotice
+    
+    FallbackNotice --> NativePath
+    NativePath --> BALCheck{"App in Foreground?"}
+    BALCheck -- "Yes" --> DirectDialog["Open System Installer Dialog Immediately"]
+    BALCheck -- "No (Background / Lock Screen)" --> HeadsUpNotif["Send High-Priority Install Notification"]
+    DirectDialog --> Cleanup
+    HeadsUpNotif --> Cleanup
+```
+
+[⬆️ Back to Table of Contents](#-table-of-contents)
+
+---
+
+<a id="22-ipc-communication-via-android-binder"></a>
+<a name="22-ipc-communication-via-android-binder"></a>
+### 2.2 IPC Communication via Android Binder
+Communication with the privileged Shizuku server (running under system identity `UID 2000 / shell` or `UID 0 / root`) is performed via Android's Inter-Process Communication (Binder IPC):
+- **Package Verification:** Queries the Android `PackageManager` to verify whether `moe.shizuku.privileged.api` is registered on the device.
+- **Liveness Check:** Synchronously verifies the remote Binder descriptor (`pingBinder()`) prior to every transaction.
+- **Reactive State Events:** System listeners for Binder receipt, Binder death, and permission changes update the UI in real time whenever the Shizuku service starts or stops in the background.
+
+[⬆️ Back to Table of Contents](#-table-of-contents)
+
+---
+
+<a id="23-packagemanager-shell-pipeline--play-store-attribution-comandroidvending"></a>
+<a name="23-packagemanager-shell-pipeline--play-store-attribution-comandroidvending"></a>
+### 2.3 PackageManager Shell Pipeline & Play Store Attribution (`com.android.vending`)
+When installing via Shizuku, ApkUp executes a multi-stage transaction against the Android system package manager (`pm`):
+
+1. **Isolated Staging & GZIP Verification:**
+   All downloaded package artifacts (single APK, extracted `.apkm` splits, or compressed Google Play splits) are staged in the private app cache and automatically decompressed if a GZIP magic header (`0x1f8b`) is detected.
+2. **Session Creation with Play Store Origin:**
+   ```bash
+   pm install-create -r -i com.android.vending
+   ```
+   - `-r`: Replaces the existing application while preserving all user data (`INSTALL_REPLACE_EXISTING`).
+   - `-i com.android.vending`: Sets the official installation origin (`installerPackageName`) to the Google Play Store. This ensures full compatibility with apps that verify at runtime whether they were installed from an official store source.
+3. **Streaming Package Data via Standard Input (`stdin`):**
+   For each APK split file, binary data is piped directly through a file descriptor stream into the `pm` process:
+   ```bash
+   pm install-write -S <byte_size> <session_id> <split_name.apk> -
+   ```
+   Piping directly over `stdin` cleanly avoids SELinux file access restrictions on private application directories.
+4. **Atomic Commit & Rollback Protection:**
+   ```bash
+   pm install-commit <session_id>
+   ```
+   If any sub-step fails, the session is cleanly aborted via `pm install-abandon <session_id>` and temporary staging files are purged.
+
+[⬆️ Back to Table of Contents](#-table-of-contents)
+
+---
+
+<a id="24-foreground-service--android-14-bal-resilience"></a>
+<a name="24-foreground-service--android-14-bal-resilience"></a>
+### 2.4 Foreground Service & Android 14+ BAL Resilience
+To prevent the Android OS from terminating active downloads when the screen is off or memory pressure is high, ApkUp executes active transfers inside a protected **Android Foreground Service** (`foregroundServiceType="dataSync"`):
+- **Lifecycle Management:** The service stays active strictly as long as downloads or installations remain in the queue and stops itself immediately afterward.
+- **Protection Against Background Activity Launch (BAL) Restrictions on Android 10–16:**
+  When Shizuku is **not** used and a download finishes while ApkUp is in the background, modern Android blocks unsolicited system dialogs from popping up. ApkUp detects this state automatically and dispatches an interactive high-priority notification so the user can launch the Android installer dialog with a single tap at their convenience.
+
+[⬆️ Back to Table of Contents](#-table-of-contents)
+
+---
+
+<a id="-part-3-comprehensive-frequently-asked-questions-faq--common-issues"></a>
+<a name="-part-3-comprehensive-frequently-asked-questions-faq--common-issues"></a>
+## ❓ Part 3: Comprehensive Frequently Asked Questions (FAQ) & Common Issues
 
 <a id="31-do-i-need-root-access-on-my-phone-to-use-shizuku"></a>
 <a name="31-do-i-need-root-access-on-my-phone-to-use-shizuku"></a>
@@ -1132,10 +1290,6 @@ Starting with **v1.43.0+**, rooted devices (Magisk, KernelSU, or APatch) can opt
 ---
 
 ← Back to [Wiki Home](Home) | Related: [Setting up Shizuku](Setting-up-Shizuku) · [App Management, Filters, Background Checks & Backup](App-Management,-Filters,-Background-Checks-&-Backup)
-
----
-
-> 💻 **Looking for architectural internals, protocols, or security proofs?** Explore the **[Technical Overview](https://github.com/DurchEins/apkup/wiki#-technical-overview)** section.
 
 ---
 
@@ -1250,7 +1404,7 @@ This guide explains how to skip faulty updates, ignore apps, track uninstalled a
 ---
 
 <a id="-part-1-explained-simply-for-everyone"></a>
-## 📖 User Guide
+## 🟢 Part 1: Explained Simply for Everyone
 
 <a id="11-skip-this-version-vs-ignore-app-permanently"></a>
 ### 1.1 "Skip this version" vs. "Ignore app permanently"
@@ -1314,7 +1468,48 @@ ApkUp hides pre-installed system apps by default so your list stays clean. To in
 ---
 
 <a id="-part-2-technical-documentation-for-experts--power-users"></a>
-## ❓ Frequently Asked Questions (FAQ)
+## 💻 Part 2: Technical Documentation for Experts & Power Users
+
+<a id="21-filter-architecture-package-wide-exclusion-vs-version-pinning"></a>
+### 2.1 Filter Architecture: Package-Wide Exclusion vs. Version Pinning
+1. **Package-Wide Exclusion (Ignore App):** Applied **before** network requests are dispatched — reduces payload size, saves GitHub API quota, and preserves privacy.
+2. **Version-Specific Pinning (Skip Version):** Stores `(packageName, version, versionCode)` and expires automatically as soon as any source delivers a strictly higher `versionCode`.
+
+[⬆️ Back to Table of Contents](#-table-of-contents)
+
+---
+
+<a id="22-battery-friendly-background-scheduling-via-android-workmanager"></a>
+### 2.2 Battery-Friendly Background Scheduling via Android `WorkManager`
+ApkUp delegates background checks to Android **`WorkManager`** (`NetworkType.CONNECTED`), batching work into OS maintenance windows (Doze / App Standby) with atomic `.part` download staging.
+
+[⬆️ Back to Table of Contents](#-table-of-contents)
+
+---
+
+<a id="23-persistent-update-snapshot-cache-for-instant-app-startup"></a>
+### 2.3 Persistent Update Snapshot Cache for Instant App Startup
+After each scan, ApkUp stores a local **Update Snapshot** in private app storage and reconciles it against live `PackageManager` state on launch so the **Updates** tab populates instantaneously without forcing a redundant online scan.
+
+[⬆️ Back to Table of Contents](#-table-of-contents)
+
+---
+
+<a id="24-structure--privacy-of-the-json-backup-file-saf"></a>
+### 2.4 Structure & Privacy of the JSON Backup File (SAF)
+ApkUp uses Android's **Storage Access Framework (SAF)** with zero broad storage permissions. The exported JSON contains:
+- Enabled update sources, source priority order, pinned app sources, F-Droid repositories, and watched apps
+- Ignored package names, skipped versions, and custom GitHub/GitLab/Codeberg bindings (validated on import for `https://`, allowed hosts, and regex limits)
+- Theme, display, update window, pre-release channels, rollback backup settings (`rollbackMaxBytes`, `rollbackRetentionDays`), self-updater beta opt-in (`includeSelfUpdatePreReleases`, safely defaulting to `false` on older backups), and background check preferences
+
+*(Note: Personal Access Tokens remain encrypted on-device in Google Tink `AES-256-GCM` storage and are never exported in plaintext backups; importing a backup also resets `useRootInstaller` to `false` with a security notice.)*
+
+[⬆️ Back to Table of Contents](#-table-of-contents)
+
+---
+
+<a id="-part-3-frequently-asked-questions-faq"></a>
+## ❓ Part 3: Frequently Asked Questions (FAQ)
 
 <a id="31-when-should-i-use-skip-this-version-vs-ignore-app-permanently"></a>
 ### 3.1 When should I use "Skip this version" vs. "Ignore app permanently"?
@@ -1351,10 +1546,6 @@ No — the `.json` file is only a few KB of settings (no APKs, no secret tokens)
 - 🔄 **[Obtainium Migration & Sync Guide](https://github.com/DurchEins/apkup/wiki/Obtainium-Migration-&-Sync-Guide)** — Migrate your Obtainium JSON export into ApkUp.
 
 [⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-> 💻 **Looking for architectural internals, protocols, or security proofs?** Explore the **[Technical Overview](https://github.com/DurchEins/apkup/wiki#-technical-overview)** section.
 
 ---
 
