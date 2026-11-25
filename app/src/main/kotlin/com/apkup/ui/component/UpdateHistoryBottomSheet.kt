@@ -192,6 +192,9 @@ fun UpdateHistoryBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
+        dragHandle = if (ApkUpTheme.isAccessibleUi) null else {
+            { androidx.compose.material3.BottomSheetDefaults.DragHandle() }
+        },
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
@@ -522,6 +525,16 @@ fun UpdateHistoryBottomSheet(
                         )
                     }
                 }
+                }
+            }
+            if (ApkUpTheme.isAccessibleUi) {
+                androidx.compose.material3.OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp)
+                ) {
+                    Text(stringResource(R.string.a11y_close_action))
                 }
             }
         }

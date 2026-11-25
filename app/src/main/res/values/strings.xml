@@ -699,4 +699,34 @@
     <string name="backup_diff_skipped">Skipped versions: %1$d → %2$d</string>
     <string name="backup_diff_fdroid">Custom F-Droid repos: %1$d → %2$d</string>
     <string name="backup_diff_confirm">Import backup</string>
+    <!-- Accessible UI Mode (Barrierefrei-Modus) -->
+    <string name="a11y_nav_badge_attention">Attention required</string>
+    <string name="a11y_nav_badge_count">%1$s items</string>
+    <string name="onboarding_mode_title">App display mode</string>
+    <string name="onboarding_mode_standard_title">Standard</string>
+    <string name="onboarding_mode_standard_desc">Modern layout with compact grids and smooth animations.</string>
+    <string name="onboarding_mode_a11y_title">Accessible</string>
+    <string name="onboarding_mode_a11y_desc">High contrast, single-column lists, large buttons, and no animations.</string>
+    <string name="theme_mode_section_title">App Mode &amp; Design</string>
+    <string name="a11y_accessible_ui_title">Accessible interface</string>
+    <string name="a11y_accessible_ui_subtitle">Single-column lists, large labeled buttons, no animations, and simpler controls.</string>
+    <string name="a11y_sun_sunrise_label">Sunrise: %1$s</string>
+    <string name="a11y_sun_sunset_label">Sunset: %1$s</string>
+    <string name="a11y_lists_active_note">Single-column accessible lists are active.</string>
+    <string name="a11y_action_expand">Expand</string>
+    <string name="a11y_action_collapse">Collapse</string>
+    <string name="a11y_move_up">Move up</string>
+    <string name="a11y_move_down">Move down</string>
+    <string name="a11y_apps_list_active_hint">Accessible single-column list active</string>
+    <string name="a11y_apps_section_header">Letter %1$s – %2$d apps</string>
+    <string name="a11y_options_action">Options</string>
+    <string name="a11y_close_action">Close</string>
+    <string name="a11y_updates_status_summary">%1$d updates available · %2$d sources active · Ready</string>
+    <string name="a11y_updates_more_actions">More actions</string>
+    <string name="a11y_updates_sources_more_singular">%1$d more source</string>
+    <string name="a11y_updates_sources_more_plural">%1$d more sources</string>
+    <string name="a11y_updates_verified">Checksum verified</string>
+    <string name="a11y_version_to">to</string>
+    <string name="updates_select_action">Select</string>
+    <string name="a11y_selected_label">Selected</string>
 </resources>

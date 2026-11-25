@@ -630,6 +630,8 @@ fun UpdatesScreenSuccess(
 	val context = LocalContext.current
 	val handler = com.apkup.ui.component.rememberCustomTabUriHandler()
 	val displayMode = viewModel.getUpdatesDisplayMode()
+	val isAccessibleUi = ApkUpTheme.isAccessibleUi
+	val effectiveDisplayMode = if (isAccessibleUi) 0 else displayMode
 	val view = LocalView.current
 	DisposableEffect(isChecking) {
 		view.keepScreenOn = isChecking
@@ -785,7 +787,8 @@ fun UpdatesScreenSuccess(
 	}
 
 	val collapsibleHeaderState = rememberCollapsibleHeaderState(
-		pinned = isSelectionMode ||
+		pinned = isAccessibleUi ||
+			isSelectionMode ||
 			searchExpanded ||
 			searchQuery.isNotBlank() ||
 			activeTasks.isNotEmpty() ||
@@ -846,8 +849,8 @@ fun UpdatesScreenSuccess(
 
 	AnimatedVisibility(
 		visible = !isSelectionMode && (searchExpanded || searchQuery.isNotBlank()),
-		enter = expandVertically() + fadeIn(),
-		exit = shrinkVertically() + fadeOut()
+		enter = if (ApkUpTheme.isReducedMotion) androidx.compose.animation.EnterTransition.None else expandVertically() + fadeIn(),
+		exit = if (ApkUpTheme.isReducedMotion) androidx.compose.animation.ExitTransition.None else shrinkVertically() + fadeOut()
 	) {
 		DockedUpdatesSearchBar(
 			query = searchQuery,
@@ -864,6 +867,29 @@ fun UpdatesScreenSuccess(
 
 	CollapsibleScrollHeader(state = collapsibleHeaderState) {
 		Column(modifier = Modifier.fillMaxWidth()) {
+			if (isAccessibleUi && !isSelectionMode) {
+				Surface(
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(horizontal = 12.dp, vertical = 4.dp)
+						.semantics { liveRegion = LiveRegionMode.Polite },
+					shape = RoundedCornerShape(14.dp),
+					color = MaterialTheme.colorScheme.surfaceContainer,
+					border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant)
+				) {
+					Text(
+						text = stringResource(
+							R.string.a11y_updates_status_summary,
+							displayedUpdates.size,
+							sourceCounts.size
+						),
+						style = MaterialTheme.typography.bodyMedium,
+						fontWeight = FontWeight.SemiBold,
+						color = MaterialTheme.colorScheme.onSurface,
+						modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
+					)
+				}
+			}
 			if ((updates.isNotEmpty() && !isChecking && !isSelectionMode) || activeTasks.isNotEmpty()) {
 				UpdatesHeroBanner(
 					updatesCount = displayedUpdates.size,
@@ -1135,7 +1161,7 @@ fun UpdatesScreenSuccess(
 			),
 			modifier = Modifier.weight(1f)
 		)
-		displayMode == 1 -> {
+		effectiveDisplayMode == 1 -> {
 			UpdatesPullToRefreshBox(
 				isChecking = isChecking,
 				onRefresh = { viewModel.refresh() },
@@ -1268,13 +1294,35 @@ fun UpdatesScreenSuccess(
 				)
 			},
 			confirmButton = {
-				Button(onClick = { viewModel.confirmMobileDataDownload() }) {
-					Text(text = stringResource(R.string.dialog_mobile_data_confirm))
+				if (isAccessibleUi) {
+					Column(
+						modifier = Modifier.fillMaxWidth(),
+						verticalArrangement = Arrangement.spacedBy(8.dp)
+					) {
+						Button(
+							onClick = { viewModel.confirmMobileDataDownload() },
+							modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+						) {
+							Text(text = stringResource(R.string.dialog_mobile_data_confirm))
+						}
+						OutlinedButton(
+							onClick = { viewModel.dismissMobileDataDialog() },
+							modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+						) {
+							Text(text = stringResource(R.string.action_cancel))
+						}
+					}
+				} else {
+					Button(onClick = { viewModel.confirmMobileDataDownload() }) {
+						Text(text = stringResource(R.string.dialog_mobile_data_confirm))
+					}
 				}
 			},
-			dismissButton = {
-				TextButton(onClick = { viewModel.dismissMobileDataDialog() }) {
-					Text(text = stringResource(R.string.action_cancel))
+			dismissButton = if (isAccessibleUi) null else {
+				{
+					TextButton(onClick = { viewModel.dismissMobileDataDialog() }) {
+						Text(text = stringResource(R.string.action_cancel))
+					}
 				}
 			}
 		)
@@ -1297,13 +1345,35 @@ fun UpdatesScreenSuccess(
 				)
 			},
 			confirmButton = {
-				Button(onClick = { viewModel.confirmBatteryDownload() }) {
-					Text(text = stringResource(R.string.dialog_battery_confirm))
+				if (isAccessibleUi) {
+					Column(
+						modifier = Modifier.fillMaxWidth(),
+						verticalArrangement = Arrangement.spacedBy(8.dp)
+					) {
+						Button(
+							onClick = { viewModel.confirmBatteryDownload() },
+							modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+						) {
+							Text(text = stringResource(R.string.dialog_battery_confirm))
+						}
+						OutlinedButton(
+							onClick = { viewModel.dismissBatteryPromptDialog() },
+							modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+						) {
+							Text(text = stringResource(R.string.action_cancel))
+						}
+					}
+				} else {
+					Button(onClick = { viewModel.confirmBatteryDownload() }) {
+						Text(text = stringResource(R.string.dialog_battery_confirm))
+					}
 				}
 			},
-			dismissButton = {
-				TextButton(onClick = { viewModel.dismissBatteryPromptDialog() }) {
-					Text(text = stringResource(R.string.action_cancel))
+			dismissButton = if (isAccessibleUi) null else {
+				{
+					TextButton(onClick = { viewModel.dismissBatteryPromptDialog() }) {
+						Text(text = stringResource(R.string.action_cancel))
+					}
 				}
 			}
 		)
@@ -1336,19 +1406,41 @@ fun UpdatesScreenSuccess(
 				)
 			},
 			confirmButton = {
-				Button(
-					onClick = { viewModel.confirmBatchSafetyProceed() },
-					modifier = Modifier.heightIn(min = 48.dp)
-				) {
-					Text(text = stringResource(R.string.batch_safety_continue))
+				if (isAccessibleUi) {
+					Column(
+						modifier = Modifier.fillMaxWidth(),
+						verticalArrangement = Arrangement.spacedBy(8.dp)
+					) {
+						Button(
+							onClick = { viewModel.confirmBatchSafetyProceed() },
+							modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+						) {
+							Text(text = stringResource(R.string.batch_safety_continue))
+						}
+						OutlinedButton(
+							onClick = { viewModel.dismissBatchSafetyDialog() },
+							modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+						) {
+							Text(text = stringResource(R.string.action_cancel))
+						}
+					}
+				} else {
+					Button(
+						onClick = { viewModel.confirmBatchSafetyProceed() },
+						modifier = Modifier.heightIn(min = 48.dp)
+					) {
+						Text(text = stringResource(R.string.batch_safety_continue))
+					}
 				}
 			},
-			dismissButton = {
-				TextButton(
-					onClick = { viewModel.dismissBatchSafetyDialog() },
-					modifier = Modifier.heightIn(min = 48.dp)
-				) {
-					Text(text = stringResource(R.string.action_cancel))
+			dismissButton = if (isAccessibleUi) null else {
+				{
+					TextButton(
+						onClick = { viewModel.dismissBatchSafetyDialog() },
+						modifier = Modifier.heightIn(min = 48.dp)
+					) {
+						Text(text = stringResource(R.string.action_cancel))
+					}
 				}
 			}
 		)
@@ -1381,18 +1473,43 @@ fun UpdatesScreenSuccess(
 				)
 			},
 			confirmButton = {
-				Button(
-					onClick = {
-						pendingWatchedApkMirrorConfirm = null
-						confirmAction()
+				if (isAccessibleUi) {
+					Column(
+						modifier = Modifier.fillMaxWidth(),
+						verticalArrangement = Arrangement.spacedBy(8.dp)
+					) {
+						Button(
+							onClick = {
+								pendingWatchedApkMirrorConfirm = null
+								confirmAction()
+							},
+							modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+						) {
+							Text(text = stringResource(R.string.apkmirror_watched_first_install_confirm))
+						}
+						OutlinedButton(
+							onClick = { pendingWatchedApkMirrorConfirm = null },
+							modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+						) {
+							Text(text = stringResource(R.string.action_cancel))
+						}
 					}
-				) {
-					Text(text = stringResource(R.string.apkmirror_watched_first_install_confirm))
+				} else {
+					Button(
+						onClick = {
+							pendingWatchedApkMirrorConfirm = null
+							confirmAction()
+						}
+					) {
+						Text(text = stringResource(R.string.apkmirror_watched_first_install_confirm))
+					}
 				}
 			},
-			dismissButton = {
-				TextButton(onClick = { pendingWatchedApkMirrorConfirm = null }) {
-					Text(text = stringResource(R.string.action_cancel))
+			dismissButton = if (isAccessibleUi) null else {
+				{
+					TextButton(onClick = { pendingWatchedApkMirrorConfirm = null }) {
+						Text(text = stringResource(R.string.action_cancel))
+					}
 				}
 			}
 		)
@@ -1855,6 +1972,66 @@ private fun UpdatesHeroBanner(
 									tint = MaterialTheme.colorScheme.primary,
 									modifier = Modifier.size(18.dp)
 								)
+							}
+						}
+					} else if (ApkUpTheme.isAccessibleUi) {
+						var showAccessibleMoreMenu by remember { mutableStateOf(false) }
+						Column(
+							verticalArrangement = Arrangement.spacedBy(8.dp),
+							horizontalAlignment = Alignment.End
+						) {
+							Button(
+								onClick = onInstallAll,
+								modifier = Modifier.heightIn(min = 48.dp)
+							) {
+								Icon(
+									painter = painterResource(R.drawable.ic_install),
+									contentDescription = null,
+									modifier = Modifier.size(18.dp)
+								)
+								Spacer(Modifier.width(6.dp))
+								Text(text = stringResource(R.string.install_all))
+							}
+							Box {
+								OutlinedButton(
+									onClick = { showAccessibleMoreMenu = true },
+									modifier = Modifier.heightIn(min = 48.dp)
+								) {
+									Text(text = stringResource(R.string.a11y_updates_more_actions))
+								}
+								DropdownMenu(
+									expanded = showAccessibleMoreMenu,
+									onDismissRequest = { showAccessibleMoreMenu = false }
+								) {
+									if (onOpenHistory != null) {
+										DropdownMenuItem(
+											text = { Text(stringResource(R.string.update_history_title)) },
+											leadingIcon = {
+												Icon(
+													imageVector = Icons.Rounded.History,
+													contentDescription = null
+												)
+											},
+											onClick = {
+												showAccessibleMoreMenu = false
+												onOpenHistory()
+											}
+										)
+									}
+									DropdownMenuItem(
+										text = { Text(stringResource(R.string.updates_select_all)) },
+										leadingIcon = {
+											Icon(
+												imageVector = Icons.Filled.Check,
+												contentDescription = null
+											)
+										},
+										onClick = {
+											showAccessibleMoreMenu = false
+											onSelectAll()
+										}
+									)
+								}
 							}
 						}
 					} else {
@@ -2873,7 +3050,12 @@ private fun UpdatesList(
 	}
 
 	BoxWithConstraints(modifier) {
-		val columns = updateGridColumnCount(maxWidth.value, compact = false)
+		val isAccessibleList = ApkUpTheme.isAccessibleUi
+		val columns = updateGridColumnCount(
+			availableWidthDp = maxWidth.value,
+			compact = false,
+			forceAccessibleSingleColumn = isAccessibleList
+		)
 		LazyVerticalGrid(
 			columns = GridCells.Fixed(columns),
 			state = gridState,
@@ -2882,9 +3064,9 @@ private fun UpdatesList(
 				start = NormalUpdateCardLayout.gridHorizontalPaddingDp.dp,
 				top = NormalUpdateCardLayout.gridTopPaddingDp.dp,
 				end = NormalUpdateCardLayout.gridHorizontalPaddingDp.dp,
-				bottom = NormalUpdateCardLayout.gridBottomPaddingDp.dp + extraBottomPadding
+				bottom = if (isAccessibleList) 24.dp else (NormalUpdateCardLayout.gridBottomPaddingDp.dp + extraBottomPadding)
 			),
-			verticalArrangement = Arrangement.spacedBy(NormalUpdateCardLayout.gridSpacingDp.dp),
+			verticalArrangement = Arrangement.spacedBy(if (isAccessibleList) 12.dp else NormalUpdateCardLayout.gridSpacingDp.dp),
 			horizontalArrangement = Arrangement.spacedBy(NormalUpdateCardLayout.gridSpacingDp.dp)
 		) {
 			gridItemsIndexed(items = updates, key = { _, u -> u.id }) { index, update ->
@@ -3002,6 +3184,7 @@ private fun UpdateCard(
 	)
 	val cardShape = MaterialTheme.shapes.large
 	val highContrast = ApkUpTheme.isHighContrast
+	val isAccessibleUi = ApkUpTheme.isAccessibleUi
 	Surface(
 		modifier = modifier
 			.fillMaxWidth()
@@ -3043,7 +3226,7 @@ private fun UpdateCard(
 		Column(
 			modifier = Modifier
 				.fillMaxWidth()
-				.padding(16.dp),
+				.padding(if (isAccessibleUi) 18.dp else 16.dp),
 			verticalArrangement = Arrangement.spacedBy(10.dp)
 		) {
 			// Top Row: App Icon (46dp) + App Name & Size + Versions
@@ -3108,7 +3291,7 @@ private fun UpdateCard(
 							style = MaterialTheme.typography.titleMedium,
 							fontWeight = FontWeight.Bold,
 							color = MaterialTheme.colorScheme.onSurface,
-							maxLines = 1,
+							maxLines = if (isAccessibleUi) 3 else 1,
 							overflow = TextOverflow.Ellipsis,
 							modifier = Modifier.weight(1f, fill = false)
 						)
@@ -3143,7 +3326,7 @@ private fun UpdateCard(
 								style = MaterialTheme.typography.labelSmall,
 								fontWeight = FontWeight.Bold,
 								color = MaterialTheme.colorScheme.primary,
-								maxLines = 1,
+								maxLines = if (isAccessibleUi) 2 else 1,
 								overflow = TextOverflow.Ellipsis
 							)
 						}
@@ -3156,12 +3339,12 @@ private fun UpdateCard(
 								text = card.installedVersion.ifBlank { "—" },
 								style = MaterialTheme.typography.labelSmall,
 								color = MaterialTheme.colorScheme.onSurfaceVariant,
-								maxLines = 1,
+								maxLines = if (isAccessibleUi) 2 else 1,
 								overflow = TextOverflow.Ellipsis
 							)
 							Icon(
 								imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
-								contentDescription = null,
+								contentDescription = if (isAccessibleUi) stringResource(R.string.a11y_version_to) else null,
 								tint = MaterialTheme.colorScheme.primary,
 								modifier = Modifier.size(12.dp)
 							)
@@ -3170,7 +3353,7 @@ private fun UpdateCard(
 								style = MaterialTheme.typography.labelSmall,
 								fontWeight = FontWeight.Bold,
 								color = MaterialTheme.colorScheme.primary,
-								maxLines = 1,
+								maxLines = if (isAccessibleUi) 2 else 1,
 								overflow = TextOverflow.Ellipsis
 							)
 						}
@@ -3193,18 +3376,33 @@ private fun UpdateCard(
 								SourceIconWithCooldown(source = card.source)
 								Text(
 									text = sourceName,
-									style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+									style = if (isAccessibleUi) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
 									color = MaterialTheme.colorScheme.onSurfaceVariant
 								)
 								val isVerifiedReady = isCachedReady || (liveTask != null && liveTask.total > 0L && liveTask.progress >= liveTask.total)
 								TrustShieldBadge(isVerified = isVerifiedReady)
+								if (isAccessibleUi && isVerifiedReady) {
+									Text(
+										text = stringResource(R.string.a11y_updates_verified),
+										style = MaterialTheme.typography.labelSmall,
+										color = ApkUpTheme.colors.success
+									)
+								}
 							}
 						}
 						if (card.additionalSourcesCount > 0) {
-							val sourcesPlural = if (card.additionalSourcesCount == 1) {
-								stringResource(R.string.update_sources_multiple_count_singular, card.additionalSourcesCount)
+							val sourcesPlural = if (isAccessibleUi) {
+								if (card.additionalSourcesCount == 1) {
+									stringResource(R.string.a11y_updates_sources_more_singular, card.additionalSourcesCount)
+								} else {
+									stringResource(R.string.a11y_updates_sources_more_plural, card.additionalSourcesCount)
+								}
 							} else {
-								stringResource(R.string.update_sources_multiple_count_plural, card.additionalSourcesCount)
+								if (card.additionalSourcesCount == 1) {
+									stringResource(R.string.update_sources_multiple_count_singular, card.additionalSourcesCount)
+								} else {
+									stringResource(R.string.update_sources_multiple_count_plural, card.additionalSourcesCount)
+								}
 							}
 							Surface(
 								shape = RoundedCornerShape(4.dp),
@@ -3263,9 +3461,12 @@ private fun UpdateCard(
 						)
 						Text(
 							text = cleanChangelog,
-							style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp, lineHeight = 16.sp),
+							style = MaterialTheme.typography.bodySmall.copy(
+								fontSize = if (isAccessibleUi) 13.sp else 12.sp,
+								lineHeight = if (isAccessibleUi) 18.sp else 16.sp
+							),
 							color = MaterialTheme.colorScheme.onSurfaceVariant,
-							maxLines = 2,
+							maxLines = if (isAccessibleUi) 4 else 2,
 							overflow = TextOverflow.Ellipsis
 						)
 					}
@@ -3297,9 +3498,9 @@ private fun UpdateCard(
 					)
 					Text(
 						text = cardProgressLabel,
-						style = MaterialTheme.typography.labelSmall,
+						style = if (isAccessibleUi) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelSmall,
 						color = MaterialTheme.colorScheme.primary,
-						maxLines = 1,
+						maxLines = if (isAccessibleUi) 2 else 1,
 						overflow = TextOverflow.Ellipsis
 					)
 					ApkUpWavyLinearProgressIndicator(
@@ -3311,6 +3512,37 @@ private fun UpdateCard(
 						modifier = Modifier.fillMaxWidth(),
 						color = MaterialTheme.colorScheme.primary,
 						trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+					)
+				}
+			}
+
+			// Accessible 1-tap selection toggle without requiring long-press
+			if (isAccessibleUi && isSelectable) {
+				OutlinedButton(
+					onClick = onLongPress,
+					shape = RoundedCornerShape(10.dp),
+					modifier = Modifier
+						.fillMaxWidth()
+						.heightIn(min = 48.dp)
+						.semantics { contentDescription = selectActionLabel }
+				) {
+					if (isSelected) {
+						Icon(
+							imageVector = Icons.Rounded.CheckCircle,
+							contentDescription = null,
+							modifier = Modifier.size(18.dp)
+						)
+					} else {
+						Box(
+							modifier = Modifier
+								.size(18.dp)
+								.border(1.5.dp, MaterialTheme.colorScheme.outline, CircleShape)
+						)
+					}
+					Spacer(Modifier.width(8.dp))
+					Text(
+						text = stringResource(if (isSelected) R.string.a11y_selected_label else R.string.updates_select_action),
+						style = MaterialTheme.typography.labelLarge
 					)
 				}
 			}
@@ -3332,14 +3564,16 @@ private fun UpdateCard(
 				) {
 					TextButton(
 						onClick = onSelect,
-						contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
-						modifier = Modifier.semantics {
-							contentDescription = "$detailsActionText ${card.appName}"
-						}
+						contentPadding = PaddingValues(horizontal = if (isAccessibleUi) 10.dp else 4.dp, vertical = 0.dp),
+						modifier = Modifier
+							.then(if (isAccessibleUi) Modifier.heightIn(min = 48.dp) else Modifier)
+							.semantics {
+								contentDescription = "$detailsActionText ${card.appName}"
+							}
 					) {
 						Text(
 							text = detailsActionText,
-							style = MaterialTheme.typography.labelMedium,
+							style = if (isAccessibleUi) MaterialTheme.typography.labelLarge else MaterialTheme.typography.labelMedium,
 							color = MaterialTheme.colorScheme.onSurfaceVariant
 						)
 					}
@@ -3347,14 +3581,16 @@ private fun UpdateCard(
 						Button(
 							onClick = onInstall,
 							shape = RoundedCornerShape(10.dp),
-							contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+							contentPadding = PaddingValues(horizontal = 14.dp, vertical = if (isAccessibleUi) 10.dp else 6.dp),
 							colors = ButtonDefaults.buttonColors(
 								containerColor = MaterialTheme.colorScheme.primary,
 								contentColor = MaterialTheme.colorScheme.onPrimary
 							),
-							modifier = Modifier.semantics {
-								contentDescription = "$installActionText ${card.appName}"
-							}
+							modifier = Modifier
+								.then(if (isAccessibleUi) Modifier.heightIn(min = 48.dp) else Modifier)
+								.semantics {
+									contentDescription = "$installActionText ${card.appName}"
+								}
 						) {
 							Icon(
 								painter = painterResource(R.drawable.ic_install),
@@ -4299,12 +4535,21 @@ private fun UpdateDetailsSheet(
 				onClick = { onIgnoreAppPermanently(activeVariant.packageName) },
 				enabled = !isUpdateBusy,
 				shape = CircleShape,
-				modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp)
+				modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
 			) {
 				Text(
 					text = stringResource(R.string.ignore_app_permanently),
 					color = MaterialTheme.colorScheme.error
 				)
+			}
+			if (ApkUpTheme.isAccessibleUi) {
+				OutlinedButton(
+					onClick = onDismiss,
+					shape = CircleShape,
+					modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+				) {
+					Text(text = stringResource(R.string.a11y_close_action))
+				}
 			}
 		}
 	}
@@ -4354,6 +4599,9 @@ private fun UpdateDetailsSheet(
 		ModalBottomSheet(
 			onDismissRequest = onDismiss,
 			sheetState = sheetState,
+			dragHandle = if (ApkUpTheme.isAccessibleUi) null else {
+				{ androidx.compose.material3.BottomSheetDefaults.DragHandle() }
+			},
 			shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
 			containerColor = MaterialTheme.colorScheme.surfaceContainerLow
 		) {

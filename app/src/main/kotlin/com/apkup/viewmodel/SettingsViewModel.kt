@@ -785,6 +785,13 @@ class SettingsViewModel(
 
 	fun getAppsGridColumns(): Int = prefs.appsGridColumns.get().coerceIn(2, 3)
 
+	fun getA11yAccessibleUi(): Boolean = prefs.a11yAccessibleUi.get()
+
+	fun setA11yAccessibleUi(enabled: Boolean) {
+		prefs.a11yAccessibleUi.put(enabled)
+		themer?.refreshFromPrefs()
+	}
+
 	fun setAppsGridColumns(columns: Int) {
 		prefs.appsGridColumns.put(columns.coerceIn(2, 3))
 		themer?.refreshFromPrefs()
@@ -860,6 +867,7 @@ class SettingsViewModel(
 			a11yThemeSubMode = prefs.a11yThemeSubMode.get(),
 			a11ySunriseMinutes = prefs.a11ySunriseMinutes.get(),
 			a11ySunsetMinutes = prefs.a11ySunsetMinutes.get(),
+			a11yAccessibleUi = prefs.a11yAccessibleUi.get(),
 			appsGridColumns = getAppsGridColumns()
 		)
 		return gson.toJson(config)
@@ -1191,6 +1199,9 @@ class SettingsViewModel(
 			}
 			config.a11ySunsetMinutes?.takeIf { it == SolarScheduleCalculator.UNSET_MINUTES || it in 0..1439 }?.let {
 				prefs.a11ySunsetMinutes.put(it)
+			}
+			config.a11yAccessibleUi?.let {
+				prefs.a11yAccessibleUi.put(it)
 			}
 			config.appsGridColumns?.let {
 				prefs.appsGridColumns.put(it.coerceIn(2, 3))

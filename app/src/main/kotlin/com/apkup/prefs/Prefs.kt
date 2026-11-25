@@ -313,6 +313,7 @@ class Prefs(
     val a11yThemeSubMode: PrefSlot<Int> = intSlot("a11yThemeSubMode", defValue = SolarScheduleCalculator.SUBMODE_AUTO_SUN)
     val a11ySunriseMinutes: PrefSlot<Int> = intSlot("a11ySunriseMinutes", defValue = SolarScheduleCalculator.UNSET_MINUTES)
     val a11ySunsetMinutes: PrefSlot<Int> = intSlot("a11ySunsetMinutes", defValue = SolarScheduleCalculator.UNSET_MINUTES)
+    val a11yAccessibleUi: PrefSlot<Boolean> = booleanSlot("a11yAccessibleUi", defValue = true)
     val dynamicColor: PrefSlot<Boolean> = booleanSlot("dynamicColor", defValue = false)
     val lastTab: PrefSlot<String> = stringSlot("lastTab", defValue = com.apkup.data.ui.Screen.Updates.route)
 

@@ -690,4 +690,34 @@
     <string name="backup_diff_skipped">Übersprungene Versionen: %1$d → %2$d</string>
     <string name="backup_diff_fdroid">Eigene F-Droid-Repos: %1$d → %2$d</string>
     <string name="backup_diff_confirm">Backup importieren</string>
+    <!-- Barrierefrei-Modus -->
+    <string name="a11y_nav_badge_attention">Hinweis erforderlich</string>
+    <string name="a11y_nav_badge_count">%1$s Einträge</string>
+    <string name="onboarding_mode_title">Darstellungsmodus der App</string>
+    <string name="onboarding_mode_standard_title">Standard</string>
+    <string name="onboarding_mode_standard_desc">Modernes Design mit kompakten Rastern und flüssigen Animationen.</string>
+    <string name="onboarding_mode_a11y_title">Barrierefrei</string>
+    <string name="onboarding_mode_a11y_desc">Hoher Kontrast, 1-Spalten-Listen, große Schaltflächen und ohne Animationen.</string>
+    <string name="theme_mode_section_title">App-Modus &amp; Design</string>
+    <string name="a11y_accessible_ui_title">Barrierefreie Oberfläche</string>
+    <string name="a11y_accessible_ui_subtitle">1-Spalten-Listen, große beschriftete Schaltflächen, keine Animationen und einfachere Bedienung.</string>
+    <string name="a11y_sun_sunrise_label">Sonnenaufgang: %1$s</string>
+    <string name="a11y_sun_sunset_label">Sonnenuntergang: %1$s</string>
+    <string name="a11y_lists_active_note">Barrierefreie 1-Spalten-Listen sind aktiv.</string>
+    <string name="a11y_action_expand">Aufklappen</string>
+    <string name="a11y_action_collapse">Zuklappen</string>
+    <string name="a11y_move_up">Nach oben</string>
+    <string name="a11y_move_down">Nach unten</string>
+    <string name="a11y_apps_list_active_hint">Barrierefreie 1-Spalten-Liste aktiv</string>
+    <string name="a11y_apps_section_header">Buchstabe %1$s – %2$d Apps</string>
+    <string name="a11y_options_action">Optionen</string>
+    <string name="a11y_close_action">Schließen</string>
+    <string name="a11y_updates_status_summary">%1$d Updates verfügbar · %2$d Quellen aktiv · Bereit</string>
+    <string name="a11y_updates_more_actions">Weitere Aktionen</string>
+    <string name="a11y_updates_sources_more_singular">%1$d weitere Quelle</string>
+    <string name="a11y_updates_sources_more_plural">%1$d weitere Quellen</string>
+    <string name="a11y_updates_verified">Prüfsumme geprüft</string>
+    <string name="a11y_version_to">auf</string>
+    <string name="updates_select_action">Auswählen</string>
+    <string name="a11y_selected_label">Ausgewählt</string>
 </resources>

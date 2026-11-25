@@ -25,6 +25,7 @@ class Themer(private val prefs: Prefs) {
     private val a11ySubMode = MutableStateFlow(prefs.a11yThemeSubMode.get())
     private val a11ySunriseMinutes = MutableStateFlow(prefs.a11ySunriseMinutes.get())
     private val a11ySunsetMinutes = MutableStateFlow(prefs.a11ySunsetMinutes.get())
+    private val a11yAccessibleUi = MutableStateFlow(prefs.a11yAccessibleUi.get())
     private val appsGridColumns = MutableStateFlow(prefs.appsGridColumns.get().coerceIn(2, 3))
 
     fun flow(): StateFlow<Boolean> = theme.asStateFlow()
@@ -34,6 +35,7 @@ class Themer(private val prefs: Prefs) {
     fun a11ySubModeFlow(): StateFlow<Int> = a11ySubMode.asStateFlow()
     fun a11ySunriseMinutesFlow(): StateFlow<Int> = a11ySunriseMinutes.asStateFlow()
     fun a11ySunsetMinutesFlow(): StateFlow<Int> = a11ySunsetMinutes.asStateFlow()
+    fun a11yAccessibleUiFlow(): StateFlow<Boolean> = a11yAccessibleUi.asStateFlow()
     fun appsGridColumnsFlow(): StateFlow<Int> = appsGridColumns.asStateFlow()
 
     fun setTheme(v: Boolean) { theme.value = v }
@@ -46,6 +48,7 @@ class Themer(private val prefs: Prefs) {
         a11ySubMode.value = prefs.a11yThemeSubMode.get()
         a11ySunriseMinutes.value = prefs.a11ySunriseMinutes.get()
         a11ySunsetMinutes.value = prefs.a11ySunsetMinutes.get()
+        a11yAccessibleUi.value = prefs.a11yAccessibleUi.get()
         appsGridColumns.value = prefs.appsGridColumns.get().coerceIn(2, 3)
         dynamicColor.value = prefs.dynamicColor.get()
         theme.value = computeDark(nowMillis)

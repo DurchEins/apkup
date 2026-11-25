@@ -676,4 +676,34 @@
     <string name="backup_diff_skipped">Versioni saltate: %1$d → %2$d</string>
     <string name="backup_diff_fdroid">Repo F-Droid: %1$d → %2$d</string>
     <string name="backup_diff_confirm">Importa backup</string>
+    <!-- Modalità accessibile -->
+    <string name="a11y_nav_badge_attention">Attenzione richiesta</string>
+    <string name="a11y_nav_badge_count">%1$s elementi</string>
+    <string name="onboarding_mode_title">Modalità di visualizzazione</string>
+    <string name="onboarding_mode_standard_title">Standard</string>
+    <string name="onboarding_mode_standard_desc">Layout moderno con griglie compatte e animazioni fluide.</string>
+    <string name="onboarding_mode_a11y_title">Accessibile</string>
+    <string name="onboarding_mode_a11y_desc">Alto contrasto, elenchi a colonna singola, pulsanti grandi e nessuna animazione.</string>
+    <string name="theme_mode_section_title">Modalità app e design</string>
+    <string name="a11y_accessible_ui_title">Interfaccia accessibile</string>
+    <string name="a11y_accessible_ui_subtitle">Elenchi a colonna singola, pulsanti grandi con etichette, nessuna animazione e controlli semplici.</string>
+    <string name="a11y_sun_sunrise_label">Alba: %1$s</string>
+    <string name="a11y_sun_sunset_label">Tramonto: %1$s</string>
+    <string name="a11y_lists_active_note">Gli elenchi accessibili a colonna singola sono attivi.</string>
+    <string name="a11y_action_expand">Espandi</string>
+    <string name="a11y_action_collapse">Comprimi</string>
+    <string name="a11y_move_up">Sposta su</string>
+    <string name="a11y_move_down">Sposta giù</string>
+    <string name="a11y_apps_list_active_hint">Elenco accessibile a colonna singola attivo</string>
+    <string name="a11y_apps_section_header">Lettera %1$s – %2$d app</string>
+    <string name="a11y_options_action">Opzioni</string>
+    <string name="a11y_close_action">Chiudi</string>
+    <string name="a11y_updates_status_summary">%1$d aggiornamenti disponibili · %2$d fonti attive · Pronto</string>
+    <string name="a11y_updates_more_actions">Altre azioni</string>
+    <string name="a11y_updates_sources_more_singular">%1$d altra fonte</string>
+    <string name="a11y_updates_sources_more_plural">%1$d altre fonti</string>
+    <string name="a11y_updates_verified">Checksum verificato</string>
+    <string name="a11y_version_to">a</string>
+    <string name="updates_select_action">Seleziona</string>
+    <string name="a11y_selected_label">Selezionato</string>
 </resources>

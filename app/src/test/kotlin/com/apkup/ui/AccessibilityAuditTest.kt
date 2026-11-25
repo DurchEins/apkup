@@ -198,7 +198,36 @@ class AccessibilityAuditTest {
             "apps_grid_density_title",
             "apps_grid_density_large",
             "apps_grid_density_compact",
-            "apps_grid_density_auto_a11y"
+            "apps_grid_density_auto_a11y",
+            "a11y_nav_badge_attention",
+            "a11y_nav_badge_count",
+            "onboarding_mode_title",
+            "onboarding_mode_standard_title",
+            "onboarding_mode_standard_desc",
+            "onboarding_mode_a11y_title",
+            "onboarding_mode_a11y_desc",
+            "theme_mode_section_title",
+            "a11y_accessible_ui_title",
+            "a11y_accessible_ui_subtitle",
+            "a11y_sun_sunrise_label",
+            "a11y_sun_sunset_label",
+            "a11y_lists_active_note",
+            "a11y_action_expand",
+            "a11y_action_collapse",
+            "a11y_move_up",
+            "a11y_move_down",
+            "a11y_apps_list_active_hint",
+            "a11y_apps_section_header",
+            "a11y_options_action",
+            "a11y_close_action",
+            "a11y_updates_status_summary",
+            "a11y_updates_more_actions",
+            "a11y_updates_sources_more_singular",
+            "a11y_updates_sources_more_plural",
+            "a11y_updates_verified",
+            "a11y_version_to",
+            "updates_select_action",
+            "a11y_selected_label"
         )
         val resRoot = sequenceOf(File("src/main/res"), File("app/src/main/res"))
             .firstOrNull { it.isDirectory }
@@ -225,5 +254,12 @@ class AccessibilityAuditTest {
                 )
             }
         }
+    }
+
+    @Test
+    fun accessibleTypographyEnforcesMinimumReadableSizes() {
+        assertTrue(com.apkup.ui.theme.AccessibleTypography.bodySmall.fontSize.value >= 13f)
+        assertTrue(com.apkup.ui.theme.AccessibleTypography.labelSmall.fontSize.value >= 13f)
+        assertTrue(com.apkup.ui.theme.AccessibleTypography.labelMedium.fontSize.value >= 13f)
     }
 }

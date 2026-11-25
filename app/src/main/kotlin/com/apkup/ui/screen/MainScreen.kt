@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -41,6 +42,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -55,11 +57,13 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRailItemDefaults
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -90,6 +94,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -234,6 +239,8 @@ fun MainScreen(
     val a11ySubMode = themer.a11ySubModeFlow().collectAsStateWithLifecycle().value
     val a11ySunriseMinutes = themer.a11ySunriseMinutesFlow().collectAsStateWithLifecycle().value
     val a11ySunsetMinutes = themer.a11ySunsetMinutesFlow().collectAsStateWithLifecycle().value
+    val a11yAccessibleUiPref = themer.a11yAccessibleUiFlow().collectAsStateWithLifecycle().value
+    val effectiveAccessibleUi = highContrast && a11yAccessibleUiPref
     val snackBarHostState = handleSnackBar()
 
     LaunchedEffect(themeMode, a11ySubMode, a11ySunriseMinutes, a11ySunsetMinutes) {
@@ -248,7 +255,13 @@ fun MainScreen(
         }
     }
 
-    AppTheme(darkTheme = theme, dynamicColor = dynamicColor, highContrast = highContrast) {
+    AppTheme(
+        darkTheme = theme,
+        dynamicColor = dynamicColor,
+        highContrast = highContrast,
+        accessibleUi = effectiveAccessibleUi
+    ) {
+        val isAccessibleUi = ApkUpTheme.isAccessibleUi
         Scaffold(
             containerColor = MaterialTheme.colorScheme.background
         ) { padding ->
@@ -268,57 +281,77 @@ fun MainScreen(
                         )
                     }
 
-                    Box(
+                    Column(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight()
                     ) {
-                        PullToRefreshBox(
-                            isRefreshing = isRefreshing.value,
-                            onRefresh = { mainViewModel.refresh(appsViewModel, updatesViewModel) },
-                            state = pullToRefreshState,
-                            indicator = {
-                                if (!isUpdatesScreen) {
-                                    PullToRefreshDefaults.Indicator(
-                                        modifier = Modifier.align(Alignment.TopCenter),
-                                        isRefreshing = isRefreshing.value,
-                                        state = pullToRefreshState
-                                    )
-                                }
-                            }
-                        ) {
-                            NavHost(navController, PaddingValues(0.dp), mainViewModel, appsViewModel, updatesViewModel, settingsViewModel)
-                        }
-
-                        BackHandler(enabled = currentDestinationRoute != null && currentDestinationRoute != Screen.Updates.route) {
-                            mainViewModel.navigateTo(navController, Screen.Updates.route)
-                        }
-
-                        ApkUpSnackbarHost(
-                            hostState = snackBarHostState,
+                        Box(
                             modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .navigationBarsPadding()
-                                .padding(
-                                    bottom = if (useNavigationRail) 20.dp else 94.dp,
-                                    start = 20.dp,
-                                    end = 20.dp
-                                )
-                                .widthIn(max = 460.dp)
-                        )
+                                .weight(1f)
+                                .fillMaxWidth()
+                        ) {
+                            PullToRefreshBox(
+                                isRefreshing = isRefreshing.value,
+                                onRefresh = { mainViewModel.refresh(appsViewModel, updatesViewModel) },
+                                state = pullToRefreshState,
+                                indicator = {
+                                    if (!isUpdatesScreen) {
+                                        PullToRefreshDefaults.Indicator(
+                                            modifier = Modifier.align(Alignment.TopCenter),
+                                            isRefreshing = isRefreshing.value,
+                                            state = pullToRefreshState
+                                        )
+                                    }
+                                }
+                            ) {
+                                NavHost(navController, PaddingValues(0.dp), mainViewModel, appsViewModel, updatesViewModel, settingsViewModel)
+                            }
 
-                        if (!useNavigationRail) {
-                            FloatingCapsuleDock(
-                                mainViewModel = mainViewModel,
-                                updatesViewModel = updatesViewModel,
-                                navController = navController,
+                            BackHandler(enabled = currentDestinationRoute != null && currentDestinationRoute != Screen.Updates.route) {
+                                mainViewModel.navigateTo(navController, Screen.Updates.route)
+                            }
+
+                            ApkUpSnackbarHost(
+                                hostState = snackBarHostState,
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
-                                    .navigationBarsPadding()
-                                    .padding(bottom = 12.dp, start = 20.dp, end = 20.dp)
-                                    .fillMaxWidth()
-                                    .widthIn(max = 420.dp)
-                                    .height(68.dp)
+                                    .let { mod ->
+                                        if (!useNavigationRail && isAccessibleUi) mod else mod.navigationBarsPadding()
+                                    }
+                                    .padding(
+                                        bottom = when {
+                                            useNavigationRail -> 20.dp
+                                            isAccessibleUi -> 14.dp
+                                            else -> 94.dp
+                                        },
+                                        start = 20.dp,
+                                        end = 20.dp
+                                    )
+                                    .widthIn(max = 460.dp)
+                            )
+
+                            if (!useNavigationRail && !isAccessibleUi) {
+                                FloatingCapsuleDock(
+                                    mainViewModel = mainViewModel,
+                                    updatesViewModel = updatesViewModel,
+                                    navController = navController,
+                                    modifier = Modifier
+                                        .align(Alignment.BottomCenter)
+                                        .navigationBarsPadding()
+                                        .padding(bottom = 12.dp, start = 20.dp, end = 20.dp)
+                                        .fillMaxWidth()
+                                        .widthIn(max = 420.dp)
+                                        .height(68.dp)
+                                )
+                            }
+                        }
+
+                        if (!useNavigationRail && isAccessibleUi) {
+                            AccessibleDockedBottomBar(
+                                mainViewModel = mainViewModel,
+                                updatesViewModel = updatesViewModel,
+                                navController = navController
                             )
                         }
                     }
@@ -334,7 +367,11 @@ fun MainScreen(
                 initialIzzy = initial.useIzzyOnDroid,
                 initialGitHub = initial.useGitHub,
                 initialGitLab = initial.useGitLab,
-                onConfirm = { play, apkMirror, izzy, gitHub, gitLab ->
+                onConfirm = { play, apkMirror, izzy, gitHub, gitLab, accessibleMode ->
+                    if (accessibleMode) {
+                        settingsViewModel.setA11yAccessibleUi(true)
+                        settingsViewModel.setTheme(THEME_ACCESSIBILITY)
+                    }
                     mainViewModel.confirmOnboardingConsent(
                         usePlay = play,
                         useApkMirror = apkMirror,
@@ -421,13 +458,14 @@ private fun OnboardingSourceConsentDialog(
     initialIzzy: Boolean,
     initialGitHub: Boolean,
     initialGitLab: Boolean,
-    onConfirm: (Boolean, Boolean, Boolean, Boolean, Boolean) -> Unit
+    onConfirm: (Boolean, Boolean, Boolean, Boolean, Boolean, Boolean) -> Unit
 ) {
     var usePlay by rememberSaveable { mutableStateOf(initialPlay) }
     var useApkMirror by rememberSaveable { mutableStateOf(initialApkMirror) }
     var useIzzy by rememberSaveable { mutableStateOf(initialIzzy) }
     var useGitHub by rememberSaveable { mutableStateOf(initialGitHub) }
     var useGitLab by rememberSaveable { mutableStateOf(initialGitLab) }
+    var useAccessibleMode by rememberSaveable { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = { /* Mandatory consent before first package scan (F-07) */ },
@@ -453,6 +491,32 @@ private fun OnboardingSourceConsentDialog(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .selectableGroup(),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.onboarding_mode_title),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    OnboardingModeOptionRow(
+                        title = stringResource(R.string.onboarding_mode_standard_title),
+                        subtitle = stringResource(R.string.onboarding_mode_standard_desc),
+                        selected = !useAccessibleMode,
+                        onClick = { useAccessibleMode = false }
+                    )
+                    OnboardingModeOptionRow(
+                        title = stringResource(R.string.onboarding_mode_a11y_title),
+                        subtitle = stringResource(R.string.onboarding_mode_a11y_desc),
+                        selected = useAccessibleMode,
+                        onClick = { useAccessibleMode = true }
+                    )
+                }
 
                 OnboardingSourceToggleRow(
                     iconRes = R.drawable.ic_play,
@@ -493,7 +557,7 @@ private fun OnboardingSourceConsentDialog(
         },
         confirmButton = {
             Button(
-                onClick = { onConfirm(usePlay, useApkMirror, useIzzy, useGitHub, useGitLab) },
+                onClick = { onConfirm(usePlay, useApkMirror, useIzzy, useGitHub, useGitLab, useAccessibleMode) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 48.dp),
@@ -506,6 +570,58 @@ private fun OnboardingSourceConsentDialog(
             }
         }
     )
+}
+
+@Composable
+private fun OnboardingModeOptionRow(
+    title: String,
+    subtitle: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .semantics {
+                role = Role.RadioButton
+                this.selected = selected
+            }
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(14.dp),
+        color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer,
+        border = BorderStroke(
+            width = if (selected) 1.5.dp else 1.dp,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            RadioButton(
+                selected = selected,
+                onClick = null
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
 }
 
 @Composable
@@ -696,6 +812,102 @@ fun CheckNotificationIntent(
 }
 
 @Composable
+fun AccessibleDockedBottomBar(
+    mainViewModel: MainViewModel,
+    updatesViewModel: UpdatesViewModel,
+    navController: NavController,
+    modifier: Modifier = Modifier
+) {
+    val badges = koinInject<Badger>().flow().collectAsStateWithLifecycle().value
+    val updatesState = updatesViewModel.state().collectAsStateWithLifecycle().value
+    val isChecking = updatesState.isChecking
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    val haptics = LocalHapticFeedback.current
+    val extendedColors = ApkUpTheme.colors
+
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surfaceContainerLow
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+        ) {
+            HorizontalDivider(
+                thickness = 1.5.dp,
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 8.dp)
+                    .selectableGroup(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                mainViewModel.screens.forEach { screen ->
+                    val selected = currentRoute == screen.route
+                    val badge = if (screen == Screen.Apps) "" else badges[screen.route].orEmpty()
+                    val isLiveChecking = screen == Screen.Updates && isChecking
+                    Surface(
+                        onClick = {
+                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            mainViewModel.navigateTo(navController, screen.route)
+                        },
+                        shape = RoundedCornerShape(14.dp),
+                        color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer,
+                        border = BorderStroke(
+                            width = 1.5.dp,
+                            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                        ),
+                        modifier = Modifier
+                            .weight(1f)
+                            .heightIn(min = 64.dp)
+                            .semantics {
+                                role = Role.Tab
+                                this.selected = selected
+                            }
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 6.dp, vertical = 8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            NavigationBadgeBox(
+                                badge = badge,
+                                isLoadingUpdates = isLiveChecking,
+                                warningContainer = extendedColors.warning,
+                                onWarning = extendedColors.onWarning
+                            ) {
+                                Icon(
+                                    imageVector = if (selected) screen.iconSelected else screen.icon,
+                                    contentDescription = null,
+                                    tint = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = stringResource(screen.resourceId),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                softWrap = false
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun FloatingCapsuleDock(
     mainViewModel: MainViewModel,
     updatesViewModel: UpdatesViewModel,
@@ -839,9 +1051,22 @@ private fun NavigationBadgeBox(
                 val isWarning = badge == "!"
                 val displayText = if (isWarning) "!" else formatCapsuleBadge(badge)
                 val isReducedMotion = ApkUpTheme.isReducedMotion
+                val isAccessibleUi = ApkUpTheme.isAccessibleUi
+                val badgeDesc = if (isWarning) {
+                    stringResource(R.string.a11y_nav_badge_attention)
+                } else {
+                    stringResource(R.string.a11y_nav_badge_count, displayText)
+                }
                 Badge(
                     containerColor = if (isWarning) warningContainer else MaterialTheme.colorScheme.error,
-                    contentColor = if (isWarning) onWarning else MaterialTheme.colorScheme.onError
+                    contentColor = if (isWarning) onWarning else MaterialTheme.colorScheme.onError,
+                    modifier = if (isAccessibleUi) {
+                        Modifier
+                            .defaultMinSize(minWidth = 22.dp, minHeight = 22.dp)
+                            .semantics { contentDescription = badgeDesc }
+                    } else {
+                        Modifier.semantics { contentDescription = badgeDesc }
+                    }
                 ) {
                     AnimatedContent(
                         targetState = displayText,
@@ -861,9 +1086,10 @@ private fun NavigationBadgeBox(
                         Text(
                             text = target,
                             style = MaterialTheme.typography.labelSmall.copy(
-                                fontSize = if (isWarning) 11.sp else 10.sp,
+                                fontSize = if (isAccessibleUi) 12.sp else if (isWarning) 11.sp else 10.sp,
                                 fontWeight = FontWeight.Bold
-                            )
+                            ),
+                            modifier = if (isAccessibleUi) Modifier.padding(horizontal = 3.dp) else Modifier
                         )
                     }
                 }

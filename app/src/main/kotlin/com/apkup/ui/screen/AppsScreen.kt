@@ -380,8 +380,10 @@ fun AppsScreenSuccess(
 		}
 	}
 
+	val isAccessibleUi = ApkUpTheme.isAccessibleUi
+	val effectiveViewMode = if (isAccessibleUi) "list" else viewMode
 	val collapsibleHeaderState = rememberCollapsibleHeaderState(
-		pinned = searchExpanded || searchQuery.isNotBlank() || filteredApps.isEmpty()
+		pinned = isAccessibleUi || searchExpanded || searchQuery.isNotBlank() || filteredApps.isEmpty()
 	)
 
 	// 1. Top Bar
@@ -510,53 +512,62 @@ fun AppsScreenSuccess(
 			color = MaterialTheme.colorScheme.onSurfaceVariant
 		)
 
-		Surface(
-			shape = CircleShape,
-			color = MaterialTheme.colorScheme.surfaceContainerLow
-		) {
-			Row(
-				modifier = Modifier
-					.padding(2.dp)
-					.selectableGroup(),
-				horizontalArrangement = Arrangement.spacedBy(2.dp),
-				verticalAlignment = Alignment.CenterVertically
+		if (isAccessibleUi) {
+			Text(
+				text = stringResource(R.string.a11y_apps_list_active_hint),
+				style = MaterialTheme.typography.labelSmall,
+				fontWeight = FontWeight.SemiBold,
+				color = MaterialTheme.colorScheme.primary
+			)
+		} else {
+			Surface(
+				shape = CircleShape,
+				color = MaterialTheme.colorScheme.surfaceContainerLow
 			) {
-				val isList = viewMode == "list"
-				Surface(
-					onClick = { viewModel.setViewMode("list") },
-					shape = CircleShape,
-					color = if (isList) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
-					modifier = Modifier.semantics {
-						role = Role.Tab
-						selected = isList
-					}
+				Row(
+					modifier = Modifier
+						.padding(2.dp)
+						.selectableGroup(),
+					horizontalArrangement = Arrangement.spacedBy(2.dp),
+					verticalAlignment = Alignment.CenterVertically
 				) {
-					Icon(
-						imageVector = Icons.AutoMirrored.Rounded.List,
-						contentDescription = stringResource(R.string.apps_view_list),
-						tint = if (isList) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-						modifier = Modifier
-							.padding(horizontal = 8.dp, vertical = 4.dp)
-							.size(18.dp)
-					)
-				}
-				Surface(
-					onClick = { viewModel.setViewMode("grid") },
-					shape = CircleShape,
-					color = if (!isList) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
-					modifier = Modifier.semantics {
-						role = Role.Tab
-						selected = !isList
+					val isList = effectiveViewMode == "list"
+					Surface(
+						onClick = { viewModel.setViewMode("list") },
+						shape = CircleShape,
+						color = if (isList) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+						modifier = Modifier.semantics {
+							role = Role.Tab
+							selected = isList
+						}
+					) {
+						Icon(
+							imageVector = Icons.AutoMirrored.Rounded.List,
+							contentDescription = stringResource(R.string.apps_view_list),
+							tint = if (isList) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+							modifier = Modifier
+								.padding(horizontal = 8.dp, vertical = 4.dp)
+								.size(18.dp)
+						)
 					}
-				) {
-					Icon(
-						imageVector = Icons.Rounded.GridView,
-						contentDescription = stringResource(R.string.apps_view_grid),
-						tint = if (!isList) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-						modifier = Modifier
-							.padding(horizontal = 8.dp, vertical = 4.dp)
-							.size(18.dp)
-					)
+					Surface(
+						onClick = { viewModel.setViewMode("grid") },
+						shape = CircleShape,
+						color = if (!isList) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+						modifier = Modifier.semantics {
+							role = Role.Tab
+							selected = !isList
+						}
+					) {
+						Icon(
+							imageVector = Icons.Rounded.GridView,
+							contentDescription = stringResource(R.string.apps_view_grid),
+							tint = if (!isList) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+							modifier = Modifier
+								.padding(horizontal = 8.dp, vertical = 4.dp)
+								.size(18.dp)
+						)
+					}
 				}
 			}
 		}
@@ -576,9 +587,13 @@ fun AppsScreenSuccess(
 				.weight(1f)
 				.nestedScroll(collapsibleHeaderState.nestedScrollConnection)
 		) {
+			val isReducedMotionApps = ApkUpTheme.isReducedMotion
 			AnimatedContent(
-				targetState = viewMode,
-				transitionSpec = { fadeIn(spring(stiffness = Spring.StiffnessMediumLow)) togetherWith fadeOut() },
+				targetState = effectiveViewMode,
+				transitionSpec = {
+					if (isReducedMotionApps) androidx.compose.animation.EnterTransition.None togetherWith androidx.compose.animation.ExitTransition.None
+					else fadeIn(spring(stiffness = Spring.StiffnessMediumLow)) togetherWith fadeOut()
+				},
 				label = "AppsViewModeTransition"
 			) { mode ->
 				if (mode == "list") {
@@ -586,8 +601,8 @@ fun AppsScreenSuccess(
 					LazyColumn(
 						state = listState,
 						modifier = Modifier.fillMaxSize(),
-						contentPadding = PaddingValues(start = 14.dp, top = 4.dp, end = 14.dp, bottom = 140.dp),
-						verticalArrangement = Arrangement.spacedBy(8.dp)
+						contentPadding = PaddingValues(start = 14.dp, top = 4.dp, end = 14.dp, bottom = if (isAccessibleUi) 24.dp else 140.dp),
+						verticalArrangement = Arrangement.spacedBy(if (isAccessibleUi) 12.dp else 8.dp)
 					) {
 						if (sortOrder == AppsSortOrder.LAST_UPDATED) {
 							items(filteredApps, key = { it.packageName }) { app ->
@@ -620,26 +635,41 @@ fun AppsScreenSuccess(
 										Row(
 											modifier = Modifier
 												.fillMaxWidth()
-												.padding(vertical = 4.dp),
+												.padding(vertical = if (isAccessibleUi) 8.dp else 4.dp)
+												.semantics { heading() },
 											verticalAlignment = Alignment.CenterVertically,
 											horizontalArrangement = Arrangement.spacedBy(8.dp)
 										) {
-											Text(
-												text = initial,
-												style = MaterialTheme.typography.titleMedium,
-												fontWeight = FontWeight.Bold,
-												color = MaterialTheme.colorScheme.primary
-											)
-											HorizontalDivider(
-												modifier = Modifier.weight(1f),
-												color = MaterialTheme.colorScheme.surfaceContainerHigh,
-												thickness = 1.dp
-											)
-											Text(
-												text = "${appsInGroup.size}",
-												style = MaterialTheme.typography.labelSmall,
-												color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-											)
+											if (isAccessibleUi) {
+												Text(
+													text = stringResource(R.string.a11y_apps_section_header, initial, appsInGroup.size),
+													style = MaterialTheme.typography.titleMedium,
+													fontWeight = FontWeight.Bold,
+													color = MaterialTheme.colorScheme.primary
+												)
+												HorizontalDivider(
+													modifier = Modifier.weight(1f),
+													color = MaterialTheme.colorScheme.outlineVariant,
+													thickness = 1.5.dp
+												)
+											} else {
+												Text(
+													text = initial,
+													style = MaterialTheme.typography.titleMedium,
+													fontWeight = FontWeight.Bold,
+													color = MaterialTheme.colorScheme.primary
+												)
+												HorizontalDivider(
+													modifier = Modifier.weight(1f),
+													color = MaterialTheme.colorScheme.surfaceContainerHigh,
+													thickness = 1.dp
+												)
+												Text(
+													text = "${appsInGroup.size}",
+													style = MaterialTheme.typography.labelSmall,
+													color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+												)
+											}
 										}
 									}
 								}
@@ -768,49 +798,72 @@ fun AppsScreenSuccess(
 				modifier = Modifier
 					.align(Alignment.BottomEnd)
 					.padding(16.dp),
-				enter = fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
+				enter = if (ApkUpTheme.isReducedMotion) fadeIn() else fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
 					scaleIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
-				exit = fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
+				exit = if (ApkUpTheme.isReducedMotion) fadeOut() else fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
 					scaleOut(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
 			) {
-				FloatingActionButton(
-					onClick = {
-						coroutineScope.launch {
-							if (viewMode == "list") {
-								if (isScrollingDown) {
-									val lastIndex = (groupedApps.size + filteredApps.size - 1).coerceAtLeast(0)
-									listState.animateScrollToItem(lastIndex)
-									isScrollingDown = false
-								} else {
-									listState.animateScrollToItem(0)
-									isScrollingDown = true
-								}
+				val isReducedMotionFab = ApkUpTheme.isReducedMotion
+				val scrollAction = {
+					coroutineScope.launch {
+						if (effectiveViewMode == "list") {
+							if (isScrollingDown) {
+								val lastIndex = (groupedApps.size + filteredApps.size - 1).coerceAtLeast(0)
+								if (isReducedMotionFab) listState.scrollToItem(lastIndex) else listState.animateScrollToItem(lastIndex)
+								isScrollingDown = false
 							} else {
-								if (isScrollingDown) {
-									val lastIndex = (groupedApps.size + filteredApps.size - 1).coerceAtLeast(0)
-									gridState.animateScrollToItem(lastIndex)
-									isScrollingDown = false
-								} else {
-									gridState.animateScrollToItem(0)
-									isScrollingDown = true
-								}
+								if (isReducedMotionFab) listState.scrollToItem(0) else listState.animateScrollToItem(0)
+								isScrollingDown = true
+							}
+						} else {
+							if (isScrollingDown) {
+								val lastIndex = (groupedApps.size + filteredApps.size - 1).coerceAtLeast(0)
+								gridState.animateScrollToItem(lastIndex)
+								isScrollingDown = false
+							} else {
+								gridState.animateScrollToItem(0)
+								isScrollingDown = true
 							}
 						}
-					},
-					shape = CircleShape,
-					containerColor = MaterialTheme.colorScheme.primaryContainer,
-					contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-				) {
-					Icon(
-						imageVector = if (isScrollingDown) {
-							Icons.Filled.KeyboardArrowDown
-						} else {
-							Icons.Filled.KeyboardArrowUp
-						},
-						contentDescription = stringResource(
-							if (isScrollingDown) R.string.apps_scroll_to_bottom else R.string.apps_scroll_to_top
+					}
+				}
+				if (isAccessibleUi) {
+					Button(
+						onClick = { scrollAction() },
+						shape = CircleShape,
+						border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline),
+						modifier = Modifier.heightIn(min = 48.dp)
+					) {
+						Icon(
+							imageVector = if (isScrollingDown) Icons.Filled.KeyboardArrowDown else Icons.Filled.KeyboardArrowUp,
+							contentDescription = null,
+							modifier = Modifier.size(18.dp)
 						)
-					)
+						androidx.compose.foundation.layout.Spacer(Modifier.width(6.dp))
+						Text(
+							text = stringResource(
+								if (isScrollingDown) R.string.apps_scroll_to_bottom else R.string.apps_scroll_to_top
+							)
+						)
+					}
+				} else {
+					FloatingActionButton(
+						onClick = { scrollAction() },
+						shape = CircleShape,
+						containerColor = MaterialTheme.colorScheme.primaryContainer,
+						contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+					) {
+						Icon(
+							imageVector = if (isScrollingDown) {
+								Icons.Filled.KeyboardArrowDown
+							} else {
+								Icons.Filled.KeyboardArrowUp
+							},
+							contentDescription = stringResource(
+								if (isScrollingDown) R.string.apps_scroll_to_bottom else R.string.apps_scroll_to_top
+							)
+						)
+					}
 				}
 			}
 		}
@@ -1145,6 +1198,7 @@ private fun AppListItem(
 		label = "AppListItemPressScale"
 	)
 
+	val isAccessibleUi = ApkUpTheme.isAccessibleUi
 	val cardShape = MaterialTheme.shapes.large
 	Surface(
 		modifier = Modifier
@@ -1171,54 +1225,58 @@ private fun AppListItem(
 		color = MaterialTheme.colorScheme.surfaceContainerLow,
 		border = cardBorder
 	) {
-		Row(
+		Column(
 			modifier = Modifier
 				.fillMaxWidth()
-				.padding(12.dp),
-			verticalAlignment = Alignment.CenterVertically,
-			horizontalArrangement = Arrangement.spacedBy(12.dp)
+				.padding(if (isAccessibleUi) 18.dp else 12.dp),
+			verticalArrangement = Arrangement.spacedBy(10.dp)
 		) {
-			// 46dp App-Icon
-			Box(
-				modifier = Modifier
-					.size(46.dp)
-					.clip(RoundedCornerShape(13.dp))
-					.background(MaterialTheme.colorScheme.surfaceContainerHigh),
-				contentAlignment = Alignment.Center
+			Row(
+				modifier = Modifier.fillMaxWidth(),
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(12.dp)
 			) {
-				LoadingImageApp(app.packageName, Modifier.fillMaxSize())
-			}
-
-			// Flexible Middle Content
-			Column(
-				modifier = Modifier.weight(1f),
-				verticalArrangement = Arrangement.spacedBy(3.dp)
-			) {
-				Row(
-					verticalAlignment = Alignment.CenterVertically,
-					horizontalArrangement = Arrangement.spacedBy(6.dp)
+				// 46dp App-Icon
+				Box(
+					modifier = Modifier
+						.size(46.dp)
+						.clip(RoundedCornerShape(13.dp))
+						.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+					contentAlignment = Alignment.Center
 				) {
-					Text(
-						text = app.name.ifBlank { app.packageName },
-						style = MaterialTheme.typography.titleMedium.copy(fontSize = 14.sp),
-						fontWeight = FontWeight.Bold,
-						color = MaterialTheme.colorScheme.onSurface,
-						maxLines = 1,
-						overflow = TextOverflow.Ellipsis,
-						modifier = Modifier.weight(1f, fill = false)
-					)
-					NewlyUpdatedPulseDot(lastUpdateTime = app.lastUpdateTime)
+					LoadingImageApp(app.packageName, Modifier.fillMaxSize())
 				}
-				Text(
-					text = app.packageName,
-					style = MaterialTheme.typography.bodySmall.copy(
-						fontSize = 11.sp,
-						fontFamily = FontFamily.Monospace
-					),
-					color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
-					maxLines = 1,
-					overflow = TextOverflow.Ellipsis
-				)
+
+				// Flexible Middle Content
+				Column(
+					modifier = Modifier.weight(1f),
+					verticalArrangement = Arrangement.spacedBy(3.dp)
+				) {
+					Row(
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(6.dp)
+					) {
+						Text(
+							text = app.name.ifBlank { app.packageName },
+							style = MaterialTheme.typography.titleMedium.copy(fontSize = if (isAccessibleUi) 16.sp else 14.sp),
+							fontWeight = FontWeight.Bold,
+							color = MaterialTheme.colorScheme.onSurface,
+							maxLines = if (isAccessibleUi) 3 else 1,
+							overflow = TextOverflow.Ellipsis,
+							modifier = Modifier.weight(1f, fill = false)
+						)
+						NewlyUpdatedPulseDot(lastUpdateTime = app.lastUpdateTime)
+					}
+					Text(
+						text = app.packageName,
+						style = MaterialTheme.typography.bodySmall.copy(
+							fontSize = if (isAccessibleUi) 12.5.sp else 11.sp,
+							fontFamily = FontFamily.Monospace
+						),
+						color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (isAccessibleUi) 1f else 0.75f),
+						maxLines = if (isAccessibleUi) 2 else 1,
+						overflow = TextOverflow.Ellipsis
+					)
 				Row(
 					verticalAlignment = Alignment.CenterVertically,
 					horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -1301,74 +1359,121 @@ private fun AppListItem(
 				}
 			}
 
-			// Right Actions: Relative Date + Quick Launch Button + 3-Dots Menu
-			Column(
-				horizontalAlignment = Alignment.End,
-				verticalArrangement = Arrangement.spacedBy(4.dp)
-			) {
-				if (app.lastUpdateTime > 0L) {
-					val relativeTime = DateUtils.getRelativeTimeSpanString(
-						app.lastUpdateTime,
-						System.currentTimeMillis(),
-						DateUtils.MINUTE_IN_MILLIS
-					).toString()
-					Text(
-						text = relativeTime,
-						style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-						color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
-						maxLines = 1
-					)
-				}
-				Row(
-					verticalAlignment = Alignment.CenterVertically,
-					horizontalArrangement = Arrangement.spacedBy(4.dp)
+			// Right Actions: Relative Date + Quick Launch Button + 3-Dots Menu (in Standard mode)
+			if (!isAccessibleUi) {
+				Column(
+					horizontalAlignment = Alignment.End,
+					verticalArrangement = Arrangement.spacedBy(4.dp)
 				) {
-					val appDisplayName = app.name.ifBlank { app.packageName }
-					// 32dp Quick Launch visual inside >= 48dp accessible touch target (hidden for uninstalled watched apps)
-					if (!app.isWatchedOnly) {
+					if (app.lastUpdateTime > 0L) {
+						val relativeTime = DateUtils.getRelativeTimeSpanString(
+							app.lastUpdateTime,
+							System.currentTimeMillis(),
+							DateUtils.MINUTE_IN_MILLIS
+						).toString()
+						Text(
+							text = relativeTime,
+							style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+							color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
+							maxLines = 1
+						)
+					}
+					Row(
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(4.dp)
+					) {
+						val appDisplayName = app.name.ifBlank { app.packageName }
+						if (!app.isWatchedOnly) {
+							Box(
+								modifier = Modifier
+									.minimumInteractiveComponentSize()
+									.clip(CircleShape)
+									.clickable(
+										role = Role.Button,
+										onClick = { launchAppOrSettings(context, app.packageName) }
+									),
+								contentAlignment = Alignment.Center
+							) {
+								Box(
+									modifier = Modifier
+										.size(32.dp)
+										.clip(CircleShape)
+										.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+									contentAlignment = Alignment.Center
+								) {
+									Icon(
+										imageVector = Icons.AutoMirrored.Rounded.OpenInNew,
+										contentDescription = "${stringResource(R.string.apps_launch_action)} $appDisplayName",
+										tint = MaterialTheme.colorScheme.primary,
+										modifier = Modifier.size(16.dp)
+									)
+								}
+							}
+						}
+
 						Box(
 							modifier = Modifier
 								.minimumInteractiveComponentSize()
 								.clip(CircleShape)
 								.clickable(
 									role = Role.Button,
-									onClick = { launchAppOrSettings(context, app.packageName) }
+									onClick = { showActionsSheet = true }
 								),
 							contentAlignment = Alignment.Center
 						) {
-							Box(
-								modifier = Modifier
-									.size(32.dp)
-									.clip(CircleShape)
-									.background(MaterialTheme.colorScheme.surfaceContainerHigh),
-								contentAlignment = Alignment.Center
-							) {
-								Icon(
-									imageVector = Icons.AutoMirrored.Rounded.OpenInNew,
-									contentDescription = "${stringResource(R.string.apps_launch_action)} $appDisplayName",
-									tint = MaterialTheme.colorScheme.primary,
-									modifier = Modifier.size(16.dp)
-								)
-							}
+							Icon(
+								imageVector = Icons.Rounded.MoreVert,
+								contentDescription = "${stringResource(R.string.updates_detail_view)} $appDisplayName",
+								tint = MaterialTheme.colorScheme.onSurfaceVariant,
+								modifier = Modifier.size(18.dp)
+							)
 						}
 					}
-
-					// Context Menu Trigger with >= 48dp touch target
-					Box(
+				}
+			}
+			}
+			if (isAccessibleUi) {
+				val appDisplayName = app.name.ifBlank { app.packageName }
+				val launchActionText = stringResource(R.string.apps_launch_action)
+				val optionsActionText = stringResource(R.string.a11y_options_action)
+				Row(
+					modifier = Modifier.fillMaxWidth(),
+					horizontalArrangement = Arrangement.spacedBy(8.dp),
+					verticalAlignment = Alignment.CenterVertically
+				) {
+					if (!app.isWatchedOnly) {
+						FilledTonalButton(
+							onClick = { launchAppOrSettings(context, app.packageName) },
+							shape = CircleShape,
+							modifier = Modifier
+								.weight(1f)
+								.heightIn(min = 48.dp)
+								.semantics {
+									contentDescription = "$launchActionText $appDisplayName"
+								}
+						) {
+							Text(
+								text = launchActionText,
+								maxLines = 1,
+								overflow = TextOverflow.Ellipsis
+							)
+						}
+					}
+					androidx.compose.material3.OutlinedButton(
+						onClick = { showActionsSheet = true },
+						shape = CircleShape,
+						border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline),
 						modifier = Modifier
-							.minimumInteractiveComponentSize()
-							.clip(CircleShape)
-							.clickable(
-								role = Role.Button,
-								onClick = { showActionsSheet = true }
-							),
-						contentAlignment = Alignment.Center
+							.weight(1f)
+							.heightIn(min = 48.dp)
+							.semantics {
+								contentDescription = "$optionsActionText $appDisplayName"
+							}
 					) {
-						Icon(
-							imageVector = Icons.Rounded.MoreVert,
-							contentDescription = "${stringResource(R.string.updates_detail_view)} $appDisplayName",
-							tint = MaterialTheme.colorScheme.onSurfaceVariant,
-							modifier = Modifier.size(18.dp)
+						Text(
+							text = optionsActionText,
+							maxLines = 1,
+							overflow = TextOverflow.Ellipsis
 						)
 					}
 				}
@@ -2032,6 +2137,19 @@ private fun AppActionsBottomSheet(
 						}
 					)
 				}
+				if (ApkUpTheme.isAccessibleUi) {
+					androidx.compose.material3.OutlinedButton(
+						onClick = onDismiss,
+						shape = CircleShape,
+						border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline),
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(top = 6.dp)
+							.heightIn(min = 48.dp)
+					) {
+						Text(stringResource(R.string.a11y_close_action))
+					}
+				}
 			}
 		}
 	}
@@ -2115,11 +2233,14 @@ private fun resolveOriginDisplay(origin: InstallOrigin): Pair<Int, String> = whe
 // -------------------------------------------------------------
 // Quick Filter Chips Row
 // -------------------------------------------------------------
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AppsQuickFilterRow(
 	selectedFilter: AppsQuickFilter,
 	onSelectFilter: (AppsQuickFilter) -> Unit
 ) {
+	val isAccessibleUi = ApkUpTheme.isAccessibleUi
+	val isReducedMotion = ApkUpTheme.isReducedMotion
 	val filters = listOf(
 		AppsQuickFilter.ALL to stringResource(R.string.apps_filter_all),
 		AppsQuickFilter.SIDELOAD_ONLY to stringResource(R.string.apps_filter_sideload),
@@ -2127,17 +2248,9 @@ private fun AppsQuickFilterRow(
 		AppsQuickFilter.RECENTLY_UPDATED to stringResource(R.string.apps_filter_recent),
 		AppsQuickFilter.IGNORED_ONLY to stringResource(R.string.apps_filter_ignored)
 	)
-	Row(
-		modifier = Modifier
-			.fillMaxWidth()
-			.horizontalScroll(rememberScrollState())
-			.padding(horizontal = 14.dp, vertical = 2.dp),
-		horizontalArrangement = Arrangement.spacedBy(8.dp),
-		verticalAlignment = Alignment.CenterVertically
-	) {
+	val chipContent: @Composable () -> Unit = {
 		filters.forEach { (filter, label) ->
 			val selected = selectedFilter == filter
-			val isReducedMotion = ApkUpTheme.isReducedMotion
 			val chipScale = remember { Animatable(1f) }
 			val iconRotation = remember { Animatable(0f) }
 			var wasSelected by remember { mutableStateOf(selected) }
@@ -2165,14 +2278,16 @@ private fun AppsQuickFilterRow(
 			FilterChip(
 				selected = selected,
 				onClick = { onSelectFilter(filter) },
-				modifier = Modifier.graphicsLayer {
-					scaleX = chipScale.value
-					scaleY = chipScale.value
-				},
+				modifier = Modifier
+					.then(if (isAccessibleUi) Modifier.heightIn(min = 48.dp) else Modifier)
+					.graphicsLayer {
+						scaleX = chipScale.value
+						scaleY = chipScale.value
+					},
 				label = {
 					Text(
 						text = label,
-						style = MaterialTheme.typography.labelMedium,
+						style = if (isAccessibleUi) MaterialTheme.typography.labelLarge else MaterialTheme.typography.labelMedium,
 						fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
 					)
 				},
@@ -2188,7 +2303,16 @@ private fun AppsQuickFilterRow(
 					}
 				} else null,
 				shape = CircleShape,
-				border = null,
+				border = if (isAccessibleUi) {
+					FilterChipDefaults.filterChipBorder(
+						enabled = true,
+						selected = selected,
+						borderColor = MaterialTheme.colorScheme.outline,
+						selectedBorderColor = MaterialTheme.colorScheme.primary,
+						borderWidth = 1.5.dp,
+						selectedBorderWidth = 1.5.dp
+					)
+				} else null,
 				colors = FilterChipDefaults.filterChipColors(
 					selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
 					selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -2197,6 +2321,28 @@ private fun AppsQuickFilterRow(
 					labelColor = MaterialTheme.colorScheme.onSurfaceVariant
 				)
 			)
+		}
+	}
+	if (isAccessibleUi) {
+		FlowRow(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(horizontal = 14.dp, vertical = 4.dp),
+			horizontalArrangement = Arrangement.spacedBy(8.dp),
+			verticalArrangement = Arrangement.spacedBy(8.dp)
+		) {
+			chipContent()
+		}
+	} else {
+		Row(
+			modifier = Modifier
+				.fillMaxWidth()
+				.horizontalScroll(rememberScrollState())
+				.padding(horizontal = 14.dp, vertical = 2.dp),
+			horizontalArrangement = Arrangement.spacedBy(8.dp),
+			verticalAlignment = Alignment.CenterVertically
+		) {
+			chipContent()
 		}
 	}
 }

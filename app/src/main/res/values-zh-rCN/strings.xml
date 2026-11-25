@@ -672,4 +672,34 @@
     <string name="backup_diff_skipped">已跳过版本：%1$d → %2$d</string>
     <string name="backup_diff_fdroid">自定义 F-Droid 仓库：%1$d → %2$d</string>
     <string name="backup_diff_confirm">导入备份</string>
+    <!-- 无障碍模式 -->
+    <string name="a11y_nav_badge_attention">需要注意</string>
+    <string name="a11y_nav_badge_count">%1$s 项</string>
+    <string name="onboarding_mode_title">应用显示模式</string>
+    <string name="onboarding_mode_standard_title">标准</string>
+    <string name="onboarding_mode_standard_desc">紧凑网格与流畅动画的现代布局。</string>
+    <string name="onboarding_mode_a11y_title">无障碍</string>
+    <string name="onboarding_mode_a11y_desc">高对比度、单列列表、大号按钮，且关闭动画。</string>
+    <string name="theme_mode_section_title">应用模式与外观</string>
+    <string name="a11y_accessible_ui_title">无障碍界面</string>
+    <string name="a11y_accessible_ui_subtitle">单列列表、带文字大按钮、无动画及更简化的操作。</string>
+    <string name="a11y_sun_sunrise_label">日出：%1$s</string>
+    <string name="a11y_sun_sunset_label">日落：%1$s</string>
+    <string name="a11y_lists_active_note">已启用无障碍单列列表。</string>
+    <string name="a11y_action_expand">展开</string>
+    <string name="a11y_action_collapse">收起</string>
+    <string name="a11y_move_up">上移</string>
+    <string name="a11y_move_down">下移</string>
+    <string name="a11y_apps_list_active_hint">已启用无障碍单列列表</string>
+    <string name="a11y_apps_section_header">字母 %1$s – %2$d 个应用</string>
+    <string name="a11y_options_action">选项</string>
+    <string name="a11y_close_action">关闭</string>
+    <string name="a11y_updates_status_summary">%1$d 个可用更新 · %2$d 个来源已启用 · 就绪</string>
+    <string name="a11y_updates_more_actions">更多操作</string>
+    <string name="a11y_updates_sources_more_singular">另外 %1$d 个来源</string>
+    <string name="a11y_updates_sources_more_plural">另外 %1$d 个来源</string>
+    <string name="a11y_updates_verified">校验和已验证</string>
+    <string name="a11y_version_to">至</string>
+    <string name="updates_select_action">选择</string>
+    <string name="a11y_selected_label">已选择</string>
 </resources>

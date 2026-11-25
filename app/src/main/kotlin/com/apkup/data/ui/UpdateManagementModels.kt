@@ -159,6 +159,7 @@ data class ApkUpBackupConfig(
     val a11yThemeSubMode: Int? = null,
     val a11ySunriseMinutes: Int? = null,
     val a11ySunsetMinutes: Int? = null,
+    val a11yAccessibleUi: Boolean? = null,
     val appsGridColumns: Int? = null
 ) {
     companion object {

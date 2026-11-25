@@ -299,6 +299,7 @@ private val LocalApkUpExtendedColors = staticCompositionLocalOf { LightExtendedC
 private val LocalApkUpMotionScheme = staticCompositionLocalOf<ApkUpMotionScheme> { ExpressiveApkUpMotionScheme }
 private val LocalApkUpReducedMotion = staticCompositionLocalOf { false }
 private val LocalApkUpHighContrast = staticCompositionLocalOf { false }
+private val LocalApkUpAccessibleUi = staticCompositionLocalOf { false }
 
 object ApkUpTheme {
     val colors: ApkUpExtendedColors
@@ -312,6 +313,9 @@ object ApkUpTheme {
 
     val isHighContrast: Boolean
         @Composable @ReadOnlyComposable get() = LocalApkUpHighContrast.current
+
+    val isAccessibleUi: Boolean
+        @Composable @ReadOnlyComposable get() = LocalApkUpAccessibleUi.current
 }
 
 private val AppShapes = Shapes(
@@ -345,11 +349,21 @@ private val AppTypography = DefaultTypography.copy(
     labelSmall = DefaultTypography.labelSmall.copy(fontWeight = FontWeight.Medium)
 )
 
+internal val AccessibleTypography = AppTypography.copy(
+    titleMedium = AppTypography.titleMedium.copy(fontSize = 17.sp, lineHeight = 24.sp),
+    bodyMedium = AppTypography.bodyMedium.copy(fontSize = 15.sp, lineHeight = 22.sp),
+    bodySmall = AppTypography.bodySmall.copy(fontSize = 13.5.sp, lineHeight = 19.sp),
+    labelLarge = AppTypography.labelLarge.copy(fontSize = 15.sp, lineHeight = 21.sp),
+    labelMedium = AppTypography.labelMedium.copy(fontSize = 13.sp, lineHeight = 18.sp),
+    labelSmall = AppTypography.labelSmall.copy(fontSize = 13.sp, lineHeight = 17.sp)
+)
+
 @Composable
 fun AppTheme(
     darkTheme: Boolean,
     dynamicColor: Boolean = false,
     highContrast: Boolean = false,
+    accessibleUi: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
@@ -368,7 +382,7 @@ fun AppTheme(
         darkTheme -> DarkExtendedColors
         else -> LightExtendedColors
     }
-    val isReducedMotion = remember(context) { isSystemReducedMotion(context) }
+    val isReducedMotion = accessibleUi || remember(context) { isSystemReducedMotion(context) }
     val motionScheme = if (isReducedMotion) ReducedApkUpMotionScheme else ExpressiveApkUpMotionScheme
 
     val animatedColorScheme = if (isReducedMotion) {
@@ -412,12 +426,13 @@ fun AppTheme(
         LocalApkUpExtendedColors provides extendedColors,
         LocalApkUpMotionScheme provides motionScheme,
         LocalApkUpReducedMotion provides isReducedMotion,
-        LocalApkUpHighContrast provides highContrast
+        LocalApkUpHighContrast provides highContrast,
+        LocalApkUpAccessibleUi provides accessibleUi
     ) {
         MaterialTheme(
             colorScheme = animatedColorScheme,
             shapes = AppShapes,
-            typography = AppTypography,
+            typography = if (accessibleUi) AccessibleTypography else AppTypography,
             content = content
         )
     }

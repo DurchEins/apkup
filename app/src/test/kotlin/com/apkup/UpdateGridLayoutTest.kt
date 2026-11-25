@@ -146,4 +146,11 @@ class UpdateGridLayoutTest {
 		assertEquals(10f, CompactUpdateCardLayout.gridTopPaddingDp, 0.01f)
 		assertEquals(140f, CompactUpdateCardLayout.gridBottomPaddingDp, 0.01f)
 	}
+
+	@Test
+	fun accessibleModeForcesSingleColumnOnPhonesAndMaxTwoOnTablets() {
+		assertEquals(1, updateGridColumnCount(411f, compact = true, forceAccessibleSingleColumn = true))
+		assertEquals(1, updateGridColumnCount(599f, compact = false, forceAccessibleSingleColumn = true))
+		assertEquals(2, updateGridColumnCount(900f, compact = false, forceAccessibleSingleColumn = true))
+	}
 }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -42,6 +43,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.minimumInteractiveComponentSize
+import com.apkup.ui.theme.ApkUpTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -94,9 +96,13 @@ fun SourcePriorityBottomSheet(
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberExpandedModalSheetState()
+    val isAccessibleSheet = ApkUpTheme.isAccessibleUi
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
+        dragHandle = if (isAccessibleSheet) null else {
+            { androidx.compose.material3.BottomSheetDefaults.DragHandle() }
+        },
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Column(
@@ -142,6 +148,7 @@ fun SourcePriorityBottomSheet(
             var dragOffsetY by remember { mutableFloatStateOf(0f) }
             val itemHeights = remember { mutableStateMapOf<String, Int>() }
 
+            val isAccessibleUi = com.apkup.ui.theme.ApkUpTheme.isAccessibleUi
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -150,7 +157,7 @@ fun SourcePriorityBottomSheet(
             ) {
                 order.forEachIndexed { index, key ->
                     key(key) {
-                        val isDragging = draggingKey == key
+                        val isDragging = !isAccessibleUi && draggingKey == key
                         Surface(
                             shape = RoundedCornerShape(16.dp),
                             color = if (isDragging) {
@@ -168,113 +175,172 @@ fun SourcePriorityBottomSheet(
                                     scaleX = if (isDragging) 1.02f else 1f
                                     scaleY = if (isDragging) 1.02f else 1f
                                 }
-                                .pointerInput(key) {
-                                    detectDragGesturesAfterLongPress(
-                                        onDragStart = {
-                                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            draggingKey = key
-                                            dragOffsetY = 0f
-                                        },
-                                        onDragEnd = {
-                                            draggingKey = null
-                                            dragOffsetY = 0f
-                                        },
-                                        onDragCancel = {
-                                            draggingKey = null
-                                            dragOffsetY = 0f
-                                        },
-                                        onDrag = { change, dragAmount ->
-                                            change.consume()
-                                            dragOffsetY += dragAmount.y
-                                            val latest = currentOrder
-                                            val curIdx = latest.indexOf(key)
-                                            if (curIdx < 0) return@detectDragGesturesAfterLongPress
-                                            val curHeight = (itemHeights[key] ?: 120).toFloat()
-                                            if (dragOffsetY > (curHeight + spacingPx) / 2f && curIdx < latest.lastIndex) {
-                                                val nextHeight = (itemHeights[latest[curIdx + 1]] ?: curHeight.toInt()).toFloat()
-                                                onMove(curIdx, 1)
-                                                dragOffsetY -= (nextHeight + spacingPx)
-                                                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                            } else if (dragOffsetY < -(curHeight + spacingPx) / 2f && curIdx > 0) {
-                                                val prevHeight = (itemHeights[latest[curIdx - 1]] ?: curHeight.toInt()).toFloat()
-                                                onMove(curIdx, -1)
-                                                dragOffsetY += (prevHeight + spacingPx)
-                                                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                            }
+                                .let { mod ->
+                                    if (isAccessibleUi) {
+                                        mod
+                                    } else {
+                                        mod.pointerInput(key) {
+                                            detectDragGesturesAfterLongPress(
+                                                onDragStart = {
+                                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                    draggingKey = key
+                                                    dragOffsetY = 0f
+                                                },
+                                                onDragEnd = {
+                                                    draggingKey = null
+                                                    dragOffsetY = 0f
+                                                },
+                                                onDragCancel = {
+                                                    draggingKey = null
+                                                    dragOffsetY = 0f
+                                                },
+                                                onDrag = { change, dragAmount ->
+                                                    change.consume()
+                                                    dragOffsetY += dragAmount.y
+                                                    val latest = currentOrder
+                                                    val curIdx = latest.indexOf(key)
+                                                    if (curIdx < 0) return@detectDragGesturesAfterLongPress
+                                                    val curHeight = (itemHeights[key] ?: 120).toFloat()
+                                                    if (dragOffsetY > (curHeight + spacingPx) / 2f && curIdx < latest.lastIndex) {
+                                                        val nextHeight = (itemHeights[latest[curIdx + 1]] ?: curHeight.toInt()).toFloat()
+                                                        onMove(curIdx, 1)
+                                                        dragOffsetY -= (nextHeight + spacingPx)
+                                                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                                    } else if (dragOffsetY < -(curHeight + spacingPx) / 2f && curIdx > 0) {
+                                                        val prevHeight = (itemHeights[latest[curIdx - 1]] ?: curHeight.toInt()).toFloat()
+                                                        onMove(curIdx, -1)
+                                                        dragOffsetY += (prevHeight + spacingPx)
+                                                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                                    }
+                                                }
+                                            )
                                         }
-                                    )
+                                    }
                                 }
                         ) {
-                            Row(
+                            Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.DragIndicator,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Box(
-                                    modifier = Modifier
-                                        .size(28.dp)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(MaterialTheme.colorScheme.primaryContainer),
-                                    contentAlignment = Alignment.Center
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
+                                    if (!isAccessibleUi) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.DragIndicator,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                    }
+                                    Box(
+                                        modifier = Modifier
+                                            .size(28.dp)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(MaterialTheme.colorScheme.primaryContainer),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "${index + 1}",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Icon(
+                                        painter = painterResource(SourcePriorityKeys.iconForKey(key)),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    val sourceTitle = sourcePriorityLabel(key)
                                     Text(
-                                        text = "${index + 1}",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        text = sourceTitle,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        maxLines = if (isAccessibleUi) 2 else 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.weight(1f)
                                     )
+                                    if (!isAccessibleUi) {
+                                        IconButton(
+                                            onClick = { onMove(index, -1) },
+                                            enabled = index > 0,
+                                            modifier = Modifier.minimumInteractiveComponentSize()
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Rounded.ArrowUpward,
+                                                contentDescription = "${stringResource(R.string.settings_source_priority_move_up)}: $sourceTitle",
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+                                        IconButton(
+                                            onClick = { onMove(index, 1) },
+                                            enabled = index < order.lastIndex,
+                                            modifier = Modifier.minimumInteractiveComponentSize()
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Rounded.ArrowDownward,
+                                                contentDescription = "${stringResource(R.string.settings_source_priority_move_down)}: $sourceTitle",
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+                                    }
                                 }
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Icon(
-                                    painter = painterResource(SourcePriorityKeys.iconForKey(key)),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(10.dp))
-                                val sourceTitle = sourcePriorityLabel(key)
-                                Text(
-                                    text = sourceTitle,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                IconButton(
-                                    onClick = { onMove(index, -1) },
-                                    enabled = index > 0,
-                                    modifier = Modifier.minimumInteractiveComponentSize()
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.ArrowUpward,
-                                        contentDescription = "${stringResource(R.string.settings_source_priority_move_up)}: $sourceTitle",
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                }
-                                IconButton(
-                                    onClick = { onMove(index, 1) },
-                                    enabled = index < order.lastIndex,
-                                    modifier = Modifier.minimumInteractiveComponentSize()
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.ArrowDownward,
-                                        contentDescription = "${stringResource(R.string.settings_source_priority_move_down)}: $sourceTitle",
-                                        modifier = Modifier.size(18.dp)
-                                    )
+                                if (isAccessibleUi) {
+                                    val sourceTitle = sourcePriorityLabel(key)
+                                    val moveUpCd = "${stringResource(R.string.settings_source_priority_move_up)}: $sourceTitle"
+                                    val moveDownCd = "${stringResource(R.string.settings_source_priority_move_down)}: $sourceTitle"
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        androidx.compose.material3.OutlinedButton(
+                                            onClick = { onMove(index, -1) },
+                                            enabled = index > 0,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .heightIn(min = 48.dp)
+                                                .semantics {
+                                                    contentDescription = moveUpCd
+                                                }
+                                        ) {
+                                            Text(stringResource(R.string.a11y_move_up))
+                                        }
+                                        androidx.compose.material3.OutlinedButton(
+                                            onClick = { onMove(index, 1) },
+                                            enabled = index < order.lastIndex,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .heightIn(min = 48.dp)
+                                                .semantics {
+                                                    contentDescription = moveDownCd
+                                                }
+                                        ) {
+                                            Text(stringResource(R.string.a11y_move_down))
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
+                }
+            }
+            if (ApkUpTheme.isAccessibleUi) {
+                androidx.compose.material3.OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp)
+                ) {
+                    Text(stringResource(R.string.a11y_close_action))
                 }
             }
         }
@@ -601,9 +667,13 @@ fun PreReleaseBottomSheet(
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberExpandedModalSheetState()
+    val isAccessibleSheet = ApkUpTheme.isAccessibleUi
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
+        dragHandle = if (isAccessibleSheet) null else {
+            { androidx.compose.material3.BottomSheetDefaults.DragHandle() }
+        },
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Column(

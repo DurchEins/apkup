@@ -120,13 +120,18 @@ internal fun updateGridColumnCount(
 		CompactUpdateCardLayout.gridSpacingDp
 	} else {
 		NormalUpdateCardLayout.gridSpacingDp
-	}
+	},
+	forceAccessibleSingleColumn: Boolean = false
 ): Int {
 	val minimumCellWidthDp = if (compact) 78f else 160f
 	val contentWidthDp = (availableWidthDp - horizontalPaddingDp * 2).coerceAtLeast(0f)
 	val fittedColumns = floor((contentWidthDp + spacingDp) / (minimumCellWidthDp + spacingDp))
 		.toInt()
 		.coerceAtLeast(1)
+
+	if (forceAccessibleSingleColumn) {
+		return if (availableWidthDp < TABLET_MIN_WIDTH_DP) 1 else fittedColumns.coerceIn(1, 2)
+	}
 
 	return if (compact) {
 		when {

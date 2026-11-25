@@ -676,4 +676,34 @@
     <string name="backup_diff_skipped">Versiones omitidas: %1$d → %2$d</string>
     <string name="backup_diff_fdroid">Repos F-Droid propios: %1$d → %2$d</string>
     <string name="backup_diff_confirm">Importar copia</string>
+    <!-- Modo accesible -->
+    <string name="a11y_nav_badge_attention">Atención requerida</string>
+    <string name="a11y_nav_badge_count">%1$s elementos</string>
+    <string name="onboarding_mode_title">Modo de visualización</string>
+    <string name="onboarding_mode_standard_title">Estándar</string>
+    <string name="onboarding_mode_standard_desc">Diseño moderno con cuadrículas compactas y animaciones fluidas.</string>
+    <string name="onboarding_mode_a11y_title">Accesible</string>
+    <string name="onboarding_mode_a11y_desc">Alto contraste, listas de una columna, botones grandes y sin animaciones.</string>
+    <string name="theme_mode_section_title">Modo de app y diseño</string>
+    <string name="a11y_accessible_ui_title">Interfaz accesible</string>
+    <string name="a11y_accessible_ui_subtitle">Listas de una columna, botones grandes etiquetados, sin animaciones y controles simples.</string>
+    <string name="a11y_sun_sunrise_label">Amanecer: %1$s</string>
+    <string name="a11y_sun_sunset_label">Atardecer: %1$s</string>
+    <string name="a11y_lists_active_note">Las listas accesibles de una columna están activas.</string>
+    <string name="a11y_action_expand">Expandir</string>
+    <string name="a11y_action_collapse">Contraer</string>
+    <string name="a11y_move_up">Subir</string>
+    <string name="a11y_move_down">Bajar</string>
+    <string name="a11y_apps_list_active_hint">Lista accesible de una columna activa</string>
+    <string name="a11y_apps_section_header">Letra %1$s – %2$d apps</string>
+    <string name="a11y_options_action">Opciones</string>
+    <string name="a11y_close_action">Cerrar</string>
+    <string name="a11y_updates_status_summary">%1$d actualizaciones disponibles · %2$d fuentes activas · Listo</string>
+    <string name="a11y_updates_more_actions">Más acciones</string>
+    <string name="a11y_updates_sources_more_singular">%1$d fuente más</string>
+    <string name="a11y_updates_sources_more_plural">%1$d fuentes más</string>
+    <string name="a11y_updates_verified">Suma de verificación comprobada</string>
+    <string name="a11y_version_to">a</string>
+    <string name="updates_select_action">Seleccionar</string>
+    <string name="a11y_selected_label">Seleccionado</string>
 </resources>

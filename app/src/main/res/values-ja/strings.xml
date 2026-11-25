@@ -671,4 +671,34 @@
     <string name="backup_diff_skipped">スキップしたバージョン: %1$d → %2$d</string>
     <string name="backup_diff_fdroid">カスタム F-Droid リポジトリ: %1$d → %2$d</string>
     <string name="backup_diff_confirm">インポート</string>
+    <!-- アクセシビリティモード -->
+    <string name="a11y_nav_badge_attention">確認が必要です</string>
+    <string name="a11y_nav_badge_count">%1$s 件</string>
+    <string name="onboarding_mode_title">表示モード</string>
+    <string name="onboarding_mode_standard_title">標準</string>
+    <string name="onboarding_mode_standard_desc">コンパクトなグリッドと滑らかなアニメーションの標準レイアウト。</string>
+    <string name="onboarding_mode_a11y_title">アクセシブル</string>
+    <string name="onboarding_mode_a11y_desc">高コントラスト、1列リスト、大きなボタン、アニメーションなし。</string>
+    <string name="theme_mode_section_title">アプリモードとデザイン</string>
+    <string name="a11y_accessible_ui_title">アクセシブル UI</string>
+    <string name="a11y_accessible_ui_subtitle">1列リスト、ラベル付きの大きなボタン、アニメーション無効、シンプルな操作。</string>
+    <string name="a11y_sun_sunrise_label">日の出: %1$s</string>
+    <string name="a11y_sun_sunset_label">日の入り: %1$s</string>
+    <string name="a11y_lists_active_note">アクセシブルな1列リストが有効です。</string>
+    <string name="a11y_action_expand">展開</string>
+    <string name="a11y_action_collapse">折りたたむ</string>
+    <string name="a11y_move_up">上へ移動</string>
+    <string name="a11y_move_down">下へ移動</string>
+    <string name="a11y_apps_list_active_hint">1列アクセシブルリスト有効</string>
+    <string name="a11y_apps_section_header">%1$s – %2$d 件のアプリ</string>
+    <string name="a11y_options_action">オプション</string>
+    <string name="a11y_close_action">閉じる</string>
+    <string name="a11y_updates_status_summary">%1$d 件のアップデート · %2$d 件のソース有効 · 準備完了</string>
+    <string name="a11y_updates_more_actions">その他の操作</string>
+    <string name="a11y_updates_sources_more_singular">他 %1$d 件のソース</string>
+    <string name="a11y_updates_sources_more_plural">他 %1$d 件のソース</string>
+    <string name="a11y_updates_verified">チェックサム確認済み</string>
+    <string name="a11y_version_to">から</string>
+    <string name="updates_select_action">選択</string>
+    <string name="a11y_selected_label">選択済み</string>
 </resources>

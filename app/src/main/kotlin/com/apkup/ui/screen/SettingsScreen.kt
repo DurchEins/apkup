@@ -309,6 +309,12 @@ fun Settings(
 	val openCustomTab = com.apkup.ui.component.rememberCustomTabOpener()
 	var obtainiumImportPreview by remember { mutableStateOf<ObtainiumImportPreview?>(null) }
 	var isAdvancedExpanded by rememberSaveable { mutableStateOf(false) }
+	val isAccessibleUi = ApkUpTheme.isAccessibleUi
+	LaunchedEffect(isAccessibleUi) {
+		if (isAccessibleUi) {
+			isAdvancedExpanded = true
+		}
+	}
 	var includeLogcatInDiagnostics by rememberSaveable { mutableStateOf(false) }
 	var isSharingDiagnosticLog by remember { mutableStateOf(false) }
 
@@ -876,9 +882,12 @@ fun Settings(
 				var currentGridColumns by remember(configRefreshKey) {
 					mutableIntStateOf(viewModel.getAppsGridColumns())
 				}
+				var currentAccessibleUi by remember(configRefreshKey) {
+					mutableStateOf(viewModel.getA11yAccessibleUi())
+				}
 				SettingsSection(stringResource(R.string.settings_section_appearance)) {
 					SegmentedButtonSetting(
-						text = stringResource(R.string.theme),
+						text = stringResource(R.string.theme_mode_section_title),
 						options = listOf(
 							stringResource(R.string.theme_system),
 							stringResource(R.string.theme_dark),
@@ -1006,9 +1015,74 @@ fun Settings(
 												}
 											}
 										}
+										if (currentAccessibleUi) {
+											val shiftTime: (Int, Int) -> Unit = { sunriseDelta, sunsetDelta ->
+												val newSunrise = (window.sunriseMinutes + sunriseDelta + 1440) % 1440
+												val newSunset = (window.sunsetMinutes + sunsetDelta + 1440) % 1440
+												currentSunriseMinutes = newSunrise
+												currentSunsetMinutes = newSunset
+												viewModel.setA11ySunTimes(newSunrise, newSunset)
+											}
+											Row(
+												modifier = Modifier.fillMaxWidth(),
+												horizontalArrangement = Arrangement.spacedBy(8.dp),
+												verticalAlignment = CenterVertically
+											) {
+												Text(
+													text = stringResource(R.string.a11y_sun_sunrise_label, sunriseText),
+													style = MaterialTheme.typography.labelMedium,
+													modifier = Modifier.weight(1f)
+												)
+												OutlinedButton(
+													onClick = { shiftTime(-15, 0) },
+													modifier = Modifier.heightIn(min = 48.dp)
+												) {
+													Text("-15 Min.")
+												}
+												OutlinedButton(
+													onClick = { shiftTime(15, 0) },
+													modifier = Modifier.heightIn(min = 48.dp)
+												) {
+													Text("+15 Min.")
+												}
+											}
+											Row(
+												modifier = Modifier.fillMaxWidth(),
+												horizontalArrangement = Arrangement.spacedBy(8.dp),
+												verticalAlignment = CenterVertically
+											) {
+												Text(
+													text = stringResource(R.string.a11y_sun_sunset_label, sunsetText),
+													style = MaterialTheme.typography.labelMedium,
+													modifier = Modifier.weight(1f)
+												)
+												OutlinedButton(
+													onClick = { shiftTime(0, -15) },
+													modifier = Modifier.heightIn(min = 48.dp)
+												) {
+													Text("-15 Min.")
+												}
+												OutlinedButton(
+													onClick = { shiftTime(0, 15) },
+													modifier = Modifier.heightIn(min = 48.dp)
+												) {
+													Text("+15 Min.")
+												}
+											}
+										}
 									}
 								}
 							}
+							SwitchSetting(
+								getValue = { currentAccessibleUi },
+								setValue = { enabled ->
+									currentAccessibleUi = enabled
+									viewModel.setA11yAccessibleUi(enabled)
+								},
+								text = stringResource(R.string.a11y_accessible_ui_title),
+								subtitle = stringResource(R.string.a11y_accessible_ui_subtitle),
+								icon = R.drawable.ic_theme
+							)
 						}
 					}
 					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -1024,40 +1098,49 @@ fun Settings(
 							icon = R.drawable.ic_theme
 						)
 					}
-					SegmentedButtonSetting(
-						text = stringResource(R.string.apps_grid_density_title),
-						options = listOf(
-							stringResource(R.string.apps_grid_density_large),
-							stringResource(R.string.apps_grid_density_compact)
-						),
-						getValue = { if (currentGridColumns == 3) 1 else 0 },
-						setValue = { selectedIndex ->
-							val cols = if (selectedIndex == 1) 3 else 2
-							currentGridColumns = cols
-							viewModel.setAppsGridColumns(cols)
-							appsViewModel.setViewMode("grid")
-						},
-						icon = R.drawable.ic_system
-					)
-					if (currentThemeMode == THEME_ACCESSIBILITY) {
+					if (isAccessibleUi) {
 						Text(
-							text = stringResource(R.string.apps_grid_density_auto_a11y),
-							style = MaterialTheme.typography.labelSmall,
+							text = stringResource(R.string.a11y_lists_active_note),
+							style = MaterialTheme.typography.bodySmall,
 							color = MaterialTheme.colorScheme.onSurfaceVariant,
-							modifier = Modifier.padding(start = 46.dp, bottom = 2.dp)
+							modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 4.dp)
 						)
+					} else {
+						SegmentedButtonSetting(
+							text = stringResource(R.string.apps_grid_density_title),
+							options = listOf(
+								stringResource(R.string.apps_grid_density_large),
+								stringResource(R.string.apps_grid_density_compact)
+							),
+							getValue = { if (currentGridColumns == 3) 1 else 0 },
+							setValue = { selectedIndex ->
+								val cols = if (selectedIndex == 1) 3 else 2
+								currentGridColumns = cols
+								viewModel.setAppsGridColumns(cols)
+								appsViewModel.setViewMode("grid")
+							},
+							icon = R.drawable.ic_system
+						)
+						if (currentThemeMode == THEME_ACCESSIBILITY) {
+							Text(
+								text = stringResource(R.string.apps_grid_density_auto_a11y),
+								style = MaterialTheme.typography.labelSmall,
+								color = MaterialTheme.colorScheme.onSurfaceVariant,
+								modifier = Modifier.padding(start = 46.dp, bottom = 2.dp)
+							)
+						}
+						SegmentedButtonSetting(
+							stringResource(R.string.updates_display_mode),
+							listOf(stringResource(R.string.updates_detail_view), stringResource(R.string.updates_compact_view)),
+							{ currentDisplayMode },
+							{
+								currentDisplayMode = it
+								viewModel.setUpdatesDisplayMode(it)
+							},
+							R.drawable.ic_download
+						)
+						UpdateDisplayModePreview(displayMode = currentDisplayMode)
 					}
-					SegmentedButtonSetting(
-						stringResource(R.string.updates_display_mode),
-						listOf(stringResource(R.string.updates_detail_view), stringResource(R.string.updates_compact_view)),
-						{ currentDisplayMode },
-						{
-							currentDisplayMode = it
-							viewModel.setUpdatesDisplayMode(it)
-						},
-						R.drawable.ic_download
-					)
-					UpdateDisplayModePreview(displayMode = currentDisplayMode)
 				}
 			}
 
@@ -1598,6 +1681,7 @@ fun Settings(
 					Row(
 						modifier = Modifier
 							.fillMaxWidth()
+							.heightIn(min = 48.dp)
 							.clip(RoundedCornerShape(12.dp))
 							.clickable(role = Role.Button) { isAdvancedExpanded = !isAdvancedExpanded }
 							.semantics(mergeDescendants = true) {
@@ -1633,6 +1717,14 @@ fun Settings(
 								text = stringResource(R.string.settings_advanced_subtitle),
 								style = MaterialTheme.typography.bodySmall,
 								color = MaterialTheme.colorScheme.onSurfaceVariant
+							)
+						}
+						if (isAccessibleUi) {
+							Text(
+								text = stringResource(if (isAdvancedExpanded) R.string.a11y_action_collapse else R.string.a11y_action_expand),
+								style = MaterialTheme.typography.labelMedium,
+								fontWeight = FontWeight.Bold,
+								color = MaterialTheme.colorScheme.primary
 							)
 						}
 						val advancedChevronRotation by animateFloatAsState(

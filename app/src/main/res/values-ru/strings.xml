@@ -681,4 +681,34 @@
     <string name="backup_diff_skipped">Пропущенные версии: %1$d → %2$d</string>
     <string name="backup_diff_fdroid">Свои F-Droid-репозитории: %1$d → %2$d</string>
     <string name="backup_diff_confirm">Импортировать</string>
+    <!-- Режим специальных возможностей -->
+    <string name="a11y_nav_badge_attention">Требуется внимание</string>
+    <string name="a11y_nav_badge_count">%1$s элементов</string>
+    <string name="onboarding_mode_title">Режим отображения</string>
+    <string name="onboarding_mode_standard_title">Стандартный</string>
+    <string name="onboarding_mode_standard_desc">Современный интерфейс с компактной сеткой и плавной анимацией.</string>
+    <string name="onboarding_mode_a11y_title">Доступный</string>
+    <string name="onboarding_mode_a11y_desc">Высокий контраст, списки в один столбец, крупные кнопки и без анимаций.</string>
+    <string name="theme_mode_section_title">Режим и оформление</string>
+    <string name="a11y_accessible_ui_title">Доступный интерфейс</string>
+    <string name="a11y_accessible_ui_subtitle">Списки в один столбец, крупные кнопки с подписями, без анимаций и проще управление.</string>
+    <string name="a11y_sun_sunrise_label">Восход: %1$s</string>
+    <string name="a11y_sun_sunset_label">Закат: %1$s</string>
+    <string name="a11y_lists_active_note">Активны доступные списки в один столбец.</string>
+    <string name="a11y_action_expand">Развернуть</string>
+    <string name="a11y_action_collapse">Свернуть</string>
+    <string name="a11y_move_up">Вверх</string>
+    <string name="a11y_move_down">Вниз</string>
+    <string name="a11y_apps_list_active_hint">Активен список в один столбец</string>
+    <string name="a11y_apps_section_header">Буква %1$s – %2$d приложений</string>
+    <string name="a11y_options_action">Параметры</string>
+    <string name="a11y_close_action">Закрыть</string>
+    <string name="a11y_updates_status_summary">Доступно обновлений: %1$d · Активных источников: %2$d · Готово</string>
+    <string name="a11y_updates_more_actions">Другие действия</string>
+    <string name="a11y_updates_sources_more_singular">ещё %1$d источник</string>
+    <string name="a11y_updates_sources_more_plural">ещё %1$d источников</string>
+    <string name="a11y_updates_verified">Контрольная сумма проверена</string>
+    <string name="a11y_version_to">до</string>
+    <string name="updates_select_action">Выбрать</string>
+    <string name="a11y_selected_label">Выбрано</string>
 </resources>

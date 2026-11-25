@@ -176,9 +176,11 @@ fun ChangelogBottomSheet(
         }
     }
 
+    val isAccessibleUi = ApkUpTheme.isAccessibleUi
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
+        dragHandle = if (isAccessibleUi) null else { { androidx.compose.material3.BottomSheetDefaults.DragHandle() } },
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         tonalElevation = 4.dp
@@ -303,6 +305,8 @@ private fun ChangelogMonthAccordion(
     onToggle: () -> Unit,
     onLinkClick: (String) -> Unit
 ) {
+    val isAccessibleUi = ApkUpTheme.isAccessibleUi
+    val isReducedMotion = ApkUpTheme.isReducedMotion
     val expandStateLabel = stringResource(
         if (isExpanded) R.string.a11y_state_expanded else R.string.a11y_state_collapsed
     )
@@ -310,13 +314,14 @@ private fun ChangelogMonthAccordion(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .heightIn(min = 48.dp)
                 .clip(RoundedCornerShape(10.dp))
                 .clickable(role = Role.Button, onClick = onToggle)
                 .semantics(mergeDescendants = true) {
                     heading()
                     stateDescription = expandStateLabel
                 }
-                .padding(vertical = 16.dp, horizontal = 2.dp),
+                .padding(vertical = 14.dp, horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -326,18 +331,31 @@ private fun ChangelogMonthAccordion(
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            Icon(
-                imageVector = if (isExpanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(24.dp)
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                if (isAccessibleUi) {
+                    Text(
+                        text = stringResource(if (isExpanded) R.string.a11y_action_collapse else R.string.a11y_action_expand),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                Icon(
+                    imageVector = if (isExpanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
         }
 
         AnimatedVisibility(
             visible = isExpanded,
-            enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut()
+            enter = if (isReducedMotion) androidx.compose.animation.EnterTransition.None else expandVertically() + fadeIn(),
+            exit = if (isReducedMotion) androidx.compose.animation.ExitTransition.None else shrinkVertically() + fadeOut()
         ) {
             Column(
                 modifier = Modifier

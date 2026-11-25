@@ -676,4 +676,34 @@
     <string name="backup_diff_skipped">Versions ignorées : %1$d → %2$d</string>
     <string name="backup_diff_fdroid">Dépôts F-Droid : %1$d → %2$d</string>
     <string name="backup_diff_confirm">Importer</string>
+    <!-- Mode accessible -->
+    <string name="a11y_nav_badge_attention">Attention requise</string>
+    <string name="a11y_nav_badge_count">%1$s éléments</string>
+    <string name="onboarding_mode_title">Mode d\'affichage</string>
+    <string name="onboarding_mode_standard_title">Standard</string>
+    <string name="onboarding_mode_standard_desc">Interface moderne avec grilles compactes et animations fluides.</string>
+    <string name="onboarding_mode_a11y_title">Accessible</string>
+    <string name="onboarding_mode_a11y_desc">Contraste élevé, listes sur une colonne, grands boutons et sans animations.</string>
+    <string name="theme_mode_section_title">Mode et apparence</string>
+    <string name="a11y_accessible_ui_title">Interface accessible</string>
+    <string name="a11y_accessible_ui_subtitle">Listes sur une colonne, grands boutons libellés, sans animations et contrôles simplifiés.</string>
+    <string name="a11y_sun_sunrise_label">Lever du soleil : %1$s</string>
+    <string name="a11y_sun_sunset_label">Coucher du soleil : %1$s</string>
+    <string name="a11y_lists_active_note">Les listes accessibles sur une colonne sont actives.</string>
+    <string name="a11y_action_expand">Déplier</string>
+    <string name="a11y_action_collapse">Replier</string>
+    <string name="a11y_move_up">Monter</string>
+    <string name="a11y_move_down">Descendre</string>
+    <string name="a11y_apps_list_active_hint">Liste accessible sur une colonne active</string>
+    <string name="a11y_apps_section_header">Lettre %1$s – %2$d applications</string>
+    <string name="a11y_options_action">Options</string>
+    <string name="a11y_close_action">Fermer</string>
+    <string name="a11y_updates_status_summary">%1$d mises à jour disponibles · %2$d sources actives · Prêt</string>
+    <string name="a11y_updates_more_actions">Plus d\'actions</string>
+    <string name="a11y_updates_sources_more_singular">%1$d autre source</string>
+    <string name="a11y_updates_sources_more_plural">%1$d autres sources</string>
+    <string name="a11y_updates_verified">Somme de contrôle vérifiée</string>
+    <string name="a11y_version_to">vers</string>
+    <string name="updates_select_action">Sélectionner</string>
+    <string name="a11y_selected_label">Sélectionné</string>
 </resources>
