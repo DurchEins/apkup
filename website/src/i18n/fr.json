@@ -1230,6 +1230,42 @@
             "body": "F-Droid compile des APK open source reproductibles sans forcer les développeurs anonymes à fournir une pièce d'identité à Google."
           }
         ]
+      },
+      "accessibility": {
+        "title": "Accessibility & Accessible Mode",
+        "lead": "How to enable Accessible Mode, configure the high-contrast solar Auto / Light / Dark theme, and use TalkBack or one-tap controls."
+      },
+      "tech-sources": {
+        "title": "Tech: Update Sources, Networking & Parsing",
+        "lead": "Technical overview of multi-source aggregation, gplayapi, F-Droid Index-V2 (RFC 7396), APKMirror .apkm & Cloudflare handling, and Git forges."
+      },
+      "tech-install": {
+        "title": "Tech: Installation, Shizuku, Root & WorkManager",
+        "lead": "Technical overview of UpdateDownloadWorker, 24h cache, SessionInstaller (PackageInstaller), Shizuku Binder IPC, RootInstaller, and rollback backups."
+      },
+      "tech-security": {
+        "title": "Tech: Security, Cryptography & Privacy",
+        "lead": "Technical overview of ApkIntegrityVerifier (v2/v3 signatures, SHA-256, downgrade guard), Google Tink AES-256-GCM, Zip-Slip protection, and AppJournal redaction."
+      },
+      "tech-ui": {
+        "title": "Tech: UI, Accessibility & Website Architecture",
+        "lead": "Technical overview of Material 3 Expressive Compose UI, a11yAccessibleUi, AccessibleTypography, SolarScheduleCalculator, Astro 9-language site, and check-a11y.mjs."
+      },
+      "tech-cicd": {
+        "title": "Tech: CI/CD, Single-Artifact Releases & Checksums",
+        "lead": "Technical overview of semantic versioning, PR CI gates, release.yml canonical APK signing, SHA256SUMS, Self-Updater, and mirror distribution."
+      },
+      "tech-storage": {
+        "title": "Tech: Data Storage, Prefs, Backups, Logs & Widget",
+        "lead": "Technical overview of SecurePrefsStore allowlist, CachedUpdateSnapshot, ApkUpBackupConfig JSON schema, AppJournal, and UpdatesWidgetProvider (Preview)."
+      },
+      "tech-build": {
+        "title": "Tech: Build System, R8 & Automated Tests",
+        "lead": "Technical overview of Gradle build variants, R8 shrinking/obfuscation, 413+ unit tests (PrefsTest, ChangelogBottomSheetTest, AccessibilityAuditTest), and lintDebug."
+      },
+      "tech-i18n": {
+        "title": "Tech: Localization, Weblate & Asset Pipeline",
+        "lead": "Technical overview of 9-locale strings.xml & website i18n parity, Hosted Weblate, changelog asset parser, Fastlane metadata, and adaptive SVGs."
       }
     }
   },

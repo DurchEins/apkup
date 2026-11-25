@@ -1230,6 +1230,42 @@
             "body": "F-Droid baut reproduzierbare Open-Source-APKs, ohne anonyme Entwickler zur Ausweisabgabe bei Google zu zwingen."
           }
         ]
+      },
+      "accessibility": {
+        "title": "Barrierefreiheit & Barrierefrei-Modus",
+        "lead": "So aktivierst du den Barrierefrei-Modus, stellst das kontraststarke Sonnen-Theme (Auto / Hell / Dunkel) ein und nutzt TalkBack sowie die Ein-Tippen-Bedienung."
+      },
+      "tech-sources": {
+        "title": "Technik: Update-Quellen, Netzwerke & Parsing",
+        "lead": "Technischer Überblick über Multi-Source-Aggregation, gplayapi, F-Droid Index-V2 (RFC 7396), APKMirror .apkm & Cloudflare sowie Git-Forges."
+      },
+      "tech-install": {
+        "title": "Technik: Installation, Shizuku, Root & WorkManager",
+        "lead": "Technischer Überblick über UpdateDownloadWorker, 24h-Cache, SessionInstaller (PackageInstaller), Shizuku Binder IPC, RootInstaller und Rollback-Backups."
+      },
+      "tech-security": {
+        "title": "Technik: Sicherheit, Kryptografie & Datenschutz",
+        "lead": "Technischer Überblick über ApkIntegrityVerifier (v2/v3-Signaturen, SHA-256, Downgrade-Schutz), Google Tink AES-256-GCM, Zip-Slip-Schutz und AppJournal-Bereinigung."
+      },
+      "tech-ui": {
+        "title": "Technik: UI, Barrierefreiheit & Website-Architektur",
+        "lead": "Technischer Überblick über Material 3 Expressive Compose UI, a11yAccessibleUi, AccessibleTypography, SolarScheduleCalculator, Astro-Website und check-a11y.mjs."
+      },
+      "tech-cicd": {
+        "title": "Technik: CI/CD, Single-Artifact-Releases & Prüfsummen",
+        "lead": "Technischer Überblick über semantische Versionierung, PR-CI-Checks, kanonische release.yml-Signierung, SHA256SUMS, Self-Updater und Mirrors."
+      },
+      "tech-storage": {
+        "title": "Technik: Datenhaltung, Prefs, Backups, Logs & Widget",
+        "lead": "Technischer Überblick über SecurePrefsStore-Allowlist, CachedUpdateSnapshot, ApkUpBackupConfig-Schema, AppJournal und UpdatesWidgetProvider (Preview)."
+      },
+      "tech-build": {
+        "title": "Technik: Build-System, R8 & Automatisierte Tests",
+        "lead": "Technischer Überblick über Gradle-Varianten, R8-Shrinking, 413+ Unit-Tests (PrefsTest, ChangelogBottomSheetTest, AccessibilityAuditTest) und lintDebug."
+      },
+      "tech-i18n": {
+        "title": "Technik: Lokalisierung, Weblate & Asset-Pipeline",
+        "lead": "Technischer Überblick über 9-Sprachen-Synchronisation (strings.xml & website i18n), Hosted Weblate, Changelog-Parser, Fastlane und adaptive SVGs."
       }
     }
   },

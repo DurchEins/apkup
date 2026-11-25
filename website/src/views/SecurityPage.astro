@@ -19,9 +19,9 @@ interface SupportedRow {
 
 function loadSupportedVersions(): SupportedRow[] {
   const fallback: SupportedRow[] = [
-    { version: '1.46.x', orNewer: true, supported: true },
-    { version: '1.45.x', orNewer: false, supported: true },
-    { version: '< 1.45', orNewer: false, supported: false },
+    { version: '1.47.x', orNewer: true, supported: true },
+    { version: '1.46.x', orNewer: false, supported: true },
+    { version: '< 1.46', orNewer: false, supported: false },
   ];
   try {
     const raw = readFileSync(join(process.cwd(), '..', 'SECURITY.md'), 'utf8');

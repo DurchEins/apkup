@@ -1,4 +1,4 @@
-# ApkUp — Complete Documentation & Knowledge Base (v1.46.0 / Build 231)
+# ApkUp — Complete Documentation & Knowledge Base (v1.47.0 / Build 237)
 
 > ApkUp is a free, ad-free, open-source (GPL-3.0) Android app updater for Android 10.0 – 17 (API 29+). It unifies Google Play, F-Droid Index V2, IzzyOnDroid, APKMirror, GitHub Releases, GitLab Releases, Codeberg Releases, and Direct APK URLs with automatic SHA-256 & signing-certificate verification, Obtainium JSON import, and optional silent background updates via Shizuku or Root (su).
 
@@ -45,11 +45,24 @@ Zero. ApkUp has no developer backend, no ads, no analytics SDKs, and no telemetr
 
 ---
 
-## Latest Release Notes (v1.46.0)
+## Latest Release Notes (v1.47.0)
 
 # What's New
 
 ## November 2026
+
+### November 25, 2026 | 1.47.0 (237) | Feature Update
+
+> [Banner] Accessible Mode & WCAG 2.2 | Accessibility
+
+- **Accessible Mode & High-Contrast Theme** A completely tailored, accessible interface can now be enabled during initial setup or anytime in Settings.
+- ↳ **First Launch & Settings** Fixed non-overlapping bottom bar, larger typography, disabled animations with haptic feedback preserved, and clear visual separation.
+- ↳ **High-Contrast Solar Theme (Auto / Light / Dark)** Automatically follows sunrise and sunset or stays permanently light or dark, with solar transition times adjustable in 15-minute steps.
+- ↳ **Clearer Reading & One-Tap Controls** Single-column lists in Apps and Updates with multi-line filter chips, labeled scroll buttons, larger touch targets, a direct Select button on every update card, and cleaner dialogs for hidden apps, skipped updates, and changelog.
+- **Cleaner Setup Menu & Pre-Download Hash Hint** Redundant layout and view toggles as well as the live preview were removed from Settings, and Dynamic Color is more compact in standard mode. When a source does not provide a checksum before downloading, tapping the subtle shield icon next to the target version explains that Android still verifies the app signature on install.
+- **Home Screen Widget (Preview) & Backup Limits** Added a home screen widget (Preview) for available updates, configurable storage and retention limits for automatic rollback backups, update history export, and extra confirmation prompts before batch updates.
+- **Website & Accessibility Statement** The project website now includes a nine-language accessibility statement alongside a high-contrast three-way theme switcher.
+- **General Improvements** Fixed minor visual issues, refined download security checks, and improved overall stability.
 
 ### November 22, 2026 | 1.46.0 (231) | Feature Update
 
@@ -312,9 +325,9 @@ We actively provide security patches for the following versions of ApkUp:
 
 | Version | Support Status | Scope |
 | :--- | :--- | :--- |
-| `1.46.x` (or newer) | ✅ **Full support** | Active bug fixes & security patches |
-| `1.45.x` | ⚠️ **Security fixes only** | Critical security patches until next minor release |
-| `< 1.45` | ❌ **Unsupported** | Please update to the latest release |
+| `1.47.x` (or newer) | ✅ **Full support** | Active bug fixes & security patches |
+| `1.46.x` | ⚠️ **Security fixes only** | Critical security patches until next minor release |
+| `< 1.46` | ❌ **Unsupported** | Please update to the latest release |
 
 ---
 
@@ -385,9 +398,9 @@ If you discover a potential security vulnerability in ApkUp (especially regardin
 ### Unterstützte Versionen
 | Version | Status | Hinweis |
 | :--- | :--- | :--- |
-| `1.45.x` (oder neuer) | ✅ **Voller Support** | Aktive Bugfixes & Sicherheitsupdates |
-| `1.44.x` | ⚠️ **Nur Sicherheitsfixes** | Kritische Sicherheitsupdates bis zum nächsten Minor-Release |
-| `< 1.44` | ❌ **Nicht unterstützt** | Bitte auf die aktuellste Version aktualisieren |
+| `1.47.x` (oder neuer) | ✅ **Voller Support** | Aktive Bugfixes & Sicherheitsupdates |
+| `1.46.x` | ⚠️ **Nur Sicherheitsfixes** | Kritische Sicherheitsupdates bis zum nächsten Minor-Release |
+| `< 1.46` | ❌ **Nicht unterstützt** | Bitte auf die aktuellste Version aktualisieren |
 
 ### Offizieller Signatur-Fingerprint (SHA-256) & Single-Artifact-Prinzip
 Nur die über GitHub Actions signierten Release-APKs auf **GitHub Releases** sind kanonisch (identische Binärdatei & Prüfsumme auf allen offiziellen Mirrors). Offizieller Zertifikat-SHA-256-Fingerprint:
@@ -415,52 +428,49 @@ Nur die über GitHub Actions signierten Release-APKs auf **GitHub Releases** sin
 
 Welcome to the central knowledge base for **ApkUp** — an open-source, privacy-first Android app updater built with Kotlin, Jetpack Compose, and Material 3 Expressive.
 
-Every main guide is structured into clear layers:
-- 🟢 **Part 1 (Plain Language):** Everyday step-by-step instructions without technical jargon.
-- 💻 **Part 2 (Technical Deep Dive):** Architecture, cryptography, Android Binder IPC, and security guarantees.
-- ❓ **Part 3 (FAQ & Edge Cases):** Practical answers to common real-world questions.
+- 🟢 **User Guides & FAQs:** Every feature guide is written in plain language for everyday users, followed by practical **Frequently Asked Questions (FAQ)**.
+- 💻 **Technical Overview:** A dedicated, comprehensive category for architecture, protocols, cryptography, CI/CD, testing, and Android internals.
 
 ---
 
-## 🗺️ Recommended Reading Order
+## 🟢 User Guides & FAQs
 
-### 1. [🌐 Update Sources, Repository Linking & Signature Protection](https://github.com/DurchEins/apkup/wiki/Update-Sources,-Repository-Linking-&-Signature-Protection)
-* **For Everyone:** How Google Play, APKMirror, F-Droid/IzzyOnDroid, GitHub, GitLab, and Codeberg/Forgejo work together, how global **Source Priority & Per-App Pinning** decide which source wins, how **Pre-Release Channels** and **Signature Verification** protect you, and how to link custom repositories.
-* **For Experts:** Parallel multi-source aggregation, SHA-1/SHA-256 certificate verification, `.apkm` split extraction (Zip-Slip protection), direct `gplayapi 4.0.0` session & HTTP 429 rotation, and 3-tier repository resolution.
-* **Specialized Source Guides:**
-  * [📦 F-Droid & Index V2 Repositories](https://github.com/DurchEins/apkup/wiki/F-Droid-&-Index-V2-Repositories) — Streaming `index-v2.json`, incremental diffs (`RFC 7396`), built-in presets, and TOFU certificate pinning.
-  * [🔑 Configuring GitHub, GitLab & Codeberg Personal Access Tokens](https://github.com/DurchEins/apkup/wiki/Configuring-GitHub-&-GitLab-Tokens) — Raise GitHub limits from 60 to 5,000 requests/hour, enable GraphQL batching, access multi-level GitLab subgroups, and test tokens live.
+### 1. 🌐 Update Sources, Repository Linking & Signature Protection
+* **Main Guide:** [Update Sources, Repository Linking & Signature Protection](https://github.com/DurchEins/apkup/wiki/Update-Sources,-Repository-Linking-&-Signature-Protection) — How Google Play, APKMirror, F-Droid/IzzyOnDroid, GitHub, GitLab, and Codeberg/Forgejo work together, how **Source Priority & Per-App Pinning** work, how **Signature Verification** protects you, and how to link custom repositories.
+* **Specialized Guides:**
+  * [📦 F-Droid & Index V2 Repositories](https://github.com/DurchEins/apkup/wiki/F-Droid-&-Index-V2-Repositories)
+  * [🔑 Configuring GitHub, GitLab & Codeberg Personal Access Tokens](https://github.com/DurchEins/apkup/wiki/Configuring-GitHub-&-GitLab-Tokens)
 
----
+### 2. ⚡ Shizuku & Silent Background Installations
+* **Main Guide:** [Shizuku & Silent Background Installations](https://github.com/DurchEins/apkup/wiki/Shizuku-&-Background-Installation) — Why Android normally prompts for every update, how **Shizuku** enables one-tap batch updates and silent background installs without Root, and how the optional **Root Installer (`su`)** works.
+* **Quick Setup:** [⚡ Setting up Shizuku](https://github.com/DurchEins/apkup/wiki/Setting-up-Shizuku) — Step-by-step walkthrough for Wireless Debugging (Android 11+), USB ADB, Root, and OEM battery settings.
 
-### 2. [⚡ Shizuku & Silent Background Installations (plus Optional Root)](https://github.com/DurchEins/apkup/wiki/Shizuku-&-Background-Installation)
-* **For Everyone:** Why Android normally prompts for every update, how **Shizuku** enables one-tap batch updates and silent background installs without Root, and how the optional **Root Installer (`su`)** fallback works.
-* **Quick Setup:** [⚡ Setting up Shizuku](https://github.com/DurchEins/apkup/wiki/Setting-up-Shizuku) — Step-by-step walkthrough for Wireless Debugging (Android 11+), USB ADB, Root, and OEM battery settings (Xiaomi/HyperOS, Samsung, OnePlus).
-* **For Experts:** Dual-path installation pipeline (`Shizuku` ➔ `su` ➔ `PackageInstaller`), `pm install-create -r -i com.android.vending`, foreground services, and Android 14+ BAL resilience.
+### 3. 🛠️ App Management, Filters, Background Checks & Backup
+* **Main Guide:** [App Management, Filters, Background Checks & Backup](https://github.com/DurchEins/apkup/wiki/App-Management,-Filters,-Background-Checks-&-Backup) — Skipping versions vs. ignoring apps, Watchlist & **App Watcher Import**, searching/sorting, exporting APKs (`.apk` / `.apkm`), **Home Screen Updates Widget (Preview)**, **Background Update Time Windows**, **Configurable Rollback Backups**, **Self-Updater Beta Opt-In**, and JSON settings backup.
+* **Accessibility Guide:** [♿ Accessibility & Accessible Mode](https://github.com/DurchEins/apkup/wiki/Accessibility-%26-Accessible-Mode) — One-tap Accessible UI, 48 dp touch targets, TalkBack support, and the high-contrast solar `Auto / Light / Dark` theme.
+* **Migration Guide:** [🔄 Obtainium Migration & Sync Guide](https://github.com/DurchEins/apkup/wiki/Obtainium-Migration-%26-Sync-Guide)
 
----
+### 4. 🚨 Troubleshooting Source Errors & Error Codes
+* **Main Guide:** [Troubleshooting Source Errors & Error Codes](https://github.com/DurchEins/apkup/wiki/Troubleshooting-Source-Errors) — Direct self-help for DNS/connection timeouts, HTTP 401/403/429 rate limits, APKMirror `404` & Cloudflare challenges, signature conflicts, and custom repository linking.
 
-### 3. [🛠️ App Management, Filters, Background Checks & Backup](https://github.com/DurchEins/apkup/wiki/App-Management,-Filters,-Background-Checks-&-Backup)
-* **For Everyone:** Skipping versions vs. ignoring apps, Watchlist & **App Watcher Import**, searching/sorting, exporting APKs (`.apk` / `.apkm`), **Background Update Time Windows**, **Configurable Rollback Backups**, **ApkUp Self-Updater Beta Opt-In**, and transferring settings via JSON backup.
-* **For Experts:** Package exclusion vs. `versionCode` pinning, Android `WorkManager` scheduling, persistent update snapshot cache, offline sanitized diagnostic logs, and Storage Access Framework (SAF) JSON security.
-* **Migration Guide:** [🔄 Obtainium Migration & Sync Guide](https://github.com/DurchEins/apkup/wiki/Obtainium-Migration-&-Sync-Guide) — Import Obtainium JSON exports with interactive preview, repo bindings, F-Droid repos, and Watchlist candidates.
-
----
-
-### 4. [🚨 Troubleshooting Source Errors & Error Codes](https://github.com/DurchEins/apkup/wiki/Troubleshooting-Source-Errors)
-* **Instant Self-Help:** Direct solutions for every error badge and diagnostic code in ApkUp:
-  * [DNS Resolution Failed & Connection Timeouts](https://github.com/DurchEins/apkup/wiki/Troubleshooting-Source-Errors#dns-resolution-failed)
-  * [Authentication & Rate Limits (`HTTP 401 / 403 / 429`)](https://github.com/DurchEins/apkup/wiki/Troubleshooting-Source-Errors#auth-and-rate-limits)
-  * [APKMirror `404 Not Found` & Server Errors (`5xx`)](https://github.com/DurchEins/apkup/wiki/Troubleshooting-Source-Errors#server-errors)
-  * [APKMirror Cloudflare Challenges & Browser Fallback](https://github.com/DurchEins/apkup/wiki/Troubleshooting-Source-Errors#apkmirror-cloudflare)
-  * [Signature Conflicts (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`)](https://github.com/DurchEins/apkup/wiki/Troubleshooting-Source-Errors#signature-conflicts)
-  * [Custom Repository Linking & No Matching APK Asset](https://github.com/DurchEins/apkup/wiki/Troubleshooting-Source-Errors#custom-repo-linking)
+### 5. 📲 Installing Unknown Apps & ⚠️ Google’s 24h Lock
+* **Sideloading:** [📲 Installing Unknown Apps](https://github.com/DurchEins/apkup/wiki/Installing-Unknown-Apps) — Step-by-step instructions for Android’s *“Allow from this source”* permission.
+* **Google’s 24h Lock:** [⚠️ Google’s 24h Lock & Keep Android Open](https://github.com/DurchEins/apkup/wiki/Google-24h-Lock-&-Keep-Android-Open) — How to permanently unlock *“Apps from unverified developers”* (*Allow indefinitely*) for the 2026/2027 Play Protect rollout.
 
 ---
 
-### 5. [📲 Installing Unknown Apps](https://github.com/DurchEins/apkup/wiki/Installing-Unknown-Apps) & [⚠️ Google’s 24h Lock](https://github.com/DurchEins/apkup/wiki/Google-24h-Lock-&-Keep-Android-Open)
-* **Installing Unknown Apps:** Step-by-step instructions for Android’s classic *“Allow from this source”* permission plus power-user installation via **Shizuku**, **ADB**, and **Root (`su`)**.
-* **Google’s 24h Lock & Keep Android Open:** How to permanently unlock *“Apps from unverified developers”* (*Allow indefinitely*, avoiding the 7-day reset trap) for the 2026/2027 Play Protect rollout, and why ApkUp supports [Keep Android Open](https://keepandroidopen.org).
+## 💻 Technical Overview
+
+Comprehensive architectural and engineering documentation for developers, contributors, and security reviewers:
+
+1. 🌐 **[Update Sources, Networking & Parsing](https://github.com/DurchEins/apkup/wiki/Tech-Update-Sources,-Networking-&-Parsing)** — Multi-source aggregation, `gplayapi`, F-Droid Index-V2 (`RFC 7396`), APKMirror `.apkm` & Cloudflare handling, GitHub GraphQL & token isolation.
+2. ⚡ **[Installation, Shizuku, Root & WorkManager](https://github.com/DurchEins/apkup/wiki/Tech-Installation,-Shizuku,-Root-&-WorkManager)** — `UpdateDownloadWorker`, 24h cache, `SessionInstaller` (`PackageInstaller`), Shizuku Binder IPC, `RootInstaller` (`su`), and rollback backups.
+3. 🛡️ **[Security, Cryptography & Privacy](https://github.com/DurchEins/apkup/wiki/Tech-Security,-Cryptography-&-Privacy)** — `ApkIntegrityVerifier` (v2/v3 signatures, SHA-256, downgrade guard), Google Tink `AES-256-GCM`, Zip-Slip/decompression-bomb limits, Tapjacking & `AppJournal` redaction.
+4. 🎨 **[UI, Accessibility & Website Architecture](https://github.com/DurchEins/apkup/wiki/Tech-UI,-Accessibility-&-Website-Architecture)** — Jetpack Compose Material 3 Expressive, `a11yAccessibleUi`, `AccessibleTypography`, `SolarScheduleCalculator`, Astro 9-language site & `check-a11y.mjs`.
+5. 🚀 **[CI/CD, Single-Artifact Releases & Checksums](https://github.com/DurchEins/apkup/wiki/Tech-CI-CD,-Single-Artifact-Releases-&-Checksums)** — Semantic versioning, PR checks, `release.yml` canonical APK, `SHA256SUMS`, Self-Updater & mirrors.
+6. 💾 **[Data Storage, Prefs, Backups, Logs & Widget](https://github.com/DurchEins/apkup/wiki/Tech-Data-Storage,-Prefs,-Backups,-Logs-&-Widget)** — `SecurePrefsStore` allowlist, `CachedUpdateSnapshot`, `ApkUpBackupConfig` schema, `AppJournal`, and `UpdatesWidgetProvider` (`RemoteViews` Preview).
+7. 🧪 **[Build System, R8 & Automated Tests](https://github.com/DurchEins/apkup/wiki/Tech-Build-System,-R8-&-Automated-Tests)** — Gradle configuration, Debug vs. Release (R8), `PrefsTest`, `ChangelogBottomSheetTest`, `AccessibilityAuditTest`, and `lintDebug`.
+8. 🌍 **[Localization, Weblate & Asset Pipeline](https://github.com/DurchEins/apkup/wiki/Tech-Localization,-Weblate-&-Assets)** — 9-locale `strings.xml` & `website/src/i18n/*.json` parity, Hosted Weblate, changelog asset parser, Fastlane & adaptive SVGs.
 
 ---
 
@@ -468,8 +478,9 @@ Every main guide is structured into clear layers:
 - 🏠 **[ApkUp GitHub Repository & README](https://github.com/DurchEins/apkup)**
 - 📦 **[Latest Releases & Checksums](https://github.com/DurchEins/apkup/releases)**
 - 🐛 **[Report a Bug or Request a Feature](https://github.com/DurchEins/apkup/issues)**
-- ♿ **[Accessibility Policy (`ACCESSIBILITY.md`)](https://github.com/DurchEins/apkup/blob/main/ACCESSIBILITY.md)** & **[Web Accessibility Statement](https://durcheins.github.io/apkup/accessibility/)**
 - 🛡️ **[Security Policy (`SECURITY.md`)](https://github.com/DurchEins/apkup/blob/main/SECURITY.md)**
+- ♿ **[Accessibility Statement (`ACCESSIBILITY.md`)](https://github.com/DurchEins/apkup/blob/main/ACCESSIBILITY.md)**
+- 💡 **GitHub ProTip:** Append `.patch` or `.diff` to any commit or PR URL (e.g. [PR #29 Diff](https://github.com/DurchEins/apkup/pull/29.diff)) for Git's plaintext view.
 
 ---
 
@@ -509,7 +520,7 @@ This guide explains how ApkUp's update sources work together, how **Source Prior
 ---
 
 <a id="-part-1-explained-simply-for-everyone"></a>
-## 🟢 Part 1: Explained Simply for Everyone
+## 📖 User Guide
 
 <a id="11-which-update-sources-does-apkup-search"></a>
 ### 1.1 Which update sources does ApkUp search?
@@ -570,79 +581,7 @@ When an app offers updates on multiple sources simultaneously, ApkUp keeps your 
 ---
 
 <a id="-part-2-technical-documentation-for-experts--power-users"></a>
-## 💻 Part 2: Technical Documentation for Experts & Power Users
-
-<a id="21-parallel-multi-source-aggregation--version-verification"></a>
-### 2.1 Parallel Multi-Source Aggregation & Version Verification
-ApkUp queries all enabled sources concurrently and in isolation, so one slow or unreachable provider never blocks the others:
-
-```mermaid
-flowchart LR
-    Installed["Local Package Scanner\n(Installed Apps + Certificates)"] --> Orchestrator["Update Aggregator\n(Source Priority & Pinning)"]
-    
-    Orchestrator --> Play["Google Play Store\n(Anonymous gplayapi)"]
-    Orchestrator --> AM["APKMirror\n(REST v2 Batch API)"]
-    Orchestrator --> FD["F-Droid / IzzyOnDroid\n(Index V2 + Diffs)"]
-    Orchestrator --> GH["GitHub\n(REST / GraphQL)"]
-    Orchestrator --> GL["GitLab\n(API v4 Releases)"]
-    Orchestrator --> CB["Codeberg / Forgejo\n(API v1 Releases)"]
-    
-    Play & AM & FD & GH & GL & CB --> Dedupe["Deduplication, Signature\n& Compatibility Guard"]
-    Dedupe --> UI["Updates Overview\n(Primary Card + Alternative Sources)"]
-```
-
-**Two-Stage Version Verification + Compatibility Guard:**
-1. Strictly higher Android `versionCode` (when provided by the source) and semantic version progression.
-2. Pre-install compatibility check verifying device `minSdk`, supported CPU `ABI`s, and signing certificates before launching installation.
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="22-cryptographic-signature-verification-sha-1--sha-256--origin-detection"></a>
-### 2.2 Cryptographic Signature Verification (SHA-1 & SHA-256) & Origin Detection
-ApkUp computes both **SHA-1** and **SHA-256** signing fingerprints via `PackageManager` (`GET_SIGNING_CERTIFICATES` on API 28+):
-- **APKMirror:** Strictly matches the remote SHA-1 fingerprint against the installed app.
-- **F-Droid / IzzyOnDroid:** Matches the local certificate against the `signer` SHA-256 hash recorded in the repository index.
-- **Install Origin Detection:** Uses `PackageManager.getInstallSourceInfo()` to flag cross-source signature mismatches proactively.
-- **Local Export Exception:** When using **Save APK**, file/archive/SHA-256 integrity is verified without blocking export if the installed app uses a different signer.
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="23-direct-apkmirror-resolution--hardened-apkm-split-extraction"></a>
-### 2.3 Direct APKMirror Resolution & Hardened `.apkm` Split Extraction
-1. **Three-Stage Link Resolution:** Variant page ➔ time-signed download page ➔ final CDN stream.
-2. **Cooldown & Anti-Bot Handling:** Enforces per-app 10-minute cooldowns on failures, opens an in-app Cloudflare WebView when interactive verification is needed, and falls back to the system browser if still blocked.
-3. **Hardened `.apkm` Extraction:** Inspects true ZIP structure (`AndroidManifest.xml` at root vs. embedded split `.apk`s), rejects Zip-Slip (`..` / path traversal) entries, and writes atomic `.part` downloads before finalizing.
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="24-google-play-store-dispenser-resilience--http-429-recovery"></a>
-### 2.4 Google Play Store Engine (`gplayapi 4.0.0`) & HTTP 429 Recovery
-Starting with **v1.46.0+**, anonymous Play Store queries run **directly on-device** via `gplayapi 4.0.0` (`PlayClient` and `DefaultPlaySessions`) without relying on an external Aurora Dispenser server:
-- **Stronger Privacy & Data Minimization:** Because no third-party dispenser server sits in the middle, no external intermediary ever sees your IP address or update-check timestamps. Traffic flows directly between your device and Google Play while keeping the privacy-friendly Pixel 7a baseline profile and requiring no Google account.
-- **Higher Reliability & HTTP 429 Recovery:** Eliminates external dispenser outages and bottlenecks. On `HTTP 429`, ApkUp rotates the anonymous session in a synchronized manner with cooldown protection so concurrent checks and downloads share the refreshed session cleanly.
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="25-three-tier-repository-resolution-for-github-gitlab--codeberg"></a>
-### 2.5 Three-Tier Repository Resolution for GitHub, GitLab & Codeberg
-1. **Priority 1 – Custom User Bindings:** Manually linked repositories (plus optional asset regex).
-2. **Priority 2 – Built-in Project Catalog:** Curated package-to-repo mappings bundled with ApkUp.
-3. **Priority 3 – Automatic Source Discovery & FOSS Flavor Heuristic:** Upstream URLs discovered from F-Droid/IzzyOnDroid indexes, preferring FOSS builds for F-Droid-origin apps and deprioritizing `-debug` / incompatible artifacts.
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="-part-3-frequently-asked-questions-faq"></a>
-## ❓ Part 3: Frequently Asked Questions (FAQ)
+## ❓ Frequently Asked Questions (FAQ)
 
 <a id="31-why-does-apkup-show-a-warning-icon-for-a-signature-conflict"></a>
 ### 3.1 Why does ApkUp show a warning icon for a "Signature Conflict"?
@@ -680,6 +619,10 @@ Yes! `.apkm` files are split APK bundles (base app + language/ABI/density splits
 * ⚡ **[Shizuku & Background Installation](https://github.com/DurchEins/apkup/wiki/Shizuku-&-Background-Installation)** — Silent installs & optional Root fallback.
 
 [⬆️ Back to Table of Contents](#-table-of-contents)
+
+---
+
+> 💻 **Looking for architectural internals, protocols, or security proofs?** Explore the **[Technical Overview](https://github.com/DurchEins/apkup/wiki#-technical-overview)** section.
 
 ---
 
@@ -1007,7 +950,7 @@ This document explains how to set up and how **Shizuku** and the background inst
 
 <a id="-part-1-explained-simply-for-everyone-plain-language"></a>
 <a name="-part-1-explained-simply-for-everyone-plain-language"></a>
-## 🟢 Part 1: Explained Simply for Everyone (Plain Language)
+## 📖 User Guide
 
 <a id="11-why-does-android-normally-ask-for-confirmation-on-every-update"></a>
 <a name="11-why-does-android-normally-ask-for-confirmation-on-every-update"></a>
@@ -1087,96 +1030,7 @@ Since version **v1.32**, ApkUp includes a dedicated background download service 
 
 <a id="-part-2-technical-documentation-for-experts--power-users"></a>
 <a name="-part-2-technical-documentation-for-experts--power-users"></a>
-## 💻 Part 2: Technical Documentation for Experts & Power Users
-
-<a id="21-architecture-of-the-dual-path-installation-pipeline"></a>
-<a name="21-architecture-of-the-dual-path-installation-pipeline"></a>
-### 2.1 Architecture of the Dual-Path Installation Pipeline
-To guarantee maximum reliability for both single and batch updates, ApkUp uses a **Dual-Path Strategy with Automatic Fallback**. All installation jobs are processed sequentially through a synchronized queue (Mutex lock):
-
-```mermaid
-flowchart TD
-    Start["Installation Job (Single APK / Split Bundle)"] --> Mutex["Sequential Session Synchronization"]
-    Mutex --> CheckPref{"Shizuku Mode Enabled?"}
-    
-    CheckPref -- "Yes" --> CheckBinder{"Shizuku Binder & Permission Ready?"}
-    CheckPref -- "No" --> NativePath["Standard Android PackageInstaller API"]
-    
-    CheckBinder -- "Ready" --> ShizukuExec["Privileged PackageManager Shell Transaction"]
-    CheckBinder -- "Not Ready / Denied" --> FallbackNotice["Notice + Automatic Fallback"]
-    
-    ShizukuExec --> ShizukuSuccess{"Exit Code == 0 & 'Success'?"}
-    ShizukuSuccess -- "Yes" --> Cleanup["Clean Temporary Files & Report Success"]
-    ShizukuSuccess -- "No (Error)" --> FallbackNotice
-    
-    FallbackNotice --> NativePath
-    NativePath --> BALCheck{"App in Foreground?"}
-    BALCheck -- "Yes" --> DirectDialog["Open System Installer Dialog Immediately"]
-    BALCheck -- "No (Background / Lock Screen)" --> HeadsUpNotif["Send High-Priority Install Notification"]
-    DirectDialog --> Cleanup
-    HeadsUpNotif --> Cleanup
-```
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="22-ipc-communication-via-android-binder"></a>
-<a name="22-ipc-communication-via-android-binder"></a>
-### 2.2 IPC Communication via Android Binder
-Communication with the privileged Shizuku server (running under system identity `UID 2000 / shell` or `UID 0 / root`) is performed via Android's Inter-Process Communication (Binder IPC):
-- **Package Verification:** Queries the Android `PackageManager` to verify whether `moe.shizuku.privileged.api` is registered on the device.
-- **Liveness Check:** Synchronously verifies the remote Binder descriptor (`pingBinder()`) prior to every transaction.
-- **Reactive State Events:** System listeners for Binder receipt, Binder death, and permission changes update the UI in real time whenever the Shizuku service starts or stops in the background.
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="23-packagemanager-shell-pipeline--play-store-attribution-comandroidvending"></a>
-<a name="23-packagemanager-shell-pipeline--play-store-attribution-comandroidvending"></a>
-### 2.3 PackageManager Shell Pipeline & Play Store Attribution (`com.android.vending`)
-When installing via Shizuku, ApkUp executes a multi-stage transaction against the Android system package manager (`pm`):
-
-1. **Isolated Staging & GZIP Verification:**
-   All downloaded package artifacts (single APK, extracted `.apkm` splits, or compressed Google Play splits) are staged in the private app cache and automatically decompressed if a GZIP magic header (`0x1f8b`) is detected.
-2. **Session Creation with Play Store Origin:**
-   ```bash
-   pm install-create -r -i com.android.vending
-   ```
-   - `-r`: Replaces the existing application while preserving all user data (`INSTALL_REPLACE_EXISTING`).
-   - `-i com.android.vending`: Sets the official installation origin (`installerPackageName`) to the Google Play Store. This ensures full compatibility with apps that verify at runtime whether they were installed from an official store source.
-3. **Streaming Package Data via Standard Input (`stdin`):**
-   For each APK split file, binary data is piped directly through a file descriptor stream into the `pm` process:
-   ```bash
-   pm install-write -S <byte_size> <session_id> <split_name.apk> -
-   ```
-   Piping directly over `stdin` cleanly avoids SELinux file access restrictions on private application directories.
-4. **Atomic Commit & Rollback Protection:**
-   ```bash
-   pm install-commit <session_id>
-   ```
-   If any sub-step fails, the session is cleanly aborted via `pm install-abandon <session_id>` and temporary staging files are purged.
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="24-foreground-service--android-14-bal-resilience"></a>
-<a name="24-foreground-service--android-14-bal-resilience"></a>
-### 2.4 Foreground Service & Android 14+ BAL Resilience
-To prevent the Android OS from terminating active downloads when the screen is off or memory pressure is high, ApkUp executes active transfers inside a protected **Android Foreground Service** (`foregroundServiceType="dataSync"`):
-- **Lifecycle Management:** The service stays active strictly as long as downloads or installations remain in the queue and stops itself immediately afterward.
-- **Protection Against Background Activity Launch (BAL) Restrictions on Android 10–16:**
-  When Shizuku is **not** used and a download finishes while ApkUp is in the background, modern Android blocks unsolicited system dialogs from popping up. ApkUp detects this state automatically and dispatches an interactive high-priority notification so the user can launch the Android installer dialog with a single tap at their convenience.
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="-part-3-comprehensive-frequently-asked-questions-faq--common-issues"></a>
-<a name="-part-3-comprehensive-frequently-asked-questions-faq--common-issues"></a>
-## ❓ Part 3: Comprehensive Frequently Asked Questions (FAQ) & Common Issues
+## ❓ Frequently Asked Questions (FAQ)
 
 <a id="31-do-i-need-root-access-on-my-phone-to-use-shizuku"></a>
 <a name="31-do-i-need-root-access-on-my-phone-to-use-shizuku"></a>
@@ -1278,6 +1132,10 @@ Starting with **v1.43.0+**, rooted devices (Magisk, KernelSU, or APatch) can opt
 ---
 
 ← Back to [Wiki Home](Home) | Related: [Setting up Shizuku](Setting-up-Shizuku) · [App Management, Filters, Background Checks & Backup](App-Management,-Filters,-Background-Checks-&-Backup)
+
+---
+
+> 💻 **Looking for architectural internals, protocols, or security proofs?** Explore the **[Technical Overview](https://github.com/DurchEins/apkup/wiki#-technical-overview)** section.
 
 ---
 
@@ -1392,7 +1250,7 @@ This guide explains how to skip faulty updates, ignore apps, track uninstalled a
 ---
 
 <a id="-part-1-explained-simply-for-everyone"></a>
-## 🟢 Part 1: Explained Simply for Everyone
+## 📖 User Guide
 
 <a id="11-skip-this-version-vs-ignore-app-permanently"></a>
 ### 1.1 "Skip this version" vs. "Ignore app permanently"
@@ -1456,48 +1314,7 @@ ApkUp hides pre-installed system apps by default so your list stays clean. To in
 ---
 
 <a id="-part-2-technical-documentation-for-experts--power-users"></a>
-## 💻 Part 2: Technical Documentation for Experts & Power Users
-
-<a id="21-filter-architecture-package-wide-exclusion-vs-version-pinning"></a>
-### 2.1 Filter Architecture: Package-Wide Exclusion vs. Version Pinning
-1. **Package-Wide Exclusion (Ignore App):** Applied **before** network requests are dispatched — reduces payload size, saves GitHub API quota, and preserves privacy.
-2. **Version-Specific Pinning (Skip Version):** Stores `(packageName, version, versionCode)` and expires automatically as soon as any source delivers a strictly higher `versionCode`.
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="22-battery-friendly-background-scheduling-via-android-workmanager"></a>
-### 2.2 Battery-Friendly Background Scheduling via Android `WorkManager`
-ApkUp delegates background checks to Android **`WorkManager`** (`NetworkType.CONNECTED`), batching work into OS maintenance windows (Doze / App Standby) with atomic `.part` download staging.
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="23-persistent-update-snapshot-cache-for-instant-app-startup"></a>
-### 2.3 Persistent Update Snapshot Cache for Instant App Startup
-After each scan, ApkUp stores a local **Update Snapshot** in private app storage and reconciles it against live `PackageManager` state on launch so the **Updates** tab populates instantaneously without forcing a redundant online scan.
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="24-structure--privacy-of-the-json-backup-file-saf"></a>
-### 2.4 Structure & Privacy of the JSON Backup File (SAF)
-ApkUp uses Android's **Storage Access Framework (SAF)** with zero broad storage permissions. The exported JSON contains:
-- Enabled update sources, source priority order, pinned app sources, F-Droid repositories, and watched apps
-- Ignored package names, skipped versions, and custom GitHub/GitLab/Codeberg bindings (validated on import for `https://`, allowed hosts, and regex limits)
-- Theme, display, update window, pre-release channels, rollback backup settings (`rollbackMaxBytes`, `rollbackRetentionDays`), self-updater beta opt-in (`includeSelfUpdatePreReleases`, safely defaulting to `false` on older backups), and background check preferences
-
-*(Note: Personal Access Tokens remain encrypted on-device in Google Tink `AES-256-GCM` storage and are never exported in plaintext backups; importing a backup also resets `useRootInstaller` to `false` with a security notice.)*
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="-part-3-frequently-asked-questions-faq"></a>
-## ❓ Part 3: Frequently Asked Questions (FAQ)
+## ❓ Frequently Asked Questions (FAQ)
 
 <a id="31-when-should-i-use-skip-this-version-vs-ignore-app-permanently"></a>
 ### 3.1 When should I use "Skip this version" vs. "Ignore app permanently"?
@@ -1534,6 +1351,10 @@ No — the `.json` file is only a few KB of settings (no APKs, no secret tokens)
 - 🔄 **[Obtainium Migration & Sync Guide](https://github.com/DurchEins/apkup/wiki/Obtainium-Migration-&-Sync-Guide)** — Migrate your Obtainium JSON export into ApkUp.
 
 [⬆️ Back to Table of Contents](#-table-of-contents)
+
+---
+
+> 💻 **Looking for architectural internals, protocols, or security proofs?** Explore the **[Technical Overview](https://github.com/DurchEins/apkup/wiki#-technical-overview)** section.
 
 ---
 
@@ -1874,3 +1695,371 @@ Without unlocking Developer Options, tapping direct APKs from GitHub, GitLab, Co
 - [Installing Unknown Apps (General Wiki)](/apkup/wiki/#doc-sideloading)
 - [Root & Background Installation](/apkup/wiki/#doc-shizuku-deep)
 - [Setting up Shizuku (Quick Guide)](/apkup/wiki/#doc-shizuku-setup)
+
+---
+
+## Wiki: Accessibility & Accessible Mode
+
+# ♿ Accessibility & Accessible Mode
+
+**ApkUp** is designed to be comfortable and usable with **TalkBack**, **Voice Access**, **Switch Access**, large display/font scaling, and high-contrast preferences — both in the Android app and on the [ApkUp Website](https://durcheins.github.io/apkup/accessibility/).
+
+---
+
+## 📖 User Guide
+
+### 1.1 Turning on Accessible Mode
+You can enable **Accessible Mode** in two places:
+- **During First Launch (Onboarding):** Choose **Accessible** instead of **Standard** on the appearance step.
+- **Anytime in Setup:** Open **Setup → Appearance & Layout → Accessible UI** (`Barrierefreie Oberfläche`) to turn it on or off immediately.
+
+### 1.2 What Accessible Mode Changes
+- **Fixed, Non-Overlapping Navigation Bar:** On phones, the bottom navigation bar stays anchored cleanly below content instead of floating over list items, with notification badges placed clearly beside the icon.
+- **Single-Column Lists & Larger Tap Targets:** Both **Apps** and **Updates** switch to clean single-column lists with minimum **48 dp** touch targets, multi-line filter chips, and labeled scroll-to-top/bottom buttons.
+- **One-Tap Batch Selection:** Every update card shows an explicit **Select** button so you never have to rely on long-press gestures to select updates.
+- **Separated Action Buttons:** Instead of combined split buttons, **Update all** and **More actions** are shown as two separate, clearly labeled buttons.
+- **Calm Status Updates & Clean Sheets:** Screen readers announce scan/download status politely without interrupting you, confirmation dialogs stack action buttons vertically, and sheets (Hidden Apps, Skipped Updates, In-App Changelog) remove tiny text, dark gradients, and drag-only handles.
+- **No Motion Distractions:** Animations are disabled while gentle haptic feedback remains intact.
+
+### 1.3 High-Contrast Solar Theme (`Auto / Light / Dark`)
+Under **Setup → Appearance & Layout → Theme**, selecting **Accessibility** unlocks a dedicated high-contrast palette:
+- **Auto:** Automatically switches between high-contrast Light and Dark based on sunrise/sunset. Use the **`-15 min` / `+15 min`** quick buttons or the time picker to customize solar transition times.
+- **Light / Dark:** Locks the high-contrast theme permanently to Light or Dark.
+- **Dynamic Color** is automatically paused when **Accessible UI** is active so guaranteed contrast ratios are never overridden by wallpaper colors.
+
+## ❓ Frequently Asked Questions (FAQ)
+
+- **Can I use the High-Contrast Theme without changing list layouts?**
+  Yes! Select **Accessibility** under **Theme** while keeping **Accessible UI** turned off if you only want the high-contrast colors.
+- **Where can I report an accessibility barrier?**
+  Please open an issue on **[GitHub Issues](https://github.com/DurchEins/apkup/issues)** or share feedback in **[GitHub Discussions](https://github.com/DurchEins/apkup/discussions)** — every report helps make ApkUp better for everyone.
+- **Full Statement:** Read [`ACCESSIBILITY.md`](https://github.com/DurchEins/apkup/blob/main/ACCESSIBILITY.md) in the repository.
+
+---
+
+> 💻 **Looking for Compose tokens, WCAG AAA contrast internals, or `check-a11y.mjs` details?** See **[Technical Overview: UI, Accessibility & Website Architecture](https://github.com/DurchEins/apkup/wiki/Tech-UI,-Accessibility-&-Website-Architecture)**.
+
+---
+
+## Wiki: Technical Overview: Update Sources, Networking & Parsing
+
+# 🌐 Technical Overview: Update Sources, Networking & Parsing
+
+This page documents ApkUp's multi-source update engine, HTTP transport, rate-limit resilience, and repository parsing architecture.
+
+---
+
+## 1. Parallel Multi-Source Aggregation & Priority
+
+- **Concurrent Source Queries:** Update checks run concurrently across enabled sources (`Google Play`, `APKMirror`, `F-Droid` / `IzzyOnDroid` / custom F-Droid feeds, `GitHub`, `GitLab`, `Codeberg` / `Forgejo`) and aggregate candidate `AppUpdate` models per `packageName`.
+- **Source Priority & Per-App Pinning:** Global source ordering is configurable in Setup and stored in `Prefs`. Per-app pinning locks an app to a preferred source when an update is available from that source, with automatic fallback if the pinned source returns no newer build.
+- **Alternative Variants (`alternativeUpdates`):** When multiple sources provide a newer `versionCode`, ApkUp retains alternative variants inside `AppUpdate.alternativeUpdates` so users can inspect and switch sources inside `UpdateDetailsSheet`.
+- **Pre-Release Filtering:** Global and per-app pre-release channels (`Beta`, `RC`, `Alpha`, `Nightly`) filter tag/version strings before candidate selection.
+
+---
+
+## 2. Google Play Store (`gplayapi`)
+
+- **On-Device Session & Delta Queries:** Uses `gplayapi` directly on-device without relying on an external dispenser server, minimizing third-party exposure.
+- **HTTP 429 Recovery & Profiles:** Automatically recovers from Google Play rate limits (`HTTP 429`) and uses privacy-minimized device compatibility profiles.
+- **Split-APK & Missing Pre-Download Hash:** Play Store responses do not always supply a pre-download SHA-256 digest in `Link.Url.expectedSha256`. When `expectedSha256` is absent, ApkUp displays `MissingPreDownloadHashBadge` next to the target version and relies on Android's APK Signature Scheme v2/v3 verification against the installed package before installation.
+
+---
+
+## 3. F-Droid, IzzyOnDroid & Custom F-Droid Repositories
+
+- **Index-V2 & Index-V1 Support:** Supports official F-Droid, IzzyOnDroid, and custom HTTPS repositories (`?fingerprint=...`) via `IzzyOnDroidRepository`.
+- **Cryptographic Index Verification:**
+  - `index-v1.jar` / `entry.jar` signatures are verified against pinned 64-hex SHA-256 X.509 certificate fingerprints (including Trust-On-First-Use pinning for custom presets).
+  - Incremental Index-V2 diffs (`RFC 7396`) validate per-diff SHA-256 checksums (`ApkIntegrityVerifier.verifyFileSha256`) before applying state updates.
+- **Per-APK Checksums:** Every F-Droid / IzzyOnDroid package download includes `expectedSha256` for mandatory pre-install SHA-256 verification.
+
+---
+
+## 4. APKMirror Engine & Cloudflare Resilience
+
+- **In-App Download & `.apkm` Split Bundles:** Resolves APKMirror release/variant pages, downloads single APKs or `.apkm` split-bundle archives, and extracts split parts in private internal storage with strict Zip-Slip and decompression-bomb limits.
+- **Cooldown & Concurrency Throttling:** `SourceHealthTracker` enforces a per-app cooldown and intelligent concurrency throttling to avoid `HTTP 429` / `403` bursts.
+- **Cloudflare WebView & Browser Fallback:** When anti-bot challenges block headless HTTP requests, ApkUp automatically routes resolution through an in-app Cloudflare-capable WebView or offers a seamless browser fallback (`isBrowserOnlyUpdate`).
+
+---
+
+## 5. GitHub, GitLab & Codeberg / Forgejo
+
+- **3-Tier Repository Binding:** Supports built-in mappings for popular FOSS apps, `owner/repo` bindings, and self-hosted GitLab/Forgejo instances (including multi-level subgroup paths).
+- **Batched GraphQL & Token Isolation:** When a GitHub Personal Access Token is configured, ApkUp batches release lookups via GraphQL to raise limits from 60 to 5,000 requests/hour. Tokens are stored per-host and stripped on cross-host redirects.
+- **Asset Filtering & Digests:** Supports optional asset regex filtering, FOSS flavor preference, and `expectedSha256` extraction from release digests when provided (e.g. `CodebergRepository`, `GitHubRepository`).
+
+---
+
+> 📖 **User-friendly guide:** [Update Sources, Repository Linking & Signature Protection](https://github.com/DurchEins/apkup/wiki/Update-Sources,-Repository-Linking-&-Signature-Protection)
+
+---
+
+## Wiki: Technical Overview: Installation, Shizuku, Root & WorkManager
+
+# ⚡ Technical Overview: Installation, Shizuku, Root & WorkManager
+
+This page covers ApkUp's download orchestration, background scheduling, multi-path installation pipeline (`PackageInstaller`, `Shizuku`, `su`), and rollback architecture.
+
+---
+
+## 1. Download Orchestration (`WorkManager` & `DownloadCoordinator`)
+
+- **User-Initiated Data Transfer (`UpdateDownloadWorker`):** Interactive single updates, multi-select batch updates, and *Install All* runs execute through AndroidX `WorkManager` with live progress (`DownloadTaskState`), smoothed transfer speed, and batch ETA calculation.
+- **24-Hour Private Cache:** Verified APK/split files reside in private internal app storage (`cacheDir`) so cached updates (`readyUpdateIds`) can be installed immediately without re-downloading.
+- **Save APK / `.apks` Export:** Exports verified single `.apk` files or `.apks` split bundles to `Download/ApkUp/` or a user-configured Storage Access Framework (SAF) directory.
+
+---
+
+## 2. Dual/Triple-Path Installation Pipeline
+
+Before any installer backend is invoked, `ApkIntegrityVerifier` validates SHA-256 checksums (when `expectedSha256` is supplied) and verifies APK Signature Scheme v2/v3 certificates against the installed app, blocking mismatches and unintended version downgrades.
+
+1. **Standard `SessionInstaller` (`PackageInstaller`):**
+   - Stages single or split APKs into `PackageInstaller.Session` (`createSession` → `openWrite` → `fsync` → `commit`), prompting the Android system confirmation sheet.
+   - Handles Android 14+ Background Activity Launch (BAL) restrictions gracefully with explicit user prompt fallbacks.
+2. **Shizuku Binder IPC (`ShizukuAutoUpdateWorker`):**
+   - Uses Shizuku's scoped ADB binder privileges to execute `pm install-create` / `install-write` / `install-commit` without Root, enabling silent batch updates and unattended background installs.
+   - Checks live Shizuku availability and permission state on resume and before background execution.
+3. **Optional Root Installer (`RootInstaller` via `su`):**
+   - Performs explicit pre-checks on staged package paths and executes `pm install` via `su` when Root mode is enabled.
+   - Supports in-place downgrade (`-r -d`) for rollback restoration when Root is available.
+
+---
+
+## 3. Background Checks & Rollback Backups
+
+- **Scheduled Background Checks (`UpdatesWorker`):** Respects user-configured **Wi-Fi only**, **While charging**, and active **Time Window** constraints with catch-up scheduling when a window opens.
+- **Consolidated Summary Notifications:** Groups discovered or installed updates cleanly without notification spam, and triggers `UpdatesWidgetProvider.notifyWidgetDataChanged` to keep the home screen widget synchronized.
+- **Configurable Rollback Backups:** Before updating, ApkUp can archive installed base + split APKs within user-defined storage caps (up to 2 GB) and retention limits (7–30 days or unlimited), exposing one-tap cleanup and live storage usage in Setup.
+
+---
+
+> 📖 **User-friendly guide:** [Shizuku & Silent Background Installations](https://github.com/DurchEins/apkup/wiki/Shizuku-&-Background-Installation)
+
+---
+
+## Wiki: Technical Overview: Security, Cryptography & Privacy
+
+# 🛡️ Technical Overview: Security, Cryptography & Privacy
+
+This page documents ApkUp's defense-in-depth security model, cryptographic verification layers, archive hardening, and zero-telemetry guarantees.
+
+---
+
+## 1. Pre-Install APK Integrity & Signature Verification
+
+- **`ApkIntegrityVerifier`:**
+  - **Signing Certificate Match:** Extracts APK Signature Scheme v2/v3 certificates from downloaded APKs (and split bases) and compares them against the currently installed app's signing certificate before passing files to `PackageInstaller`, Shizuku, or Root (`su`).
+  - **Downgrade Guard:** Blocks accidental `versionCode` downgrades during normal update flows.
+  - **SHA-256 Digest Validation (`verifyFileSha256`):** Validates normalized 64-char hex SHA-256 digests whenever `expectedSha256` is supplied by the source (mandatory for F-Droid/IzzyOnDroid, supported for GitHub/Codeberg releases and Self-Updater `SHA256SUMS`).
+
+---
+
+## 2. Encrypted Storage & Network Hardening
+
+- **Google Tink (`AES-256-GCM`) + Android Keystore:** `TinkSecurePrefsBackend` and `SecurePrefsStore` encrypt preferences and optional GitHub/GitLab/Codeberg Personal Access Tokens at rest using hardware-backed Android Keystore keys.
+- **Allowlist Enforcement:** `SecurePrefsStore` enforces an explicit key allowlist to prevent unexpected or malformed preference injection during backup imports.
+- **HTTPS-Only Transport:** Cleartext HTTP is strictly disabled (`cleartextTrafficPermitted="false"`).
+- **Host-Isolated Credentials:** Personal Access Tokens are scoped to their configured host and stripped automatically across cross-host HTTP redirects.
+- **Zero Cloud Backups & Zero Telemetry:** `android:allowBackup="false"` prevents cloud/ADB extraction of encrypted prefs; ApkUp contains zero analytics SDKs or developer tracking servers, and first-launch onboarding ensures zero external network calls occur before source consent.
+
+---
+
+## 3. Archive, UI & Process Hardening
+
+- **`.apkm` Split-Bundle Hardening:** Archive extraction validates canonical entry paths to block **Zip-Slip** directory traversal and enforces hard per-entry and total **decompression-bomb** byte limits inside private internal storage.
+- **Tapjacking Protection:** Sensitive confirmation controls filter obscured touches (`filterTouchesWhenObscured`).
+- **Credential-Scrubbed Logs (`AppJournal`):** Diagnostic log exports automatically redact tokens, authorization headers, and sensitive query parameters before saving.
+
+---
+
+> 🛡️ **Official Policy:** [`SECURITY.md`](https://github.com/DurchEins/apkup/blob/main/SECURITY.md) • **Privacy Policy:** [`PRIVACY.md`](https://github.com/DurchEins/apkup/blob/main/PRIVACY.md)
+
+---
+
+## Wiki: Technical Overview: UI, Accessibility & Website Architecture
+
+# 🎨 Technical Overview: UI, Accessibility & Website Architecture
+
+This page documents ApkUp's Jetpack Compose Material 3 Expressive architecture, WCAG 2.2 AA/AAA Accessible Mode (`a11yAccessibleUi`), and the Astro website pipeline.
+
+---
+
+## 1. Material 3 Expressive & Adaptive Navigation
+
+- **Theme Tokens (`ApkUpTheme`):** Unified Brand-Amber palette with soft off-white light mode, optional Android 12+ Dynamic Color (Material You), dark/light/system themes, and `Themer` state flows.
+- **Adaptive Chrome:** Floating capsule bottom dock on compact screens with automatic `NavigationRail` on wider/tablet layouts (`screenWidthDp >= 840`), collapsible scroll headers, wavy progress indicators, and `CustomTabsIntent` routing (preferring native installed apps first).
+- **Single Permanent Update Card Layout:** Update cards use the full-detail layout (`UpdateCard`) with `TrustShieldBadge` (animated flip on verification) and `MissingPreDownloadHashBadge` (`TooltipBox` + `PlainTooltip` when `expectedSha256` is absent).
+
+---
+
+## 2. WCAG 2.2 Accessible Mode (`a11yAccessibleUi` & `THEME_ACCESSIBILITY`)
+
+- **Accessible UI Mode (`ApkUpTheme.isAccessibleUi`):**
+  - Replaces the floating capsule dock with a fixed, non-overlapping `AccessibleDockedBottomBar` on phones, placing notification badges cleanly beside the icon.
+  - Activates `AccessibleTypography` (minimum 13 sp for informational text) and disables decorative animations (`ApkUpTheme.isReducedMotion`) while preserving haptic feedback.
+  - Enforces single-column lists in **Apps** and **Updates**, `FlowRow` multi-line filter chips (`48.dp` min touch target), labeled scroll-to-top/bottom controls, explicit one-tap **Select** buttons on update cards, and separated **Update all** + **More actions** buttons.
+  - Uses `LiveRegionMode.Polite` for status summaries, `heading()` semantics on section titles, vertically stacked confirmation dialog actions, and drag-handle-free accessible bottom sheets (`HiddenAppsBottomSheet`, `IgnoredVersionsBottomSheet`, `ChangelogBottomSheet`).
+- **High-Contrast Solar Theme (`THEME_ACCESSIBILITY` & `SolarScheduleCalculator`):**
+  - Supports `Auto` (sunrise/sunset), `Light`, and `Dark` sub-modes with `-15 min` / `+15 min` quick steppers and `TimePickerDialog` customization.
+  - Automatically pauses Dynamic Color when `a11yAccessibleUi` is enabled so guaranteed high-contrast ratios cannot be overridden by wallpaper colors.
+
+---
+
+## 3. Astro Website (`website/`) & `check-a11y.mjs`
+
+- **9-Language Static Site (`docs/`):** Built with Astro across `en`, `de`, `es`, `fr`, `it`, `ja`, `pt`, `ru`, and `zh-rCN`, including the dedicated `/accessibility/` statement page.
+- **3-Way WCAG AAA Solar Switcher:** Supports `Auto / Light / Dark` with `>= 7:1` AAA contrast tokens, ARIA landmark/dialog semantics, and 320 px responsive reflow.
+- **Automated Gate (`website/scripts/check-a11y.mjs`):** Audits all 90 built HTML pages for AA/AAA contrast tokens, ARIA attributes, heading hierarchy, and semantic integrity.
+
+---
+
+> 📖 **User-friendly guide:** [Accessibility & Accessible Mode](https://github.com/DurchEins/apkup/wiki/Accessibility-%26-Accessible-Mode) • **Full Statement:** [`ACCESSIBILITY.md`](https://github.com/DurchEins/apkup/blob/main/ACCESSIBILITY.md)
+
+---
+
+## Wiki: Technical Overview: CI/CD, Single-Artifact Releases & Checksums
+
+# 🚀 Technical Overview: CI/CD, Single-Artifact Releases & Checksums
+
+This page documents ApkUp's GitHub Actions CI/CD workflows, versioning rules, signing & checksum verification, and mirror distribution.
+
+---
+
+## 1. Strict Semantic Versioning
+
+- **Format:** `versionName` follows `<Major>.<Minor>.<Patch> (<versionCode>)` (e.g. `1.47.0 (237)`), with `<Major>.<Minor>.<Patch>-beta.<N> (<versionCode>)` for explicit pre-releases.
+- **Monotonic `versionCode`:** `versionCode` increments strictly monotonically by `+1` with every build; UI components (`SettingsScreen.kt`, `ChangelogBottomSheet.kt`) and `SelfUpdateRepository.kt` support 3–4+ digit segments without wrapping.
+
+---
+
+## 2. Pull Request & CI Gates (`Android CI`)
+
+- **Branch & PR Flow:** Features and fixes develop on dedicated local branches off `main`, are pushed to GitHub (`DurchEins/apkup`), and merge via Pull Request (`Squash and merge`) after all CI checks pass.
+- **Automated Checks:** Every PR runs `lintDebug`, `testDebugUnitTest`, and `assembleDebug` (plus `website/scripts/check-a11y.mjs` for website changes).
+- **Debug Parallelism:** Debug builds use `applicationIdSuffix = ".debug"` (`com.apkup.debug` / **ApkUp Debug**) so development builds can be tested side-by-side with the production `com.apkup` release.
+
+---
+
+## 3. Single-Artifact Release Pipeline (`release.yml`)
+
+- **Canonical Binary:** The signed APK built by GitHub Actions (`release.yml`) is the **single canonical release artifact** (`ApkUp-v<Major>.<Minor>.<Patch>-(<versionCode>).apk`).
+- **Signing Fingerprint Verification:** Every official APK is signed with ApkUp's release key (`8e9b512371ee965afc7cc91f23490d3a514623b90d483e638bba8a070a2170b4` SHA-256).
+- **Checksums & Mirrors:** `SHA256SUMS` digests are published alongside the binary on GitHub Releases and the ApkUp Website, ensuring identical SHA-256 and VirusTotal hashes across GitLab Releases, Zapstore, itch.io, APKPure, Appteka, and Komi Store.
+- **In-App Self-Updater (`SelfUpdateRepository`):** Checks GitHub Releases (stable-only by default, with an opt-in Beta channel toggle in Setup → About), verifies `SHA256SUMS` and signing certificate fingerprints before installing.
+
+---
+
+> 📦 **Latest Releases:** [GitHub Releases](https://github.com/DurchEins/apkup/releases) • **ProTip:** Append `.patch` or `.diff` to any GitHub commit or PR URL for plaintext views.
+
+---
+
+## Wiki: Technical Overview: Data Storage, Prefs, Backups, Logs & Widget
+
+# 💾 Technical Overview: Data Storage, Prefs, Backups, Logs & Widget
+
+This page documents ApkUp's encrypted preference storage, JSON backup schema, sanitized diagnostic logging, and the Home Screen Updates Widget (Preview).
+
+---
+
+## 1. Encrypted Preferences (`Prefs.kt` & `SecurePrefsStore.kt`)
+
+- **Slot-Based Abstraction:** `Prefs.kt` exposes typed `PrefSlot<T>` and `StateFlow` accessors backed by `TinkSecurePrefsBackend` (`AES-256-GCM`).
+- **Strict Allowlist:** `SecurePrefsStore.kt` maintains an explicit key allowlist so unknown keys cannot be persisted or restored from untrusted sources.
+- **Snapshot Cache (`CachedUpdateSnapshot`):** Stores the last discovered update list and `timestampMillis` locally so the Updates tab, notifications, and the home screen widget can render immediately without re-querying network sources.
+
+---
+
+## 2. Settings Backup & Restore (`ApkUpBackupConfig`)
+
+- **Versioned JSON Schema (`CURRENT_SCHEMA_VERSION`):** `SettingsViewModel` exports and imports `ApkUpBackupConfig` via Android's Storage Access Framework (SAF), preserving source toggles, source priority, pinned sources, ignored apps/versions (`IgnoredVersionEntry` deduplicated by `id_packageName_versionCode`), pre-release preferences, rollback backup limits, and theme/accessibility settings.
+- **Sanitized Import:** Imported values are clamped and validated (e.g. `ignoredApps`, `ignoredVersions`, numeric bounds) before writing to `Prefs`.
+
+---
+
+## 3. Diagnostic Logs (`AppJournal`) & Update History
+
+- **Offline Diagnostic Export:** Captures structured runtime events, source health states, and installer outcomes without network telemetry, automatically redacting API tokens and credentials prior to SAF export.
+- **Persistent Update History:** Tracks completed installations and exposes rollback links directly from the Update History sheet.
+
+---
+
+## 4. Home Screen Updates Widget (`UpdatesWidgetProvider` — Preview)
+
+- **Preview Status:** Marked with a `Preview` pill badge in `widget_updates.xml` (`@string/widget_updates_preview_badge`) and `(Preview)` across widget descriptions.
+- **RemoteViews Constraints:** Uses `RemoteViews`-compatible layouts (`LinearLayout`, `FrameLayout`, `ImageView`, `TextView`, `ImageButton`, `ProgressBar`) — avoiding unsupported views such as `<View>` (enforced by `lintDebug` `RemoteViewLayout`).
+- **Live Sync & Quick Refresh:** Reads `CachedUpdateSnapshot` + `Prefs` visibility rules (`countVisibleWidgetUpdates`), opens `MainActivity` on tap (`UpdatesNotification.UpdateAction`), and dispatches `ACTION_REFRESH_WIDGET` to trigger `UpdatesWorker.launchImmediate(WorkManager)`.
+
+---
+
+> 📖 **User-friendly guide:** [App Management, Filters, Background Checks & Backup](https://github.com/DurchEins/apkup/wiki/App-Management,-Filters,-Background-Checks-&-Backup)
+
+---
+
+## Wiki: Technical Overview: Build System, R8 & Automated Tests
+
+# 🧪 Technical Overview: Build System, R8 & Automated Tests
+
+This page documents ApkUp's Gradle build configuration, R8 shrinking, Android Lint checks, and automated unit test suites.
+
+---
+
+## 1. Gradle & Build Performance
+
+- **Kotlin + Jetpack Compose + Koin:** Built with Gradle (`app/build.gradle.kts`), Kotlin incremental compilation (`kotlin.incremental=true`), configuration/build caching (`org.gradle.caching=true`), and parallel execution (`org.gradle.parallel=true`).
+- **Build Variants:**
+  - `debug`: Fast iteration build without R8, using `applicationIdSuffix = ".debug"` (`com.apkup.debug`) and `versionNameSuffix = "-debug"`.
+  - `release`: Full R8 code shrinking/obfuscation and resource shrinking, signed via release keystore (`local.properties` locally or CI secrets in `release.yml`).
+
+---
+
+## 2. Automated Test Suite (`testDebugUnitTest` — 413+ Unit Tests)
+
+- **`PrefsTest`:** Verifies `PrefSlot` defaults, persistence across backend re-instantiation, and reactive `StateFlow` emissions.
+- **`ChangelogBottomSheetTest`:**
+  - Parses monthly accordion sections (`## Month Year`), release headers (`### Date | Version | Badge`), pill types (`Feature`, `Patch`, `Major`), and mandatory `> [Banner]` blocks on `.0` feature releases.
+  - Enforces formatting rules on production assets (`1.47_de.md`, `1.47_en.md`): no trailing colons on entry titles and no inline backticks in descriptions.
+- **`AccessibilityAuditTest`:** Audits localization completeness across all 9 locales for accessibility strings (`theme_a11y`, `a11y_accessible_ui_*`, `a11y_sun_*`, `onboarding_mode_*`, etc.).
+- **Repository, Integrity & State Tests:** Covers `ApkIntegrityVerifier`, `UpdatesUiState`, `SolarScheduleCalculator`, source parsers, and backup serialization.
+
+---
+
+## 3. Static Analysis (`lintDebug`) & Website Verification
+
+- **`lintDebug`:** Enforces Android resource/layout/API safety including `UnusedResources` (preventing dead strings across 9 locales) and `RemoteViewLayout` (ensuring widget XMLs only use `RemoteViews`-supported views).
+- **`website/scripts/check-a11y.mjs`:** Runs as part of website validation to check all 90 built HTML pages for AA/AAA contrast tokens and ARIA compliance.
+
+---
+
+## Wiki: Technical Overview: Localization, Weblate & Asset Pipeline
+
+# 🌍 Technical Overview: Localization, Weblate & Asset Pipeline
+
+This page documents ApkUp's 9-language localization architecture, Weblate synchronization, in-app changelog asset structure, and vector/SVG assets.
+
+---
+
+## 1. 9-Language Localization (`strings.xml` & `website/src/i18n/`)
+
+- **Supported Locales:** English (`values`), German (`values-de`), Spanish (`values-es`), French (`values-fr`), Italian (`values-it`), Japanese (`values-ja`), Portuguese (`values-pt`), Russian (`values-ru`), and Simplified Chinese (`values-zh-rCN`).
+- **Hosted Weblate Integration:** Community translations sync via [Hosted Weblate](https://hosted.weblate.org/engage/apkup/), while developer PRs keep all 9 `strings.xml` files and `website/src/i18n/*.json` synchronized.
+- **Automated Parity Checks:** `AccessibilityAuditTest` and `lintDebug` (`UnusedResources` / missing translations) verify string consistency across locales.
+
+---
+
+## 2. In-App Changelog Asset Pipeline (`app/src/main/assets/changelog/`)
+
+- **Milestone Asset Pairs:** Each minor milestone maintains `<Major>.<Minor>_de.md` and `<Major>.<Minor>_en.md` (e.g. `1.47_de.md` and `1.47_en.md`), removing superseded milestone files to keep APK assets clean.
+- **Parser (`ChangelogBottomSheet.kt`):**
+  - Groups releases under collapsible month headers (`## Month Year`) derived from real Git release dates.
+  - Parses release metadata (`### Date | Version | Badge`), optional visual highlight banners (`> [Banner] Title | Badge`), main bullets (`- **Title** Description`), and sub-bullets (`- ↳ **Title** Description`).
+  - Strips accidental markdown artifacts (`cleanInlineMarkdown`) to keep UI text clean.
+
+---
+
+## 3. Metadata & Vector Assets
+
+- **Fastlane Store Metadata (`fastlane/metadata/android/`):** Maintains `title.txt`, `short_description.txt`, `full_description.txt`, changelogs, and screenshots for store/mirror publishing.
+- **Adaptive Dark/Light SVGs (`.github/assets/`):** `README.md` uses `<picture>` elements with `prefers-color-scheme` media queries for crisp dark/light header banners, dividers, and footer pills.

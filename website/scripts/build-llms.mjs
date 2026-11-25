@@ -50,6 +50,15 @@ const WIKI_ORDER = [
   { file: 'SHA-256-&-Signature-Verification.md', title: 'SHA-256 Checksums & APK Signature Verification' },
   { file: 'Installing-Unknown-Apps.md', title: 'Installing Unknown Apps on Android (Sideloading Guide)' },
   { file: 'Google-24h-Lock-&-Keep-Android-Open.md', title: 'Google 24-Hour Sideloading Lock & Keep Android Open' },
+  { file: 'Accessibility-&-Accessible-Mode.md', title: 'Accessibility & Accessible Mode' },
+  { file: 'Tech-Update-Sources,-Networking-&-Parsing.md', title: 'Technical Overview: Update Sources, Networking & Parsing' },
+  { file: 'Tech-Installation,-Shizuku,-Root-&-WorkManager.md', title: 'Technical Overview: Installation, Shizuku, Root & WorkManager' },
+  { file: 'Tech-Security,-Cryptography-&-Privacy.md', title: 'Technical Overview: Security, Cryptography & Privacy' },
+  { file: 'Tech-UI,-Accessibility-&-Website-Architecture.md', title: 'Technical Overview: UI, Accessibility & Website Architecture' },
+  { file: 'Tech-CI-CD,-Single-Artifact-Releases-&-Checksums.md', title: 'Technical Overview: CI/CD, Single-Artifact Releases & Checksums' },
+  { file: 'Tech-Data-Storage,-Prefs,-Backups,-Logs-&-Widget.md', title: 'Technical Overview: Data Storage, Prefs, Backups, Logs & Widget' },
+  { file: 'Tech-Build-System,-R8-&-Automated-Tests.md', title: 'Technical Overview: Build System, R8 & Automated Tests' },
+  { file: 'Tech-Localization,-Weblate-&-Assets.md', title: 'Technical Overview: Localization, Weblate & Asset Pipeline' },
 ];
 
 // 1. Build llms.txt (compact llmstxt.org-compliant directory)
