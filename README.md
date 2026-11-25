@@ -79,7 +79,7 @@
   * **Native App Priority & Chrome Custom Tabs:** External links prefer matching installed native apps first and seamlessly fall back to in-app Chrome Custom Tabs.
   * Instant search bars and flexible sorting across both **Updates** (*Name A–Z / Z–A, Source, Newest Release Date*) and **Apps** (*Name A–Z / Z–A, Source, Recently Updated*).
   * Localized in **9 official languages**: English, German, Spanish, French, Portuguese, Italian, Russian, Simplified Chinese, and Japanese.
-  * **Accessible Mode & Home Widget:** Dedicated high-contrast Accessible UI (48 dp touch targets, single-column lists, one-tap selection, disabled animations, solar *Auto / Light / Dark* theme with 15-minute steps), a home screen widget for available updates, quick-filter chips (including *GitHub / Sideload* and *Watched*), monthly-grouped in-app changelogs, and a 9-language [Accessibility Statement](ACCESSIBILITY.md) ([Wiki Guide](https://github.com/DurchEins/apkup/wiki/Accessibility-%26-Accessible-Mode)).
+  * **Accessible Mode & Home Widget:** Dedicated high-contrast Accessible UI (48 dp touch targets, single-column lists, one-tap selection, disabled animations, solar *Auto / Light / Dark* theme with 15-minute steps), a home screen widget (Preview) for available updates, quick-filter chips (including *GitHub / Sideload* and *Watched*), monthly-grouped in-app changelogs, and a 9-language [Accessibility Statement](ACCESSIBILITY.md) ([Wiki Guide](https://github.com/DurchEins/apkup/wiki/Accessibility-%26-Accessible-Mode)).
 * **⚡ Reliable WorkManager Downloads, APK Export, 24h Cache & Autonomous Installs:**
   * **User-Initiated Data Transfer Worker & Batch ETA:** Interactive downloads, multi-select batch installs (TopAppBar selection mode), and filtered batch updates (*Install All*) run reliably via AndroidX `WorkManager` (`UpdateDownloadWorker`) with live overall batch percentage, smoothed transfer speed, ETA, and instant per-item or global cancellation.
   * **Save APK & Split `.apks` Bundles:** Export single `.apk` installers or bundled `.apks` split packages directly into `Download/ApkUp/` (or any custom SAF folder configured in Setup) without installing.
@@ -329,7 +329,7 @@ If ApkUp saves you time keeping your apps up to date, consider supporting its on
 
 | 🌐 Browser (No Git needed) | 🛠️ Developers (Pull Requests) |
 | :--- | :--- |
-| Translate directly in your browser on **[Hosted Weblate](https://hosted.weblate.org/engage/apkup/)**, or report typos via the **[Translation Issue Form](https://github.com/DurchEins/apkup/issues/new?template=translation.yml)**. | Edit Android strings in `app/src/main/res/values-*/strings.xml` or website translations in `website/src/i18n/*.json`. |
+| Translate directly in your browser on **[Hosted Weblate](https://hosted.weblate.org/engage/apkup/)**, or report typos via the **[Translation Issue Form](https://github.com/DurchEins/apkup/issues/new?template=translation.yml)**. | Edit Android strings in `app/src/main/res/values-*/strings.xml` or website translations in `website/src/i18n/*.json`.<br><sub>💡 **GitHub ProTip:** Append `.patch` or `.diff` to any commit or PR URL (e.g., [PR #29 Diff](https://github.com/DurchEins/apkup/pull/29.diff)) for Git's plaintext view.</sub> |
 
 <p align="center">
   <picture>

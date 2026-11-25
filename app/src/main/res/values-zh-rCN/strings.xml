@@ -642,7 +642,7 @@
     <string name="a11y_sun_customize_btn">自定义时间</string>
     <string name="a11y_sun_reset_btn">恢复日照自动</string>
     <string name="dynamic_color_paused_a11y">无障碍主题启用时已暂停，以确保 7:1 高对比度</string>
-    <string name="widget_updates_description">显示可用的 ApkUp 更新并触发快速检查</string>
+    <string name="widget_updates_description">显示可用的 ApkUp 更新并触发快速检查 (Preview)</string>
     <string name="widget_updates_checking">正在检查…</string>
     <string name="widget_updates_never_checked">尚未检查</string>
     <string name="widget_updates_up_to_date">全部已是最新</string>
@@ -695,4 +695,5 @@
     <string name="updates_select_action">选择</string>
     <string name="a11y_selected_label">已选择</string>
     <string name="updates_missing_prehash_hint">该来源未提供下载前哈希值；安装时 Android 会验证应用签名。</string>
+    <string name="widget_updates_preview_badge">Preview</string>
 </resources>

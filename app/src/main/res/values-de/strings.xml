@@ -659,7 +659,7 @@
     <string name="a11y_sun_customize_btn">Zeiten anpassen</string>
     <string name="a11y_sun_reset_btn">Sonnenstand nutzen</string>
     <string name="dynamic_color_paused_a11y">Im Barrierefrei-Theme pausiert, um maximalen Kontrast (7:1) zu garantieren</string>
-    <string name="widget_updates_description">Zeigt verfügbare ApkUp-Updates und startet einen Schnell-Check</string>
+    <string name="widget_updates_description">Zeigt verfügbare ApkUp-Updates und startet einen Schnell-Check (Preview)</string>
     <string name="widget_updates_checking">Suche Updates…</string>
     <string name="widget_updates_never_checked">Noch nicht geprüft</string>
     <string name="widget_updates_up_to_date">Alles aktuell</string>
@@ -713,4 +713,5 @@
     <string name="updates_select_action">Auswählen</string>
     <string name="a11y_selected_label">Ausgewählt</string>
     <string name="updates_missing_prehash_hint">Quelle liefert keinen Vorab-Hash; Android prüft die App-Signatur beim Installieren.</string>
+    <string name="widget_updates_preview_badge">Preview</string>
 </resources>

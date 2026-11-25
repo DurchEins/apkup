@@ -645,7 +645,7 @@
     <string name="a11y_sun_customize_btn">Regola orari</string>
     <string name="a11y_sun_reset_btn">Usa sole auto</string>
     <string name="dynamic_color_paused_a11y">In pausa col tema Accessibilità per garantire il massimo contrasto (7:1)</string>
-    <string name="widget_updates_description">Mostra gli aggiornamenti ApkUp disponibili e avvia un controllo rapido</string>
+    <string name="widget_updates_description">Mostra gli aggiornamenti ApkUp disponibili e avvia un controllo rapido (Preview)</string>
     <string name="widget_updates_checking">Controllo…</string>
     <string name="widget_updates_never_checked">Mai controllato</string>
     <string name="widget_updates_up_to_date">Tutto aggiornato</string>
@@ -699,4 +699,5 @@
     <string name="updates_select_action">Seleziona</string>
     <string name="a11y_selected_label">Selezionato</string>
     <string name="updates_missing_prehash_hint">La fonte non fornisce un hash preliminare; Android verifica la firma dell\'app durante l\'installazione.</string>
+    <string name="widget_updates_preview_badge">Preview</string>
 </resources>
