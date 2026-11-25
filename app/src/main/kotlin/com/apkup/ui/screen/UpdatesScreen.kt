@@ -101,6 +101,7 @@ import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -110,7 +111,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.minimumInteractiveComponentSize
 import com.apkup.ui.component.rememberExpandedModalSheetState
 import androidx.compose.runtime.Composable
@@ -121,6 +126,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -148,6 +155,16 @@ import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -160,6 +177,7 @@ import com.apkup.ui.component.CollapsibleScrollHeader
 import com.apkup.ui.component.rememberCollapsibleHeaderState
 import com.apkup.data.ui.ApkMirrorSource
 import com.apkup.data.ui.AppUpdate
+import com.apkup.data.ui.cleanChangelogSpeechText
 import com.apkup.data.ui.cleanChangelogText
 import com.apkup.data.ui.FDroidSource
 import com.apkup.data.ui.GitHubSource
@@ -175,7 +193,6 @@ import com.apkup.data.ui.Source
 import com.apkup.data.ui.hasPotentialSignatureConflict
 import com.apkup.service.DownloadTaskState
 import com.apkup.ui.component.AppEmptyState
-import com.apkup.ui.component.CompactUpdateCardLayout
 import com.apkup.ui.component.GrandFestivalEmptyState
 import com.apkup.ui.component.MultiSourceScanTray
 import com.apkup.ui.component.ScanSourceStatus
@@ -437,7 +454,9 @@ fun UpdatesTopBar(
 					maxLines = 1,
 					softWrap = false,
 					overflow = TextOverflow.Ellipsis,
-					modifier = Modifier.weight(1f, fill = false)
+					modifier = Modifier
+						.weight(1f, fill = false)
+						.semantics { heading() }
 				)
 				if (updatesCount != null && updatesCount > 0) {
 					Surface(
@@ -464,7 +483,9 @@ fun UpdatesTopBar(
 				IconButton(onClick = onToggleSearch) {
 					Icon(
 						imageVector = if (searchExpanded) Icons.Filled.Clear else Icons.Filled.Search,
-						contentDescription = stringResource(R.string.updates_search_placeholder)
+						contentDescription = stringResource(
+							if (searchExpanded) R.string.a11y_close_search else R.string.updates_search_placeholder
+						)
 					)
 				}
 			}
@@ -534,7 +555,7 @@ fun UpdatesTopBar(
 			) {
 				Icon(
 					imageVector = Icons.Rounded.Update,
-					contentDescription = stringResource(R.string.tab_updates),
+					contentDescription = null,
 					tint = MaterialTheme.colorScheme.primary,
 					modifier = Modifier.size(20.dp)
 				)
@@ -614,7 +635,7 @@ fun UpdatesScreenSuccess(
 
 	val context = LocalContext.current
 	val handler = com.apkup.ui.component.rememberCustomTabUriHandler()
-	val displayMode = viewModel.getUpdatesDisplayMode()
+	val isAccessibleUi = ApkUpTheme.isAccessibleUi
 	val view = LocalView.current
 	DisposableEffect(isChecking) {
 		view.keepScreenOn = isChecking
@@ -770,7 +791,8 @@ fun UpdatesScreenSuccess(
 	}
 
 	val collapsibleHeaderState = rememberCollapsibleHeaderState(
-		pinned = isSelectionMode ||
+		pinned = isAccessibleUi ||
+			isSelectionMode ||
 			searchExpanded ||
 			searchQuery.isNotBlank() ||
 			activeTasks.isNotEmpty() ||
@@ -831,8 +853,8 @@ fun UpdatesScreenSuccess(
 
 	AnimatedVisibility(
 		visible = !isSelectionMode && (searchExpanded || searchQuery.isNotBlank()),
-		enter = expandVertically() + fadeIn(),
-		exit = shrinkVertically() + fadeOut()
+		enter = if (ApkUpTheme.isReducedMotion) androidx.compose.animation.EnterTransition.None else expandVertically() + fadeIn(),
+		exit = if (ApkUpTheme.isReducedMotion) androidx.compose.animation.ExitTransition.None else shrinkVertically() + fadeOut()
 	) {
 		DockedUpdatesSearchBar(
 			query = searchQuery,
@@ -849,6 +871,29 @@ fun UpdatesScreenSuccess(
 
 	CollapsibleScrollHeader(state = collapsibleHeaderState) {
 		Column(modifier = Modifier.fillMaxWidth()) {
+			if (isAccessibleUi && !isSelectionMode) {
+				Surface(
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(horizontal = 12.dp, vertical = 4.dp)
+						.semantics { liveRegion = LiveRegionMode.Polite },
+					shape = RoundedCornerShape(14.dp),
+					color = MaterialTheme.colorScheme.surfaceContainer,
+					border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant)
+				) {
+					Text(
+						text = stringResource(
+							R.string.a11y_updates_status_summary,
+							displayedUpdates.size,
+							sourceCounts.size
+						),
+						style = MaterialTheme.typography.bodyMedium,
+						fontWeight = FontWeight.SemiBold,
+						color = MaterialTheme.colorScheme.onSurface,
+						modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
+					)
+				}
+			}
 			if ((updates.isNotEmpty() && !isChecking && !isSelectionMode) || activeTasks.isNotEmpty()) {
 				UpdatesHeroBanner(
 					updatesCount = displayedUpdates.size,
@@ -887,13 +932,18 @@ fun UpdatesScreenSuccess(
 				enter = if (ApkUpTheme.isReducedMotion) androidx.compose.animation.EnterTransition.None else fadeIn() + expandVertically(),
 				exit = if (ApkUpTheme.isReducedMotion) androidx.compose.animation.ExitTransition.None else fadeOut() + shrinkVertically()
 			) {
+				val failedHighContrast = ApkUpTheme.isHighContrast
 				Surface(
 					modifier = Modifier
 						.fillMaxWidth()
-						.padding(horizontal = 16.dp, vertical = 6.dp),
+						.padding(horizontal = 16.dp, vertical = 6.dp)
+						.semantics { liveRegion = LiveRegionMode.Polite },
 					shape = RoundedCornerShape(20.dp),
-					color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.72f),
-					border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.25f))
+					color = if (failedHighContrast) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.72f),
+					border = BorderStroke(
+						if (failedHighContrast) 1.5.dp else 1.dp,
+						if (failedHighContrast) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.error.copy(alpha = 0.25f)
+					)
 				) {
 					Row(
 						modifier = Modifier
@@ -928,7 +978,7 @@ fun UpdatesScreenSuccess(
 						}
 						IconButton(
 							onClick = { viewModel.dismissFailedBatchUpdates() },
-							modifier = Modifier.size(32.dp)
+							modifier = Modifier.size(48.dp)
 						) {
 							Icon(
 								imageVector = Icons.Filled.Close,
@@ -1115,34 +1165,6 @@ fun UpdatesScreenSuccess(
 			),
 			modifier = Modifier.weight(1f)
 		)
-		displayMode == 1 -> {
-			UpdatesPullToRefreshBox(
-				isChecking = isChecking,
-				onRefresh = { viewModel.refresh() },
-				modifier = Modifier.weight(1f)
-			) {
-				CompactUpdatesGrid(
-					viewModel = viewModel,
-					appsViewModel = appsViewModel,
-					updates = displayedUpdates,
-					scrollResetKey = Triple(sortOrder, selectedSourceFilter, searchQuery.trim()),
-					activeTasksMap = activeTasksMap,
-					readyUpdateIds = readyUpdateIds,
-					failedUpdateIds = failedUpdateIds,
-					jumpToErrorTick = jumpToErrorTick,
-					extraBottomPadding = 0.dp,
-					handler = handler,
-					modifier = Modifier
-						.fillMaxSize()
-						.nestedScroll(collapsibleHeaderState.nestedScrollConnection),
-					onRequestInstall = requestInstallSingle,
-					onRequestSaveApk = requestSaveApkSingle,
-					isSelectionMode = isSelectionMode,
-					selectedUpdateIds = selectedUpdateIds,
-					onToggleSelection = toggleSelection
-				)
-			}
-		}
 		else -> {
 			UpdatesPullToRefreshBox(
 				isChecking = isChecking,
@@ -1248,13 +1270,35 @@ fun UpdatesScreenSuccess(
 				)
 			},
 			confirmButton = {
-				Button(onClick = { viewModel.confirmMobileDataDownload() }) {
-					Text(text = stringResource(R.string.dialog_mobile_data_confirm))
+				if (isAccessibleUi) {
+					Column(
+						modifier = Modifier.fillMaxWidth(),
+						verticalArrangement = Arrangement.spacedBy(8.dp)
+					) {
+						Button(
+							onClick = { viewModel.confirmMobileDataDownload() },
+							modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+						) {
+							Text(text = stringResource(R.string.dialog_mobile_data_confirm))
+						}
+						OutlinedButton(
+							onClick = { viewModel.dismissMobileDataDialog() },
+							modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+						) {
+							Text(text = stringResource(R.string.action_cancel))
+						}
+					}
+				} else {
+					Button(onClick = { viewModel.confirmMobileDataDownload() }) {
+						Text(text = stringResource(R.string.dialog_mobile_data_confirm))
+					}
 				}
 			},
-			dismissButton = {
-				TextButton(onClick = { viewModel.dismissMobileDataDialog() }) {
-					Text(text = stringResource(R.string.action_cancel))
+			dismissButton = if (isAccessibleUi) null else {
+				{
+					TextButton(onClick = { viewModel.dismissMobileDataDialog() }) {
+						Text(text = stringResource(R.string.action_cancel))
+					}
 				}
 			}
 		)
@@ -1277,13 +1321,35 @@ fun UpdatesScreenSuccess(
 				)
 			},
 			confirmButton = {
-				Button(onClick = { viewModel.confirmBatteryDownload() }) {
-					Text(text = stringResource(R.string.dialog_battery_confirm))
+				if (isAccessibleUi) {
+					Column(
+						modifier = Modifier.fillMaxWidth(),
+						verticalArrangement = Arrangement.spacedBy(8.dp)
+					) {
+						Button(
+							onClick = { viewModel.confirmBatteryDownload() },
+							modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+						) {
+							Text(text = stringResource(R.string.dialog_battery_confirm))
+						}
+						OutlinedButton(
+							onClick = { viewModel.dismissBatteryPromptDialog() },
+							modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+						) {
+							Text(text = stringResource(R.string.action_cancel))
+						}
+					}
+				} else {
+					Button(onClick = { viewModel.confirmBatteryDownload() }) {
+						Text(text = stringResource(R.string.dialog_battery_confirm))
+					}
 				}
 			},
-			dismissButton = {
-				TextButton(onClick = { viewModel.dismissBatteryPromptDialog() }) {
-					Text(text = stringResource(R.string.action_cancel))
+			dismissButton = if (isAccessibleUi) null else {
+				{
+					TextButton(onClick = { viewModel.dismissBatteryPromptDialog() }) {
+						Text(text = stringResource(R.string.action_cancel))
+					}
 				}
 			}
 		)
@@ -1305,7 +1371,8 @@ fun UpdatesScreenSuccess(
 				Text(
 					text = stringResource(R.string.batch_safety_title),
 					style = MaterialTheme.typography.titleLarge,
-					fontWeight = FontWeight.Bold
+					fontWeight = FontWeight.Bold,
+					modifier = Modifier.semantics { heading() }
 				)
 			},
 			text = {
@@ -1315,13 +1382,41 @@ fun UpdatesScreenSuccess(
 				)
 			},
 			confirmButton = {
-				Button(onClick = { viewModel.confirmBatchSafetyProceed() }) {
-					Text(text = stringResource(R.string.batch_safety_continue))
+				if (isAccessibleUi) {
+					Column(
+						modifier = Modifier.fillMaxWidth(),
+						verticalArrangement = Arrangement.spacedBy(8.dp)
+					) {
+						Button(
+							onClick = { viewModel.confirmBatchSafetyProceed() },
+							modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+						) {
+							Text(text = stringResource(R.string.batch_safety_continue))
+						}
+						OutlinedButton(
+							onClick = { viewModel.dismissBatchSafetyDialog() },
+							modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+						) {
+							Text(text = stringResource(R.string.action_cancel))
+						}
+					}
+				} else {
+					Button(
+						onClick = { viewModel.confirmBatchSafetyProceed() },
+						modifier = Modifier.heightIn(min = 48.dp)
+					) {
+						Text(text = stringResource(R.string.batch_safety_continue))
+					}
 				}
 			},
-			dismissButton = {
-				TextButton(onClick = { viewModel.dismissBatchSafetyDialog() }) {
-					Text(text = stringResource(R.string.action_cancel))
+			dismissButton = if (isAccessibleUi) null else {
+				{
+					TextButton(
+						onClick = { viewModel.dismissBatchSafetyDialog() },
+						modifier = Modifier.heightIn(min = 48.dp)
+					) {
+						Text(text = stringResource(R.string.action_cancel))
+					}
 				}
 			}
 		)
@@ -1354,18 +1449,43 @@ fun UpdatesScreenSuccess(
 				)
 			},
 			confirmButton = {
-				Button(
-					onClick = {
-						pendingWatchedApkMirrorConfirm = null
-						confirmAction()
+				if (isAccessibleUi) {
+					Column(
+						modifier = Modifier.fillMaxWidth(),
+						verticalArrangement = Arrangement.spacedBy(8.dp)
+					) {
+						Button(
+							onClick = {
+								pendingWatchedApkMirrorConfirm = null
+								confirmAction()
+							},
+							modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+						) {
+							Text(text = stringResource(R.string.apkmirror_watched_first_install_confirm))
+						}
+						OutlinedButton(
+							onClick = { pendingWatchedApkMirrorConfirm = null },
+							modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+						) {
+							Text(text = stringResource(R.string.action_cancel))
+						}
 					}
-				) {
-					Text(text = stringResource(R.string.apkmirror_watched_first_install_confirm))
+				} else {
+					Button(
+						onClick = {
+							pendingWatchedApkMirrorConfirm = null
+							confirmAction()
+						}
+					) {
+						Text(text = stringResource(R.string.apkmirror_watched_first_install_confirm))
+					}
 				}
 			},
-			dismissButton = {
-				TextButton(onClick = { pendingWatchedApkMirrorConfirm = null }) {
-					Text(text = stringResource(R.string.action_cancel))
+			dismissButton = if (isAccessibleUi) null else {
+				{
+					TextButton(onClick = { pendingWatchedApkMirrorConfirm = null }) {
+						Text(text = stringResource(R.string.action_cancel))
+					}
 				}
 			}
 		)
@@ -1446,7 +1566,7 @@ private fun DockedUpdatesSearchBar(
 				}) {
 					Icon(
 						imageVector = Icons.Filled.Clear,
-						contentDescription = null,
+						contentDescription = stringResource(R.string.a11y_clear_search),
 						tint = MaterialTheme.colorScheme.onSurfaceVariant
 					)
 				}
@@ -1657,7 +1777,8 @@ private fun UpdatesHeroBanner(
 								fontWeight = FontWeight.Bold,
 								color = MaterialTheme.colorScheme.onSurface,
 								maxLines = 1,
-								overflow = TextOverflow.Ellipsis
+								overflow = TextOverflow.Ellipsis,
+								modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
 							)
 							Text(
 								text = liveSubtitle,
@@ -1829,11 +1950,72 @@ private fun UpdatesHeroBanner(
 								)
 							}
 						}
+					} else if (ApkUpTheme.isAccessibleUi) {
+						var showAccessibleMoreMenu by remember { mutableStateOf(false) }
+						Column(
+							verticalArrangement = Arrangement.spacedBy(8.dp),
+							horizontalAlignment = Alignment.End
+						) {
+							Button(
+								onClick = onInstallAll,
+								modifier = Modifier.heightIn(min = 48.dp)
+							) {
+								Icon(
+									painter = painterResource(R.drawable.ic_install),
+									contentDescription = null,
+									modifier = Modifier.size(18.dp)
+								)
+								Spacer(Modifier.width(6.dp))
+								Text(text = stringResource(R.string.install_all))
+							}
+							Box {
+								OutlinedButton(
+									onClick = { showAccessibleMoreMenu = true },
+									modifier = Modifier.heightIn(min = 48.dp)
+								) {
+									Text(text = stringResource(R.string.a11y_updates_more_actions))
+								}
+								DropdownMenu(
+									expanded = showAccessibleMoreMenu,
+									onDismissRequest = { showAccessibleMoreMenu = false }
+								) {
+									if (onOpenHistory != null) {
+										DropdownMenuItem(
+											text = { Text(stringResource(R.string.update_history_title)) },
+											leadingIcon = {
+												Icon(
+													imageVector = Icons.Rounded.History,
+													contentDescription = null
+												)
+											},
+											onClick = {
+												showAccessibleMoreMenu = false
+												onOpenHistory()
+											}
+										)
+									}
+									DropdownMenuItem(
+										text = { Text(stringResource(R.string.updates_select_all)) },
+										leadingIcon = {
+											Icon(
+												imageVector = Icons.Filled.Check,
+												contentDescription = null
+											)
+										},
+										onClick = {
+											showAccessibleMoreMenu = false
+											onSelectAll()
+										}
+									)
+								}
+							}
+						}
 					} else {
 						ApkUpSplitActionButton(
 							label = stringResource(R.string.install_all),
 							iconRes = R.drawable.ic_install,
 							onClick = onInstallAll,
+							menuContentDescription = stringResource(R.string.updates_more_actions_cd),
 							menuContent = { dismiss ->
 								if (onOpenHistory != null) {
 									DropdownMenuItem(
@@ -2140,11 +2322,11 @@ private fun ActiveQueueBottomSheet(
 								}
 								IconButton(
 									onClick = { onCancelTask(task.id) },
-									modifier = Modifier.size(32.dp)
+									modifier = Modifier.minimumInteractiveComponentSize()
 								) {
 									Icon(
 										imageVector = Icons.Filled.Close,
-										contentDescription = stringResource(R.string.action_cancel),
+										contentDescription = "${stringResource(R.string.action_cancel)} $appName",
 										tint = MaterialTheme.colorScheme.onSurfaceVariant,
 										modifier = Modifier.size(18.dp)
 									)
@@ -2261,7 +2443,7 @@ private fun ActiveQueueBottomSheet(
 	}
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun UpdatesSourceFilterRow(
 	totalCount: Int,
@@ -2269,19 +2451,13 @@ private fun UpdatesSourceFilterRow(
 	selectedSource: String?,
 	onSelectSource: (String?) -> Unit
 ) {
-	Row(
-		modifier = Modifier
-			.fillMaxWidth()
-			.horizontalScroll(rememberScrollState())
-			.padding(horizontal = 12.dp, vertical = 4.dp),
-		horizontalArrangement = Arrangement.spacedBy(6.dp),
-		verticalAlignment = Alignment.CenterVertically
-	) {
+	val isAccessibleUi = ApkUpTheme.isAccessibleUi
+	val chipsContent: @Composable () -> Unit = {
 		val allSelected = selectedSource == null
 		FilterChip(
 			selected = allSelected,
 			onClick = { onSelectSource(null) },
-			modifier = Modifier.height(32.dp),
+			modifier = if (isAccessibleUi) Modifier.heightIn(min = 48.dp) else Modifier.height(32.dp),
 			label = {
 				Row(
 					verticalAlignment = Alignment.CenterVertically,
@@ -2289,7 +2465,7 @@ private fun UpdatesSourceFilterRow(
 				) {
 					Text(
 						text = stringResource(R.string.apps_filter_all),
-						style = MaterialTheme.typography.labelSmall,
+						style = if (isAccessibleUi) MaterialTheme.typography.labelLarge else MaterialTheme.typography.labelSmall,
 						fontWeight = if (allSelected) FontWeight.Bold else FontWeight.Medium
 					)
 					Surface(
@@ -2299,7 +2475,7 @@ private fun UpdatesSourceFilterRow(
 					) {
 						Text(
 							text = totalCount.toString(),
-							style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+							style = MaterialTheme.typography.labelSmall.copy(fontSize = if (isAccessibleUi) 12.sp else 10.sp),
 							fontWeight = FontWeight.Bold,
 							color = if (allSelected) MaterialTheme.colorScheme.onSecondaryContainer
 							else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -2318,7 +2494,16 @@ private fun UpdatesSourceFilterRow(
 				}
 			} else null,
 			shape = CircleShape,
-			border = null,
+			border = if (isAccessibleUi) {
+				FilterChipDefaults.filterChipBorder(
+					enabled = true,
+					selected = allSelected,
+					borderColor = MaterialTheme.colorScheme.outline,
+					selectedBorderColor = MaterialTheme.colorScheme.primary,
+					borderWidth = 1.5.dp,
+					selectedBorderWidth = 1.5.dp
+				)
+			} else null,
 			colors = FilterChipDefaults.filterChipColors(
 				selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
 				selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -2334,7 +2519,7 @@ private fun UpdatesSourceFilterRow(
 				FilterChip(
 					selected = isSelected,
 					onClick = { onSelectSource(if (isSelected) null else source.name) },
-					modifier = Modifier.height(32.dp),
+					modifier = if (isAccessibleUi) Modifier.heightIn(min = 48.dp) else Modifier.height(32.dp),
 					label = {
 						Row(
 							verticalAlignment = Alignment.CenterVertically,
@@ -2342,7 +2527,7 @@ private fun UpdatesSourceFilterRow(
 						) {
 							Text(
 								text = sourceName(source),
-								style = MaterialTheme.typography.labelSmall,
+								style = if (isAccessibleUi) MaterialTheme.typography.labelLarge else MaterialTheme.typography.labelSmall,
 								fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
 							)
 							Surface(
@@ -2352,7 +2537,7 @@ private fun UpdatesSourceFilterRow(
 							) {
 								Text(
 									text = count.toString(),
-									style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+									style = MaterialTheme.typography.labelSmall.copy(fontSize = if (isAccessibleUi) 12.sp else 10.sp),
 									fontWeight = FontWeight.Bold,
 									color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer
 									else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -2380,7 +2565,16 @@ private fun UpdatesSourceFilterRow(
 						}
 					},
 					shape = CircleShape,
-					border = null,
+					border = if (isAccessibleUi) {
+						FilterChipDefaults.filterChipBorder(
+							enabled = true,
+							selected = isSelected,
+							borderColor = MaterialTheme.colorScheme.outline,
+							selectedBorderColor = MaterialTheme.colorScheme.primary,
+							borderWidth = 1.5.dp,
+							selectedBorderWidth = 1.5.dp
+						)
+					} else null,
 					colors = FilterChipDefaults.filterChipColors(
 						selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
 						selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -2390,6 +2584,28 @@ private fun UpdatesSourceFilterRow(
 					)
 				)
 			}
+		}
+	}
+	if (isAccessibleUi) {
+		androidx.compose.foundation.layout.FlowRow(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(horizontal = 12.dp, vertical = 4.dp),
+			horizontalArrangement = Arrangement.spacedBy(8.dp),
+			verticalArrangement = Arrangement.spacedBy(8.dp)
+		) {
+			chipsContent()
+		}
+	} else {
+		Row(
+			modifier = Modifier
+				.fillMaxWidth()
+				.horizontalScroll(rememberScrollState())
+				.padding(horizontal = 12.dp, vertical = 4.dp),
+			horizontalArrangement = Arrangement.spacedBy(6.dp),
+			verticalAlignment = Alignment.CenterVertically
+		) {
+			chipsContent()
 		}
 	}
 }
@@ -2752,6 +2968,43 @@ private fun TrustShieldBadge(
 	)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MissingPreDownloadHashBadge(
+	modifier: Modifier = Modifier
+) {
+	val hint = stringResource(R.string.updates_missing_prehash_hint)
+	val tooltipState = rememberTooltipState(isPersistent = false)
+	val scope = rememberCoroutineScope()
+	TooltipBox(
+		positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+		tooltip = {
+			PlainTooltip {
+				Text(text = hint)
+			}
+		},
+		state = tooltipState,
+		modifier = modifier
+	) {
+		Box(
+			modifier = Modifier
+				.clip(CircleShape)
+				.clickable(role = Role.Button, onClickLabel = hint) {
+					scope.launch { tooltipState.show() }
+				}
+				.padding(2.dp),
+			contentAlignment = Alignment.Center
+		) {
+			Icon(
+				imageVector = Icons.Outlined.Shield,
+				contentDescription = hint,
+				tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
+				modifier = Modifier.size(14.dp)
+			)
+		}
+	}
+}
+
 @Composable
 private fun SourceIconWithCooldown(
 	source: Source,
@@ -2844,7 +3097,12 @@ private fun UpdatesList(
 	}
 
 	BoxWithConstraints(modifier) {
-		val columns = updateGridColumnCount(maxWidth.value, compact = false)
+		val isAccessibleList = ApkUpTheme.isAccessibleUi
+		val columns = updateGridColumnCount(
+			availableWidthDp = maxWidth.value,
+			compact = false,
+			forceAccessibleSingleColumn = isAccessibleList
+		)
 		LazyVerticalGrid(
 			columns = GridCells.Fixed(columns),
 			state = gridState,
@@ -2853,9 +3111,9 @@ private fun UpdatesList(
 				start = NormalUpdateCardLayout.gridHorizontalPaddingDp.dp,
 				top = NormalUpdateCardLayout.gridTopPaddingDp.dp,
 				end = NormalUpdateCardLayout.gridHorizontalPaddingDp.dp,
-				bottom = NormalUpdateCardLayout.gridBottomPaddingDp.dp + extraBottomPadding
+				bottom = if (isAccessibleList) 24.dp else (NormalUpdateCardLayout.gridBottomPaddingDp.dp + extraBottomPadding)
 			),
-			verticalArrangement = Arrangement.spacedBy(NormalUpdateCardLayout.gridSpacingDp.dp),
+			verticalArrangement = Arrangement.spacedBy(if (isAccessibleList) 12.dp else NormalUpdateCardLayout.gridSpacingDp.dp),
 			horizontalArrangement = Arrangement.spacedBy(NormalUpdateCardLayout.gridSpacingDp.dp)
 		) {
 			gridItemsIndexed(items = updates, key = { _, u -> u.id }) { index, update ->
@@ -2967,7 +3225,13 @@ private fun UpdateCard(
 	val effProgress = liveTask?.progress ?: update.progress
 	val effTotal = liveTask?.total?.takeIf { it > 0L } ?: update.total
 
+	val selectActionLabel = stringResource(
+		if (isSelected) R.string.a11y_deselect_item else R.string.a11y_select_item,
+		card.appName
+	)
 	val cardShape = MaterialTheme.shapes.large
+	val highContrast = ApkUpTheme.isHighContrast
+	val isAccessibleUi = ApkUpTheme.isAccessibleUi
 	Surface(
 		modifier = modifier
 			.fillMaxWidth()
@@ -2976,6 +3240,19 @@ private fun UpdateCard(
 				onClick = onSelect,
 				onLongClick = onLongPress
 			)
+			.semantics {
+				if (isSelectable) {
+					customActions = listOf(
+						CustomAccessibilityAction(selectActionLabel) {
+							onLongPress()
+							true
+						}
+					)
+				}
+				if (isSelectionMode && isSelectable) {
+					selected = isSelected
+				}
+			}
 			.animateContentSize(animationSpec = ApkUpTheme.motion.defaultSpatialSpec()),
 		shape = cardShape,
 		color = when {
@@ -2984,10 +3261,11 @@ private fun UpdateCard(
 			else -> MaterialTheme.colorScheme.surfaceContainerLow
 		},
 		border = BorderStroke(
-			width = if (isSelected || isFailed) 1.5.dp else 1.dp,
+			width = if (isSelected || isFailed || highContrast) 1.5.dp else 1.dp,
 			color = when {
 				isSelected -> MaterialTheme.colorScheme.primary
 				isFailed -> MaterialTheme.colorScheme.error
+				highContrast -> MaterialTheme.colorScheme.outlineVariant
 				else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
 			}
 		)
@@ -2995,7 +3273,7 @@ private fun UpdateCard(
 		Column(
 			modifier = Modifier
 				.fillMaxWidth()
-				.padding(16.dp),
+				.padding(if (isAccessibleUi) 18.dp else 16.dp),
 			verticalArrangement = Arrangement.spacedBy(10.dp)
 		) {
 			// Top Row: App Icon (46dp) + App Name & Size + Versions
@@ -3060,7 +3338,7 @@ private fun UpdateCard(
 							style = MaterialTheme.typography.titleMedium,
 							fontWeight = FontWeight.Bold,
 							color = MaterialTheme.colorScheme.onSurface,
-							maxLines = 1,
+							maxLines = if (isAccessibleUi) 3 else 1,
 							overflow = TextOverflow.Ellipsis,
 							modifier = Modifier.weight(1f, fill = false)
 						)
@@ -3095,9 +3373,12 @@ private fun UpdateCard(
 								style = MaterialTheme.typography.labelSmall,
 								fontWeight = FontWeight.Bold,
 								color = MaterialTheme.colorScheme.primary,
-								maxLines = 1,
+								maxLines = if (isAccessibleUi) 2 else 1,
 								overflow = TextOverflow.Ellipsis
 							)
+							if ((update.link as? Link.Url)?.expectedSha256.isNullOrBlank()) {
+								MissingPreDownloadHashBadge()
+							}
 						}
 					} else {
 						Row(
@@ -3108,12 +3389,12 @@ private fun UpdateCard(
 								text = card.installedVersion.ifBlank { "—" },
 								style = MaterialTheme.typography.labelSmall,
 								color = MaterialTheme.colorScheme.onSurfaceVariant,
-								maxLines = 1,
+								maxLines = if (isAccessibleUi) 2 else 1,
 								overflow = TextOverflow.Ellipsis
 							)
 							Icon(
 								imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
-								contentDescription = null,
+								contentDescription = if (isAccessibleUi) stringResource(R.string.a11y_version_to) else null,
 								tint = MaterialTheme.colorScheme.primary,
 								modifier = Modifier.size(12.dp)
 							)
@@ -3122,9 +3403,12 @@ private fun UpdateCard(
 								style = MaterialTheme.typography.labelSmall,
 								fontWeight = FontWeight.Bold,
 								color = MaterialTheme.colorScheme.primary,
-								maxLines = 1,
+								maxLines = if (isAccessibleUi) 2 else 1,
 								overflow = TextOverflow.Ellipsis
 							)
+							if ((update.link as? Link.Url)?.expectedSha256.isNullOrBlank()) {
+								MissingPreDownloadHashBadge()
+							}
 						}
 					}
 					// Row 2: Source Badge & Multi-Source Indicator Badge
@@ -3145,18 +3429,33 @@ private fun UpdateCard(
 								SourceIconWithCooldown(source = card.source)
 								Text(
 									text = sourceName,
-									style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+									style = if (isAccessibleUi) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
 									color = MaterialTheme.colorScheme.onSurfaceVariant
 								)
 								val isVerifiedReady = isCachedReady || (liveTask != null && liveTask.total > 0L && liveTask.progress >= liveTask.total)
 								TrustShieldBadge(isVerified = isVerifiedReady)
+								if (isAccessibleUi && isVerifiedReady) {
+									Text(
+										text = stringResource(R.string.a11y_updates_verified),
+										style = MaterialTheme.typography.labelSmall,
+										color = ApkUpTheme.colors.success
+									)
+								}
 							}
 						}
 						if (card.additionalSourcesCount > 0) {
-							val sourcesPlural = if (card.additionalSourcesCount == 1) {
-								stringResource(R.string.update_sources_multiple_count_singular, card.additionalSourcesCount)
+							val sourcesPlural = if (isAccessibleUi) {
+								if (card.additionalSourcesCount == 1) {
+									stringResource(R.string.a11y_updates_sources_more_singular, card.additionalSourcesCount)
+								} else {
+									stringResource(R.string.a11y_updates_sources_more_plural, card.additionalSourcesCount)
+								}
 							} else {
-								stringResource(R.string.update_sources_multiple_count_plural, card.additionalSourcesCount)
+								if (card.additionalSourcesCount == 1) {
+									stringResource(R.string.update_sources_multiple_count_singular, card.additionalSourcesCount)
+								} else {
+									stringResource(R.string.update_sources_multiple_count_plural, card.additionalSourcesCount)
+								}
 							}
 							Surface(
 								shape = RoundedCornerShape(4.dp),
@@ -3189,11 +3488,18 @@ private fun UpdateCard(
 
 			// Changelog snippet if available
 			val cleanChangelog = remember(update.whatsNew) { cleanChangelogText(update.whatsNew) }
+			val cleanChangelogSpeech = remember(update.whatsNew) { cleanChangelogSpeechText(update.whatsNew) }
 			if (cleanChangelog.isNotBlank()) {
 				Surface(
 					shape = RoundedCornerShape(10.dp),
 					color = MaterialTheme.colorScheme.surfaceContainer,
-					modifier = Modifier.fillMaxWidth()
+					modifier = Modifier
+						.fillMaxWidth()
+						.semantics(mergeDescendants = true) {
+							if (cleanChangelogSpeech.isNotBlank()) {
+								contentDescription = cleanChangelogSpeech
+							}
+						}
 				) {
 					Row(
 						modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
@@ -3208,9 +3514,12 @@ private fun UpdateCard(
 						)
 						Text(
 							text = cleanChangelog,
-							style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp, lineHeight = 16.sp),
+							style = MaterialTheme.typography.bodySmall.copy(
+								fontSize = if (isAccessibleUi) 13.sp else 12.sp,
+								lineHeight = if (isAccessibleUi) 18.sp else 16.sp
+							),
 							color = MaterialTheme.colorScheme.onSurfaceVariant,
-							maxLines = 2,
+							maxLines = if (isAccessibleUi) 4 else 2,
 							overflow = TextOverflow.Ellipsis
 						)
 					}
@@ -3242,9 +3551,9 @@ private fun UpdateCard(
 					)
 					Text(
 						text = cardProgressLabel,
-						style = MaterialTheme.typography.labelSmall,
+						style = if (isAccessibleUi) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelSmall,
 						color = MaterialTheme.colorScheme.primary,
-						maxLines = 1,
+						maxLines = if (isAccessibleUi) 2 else 1,
 						overflow = TextOverflow.Ellipsis
 					)
 					ApkUpWavyLinearProgressIndicator(
@@ -3260,8 +3569,47 @@ private fun UpdateCard(
 				}
 			}
 
+			// Accessible 1-tap selection toggle without requiring long-press
+			if (isAccessibleUi && isSelectable) {
+				OutlinedButton(
+					onClick = onLongPress,
+					shape = RoundedCornerShape(10.dp),
+					modifier = Modifier
+						.fillMaxWidth()
+						.heightIn(min = 48.dp)
+						.semantics { contentDescription = selectActionLabel }
+				) {
+					if (isSelected) {
+						Icon(
+							imageVector = Icons.Rounded.CheckCircle,
+							contentDescription = null,
+							modifier = Modifier.size(18.dp)
+						)
+					} else {
+						Box(
+							modifier = Modifier
+								.size(18.dp)
+								.border(1.5.dp, MaterialTheme.colorScheme.outline, CircleShape)
+						)
+					}
+					Spacer(Modifier.width(8.dp))
+					Text(
+						text = stringResource(if (isSelected) R.string.a11y_selected_label else R.string.updates_select_action),
+						style = MaterialTheme.typography.labelLarge
+					)
+				}
+			}
+
 			// Bottom Actions: Details link & Install Button (hidden in selection mode)
 			if (!isSelectionMode) {
+				val detailsActionText = stringResource(R.string.updates_detail_view)
+				val installActionText = stringResource(
+					when {
+						isCachedReady -> R.string.install_cached_action
+						update.isWatchedApp() -> R.string.install_action
+						else -> R.string.update_action
+					}
+				)
 				Row(
 					modifier = Modifier.fillMaxWidth(),
 					verticalAlignment = Alignment.CenterVertically,
@@ -3269,11 +3617,16 @@ private fun UpdateCard(
 				) {
 					TextButton(
 						onClick = onSelect,
-						contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)
+						contentPadding = PaddingValues(horizontal = if (isAccessibleUi) 10.dp else 4.dp, vertical = 0.dp),
+						modifier = Modifier
+							.then(if (isAccessibleUi) Modifier.heightIn(min = 48.dp) else Modifier)
+							.semantics {
+								contentDescription = "$detailsActionText ${card.appName}"
+							}
 					) {
 						Text(
-							text = stringResource(R.string.updates_detail_view),
-							style = MaterialTheme.typography.labelMedium,
+							text = detailsActionText,
+							style = if (isAccessibleUi) MaterialTheme.typography.labelLarge else MaterialTheme.typography.labelMedium,
 							color = MaterialTheme.colorScheme.onSurfaceVariant
 						)
 					}
@@ -3281,11 +3634,16 @@ private fun UpdateCard(
 						Button(
 							onClick = onInstall,
 							shape = RoundedCornerShape(10.dp),
-							contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+							contentPadding = PaddingValues(horizontal = 14.dp, vertical = if (isAccessibleUi) 10.dp else 6.dp),
 							colors = ButtonDefaults.buttonColors(
 								containerColor = MaterialTheme.colorScheme.primary,
 								contentColor = MaterialTheme.colorScheme.onPrimary
-							)
+							),
+							modifier = Modifier
+								.then(if (isAccessibleUi) Modifier.heightIn(min = 48.dp) else Modifier)
+								.semantics {
+									contentDescription = "$installActionText ${card.appName}"
+								}
 						) {
 							Icon(
 								painter = painterResource(R.drawable.ic_install),
@@ -3294,13 +3652,7 @@ private fun UpdateCard(
 							)
 							Spacer(Modifier.width(6.dp))
 							Text(
-								text = stringResource(
-									when {
-										isCachedReady -> R.string.install_cached_action
-										update.isWatchedApp() -> R.string.install_action
-										else -> R.string.update_action
-									}
-								),
+								text = installActionText,
 								style = MaterialTheme.typography.labelMedium,
 								fontWeight = FontWeight.Bold
 							)
@@ -3309,387 +3661,6 @@ private fun UpdateCard(
 				}
 			}
 		}
-	}
-}
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
-@Composable
-private fun CompactUpdatesGrid(
-	viewModel: UpdatesViewModel,
-	appsViewModel: AppsViewModel = koinViewModel(),
-	updates: List<AppUpdate>,
-	scrollResetKey: Any = Unit,
-	activeTasksMap: Map<Int, DownloadTaskState> = emptyMap(),
-	readyUpdateIds: Set<Int> = emptySet(),
-	failedUpdateIds: Set<Int> = emptySet(),
-	jumpToErrorTick: Int = 0,
-	extraBottomPadding: androidx.compose.ui.unit.Dp = 0.dp,
-	handler: UriHandler,
-	modifier: Modifier,
-	onRequestInstall: (AppUpdate) -> Unit,
-	onRequestSaveApk: (AppUpdate) -> Unit,
-	isSelectionMode: Boolean = false,
-	selectedUpdateIds: Set<Int> = emptySet(),
-	onToggleSelection: (Int) -> Unit = {}
-) {
-	var selectedPackageName by remember { mutableStateOf<String?>(null) }
-	val selectedUpdate = updates.find { it.packageName == selectedPackageName }
-	val haptic = LocalHapticFeedback.current
-	val gridState = rememberLazyGridState()
-	var lastScrollResetKey by remember { mutableStateOf(scrollResetKey) }
-	LaunchedEffect(scrollResetKey) {
-		if (lastScrollResetKey != scrollResetKey) {
-			lastScrollResetKey = scrollResetKey
-			gridState.scrollToItem(0)
-		}
-	}
-	LaunchedEffect(jumpToErrorTick) {
-		if (jumpToErrorTick > 0) {
-			val idx = updates.indexOfFirst { it.id in failedUpdateIds }
-			if (idx >= 0) {
-				gridState.animateScrollToItem(idx)
-			}
-		}
-	}
-
-	BoxWithConstraints(modifier) {
-		val columns = updateGridColumnCount(maxWidth.value, compact = true)
-		LazyVerticalGrid(
-			columns = GridCells.Fixed(columns),
-			state = gridState,
-			modifier = Modifier.fillMaxSize(),
-			contentPadding = PaddingValues(
-				start = CompactUpdateCardLayout.gridHorizontalPaddingDp.dp,
-				top = CompactUpdateCardLayout.gridTopPaddingDp.dp,
-				end = CompactUpdateCardLayout.gridHorizontalPaddingDp.dp,
-				bottom = CompactUpdateCardLayout.gridBottomPaddingDp.dp + extraBottomPadding
-			),
-			verticalArrangement = Arrangement.spacedBy(CompactUpdateCardLayout.gridSpacingDp.dp),
-			horizontalArrangement = Arrangement.spacedBy(CompactUpdateCardLayout.gridSpacingDp.dp)
-		) {
-			gridItemsIndexed(items = updates, key = { _, u -> u.id }) { index, update ->
-				val context = LocalContext.current
-				val appName = update.name.ifBlank {
-					context.getAppName(update.packageName).ifBlank { update.packageName }
-				}
-				val card = update.toUpdateCardContent(appName)
-				val liveTask = activeTasksMap[update.id]
-					?: activeTasksMap.values.firstOrNull { it.packageName == update.packageName }
-				val effInstalling = liveTask?.let { it.isInstalling || !it.isQueued } ?: card.isInstalling
-				val effQueued = liveTask?.isQueued ?: update.isQueued
-				val effProgress = liveTask?.progress ?: update.progress
-				val effTotal = liveTask?.total?.takeIf { it > 0L } ?: update.total
-				val isSelectable = !effInstalling && !effQueued
-				val isSelected = update.id in selectedUpdateIds
-				val isFailed = update.id in failedUpdateIds
-				val isCachedReady = update.id in readyUpdateIds || update.alternativeUpdates.any { it.id in readyUpdateIds }
-				val cardShape = RoundedCornerShape(14.dp)
-				StaggeredCascadeItem(
-					index = index,
-					modifier = Modifier.animateItem()
-				) {
-				Surface(
-					modifier = Modifier
-						.fillMaxWidth()
-						.clip(cardShape)
-						.combinedClickable(
-							onClick = {
-								if (isSelectionMode) {
-									if (isSelectable) onToggleSelection(update.id)
-								} else {
-									selectedPackageName = update.packageName
-								}
-							},
-							onLongClick = {
-								if (isSelectable) {
-									haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-									onToggleSelection(update.id)
-								}
-							}
-						)
-						.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
-					shape = cardShape,
-					color = when {
-						isSelected -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f)
-						isFailed -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.28f)
-						else -> MaterialTheme.colorScheme.surfaceContainerLow
-					},
-					border = when {
-						isSelected -> BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
-						isFailed -> BorderStroke(1.5.dp, MaterialTheme.colorScheme.error)
-						else -> null
-					}
-				) {
-					Row(
-						modifier = Modifier
-							.fillMaxWidth()
-							.padding(horizontal = 14.dp, vertical = 10.dp),
-						verticalAlignment = Alignment.CenterVertically,
-						horizontalArrangement = Arrangement.spacedBy(12.dp)
-					) {
-						// 42dp app icon
-						Box(modifier = Modifier.size(42.dp)) {
-							Box(
-								modifier = Modifier
-									.fillMaxSize()
-									.clip(RoundedCornerShape(12.dp))
-									.background(MaterialTheme.colorScheme.surfaceContainer),
-								contentAlignment = Alignment.Center
-							) {
-								LoadingImageApp(
-									card.packageName,
-									Modifier.fillMaxSize()
-								)
-							}
-							if (isSelected) {
-								Surface(
-									shape = CircleShape,
-									color = MaterialTheme.colorScheme.primary,
-									border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.surface),
-									modifier = Modifier
-										.align(Alignment.BottomEnd)
-										.size(18.dp)
-								) {
-									Box(contentAlignment = Alignment.Center) {
-										Icon(
-											imageVector = Icons.Filled.Check,
-											contentDescription = null,
-											tint = MaterialTheme.colorScheme.onPrimary,
-											modifier = Modifier.size(11.dp)
-										)
-									}
-								}
-							} else if (isSelectionMode && isSelectable) {
-								Box(
-									modifier = Modifier
-										.align(Alignment.BottomEnd)
-										.size(18.dp)
-										.clip(CircleShape)
-										.background(MaterialTheme.colorScheme.surfaceContainerHigh)
-										.border(1.5.dp, MaterialTheme.colorScheme.outline, CircleShape)
-								)
-							}
-						}
-
-						// Main Text (Title, versions, source)
-						Column(
-							modifier = Modifier.weight(1f),
-							verticalArrangement = Arrangement.spacedBy(2.dp)
-						) {
-							Row(
-								modifier = Modifier.fillMaxWidth(),
-								horizontalArrangement = Arrangement.SpaceBetween,
-								verticalAlignment = Alignment.CenterVertically
-							) {
-								Text(
-									text = card.appName,
-									style = MaterialTheme.typography.titleSmall,
-									fontWeight = FontWeight.SemiBold,
-									color = MaterialTheme.colorScheme.onSurface,
-									maxLines = 1,
-									overflow = TextOverflow.Ellipsis,
-									modifier = Modifier.weight(1f, fill = false)
-								)
-								if (update.totalSize > 0L) {
-									Text(
-										text = formatSizeMegabytes(update.totalSize),
-										style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-										color = MaterialTheme.colorScheme.onSurfaceVariant
-									)
-								}
-							}
-
-							Row(
-								verticalAlignment = Alignment.CenterVertically,
-								horizontalArrangement = Arrangement.spacedBy(4.dp)
-							) {
-								if (update.isWatchedApp()) {
-									Surface(
-										shape = RoundedCornerShape(5.dp),
-										color = MaterialTheme.colorScheme.secondaryContainer
-									) {
-										Text(
-											text = stringResource(R.string.updates_watched_new_badge),
-											style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.5.sp, fontWeight = FontWeight.SemiBold),
-											color = MaterialTheme.colorScheme.onSecondaryContainer,
-											modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
-											maxLines = 1
-										)
-									}
-									Text(
-										text = card.availableVersion.ifBlank { "—" },
-										style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-										fontWeight = FontWeight.Bold,
-										color = MaterialTheme.colorScheme.primary,
-										maxLines = 1,
-										overflow = TextOverflow.Ellipsis,
-										modifier = Modifier.weight(1f, fill = false)
-									)
-									Text(
-										text = "•",
-										style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-										color = MaterialTheme.colorScheme.outline
-									)
-								} else {
-									Text(
-										text = card.installedVersion.ifBlank { "—" },
-										style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-										color = MaterialTheme.colorScheme.onSurfaceVariant,
-										maxLines = 1,
-										overflow = TextOverflow.Ellipsis,
-										modifier = Modifier.weight(1f, fill = false)
-									)
-									Text(
-										text = "→",
-										style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-										color = MaterialTheme.colorScheme.primary,
-										fontWeight = FontWeight.Bold
-									)
-									Text(
-										text = card.availableVersion.ifBlank { "—" },
-										style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-										fontWeight = FontWeight.Bold,
-										color = MaterialTheme.colorScheme.primary,
-										maxLines = 1,
-										overflow = TextOverflow.Ellipsis,
-										modifier = Modifier.weight(1f, fill = false)
-									)
-									Text(
-										text = "•",
-										style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-										color = MaterialTheme.colorScheme.outline
-									)
-								}
-								val resolvedSourceLabel = sourceName(card.source)
-								Row(
-									verticalAlignment = Alignment.CenterVertically,
-									horizontalArrangement = Arrangement.spacedBy(4.dp)
-								) {
-									SourceIconWithCooldown(source = card.source)
-									Text(
-										text = resolvedSourceLabel,
-										style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-										color = MaterialTheme.colorScheme.onSurfaceVariant,
-										maxLines = 1
-									)
-									val isVerifiedReady = isCachedReady || (liveTask != null && liveTask.total > 0L && liveTask.progress >= liveTask.total)
-									TrustShieldBadge(isVerified = isVerifiedReady)
-									if (card.additionalSourcesCount > 0) {
-										Surface(
-											shape = RoundedCornerShape(4.dp),
-											color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f)
-										) {
-											Text(
-												text = "+${card.additionalSourcesCount}",
-												modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
-												style = MaterialTheme.typography.labelSmall.copy(
-													fontSize = 9.sp,
-													fontWeight = FontWeight.Bold
-												),
-												color = MaterialTheme.colorScheme.onPrimaryContainer
-											)
-										}
-									}
-								}
-							}
-
-							if (effInstalling || effQueued) {
-								val isSaveOnlyTask = liveTask?.isSaveOnly == true
-								val compactLabel = when {
-									liveTask?.isInstalling == true && isSaveOnlyTask -> stringResource(R.string.queue_status_saving)
-									liveTask?.isInstalling == true -> stringResource(R.string.queue_status_installing)
-									liveTask?.isResolvingLink == true && effProgress == 0L -> stringResource(R.string.queue_status_resolving_apkmirror)
-									effQueued && !effInstalling -> stringResource(R.string.queued_update)
-									effTotal > 0L && effProgress > 0L -> {
-										val pct = ((effProgress * 100) / effTotal).toInt().coerceIn(0, 100)
-										"$pct%"
-									}
-									isSaveOnlyTask -> stringResource(R.string.queue_status_saving)
-									else -> stringResource(R.string.installing_update)
-								}
-								Row(
-									verticalAlignment = Alignment.CenterVertically,
-									horizontalArrangement = Arrangement.spacedBy(6.dp),
-									modifier = Modifier.padding(top = 2.dp)
-								) {
-									LinearProgressIndicator(
-										progress = { if (effTotal > 0L && effProgress > 0L) (effProgress.toFloat() / effTotal).coerceIn(0f, 1f) else 0f },
-										modifier = Modifier.weight(1f).height(3.dp),
-										color = MaterialTheme.colorScheme.primary,
-										trackColor = MaterialTheme.colorScheme.surfaceContainer
-									)
-									Text(
-										text = compactLabel,
-										style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-										fontWeight = FontWeight.Bold,
-										color = MaterialTheme.colorScheme.primary
-									)
-								}
-							}
-						}
-
-						// Right Action: Fast download button (hidden in selection mode)
-						if (!isSelectionMode && card.canInstall && !effQueued && !effInstalling) {
-							IconButton(
-								onClick = {
-									onRequestInstall(update)
-								},
-								modifier = Modifier
-									.size(36.dp)
-									.background(MaterialTheme.colorScheme.surfaceContainer, CircleShape)
-							) {
-								Icon(
-									painter = painterResource(R.drawable.ic_install),
-									contentDescription = null,
-									tint = MaterialTheme.colorScheme.primary,
-									modifier = Modifier.size(16.dp)
-								)
-							}
-						}
-					}
-				}
-				}
-			}
-		}
-	}
-
-	selectedUpdate?.let { update ->
-		val pinnedAppSources by viewModel.pinnedAppSourcesFlow.collectAsStateWithLifecycle()
-		UpdateDetailsSheet(
-			update = update,
-			activeTasksMap = activeTasksMap,
-			isCachedReady = update.id in readyUpdateIds || update.alternativeUpdates.any { it.id in readyUpdateIds },
-			readyUpdateIds = readyUpdateIds,
-			pinnedSourceKey = pinnedAppSources[update.packageName],
-			onTogglePinSource = { key -> viewModel.pinAppSource(update.packageName, key) },
-			onDismiss = { selectedPackageName = null },
-			onInstallVariant = { chosen ->
-				onRequestInstall(chosen)
-				if (chosen.isBrowserOnlyUpdate) {
-					selectedPackageName = null
-				}
-			},
-			onSaveApkVariant = { chosen ->
-				onRequestSaveApk(chosen)
-			},
-			onIgnoreVersion = { versionId ->
-				if (update.isWatchedApp()) {
-					viewModel.markWatchedAppSeen(update)
-				} else {
-					viewModel.ignoreVersion(versionId)
-				}
-				selectedPackageName = null
-			},
-			onIgnoreAppPermanently = { packageName ->
-				viewModel.ignoreAppPermanently(packageName)
-				appsViewModel.refresh(false)
-				selectedPackageName = null
-			},
-			onSnoozeUpdate = { chosen, durationMillis ->
-				viewModel.snoozeUpdate(chosen, durationMillis)
-				selectedPackageName = null
-			}
-		)
 	}
 }
 
@@ -3749,7 +3720,7 @@ private fun UpdateDetailsSheet(
 			modifier = Modifier
 				.fillMaxWidth()
 				.verticalScroll(rememberScrollState())
-				.padding(start = 24.dp, end = 24.dp, top = if (isWideScreen) 24.dp else 0.dp, bottom = 28.dp),
+				.padding(start = 24.dp, end = 24.dp, top = if (isWideScreen || ApkUpTheme.isAccessibleUi) 20.dp else 0.dp, bottom = 28.dp),
 			verticalArrangement = Arrangement.spacedBy(14.dp)
 		) {
 			Row(verticalAlignment = Alignment.CenterVertically) {
@@ -3769,28 +3740,37 @@ private fun UpdateDetailsSheet(
 					Text(
 						text = appName,
 						style = MaterialTheme.typography.titleLarge,
-						fontWeight = FontWeight.Bold
+						fontWeight = FontWeight.Bold,
+						modifier = Modifier.semantics { heading() }
 					)
 					Text(
 						text = activeVariant.packageName,
 						style = MaterialTheme.typography.bodySmall,
 						color = MaterialTheme.colorScheme.onSurfaceVariant
 					)
-					Surface(
-						shape = CircleShape,
-						color = MaterialTheme.colorScheme.primaryContainer
+					Row(
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(6.dp)
 					) {
-						Text(
-							text = if (activeVariant.isWatchedApp()) {
-								"${stringResource(R.string.updates_watched_new_badge)} · ${card.availableVersion.ifBlank { "—" }}"
-							} else {
-								"${card.installedVersion.ifBlank { "—" }} → ${card.availableVersion.ifBlank { "—" }}"
-							},
-							modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-							style = MaterialTheme.typography.labelMedium,
-							fontWeight = FontWeight.SemiBold,
-							color = MaterialTheme.colorScheme.onPrimaryContainer
-						)
+						Surface(
+							shape = CircleShape,
+							color = MaterialTheme.colorScheme.primaryContainer
+						) {
+							Text(
+								text = if (activeVariant.isWatchedApp()) {
+									"${stringResource(R.string.updates_watched_new_badge)} · ${card.availableVersion.ifBlank { "—" }}"
+								} else {
+									"${card.installedVersion.ifBlank { "—" }} → ${card.availableVersion.ifBlank { "—" }}"
+								},
+								modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+								style = MaterialTheme.typography.labelMedium,
+								fontWeight = FontWeight.SemiBold,
+								color = MaterialTheme.colorScheme.onPrimaryContainer
+							)
+						}
+						if ((activeVariant.link as? Link.Url)?.expectedSha256.isNullOrBlank()) {
+							MissingPreDownloadHashBadge()
+						}
 					}
 				}
 			}
@@ -3814,7 +3794,11 @@ private fun UpdateDetailsSheet(
 								enabled = !isUpdateBusy,
 								modifier = Modifier
 									.weight(1f)
-									.heightIn(min = 44.dp),
+									.heightIn(min = 48.dp)
+									.semantics {
+										role = Role.RadioButton
+										selected = isSelected
+									},
 								shape = CircleShape,
 								color = if (isSelected) {
 									MaterialTheme.colorScheme.secondaryContainer
@@ -4000,9 +3984,19 @@ private fun UpdateDetailsSheet(
 				}
 			}
 
+			val cleanDetailsChangelog = remember(activeVariant.whatsNew) {
+				cleanChangelogText(activeVariant.whatsNew)
+			}
+			val cleanDetailsSpeech = remember(activeVariant.whatsNew) {
+				cleanChangelogSpeechText(activeVariant.whatsNew)
+			}
+			val detailHighContrast = ApkUpTheme.isHighContrast
 			Surface(
 				shape = RoundedCornerShape(24.dp),
-				border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
+				border = BorderStroke(
+					if (detailHighContrast) 1.5.dp else 1.dp,
+					if (detailHighContrast) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+				),
 				color = MaterialTheme.colorScheme.surfaceContainer,
 				modifier = Modifier.fillMaxWidth()
 			) {
@@ -4014,15 +4008,21 @@ private fun UpdateDetailsSheet(
 						text = stringResource(R.string.whats_new_title),
 						style = MaterialTheme.typography.titleSmall,
 						fontWeight = FontWeight.SemiBold,
-						color = MaterialTheme.colorScheme.primary
+						color = MaterialTheme.colorScheme.primary,
+						modifier = Modifier.semantics { heading() }
 					)
 					Text(
-						text = activeVariant.whatsNew.ifBlank { stringResource(R.string.whats_new_empty) },
+						text = cleanDetailsChangelog.ifBlank { stringResource(R.string.whats_new_empty) },
 						style = MaterialTheme.typography.bodyMedium,
-						color = if (activeVariant.whatsNew.isNotBlank()) {
+						color = if (cleanDetailsChangelog.isNotBlank()) {
 							MaterialTheme.colorScheme.onSurface
 						} else {
 							MaterialTheme.colorScheme.onSurfaceVariant
+						},
+						modifier = Modifier.semantics {
+							if (cleanDetailsSpeech.isNotBlank()) {
+								contentDescription = cleanDetailsSpeech
+							}
 						}
 					)
 				}
@@ -4041,7 +4041,10 @@ private fun UpdateDetailsSheet(
 				}
 				Surface(
 					shape = RoundedCornerShape(24.dp),
-					border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
+					border = BorderStroke(
+						if (detailHighContrast) 1.5.dp else 1.dp,
+						if (detailHighContrast) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+					),
 					color = MaterialTheme.colorScheme.surfaceContainerHigh,
 					modifier = Modifier.fillMaxWidth()
 				) {
@@ -4155,11 +4158,11 @@ private fun UpdateDetailsSheet(
 						onClick = { onSnoozeUpdate(activeVariant, 24L * 60L * 60L * 1000L) },
 						enabled = !isUpdateBusy,
 						shape = CircleShape,
-						modifier = Modifier.weight(1f).heightIn(min = 44.dp)
+						modifier = Modifier.weight(1f).heightIn(min = 48.dp)
 					) {
 						Text(
 							text = "${stringResource(R.string.update_snooze_action)} · ${stringResource(R.string.update_snooze_24h)}",
-							maxLines = 1,
+							maxLines = 2,
 							overflow = TextOverflow.Ellipsis
 						)
 					}
@@ -4167,11 +4170,11 @@ private fun UpdateDetailsSheet(
 						onClick = { onSnoozeUpdate(activeVariant, 3L * 24L * 60L * 60L * 1000L) },
 						enabled = !isUpdateBusy,
 						shape = CircleShape,
-						modifier = Modifier.weight(1f).heightIn(min = 44.dp)
+						modifier = Modifier.weight(1f).heightIn(min = 48.dp)
 					) {
 						Text(
 							text = stringResource(R.string.update_snooze_3d),
-							maxLines = 1,
+							maxLines = 2,
 							overflow = TextOverflow.Ellipsis
 						)
 					}
@@ -4182,12 +4185,21 @@ private fun UpdateDetailsSheet(
 				onClick = { onIgnoreAppPermanently(activeVariant.packageName) },
 				enabled = !isUpdateBusy,
 				shape = CircleShape,
-				modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp)
+				modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
 			) {
 				Text(
 					text = stringResource(R.string.ignore_app_permanently),
 					color = MaterialTheme.colorScheme.error
 				)
+			}
+			if (ApkUpTheme.isAccessibleUi) {
+				OutlinedButton(
+					onClick = onDismiss,
+					shape = CircleShape,
+					modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+				) {
+					Text(text = stringResource(R.string.a11y_close_action))
+				}
 			}
 		}
 	}
@@ -4237,6 +4249,9 @@ private fun UpdateDetailsSheet(
 		ModalBottomSheet(
 			onDismissRequest = onDismiss,
 			sheetState = sheetState,
+			dragHandle = if (ApkUpTheme.isAccessibleUi) null else {
+				{ androidx.compose.material3.BottomSheetDefaults.DragHandle() }
+			},
 			shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
 			containerColor = MaterialTheme.colorScheme.surfaceContainerLow
 		) {

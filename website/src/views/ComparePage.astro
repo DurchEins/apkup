@@ -42,7 +42,7 @@ const c = t.comparePage;
         </div>
 
         <div class="compare-table-card">
-          <div class="compare-scroll">
+          <div class="compare-scroll" tabindex="0" role="region" aria-label={c.h1}>
             <table class="compare-table">
               <thead>
                 <tr>
@@ -96,7 +96,7 @@ const c = t.comparePage;
             aria-label={c.textareaAria}
           ></textarea>
 
-          <div id="obt-report" class="compat-report" hidden></div>
+          <div id="obt-report" class="compat-report" role="status" aria-live="polite"></div>
         </div>
       </div>
     </div>
@@ -158,14 +158,13 @@ const c = t.comparePage;
       if (!report) return;
       var text = (raw || '').trim();
       if (!text) {
-        report.hidden = true;
+        report.innerHTML = '';
         return;
       }
       try {
         var parsed = JSON.parse(text);
         var apps = Array.isArray(parsed) ? parsed : Array.isArray(parsed.apps) ? parsed.apps : [];
         if (!apps.length) {
-          report.hidden = false;
           report.innerHTML = '<p class="compat-err">' + escapeHtml(reportMsg.empty) + '</p>';
           return;
         }
@@ -182,12 +181,10 @@ const c = t.comparePage;
             '</div>'
           );
         });
-        report.hidden = false;
         report.innerHTML =
           '<div class="compat-summary mono">' + apps.length + ' ' + escapeHtml(reportMsg.appsFound) + '</div>' +
           '<div class="compat-rows">' + rows.join('') + '</div>';
       } catch (e) {
-        report.hidden = false;
         report.innerHTML = '<p class="compat-err">' + escapeHtml(reportMsg.invalidJson) + '</p>';
       }
     }
@@ -372,6 +369,10 @@ const c = t.comparePage;
     font-size: 0.76rem;
     color: var(--text-muted);
     word-break: break-all;
+  }
+
+  .compat-report:empty {
+    display: none;
   }
 
   .compat-err {

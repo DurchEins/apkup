@@ -48,9 +48,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.apkup.R
 import com.apkup.ui.theme.ApkUpTheme
 
@@ -72,7 +76,7 @@ fun SegmentedButtonSetting(
 ) {
     val currentExternal = getValue()
     var position by remember(currentExternal) { mutableIntStateOf(currentExternal) }
-    SettingIconBadge(icon = icon, contentDescription = text)
+    SettingIconBadge(icon = icon, contentDescription = null)
     Column(Modifier.padding(start = 10.dp).weight(1f)) {
         Text(
             text = text,
@@ -88,13 +92,28 @@ fun SegmentedButtonSetting(
                         activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
                         activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     ),
+                    icon = {
+                        if (options.size < 4) {
+                            SegmentedButtonDefaults.Icon(active = index == position)
+                        }
+                    },
                     onClick = {
                         position = index
                         setValue(position)
                     },
                     selected = index == position
                 ) {
-                    Text(label, style = MaterialTheme.typography.labelMedium)
+                    AutoResizeText(
+                        text = label,
+                        style = if (options.size >= 4) {
+                            MaterialTheme.typography.labelSmall
+                        } else {
+                            MaterialTheme.typography.labelMedium
+                        },
+                        color = Color.Unspecified,
+                        maxLines = 1,
+                        minFontSize = 8.5.sp
+                    )
                 }
             }
         }
@@ -131,13 +150,13 @@ fun SwitchSetting(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 46.dp)
+            .heightIn(min = 48.dp)
             .clip(RoundedCornerShape(14.dp))
             .toggleable(value = value, role = Role.Switch, onValueChange = onToggle)
             .padding(horizontal = 2.dp, vertical = 4.dp),
         verticalAlignment = CenterVertically
     ) {
-        SettingIconBadge(icon = icon, contentDescription = text, active = value)
+        SettingIconBadge(icon = icon, contentDescription = null, active = value)
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -160,7 +179,7 @@ fun SwitchSetting(
         }
         Switch(
             checked = value,
-            onCheckedChange = onToggle,
+            onCheckedChange = null,
             thumbContent = {
                 if (value) {
                     Icon(
@@ -183,7 +202,7 @@ fun SwitchSetting(
 @Composable
 private fun SettingIconBadge(
     @DrawableRes icon: Int,
-    contentDescription: String,
+    contentDescription: String? = null,
     active: Boolean = true
 ) {
     val isReducedMotion = ApkUpTheme.isReducedMotion
@@ -252,7 +271,7 @@ fun SplitSwitchSetting(
                 .clip(RoundedCornerShape(12.dp))
                 .then(
                     if (onClick != null) {
-                        Modifier.clickable(onClick = onClick)
+                        Modifier.clickable(role = Role.Button, onClick = onClick)
                     } else {
                         Modifier.toggleable(value = value, role = Role.Switch, onValueChange = onToggle)
                     }
@@ -260,7 +279,7 @@ fun SplitSwitchSetting(
                 .padding(vertical = 6.dp, horizontal = 4.dp),
             verticalAlignment = CenterVertically
         ) {
-            SettingIconBadge(icon = icon, contentDescription = text, active = value)
+            SettingIconBadge(icon = icon, contentDescription = null, active = value)
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -323,8 +342,10 @@ fun SplitSwitchSetting(
         // Right Target: Switch toggle
         Switch(
             checked = value,
-            onCheckedChange = onToggle,
-            modifier = Modifier.padding(start = if (onClick != null) 4.dp else 0.dp),
+            onCheckedChange = if (onClick != null) onToggle else null,
+            modifier = Modifier
+                .padding(start = if (onClick != null) 4.dp else 0.dp)
+                .semantics { contentDescription = text },
             thumbContent = {
                 if (value) {
                     Icon(
@@ -354,72 +375,88 @@ fun NavigationSettingItem(
     badgeContentColor: Color? = null,
     onClick: () -> Unit
 ) {
-    Row(
+    val isAccessibleUi = ApkUpTheme.isAccessibleUi
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(14.dp),
+        color = if (isAccessibleUi) MaterialTheme.colorScheme.surfaceContainer else Color.Transparent,
+        border = if (isAccessibleUi) BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant) else null,
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 48.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 4.dp, vertical = 6.dp),
-        verticalAlignment = CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+            .heightIn(min = if (isAccessibleUi) 56.dp else 48.dp)
+            .semantics { role = Role.Button }
     ) {
-        if (icon != null) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(icon),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(18.dp)
-                )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = if (isAccessibleUi) 12.dp else 4.dp,
+                    vertical = if (isAccessibleUi) 10.dp else 6.dp
+                ),
+            verticalAlignment = CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            if (icon != null) {
+                Box(
+                    modifier = Modifier
+                        .size(if (isAccessibleUi) 36.dp else 32.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(icon),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
-        }
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            if (!subtitle.isNullOrBlank()) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = if (isAccessibleUi) 2 else 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                if (!subtitle.isNullOrBlank()) {
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = if (isAccessibleUi) 2 else 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
-        }
-        if (!badgeText.isNullOrBlank()) {
-            Surface(
-                shape = CircleShape,
-                color = badgeContainerColor ?: MaterialTheme.colorScheme.secondaryContainer
-            ) {
-                Text(
-                    text = badgeText,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = badgeContentColor ?: MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                    maxLines = 1
-                )
+            if (!badgeText.isNullOrBlank()) {
+                Surface(
+                    shape = CircleShape,
+                    color = badgeContainerColor ?: MaterialTheme.colorScheme.secondaryContainer,
+                    border = if (isAccessibleUi) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null
+                ) {
+                    Text(
+                        text = badgeText,
+                        style = if (isAccessibleUi) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = badgeContentColor ?: MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.padding(
+                            horizontal = if (isAccessibleUi) 10.dp else 8.dp,
+                            vertical = if (isAccessibleUi) 4.dp else 2.dp
+                        ),
+                        maxLines = 1
+                    )
+                }
             }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = if (isAccessibleUi) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                modifier = Modifier.size(20.dp)
+            )
         }
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-            modifier = Modifier.size(20.dp)
-        )
     }
 }
 

@@ -30,7 +30,7 @@ This guide explains how to skip faulty updates, ignore apps, track uninstalled a
 ---
 
 <a id="-part-1-explained-simply-for-everyone"></a>
-## 🟢 Part 1: Explained Simply for Everyone
+## 📖 User Guide
 
 <a id="11-skip-this-version-vs-ignore-app-permanently"></a>
 ### 1.1 "Skip this version" vs. "Ignore app permanently"
@@ -94,48 +94,7 @@ ApkUp hides pre-installed system apps by default so your list stays clean. To in
 ---
 
 <a id="-part-2-technical-documentation-for-experts--power-users"></a>
-## 💻 Part 2: Technical Documentation for Experts & Power Users
-
-<a id="21-filter-architecture-package-wide-exclusion-vs-version-pinning"></a>
-### 2.1 Filter Architecture: Package-Wide Exclusion vs. Version Pinning
-1. **Package-Wide Exclusion (Ignore App):** Applied **before** network requests are dispatched — reduces payload size, saves GitHub API quota, and preserves privacy.
-2. **Version-Specific Pinning (Skip Version):** Stores `(packageName, version, versionCode)` and expires automatically as soon as any source delivers a strictly higher `versionCode`.
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="22-battery-friendly-background-scheduling-via-android-workmanager"></a>
-### 2.2 Battery-Friendly Background Scheduling via Android `WorkManager`
-ApkUp delegates background checks to Android **`WorkManager`** (`NetworkType.CONNECTED`), batching work into OS maintenance windows (Doze / App Standby) with atomic `.part` download staging.
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="23-persistent-update-snapshot-cache-for-instant-app-startup"></a>
-### 2.3 Persistent Update Snapshot Cache for Instant App Startup
-After each scan, ApkUp stores a local **Update Snapshot** in private app storage and reconciles it against live `PackageManager` state on launch so the **Updates** tab populates instantaneously without forcing a redundant online scan.
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="24-structure--privacy-of-the-json-backup-file-saf"></a>
-### 2.4 Structure & Privacy of the JSON Backup File (SAF)
-ApkUp uses Android's **Storage Access Framework (SAF)** with zero broad storage permissions. The exported JSON contains:
-- Enabled update sources, source priority order, pinned app sources, F-Droid repositories, and watched apps
-- Ignored package names, skipped versions, and custom GitHub/GitLab/Codeberg bindings (validated on import for `https://`, allowed hosts, and regex limits)
-- Theme, display, update window, pre-release channels, rollback backup settings (`rollbackMaxBytes`, `rollbackRetentionDays`), self-updater beta opt-in (`includeSelfUpdatePreReleases`, safely defaulting to `false` on older backups), and background check preferences
-
-*(Note: Personal Access Tokens remain encrypted on-device in Google Tink `AES-256-GCM` storage and are never exported in plaintext backups; importing a backup also resets `useRootInstaller` to `false` with a security notice.)*
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="-part-3-frequently-asked-questions-faq"></a>
-## ❓ Part 3: Frequently Asked Questions (FAQ)
+## ❓ Frequently Asked Questions (FAQ)
 
 <a id="31-when-should-i-use-skip-this-version-vs-ignore-app-permanently"></a>
 ### 3.1 When should I use "Skip this version" vs. "Ignore app permanently"?
@@ -172,3 +131,7 @@ No — the `.json` file is only a few KB of settings (no APKs, no secret tokens)
 - 🔄 **[Obtainium Migration & Sync Guide](https://github.com/DurchEins/apkup/wiki/Obtainium-Migration-&-Sync-Guide)** — Migrate your Obtainium JSON export into ApkUp.
 
 [⬆️ Back to Table of Contents](#-table-of-contents)
+
+---
+
+> 💻 **Looking for architectural internals, protocols, or security proofs?** Explore the **[Technical Overview](https://github.com/DurchEins/apkup/wiki#-technical-overview)** section.

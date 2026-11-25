@@ -11,11 +11,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -38,6 +42,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.minimumInteractiveComponentSize
+import com.apkup.ui.theme.ApkUpTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -58,6 +64,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -86,9 +96,13 @@ fun SourcePriorityBottomSheet(
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberExpandedModalSheetState()
+    val isAccessibleSheet = ApkUpTheme.isAccessibleUi
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
+        dragHandle = if (isAccessibleSheet) null else {
+            { androidx.compose.material3.BottomSheetDefaults.DragHandle() }
+        },
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Column(
@@ -134,6 +148,7 @@ fun SourcePriorityBottomSheet(
             var dragOffsetY by remember { mutableFloatStateOf(0f) }
             val itemHeights = remember { mutableStateMapOf<String, Int>() }
 
+            val isAccessibleUi = com.apkup.ui.theme.ApkUpTheme.isAccessibleUi
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -142,7 +157,7 @@ fun SourcePriorityBottomSheet(
             ) {
                 order.forEachIndexed { index, key ->
                     key(key) {
-                        val isDragging = draggingKey == key
+                        val isDragging = !isAccessibleUi && draggingKey == key
                         Surface(
                             shape = RoundedCornerShape(16.dp),
                             color = if (isDragging) {
@@ -160,112 +175,172 @@ fun SourcePriorityBottomSheet(
                                     scaleX = if (isDragging) 1.02f else 1f
                                     scaleY = if (isDragging) 1.02f else 1f
                                 }
-                                .pointerInput(key) {
-                                    detectDragGesturesAfterLongPress(
-                                        onDragStart = {
-                                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            draggingKey = key
-                                            dragOffsetY = 0f
-                                        },
-                                        onDragEnd = {
-                                            draggingKey = null
-                                            dragOffsetY = 0f
-                                        },
-                                        onDragCancel = {
-                                            draggingKey = null
-                                            dragOffsetY = 0f
-                                        },
-                                        onDrag = { change, dragAmount ->
-                                            change.consume()
-                                            dragOffsetY += dragAmount.y
-                                            val latest = currentOrder
-                                            val curIdx = latest.indexOf(key)
-                                            if (curIdx < 0) return@detectDragGesturesAfterLongPress
-                                            val curHeight = (itemHeights[key] ?: 120).toFloat()
-                                            if (dragOffsetY > (curHeight + spacingPx) / 2f && curIdx < latest.lastIndex) {
-                                                val nextHeight = (itemHeights[latest[curIdx + 1]] ?: curHeight.toInt()).toFloat()
-                                                onMove(curIdx, 1)
-                                                dragOffsetY -= (nextHeight + spacingPx)
-                                                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                            } else if (dragOffsetY < -(curHeight + spacingPx) / 2f && curIdx > 0) {
-                                                val prevHeight = (itemHeights[latest[curIdx - 1]] ?: curHeight.toInt()).toFloat()
-                                                onMove(curIdx, -1)
-                                                dragOffsetY += (prevHeight + spacingPx)
-                                                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                            }
+                                .let { mod ->
+                                    if (isAccessibleUi) {
+                                        mod
+                                    } else {
+                                        mod.pointerInput(key) {
+                                            detectDragGesturesAfterLongPress(
+                                                onDragStart = {
+                                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                    draggingKey = key
+                                                    dragOffsetY = 0f
+                                                },
+                                                onDragEnd = {
+                                                    draggingKey = null
+                                                    dragOffsetY = 0f
+                                                },
+                                                onDragCancel = {
+                                                    draggingKey = null
+                                                    dragOffsetY = 0f
+                                                },
+                                                onDrag = { change, dragAmount ->
+                                                    change.consume()
+                                                    dragOffsetY += dragAmount.y
+                                                    val latest = currentOrder
+                                                    val curIdx = latest.indexOf(key)
+                                                    if (curIdx < 0) return@detectDragGesturesAfterLongPress
+                                                    val curHeight = (itemHeights[key] ?: 120).toFloat()
+                                                    if (dragOffsetY > (curHeight + spacingPx) / 2f && curIdx < latest.lastIndex) {
+                                                        val nextHeight = (itemHeights[latest[curIdx + 1]] ?: curHeight.toInt()).toFloat()
+                                                        onMove(curIdx, 1)
+                                                        dragOffsetY -= (nextHeight + spacingPx)
+                                                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                                    } else if (dragOffsetY < -(curHeight + spacingPx) / 2f && curIdx > 0) {
+                                                        val prevHeight = (itemHeights[latest[curIdx - 1]] ?: curHeight.toInt()).toFloat()
+                                                        onMove(curIdx, -1)
+                                                        dragOffsetY += (prevHeight + spacingPx)
+                                                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                                    }
+                                                }
+                                            )
                                         }
-                                    )
+                                    }
                                 }
                         ) {
-                            Row(
+                            Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.DragIndicator,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Box(
-                                    modifier = Modifier
-                                        .size(28.dp)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(MaterialTheme.colorScheme.primaryContainer),
-                                    contentAlignment = Alignment.Center
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
+                                    if (!isAccessibleUi) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.DragIndicator,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                    }
+                                    Box(
+                                        modifier = Modifier
+                                            .size(28.dp)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(MaterialTheme.colorScheme.primaryContainer),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "${index + 1}",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Icon(
+                                        painter = painterResource(SourcePriorityKeys.iconForKey(key)),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    val sourceTitle = sourcePriorityLabel(key)
                                     Text(
-                                        text = "${index + 1}",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        text = sourceTitle,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        maxLines = if (isAccessibleUi) 2 else 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.weight(1f)
                                     )
+                                    if (!isAccessibleUi) {
+                                        IconButton(
+                                            onClick = { onMove(index, -1) },
+                                            enabled = index > 0,
+                                            modifier = Modifier.minimumInteractiveComponentSize()
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Rounded.ArrowUpward,
+                                                contentDescription = "${stringResource(R.string.settings_source_priority_move_up)}: $sourceTitle",
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+                                        IconButton(
+                                            onClick = { onMove(index, 1) },
+                                            enabled = index < order.lastIndex,
+                                            modifier = Modifier.minimumInteractiveComponentSize()
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Rounded.ArrowDownward,
+                                                contentDescription = "${stringResource(R.string.settings_source_priority_move_down)}: $sourceTitle",
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+                                    }
                                 }
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Icon(
-                                    painter = painterResource(SourcePriorityKeys.iconForKey(key)),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Text(
-                                    text = sourcePriorityLabel(key),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                IconButton(
-                                    onClick = { onMove(index, -1) },
-                                    enabled = index > 0,
-                                    modifier = Modifier.size(36.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.ArrowUpward,
-                                        contentDescription = stringResource(R.string.settings_source_priority_move_up),
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                }
-                                IconButton(
-                                    onClick = { onMove(index, 1) },
-                                    enabled = index < order.lastIndex,
-                                    modifier = Modifier.size(36.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.ArrowDownward,
-                                        contentDescription = stringResource(R.string.settings_source_priority_move_down),
-                                        modifier = Modifier.size(18.dp)
-                                    )
+                                if (isAccessibleUi) {
+                                    val sourceTitle = sourcePriorityLabel(key)
+                                    val moveUpCd = "${stringResource(R.string.settings_source_priority_move_up)}: $sourceTitle"
+                                    val moveDownCd = "${stringResource(R.string.settings_source_priority_move_down)}: $sourceTitle"
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        androidx.compose.material3.OutlinedButton(
+                                            onClick = { onMove(index, -1) },
+                                            enabled = index > 0,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .heightIn(min = 48.dp)
+                                                .semantics {
+                                                    contentDescription = moveUpCd
+                                                }
+                                        ) {
+                                            Text(stringResource(R.string.a11y_move_up))
+                                        }
+                                        androidx.compose.material3.OutlinedButton(
+                                            onClick = { onMove(index, 1) },
+                                            enabled = index < order.lastIndex,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .heightIn(min = 48.dp)
+                                                .semantics {
+                                                    contentDescription = moveDownCd
+                                                }
+                                        ) {
+                                            Text(stringResource(R.string.a11y_move_down))
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
+                }
+            }
+            if (ApkUpTheme.isAccessibleUi) {
+                androidx.compose.material3.OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp)
+                ) {
+                    Text(stringResource(R.string.a11y_close_action))
                 }
             }
         }
@@ -335,7 +410,9 @@ fun PinAppSourceBottomSheet(
                         modifier = Modifier.padding(bottom = 2.dp)
                     )
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .selectableGroup(),
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         val options = listOf(
@@ -355,7 +432,10 @@ fun PinAppSourceBottomSheet(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clip(RoundedCornerShape(12.dp))
-                                    .clickable {
+                                    .selectable(
+                                        selected = isSelected,
+                                        role = Role.RadioButton
+                                    ) {
                                         selectedPreRelease = modeKey
                                         onSelectPreReleaseOverride(modeKey)
                                     }
@@ -437,7 +517,7 @@ private fun PinSourceOptionRow(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .clickable(onClick = onClick)
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
     ) {
         Row(
             modifier = Modifier
@@ -587,9 +667,13 @@ fun PreReleaseBottomSheet(
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberExpandedModalSheetState()
+    val isAccessibleSheet = ApkUpTheme.isAccessibleUi
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
+        dragHandle = if (isAccessibleSheet) null else {
+            { androidx.compose.material3.BottomSheetDefaults.DragHandle() }
+        },
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Column(
@@ -620,7 +704,12 @@ fun PreReleaseBottomSheet(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onToggleEnabled(!enabled) }
+                        .clip(RoundedCornerShape(16.dp))
+                        .toggleable(
+                            value = enabled,
+                            role = Role.Switch,
+                            onValueChange = onToggleEnabled
+                        )
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -632,7 +721,7 @@ fun PreReleaseBottomSheet(
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f)
                     )
-                    Switch(checked = enabled, onCheckedChange = onToggleEnabled)
+                    Switch(checked = enabled, onCheckedChange = null)
                 }
             }
 
@@ -668,7 +757,12 @@ fun PreReleaseBottomSheet(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(16.dp))
-                            .clickable(enabled = enabled) { onToggleChannel(channelKey, !checked) }
+                            .toggleable(
+                                value = checked,
+                                enabled = enabled,
+                                role = Role.Switch,
+                                onValueChange = { onToggleChannel(channelKey, it) }
+                            )
                     ) {
                         Row(
                             modifier = Modifier
@@ -693,7 +787,7 @@ fun PreReleaseBottomSheet(
                             Switch(
                                 checked = checked,
                                 enabled = enabled,
-                                onCheckedChange = { onToggleChannel(channelKey, it) }
+                                onCheckedChange = null
                             )
                         }
                     }
@@ -753,7 +847,12 @@ fun UpdateWindowBottomSheet(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onToggleEnabled(!enabled) }
+                        .clip(RoundedCornerShape(16.dp))
+                        .toggleable(
+                            value = enabled,
+                            role = Role.Switch,
+                            onValueChange = onToggleEnabled
+                        )
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -765,12 +864,14 @@ fun UpdateWindowBottomSheet(
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f)
                     )
-                    Switch(checked = enabled, onCheckedChange = onToggleEnabled)
+                    Switch(checked = enabled, onCheckedChange = null)
                 }
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .selectableGroup(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 val modes = listOf(
@@ -780,14 +881,20 @@ fun UpdateWindowBottomSheet(
                 modes.forEach { (mKey, mLabel) ->
                     val selected = mode == mKey
                     Surface(
-                        onClick = { if (enabled) onModeChanged(mKey) },
                         shape = RoundedCornerShape(14.dp),
                         color = if (selected && enabled) {
                             MaterialTheme.colorScheme.primaryContainer
                         } else {
                             MaterialTheme.colorScheme.surfaceContainerHigh
                         },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(14.dp))
+                            .selectable(
+                                selected = selected,
+                                enabled = enabled,
+                                role = Role.RadioButton
+                            ) { onModeChanged(mKey) }
                     ) {
                         Box(
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 12.dp),
@@ -925,7 +1032,12 @@ fun RollbackSettingsBottomSheet(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onToggleEnabled(!enabled) }
+                        .clip(RoundedCornerShape(16.dp))
+                        .toggleable(
+                            value = enabled,
+                            role = Role.Switch,
+                            onValueChange = onToggleEnabled
+                        )
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -937,7 +1049,7 @@ fun RollbackSettingsBottomSheet(
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f)
                     )
-                    Switch(checked = enabled, onCheckedChange = onToggleEnabled)
+                    Switch(checked = enabled, onCheckedChange = null)
                 }
             }
 
@@ -948,20 +1060,28 @@ fun RollbackSettingsBottomSheet(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .selectableGroup(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 com.apkup.util.RollbackBackupManager.BUDGET_OPTIONS_MB.forEach { optionMb ->
                     val selected = budgetMb == optionMb
                     Surface(
-                        onClick = { if (enabled) onBudgetSelected(optionMb) },
                         shape = RoundedCornerShape(14.dp),
                         color = if (selected && enabled) {
                             MaterialTheme.colorScheme.primaryContainer
                         } else {
                             MaterialTheme.colorScheme.surfaceContainerHigh
                         },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(14.dp))
+                            .selectable(
+                                selected = selected,
+                                enabled = enabled,
+                                role = Role.RadioButton
+                            ) { onBudgetSelected(optionMb) }
                     ) {
                         Box(
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 12.dp),
@@ -991,20 +1111,28 @@ fun RollbackSettingsBottomSheet(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .selectableGroup(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 com.apkup.util.RollbackBackupManager.MAX_AGE_OPTIONS_DAYS.forEach { optionDays ->
                     val selected = maxAgeDays == optionDays
                     Surface(
-                        onClick = { if (enabled) onMaxAgeSelected(optionDays) },
                         shape = RoundedCornerShape(14.dp),
                         color = if (selected && enabled) {
                             MaterialTheme.colorScheme.primaryContainer
                         } else {
                             MaterialTheme.colorScheme.surfaceContainerHigh
                         },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(14.dp))
+                            .selectable(
+                                selected = selected,
+                                enabled = enabled,
+                                role = Role.RadioButton
+                            ) { onMaxAgeSelected(optionDays) }
                     ) {
                         Box(
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 12.dp),

@@ -1,0 +1,507 @@
+<!DOCTYPE html><html lang="it" data-theme="dark" data-lang="it"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Dichiarazione di accessibilità — ApkUp</title><meta name="description" content="Impegno di accessibilità di ApkUp, stato WCAG 2.2 AA &amp; EN 301 549, supporto TalkBack e Voice Access, limitazioni note e segnalazioni."><meta name="theme-color" content="#121316" id="meta-theme-color"><link rel="canonical" href="https://durcheins.github.io/apkup/it/accessibility/"><link rel="alternate" hreflang="en" href="https://durcheins.github.io/apkup/accessibility/"><link rel="alternate" hreflang="de" href="https://durcheins.github.io/apkup/de/accessibility/"><link rel="alternate" hreflang="es" href="https://durcheins.github.io/apkup/es/accessibility/"><link rel="alternate" hreflang="fr" href="https://durcheins.github.io/apkup/fr/accessibility/"><link rel="alternate" hreflang="it" href="https://durcheins.github.io/apkup/it/accessibility/"><link rel="alternate" hreflang="ja" href="https://durcheins.github.io/apkup/ja/accessibility/"><link rel="alternate" hreflang="pt" href="https://durcheins.github.io/apkup/pt/accessibility/"><link rel="alternate" hreflang="ru" href="https://durcheins.github.io/apkup/ru/accessibility/"><link rel="alternate" hreflang="zh-CN" href="https://durcheins.github.io/apkup/zh-cn/accessibility/"><link rel="alternate" hreflang="x-default" href="https://durcheins.github.io/apkup/accessibility/"><link rel="alternate" type="text/plain" title="LLMs.txt" href="/apkup/llms.txt"><link rel="icon" type="image/png" href="/apkup/assets/logo.png"><link rel="apple-touch-icon" href="/apkup/assets/logo.png"><link rel="stylesheet" href="/apkup/assets/styles.css"><!-- OpenGraph & Social --><meta property="og:type" content="website"><meta property="og:url" content="https://durcheins.github.io/apkup/it/accessibility/"><meta property="og:locale" content="it"><meta property="og:title" content="Dichiarazione di accessibilità — ApkUp"><meta property="og:description" content="Impegno di accessibilità di ApkUp, stato WCAG 2.2 AA &amp; EN 301 549, supporto TalkBack e Voice Access, limitazioni note e segnalazioni."><meta property="og:image" content="https://durcheins.github.io/apkup/og-card.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Dichiarazione di accessibilità — ApkUp"><meta name="twitter:description" content="Impegno di accessibilità di ApkUp, stato WCAG 2.2 AA &amp; EN 301 549, supporto TalkBack e Voice Access, limitazioni note e segnalazioni."><meta name="twitter:image" content="https://durcheins.github.io/apkup/og-card.png"><!-- Google Fonts CDN (Plus Jakarta Sans + JetBrains Mono) --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"><!-- Prevent theme flash & auto-detect language on default root URLs before first paint --><script>(function(){const currentLang = "it";
+const basePath = "/apkup/";
+const cleanSubPath = "accessibility/";
+
+      (function () {
+        var ZONE_COORDS = {
+          'Europe/Berlin': [52.52, 13.405],
+          'Europe/Vienna': [48.208, 16.373],
+          'Europe/Zurich': [47.377, 8.542],
+          'Europe/London': [51.507, -0.128],
+          'Europe/Paris': [48.857, 2.352],
+          'Europe/Madrid': [40.417, -3.704],
+          'Europe/Rome': [41.903, 12.496],
+          'Europe/Amsterdam': [52.368, 4.904],
+          'Europe/Warsaw': [52.23, 21.012],
+          'Europe/Moscow': [55.756, 37.617],
+          'America/New_York': [40.713, -74.006],
+          'America/Chicago': [41.878, -87.63],
+          'America/Denver': [39.739, -104.99],
+          'America/Los_Angeles': [34.052, -118.244],
+          'America/Sao_Paulo': [-23.55, -46.633],
+          'Asia/Tokyo': [35.676, 139.65],
+          'Asia/Shanghai': [31.23, 121.474],
+          'Asia/Seoul': [37.566, 126.978],
+          'Asia/Kolkata': [22.573, 88.364],
+          'Australia/Sydney': [-33.869, 151.209]
+        };
+
+        function resolveSolarDark(now) {
+          var tz = '';
+          try {
+            tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+          } catch (e) {}
+          var coords = ZONE_COORDS[tz];
+          var offsetEastMin = -now.getTimezoneOffset();
+          var lat = coords ? coords[0] : (tz.indexOf('Australia/') === 0 || tz.indexOf('Auckland') !== -1 || tz.indexOf('Sao_Paulo') !== -1 ? -33 : 48);
+          var lon = coords ? coords[1] : Math.max(-180, Math.min(180, (offsetEastMin / 60) * 15));
+          var start = new Date(now.getFullYear(), 0, 0);
+          var doy = Math.floor((now - start) / 86400000);
+          var gamma = (2 * Math.PI / 365) * (doy - 1);
+          var eqTime = 229.18 * (0.000075 + 0.001868 * Math.cos(gamma) - 0.032077 * Math.sin(gamma) - 0.014615 * Math.cos(2 * gamma) - 0.040849 * Math.sin(2 * gamma));
+          var decl = 0.006918 - 0.399912 * Math.cos(gamma) + 0.070257 * Math.sin(gamma) - 0.006758 * Math.cos(2 * gamma) + 0.000907 * Math.sin(2 * gamma) - 0.002697 * Math.cos(3 * gamma) + 0.00148 * Math.sin(3 * gamma);
+          var latRad = lat * (Math.PI / 180);
+          var cosHa = Math.cos(90.833 * Math.PI / 180) / (Math.cos(latRad) * Math.cos(decl)) - Math.tan(latRad) * Math.tan(decl);
+          var sr = 540, ss = 900;
+          if (cosHa >= -1 && cosHa <= 1) {
+            var haDeg = Math.acos(cosHa) * (180 / Math.PI);
+            sr = ((720 - 4 * (lon + haDeg) - eqTime + offsetEastMin) % 1440 + 1440) % 1440;
+            ss = ((720 - 4 * (lon - haDeg) - eqTime + offsetEastMin) % 1440 + 1440) % 1440;
+          } else if (cosHa < -1) {
+            sr = 300; ss = 1260;
+          }
+          var mins = now.getHours() * 60 + now.getMinutes();
+          return sr < ss ? (mins < sr || mins >= ss) : (mins < sr && mins >= ss);
+        }
+
+        window.__apkupApplyThemeMode = function (mode) {
+          var root = document.documentElement;
+          var normalized = mode === 'light' || mode === 'a11y' || mode === 'dark' ? mode : 'dark';
+          var resolved = normalized === 'a11y' ? (resolveSolarDark(new Date()) ? 'dark' : 'light') : normalized;
+          root.setAttribute('data-theme-mode', normalized);
+          root.setAttribute('data-theme', resolved);
+          if (normalized === 'a11y') root.setAttribute('data-a11y', 'true');
+          else root.removeAttribute('data-a11y');
+          var meta = document.getElementById('meta-theme-color');
+          if (meta) {
+            meta.setAttribute('content', resolved === 'light' ? (normalized === 'a11y' ? '#FFFFFF' : '#F4F1EA') : (normalized === 'a11y' ? '#090A0D' : '#121316'));
+          }
+          return normalized;
+        };
+
+        try {
+          var savedTheme = localStorage.getItem('apkup-theme');
+          window.__apkupApplyThemeMode(savedTheme);
+
+          if (currentLang === 'en') {
+            var nonDefault = ['de', 'es', 'fr', 'it', 'ja', 'pt', 'ru', 'zh-cn'];
+            var savedLang = null;
+            try {
+              savedLang = localStorage.getItem('apkup-lang');
+            } catch (e) {}
+
+            var targetLang = null;
+            if (savedLang === 'en') {
+              targetLang = 'en';
+            } else if (savedLang && nonDefault.indexOf(savedLang) !== -1) {
+              targetLang = savedLang;
+            } else {
+              var langs = navigator.languages && navigator.languages.length
+                ? navigator.languages
+                : [navigator.language || 'en'];
+              for (var i = 0; i < langs.length; i++) {
+                var raw = String(langs[i] || '').toLowerCase().replace(/_/g, '-');
+                if (!raw) continue;
+                if (raw === 'en' || raw.indexOf('en-') === 0) { targetLang = 'en'; break; }
+                if (raw === 'de' || raw.indexOf('de-') === 0) { targetLang = 'de'; break; }
+                if (raw === 'es' || raw.indexOf('es-') === 0) { targetLang = 'es'; break; }
+                if (raw === 'fr' || raw.indexOf('fr-') === 0) { targetLang = 'fr'; break; }
+                if (raw === 'it' || raw.indexOf('it-') === 0) { targetLang = 'it'; break; }
+                if (raw === 'ja' || raw.indexOf('ja-') === 0) { targetLang = 'ja'; break; }
+                if (raw === 'pt' || raw.indexOf('pt-') === 0) { targetLang = 'pt'; break; }
+                if (raw === 'ru' || raw.indexOf('ru-') === 0) { targetLang = 'ru'; break; }
+                if (
+                  raw === 'zh' ||
+                  raw === 'zh-cn' ||
+                  raw === 'zh-sg' ||
+                  raw === 'zh-hans' ||
+                  raw.indexOf('zh-hans-') === 0
+                ) {
+                  targetLang = 'zh-cn';
+                  break;
+                }
+              }
+            }
+
+            if (targetLang && targetLang !== 'en') {
+              var dest = basePath + targetLang + '/' + cleanSubPath + window.location.search + window.location.hash;
+              window.location.replace(dest);
+            }
+          }
+        } catch (e) {}
+      })();
+    })();</script><link rel="stylesheet" href="/apkup/_astro/Footer.j2Gby_qt.css"><style>.a11y-title[data-astro-cid-deda6rtm]{margin-block-start:12px}.a11y-grid[data-astro-cid-deda6rtm]{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;display:grid}.a11y-card[data-astro-cid-deda6rtm]{background:var(--surface-low);border:1px solid var(--outline);border-radius:var(--radius-lg);overflow-wrap:anywhere;flex-direction:column;gap:12px;min-width:0;max-width:100%;padding:clamp(20px,3vw,28px);display:flex}.a11y-card-wide[data-astro-cid-deda6rtm]{grid-column:1/-1}.a11y-card-head[data-astro-cid-deda6rtm]{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;display:flex}.a11y-card[data-astro-cid-deda6rtm] h2[data-astro-cid-deda6rtm]{margin:0;font-size:1.24rem;line-height:1.3}.a11y-card[data-astro-cid-deda6rtm] p[data-astro-cid-deda6rtm]{color:var(--text-muted);margin:0;font-size:.94rem;line-height:1.6}.a11y-list[data-astro-cid-deda6rtm]{color:var(--text-muted);flex-direction:column;gap:10px;margin:0;padding-inline-start:20px;font-size:.92rem;line-height:1.55;display:flex}.a11y-actions[data-astro-cid-deda6rtm]{flex-wrap:wrap;gap:12px;margin-block-start:4px;display:flex}@media (width<=780px){.a11y-grid[data-astro-cid-deda6rtm]{grid-template-columns:minmax(0,1fr)}}
+</style></head> <body> <a class="skip-link" href="#main-content"> Vai al contenuto principale </a> <aside id="kao-local-banner" class="kao-signal-banner is-mini" aria-label="AVVISO: SIDELOADING ANDROID A RISCHIO (2026 / 2027)" data-astro-cid-46uzc7rt> <div class="container kao-banner-inner" data-astro-cid-46uzc7rt> <div class="kao-banner-content" data-astro-cid-46uzc7rt> <div class="kao-signal-bar mono" data-astro-cid-46uzc7rt> <span class="kao-signal-icon" aria-hidden="true" data-astro-cid-46uzc7rt>⚠️</span> <span data-astro-cid-46uzc7rt>AVVISO: SIDELOADING ANDROID A RISCHIO (2026 / 2027)</span> </div> <p class="kao-banner-text" data-astro-cid-46uzc7rt> Il blocco di 24h di Google minaccia la libera installazione di APK. </p> </div> <div class="kao-banner-actions" data-astro-cid-46uzc7rt> <a class="kao-cta-btn" href="/apkup/it/sideloading/google-lock/" data-astro-cid-46uzc7rt> Guida sblocco 24h →
+</a>  <button type="button" id="kao-banner-dismiss" class="kao-dismiss-btn" aria-label="Chiudi avviso per questa sessione" title="Chiudi avviso per questa sessione" data-astro-cid-46uzc7rt>
+×
+</button> </div> </div> </aside> <script>
+  (function () {
+    var banner = document.getElementById('kao-local-banner');
+    var dismiss = document.getElementById('kao-banner-dismiss');
+    if (!banner) return;
+    try {
+      if (sessionStorage.getItem('apkup-kao-dismissed') === '1') {
+        banner.hidden = true;
+        return;
+      }
+    } catch (e) {}
+    if (dismiss) {
+      dismiss.addEventListener('click', function () {
+        banner.hidden = true;
+        try {
+          sessionStorage.setItem('apkup-kao-dismissed', '1');
+        } catch (e) {}
+      });
+    }
+  })();
+</script>  <header class="site-header" data-astro-cid-l7arcky5> <div class="container nav-inner" data-astro-cid-l7arcky5> <a class="brand" href="/apkup/it/" aria-label="Home ApkUp" data-astro-cid-l7arcky5> <img src="/apkup/assets/logo.png" alt="" width="36" height="36" class="brand-icon" data-astro-cid-l7arcky5> <span class="brand-name" data-astro-cid-l7arcky5>ApkUp</span> </a> <nav class="nav-links" aria-label="Navigazione principale" data-astro-cid-l7arcky5> <a href="/apkup/it/#features" data-astro-cid-l7arcky5>Funzioni</a> <a href="/apkup/it/#showcase" data-astro-cid-l7arcky5>Anteprima</a> <a href="/apkup/it/#sources" data-astro-cid-l7arcky5>Sorgenti</a> <a href="/apkup/it/changelog/" data-astro-cid-l7arcky5>Novità</a> <a href="/apkup/it/wiki/" data-astro-cid-l7arcky5>Wiki</a> <a href="/apkup/it/privacy/" data-astro-cid-l7arcky5>Privacy</a> <a href="/apkup/it/downloads/" data-astro-cid-l7arcky5>Download</a> </nav> <div class="nav-actions" data-astro-cid-l7arcky5> <button id="theme-toggle" type="button" class="icon-pill icon-only" aria-label="Cambia tema: Scuro, Chiaro, Accessibilità AAA (Solare)" title="Cambia tema: Scuro, Chiaro, Accessibilità AAA (Solare)" data-label-dark="Tema: Scuro (passa a Chiaro)" data-label-light="Tema: Chiaro (passa ad Accessibilità AAA)" data-label-a11y="Tema: Accessibilità AAA Solare (passa a Scuro)" data-astro-cid-l7arcky5> <svg class="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-l7arcky5> <circle cx="12" cy="12" r="4" data-astro-cid-l7arcky5></circle> <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" data-astro-cid-l7arcky5></path> </svg> <svg class="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-l7arcky5> <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" data-astro-cid-l7arcky5></path> </svg> <svg class="theme-icon-a11y" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-l7arcky5> <circle cx="12" cy="12" r="9" data-astro-cid-l7arcky5></circle> <path d="M12 3v18M12 12l6.4-6.4M12 16l7.5-7.5M12 20l5-5" data-astro-cid-l7arcky5></path> </svg> </button> <a class="btn btn-primary nav-cta" href="/apkup/it/#downloads" data-astro-cid-l7arcky5> Scarica </a> <button id="mobile-menu-toggle" type="button" class="icon-pill icon-only mobile-menu-btn" aria-expanded="false" aria-controls="mobile-nav-panel" aria-label="Apri/chiudi menu di navigazione" data-astro-cid-l7arcky5> <svg class="menu-icon-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" data-astro-cid-l7arcky5> <line x1="4" y1="7" x2="20" y2="7" data-astro-cid-l7arcky5></line> <line x1="4" y1="12" x2="20" y2="12" data-astro-cid-l7arcky5></line> <line x1="4" y1="17" x2="20" y2="17" data-astro-cid-l7arcky5></line> </svg> <svg class="menu-icon-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" data-astro-cid-l7arcky5> <path d="M18 6 6 18M6 6l12 12" data-astro-cid-l7arcky5></path> </svg> </button> </div> </div> <nav id="mobile-nav-panel" class="mobile-nav-panel" aria-label="Navigazione mobile" hidden data-astro-cid-l7arcky5> <div class="container mobile-nav-list" data-astro-cid-l7arcky5> <a href="/apkup/it/#features" data-astro-cid-l7arcky5>Funzioni</a> <a href="/apkup/it/#showcase" data-astro-cid-l7arcky5>Anteprima</a> <a href="/apkup/it/#sources" data-astro-cid-l7arcky5>Sorgenti</a> <a href="/apkup/it/changelog/" data-astro-cid-l7arcky5>Novità</a> <a href="/apkup/it/wiki/" data-astro-cid-l7arcky5>Wiki</a> <a href="/apkup/it/privacy/" data-astro-cid-l7arcky5>Privacy</a> <a href="/apkup/it/downloads/" data-astro-cid-l7arcky5>Download</a> <a class="btn btn-primary mobile-nav-cta" href="/apkup/it/#downloads" data-astro-cid-l7arcky5> Scarica </a> </div> </nav> </header> <script>
+  (function () {
+    var btn = document.getElementById('mobile-menu-toggle');
+    var panel = document.getElementById('mobile-nav-panel');
+
+    var path = window.location.pathname.replace(/\/$/, '');
+    var navLinks = Array.prototype.slice.call(document.querySelectorAll('.nav-links a'));
+    navLinks.forEach(function (a) {
+      var href = (a.getAttribute('href') || '').replace(/\/$/, '');
+      if (href.indexOf('#') === -1 && href && path === href) {
+        a.classList.add('is-current');
+        a.setAttribute('aria-current', 'page');
+      }
+    });
+
+    var secIds = ['features', 'showcase', 'sources'];
+    var secEls = secIds.map(function (id) { return document.getElementById(id); }).filter(Boolean);
+    if (secEls.length && 'IntersectionObserver' in window) {
+      var spy = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          var hash = '#' + entry.target.id;
+          navLinks.forEach(function (a) {
+            var h = a.getAttribute('href') || '';
+            if (h.indexOf('#') !== -1) {
+              var isMatch = h.slice(h.indexOf('#')) === hash;
+              a.classList.toggle('is-current', isMatch);
+              if (isMatch) a.setAttribute('aria-current', 'true');
+              else a.removeAttribute('aria-current');
+            }
+          });
+        });
+      }, { rootMargin: '-30% 0px -60% 0px' });
+      secEls.forEach(function (el) { spy.observe(el); });
+    }
+
+    if (!btn || !panel) return;
+
+    function closeMenu(focusBtn) {
+      panel.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
+      if (focusBtn) btn.focus();
+    }
+
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var nextOpen = panel.hidden;
+      panel.hidden = !nextOpen;
+      btn.setAttribute('aria-expanded', String(nextOpen));
+      if (nextOpen) {
+        var firstLink = panel.querySelector('a');
+        if (firstLink) firstLink.focus();
+      }
+    });
+
+    panel.querySelectorAll('a').forEach(function (a) {
+      a.addEventListener('click', function () { closeMenu(false); });
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !panel.hidden) closeMenu(true);
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!panel.hidden && !panel.contains(e.target) && !btn.contains(e.target)) {
+        closeMenu(false);
+      }
+    });
+
+    // Easter Egg: 5 rapid clicks on ApkUp logo -> amber sparks + toast
+    var brand = document.querySelector('.site-header .brand');
+    if (brand) {
+      var clicks = 0;
+      var clickTimer = null;
+      var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      brand.addEventListener('click', function (e) {
+        clicks++;
+        clearTimeout(clickTimer);
+        clickTimer = setTimeout(function () { clicks = 0; }, 1200);
+        if (clicks >= 5) {
+          e.preventDefault();
+          clicks = 0;
+          if (!prefersReducedMotion) {
+            var rect = brand.getBoundingClientRect();
+            for (var i = 0; i < 12; i++) {
+              var spark = document.createElement('span');
+              spark.className = 'brand-spark';
+              spark.setAttribute('aria-hidden', 'true');
+              var angle = (Math.PI * 2 * i) / 12;
+              var dist = 28 + Math.random() * 24;
+              spark.style.left = rect.left + 20 + 'px';
+              spark.style.top = rect.top + 20 + 'px';
+              spark.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+              spark.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+              document.body.appendChild(spark);
+              setTimeout((function (el) { return function () { el.remove(); }; })(spark), 700);
+            }
+          }
+          var toast = document.createElement('div');
+          toast.className = 'brand-toast mono';
+          toast.setAttribute('role', 'status');
+          toast.setAttribute('aria-live', 'polite');
+          toast.textContent = 'Open Source since 2026 ⚡';
+          document.body.appendChild(toast);
+          setTimeout(function () { toast.remove(); }, 2400);
+        }
+      });
+    }
+  })();
+</script> <main id="main-content" class="section" data-astro-cid-deda6rtm> <div class="container subpage-wrap" data-astro-cid-deda6rtm> <div class="section-header" data-astro-cid-deda6rtm> <span class="pill-badge pill-amber mono" data-astro-cid-deda6rtm>WCAG 2.2 AA • EN 301 549</span> <h1 class="section-title a11y-title" data-astro-cid-deda6rtm>Dichiarazione di accessibilità</h1> <p class="section-subtitle" data-astro-cid-deda6rtm>ApkUp è progettato per funzionare in modo affidabile con Android TalkBack, Voice Access, Switch Access, tastiera fisica e ingrandimento dello schermo sia nell&#39;app sia su questo sito web.</p> </div> <div class="a11y-grid" data-astro-cid-deda6rtm> <section class="a11y-card a11y-card-wide" aria-labelledby="a11y-status-heading" data-astro-cid-deda6rtm> <div class="a11y-card-head" data-astro-cid-deda6rtm> <h2 id="a11y-status-heading" data-astro-cid-deda6rtm>Stato di conformità</h2> <span class="pill-badge pill-emerald mono" data-astro-cid-deda6rtm>WCAG 2.2 AA • Material 3</span> </div> <p data-astro-cid-deda6rtm>L&#39;app Android ApkUp e il sito web puntano alla conformità WCAG 2.2 Livello AA, EN 301 549, linee guida di accessibilità Android e WAI-ARIA 1.2 (ultimo audit completo: 24 novembre 2026).</p> </section> <section class="a11y-card" aria-labelledby="a11y-app-heading" data-astro-cid-deda6rtm> <h2 id="a11y-app-heading" data-astro-cid-deda6rtm>Accessibilità dell&#39;app Android</h2> <p data-astro-cid-deda6rtm>Verificato su Aggiornamenti, App, Impostazioni, finestre di dialogo e notifiche:</p> <ul class="a11y-list" data-astro-cid-deda6rtm> <li data-astro-cid-deda6rtm>Semantica Jetpack Compose completa con etichette descrittive, schede raggruppate, intestazioni e annunci live-region.</li><li data-astro-cid-deda6rtm>Coerenza Label-in-Name (WCAG 2.5.3) per Voice Access e alternative tramite tocco o azioni personalizzate ai gesti complessi.</li><li data-astro-cid-deda6rtm>Area interattiva minima di 48 dp e ordine di focus chiaro in schermate e fogli modali.</li><li data-astro-cid-deda6rtm>Temi Material 3 chiaro e scuro ad alto contrasto (&gt;= 4,5:1 AA), Dynamic Color e ridimensionamento caratteri.</li><li data-astro-cid-deda6rtm>Pieno rispetto dell&#39;impostazione di sistema per la riduzione delle animazioni.</li> </ul> </section> <section class="a11y-card" aria-labelledby="a11y-web-heading" data-astro-cid-deda6rtm> <h2 id="a11y-web-heading" data-astro-cid-deda6rtm>Accessibilità del sito web</h2> <p data-astro-cid-deda6rtm>HTML5 semantico e controlli WAI-ARIA nativi in tutte le 9 lingue:</p> <ul class="a11y-list" data-astro-cid-deda6rtm> <li data-astro-cid-deda6rtm>Landmark semantici, collegamento per saltare al contenuto, navigazione da tastiera completa e indicatori di focus visibili.</li><li data-astro-cid-deda6rtm>Galleria screenshot mettibile in pausa, rispetto di prefers-reduced-motion e zoom accessibile da tastiera.</li><li data-astro-cid-deda6rtm>Contrasto conforme WCAG AA nei temi chiaro e scuro, inclusi badge ed errori.</li><li data-astro-cid-deda6rtm>Reflow fluido fino a 320 px di larghezza e zoom del 400% senza scorrimento orizzontale forzato.</li><li data-astro-cid-deda6rtm>9 lingue localizzate con attributi lang corretti e tabelle o blocchi di codice scorrevoli da tastiera.</li> </ul> </section> <section class="a11y-card a11y-card-wide" aria-labelledby="a11y-limits-heading" data-astro-cid-deda6rtm> <h2 id="a11y-limits-heading" data-astro-cid-deda6rtm>Limitazioni note</h2> <p data-astro-cid-deda6rtm>Le note di rilascio recuperate da repository esterni dipendono dai rispettivi autori e le finestre di sistema Android variano in base al produttore.</p> </section> <section class="a11y-card a11y-card-wide" aria-labelledby="a11y-solo-heading" data-astro-cid-deda6rtm> <h2 id="a11y-solo-heading" data-astro-cid-deda6rtm>Una nota personale dallo sviluppatore</h2> <p data-astro-cid-deda6rtm>ApkUp è sviluppato da una sola persona come progetto open source indipendente. Cerco in scienza e coscienza di rendere ogni funzione il più accessibile possibile, continuando però a imparare ogni giorno. L&#39;accessibilità dell&#39;app e del sito è in costante evoluzione e sono sinceramente grato per ogni minimo consiglio, suggerimento o aiuto da parte della comunità tramite Issues o Discussioni! ❤️</p> <div class="a11y-actions" data-astro-cid-deda6rtm> <a class="btn btn-secondary" href="https://github.com/DurchEins/apkup/issues" target="_blank" rel="noopener noreferrer" data-astro-cid-deda6rtm> GitHub Issues (Consigli e bug) ↗ </a> <a class="btn btn-secondary" href="https://github.com/DurchEins/apkup/discussions" target="_blank" rel="noopener noreferrer" data-astro-cid-deda6rtm> GitHub Discussions (Idee e confronto) ↗ </a> </div> </section> <section class="a11y-card a11y-card-wide" aria-labelledby="a11y-feedback-heading" data-astro-cid-deda6rtm> <h2 id="a11y-feedback-heading" data-astro-cid-deda6rtm>Segnala una barriera di accessibilità</h2> <p data-astro-cid-deda6rtm>Hai trovato un pulsante senza etichetta, contrasto insufficiente o un problema con TalkBack? Segnalalo direttamente su GitHub.</p> <div class="a11y-actions" data-astro-cid-deda6rtm> <a class="btn btn-primary" href="https://github.com/DurchEins/apkup/issues/new?template=accessibility.yml" target="_blank" rel="noopener noreferrer" data-astro-cid-deda6rtm> Apri una segnalazione su GitHub ↗ </a> <a class="btn btn-secondary" href="https://github.com/DurchEins/apkup/blob/main/ACCESSIBILITY.md" target="_blank" rel="noopener noreferrer" data-astro-cid-deda6rtm> Leggi ACCESSIBILITY.md ↗ </a> </div> </section> </div> </div> </main> <footer class="site-footer" data-astro-cid-jo6i4kqk> <div class="container footer-inner" data-astro-cid-jo6i4kqk> <div class="footer-brand" data-astro-cid-jo6i4kqk> <img src="/apkup/assets/logo.png" alt="" width="34" height="34" class="footer-icon" data-astro-cid-jo6i4kqk> <div class="footer-brand-text" data-astro-cid-jo6i4kqk> <strong data-astro-cid-jo6i4kqk>ApkUp</strong> <p class="footer-copy" data-astro-cid-jo6i4kqk>
+Copyright © 2026  <a href="https://github.com/DurchEins" target="_blank" rel="noopener noreferrer" class="footer-author-link" data-astro-cid-jo6i4kqk>DurchEins</a> </p> </div> </div> <nav class="footer-links" aria-label="Link del piè di pagina" data-astro-cid-jo6i4kqk> <a href="/apkup/it/downloads/" data-astro-cid-jo6i4kqk>Download</a> <a href="/apkup/it/sideloading/" data-astro-cid-jo6i4kqk>App sconosciute</a> <a href="/apkup/it/sideloading/google-lock/" data-astro-cid-jo6i4kqk>Blocco 24h Google</a> <a href="/apkup/it/changelog/" data-astro-cid-jo6i4kqk>Novità</a> <a href="/apkup/it/wiki/" data-astro-cid-jo6i4kqk>Wiki</a> <a href="/apkup/it/compare/" data-astro-cid-jo6i4kqk>Verifica sorgenti</a> <a href="/apkup/it/privacy/" data-astro-cid-jo6i4kqk>Privacy</a> <a href="/apkup/it/security/" data-astro-cid-jo6i4kqk>Sicurezza</a> <a href="/apkup/it/accessibility/" data-astro-cid-jo6i4kqk>Accessibilità</a> <a href="https://github.com/DurchEins/apkup" target="_blank" rel="noopener noreferrer" data-astro-cid-jo6i4kqk>GitHub</a> <a href="https://github.com/sponsors/DurchEins" target="_blank" rel="noopener noreferrer" data-astro-cid-jo6i4kqk>Sponsor</a> <a href="https://github.com/DurchEins/apkup/wiki" target="_blank" rel="noopener noreferrer" data-astro-cid-jo6i4kqk>GitHub Wiki</a> <a href="https://github.com/DurchEins/apkup/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="footer-build-pill mono" data-astro-cid-jo6i4kqk>GPL-3.0</a> <a href="https://github.com/DurchEins/apkup/releases/latest" target="_blank" rel="noopener noreferrer" class="footer-build-pill mono" title="Release ufficiale" data-astro-cid-jo6i4kqk>
+v1.47.0 (237)
+</a> <a href="https://u24.gov.ua/" target="_blank" rel="noopener noreferrer" class="footer-build-pill footer-ukraine-pill" aria-label="Stand with Ukraine — Official United24 Support" data-astro-cid-jo6i4kqk> <svg width="16" height="11" viewBox="0 0 16 11" aria-hidden="true" class="ua-flag" data-astro-cid-jo6i4kqk> <defs data-astro-cid-jo6i4kqk> <clipPath id="ua-clip" data-astro-cid-jo6i4kqk><rect width="16" height="11" rx="2" data-astro-cid-jo6i4kqk></rect></clipPath> </defs> <g clip-path="url(#ua-clip)" data-astro-cid-jo6i4kqk> <rect width="16" height="5.5" fill="#0057B7" data-astro-cid-jo6i4kqk></rect> <rect y="5.5" width="16" height="5.5" fill="#FFD700" data-astro-cid-jo6i4kqk></rect> </g> </svg> <span data-astro-cid-jo6i4kqk>Stand with Ukraine</span> </a> </nav> <div class="footer-i18n-bar" data-astro-cid-jo6i4kqk> <div class="lang-picker-wrap" id="footer-lang-wrap" data-astro-cid-jo6i4kqk> <button type="button" id="footer-lang-btn" class="lang-picker-btn" aria-expanded="false" aria-haspopup="menu" aria-controls="footer-lang-menu" aria-label="Italiano (IT) — Seleziona lingua" data-astro-cid-jo6i4kqk> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-jo6i4kqk> <circle cx="12" cy="12" r="10" data-astro-cid-jo6i4kqk></circle> <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" data-astro-cid-jo6i4kqk></path> </svg> <span data-astro-cid-jo6i4kqk>Italiano <span class="mono lang-code" data-astro-cid-jo6i4kqk>(IT)</span></span> <svg class="lang-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-jo6i4kqk> <path d="m6 9 6 6 6-6" data-astro-cid-jo6i4kqk></path> </svg> </button> <div id="footer-lang-menu" class="lang-picker-menu" role="menu" aria-label="Seleziona lingua" hidden data-astro-cid-jo6i4kqk> <a href="/apkup/accessibility/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="en" lang="en" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>English</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>EN</span>  </span> </a><a href="/apkup/de/accessibility/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="de" lang="de" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Deutsch</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>DE</span>  </span> </a><a href="/apkup/es/accessibility/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="es" lang="es" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Español</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>ES</span>  </span> </a><a href="/apkup/fr/accessibility/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="fr" lang="fr" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Français</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>FR</span>  </span> </a><a href="/apkup/it/accessibility/" role="menuitemradio" aria-checked="true" class="lang-menu-item is-active" data-lang-option="it" lang="it" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Italiano</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>IT</span> <span aria-hidden="true" data-astro-cid-jo6i4kqk>✓</span> </span> </a><a href="/apkup/ja/accessibility/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="ja" lang="ja" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>日本語</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>JA</span>  </span> </a><a href="/apkup/pt/accessibility/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="pt" lang="pt" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Português</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>PT</span>  </span> </a><a href="/apkup/ru/accessibility/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="ru" lang="ru" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Русский</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>RU</span>  </span> </a><a href="/apkup/zh-cn/accessibility/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="zh-cn" lang="zh-CN" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>简体中文</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>ZH-CN</span>  </span> </a> </div> </div> <a href="https://hosted.weblate.org/engage/apkup/" target="_blank" rel="noopener noreferrer" class="help-translate-link" data-astro-cid-jo6i4kqk> Aiuta a tradurre → </a> </div> </div> </footer> <script>
+  (function () {
+    var wrap = document.getElementById('footer-lang-wrap');
+    var btn = document.getElementById('footer-lang-btn');
+    var menu = document.getElementById('footer-lang-menu');
+    if (!wrap || !btn || !menu) return;
+
+    var menuItems = Array.prototype.slice.call(menu.querySelectorAll('[role="menuitemradio"]'));
+
+    function closeMenu(focusBtn) {
+      if (menu.hidden) return;
+      menu.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
+      if (focusBtn) btn.focus();
+    }
+
+    function openMenu(focusTarget) {
+      menu.hidden = false;
+      btn.setAttribute('aria-expanded', 'true');
+      var target = focusTarget || menu.querySelector('[aria-checked="true"]') || menuItems[0];
+      if (target) target.focus();
+    }
+
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (menu.hidden) openMenu();
+      else closeMenu(false);
+    });
+
+    btn.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        openMenu(e.key === 'ArrowUp' ? menuItems[menuItems.length - 1] : menuItems[0]);
+      }
+    });
+
+    menu.addEventListener('keydown', function (e) {
+      if (!menuItems.length) return;
+      var idx = menuItems.indexOf(document.activeElement);
+      var nextIdx = -1;
+      if (e.key === 'ArrowDown') nextIdx = (idx + 1) % menuItems.length;
+      else if (e.key === 'ArrowUp') nextIdx = (idx - 1 + menuItems.length) % menuItems.length;
+      else if (e.key === 'Home') nextIdx = 0;
+      else if (e.key === 'End') nextIdx = menuItems.length - 1;
+      else if (e.key === 'Tab') {
+        closeMenu(false);
+        return;
+      }
+      if (nextIdx >= 0) {
+        e.preventDefault();
+        menuItems[nextIdx].focus();
+      }
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!menu.hidden && !wrap.contains(e.target)) {
+        closeMenu(false);
+      }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !menu.hidden) {
+        closeMenu(true);
+      }
+    });
+
+    menu.querySelectorAll('[data-lang-option]').forEach(function (link) {
+      link.addEventListener('click', function (e) {
+        var targetLang = link.getAttribute('data-lang-option');
+        if (targetLang) {
+          try {
+            localStorage.setItem('apkup-lang', targetLang);
+          } catch (err) {}
+        }
+        var dest = link.getAttribute('href');
+        if (dest && (window.location.search || window.location.hash)) {
+          e.preventDefault();
+          window.location.href = dest + window.location.search + window.location.hash;
+        }
+      });
+    });
+  })();
+</script>  <button type="button" id="back-to-top-btn" class="back-to-top-pill" aria-label="Torna su" title="Torna su"> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <path d="m18 15-6-6-6 6"></path> </svg> </button> <aside id="dev-mode-hud" class="dev-mode-hud mono" aria-label="⚡ Modalità sviluppatore ApkUp" hidden> <div class="dev-hud-head"> <strong>⚡ Modalità sviluppatore ApkUp</strong> <button type="button" id="dev-hud-close" aria-label="Close Developer HUD">✕</button> </div> <div class="dev-hud-grid"> <span>Release: <strong>v1.47.0 (237)</strong></span> <span>SDK: <strong>API 29 – 37 (Android 10–17)</strong></span> <span>ABIs: <strong>arm64-v8a • armeabi-v7a • x86_64</strong></span> <span>Signature: <strong>APK Scheme v2/v3 + SHA-256</strong></span> <span id="dev-hud-perf">DOM Ready: <strong>-- ms</strong></span> </div> </aside> <script>(function(){const copiedToastMsg = "✓ Copiato negli appunti";
+const shareTitleMsg = "ApkUp — Aggiornatore Android multisorgente";
+const shareTextMsg = "ApkUp: aggiornatore Android open source per Google Play, F-Droid, GitHub e altro — senza pubblicità e con Shizuku.";
+const canonicalShareUrl = "https://durcheins.github.io/apkup/it/accessibility/";
+
+      (function () {
+        var root = document.documentElement;
+        var themeBtn = document.getElementById('theme-toggle');
+
+        function syncThemeButtonLabel(mode) {
+          if (!themeBtn) return;
+          themeBtn.setAttribute('data-theme-state', mode);
+          themeBtn.setAttribute('aria-pressed', String(mode !== 'dark'));
+          var labelKey = mode === 'a11y' ? 'data-label-a11y' : (mode === 'light' ? 'data-label-light' : 'data-label-dark');
+          var nextLabel = themeBtn.getAttribute(labelKey);
+          if (nextLabel) {
+            themeBtn.setAttribute('aria-label', nextLabel);
+            themeBtn.setAttribute('title', nextLabel);
+          }
+        }
+
+        function applyTheme(next) {
+          root.classList.add('theme-switching');
+          var normalized = window.__apkupApplyThemeMode ? window.__apkupApplyThemeMode(next) : next;
+          try {
+            localStorage.setItem('apkup-theme', normalized);
+          } catch (e) {}
+          syncThemeButtonLabel(normalized);
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+              root.classList.remove('theme-switching');
+            });
+          });
+        }
+
+        if (themeBtn) {
+          var initialMode = root.getAttribute('data-theme-mode') || 'dark';
+          syncThemeButtonLabel(initialMode);
+          try {
+            if (!localStorage.getItem('apkup-theme')) themeBtn.classList.add('is-system-sync');
+          } catch (e) {}
+          themeBtn.addEventListener('click', function () {
+            themeBtn.classList.remove('is-system-sync');
+            var current = root.getAttribute('data-theme-mode') || 'dark';
+            var next = current === 'dark' ? 'light' : (current === 'light' ? 'a11y' : 'dark');
+            applyTheme(next);
+          });
+          setInterval(function () {
+            if (root.getAttribute('data-theme-mode') === 'a11y' && window.__apkupApplyThemeMode) {
+              window.__apkupApplyThemeMode('a11y');
+            }
+          }, 60000);
+          document.addEventListener('visibilitychange', function () {
+            if (!document.hidden && root.getAttribute('data-theme-mode') === 'a11y' && window.__apkupApplyThemeMode) {
+              window.__apkupApplyThemeMode('a11y');
+            }
+          });
+        }
+
+        function showCopied(btn) {
+          var lbl = btn.querySelector('[data-share-label]');
+          var copied = btn.querySelector('[data-share-copied]');
+          if (!lbl || !copied) return;
+          lbl.hidden = true;
+          copied.hidden = false;
+          btn.classList.add('is-copied');
+          if (window.innerWidth <= 860) {
+            var t = document.createElement('div');
+            t.className = 'brand-toast mono';
+            t.textContent = copiedToastMsg;
+            document.body.appendChild(t);
+            setTimeout(function () { t.remove(); }, 1800);
+          }
+          clearTimeout(btn._shareTimer);
+          btn._shareTimer = setTimeout(function () {
+            lbl.hidden = false;
+            copied.hidden = true;
+            btn.classList.remove('is-copied');
+          }, 2000);
+        }
+
+        // Konami Code (↑↑↓↓←→←→BA) & Alt+D Developer Mode HUD
+        var devHud = document.getElementById('dev-mode-hud');
+        var devClose = document.getElementById('dev-hud-close');
+        var devPerf = document.getElementById('dev-hud-perf');
+        var konami = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+        var kPos = 0;
+        function toggleDevHud() {
+          if (!devHud) return;
+          devHud.hidden = !devHud.hidden;
+          if (!devHud.hidden && devPerf && window.performance) {
+            devPerf.innerHTML = 'DOM Load: <strong>' + Math.round(performance.now()) + ' ms</strong>';
+          }
+        }
+        if (devClose) devClose.addEventListener('click', function () { if (devHud) devHud.hidden = true; });
+        document.addEventListener('keydown', function (e) {
+          if (e.altKey && (e.key === 'd' || e.key === 'D')) {
+            e.preventDefault();
+            toggleDevHud();
+            return;
+          }
+          var key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+          if (key === konami[kPos]) {
+            kPos++;
+            if (kPos === konami.length) {
+              kPos = 0;
+              toggleDevHud();
+            }
+          } else {
+            kPos = 0;
+          }
+        });
+
+        var topBtn = document.getElementById('back-to-top-btn');
+        if (topBtn) {
+          function syncTopBtn() {
+            topBtn.classList.toggle('is-visible', window.scrollY > 480);
+          }
+          window.addEventListener('scroll', syncTopBtn, { passive: true });
+          syncTopBtn();
+          topBtn.addEventListener('click', function () {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          });
+        }
+
+        // TV/D-Pad keyboard focus mode
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Tab' || e.key.indexOf('Arrow') === 0) {
+            root.classList.add('kbd-nav');
+          }
+        });
+        document.addEventListener('pointerdown', function () {
+          root.classList.remove('kbd-nav');
+        });
+
+        // Global mouse-tracking spotlight on .has-spotlight cards
+        if (!window.matchMedia || !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          document.querySelectorAll('.has-spotlight').forEach(function (card) {
+            card.addEventListener('pointermove', function (e) {
+              var r = card.getBoundingClientRect();
+              card.style.setProperty('--mx', e.clientX - r.left + 'px');
+              card.style.setProperty('--my', e.clientY - r.top + 'px');
+            });
+          });
+        }
+
+        document.querySelectorAll('[data-share-btn]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var shareData = {
+              title: shareTitleMsg,
+              text: shareTextMsg,
+              url: canonicalShareUrl
+            };
+            if (navigator.share) {
+              navigator.share(shareData).catch(function (err) {
+                if (err && err.name === 'AbortError') return;
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                  navigator.clipboard.writeText(canonicalShareUrl).then(function () { showCopied(btn); }).catch(function () {});
+                }
+              });
+            } else if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(canonicalShareUrl).then(function () { showCopied(btn); }).catch(function () {});
+            }
+          });
+        });
+      })();
+    })();</script> </body> </html>

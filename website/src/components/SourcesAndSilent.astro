@@ -38,13 +38,12 @@ const wikiSourcesHref = localePath(lang, 'wiki/#doc-sources');
 
     <div class="quick-compat-box">
       <div class="quick-compat-row">
-        <strong class="quick-compat-title">{t.sources.quickTest.title}</strong>
+        <label for="quick-compat-input" class="quick-compat-title">{t.sources.quickTest.title}</label>
         <input
           type="url"
           id="quick-compat-input"
           class="quick-compat-input mono"
           placeholder={t.sources.quickTest.placeholder}
-          aria-label={t.sources.quickTest.ariaLabel}
         />
         <a class="quick-compat-link" href={localePath(lang, 'compare/#checker')}>
           {t.sources.quickTest.checkerLink}
@@ -61,7 +60,7 @@ const wikiSourcesHref = localePath(lang, 'wiki/#doc-sources');
         </div>
         <span class="quick-compat-hint">{t.sources.quickTest.hint}</span>
       </div>
-      <div class="quick-compat-result" id="quick-compat-result" role="status" hidden></div>
+      <div class="quick-compat-result" id="quick-compat-result" role="status" aria-live="polite"></div>
     </div>
 
     <div class="silent-box">
@@ -70,10 +69,10 @@ const wikiSourcesHref = localePath(lang, 'wiki/#doc-sources');
         <h3>{t.sources.silent.title}</h3>
         <p>{t.sources.silent.desc}</p>
         <div class="silent-mode-toggle" role="group" aria-label={t.sources.silent.modeAria}>
-          <button type="button" class="mode-pill is-active" data-silent-mode="shizuku">
+          <button type="button" class="mode-pill is-active" data-silent-mode="shizuku" aria-pressed="true">
             {t.sources.silent.shizukuBtn}
           </button>
-          <button type="button" class="mode-pill" data-silent-mode="root">
+          <button type="button" class="mode-pill" data-silent-mode="root" aria-pressed="false">
             {t.sources.silent.rootBtn}
           </button>
         </div>
@@ -93,7 +92,7 @@ const wikiSourcesHref = localePath(lang, 'wiki/#doc-sources');
       <ol class="silent-steps" data-mode-panel="shizuku">
         {t.sources.silent.shizukuSteps.map((step, i) => (
           <li>
-            <span class="step-num mono">0{i + 1}</span>
+            <span class="step-num mono" aria-hidden="true">0{i + 1}</span>
             <div>
               <h4>{step.title}</h4>
               <p>{step.desc}</p>
@@ -105,7 +104,7 @@ const wikiSourcesHref = localePath(lang, 'wiki/#doc-sources');
       <ol class="silent-steps" data-mode-panel="root" hidden>
         {t.sources.silent.rootSteps.map((step, i) => (
           <li>
-            <span class="step-num mono">0{i + 1}</span>
+            <span class="step-num mono" aria-hidden="true">0{i + 1}</span>
             <div>
               <h4>{step.title}</h4>
               <p>{step.desc}</p>
@@ -126,7 +125,9 @@ const wikiSourcesHref = localePath(lang, 'wiki/#doc-sources');
       btn.addEventListener('click', function () {
         var mode = btn.getAttribute('data-silent-mode');
         modeBtns.forEach(function (b) {
-          b.classList.toggle('is-active', b.getAttribute('data-silent-mode') === mode);
+          var isSel = b.getAttribute('data-silent-mode') === mode;
+          b.classList.toggle('is-active', isSel);
+          b.setAttribute('aria-pressed', String(isSel));
         });
         modePanels.forEach(function (p) {
           p.hidden = p.getAttribute('data-mode-panel') !== mode;
@@ -170,10 +171,10 @@ const wikiSourcesHref = localePath(lang, 'wiki/#doc-sources');
     function render(val) {
       var info = detectSource(val);
       if (!info) {
-        result.hidden = true;
+        result.className = 'quick-compat-result';
+        result.textContent = '';
         return;
       }
-      result.hidden = false;
       result.className = 'quick-compat-result ' + (info.ok ? 'is-ok' : 'is-warn');
       result.innerHTML = '';
       var strong = document.createElement('strong');
@@ -182,7 +183,7 @@ const wikiSourcesHref = localePath(lang, 'wiki/#doc-sources');
       span.textContent = info.msg + ' ';
       var a = document.createElement('a');
       a.href = wikiSourcesHref;
-      a.style.cssText = 'color:var(--accent);font-weight:700;';
+      a.style.cssText = 'color:inherit;text-decoration:underline;font-weight:700;';
       a.textContent = wikiLinkText;
       span.appendChild(a);
       result.appendChild(strong);
@@ -349,12 +350,13 @@ const wikiSourcesHref = localePath(lang, 'wiki/#doc-sources');
 
   .quick-compat-title {
     font-size: 0.92rem;
-    white-space: nowrap;
+    font-weight: 700;
   }
 
   .quick-compat-input {
-    flex: 1;
-    min-width: 220px;
+    flex: 1 1 200px;
+    min-width: 0;
+    max-width: 100%;
     height: 38px;
     padding: 6px 12px;
     border-radius: 10px;
@@ -369,7 +371,6 @@ const wikiSourcesHref = localePath(lang, 'wiki/#doc-sources');
     font-weight: 700;
     color: var(--accent);
     text-decoration: none;
-    white-space: nowrap;
   }
 
   .quick-compat-bottom {
@@ -412,7 +413,7 @@ const wikiSourcesHref = localePath(lang, 'wiki/#doc-sources');
   }
 
   .mode-pill {
-    min-height: 36px;
+    min-height: 44px;
     padding: 6px 14px;
     border-radius: var(--radius-pill);
     border: none;
@@ -437,7 +438,7 @@ const wikiSourcesHref = localePath(lang, 'wiki/#doc-sources');
     font-size: 0.92rem;
   }
 
-  .quick-compat-result[hidden] {
+  .quick-compat-result:empty {
     display: none;
   }
 

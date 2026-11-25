@@ -14,7 +14,10 @@
     "primaryAria": "Primary navigation",
     "mobileAria": "Mobile navigation",
     "toggleMenuAria": "Toggle navigation menu",
-    "toggleThemeAria": "Toggle light and dark theme",
+    "toggleThemeAria": "Cycle theme: Dark, Light, Accessibility AAA (Solar)",
+    "themeModeDark": "Theme: Dark (switch to Light)",
+    "themeModeLight": "Theme: Light (switch to Accessibility AAA)",
+    "themeModeA11y": "Theme: Accessibility AAA Solar (switch to Dark)",
     "features": "Features",
     "showcase": "Showcase",
     "sources": "Sources",
@@ -25,6 +28,7 @@
     "download": "Download"
   },
   "footer": {
+    "navAria": "Footer links",
     "downloads": "Downloads",
     "installUnknownApps": "Install Unknown Apps",
     "googleLock": "Google 24h Lock",
@@ -33,6 +37,7 @@
     "sourceChecker": "Source Checker",
     "privacy": "Privacy",
     "security": "Security",
+    "accessibility": "Accessibility",
     "canonicalRelease": "Canonical Release",
     "langPickerAria": "Select language",
     "helpTranslate": "Help translate →"
@@ -110,6 +115,8 @@
     "title": "Designed for thumb-zone ergonomics",
     "subtitle": "Explore the real app interface — switch between screens below or tap the phone preview to zoom in.",
     "tablistAria": "App screenshots",
+    "pauseAria": "Pause automatic screenshot rotation",
+    "playAria": "Resume automatic screenshot rotation",
     "lightboxAria": "Screenshot preview",
     "closePreviewAria": "Close preview",
     "screens": {
@@ -851,7 +858,7 @@
     "title": "Wiki & Guides — ApkUp",
     "metaDesc": "Complete 12-chapter ApkUp reference documentation covering update sources, F-Droid Index V2, PAT tokens, Shizuku & Root silent updates, Obtainium JSON import, sideloading, Google's 24h lock, and troubleshooting.",
     "h1": "ApkUp Wiki & Documentation",
-    "lead": "All 12 official guides in one searchable place — switch chapters on the left or search across every topic below.",
+    "lead": "All 21 official guides in one searchable place — switch chapters on the left or search across every topic below.",
     "langNote": "Note: The complete reference articles below are synced from the English GitHub Wiki. Chapter summaries, quick-start steps, and tables are localized in your language.",
     "searchPlaceholder": "Search all 12 guides (e.g. Shizuku, 24h, SHA-256, Cloudflare, 403, Obtainium)…",
     "searchAria": "Search wiki guides",
@@ -1223,7 +1230,81 @@
             "body": "F-Droid builds reproducible open-source APKs without forcing anonymous developers to submit government IDs to Google."
           }
         ]
+      },
+      "accessibility": {
+        "title": "Accessibility & Accessible Mode",
+        "lead": "How to enable Accessible Mode, configure the high-contrast solar Auto / Light / Dark theme, and use TalkBack or one-tap controls."
+      },
+      "tech-sources": {
+        "title": "Tech: Update Sources, Networking & Parsing",
+        "lead": "Technical overview of multi-source aggregation, gplayapi, F-Droid Index-V2 (RFC 7396), APKMirror .apkm & Cloudflare handling, and Git forges."
+      },
+      "tech-install": {
+        "title": "Tech: Installation, Shizuku, Root & WorkManager",
+        "lead": "Technical overview of UpdateDownloadWorker, 24h cache, SessionInstaller (PackageInstaller), Shizuku Binder IPC, RootInstaller, and rollback backups."
+      },
+      "tech-security": {
+        "title": "Tech: Security, Cryptography & Privacy",
+        "lead": "Technical overview of ApkIntegrityVerifier (v2/v3 signatures, SHA-256, downgrade guard), Google Tink AES-256-GCM, Zip-Slip protection, and AppJournal redaction."
+      },
+      "tech-ui": {
+        "title": "Tech: UI, Accessibility & Website Architecture",
+        "lead": "Technical overview of Material 3 Expressive Compose UI, a11yAccessibleUi, AccessibleTypography, SolarScheduleCalculator, Astro 9-language site, and check-a11y.mjs."
+      },
+      "tech-cicd": {
+        "title": "Tech: CI/CD, Single-Artifact Releases & Checksums",
+        "lead": "Technical overview of semantic versioning, PR CI gates, release.yml canonical APK signing, SHA256SUMS, Self-Updater, and mirror distribution."
+      },
+      "tech-storage": {
+        "title": "Tech: Data Storage, Prefs, Backups, Logs & Widget",
+        "lead": "Technical overview of SecurePrefsStore allowlist, CachedUpdateSnapshot, ApkUpBackupConfig JSON schema, AppJournal, and UpdatesWidgetProvider (Preview)."
+      },
+      "tech-build": {
+        "title": "Tech: Build System, R8 & Automated Tests",
+        "lead": "Technical overview of Gradle build variants, R8 shrinking/obfuscation, 413+ unit tests (PrefsTest, ChangelogBottomSheetTest, AccessibilityAuditTest), and lintDebug."
+      },
+      "tech-i18n": {
+        "title": "Tech: Localization, Weblate & Asset Pipeline",
+        "lead": "Technical overview of 9-locale strings.xml & website i18n parity, Hosted Weblate, changelog asset parser, Fastlane metadata, and adaptive SVGs."
       }
     }
+  },
+  "accessibilityPage": {
+    "title": "Accessibility Statement — ApkUp",
+    "metaDesc": "Accessibility commitment, WCAG 2.2 AA & EN 301 549 status, Android TalkBack / Voice Access support, known limitations, and feedback process for ApkUp.",
+    "badge": "WCAG 2.2 AA • EN 301 549",
+    "h1": "Accessibility Statement",
+    "lead": "ApkUp is designed for reliable operation with Android TalkBack, Voice Access, Switch Access, hardware keyboards, and screen magnification — both inside the Android app and on this website.",
+    "statusTitle": "Conformance Status & Audit Date",
+    "statusPill": "WCAG 2.2 AA • Material 3",
+    "statusBody": "Both the ApkUp Android application and the companion website target full conformance with WCAG 2.2 Level AA, EN 301 549, Android Accessibility Guidelines, and WAI-ARIA 1.2 (last full audit: November 24, 2026).",
+    "appTitle": "Android App Accessibility Features",
+    "appLead": "Verified across Updates, Apps, Setup, onboarding dialogs, bottom sheets, and system notifications:",
+    "appItems": [
+      "Full Jetpack Compose semantics with descriptive contentDescription labels, grouped update cards, headings, and live-region status announcements for scans, queues, and downloads.",
+      "WCAG 2.5.3 Label-in-Name consistency for Voice Access and click/custom-action alternatives for pull-to-refresh, long-press batch selection, and drag-and-drop source ordering.",
+      "Minimum 48 dp touch targets on interactive controls, configurable large 2-column app grid (preselected in Accessibility theme), clean focus traversal, and keyboard-accessible bottom sheets.",
+      "Standard WCAG 2.2 AA Light and Dark Material 3 palettes (>= 4.5:1) plus a dedicated Accessibility AAA theme (>= 7.0:1) with offline solar sunrise/sunset switching, crisp 1.5 dp borders, and automatic Dynamic Color pause.",
+      "Respects Android reduced-motion settings cleanly across animations, shimmer loaders, and visual effects."
+    ],
+    "webTitle": "Website Accessibility Features",
+    "webLead": "Built with semantic HTML5 and zero-dependency native ARIA controls across all 9 locales:",
+    "webItems": [
+      "Semantic landmarks, skip-to-content navigation, keyboard-accessible menus/tabs/dialogs, and visible 3 px focus indicators.",
+      "Pauseable screenshot showcase respecting prefers-reduced-motion alongside keyboard-triggerable image zoom and focus restoration on dialog close.",
+      "Three-way theme toggle (Dark, Light, and WCAG 2.2 AAA >= 7.0:1 High-Contrast Solar mode) validated across text, accents, errors, copied badges, and borders.",
+      "Responsive layout reflow down to 320 px viewport width and 400% browser zoom without horizontal scrolling traps.",
+      "Localized interfaces across 9 languages with accurate document and section lang attributes and keyboard-scrollable code and comparison tables."
+    ],
+    "limitsTitle": "Known Limitations & Continuous Testing",
+    "limitsBody": "Third-party release notes fetched dynamically from upstream repositories (such as GitHub or GitLab releases) are authored by external developers and may contain varying formatting. Android OS system prompts (Developer Options, Install unknown apps, and Shizuku pairing) depend on the device manufacturer’s system UI. Manual on-device TalkBack and Voice Access verification across Android OEM skins remains ongoing.",
+    "soloTitle": "A Personal Note from the Solo Developer",
+    "soloBody": "ApkUp is built by a single independent developer. I strive to implement every feature as accessibly as possible to the best of my knowledge and conscience — while continuously learning along the way. Accessibility across the app and website is an ongoing effort, and I am genuinely grateful for every single tip, hint, or helping hand from the community via our Issues or Discussions! ❤️",
+    "soloIssuesCta": "GitHub Issues (Tips & Bugs) ↗",
+    "soloDiscussionsCta": "GitHub Discussions (Ideas & Feedback) ↗",
+    "feedbackTitle": "Report an Accessibility Barrier",
+    "feedbackLead": "Found an unlabelled button, keyboard trap, low-contrast text, or screen reader issue in ApkUp or on this website? Please report it directly on GitHub.",
+    "feedbackCta": "Open Accessibility Issue on GitHub ↗",
+    "feedbackSecondary": "Read Technical Policy (ACCESSIBILITY.md) ↗"
   }
 }

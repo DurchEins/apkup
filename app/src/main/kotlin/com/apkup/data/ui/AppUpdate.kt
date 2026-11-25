@@ -69,14 +69,30 @@ fun AppUpdate.isMeaningfulVersionUpgrade(): Boolean = isVerifiableVersionUpgrade
 
 fun AppUpdate.isWatchedApp(): Boolean = oldVersionCode < 0L
 
+private val htmlBreakRegex = Regex("<br\\s*/?>", RegexOption.IGNORE_CASE)
+private val htmlClosingParagraphRegex = Regex("</p>", RegexOption.IGNORE_CASE)
+private val htmlListStartRegex = Regex("<li[^>]*>", RegexOption.IGNORE_CASE)
+private val htmlListEndRegex = Regex("</li>", RegexOption.IGNORE_CASE)
+private val htmlCommentRegex = Regex("<!--.*?-->", setOf(RegexOption.DOT_MATCHES_ALL))
+private val htmlTagRegex = Regex("<[^>]+>")
+private val markdownHeadingRegex = Regex("^#{1,6}\\s*")
+private val markdownListBulletRegex = Regex("^[-*+]\\s+")
+private val markdownLinkRegex = Regex("\\[([^\\]]+)]\\(([^)]+)\\)")
+private val markdownImageRegex = Regex("!\\[([^\\]]*)]\\([^)]+\\)")
+private val markdownEmphasisRegex = Regex("(\\*\\*|__|~~|`{1,3})")
+private val bareHexHashRegex = Regex("\\b[0-9a-fA-F]{32,64}\\b")
+private val urlRegex = Regex("https?://\\S+")
+private val repeatedSpaceRegex = Regex("[ \\t]{2,}")
+
 internal fun cleanChangelogText(raw: String?): String {
 	if (raw.isNullOrBlank()) return ""
-	return raw
-		.replace(Regex("<br\\s*/?>", RegexOption.IGNORE_CASE), "\n")
-		.replace(Regex("</p>", RegexOption.IGNORE_CASE), "\n")
-		.replace(Regex("<li[^>]*>", RegexOption.IGNORE_CASE), "• ")
-		.replace(Regex("</li>", RegexOption.IGNORE_CASE), "\n")
-		.replace(Regex("<[^>]+>"), "")
+	val unescaped = raw
+		.replace(htmlCommentRegex, "")
+		.replace(htmlBreakRegex, "\n")
+		.replace(htmlClosingParagraphRegex, "\n")
+		.replace(htmlListStartRegex, "• ")
+		.replace(htmlListEndRegex, "\n")
+		.replace(htmlTagRegex, "")
 		.replace("&bull;", "•")
 		.replace("&amp;", "&")
 		.replace("&lt;", "<")
@@ -84,10 +100,39 @@ internal fun cleanChangelogText(raw: String?): String {
 		.replace("&quot;", "\"")
 		.replace("&#39;", "'")
 		.replace("&nbsp;", " ")
+		.replace(markdownImageRegex) { match -> match.groupValues[1] }
+		.replace(markdownLinkRegex) { match -> match.groupValues[1] }
+		.replace("```", "")
+		.replace(markdownEmphasisRegex, "")
+	return unescaped
 		.lines()
-		.map { it.trim() }
-		.filter { it.isNotEmpty() }
+		.mapNotNull { line ->
+			val cleaned = line
+				.trim()
+				.replace(markdownHeadingRegex, "")
+				.replace(markdownListBulletRegex, "• ")
+				.replace(repeatedSpaceRegex, " ")
+				.trim()
+			when {
+				cleaned.isEmpty() -> null
+				bareHexHashRegex.matches(cleaned) -> null
+				else -> cleaned
+			}
+		}
 		.joinToString("\n")
+}
+
+internal fun cleanChangelogSpeechText(raw: String?): String {
+	val clean = cleanChangelogText(raw)
+	if (clean.isBlank()) return ""
+	return clean
+		.replace(bareHexHashRegex, "")
+		.replace(urlRegex, "")
+		.replace(repeatedSpaceRegex, " ")
+		.lines()
+		.map { it.trim().trimEnd(':', '-', '|') }
+		.filter { it.isNotEmpty() }
+		.joinToString(". ")
 }
 
 fun List<AppUpdate>.indexOf(id: Int) = indexOfFirst {

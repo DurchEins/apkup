@@ -1,0 +1,186 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import { SITE } from '../data/content';
+import { DEFAULT_LOCALE, getTranslations, type Locale } from '../i18n';
+
+interface Props {
+  lang?: Locale;
+}
+
+const { lang = DEFAULT_LOCALE } = Astro.props;
+const t = getTranslations(lang);
+const a = t.accessibilityPage;
+---
+
+<BaseLayout lang={lang} subPath="accessibility/" title={a.title} description={a.metaDesc}>
+  <Navbar lang={lang} />
+  <main id="main-content" class="section">
+    <div class="container subpage-wrap">
+      <div class="section-header">
+        <span class="pill-badge pill-amber mono">{a.badge}</span>
+        <h1 class="section-title a11y-title">{a.h1}</h1>
+        <p class="section-subtitle">{a.lead}</p>
+      </div>
+
+      <div class="a11y-grid">
+        <section class="a11y-card a11y-card-wide" aria-labelledby="a11y-status-heading">
+          <div class="a11y-card-head">
+            <h2 id="a11y-status-heading">{a.statusTitle}</h2>
+            <span class="pill-badge pill-emerald mono">{a.statusPill}</span>
+          </div>
+          <p>{a.statusBody}</p>
+        </section>
+
+        <section class="a11y-card" aria-labelledby="a11y-app-heading">
+          <h2 id="a11y-app-heading">{a.appTitle}</h2>
+          <p>{a.appLead}</p>
+          <ul class="a11y-list">
+            {a.appItems.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </section>
+
+        <section class="a11y-card" aria-labelledby="a11y-web-heading">
+          <h2 id="a11y-web-heading">{a.webTitle}</h2>
+          <p>{a.webLead}</p>
+          <ul class="a11y-list">
+            {a.webItems.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </section>
+
+        <section class="a11y-card a11y-card-wide" aria-labelledby="a11y-limits-heading">
+          <h2 id="a11y-limits-heading">{a.limitsTitle}</h2>
+          <p>{a.limitsBody}</p>
+        </section>
+
+        {a.soloTitle && a.soloBody && (
+          <section class="a11y-card a11y-card-wide" aria-labelledby="a11y-solo-heading">
+            <h2 id="a11y-solo-heading">{a.soloTitle}</h2>
+            <p>{a.soloBody}</p>
+            <div class="a11y-actions">
+              <a
+                class="btn btn-secondary"
+                href={`${SITE.repoUrl}/issues`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {a.soloIssuesCta || 'GitHub Issues ↗'}
+              </a>
+              <a
+                class="btn btn-secondary"
+                href={`${SITE.repoUrl}/discussions`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {a.soloDiscussionsCta || 'GitHub Discussions ↗'}
+              </a>
+            </div>
+          </section>
+        )}
+
+        <section class="a11y-card a11y-card-wide" aria-labelledby="a11y-feedback-heading">
+          <h2 id="a11y-feedback-heading">{a.feedbackTitle}</h2>
+          <p>{a.feedbackLead}</p>
+          <div class="a11y-actions">
+            <a
+              class="btn btn-primary"
+              href={`${SITE.repoUrl}/issues/new?template=accessibility.yml`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {a.feedbackCta}
+            </a>
+            <a
+              class="btn btn-secondary"
+              href={`${SITE.repoUrl}/blob/main/ACCESSIBILITY.md`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {a.feedbackSecondary}
+            </a>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+  <Footer lang={lang} subPath="accessibility/" />
+</BaseLayout>
+
+<style>
+  .a11y-title {
+    margin-block-start: 12px;
+  }
+
+  .a11y-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .a11y-card {
+    background: var(--surface-low);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-lg);
+    padding: clamp(20px, 3vw, 28px);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .a11y-card-wide {
+    grid-column: 1 / -1;
+  }
+
+  .a11y-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .a11y-card h2 {
+    margin: 0;
+    font-size: 1.24rem;
+    line-height: 1.3;
+  }
+
+  .a11y-card p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.94rem;
+    line-height: 1.6;
+  }
+
+  .a11y-list {
+    margin: 0;
+    padding-inline-start: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+
+  .a11y-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-block-start: 4px;
+  }
+
+  @media (max-width: 780px) {
+    .a11y-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

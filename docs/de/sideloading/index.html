@@ -3,12 +3,75 @@ const basePath = "/apkup/";
 const cleanSubPath = "sideloading/";
 
       (function () {
+        var ZONE_COORDS = {
+          'Europe/Berlin': [52.52, 13.405],
+          'Europe/Vienna': [48.208, 16.373],
+          'Europe/Zurich': [47.377, 8.542],
+          'Europe/London': [51.507, -0.128],
+          'Europe/Paris': [48.857, 2.352],
+          'Europe/Madrid': [40.417, -3.704],
+          'Europe/Rome': [41.903, 12.496],
+          'Europe/Amsterdam': [52.368, 4.904],
+          'Europe/Warsaw': [52.23, 21.012],
+          'Europe/Moscow': [55.756, 37.617],
+          'America/New_York': [40.713, -74.006],
+          'America/Chicago': [41.878, -87.63],
+          'America/Denver': [39.739, -104.99],
+          'America/Los_Angeles': [34.052, -118.244],
+          'America/Sao_Paulo': [-23.55, -46.633],
+          'Asia/Tokyo': [35.676, 139.65],
+          'Asia/Shanghai': [31.23, 121.474],
+          'Asia/Seoul': [37.566, 126.978],
+          'Asia/Kolkata': [22.573, 88.364],
+          'Australia/Sydney': [-33.869, 151.209]
+        };
+
+        function resolveSolarDark(now) {
+          var tz = '';
+          try {
+            tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+          } catch (e) {}
+          var coords = ZONE_COORDS[tz];
+          var offsetEastMin = -now.getTimezoneOffset();
+          var lat = coords ? coords[0] : (tz.indexOf('Australia/') === 0 || tz.indexOf('Auckland') !== -1 || tz.indexOf('Sao_Paulo') !== -1 ? -33 : 48);
+          var lon = coords ? coords[1] : Math.max(-180, Math.min(180, (offsetEastMin / 60) * 15));
+          var start = new Date(now.getFullYear(), 0, 0);
+          var doy = Math.floor((now - start) / 86400000);
+          var gamma = (2 * Math.PI / 365) * (doy - 1);
+          var eqTime = 229.18 * (0.000075 + 0.001868 * Math.cos(gamma) - 0.032077 * Math.sin(gamma) - 0.014615 * Math.cos(2 * gamma) - 0.040849 * Math.sin(2 * gamma));
+          var decl = 0.006918 - 0.399912 * Math.cos(gamma) + 0.070257 * Math.sin(gamma) - 0.006758 * Math.cos(2 * gamma) + 0.000907 * Math.sin(2 * gamma) - 0.002697 * Math.cos(3 * gamma) + 0.00148 * Math.sin(3 * gamma);
+          var latRad = lat * (Math.PI / 180);
+          var cosHa = Math.cos(90.833 * Math.PI / 180) / (Math.cos(latRad) * Math.cos(decl)) - Math.tan(latRad) * Math.tan(decl);
+          var sr = 540, ss = 900;
+          if (cosHa >= -1 && cosHa <= 1) {
+            var haDeg = Math.acos(cosHa) * (180 / Math.PI);
+            sr = ((720 - 4 * (lon + haDeg) - eqTime + offsetEastMin) % 1440 + 1440) % 1440;
+            ss = ((720 - 4 * (lon - haDeg) - eqTime + offsetEastMin) % 1440 + 1440) % 1440;
+          } else if (cosHa < -1) {
+            sr = 300; ss = 1260;
+          }
+          var mins = now.getHours() * 60 + now.getMinutes();
+          return sr < ss ? (mins < sr || mins >= ss) : (mins < sr && mins >= ss);
+        }
+
+        window.__apkupApplyThemeMode = function (mode) {
+          var root = document.documentElement;
+          var normalized = mode === 'light' || mode === 'a11y' || mode === 'dark' ? mode : 'dark';
+          var resolved = normalized === 'a11y' ? (resolveSolarDark(new Date()) ? 'dark' : 'light') : normalized;
+          root.setAttribute('data-theme-mode', normalized);
+          root.setAttribute('data-theme', resolved);
+          if (normalized === 'a11y') root.setAttribute('data-a11y', 'true');
+          else root.removeAttribute('data-a11y');
+          var meta = document.getElementById('meta-theme-color');
+          if (meta) {
+            meta.setAttribute('content', resolved === 'light' ? (normalized === 'a11y' ? '#FFFFFF' : '#F4F1EA') : (normalized === 'a11y' ? '#090A0D' : '#121316'));
+          }
+          return normalized;
+        };
+
         try {
           var savedTheme = localStorage.getItem('apkup-theme');
-          var theme = savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : 'dark';
-          document.documentElement.setAttribute('data-theme', theme);
-          var meta = document.getElementById('meta-theme-color');
-          if (meta) meta.setAttribute('content', theme === 'light' ? '#F4F1EA' : '#121316');
+          window.__apkupApplyThemeMode(savedTheme);
 
           if (currentLang === 'en') {
             var nonDefault = ['de', 'es', 'fr', 'it', 'ja', 'pt', 'ru', 'zh-cn'];
@@ -57,7 +120,7 @@ const cleanSubPath = "sideloading/";
           }
         } catch (e) {}
       })();
-    })();</script><link rel="stylesheet" href="/apkup/_astro/Footer.C0_6dXJI.css"></head> <body> <a class="skip-link" href="#main-content"> Zum Hauptinhalt springen </a> <aside id="kao-local-banner" class="kao-signal-banner is-normal" aria-label="WARNUNG: FREIES ANDROID-SIDELOADING IN GEFAHR (2026 / 2027)" data-astro-cid-46uzc7rt> <div class="container kao-banner-inner" data-astro-cid-46uzc7rt> <div class="kao-banner-content" data-astro-cid-46uzc7rt> <div class="kao-signal-bar mono" data-astro-cid-46uzc7rt> <span class="kao-signal-icon" aria-hidden="true" data-astro-cid-46uzc7rt>⚠️</span> <span data-astro-cid-46uzc7rt>WARNUNG: FREIES ANDROID-SIDELOADING IN GEFAHR (2026 / 2027)</span> </div> <p class="kao-banner-text" data-astro-cid-46uzc7rt> Google Play Protect führt eine Ausweispflicht für Entwickler und eine 24-Stunden-Sperre in den Entwickleroptionen für unabhängige APKs ein. </p> </div> <div class="kao-banner-actions" data-astro-cid-46uzc7rt> <a class="kao-cta-btn" href="/apkup/de/sideloading/google-lock/" data-astro-cid-46uzc7rt> 24h-Sperre lösen →
+    })();</script><link rel="stylesheet" href="/apkup/_astro/Footer.j2Gby_qt.css"></head> <body> <a class="skip-link" href="#main-content"> Zum Hauptinhalt springen </a> <aside id="kao-local-banner" class="kao-signal-banner is-normal" aria-label="WARNUNG: FREIES ANDROID-SIDELOADING IN GEFAHR (2026 / 2027)" data-astro-cid-46uzc7rt> <div class="container kao-banner-inner" data-astro-cid-46uzc7rt> <div class="kao-banner-content" data-astro-cid-46uzc7rt> <div class="kao-signal-bar mono" data-astro-cid-46uzc7rt> <span class="kao-signal-icon" aria-hidden="true" data-astro-cid-46uzc7rt>⚠️</span> <span data-astro-cid-46uzc7rt>WARNUNG: FREIES ANDROID-SIDELOADING IN GEFAHR (2026 / 2027)</span> </div> <p class="kao-banner-text" data-astro-cid-46uzc7rt> Google Play Protect führt eine Ausweispflicht für Entwickler und eine 24-Stunden-Sperre in den Entwickleroptionen für unabhängige APKs ein. </p> </div> <div class="kao-banner-actions" data-astro-cid-46uzc7rt> <a class="kao-cta-btn" href="/apkup/de/sideloading/google-lock/" data-astro-cid-46uzc7rt> 24h-Sperre lösen →
 </a> <a class="kao-secondary-link" href="https://keepandroidopen.org" target="_blank" rel="noopener noreferrer" data-astro-cid-46uzc7rt> keepandroidopen.org ↗ </a> <button type="button" id="kao-banner-dismiss" class="kao-dismiss-btn" aria-label="Warnbanner für diese Sitzung schließen" title="Warnbanner für diese Sitzung schließen" data-astro-cid-46uzc7rt>
 ×
 </button> </div> </div> </aside> <script>
@@ -80,7 +143,7 @@ const cleanSubPath = "sideloading/";
       });
     }
   })();
-</script>  <header class="site-header" data-astro-cid-l7arcky5> <div class="container nav-inner" data-astro-cid-l7arcky5> <a class="brand" href="/apkup/de/" aria-label="ApkUp Startseite" data-astro-cid-l7arcky5> <img src="/apkup/assets/logo.png" alt="" width="36" height="36" class="brand-icon" data-astro-cid-l7arcky5> <span class="brand-name" data-astro-cid-l7arcky5>ApkUp</span> </a> <nav class="nav-links" aria-label="Hauptnavigation" data-astro-cid-l7arcky5> <a href="/apkup/de/#features" data-astro-cid-l7arcky5>Funktionen</a> <a href="/apkup/de/#showcase" data-astro-cid-l7arcky5>Einblicke</a> <a href="/apkup/de/#sources" data-astro-cid-l7arcky5>Quellen</a> <a href="/apkup/de/changelog/" data-astro-cid-l7arcky5>Was ist neu?</a> <a href="/apkup/de/wiki/" data-astro-cid-l7arcky5>Wiki</a> <a href="/apkup/de/privacy/" data-astro-cid-l7arcky5>Datenschutz</a> <a href="/apkup/de/downloads/" data-astro-cid-l7arcky5>Downloads</a> </nav> <div class="nav-actions" data-astro-cid-l7arcky5> <button id="theme-toggle" type="button" class="icon-pill icon-only" aria-label="Helles/dunkles Design umschalten" title="Helles/dunkles Design umschalten" data-astro-cid-l7arcky5> <svg class="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-l7arcky5> <circle cx="12" cy="12" r="4" data-astro-cid-l7arcky5></circle> <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" data-astro-cid-l7arcky5></path> </svg> <svg class="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-l7arcky5> <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" data-astro-cid-l7arcky5></path> </svg> </button> <a class="btn btn-primary nav-cta" href="/apkup/de/#downloads" data-astro-cid-l7arcky5> Herunterladen </a> <button id="mobile-menu-toggle" type="button" class="icon-pill icon-only mobile-menu-btn" aria-expanded="false" aria-controls="mobile-nav-panel" aria-label="Navigationsmenü umschalten" data-astro-cid-l7arcky5> <svg class="menu-icon-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" data-astro-cid-l7arcky5> <line x1="4" y1="7" x2="20" y2="7" data-astro-cid-l7arcky5></line> <line x1="4" y1="12" x2="20" y2="12" data-astro-cid-l7arcky5></line> <line x1="4" y1="17" x2="20" y2="17" data-astro-cid-l7arcky5></line> </svg> <svg class="menu-icon-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" data-astro-cid-l7arcky5> <path d="M18 6 6 18M6 6l12 12" data-astro-cid-l7arcky5></path> </svg> </button> </div> </div> <nav id="mobile-nav-panel" class="mobile-nav-panel" aria-label="Mobile Navigation" hidden data-astro-cid-l7arcky5> <div class="container mobile-nav-list" data-astro-cid-l7arcky5> <a href="/apkup/de/#features" data-astro-cid-l7arcky5>Funktionen</a> <a href="/apkup/de/#showcase" data-astro-cid-l7arcky5>Einblicke</a> <a href="/apkup/de/#sources" data-astro-cid-l7arcky5>Quellen</a> <a href="/apkup/de/changelog/" data-astro-cid-l7arcky5>Was ist neu?</a> <a href="/apkup/de/wiki/" data-astro-cid-l7arcky5>Wiki</a> <a href="/apkup/de/privacy/" data-astro-cid-l7arcky5>Datenschutz</a> <a href="/apkup/de/downloads/" data-astro-cid-l7arcky5>Downloads</a> <a class="btn btn-primary mobile-nav-cta" href="/apkup/de/#downloads" data-astro-cid-l7arcky5> Herunterladen </a> </div> </nav> </header> <script>
+</script>  <header class="site-header" data-astro-cid-l7arcky5> <div class="container nav-inner" data-astro-cid-l7arcky5> <a class="brand" href="/apkup/de/" aria-label="ApkUp Startseite" data-astro-cid-l7arcky5> <img src="/apkup/assets/logo.png" alt="" width="36" height="36" class="brand-icon" data-astro-cid-l7arcky5> <span class="brand-name" data-astro-cid-l7arcky5>ApkUp</span> </a> <nav class="nav-links" aria-label="Hauptnavigation" data-astro-cid-l7arcky5> <a href="/apkup/de/#features" data-astro-cid-l7arcky5>Funktionen</a> <a href="/apkup/de/#showcase" data-astro-cid-l7arcky5>Einblicke</a> <a href="/apkup/de/#sources" data-astro-cid-l7arcky5>Quellen</a> <a href="/apkup/de/changelog/" data-astro-cid-l7arcky5>Was ist neu?</a> <a href="/apkup/de/wiki/" data-astro-cid-l7arcky5>Wiki</a> <a href="/apkup/de/privacy/" data-astro-cid-l7arcky5>Datenschutz</a> <a href="/apkup/de/downloads/" data-astro-cid-l7arcky5>Downloads</a> </nav> <div class="nav-actions" data-astro-cid-l7arcky5> <button id="theme-toggle" type="button" class="icon-pill icon-only" aria-label="Design wechseln: Dunkel, Hell, Barrierefrei AAA (Sonnenstand)" title="Design wechseln: Dunkel, Hell, Barrierefrei AAA (Sonnenstand)" data-label-dark="Design: Dunkel (klicken für Hell)" data-label-light="Design: Hell (klicken für Barrierefrei AAA)" data-label-a11y="Design: Barrierefrei AAA Sonnenstand (klicken für Dunkel)" data-astro-cid-l7arcky5> <svg class="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-l7arcky5> <circle cx="12" cy="12" r="4" data-astro-cid-l7arcky5></circle> <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" data-astro-cid-l7arcky5></path> </svg> <svg class="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-l7arcky5> <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" data-astro-cid-l7arcky5></path> </svg> <svg class="theme-icon-a11y" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-l7arcky5> <circle cx="12" cy="12" r="9" data-astro-cid-l7arcky5></circle> <path d="M12 3v18M12 12l6.4-6.4M12 16l7.5-7.5M12 20l5-5" data-astro-cid-l7arcky5></path> </svg> </button> <a class="btn btn-primary nav-cta" href="/apkup/de/#downloads" data-astro-cid-l7arcky5> Herunterladen </a> <button id="mobile-menu-toggle" type="button" class="icon-pill icon-only mobile-menu-btn" aria-expanded="false" aria-controls="mobile-nav-panel" aria-label="Navigationsmenü umschalten" data-astro-cid-l7arcky5> <svg class="menu-icon-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" data-astro-cid-l7arcky5> <line x1="4" y1="7" x2="20" y2="7" data-astro-cid-l7arcky5></line> <line x1="4" y1="12" x2="20" y2="12" data-astro-cid-l7arcky5></line> <line x1="4" y1="17" x2="20" y2="17" data-astro-cid-l7arcky5></line> </svg> <svg class="menu-icon-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" data-astro-cid-l7arcky5> <path d="M18 6 6 18M6 6l12 12" data-astro-cid-l7arcky5></path> </svg> </button> </div> </div> <nav id="mobile-nav-panel" class="mobile-nav-panel" aria-label="Mobile Navigation" hidden data-astro-cid-l7arcky5> <div class="container mobile-nav-list" data-astro-cid-l7arcky5> <a href="/apkup/de/#features" data-astro-cid-l7arcky5>Funktionen</a> <a href="/apkup/de/#showcase" data-astro-cid-l7arcky5>Einblicke</a> <a href="/apkup/de/#sources" data-astro-cid-l7arcky5>Quellen</a> <a href="/apkup/de/changelog/" data-astro-cid-l7arcky5>Was ist neu?</a> <a href="/apkup/de/wiki/" data-astro-cid-l7arcky5>Wiki</a> <a href="/apkup/de/privacy/" data-astro-cid-l7arcky5>Datenschutz</a> <a href="/apkup/de/downloads/" data-astro-cid-l7arcky5>Downloads</a> <a class="btn btn-primary mobile-nav-cta" href="/apkup/de/#downloads" data-astro-cid-l7arcky5> Herunterladen </a> </div> </nav> </header> <script>
   (function () {
     var btn = document.getElementById('mobile-menu-toggle');
     var panel = document.getElementById('mobile-nav-panel');
@@ -91,6 +154,7 @@ const cleanSubPath = "sideloading/";
       var href = (a.getAttribute('href') || '').replace(/\/$/, '');
       if (href.indexOf('#') === -1 && href && path === href) {
         a.classList.add('is-current');
+        a.setAttribute('aria-current', 'page');
       }
     });
 
@@ -104,7 +168,10 @@ const cleanSubPath = "sideloading/";
           navLinks.forEach(function (a) {
             var h = a.getAttribute('href') || '';
             if (h.indexOf('#') !== -1) {
-              a.classList.toggle('is-current', h.slice(h.indexOf('#')) === hash);
+              var isMatch = h.slice(h.indexOf('#')) === hash;
+              a.classList.toggle('is-current', isMatch);
+              if (isMatch) a.setAttribute('aria-current', 'true');
+              else a.removeAttribute('aria-current');
             }
           });
         });
@@ -114,9 +181,10 @@ const cleanSubPath = "sideloading/";
 
     if (!btn || !panel) return;
 
-    function closeMenu() {
+    function closeMenu(focusBtn) {
       panel.hidden = true;
       btn.setAttribute('aria-expanded', 'false');
+      if (focusBtn) btn.focus();
     }
 
     btn.addEventListener('click', function (e) {
@@ -124,19 +192,23 @@ const cleanSubPath = "sideloading/";
       var nextOpen = panel.hidden;
       panel.hidden = !nextOpen;
       btn.setAttribute('aria-expanded', String(nextOpen));
+      if (nextOpen) {
+        var firstLink = panel.querySelector('a');
+        if (firstLink) firstLink.focus();
+      }
     });
 
     panel.querySelectorAll('a').forEach(function (a) {
-      a.addEventListener('click', closeMenu);
+      a.addEventListener('click', function () { closeMenu(false); });
     });
 
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && !panel.hidden) closeMenu();
+      if (e.key === 'Escape' && !panel.hidden) closeMenu(true);
     });
 
     document.addEventListener('click', function (e) {
       if (!panel.hidden && !panel.contains(e.target) && !btn.contains(e.target)) {
-        closeMenu();
+        closeMenu(false);
       }
     });
 
@@ -145,6 +217,7 @@ const cleanSubPath = "sideloading/";
     if (brand) {
       var clicks = 0;
       var clickTimer = null;
+      var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       brand.addEventListener('click', function (e) {
         clicks++;
         clearTimeout(clickTimer);
@@ -152,21 +225,26 @@ const cleanSubPath = "sideloading/";
         if (clicks >= 5) {
           e.preventDefault();
           clicks = 0;
-          var rect = brand.getBoundingClientRect();
-          for (var i = 0; i < 12; i++) {
-            var spark = document.createElement('span');
-            spark.className = 'brand-spark';
-            var angle = (Math.PI * 2 * i) / 12;
-            var dist = 28 + Math.random() * 24;
-            spark.style.left = rect.left + 20 + 'px';
-            spark.style.top = rect.top + 20 + 'px';
-            spark.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
-            spark.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
-            document.body.appendChild(spark);
-            setTimeout((function (el) { return function () { el.remove(); }; })(spark), 700);
+          if (!prefersReducedMotion) {
+            var rect = brand.getBoundingClientRect();
+            for (var i = 0; i < 12; i++) {
+              var spark = document.createElement('span');
+              spark.className = 'brand-spark';
+              spark.setAttribute('aria-hidden', 'true');
+              var angle = (Math.PI * 2 * i) / 12;
+              var dist = 28 + Math.random() * 24;
+              spark.style.left = rect.left + 20 + 'px';
+              spark.style.top = rect.top + 20 + 'px';
+              spark.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+              spark.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+              document.body.appendChild(spark);
+              setTimeout((function (el) { return function () { el.remove(); }; })(spark), 700);
+            }
           }
           var toast = document.createElement('div');
           toast.className = 'brand-toast mono';
+          toast.setAttribute('role', 'status');
+          toast.setAttribute('aria-live', 'polite');
           toast.textContent = 'Open Source since 2026 ⚡';
           document.body.appendChild(toast);
           setTimeout(function () { toast.remove(); }, 2400);
@@ -174,15 +252,17 @@ const cleanSubPath = "sideloading/";
       });
     }
   })();
-</script> <main id="main-content" class="section"> <div class="container subpage-wrap"> <header class="sl-header"> <span class="pill-badge pill-green mono">Android 10 – 17 • Sideloading-Guide</span> <h1 class="section-title">Unbekannte Apps auf Android installieren</h1> <p class="section-subtitle">So aktivierst du die Berechtigung „Unbekannte Apps installieren“ in 30 Sekunden – oder nutzt optional Shizuku, ADB bzw. Root für lautlose Hintergrund-Updates.</p> </header> <section class="sl-card has-spotlight" aria-labelledby="sl-way1"> <div class="sl-card-head"> <span class="pill-badge pill-green mono">Standard-Android • 30 Sek.</span> <h2 id="sl-way1">Klassische Berechtigung „Unbekannte Apps installieren“</h2> </div> <ol class="sl-steps"> <li> <span class="sl-num mono">01</span> <div> <strong class="sl-step-title">Neueste signierte APK herunterladen &amp; antippen</strong> <p> Lade die neueste signierte .apk(Up)-Datei über unsere  <a href="/apkup/de/downloads/">Downloads-Seite</a>  oder GitHub Releases herunter und tippe die Datei im Browser oder Dateimanager an. </p> </div> </li> <li> <span class="sl-num mono">02</span> <div> <strong class="sl-step-title">„Aus dieser Quelle zulassen“ aktivieren</strong> <p>Tippe im Android-Hinweis auf Einstellungen, aktiviere Aus dieser Quelle zulassen für deinen Browser und tippe auf Installieren.</p> </div> </li> <li> <span class="sl-num mono">03</span> <div> <strong class="sl-step-title">Berechtigung einmalig auch für ApkUp freigeben</strong> <p>Beim ersten App-Update in ApkUp gibst du dieselbe Berechtigung einmalig für ApkUp frei – oder nutzt optional Shizuku/Root für lautlose Hintergrund-Updates.</p> </div> </li> </ol> </section> <div class="sl-two-col"> <article class="sl-card has-spotlight"> <span class="pill-badge pill-green mono">Shizuku • ADB • Root</span> <h2>Power-User-Weg über Shizuku oder ADB</h2> <p>Installationen über Shizuku (Kabelloses Debugging ab Android 11), adb install -r ApkUp.apk vom PC oder Root (su) nutzen direkt die Entwickler-Schnittstelle des Android-PackageInstallers.</p> <div class="sl-actions"> <a href="/apkup/de/wiki/#doc-sideloading" class="btn btn-secondary"> Allgemeines Wiki → </a> <a href="/apkup/de/wiki/#doc-shizuku-deep" class="btn btn-ghost"> Root → </a> <a href="/apkup/de/wiki/#doc-shizuku-setup" class="btn btn-ghost"> Shizuku → </a> </div> </article> <article class="sl-card sl-card-danger has-spotlight"> <span class="pill-badge pill-danger mono">⚠ Warnung • 2026 / 2027 Sperre</span> <h2>Blockiert durch Googles 24h-Entwicklersperre?</h2> <p>Google Play Protect führt eine Ausweispflicht für Entwickler sowie eine 24-Stunden-Sperre in den Entwickleroptionen ein. Erfahre, wie du die Sperre dauerhaft löst und warum wir Keep Android Open unterstützen.</p> <div class="sl-actions"> <a href="/apkup/de/sideloading/google-lock/" class="btn btn-danger"> ⚠ 24h-Sperre &amp; Keep Android Open → </a> </div> </article> </div> </div> </main> <footer class="site-footer" data-astro-cid-jo6i4kqk> <div class="container footer-inner" data-astro-cid-jo6i4kqk> <div class="footer-brand" data-astro-cid-jo6i4kqk> <img src="/apkup/assets/logo.png" alt="" width="34" height="34" class="footer-icon" data-astro-cid-jo6i4kqk> <div class="footer-brand-text" data-astro-cid-jo6i4kqk> <strong data-astro-cid-jo6i4kqk>ApkUp</strong> <p class="footer-copy" data-astro-cid-jo6i4kqk>
-Copyright © 2026  <a href="https://github.com/DurchEins" target="_blank" rel="noopener noreferrer" class="footer-author-link" data-astro-cid-jo6i4kqk>DurchEins</a> </p> </div> </div> <nav class="footer-links" aria-label="Footer links" data-astro-cid-jo6i4kqk> <a href="/apkup/de/downloads/" data-astro-cid-jo6i4kqk>Downloads</a> <a href="/apkup/de/sideloading/" data-astro-cid-jo6i4kqk>Unbekannte Apps</a> <a href="/apkup/de/sideloading/google-lock/" data-astro-cid-jo6i4kqk>Googles 24h-Sperre</a> <a href="/apkup/de/changelog/" data-astro-cid-jo6i4kqk>Was ist neu?</a> <a href="/apkup/de/wiki/" data-astro-cid-jo6i4kqk>Wiki</a> <a href="/apkup/de/compare/" data-astro-cid-jo6i4kqk>Quellen-Check</a> <a href="/apkup/de/privacy/" data-astro-cid-jo6i4kqk>Datenschutz</a> <a href="/apkup/de/security/" data-astro-cid-jo6i4kqk>Sicherheit</a> <a href="https://github.com/DurchEins/apkup" target="_blank" rel="noopener noreferrer" data-astro-cid-jo6i4kqk>GitHub</a> <a href="https://github.com/sponsors/DurchEins" target="_blank" rel="noopener noreferrer" data-astro-cid-jo6i4kqk>Sponsor</a> <a href="https://github.com/DurchEins/apkup/wiki" target="_blank" rel="noopener noreferrer" data-astro-cid-jo6i4kqk>GitHub Wiki</a> <a href="https://github.com/DurchEins/apkup/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="footer-build-pill mono" data-astro-cid-jo6i4kqk>GPL-3.0</a> <a href="https://github.com/DurchEins/apkup/releases/latest" target="_blank" rel="noopener noreferrer" class="footer-build-pill mono" title="Offizielles Release" data-astro-cid-jo6i4kqk>
-v1.46.0 (231)
-</a> <a href="https://u24.gov.ua/" target="_blank" rel="noopener noreferrer" class="footer-build-pill footer-ukraine-pill" aria-label="Stand with Ukraine — Official United24 Support" data-astro-cid-jo6i4kqk> <svg width="16" height="11" viewBox="0 0 16 11" aria-hidden="true" class="ua-flag" data-astro-cid-jo6i4kqk> <defs data-astro-cid-jo6i4kqk> <clipPath id="ua-clip" data-astro-cid-jo6i4kqk><rect width="16" height="11" rx="2" data-astro-cid-jo6i4kqk></rect></clipPath> </defs> <g clip-path="url(#ua-clip)" data-astro-cid-jo6i4kqk> <rect width="16" height="5.5" fill="#0057B7" data-astro-cid-jo6i4kqk></rect> <rect y="5.5" width="16" height="5.5" fill="#FFD700" data-astro-cid-jo6i4kqk></rect> </g> </svg> <span data-astro-cid-jo6i4kqk>Stand with Ukraine</span> </a> </nav> <div class="footer-i18n-bar" data-astro-cid-jo6i4kqk> <div class="lang-picker-wrap" id="footer-lang-wrap" data-astro-cid-jo6i4kqk> <button type="button" id="footer-lang-btn" class="lang-picker-btn" aria-expanded="false" aria-haspopup="menu" aria-controls="footer-lang-menu" aria-label="Sprache wählen" data-astro-cid-jo6i4kqk> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-jo6i4kqk> <circle cx="12" cy="12" r="10" data-astro-cid-jo6i4kqk></circle> <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" data-astro-cid-jo6i4kqk></path> </svg> <span data-astro-cid-jo6i4kqk>Deutsch <span class="mono lang-code" data-astro-cid-jo6i4kqk>(DE)</span></span> <svg class="lang-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-jo6i4kqk> <path d="m6 9 6 6 6-6" data-astro-cid-jo6i4kqk></path> </svg> </button> <div id="footer-lang-menu" class="lang-picker-menu" role="menu" aria-label="Sprache wählen" hidden data-astro-cid-jo6i4kqk> <a href="/apkup/sideloading/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="en" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>English</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>EN</span>  </span> </a><a href="/apkup/de/sideloading/" role="menuitemradio" aria-checked="true" class="lang-menu-item is-active" data-lang-option="de" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Deutsch</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>DE</span> <span aria-hidden="true" data-astro-cid-jo6i4kqk>✓</span> </span> </a><a href="/apkup/es/sideloading/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="es" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Español</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>ES</span>  </span> </a><a href="/apkup/fr/sideloading/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="fr" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Français</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>FR</span>  </span> </a><a href="/apkup/it/sideloading/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="it" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Italiano</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>IT</span>  </span> </a><a href="/apkup/ja/sideloading/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="ja" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>日本語</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>JA</span>  </span> </a><a href="/apkup/pt/sideloading/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="pt" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Português</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>PT</span>  </span> </a><a href="/apkup/ru/sideloading/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="ru" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Русский</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>RU</span>  </span> </a><a href="/apkup/zh-cn/sideloading/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="zh-cn" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>简体中文</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>ZH-CN</span>  </span> </a> </div> </div> <a href="https://hosted.weblate.org/engage/apkup/" target="_blank" rel="noopener noreferrer" class="help-translate-link" data-astro-cid-jo6i4kqk> Übersetzung verbessern → </a> </div> </div> </footer> <script>
+</script> <main id="main-content" class="section"> <div class="container subpage-wrap"> <header class="sl-header"> <span class="pill-badge pill-green mono">Android 10 – 17 • Sideloading-Guide</span> <h1 class="section-title">Unbekannte Apps auf Android installieren</h1> <p class="section-subtitle">So aktivierst du die Berechtigung „Unbekannte Apps installieren“ in 30 Sekunden – oder nutzt optional Shizuku, ADB bzw. Root für lautlose Hintergrund-Updates.</p> </header> <section class="sl-card has-spotlight" aria-labelledby="sl-way1"> <div class="sl-card-head"> <span class="pill-badge pill-green mono">Standard-Android • 30 Sek.</span> <h2 id="sl-way1">Klassische Berechtigung „Unbekannte Apps installieren“</h2> </div> <ol class="sl-steps"> <li> <span class="sl-num mono" aria-hidden="true">01</span> <div> <strong class="sl-step-title">Neueste signierte APK herunterladen &amp; antippen</strong> <p> Lade die neueste signierte .apk(Up)-Datei über unsere  <a href="/apkup/de/downloads/">Downloads-Seite</a>  oder GitHub Releases herunter und tippe die Datei im Browser oder Dateimanager an. </p> </div> </li> <li> <span class="sl-num mono" aria-hidden="true">02</span> <div> <strong class="sl-step-title">„Aus dieser Quelle zulassen“ aktivieren</strong> <p>Tippe im Android-Hinweis auf Einstellungen, aktiviere Aus dieser Quelle zulassen für deinen Browser und tippe auf Installieren.</p> </div> </li> <li> <span class="sl-num mono" aria-hidden="true">03</span> <div> <strong class="sl-step-title">Berechtigung einmalig auch für ApkUp freigeben</strong> <p>Beim ersten App-Update in ApkUp gibst du dieselbe Berechtigung einmalig für ApkUp frei – oder nutzt optional Shizuku/Root für lautlose Hintergrund-Updates.</p> </div> </li> </ol> </section> <div class="sl-two-col"> <article class="sl-card has-spotlight"> <span class="pill-badge pill-green mono">Shizuku • ADB • Root</span> <h2>Power-User-Weg über Shizuku oder ADB</h2> <p>Installationen über Shizuku (Kabelloses Debugging ab Android 11), adb install -r ApkUp.apk vom PC oder Root (su) nutzen direkt die Entwickler-Schnittstelle des Android-PackageInstallers.</p> <div class="sl-actions"> <a href="/apkup/de/wiki/#doc-sideloading" class="btn btn-secondary"> Allgemeines Wiki → </a> <a href="/apkup/de/wiki/#doc-shizuku-deep" class="btn btn-ghost"> Root → </a> <a href="/apkup/de/wiki/#doc-shizuku-setup" class="btn btn-ghost"> Shizuku → </a> </div> </article> <article class="sl-card sl-card-danger has-spotlight"> <span class="pill-badge pill-danger mono">⚠ Warnung • 2026 / 2027 Sperre</span> <h2>Blockiert durch Googles 24h-Entwicklersperre?</h2> <p>Google Play Protect führt eine Ausweispflicht für Entwickler sowie eine 24-Stunden-Sperre in den Entwickleroptionen ein. Erfahre, wie du die Sperre dauerhaft löst und warum wir Keep Android Open unterstützen.</p> <div class="sl-actions"> <a href="/apkup/de/sideloading/google-lock/" class="btn btn-danger"> ⚠ 24h-Sperre &amp; Keep Android Open → </a> </div> </article> </div> </div> </main> <footer class="site-footer" data-astro-cid-jo6i4kqk> <div class="container footer-inner" data-astro-cid-jo6i4kqk> <div class="footer-brand" data-astro-cid-jo6i4kqk> <img src="/apkup/assets/logo.png" alt="" width="34" height="34" class="footer-icon" data-astro-cid-jo6i4kqk> <div class="footer-brand-text" data-astro-cid-jo6i4kqk> <strong data-astro-cid-jo6i4kqk>ApkUp</strong> <p class="footer-copy" data-astro-cid-jo6i4kqk>
+Copyright © 2026  <a href="https://github.com/DurchEins" target="_blank" rel="noopener noreferrer" class="footer-author-link" data-astro-cid-jo6i4kqk>DurchEins</a> </p> </div> </div> <nav class="footer-links" aria-label="Fußzeilen-Navigation" data-astro-cid-jo6i4kqk> <a href="/apkup/de/downloads/" data-astro-cid-jo6i4kqk>Downloads</a> <a href="/apkup/de/sideloading/" data-astro-cid-jo6i4kqk>Unbekannte Apps</a> <a href="/apkup/de/sideloading/google-lock/" data-astro-cid-jo6i4kqk>Googles 24h-Sperre</a> <a href="/apkup/de/changelog/" data-astro-cid-jo6i4kqk>Was ist neu?</a> <a href="/apkup/de/wiki/" data-astro-cid-jo6i4kqk>Wiki</a> <a href="/apkup/de/compare/" data-astro-cid-jo6i4kqk>Quellen-Check</a> <a href="/apkup/de/privacy/" data-astro-cid-jo6i4kqk>Datenschutz</a> <a href="/apkup/de/security/" data-astro-cid-jo6i4kqk>Sicherheit</a> <a href="/apkup/de/accessibility/" data-astro-cid-jo6i4kqk>Barrierefreiheit</a> <a href="https://github.com/DurchEins/apkup" target="_blank" rel="noopener noreferrer" data-astro-cid-jo6i4kqk>GitHub</a> <a href="https://github.com/sponsors/DurchEins" target="_blank" rel="noopener noreferrer" data-astro-cid-jo6i4kqk>Sponsor</a> <a href="https://github.com/DurchEins/apkup/wiki" target="_blank" rel="noopener noreferrer" data-astro-cid-jo6i4kqk>GitHub Wiki</a> <a href="https://github.com/DurchEins/apkup/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="footer-build-pill mono" data-astro-cid-jo6i4kqk>GPL-3.0</a> <a href="https://github.com/DurchEins/apkup/releases/latest" target="_blank" rel="noopener noreferrer" class="footer-build-pill mono" title="Offizielles Release" data-astro-cid-jo6i4kqk>
+v1.47.0 (237)
+</a> <a href="https://u24.gov.ua/" target="_blank" rel="noopener noreferrer" class="footer-build-pill footer-ukraine-pill" aria-label="Stand with Ukraine — Official United24 Support" data-astro-cid-jo6i4kqk> <svg width="16" height="11" viewBox="0 0 16 11" aria-hidden="true" class="ua-flag" data-astro-cid-jo6i4kqk> <defs data-astro-cid-jo6i4kqk> <clipPath id="ua-clip" data-astro-cid-jo6i4kqk><rect width="16" height="11" rx="2" data-astro-cid-jo6i4kqk></rect></clipPath> </defs> <g clip-path="url(#ua-clip)" data-astro-cid-jo6i4kqk> <rect width="16" height="5.5" fill="#0057B7" data-astro-cid-jo6i4kqk></rect> <rect y="5.5" width="16" height="5.5" fill="#FFD700" data-astro-cid-jo6i4kqk></rect> </g> </svg> <span data-astro-cid-jo6i4kqk>Stand with Ukraine</span> </a> </nav> <div class="footer-i18n-bar" data-astro-cid-jo6i4kqk> <div class="lang-picker-wrap" id="footer-lang-wrap" data-astro-cid-jo6i4kqk> <button type="button" id="footer-lang-btn" class="lang-picker-btn" aria-expanded="false" aria-haspopup="menu" aria-controls="footer-lang-menu" aria-label="Deutsch (DE) — Sprache wählen" data-astro-cid-jo6i4kqk> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-jo6i4kqk> <circle cx="12" cy="12" r="10" data-astro-cid-jo6i4kqk></circle> <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" data-astro-cid-jo6i4kqk></path> </svg> <span data-astro-cid-jo6i4kqk>Deutsch <span class="mono lang-code" data-astro-cid-jo6i4kqk>(DE)</span></span> <svg class="lang-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-astro-cid-jo6i4kqk> <path d="m6 9 6 6 6-6" data-astro-cid-jo6i4kqk></path> </svg> </button> <div id="footer-lang-menu" class="lang-picker-menu" role="menu" aria-label="Sprache wählen" hidden data-astro-cid-jo6i4kqk> <a href="/apkup/sideloading/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="en" lang="en" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>English</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>EN</span>  </span> </a><a href="/apkup/de/sideloading/" role="menuitemradio" aria-checked="true" class="lang-menu-item is-active" data-lang-option="de" lang="de" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Deutsch</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>DE</span> <span aria-hidden="true" data-astro-cid-jo6i4kqk>✓</span> </span> </a><a href="/apkup/es/sideloading/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="es" lang="es" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Español</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>ES</span>  </span> </a><a href="/apkup/fr/sideloading/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="fr" lang="fr" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Français</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>FR</span>  </span> </a><a href="/apkup/it/sideloading/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="it" lang="it" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Italiano</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>IT</span>  </span> </a><a href="/apkup/ja/sideloading/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="ja" lang="ja" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>日本語</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>JA</span>  </span> </a><a href="/apkup/pt/sideloading/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="pt" lang="pt" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Português</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>PT</span>  </span> </a><a href="/apkup/ru/sideloading/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="ru" lang="ru" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>Русский</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>RU</span>  </span> </a><a href="/apkup/zh-cn/sideloading/" role="menuitemradio" aria-checked="false" class="lang-menu-item " data-lang-option="zh-cn" lang="zh-CN" data-astro-cid-jo6i4kqk> <span class="lang-item-name" data-astro-cid-jo6i4kqk>简体中文</span> <span class="lang-item-right mono" data-astro-cid-jo6i4kqk> <span data-astro-cid-jo6i4kqk>ZH-CN</span>  </span> </a> </div> </div> <a href="https://hosted.weblate.org/engage/apkup/" target="_blank" rel="noopener noreferrer" class="help-translate-link" data-astro-cid-jo6i4kqk> Übersetzung verbessern → </a> </div> </div> </footer> <script>
   (function () {
     var wrap = document.getElementById('footer-lang-wrap');
     var btn = document.getElementById('footer-lang-btn');
     var menu = document.getElementById('footer-lang-menu');
     if (!wrap || !btn || !menu) return;
+
+    var menuItems = Array.prototype.slice.call(menu.querySelectorAll('[role="menuitemradio"]'));
 
     function closeMenu(focusBtn) {
       if (menu.hidden) return;
@@ -191,15 +271,42 @@ v1.46.0 (231)
       if (focusBtn) btn.focus();
     }
 
-    function openMenu() {
+    function openMenu(focusTarget) {
       menu.hidden = false;
       btn.setAttribute('aria-expanded', 'true');
+      var target = focusTarget || menu.querySelector('[aria-checked="true"]') || menuItems[0];
+      if (target) target.focus();
     }
 
     btn.addEventListener('click', function (e) {
       e.stopPropagation();
       if (menu.hidden) openMenu();
       else closeMenu(false);
+    });
+
+    btn.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        openMenu(e.key === 'ArrowUp' ? menuItems[menuItems.length - 1] : menuItems[0]);
+      }
+    });
+
+    menu.addEventListener('keydown', function (e) {
+      if (!menuItems.length) return;
+      var idx = menuItems.indexOf(document.activeElement);
+      var nextIdx = -1;
+      if (e.key === 'ArrowDown') nextIdx = (idx + 1) % menuItems.length;
+      else if (e.key === 'ArrowUp') nextIdx = (idx - 1 + menuItems.length) % menuItems.length;
+      else if (e.key === 'Home') nextIdx = 0;
+      else if (e.key === 'End') nextIdx = menuItems.length - 1;
+      else if (e.key === 'Tab') {
+        closeMenu(false);
+        return;
+      }
+      if (nextIdx >= 0) {
+        e.preventDefault();
+        menuItems[nextIdx].focus();
+      }
     });
 
     document.addEventListener('click', function (e) {
@@ -230,7 +337,7 @@ v1.46.0 (231)
       });
     });
   })();
-</script>  <button type="button" id="back-to-top-btn" class="back-to-top-pill" aria-label="Nach oben" title="Nach oben"> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <path d="m18 15-6-6-6 6"></path> </svg> </button> <aside id="dev-mode-hud" class="dev-mode-hud mono" aria-label="⚡ ApkUp Entwicklermodus" hidden> <div class="dev-hud-head"> <strong>⚡ ApkUp Entwicklermodus</strong> <button type="button" id="dev-hud-close" aria-label="Close Developer HUD">✕</button> </div> <div class="dev-hud-grid"> <span>Release: <strong>v1.46.0 (231)</strong></span> <span>SDK: <strong>API 29 – 37 (Android 10–17)</strong></span> <span>ABIs: <strong>arm64-v8a • armeabi-v7a • x86_64</strong></span> <span>Signature: <strong>APK Scheme v2/v3 + SHA-256</strong></span> <span id="dev-hud-perf">DOM Ready: <strong>-- ms</strong></span> </div> </aside> <script>(function(){const copiedToastMsg = "✓ In Zwischenablage kopiert";
+</script>  <button type="button" id="back-to-top-btn" class="back-to-top-pill" aria-label="Nach oben" title="Nach oben"> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <path d="m18 15-6-6-6 6"></path> </svg> </button> <aside id="dev-mode-hud" class="dev-mode-hud mono" aria-label="⚡ ApkUp Entwicklermodus" hidden> <div class="dev-hud-head"> <strong>⚡ ApkUp Entwicklermodus</strong> <button type="button" id="dev-hud-close" aria-label="Close Developer HUD">✕</button> </div> <div class="dev-hud-grid"> <span>Release: <strong>v1.47.0 (237)</strong></span> <span>SDK: <strong>API 29 – 37 (Android 10–17)</strong></span> <span>ABIs: <strong>arm64-v8a • armeabi-v7a • x86_64</strong></span> <span>Signature: <strong>APK Scheme v2/v3 + SHA-256</strong></span> <span id="dev-hud-perf">DOM Ready: <strong>-- ms</strong></span> </div> </aside> <script>(function(){const copiedToastMsg = "✓ In Zwischenablage kopiert";
 const shareTitleMsg = "ApkUp — Multi-Quellen Android-App-Updater";
 const shareTextMsg = "ApkUp: Open-Source Android App-Updater für Google Play, F-Droid, GitHub & mehr – werbefrei & mit Shizuku.";
 const canonicalShareUrl = "https://durcheins.github.io/apkup/de/sideloading/";
@@ -239,17 +346,25 @@ const canonicalShareUrl = "https://durcheins.github.io/apkup/de/sideloading/";
         var root = document.documentElement;
         var themeBtn = document.getElementById('theme-toggle');
 
+        function syncThemeButtonLabel(mode) {
+          if (!themeBtn) return;
+          themeBtn.setAttribute('data-theme-state', mode);
+          themeBtn.setAttribute('aria-pressed', String(mode !== 'dark'));
+          var labelKey = mode === 'a11y' ? 'data-label-a11y' : (mode === 'light' ? 'data-label-light' : 'data-label-dark');
+          var nextLabel = themeBtn.getAttribute(labelKey);
+          if (nextLabel) {
+            themeBtn.setAttribute('aria-label', nextLabel);
+            themeBtn.setAttribute('title', nextLabel);
+          }
+        }
+
         function applyTheme(next) {
           root.classList.add('theme-switching');
-          root.setAttribute('data-theme', next);
-          var meta = document.getElementById('meta-theme-color');
-          if (meta) meta.setAttribute('content', next === 'light' ? '#F4F1EA' : '#121316');
+          var normalized = window.__apkupApplyThemeMode ? window.__apkupApplyThemeMode(next) : next;
           try {
-            localStorage.setItem('apkup-theme', next);
+            localStorage.setItem('apkup-theme', normalized);
           } catch (e) {}
-          if (themeBtn) {
-            themeBtn.setAttribute('aria-pressed', String(next === 'light'));
-          }
+          syncThemeButtonLabel(normalized);
           requestAnimationFrame(function () {
             requestAnimationFrame(function () {
               root.classList.remove('theme-switching');
@@ -258,14 +373,26 @@ const canonicalShareUrl = "https://durcheins.github.io/apkup/de/sideloading/";
         }
 
         if (themeBtn) {
-          themeBtn.setAttribute('aria-pressed', String(root.getAttribute('data-theme') === 'light'));
+          var initialMode = root.getAttribute('data-theme-mode') || 'dark';
+          syncThemeButtonLabel(initialMode);
           try {
             if (!localStorage.getItem('apkup-theme')) themeBtn.classList.add('is-system-sync');
           } catch (e) {}
           themeBtn.addEventListener('click', function () {
             themeBtn.classList.remove('is-system-sync');
-            var current = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-            applyTheme(current === 'dark' ? 'light' : 'dark');
+            var current = root.getAttribute('data-theme-mode') || 'dark';
+            var next = current === 'dark' ? 'light' : (current === 'light' ? 'a11y' : 'dark');
+            applyTheme(next);
+          });
+          setInterval(function () {
+            if (root.getAttribute('data-theme-mode') === 'a11y' && window.__apkupApplyThemeMode) {
+              window.__apkupApplyThemeMode('a11y');
+            }
+          }, 60000);
+          document.addEventListener('visibilitychange', function () {
+            if (!document.hidden && root.getAttribute('data-theme-mode') === 'a11y' && window.__apkupApplyThemeMode) {
+              window.__apkupApplyThemeMode('a11y');
+            }
           });
         }
 

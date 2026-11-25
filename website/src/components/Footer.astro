@@ -34,7 +34,7 @@ const activeMeta = LOCALE_META[lang];
       </div>
     </div>
 
-    <nav class="footer-links" aria-label="Footer links">
+    <nav class="footer-links" aria-label={t.footer.navAria}>
       <a href={localePath(lang, 'downloads/')}>{t.footer.downloads}</a>
       <a href={localePath(lang, 'sideloading/')}>{t.footer.installUnknownApps}</a>
       <a href={localePath(lang, 'sideloading/google-lock/')}>{t.footer.googleLock}</a>
@@ -43,6 +43,7 @@ const activeMeta = LOCALE_META[lang];
       <a href={localePath(lang, 'compare/')}>{t.footer.sourceChecker}</a>
       <a href={localePath(lang, 'privacy/')}>{t.footer.privacy}</a>
       <a href={localePath(lang, 'security/')}>{t.footer.security}</a>
+      <a href={localePath(lang, 'accessibility/')}>{t.footer.accessibility}</a>
       <a href={SITE.repoUrl} target="_blank" rel="noopener noreferrer">GitHub</a>
       <a href={SITE.sponsorsUrl} target="_blank" rel="noopener noreferrer">Sponsor</a>
       <a href={SITE.wikiUrl} target="_blank" rel="noopener noreferrer">GitHub Wiki</a>
@@ -85,7 +86,7 @@ const activeMeta = LOCALE_META[lang];
           aria-expanded="false"
           aria-haspopup="menu"
           aria-controls="footer-lang-menu"
-          aria-label={t.footer.langPickerAria}
+          aria-label={`${activeMeta.nativeName} (${activeMeta.code}) — ${t.footer.langPickerAria}`}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="10" />
@@ -108,6 +109,7 @@ const activeMeta = LOCALE_META[lang];
                 aria-checked={isCurrent ? 'true' : 'false'}
                 class={`lang-menu-item ${isCurrent ? 'is-active' : ''}`}
                 data-lang-option={loc}
+                lang={lm.hreflang}
               >
                 <span class="lang-item-name">{lm.nativeName}</span>
                 <span class="lang-item-right mono">
@@ -139,6 +141,8 @@ const activeMeta = LOCALE_META[lang];
     var menu = document.getElementById('footer-lang-menu');
     if (!wrap || !btn || !menu) return;
 
+    var menuItems = Array.prototype.slice.call(menu.querySelectorAll('[role="menuitemradio"]'));
+
     function closeMenu(focusBtn) {
       if (menu.hidden) return;
       menu.hidden = true;
@@ -146,15 +150,42 @@ const activeMeta = LOCALE_META[lang];
       if (focusBtn) btn.focus();
     }
 
-    function openMenu() {
+    function openMenu(focusTarget) {
       menu.hidden = false;
       btn.setAttribute('aria-expanded', 'true');
+      var target = focusTarget || menu.querySelector('[aria-checked="true"]') || menuItems[0];
+      if (target) target.focus();
     }
 
     btn.addEventListener('click', function (e) {
       e.stopPropagation();
       if (menu.hidden) openMenu();
       else closeMenu(false);
+    });
+
+    btn.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        openMenu(e.key === 'ArrowUp' ? menuItems[menuItems.length - 1] : menuItems[0]);
+      }
+    });
+
+    menu.addEventListener('keydown', function (e) {
+      if (!menuItems.length) return;
+      var idx = menuItems.indexOf(document.activeElement);
+      var nextIdx = -1;
+      if (e.key === 'ArrowDown') nextIdx = (idx + 1) % menuItems.length;
+      else if (e.key === 'ArrowUp') nextIdx = (idx - 1 + menuItems.length) % menuItems.length;
+      else if (e.key === 'Home') nextIdx = 0;
+      else if (e.key === 'End') nextIdx = menuItems.length - 1;
+      else if (e.key === 'Tab') {
+        closeMenu(false);
+        return;
+      }
+      if (nextIdx >= 0) {
+        e.preventDefault();
+        menuItems[nextIdx].focus();
+      }
     });
 
     document.addEventListener('click', function (e) {

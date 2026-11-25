@@ -70,6 +70,20 @@ html.kbd-nav :focus-visible {
   box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.22);
 }
 
+[data-a11y='true'] :focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+html.kbd-nav[data-a11y='true'] :focus-visible {
+  box-shadow: 0 0 0 6px var(--accent-soft);
+}
+
+[data-a11y='true'] .btn,
+[data-a11y='true'] .icon-pill {
+  border-width: 1.5px;
+}
+
 html.lang-switching main {
   opacity: 0.72;
   transition: opacity 120ms ease-out;
@@ -255,6 +269,13 @@ p {
   color: #047857 !important;
 }
 
+[data-theme='light'][data-a11y='true'] .is-copied,
+[data-theme='dark'][data-a11y='true'] .is-copied {
+  border-color: var(--tertiary) !important;
+  background-color: var(--tertiary-soft) !important;
+  color: var(--tertiary-soft-ink) !important;
+}
+
 .btn-primary .apk-light {
   font-weight: 500;
 }
@@ -388,6 +409,18 @@ p {
   }
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .pill-badge {
   display: inline-flex;
   align-items: center;
@@ -397,7 +430,9 @@ p {
   font-size: 0.84rem;
   font-weight: 700;
   line-height: 1.2;
-  white-space: nowrap;
+  white-space: normal;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .pill-amber {
@@ -417,7 +452,6 @@ p {
   border: 1px solid rgba(239, 68, 68, 0.32);
 }
 
-:global([data-theme="light"]) .pill-danger,
 [data-theme="light"] .pill-danger {
   background: rgba(220, 38, 38, 0.1);
   color: #b91c1c;
@@ -505,7 +539,7 @@ p {
   height: 32px;
   border-radius: 9px;
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-soft-ink);
   display: inline-flex;
   align-items: center;
   justify-content: center;

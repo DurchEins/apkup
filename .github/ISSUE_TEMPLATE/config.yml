@@ -1,5 +1,8 @@
 blank_issues_enabled: true
 contact_links:
+  - name: ♿ Accessibility Policy & Statement
+    url: https://durcheins.github.io/apkup/accessibility/
+    about: View WCAG 2.2 AA / EN 301 549 status, TalkBack/Voice Access support, and known limitations.
   - name: 🌐 ApkUp Web Wiki & Guides
     url: https://durcheins.github.io/apkup/wiki/
     about: Clean, searchable web documentation for update sources, Shizuku, Obtainium sync, and sideloading.

@@ -138,7 +138,7 @@ export function renderFullWikiHtml(md: string, slugPrefix: string): { html: stri
     if (!tableRows.length) return;
     const header = tableRows[0];
     const body = tableRows.slice(1).filter((r) => !r.every((c) => /^[-:\s]+$/.test(c)));
-    let html = '<div class="wk-table-wrap"><table class="wk-table"><thead><tr>';
+    let html = '<div class="wk-table-wrap" tabindex="0" role="region" aria-label="Reference table"><table class="wk-table"><thead><tr>';
     for (const h of header) html += `<th>${fmt(h)}</th>`;
     html += '</tr></thead><tbody>';
     for (const row of body) {
@@ -192,7 +192,7 @@ export function renderFullWikiHtml(md: string, slugPrefix: string): { html: stri
         inCode = false;
         if (!skipSection) {
           out.push(
-            `<div class="wk-codeblock"><button type="button" class="wk-copy-btn mono" data-copy-code>Copy</button><pre class="wk-pre mono"><code data-lang="${escapeHtml(codeLang)}">${escapeHtml(
+            `<div class="wk-codeblock"><button type="button" class="wk-copy-btn mono" data-copy-code>Copy</button><pre class="wk-pre mono" tabindex="0" role="region" aria-label="Code snippet"><code data-lang="${escapeHtml(codeLang)}">${escapeHtml(
               codeBuf.join('\n')
             )}</code></pre></div>`
           );

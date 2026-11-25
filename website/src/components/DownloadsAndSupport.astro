@@ -228,7 +228,7 @@ const wallCopy = WALL_COPY[lang] ?? WALL_COPY.en;
               <div class="supporters-grid supporters-grid-champions">
                 {champions.map((c) => (
                   <div class="supporter-card supporter-card-champion">
-                    {c.avatar && <img src={c.avatar} alt={c.name} width="44" height="44" loading="lazy" />}
+                    {c.avatar && <img src={c.avatar} alt="" aria-hidden="true" width="44" height="44" loading="lazy" />}
                     <div>
                       {c.url ? (
                         <a href={c.url} target="_blank" rel="noopener noreferrer">{c.name}</a>
@@ -249,7 +249,7 @@ const wallCopy = WALL_COPY[lang] ?? WALL_COPY.en;
               <div class="supporters-grid">
                 {featured.map((f) => (
                   <div class="supporter-card supporter-card-featured">
-                    {f.avatar && <img src={f.avatar} alt={f.name} width="36" height="36" loading="lazy" />}
+                    {f.avatar && <img src={f.avatar} alt="" aria-hidden="true" width="36" height="36" loading="lazy" />}
                     <div>
                       {f.url ? (
                         <a href={f.url} target="_blank" rel="noopener noreferrer">{f.name}</a>

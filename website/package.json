@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node scripts/build-css.mjs && node scripts/build-llms.mjs && astro dev",
     "build": "node scripts/build-css.mjs && node scripts/build-llms.mjs && astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "check:a11y": "node scripts/check-a11y.mjs"
   },
   "dependencies": {
     "astro": "^7.4.13",

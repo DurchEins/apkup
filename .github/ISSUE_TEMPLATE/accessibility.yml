@@ -1,0 +1,84 @@
+name: Accessibility Barrier
+description: Report a screen reader, keyboard, contrast, touch target, or assistive tech issue in ApkUp or its website
+title: "[A11y] "
+assignees:
+  - DurchEins
+labels:
+  - accessibility
+  - needs-triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping make **ApkUp** genuinely accessible for everyone!
+        Please share where the barrier happens and which assistive technology or OS setting you were using.
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Affected Surface
+      options:
+        - Android App (ApkUp)
+        - Website (durcheins.github.io/apkup)
+        - GitHub Documentation / Wiki
+    validations:
+      required: true
+
+  - type: input
+    id: app_or_url
+    attributes:
+      label: App Version / Page URL
+      description: ApkUp version (Setup ➔ About) or exact website URL path.
+      placeholder: e.g. 1.46.0 (232) or https://durcheins.github.io/apkup/downloads/
+    validations:
+      required: true
+
+  - type: dropdown
+    id: assistive_tech
+    attributes:
+      label: Assistive Technology / Input Method
+      multiple: true
+      options:
+        - Android TalkBack
+        - Android Voice Access
+        - Android Switch Access
+        - External Keyboard (Tab / Arrow keys)
+        - Large Font / Display Scaling / Magnification
+        - Reduced Motion Setting
+        - Light Mode / Dark Mode / High Contrast
+        - Desktop Screen Reader (NVDA / JAWS / VoiceOver / Orca)
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Barrier Type
+      options:
+        - Missing or unclear label / contentDescription / ARIA name
+        - Broken focus order or keyboard trap
+        - Low text or UI control contrast
+        - Touch target too small or crowded (< 48dp / 44px)
+        - Gesture-only interaction without tap/button alternative
+        - Auto-moving or unpaused animation / motion discomfort
+        - Horizontal overflow / clipped text at zoom
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Device, OS & Browser (optional)
+      placeholder: e.g. Pixel 9 (Android 16), Chrome + TalkBack 15 / Windows 11 + NVDA
+    validations:
+      required: false
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce & Expected Accessible Behavior
+      description: Explain which control fails, what your assistive tech announces/does today, and what you expected instead.
+    validations:
+      required: true

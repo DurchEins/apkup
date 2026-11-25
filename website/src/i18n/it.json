@@ -14,7 +14,10 @@
     "primaryAria": "Navigazione principale",
     "mobileAria": "Navigazione mobile",
     "toggleMenuAria": "Apri/chiudi menu di navigazione",
-    "toggleThemeAria": "Cambia tema chiaro/scuro",
+    "toggleThemeAria": "Cambia tema: Scuro, Chiaro, Accessibilità AAA (Solare)",
+    "themeModeDark": "Tema: Scuro (passa a Chiaro)",
+    "themeModeLight": "Tema: Chiaro (passa ad Accessibilità AAA)",
+    "themeModeA11y": "Tema: Accessibilità AAA Solare (passa a Scuro)",
     "features": "Funzioni",
     "showcase": "Anteprima",
     "sources": "Sorgenti",
@@ -25,6 +28,7 @@
     "download": "Scarica"
   },
   "footer": {
+    "navAria": "Link del piè di pagina",
     "downloads": "Download",
     "installUnknownApps": "App sconosciute",
     "googleLock": "Blocco 24h Google",
@@ -33,6 +37,7 @@
     "sourceChecker": "Verifica sorgenti",
     "privacy": "Privacy",
     "security": "Sicurezza",
+    "accessibility": "Accessibilità",
     "canonicalRelease": "Release ufficiale",
     "langPickerAria": "Seleziona lingua",
     "helpTranslate": "Aiuta a tradurre →"
@@ -110,6 +115,8 @@
     "title": "Progettato per l'ergonomia a una mano",
     "subtitle": "Esplora la vera interfaccia — cambia schermata qui sotto o tocca lo smartphone per ingrandire.",
     "tablistAria": "Schermate dell'app",
+    "pauseAria": "Metti in pausa la rotazione automatica degli screenshot",
+    "playAria": "Riprendi la rotazione automatica degli screenshot",
     "lightboxAria": "Anteprima schermata",
     "closePreviewAria": "Chiudi anteprima",
     "screens": {
@@ -1223,7 +1230,81 @@
             "body": "F-Droid compila APK open source riproducibili senza costringere gli sviluppatori anonimi a inviare documenti a Google."
           }
         ]
+      },
+      "accessibility": {
+        "title": "Accessibility & Accessible Mode",
+        "lead": "How to enable Accessible Mode, configure the high-contrast solar Auto / Light / Dark theme, and use TalkBack or one-tap controls."
+      },
+      "tech-sources": {
+        "title": "Tech: Update Sources, Networking & Parsing",
+        "lead": "Technical overview of multi-source aggregation, gplayapi, F-Droid Index-V2 (RFC 7396), APKMirror .apkm & Cloudflare handling, and Git forges."
+      },
+      "tech-install": {
+        "title": "Tech: Installation, Shizuku, Root & WorkManager",
+        "lead": "Technical overview of UpdateDownloadWorker, 24h cache, SessionInstaller (PackageInstaller), Shizuku Binder IPC, RootInstaller, and rollback backups."
+      },
+      "tech-security": {
+        "title": "Tech: Security, Cryptography & Privacy",
+        "lead": "Technical overview of ApkIntegrityVerifier (v2/v3 signatures, SHA-256, downgrade guard), Google Tink AES-256-GCM, Zip-Slip protection, and AppJournal redaction."
+      },
+      "tech-ui": {
+        "title": "Tech: UI, Accessibility & Website Architecture",
+        "lead": "Technical overview of Material 3 Expressive Compose UI, a11yAccessibleUi, AccessibleTypography, SolarScheduleCalculator, Astro 9-language site, and check-a11y.mjs."
+      },
+      "tech-cicd": {
+        "title": "Tech: CI/CD, Single-Artifact Releases & Checksums",
+        "lead": "Technical overview of semantic versioning, PR CI gates, release.yml canonical APK signing, SHA256SUMS, Self-Updater, and mirror distribution."
+      },
+      "tech-storage": {
+        "title": "Tech: Data Storage, Prefs, Backups, Logs & Widget",
+        "lead": "Technical overview of SecurePrefsStore allowlist, CachedUpdateSnapshot, ApkUpBackupConfig JSON schema, AppJournal, and UpdatesWidgetProvider (Preview)."
+      },
+      "tech-build": {
+        "title": "Tech: Build System, R8 & Automated Tests",
+        "lead": "Technical overview of Gradle build variants, R8 shrinking/obfuscation, 413+ unit tests (PrefsTest, ChangelogBottomSheetTest, AccessibilityAuditTest), and lintDebug."
+      },
+      "tech-i18n": {
+        "title": "Tech: Localization, Weblate & Asset Pipeline",
+        "lead": "Technical overview of 9-locale strings.xml & website i18n parity, Hosted Weblate, changelog asset parser, Fastlane metadata, and adaptive SVGs."
       }
     }
+  },
+  "accessibilityPage": {
+    "title": "Dichiarazione di accessibilità — ApkUp",
+    "metaDesc": "Impegno di accessibilità di ApkUp, stato WCAG 2.2 AA & EN 301 549, supporto TalkBack e Voice Access, limitazioni note e segnalazioni.",
+    "badge": "WCAG 2.2 AA • EN 301 549",
+    "h1": "Dichiarazione di accessibilità",
+    "lead": "ApkUp è progettato per funzionare in modo affidabile con Android TalkBack, Voice Access, Switch Access, tastiera fisica e ingrandimento dello schermo sia nell'app sia su questo sito web.",
+    "statusTitle": "Stato di conformità",
+    "statusPill": "WCAG 2.2 AA • Material 3",
+    "statusBody": "L'app Android ApkUp e il sito web puntano alla conformità WCAG 2.2 Livello AA, EN 301 549, linee guida di accessibilità Android e WAI-ARIA 1.2 (ultimo audit completo: 24 novembre 2026).",
+    "appTitle": "Accessibilità dell'app Android",
+    "appLead": "Verificato su Aggiornamenti, App, Impostazioni, finestre di dialogo e notifiche:",
+    "appItems": [
+      "Semantica Jetpack Compose completa con etichette descrittive, schede raggruppate, intestazioni e annunci live-region.",
+      "Coerenza Label-in-Name (WCAG 2.5.3) per Voice Access e alternative tramite tocco o azioni personalizzate ai gesti complessi.",
+      "Area interattiva minima di 48 dp e ordine di focus chiaro in schermate e fogli modali.",
+      "Temi Material 3 chiaro e scuro ad alto contrasto (>= 4,5:1 AA), Dynamic Color e ridimensionamento caratteri.",
+      "Pieno rispetto dell'impostazione di sistema per la riduzione delle animazioni."
+    ],
+    "webTitle": "Accessibilità del sito web",
+    "webLead": "HTML5 semantico e controlli WAI-ARIA nativi in tutte le 9 lingue:",
+    "webItems": [
+      "Landmark semantici, collegamento per saltare al contenuto, navigazione da tastiera completa e indicatori di focus visibili.",
+      "Galleria screenshot mettibile in pausa, rispetto di prefers-reduced-motion e zoom accessibile da tastiera.",
+      "Contrasto conforme WCAG AA nei temi chiaro e scuro, inclusi badge ed errori.",
+      "Reflow fluido fino a 320 px di larghezza e zoom del 400% senza scorrimento orizzontale forzato.",
+      "9 lingue localizzate con attributi lang corretti e tabelle o blocchi di codice scorrevoli da tastiera."
+    ],
+    "limitsTitle": "Limitazioni note",
+    "limitsBody": "Le note di rilascio recuperate da repository esterni dipendono dai rispettivi autori e le finestre di sistema Android variano in base al produttore.",
+    "soloTitle": "Una nota personale dallo sviluppatore",
+    "soloBody": "ApkUp è sviluppato da una sola persona come progetto open source indipendente. Cerco in scienza e coscienza di rendere ogni funzione il più accessibile possibile, continuando però a imparare ogni giorno. L'accessibilità dell'app e del sito è in costante evoluzione e sono sinceramente grato per ogni minimo consiglio, suggerimento o aiuto da parte della comunità tramite Issues o Discussioni! ❤️",
+    "soloIssuesCta": "GitHub Issues (Consigli e bug) ↗",
+    "soloDiscussionsCta": "GitHub Discussions (Idee e confronto) ↗",
+    "feedbackTitle": "Segnala una barriera di accessibilità",
+    "feedbackLead": "Hai trovato un pulsante senza etichetta, contrasto insufficiente o un problema con TalkBack? Segnalalo direttamente su GitHub.",
+    "feedbackCta": "Apri una segnalazione su GitHub ↗",
+    "feedbackSecondary": "Leggi ACCESSIBILITY.md ↗"
   }
 }

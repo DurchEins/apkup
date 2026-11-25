@@ -214,7 +214,6 @@ class TinkSecurePrefsBackend private constructor(
             "ignoredVersionEntries",
             "ignoreAppsFilterActive",
             "ignoreVersionsFilterActive",
-            "updatesDisplayMode",
             "appsViewMode",
             "useApkMirror",
             "directApkMirrorDownloads",

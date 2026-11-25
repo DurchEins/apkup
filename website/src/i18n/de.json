@@ -14,7 +14,10 @@
     "primaryAria": "Hauptnavigation",
     "mobileAria": "Mobile Navigation",
     "toggleMenuAria": "Navigationsmenü umschalten",
-    "toggleThemeAria": "Helles/dunkles Design umschalten",
+    "toggleThemeAria": "Design wechseln: Dunkel, Hell, Barrierefrei AAA (Sonnenstand)",
+    "themeModeDark": "Design: Dunkel (klicken für Hell)",
+    "themeModeLight": "Design: Hell (klicken für Barrierefrei AAA)",
+    "themeModeA11y": "Design: Barrierefrei AAA Sonnenstand (klicken für Dunkel)",
     "features": "Funktionen",
     "showcase": "Einblicke",
     "sources": "Quellen",
@@ -25,6 +28,7 @@
     "download": "Herunterladen"
   },
   "footer": {
+    "navAria": "Fußzeilen-Navigation",
     "downloads": "Downloads",
     "installUnknownApps": "Unbekannte Apps",
     "googleLock": "Googles 24h-Sperre",
@@ -33,6 +37,7 @@
     "sourceChecker": "Quellen-Check",
     "privacy": "Datenschutz",
     "security": "Sicherheit",
+    "accessibility": "Barrierefreiheit",
     "canonicalRelease": "Offizielles Release",
     "langPickerAria": "Sprache wählen",
     "helpTranslate": "Übersetzung verbessern →"
@@ -110,6 +115,8 @@
     "title": "Optimiert für einhändige Bedienung",
     "subtitle": "Entdecke die echte App-Oberfläche – wähle unten einen Bereich oder tippe auf das Smartphone zum Vergrößern.",
     "tablistAria": "App-Screenshots",
+    "pauseAria": "Automatischen Screenshot-Wechsel pausieren",
+    "playAria": "Automatischen Screenshot-Wechsel fortsetzen",
     "lightboxAria": "Screenshot-Vorschau",
     "closePreviewAria": "Vorschau schließen",
     "screens": {
@@ -1223,7 +1230,81 @@
             "body": "F-Droid baut reproduzierbare Open-Source-APKs, ohne anonyme Entwickler zur Ausweisabgabe bei Google zu zwingen."
           }
         ]
+      },
+      "accessibility": {
+        "title": "Barrierefreiheit & Barrierefrei-Modus",
+        "lead": "So aktivierst du den Barrierefrei-Modus, stellst das kontraststarke Sonnen-Theme (Auto / Hell / Dunkel) ein und nutzt TalkBack sowie die Ein-Tippen-Bedienung."
+      },
+      "tech-sources": {
+        "title": "Technik: Update-Quellen, Netzwerke & Parsing",
+        "lead": "Technischer Überblick über Multi-Source-Aggregation, gplayapi, F-Droid Index-V2 (RFC 7396), APKMirror .apkm & Cloudflare sowie Git-Forges."
+      },
+      "tech-install": {
+        "title": "Technik: Installation, Shizuku, Root & WorkManager",
+        "lead": "Technischer Überblick über UpdateDownloadWorker, 24h-Cache, SessionInstaller (PackageInstaller), Shizuku Binder IPC, RootInstaller und Rollback-Backups."
+      },
+      "tech-security": {
+        "title": "Technik: Sicherheit, Kryptografie & Datenschutz",
+        "lead": "Technischer Überblick über ApkIntegrityVerifier (v2/v3-Signaturen, SHA-256, Downgrade-Schutz), Google Tink AES-256-GCM, Zip-Slip-Schutz und AppJournal-Bereinigung."
+      },
+      "tech-ui": {
+        "title": "Technik: UI, Barrierefreiheit & Website-Architektur",
+        "lead": "Technischer Überblick über Material 3 Expressive Compose UI, a11yAccessibleUi, AccessibleTypography, SolarScheduleCalculator, Astro-Website und check-a11y.mjs."
+      },
+      "tech-cicd": {
+        "title": "Technik: CI/CD, Single-Artifact-Releases & Prüfsummen",
+        "lead": "Technischer Überblick über semantische Versionierung, PR-CI-Checks, kanonische release.yml-Signierung, SHA256SUMS, Self-Updater und Mirrors."
+      },
+      "tech-storage": {
+        "title": "Technik: Datenhaltung, Prefs, Backups, Logs & Widget",
+        "lead": "Technischer Überblick über SecurePrefsStore-Allowlist, CachedUpdateSnapshot, ApkUpBackupConfig-Schema, AppJournal und UpdatesWidgetProvider (Preview)."
+      },
+      "tech-build": {
+        "title": "Technik: Build-System, R8 & Automatisierte Tests",
+        "lead": "Technischer Überblick über Gradle-Varianten, R8-Shrinking, 413+ Unit-Tests (PrefsTest, ChangelogBottomSheetTest, AccessibilityAuditTest) und lintDebug."
+      },
+      "tech-i18n": {
+        "title": "Technik: Lokalisierung, Weblate & Asset-Pipeline",
+        "lead": "Technischer Überblick über 9-Sprachen-Synchronisation (strings.xml & website i18n), Hosted Weblate, Changelog-Parser, Fastlane und adaptive SVGs."
       }
     }
+  },
+  "accessibilityPage": {
+    "title": "Barrierefreiheitserklärung — ApkUp",
+    "metaDesc": "Erklärung zur Barrierefreiheit von ApkUp: WCAG 2.2 AA & EN 301 549 Status, TalkBack-, Voice-Access- & Switch-Access-Unterstützung sowie Feedback-Kanal.",
+    "badge": "WCAG 2.2 AA • EN 301 549",
+    "h1": "Erklärung zur Barrierefreiheit",
+    "lead": "ApkUp wird konsequent für eine zuverlässige Bedienung mit Android TalkBack, Voice Access, Schalterzugriff (Switch Access), externen Tastaturen und Bildschirmlupen entwickelt – sowohl in der Android-App als auch auf dieser Webseite.",
+    "statusTitle": "Konformitätsstatus & Prüfstand",
+    "statusPill": "WCAG 2.2 AA • Material 3",
+    "statusBody": "Die ApkUp-Android-App und diese Webseite orientieren sich an WCAG 2.2 Level AA, EN 301 549, den Android Accessibility Guidelines sowie WAI-ARIA 1.2 (letzte vollständige Prüfung: 24. November 2026).",
+    "appTitle": "Barrierefreiheit in der Android-App",
+    "appLead": "Geprüft in Updates, Apps, Setup, Dialogen, Bottom Sheets und System-Benachrichtigungen:",
+    "appItems": [
+      "Vollständige Jetpack-Compose-Semantik mit präzisen Beschreibungen, zusammengefassten Update-Karten, Überschriften und Live-Region-Ansagen für Suchläufe, Warteschlangen und Downloads.",
+      "WCAG-2.5.3-Konformität (sichtbarer Text im zugänglichen Namen) für Voice Access sowie Klick- und Barrierefreiheits-Aktionen als Alternative zu Ziehen, Gedrückthalten und Wischen.",
+      "Mindestens 48 dp große Interaktionsflächen bei Steuerelementen, umschaltbare 2-Spalten-Rasterdichte (im Barrierefrei-Theme vorausgewählt), logische Fokus-Reihenfolge und tastaturbedienbare Bottom Sheets.",
+      "WCAG-2.2-AA-Material-3-Paletten (>= 4,5:1) sowie ein eigenes Barrierefreiheits-Theme nach WCAG 2.2 AAA (>= 7,0:1) mit Offline-Sonnenaufgangs-/-untergangs-Wechsel, klaren 1,5-dp-Rahmen und automatischer Dynamic-Color-Pause.",
+      "Respektiert Android-Einstellungen für reduzierte Bewegungen über alle Animationen und Effekte hinweg."
+    ],
+    "webTitle": "Barrierefreiheit auf dieser Webseite",
+    "webLead": "Semantisches HTML5 und native WAI-ARIA-Steuerung über alle 9 Sprachversionen hinweg:",
+    "webItems": [
+      "Klare Landmarks, „Zum Hauptinhalt springen“-Link, tastaturbedienbare Menüs/Tabs/Dialoge sowie deutlich sichtbare 3-px-Fokus-Ringe.",
+      "Pausierbare Screenshot-Vorschau mit Berücksichtigung von prefers-reduced-motion sowie tastaturbedienbarer Zoom-Ansicht samt Fokus-Rückgabe beim Schließen.",
+      "Drei-Wege-Umschalter zwischen Dunkel, Hell und Barrierefreiheits-Modus nach WCAG 2.2 AAA (>= 7,0:1) mit automatischer Offline-Tag/Nacht-Anpassung nach Sonnenstand.",
+      "Sauberer Umbruch ab 320 px Viewport-Breite und bis 400 % Browser-Zoom ohne horizontale Scroll-Fallen.",
+      "Lokalisierung in 9 Sprachen mit korrekten lang-Attributen sowie tastatur-scrollbaren Tabellen und Code-Blöcken."
+    ],
+    "limitsTitle": "Bekannte Einschränkungen & laufende Tests",
+    "limitsBody": "Externe Release-Notes aus Drittquellen (z. B. GitHub oder GitLab) stammen von den jeweiligen App-Entwicklern. Android-Systemdialoge (Entwickleroptionen, Unbekannte Apps, Shizuku-Kopplung) unterliegen der Oberfläche des Geräteherstellers. Manuelle TalkBack- und Voice-Access-Tests auf weiteren Android-Geräten laufen fortlaufend.",
+    "soloTitle": "Persönliches Wort des Entwicklers",
+    "soloBody": "ApkUp wird von mir alleine als unabhängiges Open-Source-Projekt entwickelt. Ich versuche nach bestem Wissen und Gewissen, jede Funktion so barrierefrei wie möglich umzusetzen – lerne dabei aber selbst ständig dazu. Die Barrierefreiheit von App und Webseite wird fortlaufend weiterentwickelt, und ich bin für jeden noch so kleinen Tipp, Hinweis oder jede Hilfe aus der Community (gerne direkt über unsere Issues oder Diskussionen) von Herzen dankbar! ❤️",
+    "soloIssuesCta": "GitHub Issues (Tipps & Bugs) ↗",
+    "soloDiscussionsCta": "GitHub Discussions (Ideen & Austausch) ↗",
+    "feedbackTitle": "Barriere melden",
+    "feedbackLead": "Du hast einen unbeschrifteten Button, eine Tastaturfalle, schwachen Kontrast oder ein Screenreader-Problem in ApkUp oder auf dieser Seite entdeckt? Melde es direkt über GitHub.",
+    "feedbackCta": "Barriere-Issue auf GitHub öffnen ↗",
+    "feedbackSecondary": "Technische Richtlinie (ACCESSIBILITY.md) ↗"
   }
 }

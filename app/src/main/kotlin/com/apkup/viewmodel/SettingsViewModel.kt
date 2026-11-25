@@ -22,11 +22,14 @@ import com.apkup.data.ui.WatchedAppEntry
 import com.apkup.prefs.Prefs
 import com.apkup.repository.RepoHostValidator
 import com.apkup.repository.RepoMappingManager
+import com.apkup.ui.theme.THEME_ACCESSIBILITY
+import com.apkup.ui.theme.THEME_SYSTEM
 import com.apkup.ui.theme.isDarkTheme
 import com.apkup.util.ApkIntegrityVerifier
 import com.apkup.util.AppJournal
 import com.apkup.util.SessionInstaller
 import com.apkup.util.SnackBar
+import com.apkup.util.SolarScheduleCalculator
 import com.apkup.util.Stringer
 import com.apkup.util.Themer
 import com.apkup.util.UpdatesNotification
@@ -372,8 +375,6 @@ class SettingsViewModel(
 		}
 	}
 
-	fun getUpdatesDisplayMode() = prefs.updatesDisplayMode.get()
-	fun setUpdatesDisplayMode(mode: Int) = prefs.updatesDisplayMode.put(mode)
 	fun getUseApkMirror() = prefs.useApkMirror.get()
 	fun setUseApkMirror(b: Boolean) = prefs.useApkMirror.put(b)
 	fun getDirectApkMirrorDownloads(): Boolean = prefs.directApkMirrorDownloads.get()
@@ -744,8 +745,54 @@ class SettingsViewModel(
 	fun getTheme() = prefs.theme.get()
 
 	fun setTheme(theme: Int) {
-		prefs.theme.put(theme)
-		themer?.setTheme(isDarkTheme(theme))
+		val normalized = theme.coerceIn(THEME_SYSTEM, THEME_ACCESSIBILITY)
+		prefs.theme.put(normalized)
+		themer?.refreshFromPrefs()
+	}
+
+	fun getA11yThemeSubMode(): Int = prefs.a11yThemeSubMode.get()
+
+	fun setA11yThemeSubMode(subMode: Int) {
+		val normalized = subMode.coerceIn(
+			SolarScheduleCalculator.SUBMODE_AUTO_SUN,
+			SolarScheduleCalculator.SUBMODE_DARK_AAA
+		)
+		prefs.a11yThemeSubMode.put(normalized)
+		themer?.refreshFromPrefs()
+	}
+
+	fun getA11ySunriseMinutes(): Int = prefs.a11ySunriseMinutes.get()
+
+	fun getA11ySunsetMinutes(): Int = prefs.a11ySunsetMinutes.get()
+
+	fun setA11ySunTimes(sunriseMinutes: Int, sunsetMinutes: Int) {
+		prefs.a11ySunriseMinutes.put(
+			if (sunriseMinutes in 0..1439) sunriseMinutes else SolarScheduleCalculator.UNSET_MINUTES
+		)
+		prefs.a11ySunsetMinutes.put(
+			if (sunsetMinutes in 0..1439) sunsetMinutes else SolarScheduleCalculator.UNSET_MINUTES
+		)
+		themer?.refreshFromPrefs()
+	}
+
+	fun resetA11ySunSchedule() {
+		prefs.a11ySunriseMinutes.put(SolarScheduleCalculator.UNSET_MINUTES)
+		prefs.a11ySunsetMinutes.put(SolarScheduleCalculator.UNSET_MINUTES)
+		themer?.refreshFromPrefs()
+	}
+
+	fun getAppsGridColumns(): Int = prefs.appsGridColumns.get().coerceIn(2, 3)
+
+	fun getA11yAccessibleUi(): Boolean = prefs.a11yAccessibleUi.get()
+
+	fun setA11yAccessibleUi(enabled: Boolean) {
+		prefs.a11yAccessibleUi.put(enabled)
+		themer?.refreshFromPrefs()
+	}
+
+	fun setAppsGridColumns(columns: Int) {
+		prefs.appsGridColumns.put(columns.coerceIn(2, 3))
+		themer?.refreshFromPrefs()
 	}
 
 	fun getDynamicColor(): Boolean = prefs.dynamicColor.get()
@@ -776,7 +823,6 @@ class SettingsViewModel(
 			ignoredVersions = prefs.ignoredVersions.get(),
 			ignoredVersionEntries = prefs.readIgnoredVersionEntriesSafe(),
 			showSystemApps = prefs.showSystemApps.get(),
-			updatesDisplayMode = prefs.updatesDisplayMode.get(),
 			useApkMirror = prefs.useApkMirror.get(),
 			directApkMirrorDownloads = prefs.directApkMirrorDownloads.get(),
 			usePlay = prefs.usePlay.get(),
@@ -814,7 +860,12 @@ class SettingsViewModel(
 			enableRollbackBackups = prefs.enableRollbackBackups.get(),
 			rollbackMaxBudgetMb = getRollbackMaxBudgetMb(),
 			rollbackMaxAgeDays = getRollbackMaxAgeDays(),
-			includeSelfUpdatePreReleases = prefs.includeSelfUpdatePreReleases.get()
+			includeSelfUpdatePreReleases = prefs.includeSelfUpdatePreReleases.get(),
+			a11yThemeSubMode = prefs.a11yThemeSubMode.get(),
+			a11ySunriseMinutes = prefs.a11ySunriseMinutes.get(),
+			a11ySunsetMinutes = prefs.a11ySunsetMinutes.get(),
+			a11yAccessibleUi = prefs.a11yAccessibleUi.get(),
+			appsGridColumns = getAppsGridColumns()
 		)
 		return gson.toJson(config)
 	}
@@ -935,7 +986,6 @@ class SettingsViewModel(
 			prefs.ignoredVersions.put(sanitizedIgnoredVersions)
 			prefs.ignoredVersionEntries.put(sanitizedEntries)
 			prefs.setShowSystemApps(config.showSystemApps ?: false)
-			prefs.updatesDisplayMode.put((config.updatesDisplayMode ?: 0).coerceIn(0, 1))
 			prefs.useApkMirror.put(config.useApkMirror ?: true)
 			prefs.directApkMirrorDownloads.put(config.directApkMirrorDownloads ?: true)
 			prefs.usePlay.put(config.usePlay ?: true)
@@ -1134,7 +1184,25 @@ class SettingsViewModel(
 			prefs.backgroundCheckIntervalHours.put(
 				BackgroundCheckInterval.fromHours(config.backgroundCheckIntervalHours ?: 24).hours
 			)
-			setTheme((config.theme ?: 0).coerceIn(0, 2))
+			prefs.a11yThemeSubMode.put(
+				(config.a11yThemeSubMode ?: SolarScheduleCalculator.SUBMODE_AUTO_SUN).coerceIn(
+					SolarScheduleCalculator.SUBMODE_AUTO_SUN,
+					SolarScheduleCalculator.SUBMODE_DARK_AAA
+				)
+			)
+			config.a11ySunriseMinutes?.takeIf { it == SolarScheduleCalculator.UNSET_MINUTES || it in 0..1439 }?.let {
+				prefs.a11ySunriseMinutes.put(it)
+			}
+			config.a11ySunsetMinutes?.takeIf { it == SolarScheduleCalculator.UNSET_MINUTES || it in 0..1439 }?.let {
+				prefs.a11ySunsetMinutes.put(it)
+			}
+			config.a11yAccessibleUi?.let {
+				prefs.a11yAccessibleUi.put(it)
+			}
+			config.appsGridColumns?.let {
+				prefs.appsGridColumns.put(it.coerceIn(2, 3))
+			}
+			setTheme((config.theme ?: 0).coerceIn(THEME_SYSTEM, THEME_ACCESSIBILITY))
 			val canEnableShizuku = (config.useShizukuInstaller ?: false) &&
 				(sessionInstaller?.getShizukuSetupStatus()?.isReady == true)
 			prefs.useShizukuInstaller.put(canEnableShizuku)

@@ -148,6 +148,13 @@ class UpdateGridLayoutTest {
 	}
 
 	@Test
+	fun accessibleModeForcesSingleColumnOnPhonesAndMaxTwoOnTablets() {
+		assertEquals(1, updateGridColumnCount(411f, compact = true, forceAccessibleSingleColumn = true))
+		assertEquals(1, updateGridColumnCount(599f, compact = false, forceAccessibleSingleColumn = true))
+		assertEquals(2, updateGridColumnCount(900f, compact = false, forceAccessibleSingleColumn = true))
+	}
+
+	@Test
 	fun updateCardContentAppendsShortSha256HashesWhenAvailable() {
 		val update = AppUpdate(
 			name = "Example",

@@ -98,9 +98,12 @@ cd apkup
    - `fix(installer): prevent double prompt on Shizuku reconnect`
    - `docs(wiki): clarify F-Droid Index V2 setup steps`
 2. **Keep PRs reviewable:** Describe all included changes clearly in the PR summary so they are easy to review and test.
-3. **Verify locally:** Ensure `lintDebug` and `testDebugUnitTest` pass before submitting.
-4. **Match project conventions:** Follow Kotlin, Jetpack Compose, and Material 3 Expressive patterns used in the codebase.
-5. **UI & Docs synchronization:** Include **before/after screenshots** for UI changes, and remember to update the relevant English **[GitHub Wiki](https://github.com/DurchEins/apkup/wiki)** guide whenever you modify update sources or user-facing settings.
+3. **Verify locally:** Ensure `lintDebug` and `testDebugUnitTest` pass before submitting (plus `cd website && npm run build && npm run check:a11y` when modifying web files).
+4. **Preserve Accessibility (WCAG 2.2 AA & Material 3):**
+   - Give every interactive Compose control a meaningful `contentDescription`, group related cards with `mergeDescendants`, preserve visible text at the start of accessible names for Voice Access (`WCAG 2.5.3`), keep primary targets at `>= 48.dp`, and provide click/custom-action alternatives for drag, swipe, or long-press gestures.
+   - Maintain >= 4.5:1 contrast across Light and Dark themes, respect `ApkUpTheme.isReducedMotion`, and see **[ACCESSIBILITY.md](ACCESSIBILITY.md)** for Android & Web verification steps.
+5. **Match project conventions:** Follow Kotlin, Jetpack Compose, and Material 3 Expressive patterns used in the codebase.
+6. **UI & Docs synchronization:** Include **before/after screenshots** for UI changes, and remember to update the relevant English **[GitHub Wiki](https://github.com/DurchEins/apkup/wiki)** guide whenever you modify update sources or user-facing settings.
 
 <details>
 <summary><b>📱 Local APK Debugging &amp; ADB Cheat Sheet</b></summary>

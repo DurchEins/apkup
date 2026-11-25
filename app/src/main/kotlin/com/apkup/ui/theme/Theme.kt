@@ -34,10 +34,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
+import com.apkup.util.SolarScheduleCalculator
 import com.apkup.util.isDark
 
-private val LightColors = lightColorScheme(
-    primary = Color(0xFFB45309),
+const val THEME_SYSTEM = 0
+const val THEME_DARK = 1
+const val THEME_LIGHT = 2
+const val THEME_ACCESSIBILITY = 3
+
+internal val LightColors = lightColorScheme(
+    primary = Color(0xFF92400E),
     onPrimary = Color.White,
     primaryContainer = Color(0xFFFEF3C7),
     onPrimaryContainer = Color(0xFF451A03),
@@ -68,7 +74,7 @@ private val LightColors = lightColorScheme(
     outlineVariant = Color(0xFFD6D0C4)
 )
 
-private val DarkColors = darkColorScheme(
+internal val DarkColors = darkColorScheme(
     primary = Color(0xFFF59E0B),
     onPrimary = Color(0xFF451A03),
     primaryContainer = Color(0xFF4D2800),
@@ -116,12 +122,12 @@ data class ApkUpExtendedColors(
     val onInfoContainer: Color
 )
 
-private val LightExtendedColors = ApkUpExtendedColors(
+internal val LightExtendedColors = ApkUpExtendedColors(
     success = Color(0xFF1E7E45),
     onSuccess = Color.White,
     successContainer = Color(0xFFD7F5E3),
     onSuccessContainer = Color(0xFF0A361C),
-    warning = Color(0xFFC25900),
+    warning = Color(0xFF92400E),
     onWarning = Color.White,
     warningContainer = Color(0xFFFFE4CC),
     onWarningContainer = Color(0xFF451D00),
@@ -131,7 +137,7 @@ private val LightExtendedColors = ApkUpExtendedColors(
     onInfoContainer = Color(0xFF092A45)
 )
 
-private val DarkExtendedColors = ApkUpExtendedColors(
+internal val DarkExtendedColors = ApkUpExtendedColors(
     success = Color(0xFF6EE7A0),
     onSuccess = Color(0xFF052E16),
     successContainer = Color(0xFF134E2A),
@@ -144,6 +150,106 @@ private val DarkExtendedColors = ApkUpExtendedColors(
     onInfo = Color(0xFF082F49),
     infoContainer = Color(0xFF0C4A6E),
     onInfoContainer = Color(0xFFE0F2FE)
+)
+
+/**
+ * WCAG 2.2 AAA (>= 7.0:1) high-contrast light palette.
+ */
+internal val A11yLightColors = lightColorScheme(
+    primary = Color(0xFF6B2F00),
+    onPrimary = Color.White,
+    primaryContainer = Color(0xFFFDE68A),
+    onPrimaryContainer = Color(0xFF291000),
+    secondary = Color(0xFF3F3426),
+    onSecondary = Color.White,
+    secondaryContainer = Color(0xFFEDE4D3),
+    onSecondaryContainer = Color(0xFF1C140A),
+    tertiary = Color(0xFF0F4C3A),
+    onTertiary = Color.White,
+    tertiaryContainer = Color(0xFFD1FAE5),
+    onTertiaryContainer = Color(0xFF04261C),
+    error = Color(0xFF8C0009),
+    onError = Color.White,
+    errorContainer = Color(0xFFFFDAD6),
+    onErrorContainer = Color(0xFF2D0001),
+    background = Color(0xFFFFFFFF),
+    onBackground = Color(0xFF0C0A09),
+    surface = Color(0xFFFFFFFF),
+    surfaceVariant = Color(0xFFEBE6DD),
+    onSurface = Color(0xFF0C0A09),
+    onSurfaceVariant = Color(0xFF2E2A27),
+    surfaceContainerLowest = Color(0xFFFFFFFF),
+    surfaceContainerLow = Color(0xFFF7F5F0),
+    surfaceContainer = Color(0xFFF2EFE9),
+    surfaceContainerHigh = Color(0xFFEBE6DD),
+    surfaceContainerHighest = Color(0xFFE3DDD2),
+    outline = Color(0xFF3F3A34),
+    outlineVariant = Color(0xFF57524B)
+)
+
+/**
+ * WCAG 2.2 AAA (>= 7.0:1) high-contrast dark palette.
+ */
+internal val A11yDarkColors = darkColorScheme(
+    primary = Color(0xFFFCD34D),
+    onPrimary = Color(0xFF1F0E00),
+    primaryContainer = Color(0xFF3D2000),
+    onPrimaryContainer = Color(0xFFFEF08A),
+    secondary = Color(0xFFE7D3B5),
+    onSecondary = Color(0xFF1E1407),
+    secondaryContainer = Color(0xFF2E2110),
+    onSecondaryContainer = Color(0xFFFAF0E1),
+    tertiary = Color(0xFF86EFAC),
+    onTertiary = Color(0xFF022419),
+    tertiaryContainer = Color(0xFF063E2E),
+    onTertiaryContainer = Color(0xFFECFDF5),
+    error = Color(0xFFFFC2BC),
+    onError = Color(0xFF3B0002),
+    errorContainer = Color(0xFF5C0006),
+    onErrorContainer = Color(0xFFFFEDEA),
+    background = Color(0xFF090A0D),
+    onBackground = Color(0xFFFFFFFF),
+    surface = Color(0xFF090A0D),
+    surfaceVariant = Color(0xFF1E222B),
+    onSurface = Color(0xFFFFFFFF),
+    onSurfaceVariant = Color(0xFFD8DCE3),
+    surfaceContainerLowest = Color(0xFF050608),
+    surfaceContainerLow = Color(0xFF101217),
+    surfaceContainer = Color(0xFF161920),
+    surfaceContainerHigh = Color(0xFF1E222B),
+    surfaceContainerHighest = Color(0xFF262B36),
+    outline = Color(0xFFB8C0CC),
+    outlineVariant = Color(0xFF8B95A5)
+)
+
+internal val A11yLightExtendedColors = ApkUpExtendedColors(
+    success = Color(0xFF0D542B),
+    onSuccess = Color.White,
+    successContainer = Color(0xFFD1FAE5),
+    onSuccessContainer = Color(0xFF032110),
+    warning = Color(0xFF6B2F00),
+    onWarning = Color.White,
+    warningContainer = Color(0xFFFDE68A),
+    onWarningContainer = Color(0xFF291000),
+    info = Color(0xFF0C436B),
+    onInfo = Color.White,
+    infoContainer = Color(0xFFD6ECFF),
+    onInfoContainer = Color(0xFF041D30)
+)
+
+internal val A11yDarkExtendedColors = ApkUpExtendedColors(
+    success = Color(0xFF86EFAC),
+    onSuccess = Color(0xFF022419),
+    successContainer = Color(0xFF063E2E),
+    onSuccessContainer = Color(0xFFECFDF5),
+    warning = Color(0xFFFCD34D),
+    onWarning = Color(0xFF1F0E00),
+    warningContainer = Color(0xFF3D2000),
+    onWarningContainer = Color(0xFFFEF08A),
+    info = Color(0xFF93C5FD),
+    onInfo = Color(0xFF041E36),
+    infoContainer = Color(0xFF0A3256),
+    onInfoContainer = Color(0xFFEFF6FF)
 )
 
 /**
@@ -192,6 +298,8 @@ private object ReducedApkUpMotionScheme : ApkUpMotionScheme {
 private val LocalApkUpExtendedColors = staticCompositionLocalOf { LightExtendedColors }
 private val LocalApkUpMotionScheme = staticCompositionLocalOf<ApkUpMotionScheme> { ExpressiveApkUpMotionScheme }
 private val LocalApkUpReducedMotion = staticCompositionLocalOf { false }
+private val LocalApkUpHighContrast = staticCompositionLocalOf { false }
+private val LocalApkUpAccessibleUi = staticCompositionLocalOf { false }
 
 object ApkUpTheme {
     val colors: ApkUpExtendedColors
@@ -202,6 +310,12 @@ object ApkUpTheme {
 
     val isReducedMotion: Boolean
         @Composable @ReadOnlyComposable get() = LocalApkUpReducedMotion.current
+
+    val isHighContrast: Boolean
+        @Composable @ReadOnlyComposable get() = LocalApkUpHighContrast.current
+
+    val isAccessibleUi: Boolean
+        @Composable @ReadOnlyComposable get() = LocalApkUpAccessibleUi.current
 }
 
 private val AppShapes = Shapes(
@@ -235,22 +349,40 @@ private val AppTypography = DefaultTypography.copy(
     labelSmall = DefaultTypography.labelSmall.copy(fontWeight = FontWeight.Medium)
 )
 
+internal val AccessibleTypography = AppTypography.copy(
+    titleMedium = AppTypography.titleMedium.copy(fontSize = 17.sp, lineHeight = 24.sp),
+    bodyMedium = AppTypography.bodyMedium.copy(fontSize = 15.sp, lineHeight = 22.sp),
+    bodySmall = AppTypography.bodySmall.copy(fontSize = 13.5.sp, lineHeight = 19.sp),
+    labelLarge = AppTypography.labelLarge.copy(fontSize = 15.sp, lineHeight = 21.sp),
+    labelMedium = AppTypography.labelMedium.copy(fontSize = 13.sp, lineHeight = 18.sp),
+    labelSmall = AppTypography.labelSmall.copy(fontSize = 13.sp, lineHeight = 17.sp)
+)
+
 @Composable
 fun AppTheme(
     darkTheme: Boolean,
     dynamicColor: Boolean = false,
+    highContrast: Boolean = false,
+    accessibleUi: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
+    val effectiveDynamicColor = dynamicColor && !highContrast
     val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+        highContrast -> if (darkTheme) A11yDarkColors else A11yLightColors
+        effectiveDynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
         darkTheme -> DarkColors
         else -> LightColors
     }
-    val extendedColors = if (darkTheme) DarkExtendedColors else LightExtendedColors
-    val isReducedMotion = remember(context) { isSystemReducedMotion(context) }
+    val extendedColors = when {
+        highContrast && darkTheme -> A11yDarkExtendedColors
+        highContrast -> A11yLightExtendedColors
+        darkTheme -> DarkExtendedColors
+        else -> LightExtendedColors
+    }
+    val isReducedMotion = accessibleUi || remember(context) { isSystemReducedMotion(context) }
     val motionScheme = if (isReducedMotion) ReducedApkUpMotionScheme else ExpressiveApkUpMotionScheme
 
     val animatedColorScheme = if (isReducedMotion) {
@@ -274,7 +406,9 @@ fun AppTheme(
             surfaceContainerLow = animateColorAsState(colorScheme.surfaceContainerLow, spec, label = "ThemeSCL").value,
             surfaceContainer = animateColorAsState(colorScheme.surfaceContainer, spec, label = "ThemeSC").value,
             surfaceContainerHigh = animateColorAsState(colorScheme.surfaceContainerHigh, spec, label = "ThemeSCH").value,
-            surfaceContainerHighest = animateColorAsState(colorScheme.surfaceContainerHighest, spec, label = "ThemeSCHH").value
+            surfaceContainerHighest = animateColorAsState(colorScheme.surfaceContainerHighest, spec, label = "ThemeSCHH").value,
+            outline = animateColorAsState(colorScheme.outline, spec, label = "ThemeOutline").value,
+            outlineVariant = animateColorAsState(colorScheme.outlineVariant, spec, label = "ThemeOutlineVariant").value
         )
     }
 
@@ -291,12 +425,14 @@ fun AppTheme(
     CompositionLocalProvider(
         LocalApkUpExtendedColors provides extendedColors,
         LocalApkUpMotionScheme provides motionScheme,
-        LocalApkUpReducedMotion provides isReducedMotion
+        LocalApkUpReducedMotion provides isReducedMotion,
+        LocalApkUpHighContrast provides highContrast,
+        LocalApkUpAccessibleUi provides accessibleUi
     ) {
         MaterialTheme(
             colorScheme = animatedColorScheme,
             shapes = AppShapes,
-            typography = AppTypography,
+            typography = if (accessibleUi) AccessibleTypography else AppTypography,
             content = content
         )
     }
@@ -304,10 +440,22 @@ fun AppTheme(
 
 fun ColorScheme.statusBarColor() = surfaceColorAtElevation(3.dp)
 
-fun isDarkTheme(theme: Int): Boolean {
-    if (theme == 1) return true
-    if (theme == 2) return false
-    return isDark()
+fun isDarkTheme(
+    theme: Int,
+    a11ySubMode: Int = SolarScheduleCalculator.SUBMODE_AUTO_SUN,
+    customSunriseMinutes: Int = SolarScheduleCalculator.UNSET_MINUTES,
+    customSunsetMinutes: Int = SolarScheduleCalculator.UNSET_MINUTES,
+    epochMillis: Long = System.currentTimeMillis()
+): Boolean = when (theme) {
+    THEME_DARK -> true
+    THEME_LIGHT -> false
+    THEME_ACCESSIBILITY -> SolarScheduleCalculator.isDarkAt(
+        subMode = a11ySubMode,
+        customSunriseMinutes = customSunriseMinutes,
+        customSunsetMinutes = customSunsetMinutes,
+        epochMillis = epochMillis
+    )
+    else -> isDark()
 }
 
 private fun isSystemReducedMotion(context: Context): Boolean = runCatching {

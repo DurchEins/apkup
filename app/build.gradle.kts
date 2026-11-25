@@ -32,8 +32,8 @@ android {
         applicationId = "com.apkup" + buildTag
         minSdk = 29
         targetSdk = 37
-        versionCode = parsedBuildNumber ?: 236
-        versionName = if (parsedBuildNumber == null) "1.47.0 (236)" else "1.47.0-$parsedBuildNumber"
+        versionCode = parsedBuildNumber ?: 237
+        versionName = if (parsedBuildNumber == null) "1.47.0 (237)" else "1.47.0-$parsedBuildNumber"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -230,6 +230,7 @@ dependencies {
 
     androidTestImplementation(composeBom)
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4.accessibility)
     androidTestImplementation(libs.androidx.test.espresso.core)
     androidTestImplementation(libs.androidx.test.ext.junit)
 

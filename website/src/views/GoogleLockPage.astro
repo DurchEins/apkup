@@ -86,29 +86,29 @@ const lockSchema = {
         </div>
         <div class="kao-checker-grid">
           <div class="kao-q">
-            <span class="kao-q-label">{gl.checkerQ1}</span>
-            <div class="kao-q-btns">
-              <button type="button" class="kao-q-btn is-selected" data-q="gms" data-val="yes">
+            <span class="kao-q-label" id="kao-q1-label">{gl.checkerQ1}</span>
+            <div class="kao-q-btns" role="group" aria-labelledby="kao-q1-label">
+              <button type="button" class="kao-q-btn is-selected" data-q="gms" data-val="yes" aria-pressed="true">
                 {gl.checkerQ1Yes}
               </button>
-              <button type="button" class="kao-q-btn" data-q="gms" data-val="no">
+              <button type="button" class="kao-q-btn" data-q="gms" data-val="no" aria-pressed="false">
                 {gl.checkerQ1No}
               </button>
             </div>
           </div>
           <div class="kao-q">
-            <span class="kao-q-label">{gl.checkerQ2}</span>
-            <div class="kao-q-btns">
-              <button type="button" class="kao-q-btn is-selected" data-q="method" data-val="apk">
+            <span class="kao-q-label" id="kao-q2-label">{gl.checkerQ2}</span>
+            <div class="kao-q-btns" role="group" aria-labelledby="kao-q2-label">
+              <button type="button" class="kao-q-btn is-selected" data-q="method" data-val="apk" aria-pressed="true">
                 {gl.checkerQ2Apk}
               </button>
-              <button type="button" class="kao-q-btn" data-q="method" data-val="adb">
+              <button type="button" class="kao-q-btn" data-q="method" data-val="adb" aria-pressed="false">
                 {gl.checkerQ2Adb}
               </button>
             </div>
           </div>
         </div>
-        <div class="kao-checker-result is-affected mono" id="kao-checker-result" aria-live="polite">
+        <div class="kao-checker-result is-affected mono" id="kao-checker-result" role="status" aria-live="polite">
           {gl.checkerResultAffected}
         </div>
       </section>
@@ -211,16 +211,25 @@ const lockSchema = {
         </div>
 
         <ol class="sl-steps" id="kao-steps-list">
-          <li data-step-idx="0" role="checkbox" aria-checked="false" tabindex="0">
-            <span class="sl-num sl-num-danger mono" id="kao-step1-badge" aria-hidden="true" title="Tap 7×!">
-              <span class="sl-num-text">01</span>
-              <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-            </span>
+          <li data-step-idx="0">
+            <button
+              type="button"
+              role="checkbox"
+              aria-checked="false"
+              class="sl-num sl-num-danger mono"
+              id="kao-step1-badge"
+              data-step-toggle="0"
+              aria-label={`01 — ${gl.steps[0].title}`}
+              title="Tap 7×!"
+            >
+              <span class="sl-num-text" aria-hidden="true">01</span>
+              <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            </button>
             <div>
               <strong class="sl-step-title">{gl.steps[0].title}</strong>
               <p>{gl.steps[0].body}</p>
               {gl.steps[0].chips && (
-                <div class="kao-path-chips mono" aria-label="Android menu path">
+                <div class="kao-path-chips mono">
                   <span class="kao-chip">{gl.steps[0].chips[0]}</span>
                   <span class="kao-chip-arrow" aria-hidden="true">→</span>
                   <span class="kao-chip">{gl.steps[0].chips[1]}</span>
@@ -228,21 +237,28 @@ const lockSchema = {
                   <span class="kao-chip kao-chip-hl">{gl.steps[0].chips[2]}</span>
                 </div>
               )}
-              <div class="kao-dev-toast mono" id="kao-dev-toast" hidden aria-live="polite">
+              <div class="kao-dev-toast mono" id="kao-dev-toast" hidden role="status" aria-live="polite">
                 {gl.steps[0].toast}
               </div>
             </div>
           </li>
-          <li data-step-idx="1" role="checkbox" aria-checked="false" tabindex="0">
-            <span class="sl-num sl-num-danger mono" aria-hidden="true">
-              <span class="sl-num-text">02</span>
-              <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-            </span>
+          <li data-step-idx="1">
+            <button
+              type="button"
+              role="checkbox"
+              aria-checked="false"
+              class="sl-num sl-num-danger mono"
+              data-step-toggle="1"
+              aria-label={`02 — ${gl.steps[1].title}`}
+            >
+              <span class="sl-num-text" aria-hidden="true">02</span>
+              <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            </button>
             <div>
               <strong class="sl-step-title">{gl.steps[1].title}</strong>
               <p>{gl.steps[1].body}</p>
               {gl.steps[1].chips && (
-                <div class="kao-path-chips mono" aria-label="Developer Options menu path">
+                <div class="kao-path-chips mono">
                   <span class="kao-chip">{gl.steps[1].chips[0]}</span>
                   <span class="kao-chip-arrow" aria-hidden="true">→</span>
                   <span class="kao-chip">{gl.steps[1].chips[1]}</span>
@@ -252,11 +268,18 @@ const lockSchema = {
               )}
             </div>
           </li>
-          <li data-step-idx="2" role="checkbox" aria-checked="false" tabindex="0">
-            <span class="sl-num sl-num-danger mono" aria-hidden="true">
-              <span class="sl-num-text">03</span>
-              <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-            </span>
+          <li data-step-idx="2">
+            <button
+              type="button"
+              role="checkbox"
+              aria-checked="false"
+              class="sl-num sl-num-danger mono"
+              data-step-toggle="2"
+              aria-label={`03 — ${gl.steps[2].title}`}
+            >
+              <span class="sl-num-text" aria-hidden="true">03</span>
+              <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            </button>
             <div>
               <strong class="sl-step-title">{gl.steps[2].title}</strong>
               <p>{gl.steps[2].body}</p>
@@ -267,11 +290,18 @@ const lockSchema = {
               </div>
             </div>
           </li>
-          <li data-step-idx="3" role="checkbox" aria-checked="false" tabindex="0">
-            <span class="sl-num sl-num-danger mono" aria-hidden="true">
-              <span class="sl-num-text">04</span>
-              <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-            </span>
+          <li data-step-idx="3">
+            <button
+              type="button"
+              role="checkbox"
+              aria-checked="false"
+              class="sl-num sl-num-danger mono"
+              data-step-toggle="3"
+              aria-label={`04 — ${gl.steps[3].title}`}
+            >
+              <span class="sl-num-text" aria-hidden="true">04</span>
+              <svg class="sl-num-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            </button>
             <div>
               <strong class="sl-step-title">{gl.steps[3].title}</strong>
               <p>{gl.steps[3].body}</p>
@@ -283,15 +313,15 @@ const lockSchema = {
           <strong>{gl.trapTitle}</strong>
           <p>{gl.trapBody}</p>
           <div class="kao-trap-sim" id="kao-trap-sim">
-            <div class="kao-trap-tabs" role="tablist" aria-label="7-day trap comparison">
-              <button type="button" class="kao-trap-tab is-active" data-trap-mode="7d" role="tab" aria-selected="true">
+            <div class="kao-trap-tabs" role="tablist" aria-label={gl.trapTitle}>
+              <button type="button" class="kao-trap-tab is-active" id="kao-trap-tab-7d" data-trap-mode="7d" role="tab" aria-selected="true" aria-controls="kao-trap-result" tabindex="0">
                 {gl.trapTab7d}
               </button>
-              <button type="button" class="kao-trap-tab" data-trap-mode="forever" role="tab" aria-selected="false">
+              <button type="button" class="kao-trap-tab" id="kao-trap-tab-forever" data-trap-mode="forever" role="tab" aria-selected="false" aria-controls="kao-trap-result" tabindex="-1">
                 {gl.trapTabForever}
               </button>
             </div>
-            <div class="kao-trap-result is-bad mono" id="kao-trap-result">
+            <div class="kao-trap-result is-bad mono" id="kao-trap-result" role="tabpanel" aria-labelledby="kao-trap-tab-7d" aria-live="polite">
               {gl.trapRes7d}
             </div>
           </div>
@@ -304,13 +334,13 @@ const lockSchema = {
           <h2 id="kao-compare-heading">{gl.compareHeading}</h2>
         </div>
 
-        <div class="kao-table-wrap">
+        <div class="kao-table-wrap" tabindex="0" role="region" aria-label={gl.compareHeading}>
           <table class="kao-table" id="kao-compare-table">
             <thead>
               <tr>
                 <th>{gl.compareThScenario}</th>
                 <th>{gl.compareThLocked}</th>
-                <th class="kao-col-safe-th" id="kao-col-safe-th" tabindex="0">
+                <th class="kao-col-safe-th" id="kao-col-safe-th">
                   {gl.compareThSafe}
                 </th>
               </tr>
@@ -336,7 +366,7 @@ const lockSchema = {
         </div>
         <div class="kao-code-wrap">
           <pre class="kao-code mono"><code>adb install -r ApkUp.apk</code></pre>
-          <button type="button" class="kao-copy-btn mono" id="kao-copy-adb" aria-label="Copy ADB command">
+          <button type="button" class="kao-copy-btn mono" id="kao-copy-adb" aria-label={`${gl.copy} — adb install -r ApkUp.apk`}>
             <span class="kao-copy-icon kao-icon-default" aria-hidden="true">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
             </span>
@@ -462,7 +492,8 @@ const lockSchema = {
           var isDone = stepState[index];
           if (isDone) doneCount++;
           li.classList.toggle('is-done', isDone);
-          li.setAttribute('aria-checked', isDone ? 'true' : 'false');
+          var toggleBtn = li.querySelector('[data-step-toggle]');
+          if (toggleBtn) toggleBtn.setAttribute('aria-checked', isDone ? 'true' : 'false');
         });
         if (countEl) countEl.textContent = doneCount + ' / 4';
         if (fillEl) fillEl.style.width = (doneCount * 25) + '%';
@@ -475,10 +506,14 @@ const lockSchema = {
           stepState[index] = !stepState[index];
           render();
         }
-        li.addEventListener('click', toggle);
-        li.addEventListener('keydown', function (event) {
-          if (event.key !== ' ' && event.key !== 'Enter') return;
-          event.preventDefault();
+        var toggleBtn = li.querySelector('[data-step-toggle]');
+        if (toggleBtn) {
+          toggleBtn.addEventListener('click', function () {
+            toggle();
+          });
+        }
+        li.addEventListener('click', function (event) {
+          if (event.target && event.target.closest('button, a')) return;
           toggle();
         });
       });
@@ -498,18 +533,35 @@ const lockSchema = {
       var resultEl = document.getElementById('kao-trap-result');
       if (!simulator || !resultEl) return;
 
-      var tabs = simulator.querySelectorAll('.kao-trap-tab');
-      tabs.forEach(function (tab) {
+      var tabs = Array.prototype.slice.call(simulator.querySelectorAll('.kao-trap-tab'));
+      function activateTrapTab(tab, focusTab) {
+        var isForever = tab.getAttribute('data-trap-mode') === 'forever';
+        tabs.forEach(function (btn) {
+          var active = btn === tab;
+          btn.classList.toggle('is-active', active);
+          btn.setAttribute('aria-selected', active ? 'true' : 'false');
+          btn.setAttribute('tabindex', active ? '0' : '-1');
+        });
+        if (focusTab) tab.focus();
+        resultEl.setAttribute('aria-labelledby', tab.id);
+        resultEl.classList.toggle('is-good', isForever);
+        resultEl.classList.toggle('is-bad', !isForever);
+        resultEl.textContent = isForever ? trapForeverText : trap7dText;
+      }
+
+      tabs.forEach(function (tab, index) {
         tab.addEventListener('click', function () {
-          var isForever = tab.getAttribute('data-trap-mode') === 'forever';
-          tabs.forEach(function (btn) {
-            var active = btn === tab;
-            btn.classList.toggle('is-active', active);
-            btn.setAttribute('aria-selected', active ? 'true' : 'false');
-          });
-          resultEl.classList.toggle('is-good', isForever);
-          resultEl.classList.toggle('is-bad', !isForever);
-          resultEl.textContent = isForever ? trapForeverText : trap7dText;
+          activateTrapTab(tab, false);
+        });
+        tab.addEventListener('keydown', function (event) {
+          var nextIndex = index;
+          if (event.key === 'ArrowRight' || event.key === 'ArrowDown') nextIndex = (index + 1) % tabs.length;
+          else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') nextIndex = (index - 1 + tabs.length) % tabs.length;
+          else if (event.key === 'Home') nextIndex = 0;
+          else if (event.key === 'End') nextIndex = tabs.length - 1;
+          else return;
+          event.preventDefault();
+          activateTrapTab(tabs[nextIndex], true);
         });
       });
     }
@@ -616,7 +668,9 @@ const lockSchema = {
           var question = btn.getAttribute('data-q');
           answers[question] = btn.getAttribute('data-val');
           checker.querySelectorAll('.kao-q-btn[data-q="' + question + '"]').forEach(function (option) {
-            option.classList.toggle('is-selected', option === btn);
+            var isSel = option === btn;
+            option.classList.toggle('is-selected', isSel);
+            option.setAttribute('aria-pressed', isSel ? 'true' : 'false');
           });
           renderResult();
         });
@@ -794,7 +848,7 @@ const lockSchema = {
     transition-timing-function: ease-out;
   }
 
-  [data-theme='light'] .btn-danger-outline {
+  :global([data-theme='light']) .btn-danger-outline {
     color: #b91c1c;
     background: rgba(220, 38, 38, 0.08);
   }
@@ -851,7 +905,7 @@ const lockSchema = {
     font-weight: 700;
   }
 
-  [data-theme='light'] .kao-fact-date {
+  :global([data-theme='light']) .kao-fact-date {
     color: #b91c1c;
   }
 
@@ -906,7 +960,7 @@ const lockSchema = {
     font-weight: 700;
   }
 
-  [data-theme='light'] .sl-num-danger {
+  :global([data-theme='light']) .sl-num-danger {
     color: #b91c1c;
   }
 
@@ -932,7 +986,7 @@ const lockSchema = {
     font-size: 0.95rem;
   }
 
-  [data-theme='light'] .kao-trap-alert strong {
+  :global([data-theme='light']) .kao-trap-alert strong {
     color: #b91c1c;
   }
 
@@ -977,7 +1031,7 @@ const lockSchema = {
     font-weight: 600;
   }
 
-  [data-theme='light'] .kao-td-bad {
+  :global([data-theme='light']) .kao-td-bad {
     color: #b91c1c;
   }
 
@@ -1142,6 +1196,9 @@ const lockSchema = {
 
   #kao-steps-list .sl-num {
     position: relative;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
   }
 
   #kao-steps-list .sl-num-check {
@@ -1163,7 +1220,7 @@ const lockSchema = {
     color: #4ade80;
   }
 
-  [data-theme='light'] #kao-steps-list li.is-done .sl-num {
+  :global([data-theme='light']) #kao-steps-list li.is-done .sl-num {
     color: #15803d;
   }
 
@@ -1231,11 +1288,11 @@ const lockSchema = {
     color: #86efac;
   }
 
-  [data-theme='light'] .kao-trap-result {
+  :global([data-theme='light']) .kao-trap-result {
     color: #b91c1c;
   }
 
-  [data-theme='light'] .kao-trap-result.is-good {
+  :global([data-theme='light']) .kao-trap-result.is-good {
     color: #15803d;
   }
 
@@ -1261,15 +1318,22 @@ const lockSchema = {
   .kao-code-wrap {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 10px;
     background: var(--bg);
     border: 1px solid var(--outline);
     border-radius: var(--radius-md);
     padding: 8px 10px 8px 14px;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .kao-code-wrap .kao-code {
-    flex: 1;
+    flex: 1 1 180px;
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
     border: none;
     padding: 0;
     background: transparent;
@@ -1310,6 +1374,12 @@ const lockSchema = {
   .kao-copy-btn.is-copied {
     border-color: rgba(34, 197, 94, 0.55);
     color: #4ade80;
+  }
+
+  :global([data-theme='light']) .kao-icon-done,
+  :global([data-theme='light']) .kao-copy-btn.is-copied {
+    color: #047857;
+    border-color: rgba(4, 120, 87, 0.5);
   }
 
   .kao-copy-btn.is-copied .kao-icon-default {
@@ -1450,11 +1520,11 @@ const lockSchema = {
     color: #86efac;
   }
 
-  [data-theme='light'] .kao-checker-result {
+  :global([data-theme='light']) .kao-checker-result {
     color: #b91c1c;
   }
 
-  [data-theme='light'] .kao-checker-result.is-safe {
+  :global([data-theme='light']) .kao-checker-result.is-safe {
     color: #15803d;
   }
 
@@ -1535,7 +1605,7 @@ const lockSchema = {
     font-weight: 700;
   }
 
-  [data-theme='light'] .kao-dev-toast {
+  :global([data-theme='light']) .kao-dev-toast {
     color: #15803d;
   }
 
@@ -1547,7 +1617,8 @@ const lockSchema = {
   .kao-ics-link {
     background: none;
     border: none;
-    padding: 0;
+    min-height: 36px;
+    padding: 6px 10px;
     color: var(--text-muted);
     font-size: 0.76rem;
     text-decoration: underline;
@@ -1595,6 +1666,15 @@ const lockSchema = {
   @media (max-width: 720px) {
     .kao-checker-grid {
       grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .kao-quick-jump {
+      left: 12px;
+      bottom: 12px;
+      padding: 6px 10px;
+      font-size: 0.72rem;
     }
   }
 

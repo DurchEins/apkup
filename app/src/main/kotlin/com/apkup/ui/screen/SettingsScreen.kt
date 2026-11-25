@@ -163,6 +163,10 @@ import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -189,6 +193,7 @@ import com.apkup.data.obtainium.ObtainiumImportPreview
 import com.apkup.data.ui.AppsUiState
 import com.apkup.R
 import com.apkup.ui.theme.ApkUpTheme
+import com.apkup.ui.theme.THEME_ACCESSIBILITY
 import com.apkup.data.selfupdate.SelfUpdateState
 import com.apkup.data.ui.AppInstalled
 import com.apkup.data.ui.BackgroundCheckInterval
@@ -204,6 +209,7 @@ import com.apkup.ui.component.NavigationSettingItem
 import com.apkup.util.AppJournal
 import com.apkup.util.DownloadStorageManager
 import com.apkup.util.SessionInstaller
+import com.apkup.util.SolarScheduleCalculator
 import com.apkup.util.openSafeHttpsUri
 import com.apkup.viewmodel.AppsViewModel
 import com.apkup.viewmodel.MainViewModel
@@ -303,6 +309,12 @@ fun Settings(
 	val openCustomTab = com.apkup.ui.component.rememberCustomTabOpener()
 	var obtainiumImportPreview by remember { mutableStateOf<ObtainiumImportPreview?>(null) }
 	var isAdvancedExpanded by rememberSaveable { mutableStateOf(false) }
+	val isAccessibleUi = ApkUpTheme.isAccessibleUi
+	LaunchedEffect(isAccessibleUi) {
+		if (isAccessibleUi) {
+			isAdvancedExpanded = true
+		}
+	}
 	var includeLogcatInDiagnostics by rememberSaveable { mutableStateOf(false) }
 	var isSharingDiagnosticLog by remember { mutableStateOf(false) }
 
@@ -852,43 +864,241 @@ fun Settings(
 
 			// Sektion 1: Erscheinungsbild & Layout
 			item(key = "section_appearance_$configRefreshKey") {
-				var currentDisplayMode by remember(configRefreshKey) {
-					mutableIntStateOf(viewModel.getUpdatesDisplayMode())
+				var currentThemeMode by remember(configRefreshKey) {
+					mutableIntStateOf(viewModel.getTheme())
+				}
+				var currentA11ySubMode by remember(configRefreshKey) {
+					mutableIntStateOf(viewModel.getA11yThemeSubMode())
+				}
+				var currentSunriseMinutes by remember(configRefreshKey) {
+					mutableIntStateOf(viewModel.getA11ySunriseMinutes())
+				}
+				var currentSunsetMinutes by remember(configRefreshKey) {
+					mutableIntStateOf(viewModel.getA11ySunsetMinutes())
+				}
+				var currentAccessibleUi by remember(configRefreshKey) {
+					mutableStateOf(viewModel.getA11yAccessibleUi())
 				}
 				SettingsSection(stringResource(R.string.settings_section_appearance)) {
-				SegmentedButtonSetting(
-					stringResource(R.string.theme),
-					listOf(
-						stringResource(R.string.theme_system),
-						stringResource(R.string.theme_dark),
-						stringResource(R.string.theme_light)
-					),
-					{ viewModel.getTheme() },
-					{ viewModel.setTheme(it) },
-					R.drawable.ic_theme
-				)
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-					SwitchSetting(
-						getValue = { viewModel.getDynamicColor() },
-						setValue = { viewModel.setDynamicColor(it) },
-						text = stringResource(R.string.dynamic_color_title),
-						subtitle = stringResource(R.string.dynamic_color_subtitle),
+					SegmentedButtonSetting(
+						text = stringResource(R.string.theme_mode_section_title),
+						options = listOf(
+							stringResource(R.string.theme_system),
+							stringResource(R.string.theme_dark),
+							stringResource(R.string.theme_light),
+							stringResource(R.string.theme_a11y)
+						),
+						getValue = { currentThemeMode },
+						setValue = { selectedTheme ->
+							currentThemeMode = selectedTheme
+							viewModel.setTheme(selectedTheme)
+							if (selectedTheme == THEME_ACCESSIBILITY) {
+								viewModel.setAppsGridColumns(2)
+							}
+						},
 						icon = R.drawable.ic_theme
 					)
+					AnimatedVisibility(visible = currentThemeMode == THEME_ACCESSIBILITY) {
+						Column(
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(top = 4.dp, bottom = 4.dp),
+							verticalArrangement = Arrangement.spacedBy(8.dp)
+						) {
+							SegmentedButtonSetting(
+								text = stringResource(R.string.a11y_theme_mode_title),
+								options = listOf(
+									stringResource(R.string.a11y_submode_auto_sun),
+									stringResource(R.string.a11y_submode_light),
+									stringResource(R.string.a11y_submode_dark)
+								),
+								getValue = { currentA11ySubMode },
+								setValue = { subMode ->
+									currentA11ySubMode = subMode
+									viewModel.setA11yThemeSubMode(subMode)
+								},
+								icon = R.drawable.ic_theme
+							)
+							if (currentA11ySubMode == SolarScheduleCalculator.SUBMODE_AUTO_SUN) {
+								val window = remember(currentSunriseMinutes, currentSunsetMinutes) {
+									SolarScheduleCalculator.resolveEffectiveWindow(
+										customSunriseMinutes = currentSunriseMinutes,
+										customSunsetMinutes = currentSunsetMinutes
+									)
+								}
+								val sunriseText = SolarScheduleCalculator.formatMinutesHHmm(window.sunriseMinutes)
+								val sunsetText = SolarScheduleCalculator.formatMinutesHHmm(window.sunsetMinutes)
+								val highContrast = ApkUpTheme.isHighContrast
+								Surface(
+									shape = MaterialTheme.shapes.medium,
+									color = MaterialTheme.colorScheme.surfaceContainer,
+									border = BorderStroke(
+										if (highContrast) 1.5.dp else 1.dp,
+										if (highContrast) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+									),
+									modifier = Modifier.fillMaxWidth()
+								) {
+									Column(
+										modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+										verticalArrangement = Arrangement.spacedBy(8.dp)
+									) {
+										Text(
+											text = stringResource(
+												if (window.isCustom) R.string.a11y_sun_custom_info else R.string.a11y_sun_schedule_info,
+												sunriseText,
+												sunsetText
+											),
+											style = MaterialTheme.typography.bodySmall,
+											color = MaterialTheme.colorScheme.onSurface
+										)
+										Row(
+											modifier = Modifier.fillMaxWidth(),
+											horizontalArrangement = Arrangement.spacedBy(8.dp),
+											verticalAlignment = CenterVertically
+										) {
+											OutlinedButton(
+												onClick = {
+													val is24h = android.text.format.DateFormat.is24HourFormat(context)
+													val initSunriseHour = window.sunriseMinutes / 60
+													val initSunriseMin = window.sunriseMinutes % 60
+													android.app.TimePickerDialog(
+														context,
+														{ _, sunriseHour, sunriseMin ->
+															val chosenSunrise = sunriseHour * 60 + sunriseMin
+															val initSunsetHour = window.sunsetMinutes / 60
+															val initSunsetMin = window.sunsetMinutes % 60
+															android.app.TimePickerDialog(
+																context,
+																{ _, sunsetHour, sunsetMin ->
+																	val chosenSunset = sunsetHour * 60 + sunsetMin
+																	currentSunriseMinutes = chosenSunrise
+																	currentSunsetMinutes = chosenSunset
+																	viewModel.setA11ySunTimes(chosenSunrise, chosenSunset)
+																},
+																initSunsetHour,
+																initSunsetMin,
+																is24h
+															).show()
+														},
+														initSunriseHour,
+														initSunriseMin,
+														is24h
+													).show()
+												},
+												modifier = Modifier.heightIn(min = 48.dp)
+											) {
+												Text(
+													text = stringResource(R.string.a11y_sun_customize_btn),
+													style = MaterialTheme.typography.labelMedium
+												)
+											}
+											if (window.isCustom) {
+												TextButton(
+													onClick = {
+														currentSunriseMinutes = SolarScheduleCalculator.UNSET_MINUTES
+														currentSunsetMinutes = SolarScheduleCalculator.UNSET_MINUTES
+														viewModel.resetA11ySunSchedule()
+													},
+													modifier = Modifier.heightIn(min = 48.dp)
+												) {
+													Text(
+														text = stringResource(R.string.a11y_sun_reset_btn),
+														style = MaterialTheme.typography.labelMedium
+													)
+												}
+											}
+										}
+										if (currentAccessibleUi) {
+											val shiftTime: (Int, Int) -> Unit = { sunriseDelta, sunsetDelta ->
+												val newSunrise = (window.sunriseMinutes + sunriseDelta + 1440) % 1440
+												val newSunset = (window.sunsetMinutes + sunsetDelta + 1440) % 1440
+												currentSunriseMinutes = newSunrise
+												currentSunsetMinutes = newSunset
+												viewModel.setA11ySunTimes(newSunrise, newSunset)
+											}
+											Row(
+												modifier = Modifier.fillMaxWidth(),
+												horizontalArrangement = Arrangement.spacedBy(8.dp),
+												verticalAlignment = CenterVertically
+											) {
+												Text(
+													text = stringResource(R.string.a11y_sun_sunrise_label, sunriseText),
+													style = MaterialTheme.typography.labelMedium,
+													modifier = Modifier.weight(1f)
+												)
+												OutlinedButton(
+													onClick = { shiftTime(-15, 0) },
+													modifier = Modifier.heightIn(min = 48.dp)
+												) {
+													Text("-15 Min.")
+												}
+												OutlinedButton(
+													onClick = { shiftTime(15, 0) },
+													modifier = Modifier.heightIn(min = 48.dp)
+												) {
+													Text("+15 Min.")
+												}
+											}
+											Row(
+												modifier = Modifier.fillMaxWidth(),
+												horizontalArrangement = Arrangement.spacedBy(8.dp),
+												verticalAlignment = CenterVertically
+											) {
+												Text(
+													text = stringResource(R.string.a11y_sun_sunset_label, sunsetText),
+													style = MaterialTheme.typography.labelMedium,
+													modifier = Modifier.weight(1f)
+												)
+												OutlinedButton(
+													onClick = { shiftTime(0, -15) },
+													modifier = Modifier.heightIn(min = 48.dp)
+												) {
+													Text("-15 Min.")
+												}
+												OutlinedButton(
+													onClick = { shiftTime(0, 15) },
+													modifier = Modifier.heightIn(min = 48.dp)
+												) {
+													Text("+15 Min.")
+												}
+											}
+										}
+									}
+								}
+							}
+							SwitchSetting(
+								getValue = { currentAccessibleUi },
+								setValue = { enabled ->
+									currentAccessibleUi = enabled
+									viewModel.setA11yAccessibleUi(enabled)
+								},
+								text = stringResource(R.string.a11y_accessible_ui_title),
+								subtitle = stringResource(R.string.a11y_accessible_ui_subtitle),
+								icon = R.drawable.ic_theme
+							)
+						}
+					}
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !isAccessibleUi) {
+						SwitchSetting(
+							getValue = { viewModel.getDynamicColor() },
+							setValue = { viewModel.setDynamicColor(it) },
+							text = stringResource(R.string.dynamic_color_title),
+							subtitle = if (currentThemeMode == THEME_ACCESSIBILITY) {
+								stringResource(R.string.dynamic_color_paused_a11y)
+							} else null,
+							icon = R.drawable.ic_theme
+						)
+					}
+					if (isAccessibleUi) {
+						Text(
+							text = stringResource(R.string.a11y_lists_active_note),
+							style = MaterialTheme.typography.bodySmall,
+							color = MaterialTheme.colorScheme.onSurfaceVariant,
+							modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 4.dp)
+						)
+					}
 				}
-				SegmentedButtonSetting(
-					stringResource(R.string.updates_display_mode),
-					listOf(stringResource(R.string.updates_detail_view), stringResource(R.string.updates_compact_view)),
-					{ currentDisplayMode },
-					{
-						currentDisplayMode = it
-						viewModel.setUpdatesDisplayMode(it)
-					},
-					R.drawable.ic_download
-				)
-				UpdateDisplayModePreview(displayMode = currentDisplayMode)
 			}
-		}
 
 		// Sektion 2: Update-Quellen
 		item(key = "section_sources_${configRefreshKey}_${fdroidRepos.hashCode()}") {
@@ -1274,11 +1484,7 @@ fun Settings(
 							.fillMaxWidth()
 							.padding(start = 12.dp, end = 4.dp, top = 2.dp, bottom = 4.dp),
 						shape = RoundedCornerShape(14.dp),
-						color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
-						onClick = {
-							viewModel.setAutoInstallUpdates(!autoInstallEnabled)
-							configRefreshKey++
-						}
+						color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f)
 					) {
 						Column(
 							modifier = Modifier
@@ -1287,7 +1493,17 @@ fun Settings(
 							verticalArrangement = Arrangement.spacedBy(8.dp)
 						) {
 							Row(
-								modifier = Modifier.fillMaxWidth(),
+								modifier = Modifier
+									.fillMaxWidth()
+									.clip(RoundedCornerShape(10.dp))
+									.toggleable(
+										value = autoInstallEnabled,
+										role = Role.Switch,
+										onValueChange = { enabled ->
+											viewModel.setAutoInstallUpdates(enabled)
+											configRefreshKey++
+										}
+									),
 								verticalAlignment = CenterVertically,
 								horizontalArrangement = Arrangement.spacedBy(10.dp)
 							) {
@@ -1311,10 +1527,7 @@ fun Settings(
 								}
 								androidx.compose.material3.Switch(
 									checked = autoInstallEnabled,
-									onCheckedChange = {
-										viewModel.setAutoInstallUpdates(it)
-										configRefreshKey++
-									}
+									onCheckedChange = null
 								)
 							}
 							val isReducedMotionAuto = ApkUpTheme.isReducedMotion
@@ -1418,11 +1631,19 @@ fun Settings(
 						.padding(14.dp),
 					verticalArrangement = Arrangement.spacedBy(10.dp)
 				) {
+					val advancedStateDesc = stringResource(
+						if (isAdvancedExpanded) R.string.a11y_state_expanded else R.string.a11y_state_collapsed
+					)
 					Row(
 						modifier = Modifier
 							.fillMaxWidth()
+							.heightIn(min = 48.dp)
 							.clip(RoundedCornerShape(12.dp))
-							.clickable { isAdvancedExpanded = !isAdvancedExpanded }
+							.clickable(role = Role.Button) { isAdvancedExpanded = !isAdvancedExpanded }
+							.semantics(mergeDescendants = true) {
+								heading()
+								stateDescription = advancedStateDesc
+							}
 							.padding(vertical = 4.dp),
 						verticalAlignment = CenterVertically,
 						horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -1452,6 +1673,14 @@ fun Settings(
 								text = stringResource(R.string.settings_advanced_subtitle),
 								style = MaterialTheme.typography.bodySmall,
 								color = MaterialTheme.colorScheme.onSurfaceVariant
+							)
+						}
+						if (isAccessibleUi) {
+							Text(
+								text = stringResource(if (isAdvancedExpanded) R.string.a11y_action_collapse else R.string.a11y_action_expand),
+								style = MaterialTheme.typography.labelMedium,
+								fontWeight = FontWeight.Bold,
+								color = MaterialTheme.colorScheme.primary
 							)
 						}
 						val advancedChevronRotation by animateFloatAsState(
@@ -1484,7 +1713,8 @@ fun Settings(
 									text = stringResource(R.string.settings_section_app_management),
 									style = MaterialTheme.typography.labelLarge,
 									fontWeight = FontWeight.Bold,
-									color = MaterialTheme.colorScheme.primary
+									color = MaterialTheme.colorScheme.primary,
+									modifier = Modifier.semantics { heading() }
 								)
 								SwitchSetting(
 									getValue = { viewModel.getShowSystemApps() },
@@ -1559,11 +1789,18 @@ fun Settings(
 									),
 								verticalArrangement = Arrangement.spacedBy(8.dp)
 							) {
+								val permissionsStateDesc = stringResource(
+									if (isPermissionsExpanded) R.string.a11y_state_expanded else R.string.a11y_state_collapsed
+								)
 								Row(
 									modifier = Modifier
 										.fillMaxWidth()
 										.clip(RoundedCornerShape(12.dp))
-										.clickable { isPermissionsExpanded = !isPermissionsExpanded }
+										.clickable(role = Role.Button) { isPermissionsExpanded = !isPermissionsExpanded }
+										.semantics(mergeDescendants = true) {
+											heading()
+											stateDescription = permissionsStateDesc
+										}
 										.padding(horizontal = 4.dp, vertical = 6.dp),
 									verticalAlignment = CenterVertically,
 									horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -1936,7 +2173,8 @@ fun Settings(
 									text = stringResource(R.string.settings_section_diagnostics),
 									style = MaterialTheme.typography.labelLarge,
 									fontWeight = FontWeight.Bold,
-									color = MaterialTheme.colorScheme.primary
+									color = MaterialTheme.colorScheme.primary,
+									modifier = Modifier.semantics { heading() }
 								)
 								Text(
 									text = stringResource(R.string.settings_diagnostics_description),
@@ -1947,14 +2185,18 @@ fun Settings(
 									modifier = Modifier
 										.fillMaxWidth()
 										.clip(RoundedCornerShape(12.dp))
-										.clickable { includeLogcatInDiagnostics = !includeLogcatInDiagnostics }
+										.toggleable(
+											value = includeLogcatInDiagnostics,
+											role = Role.Checkbox,
+											onValueChange = { includeLogcatInDiagnostics = it }
+										)
 										.padding(vertical = 2.dp),
 									verticalAlignment = CenterVertically,
 									horizontalArrangement = Arrangement.spacedBy(8.dp)
 								) {
 									Checkbox(
 										checked = includeLogcatInDiagnostics,
-										onCheckedChange = { includeLogcatInDiagnostics = it }
+										onCheckedChange = null
 									)
 									Text(
 										text = stringResource(R.string.settings_diagnostics_include_logcat),
@@ -2510,9 +2752,9 @@ fun Settings(
 							}
 							Box(
 								modifier = Modifier
-									.size(40.dp)
+									.minimumInteractiveComponentSize()
 									.clip(CircleShape)
-									.clickable { showSelfUpdateBetaInfoDialog = true },
+									.clickable(role = Role.Button) { showSelfUpdateBetaInfoDialog = true },
 								contentAlignment = Alignment.Center
 							) {
 								Icon(
@@ -3310,10 +3552,17 @@ private fun ApiTokenBottomSheet(
 							.padding(14.dp),
 						verticalArrangement = Arrangement.spacedBy(8.dp)
 					) {
+						val guideStateDesc = stringResource(
+							if (isGuideExpanded) R.string.a11y_state_expanded else R.string.a11y_state_collapsed
+						)
 						Row(
 							modifier = Modifier
 								.fillMaxWidth()
-								.clickable { isGuideExpanded = !isGuideExpanded },
+								.clip(RoundedCornerShape(8.dp))
+								.clickable(role = Role.Button) { isGuideExpanded = !isGuideExpanded }
+								.semantics(mergeDescendants = true) {
+									stateDescription = guideStateDesc
+								},
 							horizontalArrangement = Arrangement.SpaceBetween,
 							verticalAlignment = CenterVertically
 						) {
@@ -4128,367 +4377,6 @@ private fun ShizukuStepCard(
 	}
 }
 
-@Composable
-private fun UpdateDisplayModePreview(displayMode: Int) {
-	var isExpanded by rememberSaveable { mutableStateOf(false) }
-
-	Surface(
-		modifier = Modifier
-			.fillMaxWidth()
-			.padding(top = 4.dp),
-		shape = RoundedCornerShape(18.dp),
-		color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.65f)
-	) {
-		Column(
-			modifier = Modifier
-				.fillMaxWidth()
-				.padding(12.dp),
-			verticalArrangement = Arrangement.spacedBy(8.dp)
-		) {
-			Row(
-				modifier = Modifier
-					.fillMaxWidth()
-					.clip(RoundedCornerShape(8.dp))
-					.clickable { isExpanded = !isExpanded }
-					.padding(vertical = 2.dp),
-				horizontalArrangement = Arrangement.SpaceBetween,
-				verticalAlignment = CenterVertically
-			) {
-				Row(
-					verticalAlignment = CenterVertically,
-					horizontalArrangement = Arrangement.spacedBy(8.dp)
-				) {
-					Text(
-						text = stringResource(R.string.settings_preview_title),
-						style = MaterialTheme.typography.labelMedium,
-						fontWeight = FontWeight.SemiBold,
-						color = MaterialTheme.colorScheme.primary
-					)
-					Text(
-						text = if (displayMode == 0) stringResource(R.string.updates_detail_view) else stringResource(R.string.updates_compact_view),
-						style = MaterialTheme.typography.labelSmall,
-						color = MaterialTheme.colorScheme.onSurfaceVariant
-					)
-				}
-				Icon(
-					imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-					contentDescription = null,
-					tint = MaterialTheme.colorScheme.onSurfaceVariant,
-					modifier = Modifier.size(20.dp)
-				)
-			}
-
-			AnimatedVisibility(
-				visible = isExpanded,
-				enter = expandVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + fadeIn(),
-				exit = shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + fadeOut()
-			) {
-				AnimatedContent(
-					targetState = displayMode,
-					transitionSpec = {
-						(fadeIn(animationSpec = tween(220, delayMillis = 50)) +
-						 scaleIn(initialScale = 0.94f, animationSpec = tween(220, delayMillis = 50)))
-							.togetherWith(fadeOut(animationSpec = tween(150)))
-							.using(SizeTransform(clip = false))
-					},
-					label = "PreviewModeAnimation"
-				) { mode ->
-					if (mode == 0) {
-						// 1-Spalten Detail-Ansicht (exaktes 1:1 Spiegelbild von UpdateCard)
-						Surface(
-							modifier = Modifier.fillMaxWidth(),
-							shape = RoundedCornerShape(20.dp),
-							color = MaterialTheme.colorScheme.surfaceContainerLow
-						) {
-							Column(
-								modifier = Modifier
-									.fillMaxWidth()
-									.padding(14.dp),
-								verticalArrangement = Arrangement.spacedBy(10.dp)
-							) {
-								Row(
-									verticalAlignment = Alignment.Top,
-									horizontalArrangement = Arrangement.spacedBy(12.dp),
-									modifier = Modifier.fillMaxWidth()
-								) {
-									Box(
-										modifier = Modifier
-											.size(52.dp)
-											.clip(RoundedCornerShape(14.dp))
-											.background(MaterialTheme.colorScheme.surfaceContainer),
-										contentAlignment = Alignment.Center
-									) {
-										Icon(
-											painter = painterResource(R.drawable.ic_system),
-											contentDescription = null,
-											tint = MaterialTheme.colorScheme.primary,
-											modifier = Modifier.size(28.dp)
-										)
-									}
-									Column(
-										modifier = Modifier.weight(1f),
-										verticalArrangement = Arrangement.spacedBy(2.dp)
-									) {
-										Row(
-											modifier = Modifier.fillMaxWidth(),
-											horizontalArrangement = Arrangement.SpaceBetween,
-											verticalAlignment = Alignment.CenterVertically
-										) {
-											Text(
-												text = "System parental controls",
-												style = MaterialTheme.typography.titleMedium,
-												fontWeight = FontWeight.Bold,
-												color = MaterialTheme.colorScheme.onSurface,
-												maxLines = 1,
-												overflow = TextOverflow.Ellipsis,
-												modifier = Modifier.weight(1f, fill = false)
-											)
-											Text(
-												text = "26.2 MB",
-												style = MaterialTheme.typography.labelSmall,
-												color = MaterialTheme.colorScheme.onSurfaceVariant
-											)
-										}
-										Row(
-											verticalAlignment = Alignment.CenterVertically,
-											horizontalArrangement = Arrangement.spacedBy(6.dp)
-										) {
-											Text(
-												text = "1.0.966003905",
-												style = MaterialTheme.typography.labelSmall,
-												color = MaterialTheme.colorScheme.onSurfaceVariant,
-												maxLines = 1,
-												overflow = TextOverflow.Ellipsis
-											)
-											Icon(
-												imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
-												contentDescription = null,
-												tint = MaterialTheme.colorScheme.primary,
-												modifier = Modifier.size(12.dp)
-											)
-											Text(
-												text = "1.0.1007282986",
-												style = MaterialTheme.typography.labelSmall,
-												fontWeight = FontWeight.Bold,
-												color = MaterialTheme.colorScheme.primary,
-												maxLines = 1,
-												overflow = TextOverflow.Ellipsis
-											)
-										}
-										Row(
-											verticalAlignment = Alignment.CenterVertically,
-											horizontalArrangement = Arrangement.spacedBy(6.dp),
-											modifier = Modifier.padding(top = 2.dp)
-										) {
-											Surface(
-												shape = RoundedCornerShape(4.dp),
-												color = MaterialTheme.colorScheme.surfaceContainer
-											) {
-												Row(
-													modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-													verticalAlignment = Alignment.CenterVertically,
-													horizontalArrangement = Arrangement.spacedBy(4.dp)
-												) {
-													Icon(
-														painter = painterResource(R.drawable.ic_play),
-														contentDescription = null,
-														tint = MaterialTheme.colorScheme.onSurfaceVariant,
-														modifier = Modifier.size(11.dp)
-													)
-													Text(
-														text = "Google Play",
-														style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-														color = MaterialTheme.colorScheme.onSurfaceVariant
-													)
-												}
-											}
-											Surface(
-												shape = RoundedCornerShape(4.dp),
-												color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f)
-											) {
-												Row(
-													modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-													verticalAlignment = Alignment.CenterVertically,
-													horizontalArrangement = Arrangement.spacedBy(3.dp)
-												) {
-													Icon(
-														imageVector = Icons.Default.Layers,
-														contentDescription = null,
-														tint = MaterialTheme.colorScheme.onPrimaryContainer,
-														modifier = Modifier.size(11.dp)
-													)
-													Text(
-														text = "+1",
-														style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
-														color = MaterialTheme.colorScheme.onPrimaryContainer
-													)
-												}
-											}
-										}
-									}
-								}
-
-								Surface(
-									shape = RoundedCornerShape(10.dp),
-									color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.6f),
-									modifier = Modifier.fillMaxWidth()
-								) {
-									Row(
-										modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-										verticalAlignment = Alignment.CenterVertically,
-										horizontalArrangement = Arrangement.spacedBy(6.dp)
-									) {
-										Icon(
-											imageVector = Icons.Filled.Info,
-											contentDescription = null,
-											tint = MaterialTheme.colorScheme.primary,
-											modifier = Modifier.size(13.dp)
-										)
-										Text(
-											text = "• First version",
-											style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp),
-											color = MaterialTheme.colorScheme.onSurfaceVariant,
-											maxLines = 1,
-											overflow = TextOverflow.Ellipsis
-										)
-									}
-								}
-
-								Row(
-									modifier = Modifier.fillMaxWidth(),
-									horizontalArrangement = Arrangement.SpaceBetween,
-									verticalAlignment = Alignment.CenterVertically
-								) {
-									Text(
-										text = stringResource(R.string.updates_detail_view),
-										style = MaterialTheme.typography.labelMedium,
-										color = MaterialTheme.colorScheme.onSurfaceVariant
-									)
-									Surface(
-										shape = RoundedCornerShape(10.dp),
-										color = MaterialTheme.colorScheme.primary
-									) {
-										Row(
-											modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-											verticalAlignment = Alignment.CenterVertically,
-											horizontalArrangement = Arrangement.spacedBy(6.dp)
-										) {
-											Icon(
-												painter = painterResource(R.drawable.ic_install),
-												contentDescription = null,
-												tint = MaterialTheme.colorScheme.onPrimary,
-												modifier = Modifier.size(14.dp)
-											)
-											Text(
-												text = stringResource(R.string.update_action),
-												style = MaterialTheme.typography.labelMedium,
-												fontWeight = FontWeight.Bold,
-												color = MaterialTheme.colorScheme.onPrimary
-											)
-										}
-									}
-								}
-							}
-						}
-					} else {
-						// 1-Spalten Kompakt-Ansicht (exaktes 1:1 Spiegelbild von CompactUpdatesGrid)
-						Surface(
-							modifier = Modifier.fillMaxWidth(),
-							shape = RoundedCornerShape(14.dp),
-							color = MaterialTheme.colorScheme.surfaceContainerLow
-						) {
-							Row(
-								modifier = Modifier
-									.fillMaxWidth()
-									.padding(horizontal = 14.dp, vertical = 10.dp),
-								verticalAlignment = Alignment.CenterVertically,
-								horizontalArrangement = Arrangement.spacedBy(12.dp)
-							) {
-								Box(
-									modifier = Modifier
-										.size(42.dp)
-										.clip(RoundedCornerShape(12.dp))
-										.background(MaterialTheme.colorScheme.surfaceContainer),
-									contentAlignment = Alignment.Center
-								) {
-									Icon(
-										painter = painterResource(R.drawable.ic_system),
-										contentDescription = null,
-										tint = MaterialTheme.colorScheme.primary,
-										modifier = Modifier.size(22.dp)
-									)
-								}
-								Column(
-									modifier = Modifier.weight(1f),
-									verticalArrangement = Arrangement.spacedBy(2.dp)
-								) {
-									Text(
-										text = "System parental controls",
-										style = MaterialTheme.typography.bodyMedium,
-										fontWeight = FontWeight.Bold,
-										color = MaterialTheme.colorScheme.onSurface,
-										maxLines = 1,
-										overflow = TextOverflow.Ellipsis
-									)
-									Row(
-										verticalAlignment = Alignment.CenterVertically,
-										horizontalArrangement = Arrangement.spacedBy(4.dp)
-									) {
-										Text(
-											text = "1.0.966003905",
-											style = MaterialTheme.typography.labelSmall,
-											color = MaterialTheme.colorScheme.onSurfaceVariant,
-											maxLines = 1,
-											overflow = TextOverflow.Ellipsis
-										)
-										Icon(
-											imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
-											contentDescription = null,
-											tint = MaterialTheme.colorScheme.primary,
-											modifier = Modifier.size(10.dp)
-										)
-										Text(
-											text = "1.0.1007282986",
-											style = MaterialTheme.typography.labelSmall,
-											fontWeight = FontWeight.Bold,
-											color = MaterialTheme.colorScheme.primary,
-											maxLines = 1,
-											overflow = TextOverflow.Ellipsis
-										)
-									}
-								}
-								Surface(
-									shape = RoundedCornerShape(10.dp),
-									color = MaterialTheme.colorScheme.primary
-								) {
-									Row(
-										modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-										verticalAlignment = Alignment.CenterVertically,
-										horizontalArrangement = Arrangement.spacedBy(4.dp)
-									) {
-										Icon(
-											painter = painterResource(R.drawable.ic_install),
-											contentDescription = null,
-											tint = MaterialTheme.colorScheme.onPrimary,
-											modifier = Modifier.size(13.dp)
-										)
-										Text(
-											text = stringResource(R.string.update_action),
-											style = MaterialTheme.typography.labelSmall,
-											fontWeight = FontWeight.Bold,
-											color = MaterialTheme.colorScheme.onPrimary
-										)
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HiddenAppsBottomSheet(
@@ -4508,16 +4396,25 @@ private fun HiddenAppsBottomSheet(
 		installedApps.associateBy { it.packageName }
 	}
 
+	val isAccessibleSheet = ApkUpTheme.isAccessibleUi
 	ModalBottomSheet(
 		onDismissRequest = onDismiss,
 		sheetState = sheetState,
+		dragHandle = if (isAccessibleSheet) null else {
+			{ BottomSheetDefaults.DragHandle() }
+		},
 		shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
 		containerColor = MaterialTheme.colorScheme.surfaceContainerLow
 	) {
 		Column(
 			modifier = Modifier
 				.fillMaxWidth()
-				.padding(horizontal = 20.dp, vertical = 8.dp)
+				.padding(
+					start = 20.dp,
+					end = 20.dp,
+					top = if (isAccessibleSheet) 18.dp else 8.dp,
+					bottom = 16.dp
+				)
 				.navigationBarsPadding(),
 			verticalArrangement = Arrangement.spacedBy(12.dp)
 		) {
@@ -4583,23 +4480,26 @@ private fun HiddenAppsBottomSheet(
 							val appName = installedByPackage[pkg]?.name ?: pkg
 							val isChecked = selectedToRestore[pkg] == true
 							Surface(
-								modifier = Modifier
-									.fillMaxWidth()
-									.clip(RoundedCornerShape(16.dp))
-									.clickable { selectedToRestore[pkg] = !isChecked },
+								modifier = Modifier.fillMaxWidth(),
 								shape = RoundedCornerShape(16.dp),
 								color = MaterialTheme.colorScheme.surfaceContainerHigh
 							) {
 								Row(
 									modifier = Modifier
 										.fillMaxWidth()
+										.clip(RoundedCornerShape(16.dp))
+										.toggleable(
+											value = isChecked,
+											role = Role.Checkbox,
+											onValueChange = { selectedToRestore[pkg] = it }
+										)
 										.padding(horizontal = 12.dp, vertical = 10.dp),
 									verticalAlignment = CenterVertically,
 									horizontalArrangement = Arrangement.spacedBy(12.dp)
 								) {
 									Checkbox(
 										checked = isChecked,
-										onCheckedChange = { selectedToRestore[pkg] = it }
+										onCheckedChange = null
 									)
 									Box(
 										modifier = Modifier
@@ -4664,7 +4564,7 @@ private fun HiddenAppsBottomSheet(
 							selectedToHide.clear()
 							isAddingMore = true
 						},
-						modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp),
+						modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
 						shape = CircleShape
 					) {
 						Icon(
@@ -4674,6 +4574,15 @@ private fun HiddenAppsBottomSheet(
 						)
 						Spacer(modifier = Modifier.width(6.dp))
 						Text(stringResource(R.string.hidden_apps_hide_more))
+					}
+					if (isAccessibleSheet) {
+						OutlinedButton(
+							onClick = onDismiss,
+							modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+							shape = CircleShape
+						) {
+							Text(stringResource(R.string.a11y_close_action))
+						}
 					}
 				}
 			} else {
@@ -4743,23 +4652,26 @@ private fun HiddenAppsBottomSheet(
 					items(candidates, key = { it.packageName }) { app ->
 						val isChecked = selectedToHide[app.packageName] == true
 						Surface(
-							modifier = Modifier
-								.fillMaxWidth()
-								.clip(RoundedCornerShape(14.dp))
-								.clickable { selectedToHide[app.packageName] = !isChecked },
+							modifier = Modifier.fillMaxWidth(),
 							shape = RoundedCornerShape(14.dp),
 							color = MaterialTheme.colorScheme.surfaceContainerHigh
 						) {
 							Row(
 								modifier = Modifier
 									.fillMaxWidth()
+									.clip(RoundedCornerShape(14.dp))
+									.toggleable(
+										value = isChecked,
+										role = Role.Checkbox,
+										onValueChange = { selectedToHide[app.packageName] = it }
+									)
 									.padding(horizontal = 12.dp, vertical = 8.dp),
 								verticalAlignment = CenterVertically,
 								horizontalArrangement = Arrangement.spacedBy(12.dp)
 							) {
 								Checkbox(
 									checked = isChecked,
-									onCheckedChange = { selectedToHide[app.packageName] = it }
+									onCheckedChange = null
 								)
 								Box(
 									modifier = Modifier
@@ -4828,17 +4740,24 @@ private fun IgnoredVersionsBottomSheet(
 	onDismiss: () -> Unit
 ) {
 	val sheetState = rememberExpandedModalSheetState()
+	val isAccessibleSheet = ApkUpTheme.isAccessibleUi
 	ModalBottomSheet(
 		onDismissRequest = onDismiss,
 		sheetState = sheetState,
 		containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-		dragHandle = { BottomSheetDefaults.DragHandle() }
+		dragHandle = if (isAccessibleSheet) null else {
+			{ BottomSheetDefaults.DragHandle() }
+		}
 	) {
 		Column(
 			modifier = Modifier
 				.fillMaxWidth()
-				.padding(horizontal = 20.dp)
-				.padding(bottom = 32.dp)
+				.padding(
+					start = 20.dp,
+					end = 20.dp,
+					top = if (isAccessibleSheet) 18.dp else 0.dp,
+					bottom = 32.dp
+				)
 				.verticalScroll(rememberScrollState()),
 			verticalArrangement = Arrangement.spacedBy(14.dp)
 		) {
@@ -4928,7 +4847,7 @@ private fun IgnoredVersionsBottomSheet(
 										style = MaterialTheme.typography.bodyMedium,
 										fontWeight = FontWeight.SemiBold,
 										color = MaterialTheme.colorScheme.onSurface,
-										maxLines = 1,
+										maxLines = if (isAccessibleSheet) 2 else 1,
 										overflow = TextOverflow.Ellipsis
 									)
 									val subtitleParts = buildList {
@@ -4941,14 +4860,15 @@ private fun IgnoredVersionsBottomSheet(
 											text = subtitleParts.joinToString(" "),
 											style = MaterialTheme.typography.labelSmall,
 											color = MaterialTheme.colorScheme.onSurfaceVariant,
-											maxLines = 1,
+											maxLines = if (isAccessibleSheet) 2 else 1,
 											overflow = TextOverflow.Ellipsis
 										)
 									}
 								}
 								FilledTonalButton(
 									onClick = { onUnignore(entry.id) },
-									contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+									contentPadding = PaddingValues(horizontal = 12.dp, vertical = if (isAccessibleSheet) 8.dp else 4.dp),
+									modifier = if (isAccessibleSheet) Modifier.heightIn(min = 48.dp) else Modifier,
 									shape = CircleShape
 								) {
 									Icon(
@@ -4959,7 +4879,7 @@ private fun IgnoredVersionsBottomSheet(
 									Spacer(modifier = Modifier.width(4.dp))
 									Text(
 										text = stringResource(R.string.action_unignore_version),
-										style = MaterialTheme.typography.labelSmall,
+										style = if (isAccessibleSheet) MaterialTheme.typography.labelLarge else MaterialTheme.typography.labelSmall,
 										fontWeight = FontWeight.SemiBold
 									)
 								}
@@ -4971,6 +4891,7 @@ private fun IgnoredVersionsBottomSheet(
 						onClick = onClearAll,
 						modifier = Modifier
 							.fillMaxWidth()
+							.heightIn(min = 48.dp)
 							.padding(top = 4.dp),
 						shape = CircleShape
 					) {
@@ -4982,6 +4903,15 @@ private fun IgnoredVersionsBottomSheet(
 						Spacer(modifier = Modifier.width(6.dp))
 						Text(stringResource(R.string.action_clear_ignored_versions))
 					}
+				}
+			}
+			if (isAccessibleSheet) {
+				OutlinedButton(
+					onClick = onDismiss,
+					modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+					shape = CircleShape
+				) {
+					Text(stringResource(R.string.a11y_close_action))
 				}
 			}
 		}
@@ -4997,7 +4927,8 @@ fun SettingsTopBar() = TopAppBar(
 		Text(
 			text = stringResource(R.string.tab_settings),
 			style = MaterialTheme.typography.headlineMedium,
-			fontWeight = FontWeight.Bold
+			fontWeight = FontWeight.Bold,
+			modifier = Modifier.semantics { heading() }
 		)
 	},
 	colors = TopAppBarDefaults.topAppBarColors(
@@ -5017,7 +4948,7 @@ fun SettingsTopBar() = TopAppBar(
 		) {
 			Icon(
 				imageVector = Icons.Filled.Settings,
-				contentDescription = stringResource(R.string.tab_settings),
+				contentDescription = null,
 				tint = MaterialTheme.colorScheme.onPrimaryContainer,
 				modifier = Modifier.size(18.dp)
 			)
@@ -5273,7 +5204,9 @@ private fun BackgroundCheckIntervalBottomSheet(
 			}
 
 			Column(
-				modifier = Modifier.fillMaxWidth(),
+				modifier = Modifier
+					.fillMaxWidth()
+					.selectableGroup(),
 				verticalArrangement = Arrangement.spacedBy(8.dp)
 			) {
 				intervalOptions.forEach { (interval, meta) ->
@@ -5282,7 +5215,7 @@ private fun BackgroundCheckIntervalBottomSheet(
 						modifier = Modifier
 							.fillMaxWidth()
 							.clip(RoundedCornerShape(16.dp))
-							.clickable {
+							.selectable(selected = isSelected, role = Role.RadioButton) {
 								onSelectHours(interval.hours)
 								onDismiss()
 							},
@@ -5409,6 +5342,12 @@ private fun ApkMirrorSettingsBottomSheet(
 				Row(
 					modifier = Modifier
 						.fillMaxWidth()
+						.clip(RoundedCornerShape(16.dp))
+						.toggleable(
+							value = directEnabled,
+							role = Role.Switch,
+							onValueChange = onDirectChanged
+						)
 						.padding(horizontal = 16.dp, vertical = 14.dp),
 					verticalAlignment = Alignment.CenterVertically,
 					horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -5427,7 +5366,7 @@ private fun ApkMirrorSettingsBottomSheet(
 					}
 					Switch(
 						checked = directEnabled,
-						onCheckedChange = onDirectChanged
+						onCheckedChange = null
 					)
 				}
 			}
@@ -5663,14 +5602,15 @@ private fun FDroidReposBottomSheet(
 								) {
 									Icon(
 										imageVector = Icons.Default.Delete,
-										contentDescription = stringResource(R.string.fdroid_repo_delete_cd),
+										contentDescription = "${stringResource(R.string.fdroid_repo_delete_cd)}: ${repo.name}",
 										tint = MaterialTheme.colorScheme.error
 									)
 								}
 							}
 							Switch(
 								checked = repo.enabled,
-								onCheckedChange = { enabled -> onToggleRepo(repo.id, enabled) }
+								onCheckedChange = { enabled -> onToggleRepo(repo.id, enabled) },
+								modifier = Modifier.semantics { contentDescription = repo.name }
 							)
 						}
 					}
@@ -5859,6 +5799,11 @@ private fun WifiDownloadBottomSheet(
 					Row(
 						modifier = Modifier
 							.fillMaxWidth()
+							.toggleable(
+								value = wifiOnly,
+								role = Role.Switch,
+								onValueChange = onWifiOnlyChanged
+							)
 							.padding(horizontal = 16.dp, vertical = 14.dp),
 						verticalAlignment = Alignment.CenterVertically,
 						horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -5877,7 +5822,7 @@ private fun WifiDownloadBottomSheet(
 						}
 						Switch(
 							checked = wifiOnly,
-							onCheckedChange = onWifiOnlyChanged
+							onCheckedChange = null
 						)
 					}
 
@@ -5891,6 +5836,11 @@ private fun WifiDownloadBottomSheet(
 					Row(
 						modifier = Modifier
 							.fillMaxWidth()
+							.toggleable(
+								value = chargingOnly,
+								role = Role.Switch,
+								onValueChange = onChargingOnlyChanged
+							)
 							.padding(horizontal = 16.dp, vertical = 14.dp),
 						verticalAlignment = Alignment.CenterVertically,
 						horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -5909,7 +5859,7 @@ private fun WifiDownloadBottomSheet(
 						}
 						Switch(
 							checked = chargingOnly,
-							onCheckedChange = onChargingOnlyChanged
+							onCheckedChange = null
 						)
 					}
 
@@ -5923,6 +5873,11 @@ private fun WifiDownloadBottomSheet(
 					Row(
 						modifier = Modifier
 							.fillMaxWidth()
+							.toggleable(
+								value = bgCheckWifiOnly,
+								role = Role.Switch,
+								onValueChange = onBgCheckWifiOnlyChanged
+							)
 							.padding(horizontal = 16.dp, vertical = 14.dp),
 						verticalAlignment = Alignment.CenterVertically,
 						horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -5941,7 +5896,7 @@ private fun WifiDownloadBottomSheet(
 						}
 						Switch(
 							checked = bgCheckWifiOnly,
-							onCheckedChange = onBgCheckWifiOnlyChanged
+							onCheckedChange = null
 						)
 					}
 				}
@@ -6033,12 +5988,17 @@ private fun ObtainiumImportBottomSheet(
 						Row(
 							modifier = Modifier
 								.fillMaxWidth()
-								.clickable { importMappings = !importMappings }
+								.clip(RoundedCornerShape(14.dp))
+								.toggleable(
+									value = importMappings,
+									role = Role.Checkbox,
+									onValueChange = { importMappings = it }
+								)
 								.padding(horizontal = 12.dp, vertical = 10.dp),
 							verticalAlignment = Alignment.CenterVertically,
 							horizontalArrangement = Arrangement.spacedBy(8.dp)
 						) {
-							Checkbox(checked = importMappings, onCheckedChange = { importMappings = it })
+							Checkbox(checked = importMappings, onCheckedChange = null)
 							Column(modifier = Modifier.weight(1f)) {
 								Text(
 									text = stringResource(R.string.obtainium_import_section_mappings, preview.matchedInstalledBindings.size),
@@ -6069,12 +6029,17 @@ private fun ObtainiumImportBottomSheet(
 						Row(
 							modifier = Modifier
 								.fillMaxWidth()
-								.clickable { importFDroidRepos = !importFDroidRepos }
+								.clip(RoundedCornerShape(14.dp))
+								.toggleable(
+									value = importFDroidRepos,
+									role = Role.Checkbox,
+									onValueChange = { importFDroidRepos = it }
+								)
 								.padding(horizontal = 12.dp, vertical = 10.dp),
 							verticalAlignment = Alignment.CenterVertically,
 							horizontalArrangement = Arrangement.spacedBy(8.dp)
 						) {
-							Checkbox(checked = importFDroidRepos, onCheckedChange = { importFDroidRepos = it })
+							Checkbox(checked = importFDroidRepos, onCheckedChange = null)
 							Column(modifier = Modifier.weight(1f)) {
 								Text(
 									text = stringResource(R.string.obtainium_import_section_fdroid, preview.detectedFDroidRepos.size),
@@ -6118,14 +6083,19 @@ private fun ObtainiumImportBottomSheet(
 								Row(
 									modifier = Modifier
 										.fillMaxWidth()
-										.clickable { selectedWatched[candidate.packageName] = !checked }
-										.padding(vertical = 2.dp),
+										.clip(RoundedCornerShape(10.dp))
+										.toggleable(
+											value = checked,
+											role = Role.Checkbox,
+											onValueChange = { selectedWatched[candidate.packageName] = it }
+										)
+										.padding(vertical = 4.dp),
 									verticalAlignment = Alignment.CenterVertically,
 									horizontalArrangement = Arrangement.spacedBy(8.dp)
 								) {
 									Checkbox(
 										checked = checked,
-										onCheckedChange = { selectedWatched[candidate.packageName] = it }
+										onCheckedChange = null
 									)
 									Column(modifier = Modifier.weight(1f)) {
 										Text(

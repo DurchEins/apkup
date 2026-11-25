@@ -117,7 +117,6 @@ data class ApkUpBackupConfig(
     val ignoredVersions: List<Int>? = emptyList(),
     val ignoredVersionEntries: List<IgnoredVersionEntry>? = emptyList(),
     val showSystemApps: Boolean? = false,
-    val updatesDisplayMode: Int? = 0,
     val useApkMirror: Boolean? = true,
     val directApkMirrorDownloads: Boolean? = true,
     val usePlay: Boolean? = true,
@@ -155,7 +154,12 @@ data class ApkUpBackupConfig(
     val enableRollbackBackups: Boolean? = null,
     val rollbackMaxBudgetMb: Int? = null,
     val rollbackMaxAgeDays: Int? = null,
-    val includeSelfUpdatePreReleases: Boolean? = null
+    val includeSelfUpdatePreReleases: Boolean? = null,
+    val a11yThemeSubMode: Int? = null,
+    val a11ySunriseMinutes: Int? = null,
+    val a11ySunsetMinutes: Int? = null,
+    val a11yAccessibleUi: Boolean? = null,
+    val appsGridColumns: Int? = null
 ) {
     companion object {
         const val CURRENT_SCHEMA_VERSION = 2

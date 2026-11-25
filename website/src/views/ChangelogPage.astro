@@ -110,13 +110,13 @@ const months = parseChangelog(loadReleasedMarkdown(findLatestChangelogPath(clLan
       </div>
 
       <div class="cl-filter-bar" role="group" aria-label={cl.filterAria}>
-        <button type="button" class="cl-filter-chip is-active" data-cl-filter="all">
+        <button type="button" class="cl-filter-chip is-active" data-cl-filter="all" aria-pressed="true">
           {cl.filterAll}
         </button>
-        <button type="button" class="cl-filter-chip" data-cl-filter="feature">
+        <button type="button" class="cl-filter-chip" data-cl-filter="feature" aria-pressed="false">
           {cl.filterFeature}
         </button>
-        <button type="button" class="cl-filter-chip" data-cl-filter="patch">
+        <button type="button" class="cl-filter-chip" data-cl-filter="patch" aria-pressed="false">
           {cl.filterPatch}
         </button>
         <input
@@ -128,7 +128,7 @@ const months = parseChangelog(loadReleasedMarkdown(findLatestChangelogPath(clLan
         />
       </div>
 
-      <div class="cl-months">
+      <div class="cl-months" lang={clLang}>
         {
           months.map((group, idx) => (
             <details class="cl-month" open={idx === 0}>
@@ -209,7 +209,9 @@ const months = parseChangelog(loadReleasedMarkdown(findLatestChangelogPath(clLan
       btn.addEventListener('click', function () {
         activeFilter = btn.getAttribute('data-cl-filter') || 'all';
         btns.forEach(function (b) {
-          b.classList.toggle('is-active', b.getAttribute('data-cl-filter') === activeFilter);
+          var isMatch = b.getAttribute('data-cl-filter') === activeFilter;
+          b.classList.toggle('is-active', isMatch);
+          b.setAttribute('aria-pressed', String(isMatch));
         });
         applyClFilter();
       });
@@ -237,7 +239,7 @@ const months = parseChangelog(loadReleasedMarkdown(findLatestChangelogPath(clLan
   }
 
   .cl-filter-chip {
-    min-height: 36px;
+    min-height: 44px;
     padding: 6px 14px;
     border-radius: var(--radius-pill);
     border: 1px solid var(--outline);
@@ -256,14 +258,14 @@ const months = parseChangelog(loadReleasedMarkdown(findLatestChangelogPath(clLan
 
   .cl-search-input {
     margin-inline-start: auto;
-    min-height: 36px;
+    min-height: 44px;
+    max-width: 100%;
     padding: 6px 14px;
     border-radius: var(--radius-pill);
     border: 1px solid var(--outline);
     background: var(--surface-low);
     color: var(--text);
     font-size: 0.84rem;
-    outline: none;
   }
 
   .cl-search-input:focus {
@@ -365,6 +367,16 @@ const months = parseChangelog(loadReleasedMarkdown(findLatestChangelogPath(clLan
   .pill-blue {
     background: rgba(56, 189, 248, 0.16);
     color: #38bdf8;
+  }
+
+  :global([data-theme='light']) .pill-purple {
+    background: rgba(107, 33, 168, 0.12);
+    color: #6b21a8;
+  }
+
+  :global([data-theme='light']) .pill-blue {
+    background: rgba(3, 105, 161, 0.12);
+    color: #0369a1;
   }
 
   .cl-banner {
