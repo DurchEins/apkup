@@ -6,14 +6,16 @@ This page documents ApkUp's Gradle build configuration, R8 shrinking, Android Li
 
 ## 1. Gradle & Build Performance
 
-- **Kotlin + Jetpack Compose + Koin:** Built with Gradle (`app/build.gradle.kts`), Kotlin incremental compilation (`kotlin.incremental=true`), configuration/build caching (`org.gradle.caching=true`), and parallel execution (`org.gradle.parallel=true`).
+- **Kotlin + Jetpack Compose + Koin:** Built with Gradle (`app/build.gradle.kts`, reading SemVer fields and `VERSION_CODE` from `version.properties`), Kotlin incremental compilation (`kotlin.incremental=true`), configuration/build caching (`org.gradle.caching=true`), and parallel execution (`org.gradle.parallel=true`).
 - **Build Variants:**
-  - `debug`: Fast iteration build without R8, using `applicationIdSuffix = ".debug"` (`com.apkup.debug`) and `versionNameSuffix = "-debug"`.
-  - `release`: Full R8 code shrinking/obfuscation and resource shrinking, signed via release keystore (`local.properties` locally or CI secrets in `release.yml`).
+  - `debug`: Fast iteration build without R8, using `applicationIdSuffix = ".debug"` (`com.apkup.debug`), `versionNameSuffix = "-debug"`, and isolated Compose `@Preview`s under `app/src/debug/kotlin/` (`AboutVersionBadgePreview.kt`).
+  - `release`: Full R8 code shrinking/obfuscation and resource shrinking, signed via release keystore (`local.properties` locally or CI secrets in `release.yml`), leaving `debug`-only previews excluded.
 
 ---
 
-## 2. Automated Test Suite (`testDebugUnitTest` — 413+ Unit Tests)
+## 2. Automated Test Suite (`testDebugUnitTest` — 416+ Unit Tests)
+
+- **`SelfUpdateRepositoryTest` & `SelfUpdateTest`:** Verify SemVer 2.0.0 precedence (`alpha < beta < rc < stable`), ignoring `+` build metadata, legacy `(...)` tie-breakers, and `-build<N>` release APK asset matching.
 
 - **`PrefsTest`:** Verifies `PrefSlot` defaults, persistence across backend re-instantiation, and reactive `StateFlow` emissions.
 - **`ChangelogBottomSheetTest`:**

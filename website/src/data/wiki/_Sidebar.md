@@ -48,6 +48,7 @@
 * 🛡️ **[Security, Cryptography & Privacy](https://github.com/DurchEins/apkup/wiki/Tech-Security,-Cryptography-&-Privacy)**
 * 🎨 **[UI, Accessibility & Website](https://github.com/DurchEins/apkup/wiki/Tech-UI,-Accessibility-&-Website-Architecture)**
 * 🚀 **[CI/CD, Releases & Checksums](https://github.com/DurchEins/apkup/wiki/Tech-CI-CD,-Single-Artifact-Releases-&-Checksums)**
+* 🏷️ **[Versioning (Legacy vs. SemVer 2.0.0)](https://github.com/DurchEins/apkup/wiki/Tech-Versioning,-SemVer-2.0.0-&-Migration)**
 * 💾 **[Storage, Backups, Logs & Widget](https://github.com/DurchEins/apkup/wiki/Tech-Data-Storage,-Prefs,-Backups,-Logs-&-Widget)**
 * 🧪 **[Build System, R8 & Tests](https://github.com/DurchEins/apkup/wiki/Tech-Build-System,-R8-&-Automated-Tests)**
 * 🌍 **[Localization, Weblate & Assets](https://github.com/DurchEins/apkup/wiki/Tech-Localization,-Weblate-&-Assets)**

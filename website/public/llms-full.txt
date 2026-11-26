@@ -467,10 +467,11 @@ Comprehensive architectural and engineering documentation for developers, contri
 2. ⚡ **[Installation, Shizuku, Root & WorkManager](https://github.com/DurchEins/apkup/wiki/Tech-Installation,-Shizuku,-Root-&-WorkManager)** — `UpdateDownloadWorker`, 24h cache, `SessionInstaller` (`PackageInstaller`), Shizuku Binder IPC, `RootInstaller` (`su`), and rollback backups.
 3. 🛡️ **[Security, Cryptography & Privacy](https://github.com/DurchEins/apkup/wiki/Tech-Security,-Cryptography-&-Privacy)** — `ApkIntegrityVerifier` (v2/v3 signatures, SHA-256, downgrade guard), Google Tink `AES-256-GCM`, Zip-Slip/decompression-bomb limits, Tapjacking & `AppJournal` redaction.
 4. 🎨 **[UI, Accessibility & Website Architecture](https://github.com/DurchEins/apkup/wiki/Tech-UI,-Accessibility-&-Website-Architecture)** — Jetpack Compose Material 3 Expressive, `a11yAccessibleUi`, `AccessibleTypography`, `SolarScheduleCalculator`, Astro 9-language site & `check-a11y.mjs`.
-5. 🚀 **[CI/CD, Single-Artifact Releases & Checksums](https://github.com/DurchEins/apkup/wiki/Tech-CI-CD,-Single-Artifact-Releases-&-Checksums)** — Semantic versioning, PR checks, `release.yml` canonical APK, `SHA256SUMS`, Self-Updater & mirrors.
-6. 💾 **[Data Storage, Prefs, Backups, Logs & Widget](https://github.com/DurchEins/apkup/wiki/Tech-Data-Storage,-Prefs,-Backups,-Logs-&-Widget)** — `SecurePrefsStore` allowlist, `CachedUpdateSnapshot`, `ApkUpBackupConfig` schema, `AppJournal`, and `UpdatesWidgetProvider` (`RemoteViews` Preview).
-7. 🧪 **[Build System, R8 & Automated Tests](https://github.com/DurchEins/apkup/wiki/Tech-Build-System,-R8-&-Automated-Tests)** — Gradle configuration, Debug vs. Release (R8), `PrefsTest`, `ChangelogBottomSheetTest`, `AccessibilityAuditTest`, and `lintDebug`.
-8. 🌍 **[Localization, Weblate & Asset Pipeline](https://github.com/DurchEins/apkup/wiki/Tech-Localization,-Weblate-&-Assets)** — 9-locale `strings.xml` & `website/src/i18n/*.json` parity, Hosted Weblate, changelog asset parser, Fastlane & adaptive SVGs.
+5. 🚀 **[CI/CD, Single-Artifact Releases & Checksums](https://github.com/DurchEins/apkup/wiki/Tech-CI-CD,-Single-Artifact-Releases-&-Checksums)** — SemVer 2.0.0 CI pipeline, PR checks, `release.yml` canonical APK, `SHA256SUMS`, Self-Updater & mirrors.
+6. 🏷️ **[Versioning Standard (Legacy vs. SemVer 2.0.0)](https://github.com/DurchEins/apkup/wiki/Tech-Versioning,-SemVer-2.0.0-&-Migration)** — Centralized `version.properties`, automatic short Git hash, `-build<N>` asset naming, Self-Updater precedence & two-stage Major rule.
+7. 💾 **[Data Storage, Prefs, Backups, Logs & Widget](https://github.com/DurchEins/apkup/wiki/Tech-Data-Storage,-Prefs,-Backups,-Logs-&-Widget)** — `SecurePrefsStore` allowlist, `CachedUpdateSnapshot`, `ApkUpBackupConfig` schema, `AppJournal`, and `UpdatesWidgetProvider` (`RemoteViews` Preview).
+8. 🧪 **[Build System, R8 & Automated Tests](https://github.com/DurchEins/apkup/wiki/Tech-Build-System,-R8-&-Automated-Tests)** — Gradle configuration, Debug vs. Release (R8), `PrefsTest`, `ChangelogBottomSheetTest`, `AccessibilityAuditTest`, and `lintDebug`.
+9. 🌍 **[Localization, Weblate & Asset Pipeline](https://github.com/DurchEins/apkup/wiki/Tech-Localization,-Weblate-&-Assets)** — 9-locale `strings.xml` & `website/src/i18n/*.json` parity, Hosted Weblate, changelog asset parser, Fastlane & adaptive SVGs.
 
 ---
 
@@ -1928,16 +1929,19 @@ This page documents ApkUp's GitHub Actions CI/CD workflows, versioning rules, si
 
 ---
 
-## 1. Strict Semantic Versioning
+## 1. Strict Semantic Versioning 2.0.0 (`version.properties`)
 
-- **Format:** `versionName` follows `<Major>.<Minor>.<Patch> (<versionCode>)` (e.g. `1.47.0 (237)`), with `<Major>.<Minor>.<Patch>-beta.<N> (<versionCode>)` for explicit pre-releases.
-- **Monotonic `versionCode`:** `versionCode` increments strictly monotonically by `+1` with every build; UI components (`SettingsScreen.kt`, `ChangelogBottomSheet.kt`) and `SelfUpdateRepository.kt` support 3–4+ digit segments without wrapping.
+- **Single Source of Truth (`version.properties`):** Centrally defines `VERSION_MAJOR`, `VERSION_MINOR`, `VERSION_PATCH`, `VERSION_PRE_RELEASE`, and strictly monotonic `VERSION_CODE` (`versionCode`).
+- **Git Tags & Release Titles:** Pure SemVer tags (`vMAJOR.MINOR.PATCH` or `vMAJOR.MINOR.PATCH-beta.N`, e.g. `v1.47.0` / `v1.47.0-beta.1`); GitHub and GitLab release titles use `vMAJOR.MINOR.PATCH (VERSION_CODE)` (e.g. `v1.47.0 (238)`). Legacy tags up to `v1.46.0` remain unchanged.
+- **Android `versionName`:** `MAJOR.MINOR.PATCH[-beta.N]+VERSION_CODE.SHORT_GIT_HASH` (e.g. `1.47.0+238.74a9f8d`, with `nogit` fallback outside Git).
+- **Precedence & Two-Stage Major Rule (`VERSIONING.md`):** Build metadata after `+` is ignored during SemVer comparison; pre-releases follow `alpha < beta < rc < stable`. `PATCH` covers fixes/docs/chores, `MINOR` covers backwards-compatible features, and `MAJOR` follows the two-stage rule (mandatory on breaking changes, or user-approved Milestone Major — always evaluated independently of pre-edited documentation version numbers via `scripts/suggest-version.ps1`).
+- **Multi-Digit Support:** `SelfUpdateRepository.kt`, `SettingsScreen.kt` (including Tap-to-Copy), and `ChangelogBottomSheet.kt` support multi-digit segments and full SemVer strings cleanly.
 
 ---
 
 ## 2. Pull Request & CI Gates (`Android CI`)
 
-- **Branch & PR Flow:** Features and fixes develop on dedicated local branches off `main`, are pushed to GitHub (`DurchEins/apkup`), and merge via Pull Request (`Squash and merge`) after all CI checks pass.
+- **Branch & PR Flow:** Features and fixes develop on dedicated local branches off `main` (never merging or modifying `main` from experimental `experiment/*` branches), are pushed to GitHub (`DurchEins/apkup`), and merge via Pull Request (`Squash and merge`) after all CI checks pass.
 - **Automated Checks:** Every PR runs `lintDebug`, `testDebugUnitTest`, and `assembleDebug` (plus `website/scripts/check-a11y.mjs` for website changes).
 - **Debug Parallelism:** Debug builds use `applicationIdSuffix = ".debug"` (`com.apkup.debug` / **ApkUp Debug**) so development builds can be tested side-by-side with the production `com.apkup` release.
 
@@ -1945,14 +1949,14 @@ This page documents ApkUp's GitHub Actions CI/CD workflows, versioning rules, si
 
 ## 3. Single-Artifact Release Pipeline (`release.yml`)
 
-- **Canonical Binary:** The signed APK built by GitHub Actions (`release.yml`) is the **single canonical release artifact** (`ApkUp-v<Major>.<Minor>.<Patch>-(<versionCode>).apk`).
+- **Canonical Binary:** The signed APK built by GitHub Actions (`release.yml`) is the **single canonical release artifact** (`ApkUp-v<Major>.<Minor>.<Patch>-build<versionCode>.apk` or `ApkUp-v<Major>.<Minor>.<Patch>-beta.<N>-build<versionCode>.apk`, so `-build<N>` is never misparsed as a pre-release).
 - **Signing Fingerprint Verification:** Every official APK is signed with ApkUp's release key (`8e9b512371ee965afc7cc91f23490d3a514623b90d483e638bba8a070a2170b4` SHA-256).
 - **Checksums & Mirrors:** `SHA256SUMS` digests are published alongside the binary on GitHub Releases and the ApkUp Website, ensuring identical SHA-256 and VirusTotal hashes across GitLab Releases, Zapstore, itch.io, APKPure, Appteka, and Komi Store.
 - **In-App Self-Updater (`SelfUpdateRepository`):** Checks GitHub Releases (stable-only by default, with an opt-in Beta channel toggle in Setup → About), verifies `SHA256SUMS` and signing certificate fingerprints before installing.
 
 ---
 
-> 📦 **Latest Releases:** [GitHub Releases](https://github.com/DurchEins/apkup/releases) • **ProTip:** Append `.patch` or `.diff` to any GitHub commit or PR URL for plaintext views.
+> 📦 **Latest Releases:** [GitHub Releases](https://github.com/DurchEins/apkup/releases) • **Versioning Details:** [Tech: Versioning Standard (Legacy vs. SemVer 2.0.0)](https://github.com/DurchEins/apkup/wiki/Tech-Versioning,-SemVer-2.0.0-&-Migration) • **ProTip:** Append `.patch` or `.diff` to any GitHub commit or PR URL for plaintext views.
 
 ---
 
@@ -2008,14 +2012,16 @@ This page documents ApkUp's Gradle build configuration, R8 shrinking, Android Li
 
 ## 1. Gradle & Build Performance
 
-- **Kotlin + Jetpack Compose + Koin:** Built with Gradle (`app/build.gradle.kts`), Kotlin incremental compilation (`kotlin.incremental=true`), configuration/build caching (`org.gradle.caching=true`), and parallel execution (`org.gradle.parallel=true`).
+- **Kotlin + Jetpack Compose + Koin:** Built with Gradle (`app/build.gradle.kts`, reading SemVer fields and `VERSION_CODE` from `version.properties`), Kotlin incremental compilation (`kotlin.incremental=true`), configuration/build caching (`org.gradle.caching=true`), and parallel execution (`org.gradle.parallel=true`).
 - **Build Variants:**
-  - `debug`: Fast iteration build without R8, using `applicationIdSuffix = ".debug"` (`com.apkup.debug`) and `versionNameSuffix = "-debug"`.
-  - `release`: Full R8 code shrinking/obfuscation and resource shrinking, signed via release keystore (`local.properties` locally or CI secrets in `release.yml`).
+  - `debug`: Fast iteration build without R8, using `applicationIdSuffix = ".debug"` (`com.apkup.debug`), `versionNameSuffix = "-debug"`, and isolated Compose `@Preview`s under `app/src/debug/kotlin/` (`AboutVersionBadgePreview.kt`).
+  - `release`: Full R8 code shrinking/obfuscation and resource shrinking, signed via release keystore (`local.properties` locally or CI secrets in `release.yml`), leaving `debug`-only previews excluded.
 
 ---
 
-## 2. Automated Test Suite (`testDebugUnitTest` — 413+ Unit Tests)
+## 2. Automated Test Suite (`testDebugUnitTest` — 416+ Unit Tests)
+
+- **`SelfUpdateRepositoryTest` & `SelfUpdateTest`:** Verify SemVer 2.0.0 precedence (`alpha < beta < rc < stable`), ignoring `+` build metadata, legacy `(...)` tie-breakers, and `-build<N>` release APK asset matching.
 
 - **`PrefsTest`:** Verifies `PrefSlot` defaults, persistence across backend re-instantiation, and reactive `StateFlow` emissions.
 - **`ChangelogBottomSheetTest`:**

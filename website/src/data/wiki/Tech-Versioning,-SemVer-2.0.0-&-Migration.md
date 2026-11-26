@@ -42,7 +42,7 @@ This page documents ApkUp's transition from its legacy versioning scheme (up to 
   - Existing `v1.46.0` installations therefore discover, verify, and install `ApkUp-v1.47.0-build238.apk` without any migration gap.
 - **UI & Changelog Support:**
   - `ChangelogBottomSheet.kt` strips `+...` build metadata before resolving milestone asset prefixes (`1.47`) and release badges (`Major Update`, `Feature Update`, `Patch & Fix`).
-  - `SettingsScreen.kt` renders long `versionName` strings cleanly in both standard and Accessible Mode, including Tap-to-Copy for full version and build details.
+  - `SettingsScreen.kt` renders compact `ApkUp • v<Major>.<Minor>.<Patch> (<versionCode>)` headers via `AboutHeaderVersionRow` & `CopyableVersionBadge` while preserving Tap-to-Copy for the full SemVer + build string (`v<VERSION_NAME> (Build <VERSION_CODE>)`, matching Android System App Info).
 
 ---
 
