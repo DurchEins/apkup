@@ -9,8 +9,11 @@ gradlew text eol=lf
 *.bat text eol=crlf
 *.cmd text eol=crlf
 
-# Exclude website & static GitHub Pages output from GitHub's language bar (keep repo Kotlin-focused)
+# Exclude website, static GitHub Pages output & helper scripts from GitHub's language bar (keep repo Kotlin-focused)
 website/** linguist-detectable=false
 docs/** linguist-detectable=false
+scripts/* linguist-detectable=false
 scripts/** linguist-detectable=false
+*.ps1 linguist-detectable=false
+.github/* linguist-detectable=false
 .github/** linguist-detectable=false

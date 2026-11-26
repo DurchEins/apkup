@@ -344,30 +344,6 @@ jobs:
 
           echo "VirusTotal report: https://www.virustotal.com/gui/file/${APK_SHA256}/detection"
 
-      - name: Publish to Zapstore (Optional)
-        continue-on-error: true
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SIGN_WITH: ${{ secrets.ZAPSTORE_SIGN_WITH }}
-          ZAPSTORE_BUNKER_CLIENT_KEY: ${{ secrets.ZAPSTORE_BUNKER_CLIENT_KEY }}
-        run: |
-          if [ -z "$SIGN_WITH" ]; then
-            echo "ZAPSTORE_SIGN_WITH not set; skipping Zapstore publish."
-            exit 0
-          fi
-          if [ -n "$ZAPSTORE_BUNKER_CLIENT_KEY" ]; then
-            mkdir -p ~/.config/zsp/bunker-keys
-            chmod 700 ~/.config/zsp ~/.config/zsp/bunker-keys
-            printf '%s' "$ZAPSTORE_BUNKER_CLIENT_KEY" > ~/.config/zsp/bunker-keys/977120758bacb32947cf7df4345630ad9f1a57e6802afb6f6311aaf845c64c6d.key
-            chmod 600 ~/.config/zsp/bunker-keys/977120758bacb32947cf7df4345630ad9f1a57e6802afb6f6311aaf845c64c6d.key
-          fi
-          ZSP_VERSION="2.0.1"
-          ZSP_SHA256="1ef5373f8ecd9ba63d2c3fab98abb0d31b2244a2aac31b3749fb205c7d5f5b38"
-          curl -fsSL -o "${RUNNER_TEMP}/zsp" "https://github.com/zapstore/zsp/releases/download/v${ZSP_VERSION}/zsp-${ZSP_VERSION}-linux-amd64"
-          echo "${ZSP_SHA256}  ${RUNNER_TEMP}/zsp" | sha256sum -c -
-          chmod +x "${RUNNER_TEMP}/zsp"
-          "${RUNNER_TEMP}/zsp" publish -q zapstore.yaml
-
       - name: Publish to itch.io (Optional)
         env:
           BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
