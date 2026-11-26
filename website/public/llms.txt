@@ -2,7 +2,7 @@
 
 > Open-source, privacy-first multi-source Android app updater (GPL-3.0) supporting Google Play, F-Droid Index V2, IzzyOnDroid, APKMirror, GitHub, GitLab, Codeberg, and direct APK links — with optional silent background installations via Shizuku (no root) or Root (su), zero ads, and zero tracking.
 
-- Latest version: v1.47.0 (238)
+- Latest version: v1.47.0 (239)
 - Platform: Android 10.0 – 17 (API 29+) • arm64-v8a, armeabi-v7a, x86_64
 - Languages: 9 UI languages (English, German, Spanish, French, Italian, Polish, Portuguese-BR, Russian, Turkish)
 - License: GNU General Public License v3.0 (GPL-3.0)

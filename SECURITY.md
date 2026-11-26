@@ -70,7 +70,7 @@ ApkUp enforces defense-in-depth verification across every stage of checking, dow
 If you discover a potential security vulnerability in ApkUp (especially regarding APK signature checks, `.apkm` extraction, Shizuku IPC / optional Root `su` execution, token storage, or network transport), please report it privately via **[GitHub Private Vulnerability Reporting](https://github.com/DurchEins/apkup/security/advisories/new)**.
 
 ### What to Include in a Report
-- **ApkUp version & Android OS version** (e.g., `v1.47.0+238.74a9f8d (Build 238)` on Android 17)
+- **ApkUp version & Android OS version** (e.g., `v1.47.0+239.14e95c5 (Build 239)` on Android 17)
 - **Affected component or update source** (e.g., `ApkIntegrityVerifier`, F-Droid index parser, Shizuku installer, Tink storage)
 - **Step-by-step reproduction** or Proof-of-Concept (PoC)
 - **Expected security impact** (e.g., signature bypass, arbitrary file write, credential leak)

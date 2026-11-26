@@ -1,0 +1,5 @@
+1.47.0 (239) – Feature Update:
+• WCAG 2.2 Accessible Mode with high-contrast Solar theme (Auto / Light / Dark)
+• Home Screen Updates Widget (Preview), rollback backup limits, and history export
+• Batch safety guard, Retry Failed updates, smart watchlist sync, and update snooze
+• GitHub Sponsors option, tap-to-copy SemVer version, and direct battery exemption dialog

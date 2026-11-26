@@ -1,0 +1,5 @@
+1.47.0 (239) – Feature-Update:
+• Barrierefrei-Modus (WCAG 2.2) samt kontraststarkem Sonnen-Theme (Auto / Hell / Dunkel)
+• Startbildschirm-Widget (Preview), konfigurierbare Rollback-Limits & Update-Verlauf-Export
+• Sicherheitsabfragen vor Sammel-Updates, Fehlgeschlagene erneut versuchen & Schlummerfunktion
+• GitHub Sponsors unter Unterstützen, kopierbare Version in Über & direkter Akku-Dialog
