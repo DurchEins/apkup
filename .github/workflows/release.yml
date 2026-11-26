@@ -100,12 +100,21 @@ jobs:
 
           RAW_LABEL="${INPUT_TAG:-run-${GITHUB_RUN_NUMBER}}"
           SAFE_LABEL=$(printf '%s' "$RAW_LABEL" | tr -cd 'A-Za-z0-9._-')
-          VERSION_CODE=$(grep -E 'versionCode\s*=' app/build.gradle.kts | grep -oE '[0-9]+' | tail -n 1 || true)
+          VERSION_CODE=$(grep -E '^VERSION_CODE=' version.properties 2>/dev/null | cut -d= -f2 | tr -cd '0-9' || true)
+          if [ -z "$VERSION_CODE" ]; then
+            VERSION_CODE=$(grep -E 'versionCode\s*=' app/build.gradle.kts | grep -oE '[0-9]+' | tail -n 1 || true)
+          fi
           if [ -n "$VERSION_CODE" ] && [ -n "$INPUT_TAG" ]; then
-            APK_FILENAME="ApkUp-${SAFE_LABEL}-${VERSION_CODE}.apk"
+            APK_FILENAME="ApkUp-${SAFE_LABEL}-build${VERSION_CODE}.apk"
+            RELEASE_TITLE="${SAFE_LABEL} (${VERSION_CODE})"
+          elif [ -n "$VERSION_CODE" ]; then
+            APK_FILENAME="ApkUp-${SAFE_LABEL}-build${VERSION_CODE}.apk"
+            RELEASE_TITLE="${SAFE_LABEL} (${VERSION_CODE})"
           else
             APK_FILENAME="ApkUp-${SAFE_LABEL}.apk"
+            RELEASE_TITLE="${SAFE_LABEL}"
           fi
+          printf '%s\n' "$RELEASE_TITLE" > release_assets/RELEASE_TITLE.txt
           TARGET_APK="release_assets/${APK_FILENAME}"
           cp "$APK_FILE" "$TARGET_APK"
           (cd release_assets && sha256sum "$(basename "$TARGET_APK")" > "$(basename "$TARGET_APK").sha256")
@@ -158,10 +167,10 @@ jobs:
           CLEAN_VER="${SAFE_LABEL#v}"
           BADGE_LABEL="Feature_Update"
           BADGE_COLOR="A855F7"
-          if printf '%s' "$CLEAN_VER" | grep -qE '^[0-9]+\.[0-9]+\.[1-9][0-9]*'; then
+          if printf '%s' "$CLEAN_VER" | grep -qE '^[0-9]+\.[0-9]+\.[1-9][0-9]*(-|$)'; then
             BADGE_LABEL="Patch_%26_Fix"
             BADGE_COLOR="38BDF8"
-          elif printf '%s' "$CLEAN_VER" | grep -qE '^[0-9]+\.0\.0'; then
+          elif printf '%s' "$CLEAN_VER" | grep -qE '^[0-9]+\.0\.0(-|$)'; then
             BADGE_LABEL="Major_Update"
             BADGE_COLOR="F59E0B"
           fi
@@ -222,11 +231,18 @@ jobs:
           name: apkup-release-assets
           path: release_assets
 
+      - name: Read Release Metadata
+        id: meta
+        run: |
+          RELEASE_TITLE=$(head -n 1 release_assets/RELEASE_TITLE.txt 2>/dev/null || echo "${{ inputs.tag_name }}")
+          echo "release_title=${RELEASE_TITLE}" >> "$GITHUB_OUTPUT"
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
         with:
           token: ${{ secrets.RELEASE_TOKEN || github.token }}
           tag_name: ${{ inputs.tag_name }}
+          name: ${{ steps.meta.outputs.release_title }}
           body_path: release_assets/RELEASE_NOTES.md
           files: |
             release_assets/*.apk
@@ -238,6 +254,7 @@ jobs:
         env:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
           INPUT_TAG: ${{ inputs.tag_name }}
+          RELEASE_TITLE: ${{ steps.meta.outputs.release_title }}
         run: |
           if [ -z "$GITLAB_TOKEN" ]; then
             echo "GITLAB_TOKEN not set; skipping GitLab release mirror."
@@ -260,7 +277,7 @@ jobs:
 
           PAYLOAD=$(jq -n \
             --arg tag "$SAFE_TAG" \
-            --arg name "$SAFE_TAG" \
+            --arg name "${RELEASE_TITLE:-$SAFE_TAG}" \
             --rawfile desc release_assets/RELEASE_NOTES.md \
             --arg apk_name "$APK_NAME" \
             --arg apk_url "${PKG_BASE}/${APK_NAME}" \

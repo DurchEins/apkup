@@ -286,4 +286,79 @@ class SelfUpdateRepositoryTest {
         )
         assertNull(selected)
     }
+
+    @Test
+    fun `semver 2_0_0 ignores build metadata after plus and preserves legacy parens tie-breaker`() {
+        val semVerParsed = repo.parseVersion("1.47.0-beta.1+232.abc1234")
+        assertEquals(1, semVerParsed.major)
+        assertEquals(47, semVerParsed.minor)
+        assertEquals(0, semVerParsed.patch)
+        assertEquals("beta.1", semVerParsed.preRelease)
+        assertEquals(0, semVerParsed.buildNumber)
+
+        val stableSemVer = repo.parseVersion("1.47.0+238.74a9f8d")
+        assertNull(stableSemVer.preRelease)
+        assertEquals(0, stableSemVer.buildNumber)
+
+        // Build metadata after '+' MUST be ignored in SemVer comparison
+        assertFalse(repo.isNewerVersion("1.47.0+238.74a9f8d", "v1.47.0"))
+        assertFalse(repo.isNewerVersion("1.47.0+238.74a9f8d-debug", "v1.47.0"))
+        assertFalse(repo.isNewerVersion("1.47.0+238.abc1234", "1.47.0+239.def5678"))
+
+        // Upgrade chain: v1.46.0 (231) < 1.47.0-alpha.1 < beta.1+232 < beta.2+233 < rc.1 < 1.47.0+234 < 2.0.0+235
+        assertTrue(repo.isNewerVersion("v1.46.0", "v1.47.0"))
+        assertTrue(repo.isNewerVersion("1.46.0 (231)", "1.47.0-alpha.1+231.0000001"))
+        assertTrue(repo.isNewerVersion("1.47.0-alpha.1+231.0000001", "1.47.0-beta.1+232.abc1234"))
+        assertTrue(repo.isNewerVersion("1.47.0-beta.1+232.abc1234", "1.47.0-beta.2+233.def5678"))
+        assertTrue(repo.isNewerVersion("1.47.0-beta.2+233.def5678", "1.47.0-rc.1+233.def5678"))
+        assertTrue(repo.isNewerVersion("1.47.0-beta.2+233.def5678", "1.47.0+234.9876543"))
+        assertTrue(repo.isNewerVersion("1.47.0+234.9876543", "2.0.0+235.1112223"))
+    }
+
+    @Test
+    fun `semver release asset filenames with build suffix never misclassify as pre-release`() {
+        val stableApkParsed = repo.parseVersion("ApkUp-v1.47.0-build238.apk")
+        assertEquals(1, stableApkParsed.major)
+        assertEquals(47, stableApkParsed.minor)
+        assertEquals(0, stableApkParsed.patch)
+        assertNull(stableApkParsed.preRelease)
+
+        val betaApkParsed = repo.parseVersion("ApkUp-v1.47.0-beta.1-build238.apk")
+        assertEquals(1, betaApkParsed.major)
+        assertEquals(47, betaApkParsed.minor)
+        assertEquals(0, betaApkParsed.patch)
+        assertEquals("beta.1", betaApkParsed.preRelease)
+
+        val semVerRelease = GitHubRelease(
+            tag_name = "v1.47.0",
+            name = "v1.47.0 (238)",
+            body = "SemVer 2.0.0 stable release",
+            prerelease = false,
+            draft = false,
+            assets = listOf(
+                GitHubAsset(
+                    name = "ApkUp-v1.47.0-build238.apk.sha256",
+                    size = 128L,
+                    browser_download_url = "https://github.com/DurchEins/apkup/releases/download/v1.47.0/ApkUp-v1.47.0-build238.apk.sha256"
+                ),
+                GitHubAsset(
+                    name = "ApkUp-v1.47.0-build238.apk",
+                    size = 12_345_678L,
+                    browser_download_url = "https://github.com/DurchEins/apkup/releases/download/v1.47.0/ApkUp-v1.47.0-build238.apk",
+                    digest = "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                )
+            )
+        )
+
+        val selected = repo.selectNewestEligibleRelease(
+            releases = listOf(semVerRelease),
+            currentVersionName = "1.46.0 (231)",
+            includePreReleases = false
+        )
+        assertNotNull(selected)
+        assertEquals("v1.47.0", selected!!.second)
+        assertEquals("ApkUp-v1.47.0-build238.apk", selected.third.safeName)
+        assertFalse(repo.isPreReleaseRelease(selected.first, selected.second))
+        assertFalse(repo.isNewerVersion("1.47.0+238.74a9f8d", selected.third.safeName))
+    }
 }

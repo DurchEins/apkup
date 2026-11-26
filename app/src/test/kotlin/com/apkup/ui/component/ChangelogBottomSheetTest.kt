@@ -15,6 +15,8 @@ class ChangelogBottomSheetTest {
         assertEquals("1.39", resolveMilestonePrefix("1.39.3"))
         assertEquals("1.39", resolveMilestonePrefix("1.39"))
         assertEquals("100.1234", resolveMilestonePrefix("100.1234.5678"))
+        assertEquals("1.47", resolveMilestonePrefix("1.47.1+239.abc1234"))
+        assertEquals("1.47", resolveMilestonePrefix("1.47.0-beta.1+238.74a9f8d-debug"))
     }
 
     @Test
@@ -24,6 +26,9 @@ class ChangelogBottomSheetTest {
         assertEquals(ChangelogBadgeType.MAJOR, resolveBadgeType("2.0.0-Beta (200)"))
         assertEquals(ChangelogBadgeType.PATCH, resolveBadgeType("10.125.104-Beta (1480)"))
         assertEquals(ChangelogBadgeType.FEATURE, resolveBadgeType("10.125.0-Beta (1400)"))
+        assertEquals(ChangelogBadgeType.PATCH, resolveBadgeType("1.47.1+239.abc1234"))
+        assertEquals(ChangelogBadgeType.FEATURE, resolveBadgeType("1.47.0-beta.1+238.74a9f8d"))
+        assertEquals(ChangelogBadgeType.MAJOR, resolveBadgeType("2.0.0+250.deadbee"))
         assertEquals(ChangelogBadgeType.FEATURE, resolveBadgeType("1.39.5", "Feature-Update"))
         assertEquals(ChangelogBadgeType.PATCH, resolveBadgeType("1.39.0", "Patch & Bugfix"))
     }
@@ -163,7 +168,7 @@ class ChangelogBottomSheetTest {
 
         listOf("1.47_de.md", "1.47_en.md").forEach { fileName ->
             val raw = File(assetDir, fileName).readText(Charsets.UTF_8)
-            val doc = parseChangelogDocument(raw, "1.47.0 (237)")
+            val doc = parseChangelogDocument(raw, "1.47.0+238.74a9f8d")
             assertEquals("Expected 2 real month sections (November & October) in $fileName", 2, doc.monthSections.size)
             assertTrue("Expected at least 3 November releases in $fileName", doc.monthSections[0].releases.size >= 3)
             assertTrue("Expected at least 7 October releases in $fileName", doc.monthSections[1].releases.size >= 7)

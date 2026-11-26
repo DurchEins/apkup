@@ -19,7 +19,7 @@ body:
     attributes:
       label: ApkUp Version
       description: Shown under Settings ➔ About
-      placeholder: e.g. 1.46.0 (231)
+      placeholder: e.g. v1.47.0+238.74a9f8d (Build 238)
     validations:
       required: true
 

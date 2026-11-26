@@ -106,4 +106,40 @@ class SelfUpdateTest {
             apkAsset.browser_download_url
         )
     }
+
+    @Test
+    fun semVerBuildMetadataAndBuildSuffixFilenamesWorkCleanly() {
+        assertFalse(repo.isNewerVersion("1.47.0+238.74a9f8d", "v1.47.0"))
+        assertTrue(repo.isNewerVersion("1.47.0-beta.1+232.abc1234", "1.47.0+238.74a9f8d"))
+        assertTrue(repo.isNewerVersion("1.47.0+238.74a9f8d", "1.47.1+239.def5678"))
+        assertTrue(repo.isNewerVersion("1.47.0+238.74a9f8d", "2.0.0+240.1112223"))
+
+        val semVerBetaJson = """
+            {
+              "tag_name": "v1.47.0-beta.1",
+              "name": "v1.47.0-beta.1 (238)",
+              "body": "SemVer beta",
+              "draft": false,
+              "prerelease": true,
+              "assets": [
+                {
+                  "name": "ApkUp-v1.47.0-beta.1-build238.apk.sha256",
+                  "size": 120,
+                  "browser_download_url": "https://github.com/DurchEins/apkup/releases/download/v1.47.0-beta.1/ApkUp-v1.47.0-beta.1-build238.apk.sha256"
+                },
+                {
+                  "name": "ApkUp-v1.47.0-beta.1-build238.apk",
+                  "size": 14500000,
+                  "browser_download_url": "https://github.com/DurchEins/apkup/releases/download/v1.47.0-beta.1/ApkUp-v1.47.0-beta.1-build238.apk"
+                }
+              ]
+            }
+        """.trimIndent()
+
+        val release = Gson().fromJson(semVerBetaJson, GitHubRelease::class.java)
+        val apkAsset = release.assets.firstOrNull { repo.isEligibleApkAsset(it) }
+        assertNotNull(apkAsset)
+        assertEquals("ApkUp-v1.47.0-beta.1-build238.apk", apkAsset!!.name)
+        assertEquals("beta.1", repo.parseVersion(apkAsset.name).preRelease)
+    }
 }

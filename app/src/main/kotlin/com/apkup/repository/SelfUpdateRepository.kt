@@ -116,13 +116,10 @@ class SelfUpdateRepository(
             if (isPreRelease && !includePreReleases) continue
             if (!isNewerVersion(currentVersionName, candidateTag)) continue
 
-            val apkAsset = release.safeAssets.firstOrNull { asset ->
-                val lower = asset.safeName.lowercase(Locale.ROOT)
-                lower.endsWith(".apk") &&
-                    !lower.endsWith("-debug.apk") &&
-                    !lower.endsWith("-unaligned.apk") &&
-                    isTrustedDownloadUrl(asset.safeDownloadUrl)
-            } ?: continue
+            val candidateAssets = release.safeAssets.filter { isEligibleApkAsset(it) }
+            val apkAsset = candidateAssets.firstOrNull {
+                it.safeName.startsWith("ApkUp-", ignoreCase = true)
+            } ?: candidateAssets.firstOrNull() ?: continue
 
             val currentBest = best
             if (currentBest == null || isNewerVersion(currentBest.second, candidateTag)) {
@@ -130,6 +127,15 @@ class SelfUpdateRepository(
             }
         }
         return best
+    }
+
+    internal fun isEligibleApkAsset(asset: GitHubAsset): Boolean {
+        val lower = asset.safeName.lowercase(Locale.ROOT)
+        return lower.endsWith(".apk") &&
+            !lower.endsWith("-debug.apk") &&
+            !lower.endsWith("-unaligned.apk") &&
+            !lower.endsWith("-unsigned.apk") &&
+            isTrustedDownloadUrl(asset.safeDownloadUrl)
     }
 
     internal fun isTrustedDownloadUrl(url: String): Boolean {
@@ -175,16 +181,27 @@ class SelfUpdateRepository(
     )
 
     internal fun parseVersion(versionStr: String): ParsedVersion {
-        val buildNum = Regex("\\((\\d+)\\)").find(versionStr)?.groupValues?.getOrNull(1)?.toIntOrNull() ?: 0
-        val clean = versionStr
-            .substringBefore("(")
+        // SemVer 2.0.0 strictly ignores build metadata after '+'; keep "(build)" tie-breaker only for legacy strings
+        val hasBuildMetadata = versionStr.contains("+")
+        val buildNum = if (hasBuildMetadata) {
+            0
+        } else {
+            Regex("\\((\\d+)\\)").find(versionStr)?.groupValues?.getOrNull(1)?.toIntOrNull() ?: 0
+        }
+        var clean = versionStr
             .substringBefore("+")
+            .substringBefore("(")
             .trim()
+        if (clean.endsWith(".apk", ignoreCase = true)) {
+            clean = clean.dropLast(4)
+        }
+        clean = clean
             .removePrefix("ApkUp-")
             .removePrefix("apkup-")
             .removePrefix("v")
             .removePrefix("V")
             .trim()
+            .replace(Regex("(?i)-build\\d+$"), "")
             .trimEnd('-')
         val baseAndPre = clean.split("-", limit = 2)
         val baseParts = baseAndPre[0].trim().split(".")
