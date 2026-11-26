@@ -41,7 +41,9 @@
 
 ---
 
-### 🔗 Project
+### 🔗 Project & Developer Docs
+* 🏷️ **[Tech: Versioning (Legacy vs. SemVer 2.0.0)](https://github.com/DurchEins/apkup/wiki/Tech-Versioning,-SemVer-2.0.0-&-Migration)**
+* 🚀 **[Tech: CI/CD & Single-Artifact Releases](https://github.com/DurchEins/apkup/wiki/Tech-CI-CD,-Single-Artifact-Releases-&-Checksums)**
 * 📦 **[GitHub Releases](https://github.com/DurchEins/apkup/releases)**
 * 🐛 **[Issues & Feedback](https://github.com/DurchEins/apkup/issues)**
 * 🛡️ **[Security Policy](https://github.com/DurchEins/apkup/blob/main/SECURITY.md)**

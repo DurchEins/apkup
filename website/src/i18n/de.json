@@ -1255,6 +1255,10 @@
         "title": "Technik: CI/CD, Single-Artifact-Releases & Prüfsummen",
         "lead": "Technischer Überblick über semantische Versionierung, PR-CI-Checks, kanonische release.yml-Signierung, SHA256SUMS, Self-Updater und Mirrors."
       },
+      "tech-versioning": {
+        "title": "Technik: Versionierungs-Standard (Alt vs. SemVer 2.0.0)",
+        "lead": "Technischer Vergleich zwischen Alt-Standard (bis v1.46.0) und SemVer 2.0.0 (ab v1.47.0), version.properties, Self-Updater-Präzedenz, Major-Regel und Worktree-Isolation."
+      },
       "tech-storage": {
         "title": "Technik: Datenhaltung, Prefs, Backups, Logs & Widget",
         "lead": "Technischer Überblick über SecurePrefsStore-Allowlist, CachedUpdateSnapshot, ApkUpBackupConfig-Schema, AppJournal und UpdatesWidgetProvider (Preview)."
