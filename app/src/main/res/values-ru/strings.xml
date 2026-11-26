@@ -605,7 +605,7 @@
     <string name="self_update_prerelease_notice">Это предварительная версия ApkUp, предназначенная для раннего тестирования.</string>
     <string name="dynamic_color_title">Динамические цвета (Material You)</string>
     <string name="about_support_bento_title">Поддержать ApkUp</string>
-    <string name="about_support_bento_subtitle">Звезда, отзыв · Buy Me a Coffee и Coindrop</string>
+    <string name="about_support_bento_subtitle">GitHub Sponsors, Buy Me a Coffee, Coindrop и отзывы</string>
     <string name="support_sheet_title">Поддержать ApkUp</string>
     <string name="support_sheet_description" formatted="false">ApkUp остаётся полностью бесплатным, с открытым исходным кодом и без рекламы и слежки. Если приложение экономит вам время, любая добровольная поддержка очень поможет!</string>
     <string name="support_section_direct">Прямая поддержка</string>
@@ -705,4 +705,6 @@
     <string name="a11y_selected_label">Выбрано</string>
     <string name="updates_missing_prehash_hint">Источник не предоставляет хеш заранее; Android проверит подпись приложения при установке.</string>
     <string name="widget_updates_preview_badge">Preview</string>
+    <string name="version_copied_snack">Версия скопирована: %1$s</string>
+    <string name="a11y_copy_version_action">Скопировать версию и номер сборки</string>
 </resources>

@@ -599,7 +599,7 @@
     <string name="self_update_prerelease_notice">这是用于抢先测试的 ApkUp 预发布版本。</string>
     <string name="dynamic_color_title">动态配色 (Material You)</string>
     <string name="about_support_bento_title">支持 ApkUp</string>
-    <string name="about_support_bento_subtitle">星标、评价 · Buy Me a Coffee 与 Coindrop</string>
+    <string name="about_support_bento_subtitle">GitHub Sponsors、Buy Me a Coffee、Coindrop 与评价</string>
     <string name="support_sheet_title">支持 ApkUp</string>
     <string name="support_sheet_description" formatted="false">ApkUp 永远保持免费、开源、无广告且无任何追踪。如果这款应用为您节省了时间，欢迎自愿支持！</string>
     <string name="support_section_direct">直接支持</string>
@@ -696,4 +696,6 @@
     <string name="a11y_selected_label">已选择</string>
     <string name="updates_missing_prehash_hint">该来源未提供下载前哈希值；安装时 Android 会验证应用签名。</string>
     <string name="widget_updates_preview_badge">Preview</string>
+    <string name="version_copied_snack">已复制版本：%1$s</string>
+    <string name="a11y_copy_version_action">复制版本号和构建号</string>
 </resources>

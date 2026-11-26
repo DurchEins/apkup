@@ -224,13 +224,6 @@ fun ChangelogBottomSheet(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.semantics { heading() }
                     )
-                    AutoResizeText(
-                        text = "ApkUp ${BuildConfig.VERSION_NAME}",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1
-                    )
                 }
 
                 IconButton(
@@ -741,6 +734,7 @@ internal fun resolveBadgeType(version: String, customLabel: String? = null): Cha
     val semVer = version
         .removePrefix("v")
         .removePrefix("V")
+        .substringBefore("+")
         .substringBefore("-")
         .substringBefore("(")
         .trim()
@@ -773,7 +767,11 @@ internal fun resolveChangelogLanguageSuffix(locale: Locale = Locale.getDefault()
 }
 
 internal fun resolveMilestonePrefix(versionName: String): String {
-    val semVer = versionName.substringBefore("-").substringBefore("(").trim()
+    val semVer = versionName
+        .substringBefore("+")
+        .substringBefore("-")
+        .substringBefore("(")
+        .trim()
     val parts = semVer.split(".")
     return if (parts.size >= 2) "${parts[0]}.${parts[1]}" else semVer.ifEmpty { "1.39" }
 }
@@ -781,6 +779,7 @@ internal fun resolveMilestonePrefix(versionName: String): String {
 internal fun loadChangelogContent(context: Context): String {
     val langSuffix = resolveChangelogLanguageSuffix(Locale.getDefault())
     val exactPrefix = BuildConfig.VERSION_NAME
+        .substringBefore("+")
         .substringBefore("-")
         .substringBefore("(")
         .trim()

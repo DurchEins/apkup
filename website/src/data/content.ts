@@ -13,7 +13,7 @@ export const SITE = {
   privacyUrl: 'https://github.com/DurchEins/apkup/blob/main/PRIVACY.md',
   licenseUrl: 'https://github.com/DurchEins/apkup/blob/main/LICENSE',
   fallbackVersion: '1.47.0',
-  fallbackBuild: '237',
+  fallbackBuild: '238',
 };
 
 export const SOURCES = [

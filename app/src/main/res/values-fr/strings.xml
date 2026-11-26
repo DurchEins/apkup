@@ -602,7 +602,7 @@
     <string name="self_update_prerelease_notice">Il s\'agit d\'une préversion d\'ApkUp destinée aux tests anticipés.</string>
     <string name="dynamic_color_title">Couleurs dynamiques (Material You)</string>
     <string name="about_support_bento_title">Soutenir ApkUp</string>
-    <string name="about_support_bento_subtitle">Étoile, avis · Buy Me a Coffee &amp; Coindrop</string>
+    <string name="about_support_bento_subtitle">GitHub Sponsors, Buy Me a Coffee, Coindrop et avis</string>
     <string name="support_sheet_title">Soutenir ApkUp</string>
     <string name="support_sheet_description" formatted="false">ApkUp reste 100 % gratuit, open source, sans publicité ni suivi. Si l\'application vous fait gagner du temps, tout soutien volontaire aide beaucoup !</string>
     <string name="support_section_direct">Soutien direct</string>
@@ -700,4 +700,6 @@
     <string name="a11y_selected_label">Sélectionné</string>
     <string name="updates_missing_prehash_hint">La source ne fournit pas de hachage préalable ; Android vérifie la signature de l\'app à l\'installation.</string>
     <string name="widget_updates_preview_badge">Preview</string>
+    <string name="version_copied_snack">Version copiée : %1$s</string>
+    <string name="a11y_copy_version_action">Copier la version et le numéro de build</string>
 </resources>

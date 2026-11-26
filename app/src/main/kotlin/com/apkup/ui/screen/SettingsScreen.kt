@@ -55,6 +55,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -85,6 +87,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material.icons.filled.Add
@@ -154,6 +157,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -167,6 +171,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -195,6 +200,7 @@ import com.apkup.R
 import com.apkup.ui.theme.ApkUpTheme
 import com.apkup.ui.theme.THEME_ACCESSIBILITY
 import com.apkup.data.selfupdate.SelfUpdateState
+import com.apkup.data.snack.TextSnack
 import com.apkup.data.ui.AppInstalled
 import com.apkup.data.ui.BackgroundCheckInterval
 import com.apkup.data.ui.IgnoredVersionEntry
@@ -202,13 +208,13 @@ import com.apkup.data.ui.ShizukuSetupStatus
 import com.apkup.ui.component.LoadingImageApp
 import com.apkup.ui.component.SegmentedButtonSetting
 import com.apkup.ui.component.SettingsSection
-import com.apkup.ui.component.AutoResizeText
 import com.apkup.ui.component.SwitchSetting
 import com.apkup.ui.component.SplitSwitchSetting
 import com.apkup.ui.component.NavigationSettingItem
 import com.apkup.util.AppJournal
 import com.apkup.util.DownloadStorageManager
 import com.apkup.util.SessionInstaller
+import com.apkup.util.SnackBar
 import com.apkup.util.SolarScheduleCalculator
 import com.apkup.util.openSafeHttpsUri
 import com.apkup.viewmodel.AppsViewModel
@@ -250,6 +256,7 @@ fun Settings(
 ) {
 	val context = LocalContext.current
 	val haptic = LocalHapticFeedback.current
+	val snackBar: SnackBar = koinInject()
 	val lifecycleOwner = LocalLifecycleOwner.current
 	val coroutineScope = rememberCoroutineScope()
 	val listState = rememberLazyListState()
@@ -2378,30 +2385,20 @@ fun Settings(
 								)
 							}
 							Spacer(modifier = Modifier.heightIn(min = 2.dp))
-							Row(
-								verticalAlignment = CenterVertically,
-								horizontalArrangement = Arrangement.spacedBy(6.dp)
-							) {
-								Text(
-									text = stringResource(R.string.app_name),
-									style = MaterialTheme.typography.titleMedium,
-									fontWeight = FontWeight.Bold,
-									color = MaterialTheme.colorScheme.onSurface,
-									maxLines = 1
-								)
-								Text(
-									text = "•",
-									style = MaterialTheme.typography.labelMedium,
-									color = MaterialTheme.colorScheme.onSurfaceVariant
-								)
-								AutoResizeText(
-									text = "v" + BuildConfig.VERSION_NAME.removePrefix("v"),
-									style = MaterialTheme.typography.labelMedium,
-									fontWeight = FontWeight.SemiBold,
-									color = MaterialTheme.colorScheme.primary,
-									maxLines = 1
-								)
-							}
+							AboutHeaderVersionRow(
+								appName = stringResource(R.string.app_name),
+								versionName = BuildConfig.VERSION_NAME,
+								versionCode = BuildConfig.VERSION_CODE,
+								onCopyFeedback = { payload ->
+									snackBar.snackBar(
+										coroutineScope,
+										TextSnack(
+											resources.getString(R.string.version_copied_snack, payload),
+											visualType = com.apkup.data.snack.SnackVisualType.SUCCESS
+										)
+									)
+								}
+							)
 							AnimatedContent(
 								targetState = isEasterEggActive,
 								transitionSpec = {
@@ -6178,3 +6175,130 @@ private fun readUtf8FromSafUri(
 		out.toString(Charsets.UTF_8.name())
 	}
 }.getOrNull()
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun AboutHeaderVersionRow(
+	appName: String,
+	versionName: String,
+	versionCode: Int,
+	modifier: Modifier = Modifier,
+	onCopyFeedback: (String) -> Unit = {}
+) {
+	FlowRow(
+		modifier = modifier,
+		horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+		verticalArrangement = Arrangement.spacedBy(2.dp, CenterVertically),
+		itemVerticalAlignment = CenterVertically
+	) {
+		Text(
+			text = appName,
+			style = MaterialTheme.typography.titleMedium,
+			fontWeight = FontWeight.Bold,
+			color = MaterialTheme.colorScheme.onSurface,
+			maxLines = 1
+		)
+		Text(
+			text = "•",
+			style = MaterialTheme.typography.labelMedium,
+			color = MaterialTheme.colorScheme.onSurfaceVariant
+		)
+		CopyableVersionBadge(
+			versionName = versionName,
+			versionCode = versionCode,
+			onCopyFeedback = onCopyFeedback
+		)
+	}
+}
+
+@Composable
+internal fun CopyableVersionBadge(
+	versionName: String,
+	versionCode: Int,
+	modifier: Modifier = Modifier,
+	onCopyFeedback: (String) -> Unit = {}
+) {
+	@Suppress("DEPRECATION")
+	val clipboard = LocalClipboardManager.current
+	val haptic = LocalHapticFeedback.current
+	val isAccessibleUi = ApkUpTheme.isAccessibleUi
+	val isReducedMotion = ApkUpTheme.isReducedMotion
+
+	val shortSemVer = versionName
+		.substringBefore("+")
+		.removePrefix("v")
+		.removePrefix("V")
+		.trim()
+	val displayVersion = "v$shortSemVer ($versionCode)"
+	val copyPayload = "v${versionName.removePrefix("v").removePrefix("V")} (Build $versionCode)"
+	val copyActionLabel = stringResource(R.string.a11y_copy_version_action)
+	var copied by remember(copyPayload) { mutableStateOf(false) }
+
+	LaunchedEffect(copied) {
+		if (copied) {
+			delay(1500L)
+			copied = false
+		}
+	}
+
+	Surface(
+		shape = RoundedCornerShape(8.dp),
+		color = if (copied) ApkUpTheme.colors.successContainer else Color.Transparent,
+		modifier = modifier
+			.then(if (isAccessibleUi) Modifier.heightIn(min = 48.dp) else Modifier)
+			.clip(RoundedCornerShape(8.dp))
+			.clickable(role = Role.Button, onClickLabel = copyActionLabel) {
+				clipboard.setText(AnnotatedString(copyPayload))
+				haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+				copied = true
+				onCopyFeedback(copyPayload)
+			}
+	) {
+		AnimatedContent(
+			targetState = copied,
+			transitionSpec = {
+				if (isReducedMotion) {
+					fadeIn(tween(80)) togetherWith fadeOut(tween(80))
+				} else {
+					(scaleIn(initialScale = 0.94f) + fadeIn(tween(160))) togetherWith
+						(scaleOut(targetScale = 0.94f) + fadeOut(tween(120)))
+				}
+			},
+			label = "VersionCopyMorph"
+		) { isCopied ->
+			Row(
+				modifier = Modifier.padding(
+					horizontal = if (isAccessibleUi) 10.dp else 4.dp,
+					vertical = if (isAccessibleUi) 10.dp else 2.dp
+				),
+				verticalAlignment = CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(4.dp)
+			) {
+				if (isCopied) {
+					Icon(
+						imageVector = Icons.Filled.Check,
+						contentDescription = null,
+						tint = ApkUpTheme.colors.onSuccessContainer,
+						modifier = Modifier.size(if (isAccessibleUi) 16.dp else 13.dp)
+					)
+					Text(
+						text = stringResource(R.string.version_copied_snack, copyPayload),
+						style = MaterialTheme.typography.labelMedium,
+						fontWeight = FontWeight.SemiBold,
+						color = ApkUpTheme.colors.onSuccessContainer,
+						maxLines = 2
+					)
+				} else {
+					Text(
+						text = displayVersion,
+						style = MaterialTheme.typography.labelMedium,
+						fontWeight = FontWeight.SemiBold,
+						color = MaterialTheme.colorScheme.primary,
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis
+					)
+				}
+			}
+		}
+	}
+}

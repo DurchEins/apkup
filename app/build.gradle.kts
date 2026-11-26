@@ -21,19 +21,48 @@ android {
         }
     }
 
+    val versionPropsText = providers.fileContents(
+        rootProject.layout.projectDirectory.file("version.properties")
+    ).asText.get()
+    val versionProps = Properties().apply { load(StringReader(versionPropsText)) }
+    val versionMajor = versionProps.getProperty("VERSION_MAJOR")?.trim()?.toIntOrNull()?.takeIf { it >= 0 }
+        ?: throw GradleException("VERSION_MAJOR must be a non-negative integer in version.properties")
+    val versionMinor = versionProps.getProperty("VERSION_MINOR")?.trim()?.toIntOrNull()?.takeIf { it >= 0 }
+        ?: throw GradleException("VERSION_MINOR must be a non-negative integer in version.properties")
+    val versionPatch = versionProps.getProperty("VERSION_PATCH")?.trim()?.toIntOrNull()?.takeIf { it >= 0 }
+        ?: throw GradleException("VERSION_PATCH must be a non-negative integer in version.properties")
+    val versionPreRelease = versionProps.getProperty("VERSION_PRE_RELEASE")?.trim().orEmpty()
+    val baseVersionCode = versionProps.getProperty("VERSION_CODE")?.trim()?.toIntOrNull()?.takeIf { it > 0 }
+        ?: throw GradleException("VERSION_CODE must be a positive integer in version.properties")
+
     val buildNumber = providers.environmentVariable("BUILD_NUMBER").orNull.orEmpty().trim()
     val parsedBuildNumber = buildNumber.takeIf { it.isNotEmpty() }?.let { raw ->
         raw.toIntOrNull()?.takeIf { it > 0 }
             ?: throw GradleException("BUILD_NUMBER must be a positive integer, got: '$raw'")
     }
+    val effectiveVersionCode = parsedBuildNumber ?: baseVersionCode
+
+    val shortGitHash = runCatching {
+        val gitHashExec = providers.exec {
+            commandLine("git", "rev-parse", "--short", "HEAD")
+            isIgnoreExitValue = true
+        }
+        gitHashExec.result.zip(gitHashExec.standardOutput.asText) { res, out ->
+            if (res.exitValue == 0) out.trim().ifEmpty { "nogit" } else "nogit"
+        }.getOrElse("nogit")
+    }.getOrDefault("nogit")
+
+    val semVerCore = "$versionMajor.$versionMinor.$versionPatch"
+    val semVerPreRelease = if (versionPreRelease.isNotEmpty()) "-$versionPreRelease" else ""
+    val semVerVersionName = "$semVerCore$semVerPreRelease+$effectiveVersionCode.$shortGitHash"
     val buildTag = providers.environmentVariable("BUILD_TAG").orNull.orEmpty().trim()
 
     defaultConfig {
         applicationId = "com.apkup" + buildTag
         minSdk = 29
         targetSdk = 37
-        versionCode = parsedBuildNumber ?: 238
-        versionName = if (parsedBuildNumber == null) "1.47.0 (238)" else "1.47.0-$parsedBuildNumber"
+        versionCode = effectiveVersionCode
+        versionName = semVerVersionName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

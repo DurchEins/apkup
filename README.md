@@ -26,12 +26,12 @@
 </p>
 
 <p align="center">
-  <a href="https://durcheins.github.io/apkup/"><i>Homepage</i></a> • <a href="#-features">Features</a> • <a href="#-downloads">Downloads</a> • <a href="#-screenshots">Screenshots</a> • <a href="#%EF%B8%8F-requirements--tech-stack">Requirements &amp; Tech Stack</a> • <a href="#-quick-guides">Quick-Guides</a> • <a href="#-troubleshooting--wiki">Wiki</a> • <a href="ACCESSIBILITY.md">Accessibility</a> • <a href="#-support-apkup">Support</a> • <a href="#-translations">Translations</a>
+  <a href="https://durcheins.github.io/apkup/"><i>Homepage</i></a> • <a href="#-features">Features</a> • <a href="#-downloads">Downloads</a> • <a href="#-screenshots">Screenshots</a> • <a href="#%EF%B8%8F-requirements--tech-stack">Requirements &amp; Tech Stack</a> • <a href="#-quick-guides">Quick-Guides</a> • <a href="#-troubleshooting--wiki">Wiki</a> • <a href="ACCESSIBILITY.md">Accessibility</a> • <a href="VERSIONING.md">Versioning</a> • <a href="#-support-apkup">Support</a> • <a href="#-translations">Translations</a>
 </p>
 
 <p align="center">
   <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/github/downloads/DurchEins/apkup/total?style=flat&label=GitHub%20Downloads&color=F59E0B&logo=github" alt="Total GitHub Downloads" /></a>
-  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.47.0%20(237)-A855F7?style=flat" alt="Current Version: 1.47.0 (237)" /></a>
+  <a href="https://github.com/DurchEins/apkup/releases/latest"><img src="https://img.shields.io/badge/Version-1.47.0%20(238)-A855F7?style=flat" alt="Current Version: 1.47.0 (238)" /></a>
   <img src="https://img.shields.io/badge/Min%20SDK-29%20(Android%2010%2B)-3DDC84?style=flat&logo=android" alt="Minimum Android SDK 29 (Android 10 or higher)" />
   <a href="PRIVACY.md"><img src="https://img.shields.io/badge/Privacy-No%20Ads%20%7C%20No%20Tracking-2EA44F?style=flat" alt="Privacy: No Ads, No Tracking" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-blue?style=flat" alt="License: GNU GPL-3.0" /></a>

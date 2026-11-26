@@ -65,6 +65,7 @@ import com.apkup.R
 import com.apkup.ui.theme.ApkUpTheme
 
 object SupportLinks {
+	const val GITHUB_SPONSORS = "https://github.com/sponsors/DurchEins"
 	const val BUY_ME_A_COFFEE = "https://buymeacoffee.com/durcheins"
 	const val COINDROP = "https://coindrop.to/durcheins"
 	const val GITHUB = "https://github.com/DurchEins/apkup"
@@ -135,6 +136,7 @@ fun SupportCommunityBottomSheet(
 	val openUrl = rememberCustomTabOpener()
 	val bmacTitle = stringResource(R.string.support_bmac_title)
 	val coindropTitle = stringResource(R.string.support_coindrop_title)
+	val githubSponsorsTitle = stringResource(R.string.support_github_sponsors_title)
 	val isReducedMotion = ApkUpTheme.isReducedMotion
 	val heartDrift = remember { Animatable(0f) }
 	LaunchedEffect(isReducedMotion) {
@@ -224,28 +226,39 @@ fun SupportCommunityBottomSheet(
 				color = MaterialTheme.colorScheme.primary
 			)
 
-			Row(
-				modifier = Modifier
-					.fillMaxWidth()
-					.height(IntrinsicSize.Min),
-				horizontalArrangement = Arrangement.spacedBy(10.dp)
+			Column(
+				modifier = Modifier.fillMaxWidth(),
+				verticalArrangement = Arrangement.spacedBy(10.dp)
 			) {
 				SupportDonationCard(
-					title = bmacTitle,
-					icon = Icons.Rounded.Coffee,
-					modifier = Modifier
-						.weight(1f)
-						.fillMaxHeight(),
-					onClick = { openUrl(SupportLinks.BUY_ME_A_COFFEE) }
+					title = githubSponsorsTitle,
+					icon = Icons.Rounded.Favorite,
+					modifier = Modifier.fillMaxWidth(),
+					onClick = { openUrl(SupportLinks.GITHUB_SPONSORS) }
 				)
-				SupportDonationCard(
-					title = coindropTitle,
-					icon = Icons.Rounded.MonetizationOn,
+				Row(
 					modifier = Modifier
-						.weight(1f)
-						.fillMaxHeight(),
-					onClick = { openUrl(SupportLinks.COINDROP) }
-				)
+						.fillMaxWidth()
+						.height(IntrinsicSize.Min),
+					horizontalArrangement = Arrangement.spacedBy(10.dp)
+				) {
+					SupportDonationCard(
+						title = bmacTitle,
+						icon = Icons.Rounded.Coffee,
+						modifier = Modifier
+							.weight(1f)
+							.fillMaxHeight(),
+						onClick = { openUrl(SupportLinks.BUY_ME_A_COFFEE) }
+					)
+					SupportDonationCard(
+						title = coindropTitle,
+						icon = Icons.Rounded.MonetizationOn,
+						modifier = Modifier
+							.weight(1f)
+							.fillMaxHeight(),
+						onClick = { openUrl(SupportLinks.COINDROP) }
+					)
+				}
 			}
 
 			HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f))

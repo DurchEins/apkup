@@ -12,6 +12,9 @@ const SLUG_BY_WIKI_NAME: Record<string, string> = {
   'sha-256-&-signature-verification': 'sha256',
   'installing-unknown-apps': 'sideloading',
   'google-24h-lock-&-keep-android-open': 'google-lock',
+  'accessibility-&-accessible-mode': 'accessibility',
+  'tech-ci-cd,-single-artifact-releases-&-checksums': 'tech-cicd',
+  'tech-versioning,-semver-2.0.0-&-migration': 'tech-versioning',
 };
 
 function escapeHtml(s: string): string {

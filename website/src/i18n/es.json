@@ -1255,6 +1255,10 @@
         "title": "Tech: CI/CD, Single-Artifact Releases & Checksums",
         "lead": "Technical overview of semantic versioning, PR CI gates, release.yml canonical APK signing, SHA256SUMS, Self-Updater, and mirror distribution."
       },
+      "tech-versioning": {
+        "title": "Tech: Versioning Standard (Legacy vs. SemVer 2.0.0)",
+        "lead": "Technical comparison of ApkUp's legacy versioning (up to v1.46.0) and SemVer 2.0.0 (v1.47.0+), version.properties, Self-Updater precedence, Major rules, and worktree isolation."
+      },
       "tech-storage": {
         "title": "Tech: Data Storage, Prefs, Backups, Logs & Widget",
         "lead": "Technical overview of SecurePrefsStore allowlist, CachedUpdateSnapshot, ApkUpBackupConfig JSON schema, AppJournal, and UpdatesWidgetProvider (Preview)."
