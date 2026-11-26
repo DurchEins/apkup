@@ -1,0 +1,44 @@
+---
+interface Chapter {
+  slug: string;
+  tag: string;
+  title: string;
+  headings: { id: string; text: string; level: number }[];
+}
+
+interface Props {
+  ch: Chapter;
+  open?: boolean;
+  active?: boolean;
+}
+
+const { ch, open = false, active = false } = Astro.props;
+---
+
+<details class="wiki-nav-group" data-wiki-group={ch.slug} open={open}>
+  <summary class={`wiki-tab-btn ${active ? 'is-active' : ''}`} data-wiki-tab={ch.slug}>
+    <span class="wiki-tab-link">
+      <span class="wiki-tab-title">{ch.title}</span>
+    </span>
+    <span class="wiki-tab-right">
+      <span class="wiki-tab-tag mono">{ch.tag}</span>
+      <svg class="wiki-nav-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="m6 9 6 6 6-6"></path>
+      </svg>
+    </span>
+  </summary>
+  <ul class="wiki-subnav">
+    <li class="is-l2">
+      <a href={`#doc-${ch.slug}`} data-wiki-chapter-link={ch.slug}>
+        {ch.title}
+      </a>
+    </li>
+    {ch.headings.map((h) => (
+      <li class={h.level === 2 ? 'is-l2' : 'is-l3'}>
+        <a href={`#${h.id}`} data-wiki-sub={h.id}>
+          {h.text}
+        </a>
+      </li>
+    ))}
+  </ul>
+</details>
