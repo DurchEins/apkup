@@ -37,7 +37,7 @@ This guide explains how ApkUp's update sources work together, how **Source Prior
 ---
 
 <a id="-part-1-explained-simply-for-everyone"></a>
-## 🟢 Part 1: Explained Simply for Everyone
+## 📖 User Guide
 
 <a id="11-which-update-sources-does-apkup-search"></a>
 ### 1.1 Which update sources does ApkUp search?
@@ -98,79 +98,7 @@ When an app offers updates on multiple sources simultaneously, ApkUp keeps your 
 ---
 
 <a id="-part-2-technical-documentation-for-experts--power-users"></a>
-## 💻 Part 2: Technical Documentation for Experts & Power Users
-
-<a id="21-parallel-multi-source-aggregation--version-verification"></a>
-### 2.1 Parallel Multi-Source Aggregation & Version Verification
-ApkUp queries all enabled sources concurrently and in isolation, so one slow or unreachable provider never blocks the others:
-
-```mermaid
-flowchart LR
-    Installed["Local Package Scanner\n(Installed Apps + Certificates)"] --> Orchestrator["Update Aggregator\n(Source Priority & Pinning)"]
-    
-    Orchestrator --> Play["Google Play Store\n(Anonymous gplayapi)"]
-    Orchestrator --> AM["APKMirror\n(REST v2 Batch API)"]
-    Orchestrator --> FD["F-Droid / IzzyOnDroid\n(Index V2 + Diffs)"]
-    Orchestrator --> GH["GitHub\n(REST / GraphQL)"]
-    Orchestrator --> GL["GitLab\n(API v4 Releases)"]
-    Orchestrator --> CB["Codeberg / Forgejo\n(API v1 Releases)"]
-    
-    Play & AM & FD & GH & GL & CB --> Dedupe["Deduplication, Signature\n& Compatibility Guard"]
-    Dedupe --> UI["Updates Overview\n(Primary Card + Alternative Sources)"]
-```
-
-**Two-Stage Version Verification + Compatibility Guard:**
-1. Strictly higher Android `versionCode` (when provided by the source) and semantic version progression.
-2. Pre-install compatibility check verifying device `minSdk`, supported CPU `ABI`s, and signing certificates before launching installation.
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="22-cryptographic-signature-verification-sha-1--sha-256--origin-detection"></a>
-### 2.2 Cryptographic Signature Verification (SHA-1 & SHA-256) & Origin Detection
-ApkUp computes both **SHA-1** and **SHA-256** signing fingerprints via `PackageManager` (`GET_SIGNING_CERTIFICATES` on API 28+):
-- **APKMirror:** Strictly matches the remote SHA-1 fingerprint against the installed app.
-- **F-Droid / IzzyOnDroid:** Matches the local certificate against the `signer` SHA-256 hash recorded in the repository index.
-- **Install Origin Detection:** Uses `PackageManager.getInstallSourceInfo()` to flag cross-source signature mismatches proactively.
-- **Local Export Exception:** When using **Save APK**, file/archive/SHA-256 integrity is verified without blocking export if the installed app uses a different signer.
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="23-direct-apkmirror-resolution--hardened-apkm-split-extraction"></a>
-### 2.3 Direct APKMirror Resolution & Hardened `.apkm` Split Extraction
-1. **Three-Stage Link Resolution:** Variant page ➔ time-signed download page ➔ final CDN stream.
-2. **Cooldown & Anti-Bot Handling:** Enforces per-app 10-minute cooldowns on failures, opens an in-app Cloudflare WebView when interactive verification is needed, and falls back to the system browser if still blocked.
-3. **Hardened `.apkm` Extraction:** Inspects true ZIP structure (`AndroidManifest.xml` at root vs. embedded split `.apk`s), rejects Zip-Slip (`..` / path traversal) entries, and writes atomic `.part` downloads before finalizing.
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="24-google-play-store-dispenser-resilience--http-429-recovery"></a>
-### 2.4 Google Play Store Engine (`gplayapi 4.0.0`) & HTTP 429 Recovery
-Starting with **v1.46.0+**, anonymous Play Store queries run **directly on-device** via `gplayapi 4.0.0` (`PlayClient` and `DefaultPlaySessions`) without relying on an external Aurora Dispenser server:
-- **Stronger Privacy & Data Minimization:** Because no third-party dispenser server sits in the middle, no external intermediary ever sees your IP address or update-check timestamps. Traffic flows directly between your device and Google Play while keeping the privacy-friendly Pixel 7a baseline profile and requiring no Google account.
-- **Higher Reliability & HTTP 429 Recovery:** Eliminates external dispenser outages and bottlenecks. On `HTTP 429`, ApkUp rotates the anonymous session in a synchronized manner with cooldown protection so concurrent checks and downloads share the refreshed session cleanly.
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="25-three-tier-repository-resolution-for-github-gitlab--codeberg"></a>
-### 2.5 Three-Tier Repository Resolution for GitHub, GitLab & Codeberg
-1. **Priority 1 – Custom User Bindings:** Manually linked repositories (plus optional asset regex).
-2. **Priority 2 – Built-in Project Catalog:** Curated package-to-repo mappings bundled with ApkUp.
-3. **Priority 3 – Automatic Source Discovery & FOSS Flavor Heuristic:** Upstream URLs discovered from F-Droid/IzzyOnDroid indexes, preferring FOSS builds for F-Droid-origin apps and deprioritizing `-debug` / incompatible artifacts.
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="-part-3-frequently-asked-questions-faq"></a>
-## ❓ Part 3: Frequently Asked Questions (FAQ)
+## ❓ Frequently Asked Questions (FAQ)
 
 <a id="31-why-does-apkup-show-a-warning-icon-for-a-signature-conflict"></a>
 ### 3.1 Why does ApkUp show a warning icon for a "Signature Conflict"?
@@ -208,3 +136,7 @@ Yes! `.apkm` files are split APK bundles (base app + language/ABI/density splits
 * ⚡ **[Shizuku & Background Installation](shizuku-background-installation.md)** — Silent installs & optional Root fallback.
 
 [⬆️ Back to Table of Contents](#-table-of-contents)
+
+---
+
+> 💻 **Looking for architectural internals, protocols, or security proofs?** Explore the **[Technical Overview](home.md#-technical-overview)** section.

@@ -22,6 +22,7 @@
 ---
 
 ### 🛠️ App Management & Migration
+* ♿ **[Accessibility & Accessible Mode](https://github.com/DurchEins/apkup/wiki/Accessibility-%26-Accessible-Mode)**
 * 🛠️ **[Apps, Filters, Rollbacks & Backup](https://github.com/DurchEins/apkup/wiki/App-Management,-Filters,-Background-Checks-&-Backup)**
   * [Background Checks & Time Window](https://github.com/DurchEins/apkup/wiki/App-Management,-Filters,-Background-Checks-&-Backup#14-background-checks-time-window-pre-releases--rollbacks)
   * [Self-Updater Beta Opt-In](https://github.com/DurchEins/apkup/wiki/App-Management,-Filters,-Background-Checks-&-Backup#14-background-checks-time-window-pre-releases--rollbacks)
@@ -41,9 +42,20 @@
 
 ---
 
-### 🔗 Project & Developer Docs
-* 🏷️ **[Tech: Versioning (Legacy vs. SemVer 2.0.0)](https://github.com/DurchEins/apkup/wiki/Tech-Versioning,-SemVer-2.0.0-&-Migration)**
-* 🚀 **[Tech: CI/CD & Single-Artifact Releases](https://github.com/DurchEins/apkup/wiki/Tech-CI-CD,-Single-Artifact-Releases-&-Checksums)**
+### 💻 Technical Overview
+* 🌐 **[Sources, Networking & Parsing](https://github.com/DurchEins/apkup/wiki/Tech-Update-Sources,-Networking-&-Parsing)**
+* ⚡ **[Installation, Shizuku & WorkManager](https://github.com/DurchEins/apkup/wiki/Tech-Installation,-Shizuku,-Root-&-WorkManager)**
+* 🛡️ **[Security, Cryptography & Privacy](https://github.com/DurchEins/apkup/wiki/Tech-Security,-Cryptography-&-Privacy)**
+* 🎨 **[UI, Accessibility & Website](https://github.com/DurchEins/apkup/wiki/Tech-UI,-Accessibility-&-Website-Architecture)**
+* 🚀 **[CI/CD, Releases & Checksums](https://github.com/DurchEins/apkup/wiki/Tech-CI-CD,-Single-Artifact-Releases-&-Checksums)**
+* 💾 **[Storage, Backups, Logs & Widget](https://github.com/DurchEins/apkup/wiki/Tech-Data-Storage,-Prefs,-Backups,-Logs-&-Widget)**
+* 🧪 **[Build System, R8 & Tests](https://github.com/DurchEins/apkup/wiki/Tech-Build-System,-R8-&-Automated-Tests)**
+* 🌍 **[Localization, Weblate & Assets](https://github.com/DurchEins/apkup/wiki/Tech-Localization,-Weblate-&-Assets)**
+
+---
+
+### 🔗 Project
 * 📦 **[GitHub Releases](https://github.com/DurchEins/apkup/releases)**
 * 🐛 **[Issues & Feedback](https://github.com/DurchEins/apkup/issues)**
 * 🛡️ **[Security Policy](https://github.com/DurchEins/apkup/blob/main/SECURITY.md)**
+* ♿ **[Accessibility Statement](https://github.com/DurchEins/apkup/blob/main/ACCESSIBILITY.md)**

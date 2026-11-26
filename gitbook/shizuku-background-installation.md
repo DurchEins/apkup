@@ -41,7 +41,7 @@ This document explains how to set up and how **Shizuku** and the background inst
 
 <a id="-part-1-explained-simply-for-everyone-plain-language"></a>
 <a name="-part-1-explained-simply-for-everyone-plain-language"></a>
-## 🟢 Part 1: Explained Simply for Everyone (Plain Language)
+## 📖 User Guide
 
 <a id="11-why-does-android-normally-ask-for-confirmation-on-every-update"></a>
 <a name="11-why-does-android-normally-ask-for-confirmation-on-every-update"></a>
@@ -121,96 +121,7 @@ Since version **v1.32**, ApkUp includes a dedicated background download service 
 
 <a id="-part-2-technical-documentation-for-experts--power-users"></a>
 <a name="-part-2-technical-documentation-for-experts--power-users"></a>
-## 💻 Part 2: Technical Documentation for Experts & Power Users
-
-<a id="21-architecture-of-the-dual-path-installation-pipeline"></a>
-<a name="21-architecture-of-the-dual-path-installation-pipeline"></a>
-### 2.1 Architecture of the Dual-Path Installation Pipeline
-To guarantee maximum reliability for both single and batch updates, ApkUp uses a **Dual-Path Strategy with Automatic Fallback**. All installation jobs are processed sequentially through a synchronized queue (Mutex lock):
-
-```mermaid
-flowchart TD
-    Start["Installation Job (Single APK / Split Bundle)"] --> Mutex["Sequential Session Synchronization"]
-    Mutex --> CheckPref{"Shizuku Mode Enabled?"}
-    
-    CheckPref -- "Yes" --> CheckBinder{"Shizuku Binder & Permission Ready?"}
-    CheckPref -- "No" --> NativePath["Standard Android PackageInstaller API"]
-    
-    CheckBinder -- "Ready" --> ShizukuExec["Privileged PackageManager Shell Transaction"]
-    CheckBinder -- "Not Ready / Denied" --> FallbackNotice["Notice + Automatic Fallback"]
-    
-    ShizukuExec --> ShizukuSuccess{"Exit Code == 0 & 'Success'?"}
-    ShizukuSuccess -- "Yes" --> Cleanup["Clean Temporary Files & Report Success"]
-    ShizukuSuccess -- "No (Error)" --> FallbackNotice
-    
-    FallbackNotice --> NativePath
-    NativePath --> BALCheck{"App in Foreground?"}
-    BALCheck -- "Yes" --> DirectDialog["Open System Installer Dialog Immediately"]
-    BALCheck -- "No (Background / Lock Screen)" --> HeadsUpNotif["Send High-Priority Install Notification"]
-    DirectDialog --> Cleanup
-    HeadsUpNotif --> Cleanup
-```
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="22-ipc-communication-via-android-binder"></a>
-<a name="22-ipc-communication-via-android-binder"></a>
-### 2.2 IPC Communication via Android Binder
-Communication with the privileged Shizuku server (running under system identity `UID 2000 / shell` or `UID 0 / root`) is performed via Android's Inter-Process Communication (Binder IPC):
-- **Package Verification:** Queries the Android `PackageManager` to verify whether `moe.shizuku.privileged.api` is registered on the device.
-- **Liveness Check:** Synchronously verifies the remote Binder descriptor (`pingBinder()`) prior to every transaction.
-- **Reactive State Events:** System listeners for Binder receipt, Binder death, and permission changes update the UI in real time whenever the Shizuku service starts or stops in the background.
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="23-packagemanager-shell-pipeline--play-store-attribution-comandroidvending"></a>
-<a name="23-packagemanager-shell-pipeline--play-store-attribution-comandroidvending"></a>
-### 2.3 PackageManager Shell Pipeline & Play Store Attribution (`com.android.vending`)
-When installing via Shizuku, ApkUp executes a multi-stage transaction against the Android system package manager (`pm`):
-
-1. **Isolated Staging & GZIP Verification:**
-   All downloaded package artifacts (single APK, extracted `.apkm` splits, or compressed Google Play splits) are staged in the private app cache and automatically decompressed if a GZIP magic header (`0x1f8b`) is detected.
-2. **Session Creation with Play Store Origin:**
-   ```bash
-   pm install-create -r -i com.android.vending
-   ```
-   - `-r`: Replaces the existing application while preserving all user data (`INSTALL_REPLACE_EXISTING`).
-   - `-i com.android.vending`: Sets the official installation origin (`installerPackageName`) to the Google Play Store. This ensures full compatibility with apps that verify at runtime whether they were installed from an official store source.
-3. **Streaming Package Data via Standard Input (`stdin`):**
-   For each APK split file, binary data is piped directly through a file descriptor stream into the `pm` process:
-   ```bash
-   pm install-write -S <byte_size> <session_id> <split_name.apk> -
-   ```
-   Piping directly over `stdin` cleanly avoids SELinux file access restrictions on private application directories.
-4. **Atomic Commit & Rollback Protection:**
-   ```bash
-   pm install-commit <session_id>
-   ```
-   If any sub-step fails, the session is cleanly aborted via `pm install-abandon <session_id>` and temporary staging files are purged.
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="24-foreground-service--android-14-bal-resilience"></a>
-<a name="24-foreground-service--android-14-bal-resilience"></a>
-### 2.4 Foreground Service & Android 14+ BAL Resilience
-To prevent the Android OS from terminating active downloads when the screen is off or memory pressure is high, ApkUp executes active transfers inside a protected **Android Foreground Service** (`foregroundServiceType="dataSync"`):
-- **Lifecycle Management:** The service stays active strictly as long as downloads or installations remain in the queue and stops itself immediately afterward.
-- **Protection Against Background Activity Launch (BAL) Restrictions on Android 10–16:**
-  When Shizuku is **not** used and a download finishes while ApkUp is in the background, modern Android blocks unsolicited system dialogs from popping up. ApkUp detects this state automatically and dispatches an interactive high-priority notification so the user can launch the Android installer dialog with a single tap at their convenience.
-
-[⬆️ Back to Table of Contents](#-table-of-contents)
-
----
-
-<a id="-part-3-comprehensive-frequently-asked-questions-faq--common-issues"></a>
-<a name="-part-3-comprehensive-frequently-asked-questions-faq--common-issues"></a>
-## ❓ Part 3: Comprehensive Frequently Asked Questions (FAQ) & Common Issues
+## ❓ Frequently Asked Questions (FAQ)
 
 <a id="31-do-i-need-root-access-on-my-phone-to-use-shizuku"></a>
 <a name="31-do-i-need-root-access-on-my-phone-to-use-shizuku"></a>
@@ -312,3 +223,7 @@ Starting with **v1.43.0+**, rooted devices (Magisk, KernelSU, or APatch) can opt
 ---
 
 ← Back to [Wiki Home](home.md) | Related: [Setting up Shizuku](setting-up-shizuku.md) · [App Management, Filters, Background Checks & Backup](app-management-and-backup.md)
+
+---
+
+> 💻 **Looking for architectural internals, protocols, or security proofs?** Explore the **[Technical Overview](home.md#-technical-overview)** section.
