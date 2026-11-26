@@ -55,13 +55,26 @@ Zero. ApkUp has no developer backend, no ads, no analytics SDKs, and no telemetr
 
 > [Banner] Accessible Mode & WCAG 2.2 | Accessibility
 
+> [Section] ♿ WCAG 2.2 Accessible Mode & Solar Theme
+
 - **Accessible Mode & High-Contrast Theme** A completely tailored, accessible interface can now be enabled during initial setup or anytime in Settings.
 - ↳ **First Launch & Settings** Fixed non-overlapping bottom bar, larger typography, disabled animations with haptic feedback preserved, and clear visual separation.
 - ↳ **High-Contrast Solar Theme (Auto / Light / Dark)** Automatically follows sunrise and sunset or stays permanently light or dark, with solar transition times adjustable in 15-minute steps.
 - ↳ **Clearer Reading & One-Tap Controls** Single-column lists in Apps and Updates with multi-line filter chips, labeled scroll buttons, larger touch targets, a direct Select button on every update card, and cleaner dialogs for hidden apps, skipped updates, and changelog.
-- **Cleaner Setup Menu & Pre-Download Hash Hint** Redundant layout and view toggles as well as the live preview were removed from Settings, Dynamic Color is more compact in standard mode, F-Droid and IzzyOnDroid repositories are clearly labeled, and battery exemption opens the direct system dialog. When a source does not provide a checksum before downloading, tapping the subtle shield icon next to the target version explains that Android still verifies the app signature on install.
+- **Website & Accessibility Statement** The project website now includes a nine-language accessibility statement alongside a high-contrast three-way theme switcher.
+
+> [Section] 🏠 Home Screen Widget, Backup Limits & Update Safety
+
 - **Home Screen Widget (Preview) & Backup Limits** Added a home screen widget (Preview) for available updates, configurable storage and retention limits for automatic rollback backups, update history export, and extra confirmation prompts before batch updates.
-- **Website, Accessibility Statement & Support** The project website now includes a nine-language accessibility statement alongside a high-contrast three-way theme switcher; inside the app, tapping the version in About copies full build details and GitHub Sponsors joins the support options.
+- **Pre-Download Hash Hint** When a source does not provide a checksum before downloading, tapping the subtle shield icon next to the target version explains that Android still verifies the app signature on install.
+
+> [Section] ⚙️ Setup, Sources & Support
+
+- **Cleaner Setup Menu & Direct Battery Prompt** Redundant layout and view toggles as well as the live preview were removed from Settings, Dynamic Color is more compact in standard mode, F-Droid and IzzyOnDroid repositories are clearly labeled, and battery exemption opens the direct system dialog.
+- **Support & About Version Copy** Inside the app, tapping the version in About copies full build details and GitHub Sponsors joins the support options.
+
+> [Section] ✨ General Improvements
+
 - **General Improvements** Fixed minor visual issues, refined download security checks, and improved overall stability.
 
 ### November 22, 2026 | 1.46.0 (231) | Feature Update
